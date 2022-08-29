@@ -81,46 +81,46 @@ class NativeEntropySource
     }
 
     /**
-       * Hardware rand is supported.
-       *
-       * @return true if a hardware rand is supported.
-       */
-      static boolean hasHardwareESRand()
-      {
-          return FipsStatus.isNativeSupported() && hasHardwareRand();
-      }
+     * Hardware rand is supported.
+     *
+     * @return true if a hardware rand is supported.
+     */
+    static boolean hasHardwareESRand()
+    {
+        return isNativeSupported() && hasHardwareRand();
+    }
 
-      /**
-       * Hardware seed generation is supported.
-       *
-       * @return true is the CPU has specific support for seed generation.
-       */
-      static boolean hasHardwareESSeed()
-      {
-          return FipsStatus.isNativeSupported() && hasHardwareSeed();
-      }
+    /**
+     * Hardware seed generation is supported.
+     *
+     * @return true is the CPU has specific support for seed generation.
+     */
+    static boolean hasHardwareESSeed()
+    {
+        return isNativeSupported() && hasHardwareSeed();
+    }
 
-      /**
-       * Entropy generation is supported either via rand or specific seed generation at a hardware level.
-       *
-       * @return true if seed or rand is supported
-       */
-      static boolean hasHardwareEntropy()
-      {
-          return hasHardwareESSeed() || hasHardwareESRand();
-      }
+    /**
+     * Entropy generation is supported either via rand or specific seed generation at a hardware level.
+     *
+     * @return true if seed or rand is supported
+     */
+    static boolean hasHardwareEntropy()
+    {
+        return hasHardwareESSeed() || hasHardwareESRand();
+    }
 
-      static boolean hasHardwareRand()
-      {
-          try
-          {
-              return hasNativeRand();
-          }
-          catch (UnsatisfiedLinkError ule)
-          {
-              return false;
-          }
-      }
+    static boolean hasHardwareRand()
+    {
+        try
+        {
+            return hasNativeRand();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            return false;
+        }
+    }
 
     static boolean hasHardwareSeed()
     {
