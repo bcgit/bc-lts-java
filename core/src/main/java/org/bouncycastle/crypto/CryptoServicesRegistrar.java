@@ -2,6 +2,7 @@ package org.bouncycastle.crypto;
 
 import java.math.BigInteger;
 import java.security.AccessController;
+import java.security.NoSuchAlgorithmException;
 import java.security.Permission;
 import java.security.PrivilegedAction;
 import java.security.SecureRandom;
@@ -16,6 +17,9 @@ import org.bouncycastle.crypto.params.DHParameters;
 import org.bouncycastle.crypto.params.DHValidationParameters;
 import org.bouncycastle.crypto.params.DSAParameters;
 import org.bouncycastle.crypto.params.DSAValidationParameters;
+import org.bouncycastle.crypto.prng.BasicEntropySourceProvider;
+import org.bouncycastle.crypto.prng.EntropySource;
+import org.bouncycastle.crypto.prng.EntropySourceProvider;
 import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.encoders.Hex;
 
@@ -183,6 +187,31 @@ public final class CryptoServicesRegistrar
         checkPermission(CanSetDefaultRandom);
 
         defaultSecureRandomProvider.set(secureRandomProvider);
+    }
+
+    public static EntropySourceProvider getDefaultEntropySourceProvider()
+    {
+        if (NativeEntropySource.hasHardwareEntropy())
+        {
+            return new EntropySourceProvider()
+            {
+                public EntropySource get(int bitsRequired)
+                {
+                    return new NativeEntropySource(bitsRequired);
+                }
+            };
+        }
+        else
+        {
+            try
+            {
+                return new BasicEntropySourceProvider(SecureRandom.getInstanceStrong(), true);
+            }
+            catch (NoSuchAlgorithmException e)
+            {
+                throw new IllegalStateException("no system SecureRandom: " + e.getMessage(), e);
+            }
+        }
     }
 
     /**
