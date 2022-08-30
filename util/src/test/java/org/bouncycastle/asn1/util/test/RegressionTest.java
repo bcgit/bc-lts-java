@@ -1,0 +1,139 @@
+package org.bouncycastle.asn1.util.test;
+
+import org.bouncycastle.asn1.cmc.test.BodyPartIDTest;
+import org.bouncycastle.asn1.cmc.test.BodyPartListTest;
+import org.bouncycastle.asn1.cmc.test.BodyPartPathTest;
+import org.bouncycastle.asn1.cmc.test.BodyPartReferenceTest;
+import org.bouncycastle.asn1.cmc.test.CMCCertificationRequestTest;
+import org.bouncycastle.asn1.cmc.test.CMCFailInfoTest;
+import org.bouncycastle.asn1.cmc.test.CMCPublicationInfoTest;
+import org.bouncycastle.asn1.cmc.test.CMCStatusInfoTest;
+import org.bouncycastle.asn1.cmc.test.CMCStatusInfoV2Test;
+import org.bouncycastle.asn1.cmc.test.CMCStatusTest;
+import org.bouncycastle.asn1.cmc.test.CMCUnsignedDataTest;
+import org.bouncycastle.asn1.cmc.test.ControlsProcessedTest;
+import org.bouncycastle.asn1.cmc.test.DecryptedPOPTest;
+import org.bouncycastle.asn1.cmc.test.EncryptedPOPTest;
+import org.bouncycastle.asn1.cmc.test.ExtendedFailInfoTest;
+import org.bouncycastle.asn1.cmc.test.ExtensionReqTest;
+import org.bouncycastle.asn1.cmc.test.GetCRLTest;
+import org.bouncycastle.asn1.cmc.test.GetCertTest;
+import org.bouncycastle.asn1.cmc.test.IdentityProofV2Test;
+import org.bouncycastle.asn1.cmc.test.LraPopWitnessTest;
+import org.bouncycastle.asn1.cmc.test.ModCertTemplateTest;
+import org.bouncycastle.asn1.cmc.test.OtherMsgTest;
+import org.bouncycastle.asn1.cmc.test.OtherStatusInfoTest;
+import org.bouncycastle.asn1.cmc.test.PKIDataTest;
+import org.bouncycastle.asn1.cmc.test.PKIResponseTest;
+import org.bouncycastle.asn1.cmc.test.PendInfoTest;
+import org.bouncycastle.asn1.cmc.test.PopLinkWitnessV2Test;
+import org.bouncycastle.asn1.cmc.test.PublishTrustAnchorsTest;
+import org.bouncycastle.asn1.cmc.test.RevokeRequestTest;
+import org.bouncycastle.asn1.cmc.test.TaggedAttributeTest;
+import org.bouncycastle.asn1.cmc.test.TaggedCertificationRequestTest;
+import org.bouncycastle.asn1.cmc.test.TaggedContentInfoTest;
+import org.bouncycastle.asn1.cmc.test.TaggedRequestTest;
+import org.bouncycastle.asn1.cmp.test.CertifiedKeyPairTest;
+import org.bouncycastle.asn1.cmp.test.PKIFailureInfoTest;
+import org.bouncycastle.asn1.cmp.test.PollReqContentTest;
+import org.bouncycastle.asn1.cms.test.AttributeTableUnitTest;
+import org.bouncycastle.asn1.cms.test.CMSTest;
+import org.bouncycastle.asn1.crmf.test.DhSigStaticTest;
+import org.bouncycastle.asn1.crmf.test.PKIPublicationInfoTest;
+import org.bouncycastle.asn1.esf.test.CommitmentTypeIndicationUnitTest;
+import org.bouncycastle.asn1.esf.test.CommitmentTypeQualifierUnitTest;
+import org.bouncycastle.asn1.esf.test.SignerLocationUnitTest;
+import org.bouncycastle.asn1.ess.test.ContentHintsUnitTest;
+import org.bouncycastle.asn1.ess.test.ESSCertIDv2UnitTest;
+import org.bouncycastle.asn1.ess.test.OtherCertIDUnitTest;
+import org.bouncycastle.asn1.ess.test.OtherSigningCertificateUnitTest;
+import org.bouncycastle.asn1.icao.test.CscaMasterListTest;
+import org.bouncycastle.asn1.icao.test.DataGroupHashUnitTest;
+import org.bouncycastle.asn1.icao.test.LDSSecurityObjectUnitTest;
+import org.bouncycastle.asn1.isismtt.test.AdditionalInformationSyntaxUnitTest;
+import org.bouncycastle.asn1.isismtt.test.AdmissionSyntaxUnitTest;
+import org.bouncycastle.asn1.isismtt.test.AdmissionsUnitTest;
+import org.bouncycastle.asn1.isismtt.test.CertHashUnitTest;
+import org.bouncycastle.asn1.isismtt.test.DeclarationOfMajorityUnitTest;
+import org.bouncycastle.asn1.isismtt.test.MonetaryLimitUnitTest;
+import org.bouncycastle.asn1.isismtt.test.NamingAuthorityUnitTest;
+import org.bouncycastle.asn1.isismtt.test.ProcurationSyntaxUnitTest;
+import org.bouncycastle.asn1.isismtt.test.RequestedCertificateUnitTest;
+import org.bouncycastle.asn1.isismtt.test.RestrictionUnitTest;
+import org.bouncycastle.asn1.smime.test.SMIMETest;
+import org.bouncycastle.util.test.SimpleTest;
+import org.bouncycastle.util.test.Test;
+
+public class RegressionTest
+{
+    public static Test[] tests = {
+        new BodyPartIDTest(),
+        new BodyPartListTest(),
+        new BodyPartPathTest(),
+        new BodyPartReferenceTest(),
+        new CMCCertificationRequestTest(),
+        new CMCFailInfoTest(),
+        new CMCPublicationInfoTest(),
+        new CMCStatusInfoTest(),
+        new CMCPublicationInfoTest(),
+        new CMCStatusInfoTest(),
+        new CMCStatusInfoV2Test(),
+        new CMCStatusTest(),
+        new CMCUnsignedDataTest(),
+        new ControlsProcessedTest(),
+        new DecryptedPOPTest(),
+        new EncryptedPOPTest(),
+        new ExtendedFailInfoTest(),
+        new ExtensionReqTest(),
+        new GetCertTest(),
+        new GetCRLTest(),
+        new IdentityProofV2Test(),
+        new LraPopWitnessTest(),
+        new ModCertTemplateTest(),
+        new OtherMsgTest(),
+        new OtherStatusInfoTest(),
+        new PendInfoTest(),
+        new PKIDataTest(),
+        new PKIResponseTest(),
+        new PopLinkWitnessV2Test(),
+        new PublishTrustAnchorsTest(),
+        new RevokeRequestTest(),
+        new TaggedAttributeTest(),
+        new TaggedCertificationRequestTest(),
+        new TaggedContentInfoTest(),
+        new TaggedRequestTest(),
+        new CertifiedKeyPairTest(),
+        new PKIFailureInfoTest(),
+        new PollReqContentTest(),
+        new AttributeTableUnitTest(),
+        new CMSTest(),
+        new DhSigStaticTest(),
+        new PKIPublicationInfoTest(),
+        new CommitmentTypeIndicationUnitTest(),
+        new CommitmentTypeQualifierUnitTest(),
+        new SignerLocationUnitTest(),
+        new ContentHintsUnitTest(),
+        new ESSCertIDv2UnitTest(),
+        new OtherCertIDUnitTest(),
+        new OtherSigningCertificateUnitTest(),
+        new CscaMasterListTest(),
+        new DataGroupHashUnitTest(),
+        new LDSSecurityObjectUnitTest(),
+        new AdditionalInformationSyntaxUnitTest(),
+        new AdmissionsUnitTest(),
+        new AdmissionSyntaxUnitTest(),
+        new CertHashUnitTest(),
+        new DeclarationOfMajorityUnitTest(),
+        new MonetaryLimitUnitTest(),
+        new NamingAuthorityUnitTest(),
+        new ProcurationSyntaxUnitTest(),
+        new RequestedCertificateUnitTest(),
+        new RestrictionUnitTest(),
+        new SMIMETest(),
+    };
+
+    public static void main(String[] args)
+    {
+        SimpleTest.runTests(tests);
+    }
+}
