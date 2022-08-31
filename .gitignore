@@ -1,0 +1,10 @@
+build
+gradlew
+gradlew.bat
+/buildSrc/build/
+/buildSrc/.gradle/
+/core/out/
+/mail/out/
+/pkix/out/
+/prov/out/
+/tls/out/

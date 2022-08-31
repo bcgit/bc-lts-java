@@ -177,6 +177,22 @@ public class Properties
      * starts with java.security, then thread local, then system properties.
      *
      * @param propertyName name of property.
+     * @param defaultValueIfNull the default to use if the property is not set.
+     * @return value of property as a String, null if not defined.
+     */
+    public static String getPropertyValue(final String propertyName, String defaultValueIfNull) {
+        String val = getPropertyValue(propertyName);
+        if (val == null) {
+            return defaultValueIfNull;
+        }
+        return val;
+    }
+
+    /**
+     * Return the String value of the property propertyName. Property valuation
+     * starts with java.security, then thread local, then system properties.
+     *
+     * @param propertyName name of property.
      * @return value of property as a String, null if not defined.
      */
     public static String getPropertyValue(final String propertyName)

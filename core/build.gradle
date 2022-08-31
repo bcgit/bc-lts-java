@@ -1,0 +1,147 @@
+import static ExtraFunctions.*
+
+  task variantFile() {
+    doLast {
+
+      StringBuilder builder = new StringBuilder();
+      builder.append("java:/");
+
+      String moduleType = findProperty("fips-module");
+      if (moduleType != null && moduleType.trim().equals("hybrid"))
+      {
+
+        boolean linux = false;
+        ifTrue(project, "native.intel.linux.x86_64.sse", {
+          builder.append("\nlinux-x86_64-sse:/native/linux/x86_64/sse");
+          linux = true;
+        })
+
+        ifTrue(project, "native.intel.linux.x86_64.avx", {
+          builder.append("\nlinux-x86_64-avx:/native/linux/x86_64/avx");
+          linux = true;
+        })
+
+        ifTrue(project, "native.intel.linux.x86_64.vaes", {
+          builder.append("\nlinux-x86_64-vaes:/native/linux/x86_64/vaes");
+          linux = true;
+        })
+
+
+        if (linux)
+        {
+          builder.append("\nlinux-x86_64-probe:/native/linux/x86_64/probe");
+        }
+
+        boolean darwin = false;
+
+        ifTrue(project, "native.intel.darwin.x86_64.sse", {
+          builder.append("\ndarwin-x86_64-sse:/native/darwin/x86_64/sse");
+          darwin = true;
+        })
+
+        ifTrue(project, "native.intel.darwin.x86_64.avx", {
+          builder.append("\ndarwin-x86_64-avx:/native/darwin/x86_64/avx");
+          darwin = true;
+        })
+
+
+        ifTrue(project, "native.intel.darwin.x86_64.vaes", {
+          builder.append("\ndarwin-x86_64-vaes:/native/darwin/x86_64/vaes");
+          darwin = true;
+        })
+
+
+        if (darwin)
+        {
+          builder.append("\ndarwin-x86_64-probe:/native/darwin/x86_64/probe");
+        }
+
+      }
+
+      File dir = new File(projectDir, "/src/main/resources/META-INF/");
+      dir.mkdirs();
+      new File(dir, "DRIVERS").text = builder.toString();
+    }
+  }
+
+  tasks.compileJava.dependsOn(variantFile);
+
+  task withNative() {
+    doLast {
+
+      StringBuilder builder = new StringBuilder();
+      builder.append("java:/");
+
+      String moduleType = findProperty("fips-module");
+      if (moduleType != null && moduleType.trim().equals("hybrid"))
+      {
+
+        List<String> deps = new ArrayList<>();
+        boolean linux = false;
+        ifTrue(project, "native.intel.linux.x86_64.sse", {
+          builder.append("\nlinux-x86_64-sse:/native/linux/x86_64/sse");
+          copyDirContent("$rootDir/native/target/linux/x86_64/sse", "$projectDir/src/main/resources/native/linux/x86_64/sse")
+          scanAndAddFilename(deps, "$projectDir/src/main/resources/native/linux/x86_64/sse", ".so");
+          linux = true;
+        })
+
+        ifTrue(project, "native.intel.linux.x86_64.avx",
+                {
+                  builder.append("\nlinux-x86_64-avx:/native/linux/x86_64/avx");
+                  copyDirContent("$rootDir/native/target/linux/x86_64/avx", "$projectDir/src/main/resources/native/linux/x86_64/avx")
+                  scanAndAddFilename(deps, "$projectDir/src/main/resources/native/linux/x86_64/avx", ".so");
+                  linux = true;
+                });
+
+        ifTrue(project, "native.intel.linux.x86_64.vaes",
+                {
+                  builder.append("\nlinux-x86_64-vaes:/native/linux/x86_64/vaes");
+                  copyDirContent("$rootDir/native/target/linux/x86_64/vaes", "$projectDir/src/main/resources/native/linux/x86_64/vaes")
+                  scanAndAddFilename(deps, "$projectDir/src/main/resources/native/linux/x86_64/vaes", ".so");
+                  linux = true;
+                });
+
+        if (linux)
+        {
+          builder.append("\nlinux-x86_64-probe:/native/linux/x86_64/probe");
+          copyDirContent("$rootDir/native/target/linux/x86_64/probe", "$projectDir/src/main/resources/native/linux/x86_64/probe")
+          scanAndAddFilename(deps, "$projectDir/src/main/resources/native/linux/x86_64/probe", ".so");
+          installDeps(deps, "$rootDir/native/target/linux/x86_64/", "$projectDir/src/main/resources/native/linux/x86_64/")
+          deps.clear();
+        }
+
+        boolean darwin = false;
+        ifTrue(project, "native.intel.darwin.x86_64.sse",
+                {
+                  darwin = true;
+                  builder.append("\ndarwin-x86_64-sse:/native/darwin/x86_64/sse");
+                  copyDirContent("$rootDir/native/target/darwin/x86_64/sse", "$projectDir/src/main/resources/native/darwin/x86_64/sse")
+                });
+
+        ifTrue(project, "native.intel.darwin.x86_64.avx",
+                {
+                  darwin = true;
+                  builder.append("\ndarwin-x86_64-avx:/native/darwin/x86_64/avx");
+                  copyDirContent("$rootDir/native/target/darwin/x86_64/avx", "$projectDir/src/main/resources/native/darwin/x86_64/avx")
+                });
+
+        if ("true".equals(findProperty("native.intel.darwin.x86_64.vaes")))
+        {
+          darwin = true;
+          copyDirContent("$rootDir/native/target/darwin/x86_64/vaes", "$projectDir/src/main/resources/native/darwin/x86_64/vaes")
+        }
+
+        if (darwin)
+        {
+          builder.append("\ndarwin-x86_64-probe:/native/darwin/x86_64/probe");
+          copyDirContent("$rootDir/native/target/darwin/x86_64/probe", "$projectDir/src/main/resources/native/darwin/x86_64/probe")
+        }
+
+      }
+
+      File dir = new File(projectDir, "/src/main/resources/META-INF/");
+      dir.mkdirs();
+      new File(dir, "DRIVERS").text = builder.toString();
+    }
+  }
+

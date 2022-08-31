@@ -3,16 +3,13 @@ package org.bouncycastle.crypto;
 import java.util.Arrays;
 
 import org.bouncycastle.crypto.prng.EntropySource;
+import org.bouncycastle.util.NativeFeatures;
+import org.bouncycastle.util.NativeLoader;
+
 
 class NativeEntropySource
     implements EntropySource
 {
-    /**
-     * CPU can generate random values, algorithm depends on CPU.
-     * Check CPU Vendor documentation for applicability.
-     */
-    private static final int HW_RND = 1;
-    private static final int HW_SEED = 2;
 
     private final int size;
     private final int effectiveSize;
@@ -31,18 +28,17 @@ class NativeEntropySource
             throw new IllegalStateException("no hardware support for random");
         }
 
-        useSeedSource = hasHardwareESSeed();
+        useSeedSource = NativeLoader.hasHardwareESSeed();
 
         int mod = modulus();
         effectiveSize = ((size + mod - 1) / mod) * mod;
     }
 
-    @Override
+
     public native boolean isPredictionResistant();
 
     public native int modulus();
 
-    @Override
     public byte[] getEntropy()
     {
         byte[] buf = new byte[effectiveSize];
@@ -50,7 +46,7 @@ class NativeEntropySource
 
         if (areAllZeroes(buf, 0, buf.length))
         {
-            throw new IllegalStateException("entropy source return array of len "
+            throw new IllegalStateException("entropy source returned an array of len "
                 + buf.length + " where all elements are 0");
         }
 
@@ -64,7 +60,7 @@ class NativeEntropySource
 
     private native void seedBuffer(byte[] buf, boolean useSeedSource);
 
-    @Override
+
     public int entropySize()
     {
         return size * 8;
@@ -80,25 +76,6 @@ class NativeEntropySource
         return bits == 0;
     }
 
-    /**
-     * Hardware rand is supported.
-     *
-     * @return true if a hardware rand is supported.
-     */
-    static boolean hasHardwareESRand()
-    {
-        return isNativeSupported() && hasHardwareRand();
-    }
-
-    /**
-     * Hardware seed generation is supported.
-     *
-     * @return true is the CPU has specific support for seed generation.
-     */
-    static boolean hasHardwareESSeed()
-    {
-        return isNativeSupported() && hasHardwareSeed();
-    }
 
     /**
      * Entropy generation is supported either via rand or specific seed generation at a hardware level.
@@ -107,42 +84,8 @@ class NativeEntropySource
      */
     static boolean hasHardwareEntropy()
     {
-        return hasHardwareESSeed() || hasHardwareESRand();
+        return NativeLoader.hasHardwareESSeed() || NativeLoader.hasHardwareESRand();
     }
 
-    static boolean hasHardwareRand()
-    {
-        try
-        {
-            return hasNativeRand();
-        }
-        catch (UnsatisfiedLinkError ule)
-        {
-            return false;
-        }
-    }
 
-    static boolean hasHardwareSeed()
-    {
-        try
-        {
-            return hasNativeSeed();
-        }
-        catch (UnsatisfiedLinkError ule)
-        {
-            return false;
-        }
-    }
-
-    private static boolean hasNativeRand()
-    {
-        return (rngCapabilities() & HW_RND) == HW_RND;
-    }
-
-    private static boolean hasNativeSeed()
-    {
-        return (rngCapabilities() & HW_SEED) == HW_SEED;
-    }
-
-    private static native int rngCapabilities();
 }
