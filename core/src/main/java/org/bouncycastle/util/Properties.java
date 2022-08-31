@@ -47,7 +47,7 @@ public class Properties
      * Return whether a particular override has been set to false.
      *
      * @param propertyName the property name for the override.
-     * @param isTrue true if the override should be true, false otherwise.
+     * @param isTrue       true if the override should be true, false otherwise.
      * @return true if the property is set to the value of isTrue, false otherwise.
      */
     public static boolean isOverrideSetTo(String propertyName, boolean isTrue)
@@ -71,7 +71,7 @@ public class Properties
      * Enable the specified override property for the current thread only.
      *
      * @param propertyName the property name for the override.
-     * @param enable true if the override should be enabled, false if it should be disabled.
+     * @param enable       true if the override should be enabled, false if it should be disabled.
      * @return true if the override was already set true, false otherwise.
      */
     public static boolean setThreadOverride(String propertyName, boolean enable)
@@ -176,13 +176,15 @@ public class Properties
      * Return the String value of the property propertyName. Property valuation
      * starts with java.security, then thread local, then system properties.
      *
-     * @param propertyName name of property.
+     * @param propertyName       name of property.
      * @param defaultValueIfNull the default to use if the property is not set.
      * @return value of property as a String, null if not defined.
      */
-    public static String getPropertyValue(final String propertyName, String defaultValueIfNull) {
+    public static String getPropertyValue(final String propertyName, String defaultValueIfNull)
+    {
         String val = getPropertyValue(propertyName);
-        if (val == null) {
+        if (val == null)
+        {
             return defaultValueIfNull;
         }
         return val;
