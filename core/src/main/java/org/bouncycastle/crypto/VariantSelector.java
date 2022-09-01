@@ -1,4 +1,4 @@
-package org.bouncycastle.util;
+package org.bouncycastle.crypto;
 
 /**
  * A class with native backing that examines the machine

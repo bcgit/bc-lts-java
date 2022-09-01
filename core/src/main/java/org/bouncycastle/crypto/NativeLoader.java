@@ -1,4 +1,4 @@
-package org.bouncycastle.util;
+package org.bouncycastle.crypto;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,6 +18,9 @@ import java.util.Set;
 import java.util.jar.JarException;
 
 import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Properties;
+import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.io.Streams;
 
 public class NativeLoader
@@ -58,59 +61,8 @@ public class NativeLoader
         return NativeLoader.isNativeAvailable() && NativeFeatures.hasAESHardwareSupport();
     }
 
-    /**
-     * Hardware Aes GCM is supported (AES and CMUL).
-     *
-     * @return true if Aes GCM is supported
-     */
-    public static boolean hasHardwareAesGCM()
-    {
-        return NativeLoader.isNativeAvailable() && NativeFeatures.hasGCMHardwareSupport();
-    }
 
-    /**
-     * Hardware rand is supported.
-     *
-     * @return true if a hardware rand is supported.
-     */
-    public static boolean hasHardwareESRand()
-    {
-        return isNativeAvailable() && NativeFeatures.hasHardwareRand();
-    }
-
-    /**
-     * Hardware seed generation is supported.
-     *
-     * @return true is the CPU has specific support for seed generation.
-     */
-    public static boolean hasHardwareESSeed()
-    {
-        return isNativeAvailable() && NativeFeatures.hasHardwareSeed();
-    }
-
-
-    /**
-     * Entropy generation is supported either via rand or specific seed generation at a hardware level.
-     *
-     * @return true if seed or rand is supported
-     */
-    public static boolean hasHardwareEntropy()
-    {
-        return hasHardwareESSeed() || hasHardwareESRand();
-    }
-
-    /**
-     * Hardware SHA is supported.
-     *
-     * @return true if there is support for SHA xx support in hardware.
-     */
-    public static boolean hasHardwareSHA()
-    {
-        return NativeLoader.isNativeAvailable() && NativeFeatures.hasHardwareSHA();
-    }
-
-
-    public static synchronized boolean isJavaSupportOnly()
+    static synchronized boolean isJavaSupportOnly()
     {
         return javaSupportOnly;
     }
@@ -120,7 +72,7 @@ public class NativeLoader
      *
      * @return true if the native lib has been installed.
      */
-    public static synchronized boolean isNativeInstalled()
+    static synchronized boolean isNativeInstalled()
     {
         return nativeInstalled;
     }
@@ -130,7 +82,7 @@ public class NativeLoader
      *
      * @return true if native libs have been installed and are NOT disabled.
      */
-    public static synchronized boolean isNativeAvailable()
+    static synchronized boolean isNativeAvailable()
     {
         return nativeLibsAvailableForSystem && nativeInstalled && nativeEnabled;
     }
@@ -140,12 +92,12 @@ public class NativeLoader
      *
      * @param enabled when true will disable the use of native extensions.
      */
-    public static synchronized void setNativeEnabled(boolean enabled)
+    static synchronized void setNativeEnabled(boolean enabled)
     {
         nativeEnabled = enabled;
     }
 
-    public static synchronized String getNativeStatusMessage()
+    static synchronized String getNativeStatusMessage()
     {
         return nativeStatusMessage;
     }

@@ -1,5 +1,5 @@
 
-#include "org_bouncycastle_util_VariantSelector.h"
+#include "org_bouncycastle_crypto_VariantSelector.h"
 
 
 typedef struct cpuid_struct {
@@ -21,15 +21,13 @@ void cpuid(cpuid_t *info, unsigned int leaf, unsigned int subleaf) {
  * Method:    getBestVariantName
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_org_bouncycastle_util_VariantSelector_getBestVariantName
+JNIEXPORT jstring JNICALL Java_org_bouncycastle_crypto_VariantSelector_getBestVariantName
         (JNIEnv *env, jclass) {
 
-    // All new strings are owned by the JVM.
 
     cpuid_t info;
 
     // Bits from https://en.wikipedia.org/wiki/CPUID
-
 
     //
     // Page 1
@@ -42,8 +40,8 @@ JNIEXPORT jstring JNICALL Java_org_bouncycastle_util_VariantSelector_getBestVari
     //
     cpuid(&info, 7, 0);
     bool vaes = ((info.ecx >> 9) & 1) != 0; // vaes
-    //  bool avx512f = ((info.ebx >> 16) & 1) != 0; // avx512_f
-    // bool avx512vl = ((info.ebx >> 31) & 1) != 0; // avx512_vl
+    //  bool avx512f = ((info.ebx >> 16) & 1) != 0;
+    // bool avx512vl = ((info.ebx >> 31) & 1) != 0;
     // bool avx2 = ((info.ebx >> 5) & 1) != 0; // avx2
 
     /*
@@ -52,6 +50,10 @@ JNIEXPORT jstring JNICALL Java_org_bouncycastle_util_VariantSelector_getBestVari
     }
      */
 
+
+    //
+    // Strings owned by JVM
+    //
     if (avx) {
         return env->NewStringUTF(BC_VARIANT_PREFIX"-avx");
     }

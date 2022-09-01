@@ -3,8 +3,6 @@ package org.bouncycastle.crypto;
 import java.util.Arrays;
 
 import org.bouncycastle.crypto.prng.EntropySource;
-import org.bouncycastle.util.NativeFeatures;
-import org.bouncycastle.util.NativeLoader;
 
 
 class NativeEntropySource
@@ -28,7 +26,7 @@ class NativeEntropySource
             throw new IllegalStateException("no hardware support for random");
         }
 
-        useSeedSource = NativeLoader.hasHardwareESSeed();
+        useSeedSource = CryptoServicesRegistrar.queryNativeFeature("SEED");
 
         int mod = modulus();
         effectiveSize = ((size + mod - 1) / mod) * mod;
@@ -84,7 +82,8 @@ class NativeEntropySource
      */
     static boolean hasHardwareEntropy()
     {
-        return NativeLoader.hasHardwareESSeed() || NativeLoader.hasHardwareESRand();
+        return CryptoServicesRegistrar.queryNativeFeature(CryptoServicesRegistrar.NATIVE_SEED) ||
+            CryptoServicesRegistrar.queryNativeFeature(CryptoServicesRegistrar.NATIVE_RAND);
     }
 
 

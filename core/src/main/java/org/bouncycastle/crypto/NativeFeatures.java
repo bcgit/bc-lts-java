@@ -1,7 +1,39 @@
-package org.bouncycastle.util;
+package org.bouncycastle.crypto;
 
 public class NativeFeatures
 {
+
+    static boolean hasCFBHardwareSupport()
+    {
+        try
+        {
+            return nativeCFB();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            //
+        }
+        return false;
+    }
+
+    native private static boolean nativeCFB();
+
+    static boolean hasCBCHardwareSupport()
+    {
+        try
+        {
+            return nativeCBC();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            //
+        }
+        return false;
+    }
+
+    private native static boolean nativeCBC();
+
+
     static boolean hasAESHardwareSupport()
     {
         try
@@ -22,7 +54,7 @@ public class NativeFeatures
     {
         try
         {
-            return nativeCMUL() && nativeAES();
+            return nativeGCM();
         }
         catch (UnsatisfiedLinkError ule)
         {
@@ -30,7 +62,7 @@ public class NativeFeatures
         }
     }
 
-    private static native boolean nativeCMUL();
+    private static native boolean nativeGCM();
 
 
     static boolean hasHardwareRand()

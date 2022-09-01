@@ -1,9 +1,7 @@
 package org.bouncycastle.crypto;
 
 import junit.framework.TestCase;
-import org.bouncycastle.crypto.NativeEntropySource;
 import org.bouncycastle.util.Arrays;
-import org.bouncycastle.util.NativeLoader;
 import org.junit.Test;
 
 public class NativeEntropyTest
@@ -22,7 +20,7 @@ public class NativeEntropyTest
 
         NativeLoader.loadDriver();
 
-        if (!NativeLoader.hasHardwareEntropy())
+        if (!CryptoServicesRegistrar.queryNativeFeature(CryptoServicesRegistrar.NATIVE_ENTROPY))
         {
             System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
         }

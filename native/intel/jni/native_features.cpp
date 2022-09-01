@@ -1,5 +1,5 @@
 
-#include "org_bouncycastle_util_NativeFeatures.h"
+#include "org_bouncycastle_crypto_NativeFeatures.h"
 
 
 
@@ -19,11 +19,52 @@ void cpuid(cpuid_t *info, unsigned int leaf, unsigned int subleaf) {
 
 
 /*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeCFB
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCFB
+        (JNIEnv *, jclass) {
+    return JNI_FALSE;
+}
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeCBC
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCBC
+        (JNIEnv *, jclass) {
+    return JNI_FALSE;
+}
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeAES
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeAES
+        (JNIEnv *, jclass) {
+    return JNI_FALSE;
+}
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeGCM
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCM
+        (JNIEnv *, jclass){
+    return JNI_FALSE;
+}
+
+
+/*
  * Class:     org_bouncycastle_util_NativeFeatures
  * Method:    nativeRand
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_org_bouncycastle_util_NativeFeatures_nativeRand
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeRand
         (JNIEnv *, jclass) {
 
     cpuid_t info;
@@ -38,7 +79,7 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_util_NativeFeatures_nativeRand
  * Method:    nativeSeed
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_org_bouncycastle_util_NativeFeatures_nativeSeed
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSeed
         (JNIEnv *, jclass) {
     cpuid_t info;
     cpuid(&info, 7, 0);
@@ -47,32 +88,11 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_util_NativeFeatures_nativeSeed
 }
 
 /*
- * Class:     org_bouncycastle_util_NativeFeatures
- * Method:    nativeAES
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_org_bouncycastle_util_NativeFeatures_nativeAES
-        (JNIEnv *, jclass) {
-    return JNI_FALSE;
-}
-
-/*
- * Class:     org_bouncycastle_util_NativeFeatures
- * Method:    nativeCMUL
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_org_bouncycastle_util_NativeFeatures_nativeCMUL
-        (JNIEnv *, jclass) {
-    return JNI_FALSE;
-}
-
-
-/*
- * Class:     org_bouncycastle_util_NativeFeatures
+ * Class:     org_bouncycastle_crypto_NativeFeatures
  * Method:    nativeSHA2
  * Signature: ()Z
  */
-JNIEXPORT jboolean JNICALL Java_org_bouncycastle_util_NativeFeatures_nativeSHA2
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA2
         (JNIEnv *, jclass) {
     return JNI_FALSE;
 }

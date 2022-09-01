@@ -1,4 +1,4 @@
-package org.bouncycastle.util;
+package org.bouncycastle.crypto;
 
 /**
  * Native methods in this class are implemented by the specific native lib version

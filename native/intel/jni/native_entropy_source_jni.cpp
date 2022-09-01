@@ -12,7 +12,7 @@ using jniutil::JavaEnvUtils;
 
 
 /*
- * Class:     org_bouncycastle_fips_crypto_HWEntropySource
+ * Class:     org_bouncycastle_crypto_HWEntropySource
  * Method:    isPredictionResistant
  * Signature: ()Z
  */

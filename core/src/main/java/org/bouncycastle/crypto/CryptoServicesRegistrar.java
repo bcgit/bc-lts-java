@@ -9,6 +9,7 @@ import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
@@ -49,13 +50,25 @@ public final class CryptoServicesRegistrar
     {
         public void check(CryptoServiceProperties service)
         {
-             // anything goes.
+            // anything goes.
         }
     };
 
     private static final AtomicReference<SecureRandomProvider> defaultSecureRandomProvider = new AtomicReference<SecureRandomProvider>();
     private static final boolean preconfiguredConstraints;
     private static final AtomicReference<CryptoServicesConstraints> servicesConstraints = new AtomicReference<CryptoServicesConstraints>();
+    public static final String NATIVE_SEED = "SEED";
+    public static final String NATIVE_RAND = "RAND";
+    public static final String NATIVE_AES_ECB = "AES/ECB";
+    public static final String NATIVE_AES_GCM = "AES/GCM";
+    public static final String NATIVE_AES_CBC = "AES/CBC";
+    public static final String NATIVE_AES_CFB = "AES/CFB";
+
+    public static final String NATIVE_ENTROPY = "ENTROPY";
+
+
+    private static ConcurrentHashMap<String, Boolean> queriedFeaturesMap = new ConcurrentHashMap<String, Boolean>();
+    private static String nativeFeatureString;
 
     static
     {
@@ -124,10 +137,63 @@ public final class CryptoServicesRegistrar
         preconfiguredConstraints = (servicesConstraints.get() != noConstraintsImpl);
     }
 
+
+    static
+    {
+        NativeLoader.loadDriver();
+    }
+
+
     private CryptoServicesRegistrar()
     {
 
     }
+
+    public static String getNativeFeatureString()
+    {
+        return getFeatureString();
+    }
+
+    public static String getNativeStatusString()
+    {
+        return NativeLoader.getNativeStatusMessage();
+    }
+
+    public static boolean isJavaOnly()
+    {
+        return NativeLoader.isJavaSupportOnly();
+    }
+
+    public static boolean isNativeEnabled()
+    {
+        return NativeLoader.isNativeAvailable();
+    }
+
+    public static synchronized void setNativeEnabled(boolean enabled)
+    {
+        NativeLoader.setNativeEnabled(enabled);
+        queriedFeaturesMap.clear();
+        nativeFeatureString = null;
+    }
+
+    public static String getNativeVariant()
+    {
+        return NativeLoader.getSelectedVariant();
+    }
+
+    public static boolean queryNativeFeature(String feature)
+    {
+        // Map is cleared during setNativeEnabled call.
+        if (!queriedFeaturesMap.containsKey(feature))
+        {
+            queriedFeaturesMap.put(feature,
+                NativeLoader.isNativeAvailable() && getNativeFeatureString().contains(feature)
+            );
+        }
+
+        return queriedFeaturesMap.get(feature);
+    }
+
 
     /**
      * Return the default source of randomness.
@@ -528,6 +594,67 @@ public final class CryptoServicesRegistrar
         // TODO: return one based on system/security properties if set.
 
         return noConstraintsImpl;
+    }
+
+    static synchronized String getFeatureString()
+    {
+        if (nativeFeatureString != null)
+        {
+            return nativeFeatureString;
+        }
+
+        StringBuilder sb = new StringBuilder();
+
+        if (NativeFeatures.hasHardwareSeed())
+        {
+            sb.append(NATIVE_SEED);
+            sb.append(' ');
+        }
+        if (NativeFeatures.hasHardwareRand())
+        {
+            sb.append(NATIVE_RAND);
+            sb.append(' ');
+        }
+
+        if (NativeFeatures.hasHardwareSeed() || NativeFeatures.hasHardwareRand())
+        {
+            sb.append(NATIVE_ENTROPY);
+            sb.append(' ');
+        }
+
+
+        if (NativeFeatures.hasAESHardwareSupport())
+        {
+            sb.append(NATIVE_AES_ECB);
+            sb.append(' ');
+        }
+
+        if (NativeFeatures.hasGCMHardwareSupport())
+        {
+            sb.append(NATIVE_AES_GCM);
+            sb.append(' ');
+        }
+
+        if (NativeFeatures.hasCBCHardwareSupport())
+        {
+            sb.append(NATIVE_AES_CBC);
+            sb.append(' ');
+        }
+
+        if (NativeFeatures.hasCFBHardwareSupport())
+        {
+            sb.append(NATIVE_AES_CFB);
+            sb.append(' ');
+        }
+
+        if (sb.length() == 0)
+        {
+            return "None";
+        }
+
+        nativeFeatureString = sb.toString().trim();
+        return nativeFeatureString;
+
     }
 
     /**
