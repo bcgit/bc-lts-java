@@ -4,9 +4,9 @@
 
 
 
-#include "../intel/rand/Rand.h"
+#include "../rand/Rand.h"
 #include "org_bouncycastle_crypto_NativeEntropySource.h"
-#include "../jniutil/JavaEnvUtils.h"
+#include "../../jniutil/JavaEnvUtils.h"
 
 using jniutil::JavaEnvUtils;
 

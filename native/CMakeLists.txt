@@ -36,8 +36,10 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         set(VARIANT_PREFIX "darwin-x86_64")
     else ()
         MESSAGE("Building for Darwin ARM 64")
-
-
+        set(JNI_INCLUDE_PLATFORM ${JNI_INCLUDE}/darwin)
+        set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/darwin)
+        set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/darwin/arm64)
+        set(VARIANT_PREFIX "darwin-arm64")
     endif ()
 
 
@@ -67,48 +69,102 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src
         )
 
 
-# Source set
+# Source sets
 
 
-set(JVM_UTIL_HEADERS jniutil/JavaEnvUtils.h jniutil/JavaByteArray.h)
-set(JVM_UTIL_IMPL jniutil/JavaByteArray.cpp jniutil/JavaEnvUtils.cpp)
+if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64")
 
-set(RAND_HEADERS intel/rand/Rand.h)
-set(RAND_IMPL intel/rand/Rand.cpp jni/native_entropy_source_jni.cpp)
+endif ()
 
-set(IDENT_IMPL jni/ident_jni.cpp jni/native_features.cpp)
 
 set(VARIANTS sse)
 
 
-message(${CMAKE_ASM_NASM_FLAGS})
-enable_language(ASM_NASM)
+#message(${CMAKE_ASM_NASM_FLAGS})
+#enable_language(ASM_NASM)
+
 
 #
-# Probe project a simple lib for probing the CPUs features
+# ARM
 #
-add_library(${LIB_PROBE} SHARED jni/variant_selector.cpp)
+if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64")
 
-target_include_directories(${LIB_PROBE} PUBLIC ${JNI_INCLUDES})
-target_compile_options(${LIB_PROBE} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-O3 -msse4.1>)
-target_compile_definitions(${LIB_PROBE} PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\")
-install(TARGETS "${LIB_PROBE}" LIBRARY DESTINATION ${PLATFORM_TARGET}/probe)
+    set(JVM_UTIL_HEADERS jniutil/JavaEnvUtils.h jniutil/JavaByteArray.h)
+    set(JVM_UTIL_IMPL jniutil/JavaByteArray.cpp jniutil/JavaEnvUtils.cpp)
+    set(RAND_HEADERS arm64/jni/native_entropy_source_jni.cpp)
+    set(RAND_IMPL)
+    set(IDENT_IMPL arm64/jni/ident_jni.cpp arm64/jni/native_features.cpp arm64/rand/Rand.cpp)
 
 
-add_library("${LIB_NATIVE}-sse" SHARED
+    #
+    # Probe project a simple lib for probing the CPUs features
+    #
+    add_library(${LIB_PROBE} SHARED arm64/jni/variant_selector.cpp)
 
-        ${RAND_HEADERS}
-        ${RAND_IMPL}
+    target_include_directories(${LIB_PROBE} PUBLIC ${JNI_INCLUDES})
+    target_compile_options(${LIB_PROBE} PRIVATE $<$<COMPILE_LANGUAGE:CXX>: -mcpu=native+rng>)
+    target_compile_definitions(${LIB_PROBE} PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\")
+    install(TARGETS "${LIB_PROBE}" LIBRARY DESTINATION ${PLATFORM_TARGET}/probe)
 
-        ${JVM_UTIL_HEADERS}
-        ${JVM_UTIL_IMPL}
 
-        ${IDENT_IMPL}
+    add_library("${LIB_NATIVE}" SHARED
 
-        )
-target_include_directories("${LIB_NATIVE}-sse" PUBLIC ${JNI_INCLUDES})
+            ${RAND_HEADERS}
+            ${RAND_IMPL}
+
+            ${JVM_UTIL_HEADERS}
+            ${JVM_UTIL_IMPL}
+
+            ${IDENT_IMPL}
+
+            )
+    target_include_directories("${LIB_NATIVE}" PUBLIC ${JNI_INCLUDES})
+
+    target_compile_options("${LIB_NATIVE}" PRIVATE
+            $<$<COMPILE_LANGUAGE:CXX>: -mcpu=native+rng>
+            $<$<COMPILE_LANGUAGE:C>: -mcpu=native+rng>
+            )
+    install(TARGETS "${LIB_NATIVE}" LIBRARY DESTINATION ${PLATFORM_TARGET}/components)
+    target_compile_definitions("${LIB_NATIVE}" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"arm64\")
+endif ()
+
 
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+    set(JVM_UTIL_HEADERS jniutil/JavaEnvUtils.h jniutil/JavaByteArray.h)
+    set(JVM_UTIL_IMPL jniutil/JavaByteArray.cpp jniutil/JavaEnvUtils.cpp)
+    set(RAND_HEADERS intel/rand/Rand.h)
+    set(RAND_IMPL intel/rand/Rand.cpp intel/jni/native_entropy_source_jni.cpp)
+    set(IDENT_IMPL intel/jni/ident_jni.cpp intel/jni/native_features.cpp)
+
+
+    #
+    # INTEL
+    #
+
+    #
+    # Probe project a simple lib for probing the CPUs features
+    #
+    add_library(${LIB_PROBE} SHARED intel/jni/variant_selector_intel.cpp)
+
+    target_include_directories(${LIB_PROBE} PUBLIC ${JNI_INCLUDES})
+    target_compile_options(${LIB_PROBE} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-O3 -msse4.1>)
+    target_compile_definitions(${LIB_PROBE} PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\")
+    install(TARGETS "${LIB_PROBE}" LIBRARY DESTINATION ${PLATFORM_TARGET}/probe)
+
+
+    add_library("${LIB_NATIVE}-sse" SHARED
+
+            ${RAND_HEADERS}
+            ${RAND_IMPL}
+
+            ${JVM_UTIL_HEADERS}
+            ${JVM_UTIL_IMPL}
+
+            ${IDENT_IMPL}
+
+            )
+    target_include_directories("${LIB_NATIVE}-sse" PUBLIC ${JNI_INCLUDES})
+
     #
     # Intel
     #
@@ -119,27 +175,21 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     install(TARGETS "${LIB_NATIVE}-sse" LIBRARY DESTINATION ${PLATFORM_TARGET}/sse)
     target_compile_definitions("${LIB_NATIVE}-sse" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"sse\")
 
-else ()
-    #
-    # ARM
-    #
 
-endif ()
+    # specify the C++ standard
+    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed")
+    add_library("${LIB_NATIVE}-avx" SHARED
+            ${RAND_HEADERS}
+            ${RAND_IMPL}
 
-# specify the C++ standard
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed")
-add_library("${LIB_NATIVE}-avx" SHARED
-        ${RAND_HEADERS}
-        ${RAND_IMPL}
+            ${JVM_UTIL_HEADERS}
+            ${JVM_UTIL_IMPL}
 
-        ${JVM_UTIL_HEADERS}
-        ${JVM_UTIL_IMPL}
+            ${IDENT_IMPL}
+            )
+    target_include_directories("${LIB_NATIVE}-avx" PUBLIC ${JNI_INCLUDES})
 
-        ${IDENT_IMPL}
-        )
-target_include_directories("${LIB_NATIVE}-avx" PUBLIC ${JNI_INCLUDES})
 
-if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     #Intel
     target_compile_options("${LIB_NATIVE}-avx" PRIVATE
             $<$<COMPILE_LANGUAGE:CXX>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt>
@@ -147,9 +197,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             )
     install(TARGETS "${LIB_NATIVE}-avx" LIBRARY DESTINATION ${PLATFORM_TARGET}/avx)
     target_compile_definitions("${LIB_NATIVE}-avx" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"avx\")
-else()
-
-endif()
+endif ()
 
 #
 ## specify the C++ standard
