@@ -1,5 +1,8 @@
 package org.bouncycastle.crypto;
 
+import java.lang.ref.PhantomReference;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
 import java.math.BigInteger;
 import java.security.AccessController;
 import java.security.NoSuchAlgorithmException;
@@ -11,9 +14,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.bouncycastle.asn1.x9.X9ECParameters;
@@ -73,8 +74,20 @@ public final class CryptoServicesRegistrar
     private static Set<String> nativeFeatures = null;
 
 
+    private static ReferenceQueue<DisposeBeforeGC> referenceQueue = new ReferenceQueue<DisposeBeforeGC>();
+
+
     static
     {
+
+        //
+        // Load the native code.
+        //
+        NativeLoader.loadDriver();
+
+        addShutdownHook();
+        startReferenceQueueThread();
+
         // default domain parameters for DSA and Diffie-Hellman
 
         DSAParameters def512Params = new DSAParameters(
@@ -138,12 +151,8 @@ public final class CryptoServicesRegistrar
 
         servicesConstraints.set(getDefaultConstraints());
         preconfiguredConstraints = (servicesConstraints.get() != noConstraintsImpl);
-    }
 
 
-    static
-    {
-        NativeLoader.loadDriver();
     }
 
 
@@ -151,6 +160,7 @@ public final class CryptoServicesRegistrar
     {
 
     }
+
 
     public static Set<String> getNativeFeatureSet()
     {
@@ -640,6 +650,68 @@ public final class CryptoServicesRegistrar
         }
 
         return Collections.unmodifiableSet(set);
+    }
+
+
+    public static void addDisposeBeforeGC(DisposeBeforeGC disposeBeforeGC)
+    {
+        new PhantomReference<DisposeBeforeGC>(disposeBeforeGC, referenceQueue);
+    }
+
+
+    /**
+     * Sets up the daemon thread that deals with items on the reference
+     * queue that may have native code that needs disposing.
+     */
+    public static void startReferenceQueueThread()
+    {
+        Thread th = new Thread(new Runnable()
+        {
+            @Override
+            public void run()
+            {
+                for (; ; )
+                {
+                    try
+                    {
+                        Reference<? extends DisposeBeforeGC> item = referenceQueue.remove();
+                        item.get().dispose();
+                    }
+                    catch (InterruptedException iex)
+                    {
+                        //
+                    }
+                }
+
+            }
+        });
+
+        th.setPriority(Thread.MIN_PRIORITY);
+        th.setDaemon(true);
+        th.start();
+    }
+
+
+    private static void addShutdownHook()
+    {
+        //
+        // On shutdown clean up the reference queue.
+        //
+        Runtime.getRuntime().addShutdownHook(new Thread()
+        {
+            @Override
+            public void run()
+            {
+                Reference<? extends DisposeBeforeGC> item = referenceQueue.poll();
+                while (item != null)
+                {
+                    item.get().dispose();
+                    item = referenceQueue.poll();
+                }
+                super.run();
+            }
+        });
+
     }
 
 
