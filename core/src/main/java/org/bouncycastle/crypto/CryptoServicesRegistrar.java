@@ -8,9 +8,12 @@ import java.security.PrivilegedAction;
 import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 import org.bouncycastle.asn1.x9.X9ECParameters;
@@ -65,10 +68,10 @@ public final class CryptoServicesRegistrar
     public static final String NATIVE_AES_CFB = "AES/CFB";
 
     public static final String NATIVE_ENTROPY = "ENTROPY";
+    public static final String NONE = "NONE";
 
+    private static Set<String> nativeFeatures = null;
 
-    private static ConcurrentHashMap<String, Boolean> queriedFeaturesMap = new ConcurrentHashMap<String, Boolean>();
-    private static String nativeFeatureString;
 
     static
     {
@@ -149,10 +152,11 @@ public final class CryptoServicesRegistrar
 
     }
 
-    public static String getNativeFeatureString()
+    public static Set<String> getNativeFeatureSet()
     {
-        return getFeatureString();
+        return getFeatureSet();
     }
+
 
     public static String getNativeStatusString()
     {
@@ -172,8 +176,7 @@ public final class CryptoServicesRegistrar
     public static synchronized void setNativeEnabled(boolean enabled)
     {
         NativeLoader.setNativeEnabled(enabled);
-        queriedFeaturesMap.clear();
-        nativeFeatureString = null;
+        nativeFeatures = null;
     }
 
     public static String getNativeVariant()
@@ -181,17 +184,14 @@ public final class CryptoServicesRegistrar
         return NativeLoader.getSelectedVariant();
     }
 
-    public static boolean queryNativeFeature(String feature)
+    public synchronized static boolean queryNativeFeature(String feature)
     {
-        // Map is cleared during setNativeEnabled call.
-        if (!queriedFeaturesMap.containsKey(feature))
+        if (nativeFeatures == null)
         {
-            queriedFeaturesMap.put(feature,
-                NativeLoader.isNativeAvailable() && getNativeFeatureString().contains(feature)
-            );
+            nativeFeatures = getNativeFeatureSet();
         }
 
-        return queriedFeaturesMap.get(feature);
+        return nativeFeatures.contains(feature);
     }
 
 
@@ -596,66 +596,52 @@ public final class CryptoServicesRegistrar
         return noConstraintsImpl;
     }
 
-    static synchronized String getFeatureString()
+    static synchronized Set<String> getFeatureSet()
     {
-        if (nativeFeatureString != null)
-        {
-            return nativeFeatureString;
-        }
-
-        StringBuilder sb = new StringBuilder();
+        HashSet<String> set = new HashSet<String>();
 
         if (NativeFeatures.hasHardwareSeed())
         {
-            sb.append(NATIVE_SEED);
-            sb.append(' ');
+            set.add(NATIVE_SEED);
         }
         if (NativeFeatures.hasHardwareRand())
         {
-            sb.append(NATIVE_RAND);
-            sb.append(' ');
+            set.add(NATIVE_RAND);
         }
 
         if (NativeFeatures.hasHardwareSeed() || NativeFeatures.hasHardwareRand())
         {
-            sb.append(NATIVE_ENTROPY);
-            sb.append(' ');
+            set.add(NATIVE_ENTROPY);
         }
-
 
         if (NativeFeatures.hasAESHardwareSupport())
         {
-            sb.append(NATIVE_AES_ECB);
-            sb.append(' ');
+            set.add(NATIVE_AES_ECB);
         }
 
         if (NativeFeatures.hasGCMHardwareSupport())
         {
-            sb.append(NATIVE_AES_GCM);
-            sb.append(' ');
+            set.add(NATIVE_AES_GCM);
         }
 
         if (NativeFeatures.hasCBCHardwareSupport())
         {
-            sb.append(NATIVE_AES_CBC);
-            sb.append(' ');
+            set.add(NATIVE_AES_CBC);
         }
 
         if (NativeFeatures.hasCFBHardwareSupport())
         {
-            sb.append(NATIVE_AES_CFB);
-            sb.append(' ');
+            set.add(NATIVE_AES_CFB);
         }
 
-        if (sb.length() == 0)
+        if (set.isEmpty())
         {
-            return "None";
+            set.add(NONE);
         }
 
-        nativeFeatureString = sb.toString().trim();
-        return nativeFeatureString;
-
+        return Collections.unmodifiableSet(set);
     }
+
 
     /**
      * Available properties that can be set.

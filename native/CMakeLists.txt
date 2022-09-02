@@ -85,6 +85,18 @@ set(VARIANTS sse)
 
 
 #
+# Common to both platforms
+#
+
+set(EXCEPTIONS
+        exceptions/CipherTextException.cpp
+        exceptions/CipherTextException.h
+        exceptions/OutputLengthException.cpp
+        exceptions/OutputLengthException.h
+        )
+
+
+#
 # ARM
 #
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64")
@@ -135,6 +147,21 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     set(RAND_HEADERS intel/rand/Rand.h)
     set(RAND_IMPL intel/rand/Rand.cpp intel/jni/native_entropy_source_jni.cpp)
     set(IDENT_IMPL intel/jni/ident_jni.cpp intel/jni/native_features.cpp)
+    set(CBC intel/cbc/AesCBC128Impl.cpp
+            intel/cbc/AesCBC192Impl.cpp
+            intel/cbc/AesCBC256Impl.cpp
+            intel/cbc/AesCBC.h
+            intel/cbc/CBC.cpp
+            intel/cbc/CBC.h)
+    set(ECB intel/ecb/AesEcb.cpp
+            intel/ecb/AesEcb.h
+            intel/ecb/ecb.cpp
+            intel/ecb/ecb.h)
+    set(GCM intel/gcm/AesGcm.cpp
+            intel/gcm/AesGcm.h
+            intel/gcm/gcm.cpp
+            intel/gcm/gcm.h)
+
 
 
     #
@@ -161,7 +188,10 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${JVM_UTIL_IMPL}
 
             ${IDENT_IMPL}
-
+            ${GCM}
+            ${CBC}
+            ${ECB}
+            ${EXCEPTIONS}
             )
     target_include_directories("${LIB_NATIVE}-sse" PUBLIC ${JNI_INCLUDES})
 
@@ -184,8 +214,12 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 
             ${JVM_UTIL_HEADERS}
             ${JVM_UTIL_IMPL}
-
             ${IDENT_IMPL}
+
+            ${GCM}
+            ${CBC}
+            ${ECB}
+            ${EXCEPTIONS}
             )
     target_include_directories("${LIB_NATIVE}-avx" PUBLIC ${JNI_INCLUDES})
 
