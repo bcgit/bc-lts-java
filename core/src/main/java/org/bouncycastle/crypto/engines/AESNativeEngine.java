@@ -4,13 +4,14 @@ import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.DisposeBeforeGC;
+import org.bouncycastle.util.dispose.Disposable;
 import org.bouncycastle.crypto.StatelessProcessing;
 import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.util.dispose.DisposalDaemon;
 
 
 public class AESNativeEngine
-    implements BlockCipher, StatelessProcessing, DisposeBeforeGC
+    implements BlockCipher, StatelessProcessing, Disposable
 {
     private long nativeRef = 0;
 
@@ -39,7 +40,7 @@ public class AESNativeEngine
                         dispose(nativeRef);
                     }
                     nativeRef = makeInstance(key.length, forEncryption);
-                    CryptoServicesRegistrar.addDisposeBeforeGC(this);
+                    DisposalDaemon.addDisposable(this);
                 }
                 break;
             }

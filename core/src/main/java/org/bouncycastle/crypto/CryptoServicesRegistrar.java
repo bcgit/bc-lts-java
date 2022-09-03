@@ -1,8 +1,5 @@
 package org.bouncycastle.crypto;
 
-import java.lang.ref.PhantomReference;
-import java.lang.ref.Reference;
-import java.lang.ref.ReferenceQueue;
 import java.math.BigInteger;
 import java.security.AccessController;
 import java.security.NoSuchAlgorithmException;
@@ -11,9 +8,7 @@ import java.security.PrivilegedAction;
 import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
@@ -61,21 +56,6 @@ public final class CryptoServicesRegistrar
     private static final AtomicReference<SecureRandomProvider> defaultSecureRandomProvider = new AtomicReference<SecureRandomProvider>();
     private static final boolean preconfiguredConstraints;
     private static final AtomicReference<CryptoServicesConstraints> servicesConstraints = new AtomicReference<CryptoServicesConstraints>();
-    public static final String NATIVE_SEED = "SEED";
-    public static final String NATIVE_RAND = "RAND";
-    public static final String NATIVE_AES_ECB = "AES/ECB";
-    public static final String NATIVE_AES_GCM = "AES/GCM";
-    public static final String NATIVE_AES_CBC = "AES/CBC";
-    public static final String NATIVE_AES_CFB = "AES/CFB";
-
-    public static final String NATIVE_ENTROPY = "ENTROPY";
-    public static final String NONE = "NONE";
-
-    private static Set<String> nativeFeatures = null;
-
-
-    private static ReferenceQueue<DisposeBeforeGC> referenceQueue = new ReferenceQueue<DisposeBeforeGC>();
-
 
     static
     {
@@ -84,9 +64,6 @@ public final class CryptoServicesRegistrar
         // Load the native code.
         //
         NativeLoader.loadDriver();
-
-        addShutdownHook();
-        startReferenceQueueThread();
 
         // default domain parameters for DSA and Diffie-Hellman
 
@@ -151,8 +128,6 @@ public final class CryptoServicesRegistrar
 
         servicesConstraints.set(getDefaultConstraints());
         preconfiguredConstraints = (servicesConstraints.get() != noConstraintsImpl);
-
-
     }
 
 
@@ -161,49 +136,22 @@ public final class CryptoServicesRegistrar
 
     }
 
-
-    public static Set<String> getNativeFeatureSet()
-    {
-        return getFeatureSet();
-    }
-
-
-    public static String getNativeStatusString()
-    {
-        return NativeLoader.getNativeStatusMessage();
-    }
-
-    public static boolean isJavaOnly()
-    {
-        return NativeLoader.isJavaSupportOnly();
-    }
-
-    public static boolean isNativeEnabled()
+    public static boolean hasNativeServices()
     {
         return NativeLoader.isNativeAvailable();
     }
 
+    // TODO: what happens if setNativeEnabled() is passed true?
     public static synchronized void setNativeEnabled(boolean enabled)
     {
         NativeLoader.setNativeEnabled(enabled);
-        nativeFeatures = null;
+        //TODO: nativeFeatures = null;
     }
 
-    public static String getNativeVariant()
+    public static NativeServices getNativeServices()
     {
-        return NativeLoader.getSelectedVariant();
+        return new NativeServices(); // TODO: should probably be a static final
     }
-
-    public synchronized static boolean queryNativeFeature(String feature)
-    {
-        if (nativeFeatures == null)
-        {
-            nativeFeatures = getNativeFeatureSet();
-        }
-
-        return nativeFeatures.contains(feature);
-    }
-
 
     /**
      * Return the default source of randomness.
@@ -605,115 +553,6 @@ public final class CryptoServicesRegistrar
 
         return noConstraintsImpl;
     }
-
-    static synchronized Set<String> getFeatureSet()
-    {
-        HashSet<String> set = new HashSet<String>();
-
-        if (NativeFeatures.hasHardwareSeed())
-        {
-            set.add(NATIVE_SEED);
-        }
-        if (NativeFeatures.hasHardwareRand())
-        {
-            set.add(NATIVE_RAND);
-        }
-
-        if (NativeFeatures.hasHardwareSeed() || NativeFeatures.hasHardwareRand())
-        {
-            set.add(NATIVE_ENTROPY);
-        }
-
-        if (NativeFeatures.hasAESHardwareSupport())
-        {
-            set.add(NATIVE_AES_ECB);
-        }
-
-        if (NativeFeatures.hasGCMHardwareSupport())
-        {
-            set.add(NATIVE_AES_GCM);
-        }
-
-        if (NativeFeatures.hasCBCHardwareSupport())
-        {
-            set.add(NATIVE_AES_CBC);
-        }
-
-        if (NativeFeatures.hasCFBHardwareSupport())
-        {
-            set.add(NATIVE_AES_CFB);
-        }
-
-        if (set.isEmpty())
-        {
-            set.add(NONE);
-        }
-
-        return Collections.unmodifiableSet(set);
-    }
-
-
-    public static void addDisposeBeforeGC(DisposeBeforeGC disposeBeforeGC)
-    {
-        new PhantomReference<DisposeBeforeGC>(disposeBeforeGC, referenceQueue);
-    }
-
-
-    /**
-     * Sets up the daemon thread that deals with items on the reference
-     * queue that may have native code that needs disposing.
-     */
-    public static void startReferenceQueueThread()
-    {
-        Thread th = new Thread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-                for (; ; )
-                {
-                    try
-                    {
-                        Reference<? extends DisposeBeforeGC> item = referenceQueue.remove();
-                        item.get().dispose();
-                    }
-                    catch (InterruptedException iex)
-                    {
-                        //
-                    }
-                }
-
-            }
-        });
-
-        th.setPriority(Thread.MIN_PRIORITY);
-        th.setDaemon(true);
-        th.start();
-    }
-
-
-    private static void addShutdownHook()
-    {
-        //
-        // On shutdown clean up the reference queue.
-        //
-        Runtime.getRuntime().addShutdownHook(new Thread()
-        {
-            @Override
-            public void run()
-            {
-                Reference<? extends DisposeBeforeGC> item = referenceQueue.poll();
-                while (item != null)
-                {
-                    item.get().dispose();
-                    item = referenceQueue.poll();
-                }
-                super.run();
-            }
-        });
-
-    }
-
 
     /**
      * Available properties that can be set.

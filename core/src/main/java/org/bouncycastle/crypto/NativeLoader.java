@@ -23,7 +23,7 @@ import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.io.Streams;
 
-public class NativeLoader
+class NativeLoader
 {
     public static final String BC_LIB_SENTINEL = "org.bouncycastle.native.sentinel";
     public static final String BC_LIB_CPU_VARIANT = "org.bouncycastle.native.cpu_variant";
@@ -97,16 +97,15 @@ public class NativeLoader
         nativeEnabled = enabled;
     }
 
-    static synchronized String getNativeStatusMessage()
+    static synchronized String getStatusMessage()
     {
         return nativeStatusMessage;
     }
 
-    public static synchronized String getSelectedVariant()
+    public static synchronized String getVariant()
     {
         return selectedVariant;
     }
-
 
     static String getFile(String path)
     {
