@@ -300,9 +300,4 @@ public final class SerpentEngine
         Pack.intToLittleEndian(X[2] ^ wKey[2], output, outOff + 8);
         Pack.intToLittleEndian(X[3] ^ wKey[3], output, outOff + 12);
     }
-
-    public BlockCipher copyInstance()
-    {
-        return new SerpentEngine();
-    }
 }
