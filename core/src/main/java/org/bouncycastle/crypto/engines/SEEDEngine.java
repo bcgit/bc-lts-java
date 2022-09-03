@@ -354,7 +354,7 @@ public class SEEDEngine
         return G(phaseCalc1(r0, ki0, r1, ki1) + G((r0 ^ ki0) ^ (r1 ^ ki1)));
     }
 
-    public BlockCipher newInstance()
+    public BlockCipher copyInstance()
     {
         return new SEEDEngine();
     }

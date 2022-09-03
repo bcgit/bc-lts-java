@@ -478,7 +478,7 @@ public class AESLightEngine
         Pack.intToLittleEndian(C3, out, outOff + 12);
     }
 
-    public BlockCipher newInstance()
+    public BlockCipher copyInstance()
     {
         return new AESLightEngine();
     }

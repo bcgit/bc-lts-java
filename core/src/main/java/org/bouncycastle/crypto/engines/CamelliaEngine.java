@@ -690,7 +690,7 @@ public class CamelliaEngine
 
     }
 
-    public BlockCipher newInstance()
+    public BlockCipher copyInstance()
     {
         return new CamelliaEngine();
     }

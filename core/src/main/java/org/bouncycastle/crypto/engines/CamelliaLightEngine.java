@@ -598,7 +598,7 @@ public class CamelliaLightEngine
     {
     }
 
-    public BlockCipher newInstance()
+    public BlockCipher copyInstance()
     {
         return new CamelliaLightEngine();
     }

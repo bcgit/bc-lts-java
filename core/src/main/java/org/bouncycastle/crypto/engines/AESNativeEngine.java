@@ -11,7 +11,7 @@ import org.bouncycastle.util.dispose.DisposalDaemon;
 
 
 public class AESNativeEngine
-    implements BlockCipher, StatelessProcessing, Disposable
+    implements BlockCipher, Disposable
 {
     private long nativeRef = 0;
 
@@ -91,13 +91,6 @@ public class AESNativeEngine
     private native void dispose(long ref);
 
     private native void init(long nativeRef, byte[] key);
-
-
-    @Override
-    public BlockCipher newInstance()
-    {
-        return new AESNativeEngine();
-    }
 
     @Override
     public synchronized void dispose()

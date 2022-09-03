@@ -4,6 +4,8 @@ import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.DefaultMultiBlockCipher;
+import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.StatelessProcessing;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
@@ -32,10 +34,10 @@ import org.bouncycastle.util.Pack;
  * The slowest version uses no static tables at all and computes the values in each round.
  * <p>
  * This file contains the middle performance version with 2Kbytes of static tables for round precomputation.
- *
  */
 public class AESEngine
-    implements BlockCipher, StatelessProcessing
+    extends DefaultMultiBlockCipher
+    implements StatelessProcessing
 {
     // The S box
     private static final byte[] S = {
@@ -589,7 +591,7 @@ private static final int[] Tinv0 =
         Pack.intToLittleEndian(C3, out, outOff + 12);
     }
 
-    public BlockCipher newInstance()
+    public BlockCipher copyInstance()
     {
         return new AESEngine();
     }
