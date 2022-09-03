@@ -18,10 +18,17 @@ public class DisposalDaemon
 
     static
     {
+        //
+        // Sets up the daemon thread that deals with items on the reference
+        // queue that may have native code that needs disposing.
+        //
         disposalThread = new Thread(disposalDaemon, "BC Disposal Daemon");
         disposalThread.setDaemon(true);
         disposalThread.start();
+
+        addShutdownHook();
     }
+
     private static void addShutdownHook()
     {
         //
@@ -49,26 +56,6 @@ public class DisposalDaemon
         new PhantomReference<Disposable>(disposable, referenceQueue);
     }
 
-    /**
-     * Sets up the daemon thread that deals with items on the reference
-     * queue that may have native code that needs disposing.
-     */
-    public static void startReferenceQueueThread()
-    {
-        Thread th = new Thread(new Runnable()
-        {
-            @Override
-            public void run()
-            {
-
-
-            }
-        });
-
-        th.setPriority(Thread.MIN_PRIORITY);
-        th.setDaemon(true);
-        th.start();
-    }
     public void run()
     {
         for (;;)
