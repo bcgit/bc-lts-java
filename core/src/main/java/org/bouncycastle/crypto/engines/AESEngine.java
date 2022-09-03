@@ -5,7 +5,6 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultMultiBlockCipher;
-import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.StatelessProcessing;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
@@ -416,7 +415,7 @@ private static final int[] Tinv0 =
     }
 
     private int         ROUNDS;
-    private int[][]     WorkingKey = null;
+    private int[][] workingKey = null;
     private boolean     forEncryption;
 
     private byte[]      s;
@@ -429,6 +428,18 @@ private static final int[] Tinv0 =
     public AESEngine()
     {
         CryptoServicesRegistrar.checkConstraints(new DefaultServiceProperties(getAlgorithmName(), 256));
+    }
+
+    AESEngine(AESEngine engine)
+    {
+        this.ROUNDS = engine.ROUNDS;
+        this.s = engine.s;
+        this.workingKey = new int[engine.workingKey.length][];
+        for (int i = 0; i != workingKey.length; i++)
+        {
+            this.workingKey[i] = Arrays.clone(engine.workingKey[i]);
+        }
+        this.forEncryption = engine.forEncryption;
     }
 
     /**
@@ -445,7 +456,7 @@ private static final int[] Tinv0 =
     {
         if (params instanceof KeyParameter)
         {
-            WorkingKey = generateWorkingKey(((KeyParameter)params).getKey(), forEncryption);
+            workingKey = generateWorkingKey(((KeyParameter)params).getKey(), forEncryption);
             this.forEncryption = forEncryption;
             if (forEncryption)
             {
@@ -476,7 +487,7 @@ private static final int[] Tinv0 =
 
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
     {
-        if (WorkingKey == null)
+        if (workingKey == null)
         {
             throw new IllegalStateException("AES engine not initialised");
         }
@@ -493,11 +504,11 @@ private static final int[] Tinv0 =
 
         if (forEncryption)
         {
-            encryptBlock(in, inOff, out, outOff, WorkingKey);
+            encryptBlock(in, inOff, out, outOff, workingKey);
         }
         else
         {
-            decryptBlock(in, inOff, out, outOff, WorkingKey);
+            decryptBlock(in, inOff, out, outOff, workingKey);
         }
 
         return BLOCK_SIZE;
@@ -593,15 +604,15 @@ private static final int[] Tinv0 =
 
     public BlockCipher copyInstance()
     {
-        return new AESEngine();
+        return new AESEngine(this);
     }
 
     private int bitsOfSecurity()
     {
-        if (WorkingKey == null)
+        if (workingKey == null)
         {
             return 256;
         }
-        return (WorkingKey.length - 7) << 5;
+        return (workingKey.length - 7) << 5;
     }
 }

@@ -7,6 +7,7 @@ import org.bouncycastle.crypto.macs.GMac;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
+import org.bouncycastle.util.AESFactory;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
 
@@ -104,13 +105,13 @@ public class GMacTest extends SimpleTest
         {
             TestCase testCase = TEST_VECTORS[i];
 
-            Mac mac = new GMac(new GCMBlockCipher(new AESEngine()), testCase.getTag().length * 8);
+            Mac mac = new GMac(AESFactory.createGCM(), testCase.getTag().length * 8);
             CipherParameters key = new KeyParameter(testCase.getKey());
             mac.init(new ParametersWithIV(key, testCase.getIv()));
 
             testSingleByte(mac, testCase);
 
-            mac = new GMac(new GCMBlockCipher(new AESEngine()), testCase.getTag().length * 8);
+            mac = new GMac(AESFactory.createGCM(), testCase.getTag().length * 8);
             mac.init(new ParametersWithIV(key, testCase.getIv()));
             testMultibyte(mac, testCase);
         }
@@ -125,7 +126,7 @@ public class GMacTest extends SimpleTest
     {
         try
         {
-            GMac mac = new GMac(new GCMBlockCipher(new AESEngine()), size);
+            GMac mac = new GMac(AESFactory.createGCM(), size);
             mac.init(new ParametersWithIV(null, new byte[16]));
             fail("Expected failure for illegal mac size " + size);
         }

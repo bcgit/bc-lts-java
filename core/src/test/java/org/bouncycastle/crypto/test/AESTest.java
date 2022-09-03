@@ -13,6 +13,7 @@ import org.bouncycastle.crypto.modes.OFBBlockCipher;
 import org.bouncycastle.crypto.modes.SICBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
+import org.bouncycastle.util.AESFactory;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
 
@@ -156,7 +157,7 @@ public class AESTest
     private void testNullCBC()
         throws InvalidCipherTextException
     {
-        BufferedBlockCipher b = new BufferedBlockCipher(new CBCBlockCipher(new AESEngine()));
+        BufferedBlockCipher b = new BufferedBlockCipher(AESFactory.createCBC());
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         b.init(true, new ParametersWithIV(kp, new byte[16]));
