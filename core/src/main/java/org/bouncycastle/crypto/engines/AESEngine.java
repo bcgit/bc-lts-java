@@ -6,7 +6,6 @@ import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultMultiBlockCipher;
 import org.bouncycastle.crypto.OutputLengthException;
-import org.bouncycastle.crypto.StatelessProcessing;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.Arrays;
@@ -36,7 +35,6 @@ import org.bouncycastle.util.Pack;
  */
 public class AESEngine
     extends DefaultMultiBlockCipher
-    implements StatelessProcessing
 {
     // The S box
     private static final byte[] S = {
@@ -430,18 +428,6 @@ private static final int[] Tinv0 =
         CryptoServicesRegistrar.checkConstraints(new DefaultServiceProperties(getAlgorithmName(), 256));
     }
 
-    AESEngine(AESEngine engine)
-    {
-        this.ROUNDS = engine.ROUNDS;
-        this.s = engine.s;
-        this.workingKey = new int[engine.workingKey.length][];
-        for (int i = 0; i != workingKey.length; i++)
-        {
-            this.workingKey[i] = Arrays.clone(engine.workingKey[i]);
-        }
-        this.forEncryption = engine.forEncryption;
-    }
-
     /**
      * initialise an AES cipher.
      *
@@ -600,11 +586,6 @@ private static final int[] Tinv0 =
         Pack.intToLittleEndian(C1, out, outOff +  4);
         Pack.intToLittleEndian(C2, out, outOff +  8);
         Pack.intToLittleEndian(C3, out, outOff + 12);
-    }
-
-    public BlockCipher copyInstance()
-    {
-        return new AESEngine(this);
     }
 
     private int bitsOfSecurity()
