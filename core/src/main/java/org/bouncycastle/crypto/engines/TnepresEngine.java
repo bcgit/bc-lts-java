@@ -307,9 +307,4 @@ public final class TnepresEngine
         Pack.intToBigEndian(X[1] ^ wKey[1], output, outOff + 8);
         Pack.intToBigEndian(X[0] ^ wKey[0], output, outOff + 12);
     }
-
-    public BlockCipher newInstance()
-    {
-        return new TnepresEngine();
-    }
 }

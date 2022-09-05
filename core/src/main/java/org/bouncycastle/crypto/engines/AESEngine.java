@@ -4,8 +4,8 @@ import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.DefaultMultiBlockCipher;
 import org.bouncycastle.crypto.OutputLengthException;
-import org.bouncycastle.crypto.StatelessProcessing;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.Arrays;
@@ -32,10 +32,9 @@ import org.bouncycastle.util.Pack;
  * The slowest version uses no static tables at all and computes the values in each round.
  * <p>
  * This file contains the middle performance version with 2Kbytes of static tables for round precomputation.
- *
  */
 public class AESEngine
-    implements BlockCipher, StatelessProcessing
+    extends DefaultMultiBlockCipher
 {
     // The S box
     private static final byte[] S = {
@@ -414,7 +413,7 @@ private static final int[] Tinv0 =
     }
 
     private int         ROUNDS;
-    private int[][]     WorkingKey = null;
+    private int[][] workingKey = null;
     private boolean     forEncryption;
 
     private byte[]      s;
@@ -443,7 +442,7 @@ private static final int[] Tinv0 =
     {
         if (params instanceof KeyParameter)
         {
-            WorkingKey = generateWorkingKey(((KeyParameter)params).getKey(), forEncryption);
+            workingKey = generateWorkingKey(((KeyParameter)params).getKey(), forEncryption);
             this.forEncryption = forEncryption;
             if (forEncryption)
             {
@@ -474,7 +473,7 @@ private static final int[] Tinv0 =
 
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
     {
-        if (WorkingKey == null)
+        if (workingKey == null)
         {
             throw new IllegalStateException("AES engine not initialised");
         }
@@ -491,11 +490,11 @@ private static final int[] Tinv0 =
 
         if (forEncryption)
         {
-            encryptBlock(in, inOff, out, outOff, WorkingKey);
+            encryptBlock(in, inOff, out, outOff, workingKey);
         }
         else
         {
-            decryptBlock(in, inOff, out, outOff, WorkingKey);
+            decryptBlock(in, inOff, out, outOff, workingKey);
         }
 
         return BLOCK_SIZE;
@@ -589,17 +588,12 @@ private static final int[] Tinv0 =
         Pack.intToLittleEndian(C3, out, outOff + 12);
     }
 
-    public BlockCipher newInstance()
-    {
-        return new AESEngine();
-    }
-
     private int bitsOfSecurity()
     {
-        if (WorkingKey == null)
+        if (workingKey == null)
         {
             return 256;
         }
-        return (WorkingKey.length - 7) << 5;
+        return (workingKey.length - 7) << 5;
     }
 }

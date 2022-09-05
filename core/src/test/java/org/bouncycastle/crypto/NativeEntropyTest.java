@@ -2,9 +2,9 @@ package org.bouncycastle.crypto;
 
 import junit.framework.TestCase;
 import org.bouncycastle.util.Arrays;
-import org.junit.Test;
 
 public class NativeEntropyTest
+    extends TestCase
 {
 
     /**
@@ -13,16 +13,15 @@ public class NativeEntropyTest
      * <p>
      * This test does not do that, it here to check that it returns something.
      */
-    @Test
     public void testESBasic()
         throws Exception
     {
 
         NativeLoader.loadDriver();
 
-        if (!CryptoServicesRegistrar.queryNativeFeature(CryptoServicesRegistrar.NATIVE_ENTROPY))
+        if (!CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.ENTROPY))
         {
-            System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
+            System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getStatusMessage());
         }
 
         NativeEntropySource nes = new NativeEntropySource(1024);

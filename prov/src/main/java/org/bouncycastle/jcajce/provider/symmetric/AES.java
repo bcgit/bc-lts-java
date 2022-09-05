@@ -49,6 +49,7 @@ import org.bouncycastle.jcajce.provider.symmetric.util.GcmSpecUtil;
 import org.bouncycastle.jcajce.provider.symmetric.util.IvAlgorithmParameters;
 import org.bouncycastle.jcajce.provider.symmetric.util.PBESecretKeyFactory;
 import org.bouncycastle.jcajce.spec.AEADParameterSpec;
+import org.bouncycastle.util.AESFactory;
 
 public final class AES
 {
@@ -84,7 +85,7 @@ public final class AES
     {
         public CBC()
         {
-            super(new CBCBlockCipher(new AESEngine()), 128);
+            super(AESFactory.createCBC(), 128);
         }
     }
 
@@ -111,7 +112,7 @@ public final class AES
     {
         public GCM()
         {
-            super(new GCMBlockCipher(new AESEngine()));
+            super(AESFactory.createGCM());
         }
     }
 
@@ -138,7 +139,7 @@ public final class AES
     {
         public AESGMAC()
         {
-            super(new GMac(new GCMBlockCipher(new AESEngine())));
+            super(new GMac(AESFactory.createGCM()));
         }
     }
 
@@ -278,7 +279,7 @@ public final class AES
     {
         public PBEWithAESCBC()
         {
-            super(new CBCBlockCipher(new AESEngine()));
+            super(AESFactory.createCBC());
         }
     }
 
@@ -290,7 +291,7 @@ public final class AES
     {
         public PBEWithSHA1AESCBC128()
         {
-            super(new CBCBlockCipher(new AESEngine()), PKCS12, SHA1, 128, 16);
+            super(AESFactory.createCBC(), PKCS12, SHA1, 128, 16);
         }
     }
 
@@ -299,7 +300,7 @@ public final class AES
     {
         public PBEWithSHA1AESCBC192()
         {
-            super(new CBCBlockCipher(new AESEngine()), PKCS12, SHA1, 192, 16);
+            super(AESFactory.createCBC(), PKCS12, SHA1, 192, 16);
         }
     }
 
@@ -308,7 +309,7 @@ public final class AES
     {
         public PBEWithSHA1AESCBC256()
         {
-            super(new CBCBlockCipher(new AESEngine()), PKCS12, SHA1, 256, 16);
+            super(AESFactory.createCBC(), PKCS12, SHA1, 256, 16);
         }
     }
 
@@ -320,7 +321,7 @@ public final class AES
     {
         public PBEWithSHA256AESCBC128()
         {
-            super(new CBCBlockCipher(new AESEngine()), PKCS12, SHA256, 128, 16);
+            super(AESFactory.createCBC(), PKCS12, SHA256, 128, 16);
         }
     }
 
@@ -329,7 +330,7 @@ public final class AES
     {
         public PBEWithSHA256AESCBC192()
         {
-            super(new CBCBlockCipher(new AESEngine()), PKCS12, SHA256, 192, 16);
+            super(AESFactory.createCBC(), PKCS12, SHA256, 192, 16);
         }
     }
 
@@ -338,7 +339,7 @@ public final class AES
     {
         public PBEWithSHA256AESCBC256()
         {
-            super(new CBCBlockCipher(new AESEngine()), PKCS12, SHA256, 256, 16);
+            super(AESFactory.createCBC(), PKCS12, SHA256, 256, 16);
         }
     }
 

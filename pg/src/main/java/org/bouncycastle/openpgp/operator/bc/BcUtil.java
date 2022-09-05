@@ -170,7 +170,7 @@ class BcUtil
         case AEADAlgorithmTags.OCB:
             return new OCBBlockCipher(new AESEngine(), new AESEngine());
         case AEADAlgorithmTags.GCM:
-            return new GCMBlockCipher(new AESEngine());
+            return AESFactory.createGCM();
         default:
             throw new PGPException("unrecognised AEAD algorithm: " + aeadAlgorithm);
         }

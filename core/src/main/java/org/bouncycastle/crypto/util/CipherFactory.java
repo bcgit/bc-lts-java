@@ -38,6 +38,7 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.crypto.params.RC2Parameters;
 import org.bouncycastle.internal.asn1.cms.CCMParameters;
 import org.bouncycastle.internal.asn1.cms.GCMParameters;
+import org.bouncycastle.util.AESFactory;
 
 /**
  * Factory methods for creating Cipher objects and CipherOutputStreams.
@@ -177,7 +178,7 @@ public class CipherFactory
             || NISTObjectIdentifiers.id_aes192_GCM.equals(algorithm)
             || NISTObjectIdentifiers.id_aes256_GCM.equals(algorithm))
         {
-            return new GCMBlockCipher(new AESEngine());
+            return AESFactory.createGCM();
         }
         if (NISTObjectIdentifiers.id_aes128_CCM.equals(algorithm)
             || NISTObjectIdentifiers.id_aes192_CCM.equals(algorithm)
@@ -200,7 +201,7 @@ public class CipherFactory
             || NISTObjectIdentifiers.id_aes192_CBC.equals(algorithm)
             || NISTObjectIdentifiers.id_aes256_CBC.equals(algorithm))
         {
-            cipher = new CBCBlockCipher(new AESEngine());
+            cipher = AESFactory.createCBC();
         }
         else if (PKCSObjectIdentifiers.des_EDE3_CBC.equals(algorithm))
         {

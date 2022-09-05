@@ -4,7 +4,7 @@ package org.bouncycastle.crypto;
  * Native methods in this class are implemented by the specific native lib version
  * to identify the library.
  */
-public class NativeLibIdentity
+class NativeLibIdentity
 {
     static String getLibraryIdent()
     {

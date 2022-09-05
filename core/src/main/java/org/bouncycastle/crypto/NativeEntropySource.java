@@ -26,7 +26,7 @@ class NativeEntropySource
             throw new IllegalStateException("no hardware support for random");
         }
 
-        useSeedSource = CryptoServicesRegistrar.queryNativeFeature("SEED");
+        useSeedSource = CryptoServicesRegistrar.getNativeServices().hasFeature("SEED");
 
         int mod = modulus();
         effectiveSize = ((size + mod - 1) / mod) * mod;
@@ -82,9 +82,13 @@ class NativeEntropySource
      */
     static boolean hasHardwareEntropy()
     {
-        return CryptoServicesRegistrar.queryNativeFeature(CryptoServicesRegistrar.NATIVE_SEED) ||
-            CryptoServicesRegistrar.queryNativeFeature(CryptoServicesRegistrar.NATIVE_RAND);
+        if (CryptoServicesRegistrar.hasNativeServices())
+        {
+            NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
+
+            return nativeServices.hasFeature(NativeServices.SEED) || nativeServices.hasFeature(NativeServices.RAND);
+        }
+
+        return false;
     }
-
-
 }

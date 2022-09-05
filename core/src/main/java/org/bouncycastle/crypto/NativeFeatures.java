@@ -1,8 +1,7 @@
 package org.bouncycastle.crypto;
 
-public class NativeFeatures
+class NativeFeatures
 {
-
     static boolean hasCFBHardwareSupport()
     {
         try
