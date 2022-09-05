@@ -126,6 +126,16 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64")
             )
     install(TARGETS "${LIB_NATIVE}" LIBRARY DESTINATION ${PLATFORM_TARGET}/components)
     target_compile_definitions("${LIB_NATIVE}" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"arm64\")
+
+    add_executable(tryit main_arm.cpp ${DEBUG_FUNC})
+    target_link_libraries(tryit "${LIB_NATIVE}")
+    # -mcpu=native+rng
+    target_compile_options("tryit" PRIVATE
+            $<$<COMPILE_LANGUAGE:CXX>: -mcpu=native+rng>
+            $<$<COMPILE_LANGUAGE:C>: -mcpu=native+rng>
+            )
+
+
 endif ()
 
 

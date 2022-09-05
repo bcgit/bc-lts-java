@@ -1,5 +1,5 @@
 
-#include "org_bouncycastle_util_VariantSelector.h"
+#include "org_bouncycastle_crypto_VariantSelector.h"
 
 
 typedef struct cpuid_struct {
@@ -16,7 +16,7 @@ typedef struct cpuid_struct {
  * Method:    getBestVariantName
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_org_bouncycastle_util_VariantSelector_getBestVariantName
+JNIEXPORT jstring JNICALL Java_org_bouncycastle_crypto_VariantSelector_getBestVariantName
         (JNIEnv *env, jclass) {
 
 
