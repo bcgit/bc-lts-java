@@ -2,6 +2,7 @@ package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.DefaultMultiBlockCipher;
 import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.util.dispose.Disposable;
@@ -10,7 +11,7 @@ import org.bouncycastle.util.dispose.DisposalDaemon;
 
 
 public class AESNativeEngine
-    implements MultiBlockCipher
+    extends DefaultMultiBlockCipher
 {
     private RefWrapper wrapper = null;
 
@@ -100,6 +101,29 @@ public class AESNativeEngine
     public int processBlocks(byte[] in, int inOff, int blockCount, byte[] out, int outOff)
         throws DataLengthException, IllegalStateException
     {
+
+        if (wrapper == null || wrapper.disposed)
+        {
+            throw new IllegalStateException("AES engine not initialised");
+        }
+
+        if ((inOff + getBlockSize()) > in.length)
+        {
+            throw new DataLengthException("input buffer too short");
+        }
+
+        if (outOff + getBlockSize() > out.length)
+        {
+            throw new DataLengthException("output buffer too short");
+        }
+
+        if (blockCount < 0)
+        {
+            throw new DataLengthException("block count < 0");
+        }
+
+
+
         return process(wrapper.nativeRef, in, inOff, blockCount, out, outOff);
     }
 

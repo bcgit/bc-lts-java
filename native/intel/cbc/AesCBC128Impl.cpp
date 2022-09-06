@@ -14,7 +14,7 @@
 namespace intel {
     namespace cbc {
 
-        __m128i AES_128_ASSIST(__m128i temp1, __m128i temp2) {
+        inline __m128i AES_128_ASSIST(__m128i temp1, __m128i temp2) {
             __m128i temp3;
             temp2 = _mm_shuffle_epi32 (temp2, 0xff);
             temp3 = _mm_slli_si128 (temp1, 0x4);
@@ -94,7 +94,7 @@ namespace intel {
             tmp = _mm_aesenc_si128(tmp, roundKeys[8]);
             tmp = _mm_aesenc_si128(tmp, roundKeys[9]);
 
-            feedback = _mm_aesenclast_si128(tmp, roundKeys[10]);
+            result = _mm_aesenclast_si128(tmp, roundKeys[10]);
             feedback = result;
         }
 

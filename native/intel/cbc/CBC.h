@@ -21,7 +21,6 @@ namespace intel {
             __m128i *roundKeys;
             __m128i feedback;
             __m128i initialFeedback;
-            bool encryption;
 
             virtual void init(unsigned char *key) = 0;
 
@@ -35,7 +34,7 @@ namespace intel {
 
             virtual ~CBC();
 
-            void init(bool encrypt, unsigned char *key, unsigned long keylen, unsigned char *iv, unsigned long ivlen);
+            void init(unsigned char *key, unsigned long keylen, unsigned char *iv, unsigned long ivlen);
 
             void reset();
 

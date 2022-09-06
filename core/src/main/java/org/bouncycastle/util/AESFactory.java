@@ -3,6 +3,7 @@ package org.bouncycastle.util;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.AESNativeCBC;
 import org.bouncycastle.crypto.engines.AESNativeEngine;
 import org.bouncycastle.crypto.modes.AEADBlockCipher;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
@@ -15,13 +16,16 @@ public class AESFactory
         if (CryptoServicesRegistrar.getNativeServices().hasFeature("AES/ECB")) {
             return new AESNativeEngine();
         }
-        String status = CryptoServicesRegistrar.getNativeStatus();
 
         return new AESEngine();
     }
 
-    public static CBCBlockCipher createCBC()
+    public static BlockCipher createCBC()
     {
+        if (CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC")) {
+            return new AESNativeCBC();
+        }
+
         return new CBCBlockCipher(new AESEngine());
     }
 

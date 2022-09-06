@@ -102,7 +102,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_mak
     }
 
     //
-    // Ownership is managed by the java class that las the reference to it.
+    // Ownership is managed by the java class that has the reference to it.
     //
     return (jlong) instance;
 }

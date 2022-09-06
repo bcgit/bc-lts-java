@@ -153,7 +153,8 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             intel/cbc/AesCBC256Impl.cpp
             intel/cbc/AesCBC.h
             intel/cbc/CBC.cpp
-            intel/cbc/CBC.h)
+            intel/cbc/CBC.h
+            intel/jni/cbc_jni.cpp)
     set(ECB intel/ecb/AesEcb.cpp
             intel/ecb/AesEcb.h
             intel/ecb/ecb.cpp
@@ -197,6 +198,8 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${CBC}
             ${ECB}
             ${EXCEPTIONS}
+            debug.cpp
+            debug.h
             )
     target_include_directories("${LIB_NATIVE}-sse" PUBLIC ${JNI_INCLUDES})
 
@@ -228,6 +231,9 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${CBC}
             ${ECB}
             ${EXCEPTIONS}
+            debug.cpp
+            debug.h
+
             )
     target_include_directories("${LIB_NATIVE}-avx" PUBLIC ${JNI_INCLUDES})
 

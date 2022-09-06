@@ -2,7 +2,6 @@
 #include "org_bouncycastle_crypto_NativeFeatures.h"
 
 
-
 typedef struct cpuid_struct {
     unsigned int eax;
     unsigned int ebx;
@@ -35,7 +34,10 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCFB
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCBC
         (JNIEnv *, jclass) {
-    return JNI_FALSE;
+    cpuid_t info;
+    cpuid(&info, 1, 0);
+
+    return (info.ecx & (1 << 25)) != 0 ? JNI_TRUE : JNI_FALSE;
 }
 
 /*
@@ -59,7 +61,7 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeAES
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCM
-        (JNIEnv *, jclass){
+        (JNIEnv *, jclass) {
     return JNI_FALSE;
 }
 

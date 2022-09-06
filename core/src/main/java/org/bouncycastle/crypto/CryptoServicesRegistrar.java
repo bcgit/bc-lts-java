@@ -59,12 +59,6 @@ public final class CryptoServicesRegistrar
 
     static
     {
-
-        //
-        // Load the native code.
-        //
-        NativeLoader.loadDriver();
-
         // default domain parameters for DSA and Diffie-Hellman
 
         DSAParameters def512Params = new DSAParameters(
@@ -128,6 +122,11 @@ public final class CryptoServicesRegistrar
 
         servicesConstraints.set(getDefaultConstraints());
         preconfiguredConstraints = (servicesConstraints.get() != noConstraintsImpl);
+
+        //
+        // Load the native code.
+        //
+        NativeLoader.loadDriver();
     }
 
 
@@ -256,19 +255,6 @@ public final class CryptoServicesRegistrar
      */
     public static void checkConstraints(CryptoServiceProperties cryptoService)
     {
-
-        if (cryptoService.getPurpose() == CryptoServicePurpose.NATIVE_LOADING)
-        {
-            if (NativeLoader.isLoadCalled())
-            {
-                throw new IllegalStateException("NATIVE_LOADING cannot be used after native load has been attempted");
-            }
-            else
-            {
-                return;
-            }
-        }
-
         servicesConstraints.get().check(cryptoService);
     }
 
