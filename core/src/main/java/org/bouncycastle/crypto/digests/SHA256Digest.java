@@ -23,12 +23,12 @@ public class SHA256Digest
     extends GeneralDigest
     implements EncodableDigest
 {
-    private static final int    DIGEST_LENGTH = 32;
+    private static final int DIGEST_LENGTH = 32;
 
-    private int     H1, H2, H3, H4, H5, H6, H7, H8;
+    private int H1, H2, H3, H4, H5, H6, H7, H8;
 
-    private int[]   X = new int[64];
-    private int     xOff;
+    private int[] X = new int[64];
+    private int xOff;
 
     /**
      * Standard constructor
@@ -44,9 +44,7 @@ public class SHA256Digest
     public SHA256Digest(CryptoServicePurpose purpose)
     {
         super(purpose);
-
         CryptoServicesRegistrar.checkConstraints(cryptoServiceProperties());
-
         reset();
     }
 
@@ -115,8 +113,8 @@ public class SHA256Digest
     }
 
     protected void processWord(
-        byte[]  in,
-        int     inOff)
+        byte[] in,
+        int inOff)
     {
         X[xOff] = Pack.bigEndianToInt(in, inOff);
 
@@ -127,7 +125,7 @@ public class SHA256Digest
     }
 
     protected void processLength(
-        long    bitLength)
+        long bitLength)
     {
         if (xOff > 14)
         {
@@ -197,17 +195,17 @@ public class SHA256Digest
         //
         // set up working variables.
         //
-        int     a = H1;
-        int     b = H2;
-        int     c = H3;
-        int     d = H4;
-        int     e = H5;
-        int     f = H6;
-        int     g = H7;
-        int     h = H8;
+        int a = H1;
+        int b = H2;
+        int c = H3;
+        int d = H4;
+        int e = H5;
+        int f = H6;
+        int g = H7;
+        int h = H8;
 
-        int t = 0;     
-        for(int i = 0; i < 8; i ++)
+        int t = 0;
+        for (int i = 0; i < 8; i++)
         {
             // t = 8 * i
             h += Sum1(e) + Ch(e, f, g) + K[t] + X[t];

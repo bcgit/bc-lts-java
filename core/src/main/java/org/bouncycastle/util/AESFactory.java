@@ -1,7 +1,9 @@
 package org.bouncycastle.util;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.AESNativeEngine;
 import org.bouncycastle.crypto.modes.AEADBlockCipher;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
@@ -10,6 +12,11 @@ public class AESFactory
 {
     public static BlockCipher createECB()
     {
+        if (CryptoServicesRegistrar.getNativeServices().hasFeature("AES/ECB")) {
+            return new AESNativeEngine();
+        }
+        String status = CryptoServicesRegistrar.getNativeStatus();
+
         return new AESEngine();
     }
 

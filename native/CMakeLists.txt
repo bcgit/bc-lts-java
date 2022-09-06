@@ -147,6 +147,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     set(RAND_HEADERS intel/rand/Rand.h)
     set(RAND_IMPL intel/rand/Rand.cpp intel/jni/native_entropy_source_jni.cpp)
     set(IDENT_IMPL intel/jni/ident_jni.cpp intel/jni/native_features.cpp)
+    set(COMMON intel/common.cpp intel/common.h)
     set(CBC intel/cbc/AesCBC128Impl.cpp
             intel/cbc/AesCBC192Impl.cpp
             intel/cbc/AesCBC256Impl.cpp
@@ -156,7 +157,9 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     set(ECB intel/ecb/AesEcb.cpp
             intel/ecb/AesEcb.h
             intel/ecb/ecb.cpp
-            intel/ecb/ecb.h)
+            intel/ecb/ecb.h
+            intel/jni/ecb_jni.cpp
+            )
     set(GCM intel/gcm/AesGcm.cpp
             intel/gcm/AesGcm.h
             intel/gcm/gcm.cpp
@@ -180,6 +183,8 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 
 
     add_library("${LIB_NATIVE}-sse" SHARED
+
+            ${COMMON}
 
             ${RAND_HEADERS}
             ${RAND_IMPL}
@@ -209,6 +214,9 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     # specify the C++ standard
     #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed")
     add_library("${LIB_NATIVE}-avx" SHARED
+
+            ${COMMON}
+
             ${RAND_HEADERS}
             ${RAND_IMPL}
 

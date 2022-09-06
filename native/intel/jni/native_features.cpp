@@ -45,7 +45,12 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCBC
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeAES
         (JNIEnv *, jclass) {
-    return JNI_FALSE;
+
+    cpuid_t info;
+    cpuid(&info, 1, 0);
+
+    return (info.ecx & (1 << 25)) != 0 ? JNI_TRUE : JNI_FALSE;
+
 }
 
 /*

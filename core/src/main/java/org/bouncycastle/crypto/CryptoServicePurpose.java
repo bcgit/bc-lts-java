@@ -9,5 +9,6 @@ public enum CryptoServicePurpose
     SIGNING,
     VERIFYING,
     PRF,
-    ANY
+    ANY,
+    NATIVE_LOADING
 }

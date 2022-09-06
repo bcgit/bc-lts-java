@@ -41,6 +41,17 @@ class NativeLoader
 
     private static boolean loadCalled = false;
 
+
+    /**
+     * Returns true if an attempt to load the native components has completed,
+     * regardless of the outcome.
+     * @return true if a loading attempt has been completed regardless of the outcome.
+     */
+    public static boolean isLoadCalled()
+    {
+        return loadCalled;
+    }
+
     /**
      * Hardware Aes ECB is supported.
      *
@@ -191,16 +202,27 @@ class NativeLoader
         return libToLoad;
     }
 
-
     public static synchronized void loadDriver()
     {
-
-        if (loadCalled)
+        try
         {
-            return;
-        }
+            if (loadCalled)
+            {
+                return;
+            }
 
-        loadCalled = true;
+            bootNative();
+
+        }
+        finally
+        {
+            loadCalled = true;
+        }
+    }
+
+
+    public static synchronized void bootNative()
+    {
 
         String forcedVariant = Properties.getPropertyValue(BC_LIB_CPU_VARIANT);
         Map<String, String> variantPaths = mapVariants("/META-INF/DRIVERS");
@@ -490,7 +512,7 @@ class NativeLoader
         try
         {
             byte[] buf = new byte[65535];
-            SHA256Digest dig = new SHA256Digest();
+            SHA256Digest dig = new SHA256Digest(CryptoServicePurpose.NATIVE_LOADING);
             int len;
             while ((len = in.read(buf)) >= 0)
             {

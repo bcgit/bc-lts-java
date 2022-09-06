@@ -256,6 +256,19 @@ public final class CryptoServicesRegistrar
      */
     public static void checkConstraints(CryptoServiceProperties cryptoService)
     {
+
+        if (cryptoService.getPurpose() == CryptoServicePurpose.NATIVE_LOADING)
+        {
+            if (NativeLoader.isLoadCalled())
+            {
+                throw new IllegalStateException("NATIVE_LOADING cannot be used after native load has been attempted");
+            }
+            else
+            {
+                return;
+            }
+        }
+
         servicesConstraints.get().check(cryptoService);
     }
 
@@ -552,6 +565,11 @@ public final class CryptoServicesRegistrar
         // TODO: return one based on system/security properties if set.
 
         return noConstraintsImpl;
+    }
+
+    public static String getNativeStatus()
+    {
+        return NativeLoader.getStatusMessage();
     }
 
     /**

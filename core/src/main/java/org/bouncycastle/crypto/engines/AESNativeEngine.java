@@ -1,17 +1,18 @@
 package org.bouncycastle.crypto.engines;
 
-import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.MultiBlockCipher;
+import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.util.dispose.Disposable;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.dispose.DisposalDaemon;
 
 
 public class AESNativeEngine
-    implements BlockCipher, Disposable
+    implements MultiBlockCipher
 {
-    private long nativeRef = 0;
+    private RefWrapper wrapper = null;
 
     public AESNativeEngine()
     {
@@ -33,17 +34,20 @@ public class AESNativeEngine
             case 32:
                 synchronized (this)
                 {
-                    if (nativeRef != 0)
+                    if (wrapper != null)
                     {
-                        dispose(nativeRef);
+                        wrapper.dispose();
                     }
-                    nativeRef = makeInstance(key.length, forEncryption);
-                    DisposalDaemon.addDisposable(this);
+                    wrapper = new RefWrapper(makeInstance(key.length, forEncryption));
+                    DisposalDaemon.addDisposable(wrapper);
                 }
                 break;
+
+            default:
+                throw new IllegalArgumentException("key must be 16, 24 or 32 bytes");
             }
 
-            init(nativeRef, key);
+            init(wrapper.nativeRef, key);
 
             return;
         }
@@ -55,48 +59,97 @@ public class AESNativeEngine
     @Override
     public String getAlgorithmName()
     {
-        return null;
+        return "AES";
     }
 
     @Override
     public int getBlockSize()
     {
-        return getBlockSize(nativeRef);
+        return getBlockSize(0);
     }
 
     @Override
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
         throws DataLengthException, IllegalStateException
     {
-        return process(nativeRef, in, inOff, out, outOff);
+        if (wrapper == null)
+        {
+            throw new IllegalStateException("AES engine not initialised");
+        }
+
+        if (inOff > (in.length - getBlockSize()))
+        {
+            throw new DataLengthException("input buffer too short");
+        }
+
+        if (outOff > (out.length - getBlockSize()))
+        {
+            throw new OutputLengthException("output buffer too short");
+        }
+        return process(wrapper.nativeRef, in, inOff, 1, out, outOff);
     }
 
+    @Override
+    public int getMultiBlockSize()
+    {
+        return getMultiBlockSize(0);
+    }
+
+
+    @Override
+    public int processBlocks(byte[] in, int inOff, int blockCount, byte[] out, int outOff)
+        throws DataLengthException, IllegalStateException
+    {
+        return process(wrapper.nativeRef, in, inOff, blockCount, out, outOff);
+    }
 
     @Override
     public void reset()
     {
-        reset(nativeRef);
-    }
-
-    private native void reset(long ref);
-
-    private native int process(long ref, byte[] in, int inOff, byte[] out, int outOff);
-
-    private native int getBlockSize(long ref);
-
-    private native long makeInstance(int length, boolean forEncryption);
-
-    private native void dispose(long ref);
-
-    private native void init(long nativeRef, byte[] key);
-
-    @Override
-    public synchronized void dispose()
-    {
-        if (nativeRef != 0)
+        if (wrapper != null)
         {
-            dispose(nativeRef);
-            nativeRef = 0;
+            reset(wrapper.nativeRef);
         }
     }
+
+
+    private static native void reset(long ref);
+
+    private static native int process(long ref, byte[] in, int inOff, int blocks, byte[] out, int outOff);
+
+    private static native int getMultiBlockSize(long nativeRef);
+
+    private static native int getBlockSize(long ref);
+
+    private static native long makeInstance(int length, boolean forEncryption);
+
+    private static native void dispose(long ref);
+
+    private static native void init(long nativeRef, byte[] key);
+
+
+    private static class RefWrapper
+        implements Disposable
+    {
+        private final long nativeRef;
+        private boolean disposed = false;
+
+        private RefWrapper(long nativeRef)
+        {
+            this.nativeRef = nativeRef;
+        }
+
+
+        @Override
+        public void dispose()
+        {
+            if (!disposed)
+            {
+                AESNativeEngine.dispose(nativeRef);
+                disposed = true;
+            }
+        }
+
+    }
+
 }
