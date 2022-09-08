@@ -87,7 +87,6 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            ule.printStackTrace();
             //
         }
         return false;

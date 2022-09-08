@@ -62,7 +62,7 @@ namespace intel {
 
         size_t CBC::processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) {
             unsigned char *outStart = out;
-            
+
             for (int t = 0; t < blocks; t++) {
 
                 auto data = _mm_loadu_si128((__m128i *) in);

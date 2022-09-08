@@ -161,7 +161,8 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             intel/ecb/ecb.h
             intel/jni/ecb_jni.cpp
             )
-    set(GCM intel/gcm/AesGcm.cpp
+    set(GCM intel/jni/gcm_jni.cpp
+            intel/gcm/AesGcm.cpp
             intel/gcm/AesGcm.h
             intel/gcm/gcm.cpp
             intel/gcm/gcm.h)

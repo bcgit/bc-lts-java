@@ -21,7 +21,7 @@ import org.bouncycastle.util.Pack;
  * NIST Special Publication 800-38D.
  */
 public class GCMBlockCipher
-    implements AEADBlockCipher
+    implements AEADBlockCipher, GCMCipher
 {
     private static final int BLOCK_SIZE = 16;
 

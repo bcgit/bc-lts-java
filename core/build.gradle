@@ -1,5 +1,11 @@
 import static ExtraFunctions.*
 
+
+test {
+
+}
+
+
   task variantFile() {
     doLast {
 

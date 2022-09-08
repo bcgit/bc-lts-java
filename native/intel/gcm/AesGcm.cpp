@@ -571,7 +571,7 @@ size_t intel::gcm::AesGcm::getUpdateOutputSize(size_t len) {
         if (totalData < bufBlockLen) {
             return 0;
         }
-        // totalData -= FOUR_BLOCKS;
+         totalData -= macBlockLen;
     }
     return totalData - totalData % FOUR_BLOCKS;
 }

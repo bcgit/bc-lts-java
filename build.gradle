@@ -95,6 +95,10 @@ subprojects {
 
     filter {
       includeTestsMatching "AllTest*"
+      if (rootProject.hasProperty("skip.pqc.tests"))
+      {
+        exclude('**/pqc/**')
+      }
     }
   }
 
@@ -103,6 +107,7 @@ subprojects {
     checkstyle files("$rootDir/config/checkstyle/lib/methodchecker.jar")
     checkstyle 'com.puppycrawl.tools:checkstyle:9.0'
   }
+
 
   checkstyle {
     configFile file("$rootDir/config/checkstyle/checkstyle.xml");
@@ -123,8 +128,3 @@ subprojects {
 
 test.dependsOn([':core:test', ':prov:test', ':pkix:test', ':mail:test', 'pg:test', ':tls:test'])
 
-project("tls") {
-  dependencies {
-    project(":core")
-  }
-}

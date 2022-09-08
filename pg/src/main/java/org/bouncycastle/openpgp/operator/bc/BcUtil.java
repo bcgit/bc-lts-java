@@ -31,6 +31,7 @@ import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.operator.PGPDataDecryptor;
 import org.bouncycastle.openpgp.operator.PGPDigestCalculator;
+import org.bouncycastle.util.AESFactory;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.BigIntegers;
 import org.bouncycastle.util.Pack;

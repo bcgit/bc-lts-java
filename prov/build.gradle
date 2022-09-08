@@ -1,0 +1,9 @@
+
+
+dependencies {
+  implementation project(":core")
+}
+
+
+
+

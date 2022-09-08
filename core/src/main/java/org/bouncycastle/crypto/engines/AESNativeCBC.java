@@ -86,6 +86,11 @@ public class AESNativeCBC
             throw new IllegalArgumentException("cannot change encrypting state without providing key.");
         }
 
+        if (iv == null)
+        {
+            throw new IllegalArgumentException("iv is null");
+        }
+
         wrapper = new CBCRefWrapper(makeNative(key.length, encrypting));
         DisposalDaemon.addDisposable(wrapper);
         init(wrapper.nativeRef, key, iv);

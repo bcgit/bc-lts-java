@@ -1,0 +1,12 @@
+
+
+dependencies {
+  implementation fileTree("$rootDir/libs")
+  implementation project(":core")
+  implementation project(":pkix")
+  implementation project(":prov")
+  implementation project(":util")
+}
+
+
+
