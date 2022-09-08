@@ -4,6 +4,8 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.bouncycastle.crypto.NativeEntropyTest;
+import org.bouncycastle.crypto.NativeFailsafeTest;
 
 public class AllTests
     extends TestCase
@@ -19,6 +21,9 @@ public class AllTests
         
         suite.addTestSuite(SimpleTestTest.class);
         suite.addTestSuite(GCMReorderTest.class);
+        suite.addTestSuite(NativeFailsafeTest.class);
+        suite.addTestSuite(NativeEntropyTest.class);
+
         
         return new BCTestSetup(suite);
     }
@@ -26,6 +31,7 @@ public class AllTests
     static class BCTestSetup
         extends TestSetup
     {
+
         public BCTestSetup(Test test)
         {
             super(test);

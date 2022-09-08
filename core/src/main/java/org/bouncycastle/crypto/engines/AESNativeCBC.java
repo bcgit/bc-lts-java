@@ -7,8 +7,7 @@ import org.bouncycastle.crypto.DefaultMultiBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
-import org.bouncycastle.util.dispose.Disposable;
-import org.bouncycastle.util.dispose.DisposalDaemon;
+import org.bouncycastle.util.dispose.NativeReference;
 
 
 public class AESNativeCBC
@@ -92,8 +91,7 @@ public class AESNativeCBC
         }
 
         wrapper = new CBCRefWrapper(makeNative(key.length, encrypting));
-        DisposalDaemon.addDisposable(wrapper);
-        init(wrapper.nativeRef, key, iv);
+        init(wrapper.getReference(), key, iv);
 
     }
 
@@ -127,19 +125,19 @@ public class AESNativeCBC
         }
 
 
-        return process(wrapper.nativeRef, in, inOff, 1, out, outOff);
+        return process(wrapper.getReference(), in, inOff, 1, out, outOff);
     }
 
     @Override
     public void reset()
     {
         // skip over spurious resets that may occur before init is called.
-        if (wrapper == null || wrapper.disposed)
+        if (wrapper == null || wrapper.isDisposed())
         {
             return;
         }
 
-        reset(wrapper.nativeRef);
+        reset(wrapper.getReference());
 
     }
 
@@ -169,12 +167,12 @@ public class AESNativeCBC
             throw new DataLengthException("block count < 0");
         }
 
-        if (wrapper == null || wrapper.disposed)
+        if (wrapper == null || wrapper.isDisposed())
         {
             throw new IllegalStateException("CBC engine not initialised");
         }
 
-        return process(wrapper.nativeRef, in, inOff, blockCount, out, outOff);
+        return process(wrapper.getReference(), in, inOff, blockCount, out, outOff);
     }
 
     private static native int process(long ref, byte[] in, int inOff, int blockCount, byte[] out, int outOff);
@@ -191,29 +189,19 @@ public class AESNativeCBC
 
     private static native void reset(long nativeRef);
 
-    private static class CBCRefWrapper
-        implements Disposable
+    private static class CBCRefWrapper extends NativeReference
     {
 
-        private final long nativeRef;
-        private boolean disposed = false;
 
-        private CBCRefWrapper(long nativeRef)
+        public CBCRefWrapper(long reference)
         {
-            this.nativeRef = nativeRef;
+            super(reference);
         }
 
         @Override
-        public void dispose()
+        protected void destroy(long reference)
         {
-            if (disposed)
-            {
-                return;
-            }
-
-            AESNativeCBC.dispose(nativeRef);
-
-            disposed = true;
+            AESNativeCBC.dispose(reference);
         }
     }
 

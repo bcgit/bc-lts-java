@@ -2,8 +2,19 @@ import static ExtraFunctions.*
 
 
 test {
-
+  testLogging.showStandardStreams = true
+  jvmArgs propValsAsArgs(project, test.name, "variant", "org.bouncycastle.native.cpu_variant"),
+          propValsAsArgs(project, test.name, "failsafe_skip", "test.bcfips.ignore.native");
+//  jvmArgs '-Dtest.bcfips.ignore.native=sha,gcm,cbc,ecb,rand,seed', '-Dorg.bouncycastle.native.cpu_variant=java'
 }
+
+
+task cleanFipsVariations(type: Delete) {
+  delete("$projectDir/src/main/resources/native/");
+  delete("$projectDir/src/main/resources/META-INF/DRIVERS");
+}
+
+tasks.clean.dependsOn(cleanFipsVariations);
 
 
   task variantFile() {

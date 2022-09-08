@@ -22,6 +22,7 @@ public class NativeEntropyTest
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.ENTROPY))
         {
             System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getStatusMessage());
+            return;
         }
 
         NativeEntropySource nes = new NativeEntropySource(1024);

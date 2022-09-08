@@ -72,6 +72,11 @@ class NativeLoader
         return NativeLoader.isNativeAvailable() && NativeFeatures.hasAESHardwareSupport();
     }
 
+    public static boolean hasHardwareAesGCM()
+    {
+        return NativeLoader.isNativeAvailable() && NativeFeatures.hasGCMHardwareSupport();
+    }
+
 
     static synchronized boolean isJavaSupportOnly()
     {

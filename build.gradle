@@ -90,11 +90,15 @@ subprojects {
     systemProperty 'bc.test.data.home', bcTestDataHome
     maxHeapSize = "1536m"
     testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
 
     finalizedBy jacocoTestReport
 
     filter {
       includeTestsMatching "AllTest*"
+
       if (rootProject.hasProperty("skip.pqc.tests"))
       {
         exclude('**/pqc/**')

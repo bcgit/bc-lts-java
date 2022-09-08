@@ -3,17 +3,15 @@ package org.bouncycastle.crypto.engines;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultMultiBlockCipher;
-import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.OutputLengthException;
-import org.bouncycastle.util.dispose.Disposable;
 import org.bouncycastle.crypto.params.KeyParameter;
-import org.bouncycastle.util.dispose.DisposalDaemon;
+import org.bouncycastle.util.dispose.NativeReference;
 
 
 public class AESNativeEngine
     extends DefaultMultiBlockCipher
 {
-    private RefWrapper wrapper = null;
+    protected NativeReference wrapper = null;
 
     public AESNativeEngine()
     {
@@ -39,8 +37,7 @@ public class AESNativeEngine
                     {
                         wrapper.dispose();
                     }
-                    wrapper = new RefWrapper(makeInstance(key.length, forEncryption));
-                    DisposalDaemon.addDisposable(wrapper);
+                    wrapper = new ECBNativeRef(makeInstance(key.length, forEncryption));
                 }
                 break;
 
@@ -48,7 +45,7 @@ public class AESNativeEngine
                 throw new IllegalArgumentException("key must be 16, 24 or 32 bytes");
             }
 
-            init(wrapper.nativeRef, key);
+            init(wrapper.getReference(), key);
 
             return;
         }
@@ -87,7 +84,7 @@ public class AESNativeEngine
         {
             throw new OutputLengthException("output buffer too short");
         }
-        return process(wrapper.nativeRef, in, inOff, 1, out, outOff);
+        return process(wrapper.getReference(), in, inOff, 1, out, outOff);
     }
 
     @Override
@@ -102,7 +99,7 @@ public class AESNativeEngine
         throws DataLengthException, IllegalStateException
     {
 
-        if (wrapper == null || wrapper.disposed)
+        if (wrapper == null || wrapper.isDisposed())
         {
             throw new IllegalStateException("AES engine not initialised");
         }
@@ -123,17 +120,18 @@ public class AESNativeEngine
         }
 
 
-
-        return process(wrapper.nativeRef, in, inOff, blockCount, out, outOff);
+        return process(wrapper.getReference(), in, inOff, blockCount, out, outOff);
     }
 
     @Override
     public void reset()
     {
-        if (wrapper != null)
+        // skip over spurious resets that may occur before init is called.
+        if (wrapper == null || wrapper.isDisposed())
         {
-            reset(wrapper.nativeRef);
+            return;
         }
+        reset(wrapper.getReference());
     }
 
 
@@ -152,28 +150,27 @@ public class AESNativeEngine
     private static native void init(long nativeRef, byte[] key);
 
 
-    private static class RefWrapper
-        implements Disposable
+    private static class ECBNativeRef
+        extends NativeReference
     {
-        private final long nativeRef;
-        private boolean disposed = false;
 
-        private RefWrapper(long nativeRef)
+        public ECBNativeRef(long reference)
         {
-            this.nativeRef = nativeRef;
+            super(reference);
         }
-
 
         @Override
-        public void dispose()
+        protected void destroy(long reference)
         {
-            if (!disposed)
-            {
-                AESNativeEngine.dispose(nativeRef);
-                disposed = true;
-            }
+            AESNativeEngine.dispose(reference);
         }
-
     }
 
+    @Override
+    protected void finalize()
+        throws Throwable
+    {
+        super.finalize();
+        System.out.println("here!");
+    }
 }
