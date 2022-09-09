@@ -5,7 +5,6 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultMultiBlockCipher;
-import org.bouncycastle.crypto.engines.AESNativeCBC;
 import org.bouncycastle.crypto.engines.NativeEngine;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;

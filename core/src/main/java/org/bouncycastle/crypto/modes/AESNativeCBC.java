@@ -1,14 +1,13 @@
-package org.bouncycastle.crypto.engines;
+package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.modes.CBCModeCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.dispose.NativeReference;
 
-public class AESNativeCBC
+class AESNativeCBC
     implements CBCModeCipher
 {
 

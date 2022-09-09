@@ -7,7 +7,6 @@ import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.engines.AESNativeGCM;
 import org.bouncycastle.crypto.engines.NativeEngine;
 import org.bouncycastle.crypto.modes.gcm.BasicGCMExponentiator;
 import org.bouncycastle.crypto.modes.gcm.GCMExponentiator;

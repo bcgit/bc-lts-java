@@ -4,14 +4,11 @@ import java.io.ByteArrayOutputStream;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.Mac;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.engines.AESNativeGCM;
-import org.bouncycastle.crypto.engines.NativeEngine;
 import org.bouncycastle.crypto.macs.CBCBlockCipherMac;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.ParametersWithIV;

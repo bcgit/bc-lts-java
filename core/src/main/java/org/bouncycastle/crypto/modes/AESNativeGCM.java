@@ -1,17 +1,16 @@
-package org.bouncycastle.crypto.engines;
+package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.dispose.NativeReference;
 
-public class AESNativeGCM
+class AESNativeGCM
     implements GCMModeCipher
 {
 
