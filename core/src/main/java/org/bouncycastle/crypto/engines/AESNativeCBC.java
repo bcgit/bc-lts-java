@@ -79,8 +79,7 @@ public class AESNativeCBC
 
         }
 
-
-        if (key == null || oldEncrypting != encrypting)
+        if (key == null && oldEncrypting != encrypting)
         {
             throw new IllegalArgumentException("cannot change encrypting state without providing key.");
         }
