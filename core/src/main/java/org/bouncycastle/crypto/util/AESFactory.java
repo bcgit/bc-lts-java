@@ -1,4 +1,4 @@
-package org.bouncycastle.util;
+package org.bouncycastle.crypto.util;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
