@@ -4,7 +4,7 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.Mac;
-import org.bouncycastle.crypto.modes.GCMCipher;
+import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -19,7 +19,7 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
  */
 public class GMac implements Mac
 {
-    private final GCMCipher cipher;
+    private final GCMModeCipher cipher;
     private final int macSizeBits;
 
     /**
@@ -30,7 +30,7 @@ public class GMac implements Mac
      * @param cipher
      *            the cipher to be used in GCM mode to generate the MAC.
      */
-    public GMac(final GCMCipher cipher)
+    public GMac(final GCMModeCipher cipher)
     {
         // use of this confused flow analyser in some earlier JDKs
         this.cipher = cipher;
@@ -46,7 +46,7 @@ public class GMac implements Mac
      * @param cipher
      *            the cipher to be used in GCM mode to generate the MAC.
      */
-    public GMac(final GCMCipher cipher, final int macSizeBits)
+    public GMac(final GCMModeCipher cipher, final int macSizeBits)
     {
         this.cipher = cipher;
         this.macSizeBits = macSizeBits;

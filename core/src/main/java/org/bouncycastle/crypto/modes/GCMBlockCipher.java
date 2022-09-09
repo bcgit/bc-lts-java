@@ -2,9 +2,13 @@ package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.OutputLengthException;
+import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.AESNativeGCM;
+import org.bouncycastle.crypto.engines.NativeEngine;
 import org.bouncycastle.crypto.modes.gcm.BasicGCMExponentiator;
 import org.bouncycastle.crypto.modes.gcm.GCMExponentiator;
 import org.bouncycastle.crypto.modes.gcm.GCMMultiplier;
@@ -21,7 +25,7 @@ import org.bouncycastle.util.Pack;
  * NIST Special Publication 800-38D.
  */
 public class GCMBlockCipher
-    implements AEADBlockCipher, GCMCipher
+    implements GCMModeCipher
 {
     private static final int BLOCK_SIZE = 16;
 
@@ -52,6 +56,27 @@ public class GCMBlockCipher
     private int         atBlockPos;
     private long        atLength;
     private long        atLengthPre;
+
+    public static GCMModeCipher newInstance(BlockCipher cipher)
+    {
+        if (cipher instanceof NativeEngine)
+        {
+            if (cipher.getAlgorithmName().equals("AES"))
+            {
+                if (CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
+                {
+                    return new AESNativeGCM();
+                }
+            }
+        }
+
+        return new GCMBlockCipher(new AESEngine());
+    }
+
+    public static GCMModeCipher newInstance(BlockCipher cipher, GCMMultiplier m)
+    {
+        return new GCMBlockCipher(new AESEngine(), m);
+    }
 
     public GCMBlockCipher(BlockCipher c)
     {

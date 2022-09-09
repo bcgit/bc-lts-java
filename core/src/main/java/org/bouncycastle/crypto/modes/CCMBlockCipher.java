@@ -4,10 +4,14 @@ import java.io.ByteArrayOutputStream;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.Mac;
 import org.bouncycastle.crypto.OutputLengthException;
+import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.AESNativeGCM;
+import org.bouncycastle.crypto.engines.NativeEngine;
 import org.bouncycastle.crypto.macs.CBCBlockCipherMac;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -20,7 +24,7 @@ import org.bouncycastle.util.Arrays;
  * <b>Note</b>: this mode is a packet mode - it needs all the data up front.
  */
 public class CCMBlockCipher
-    implements AEADBlockCipher
+    implements CCMModeCipher
 {
     private BlockCipher           cipher;
     private int                   blockSize;
@@ -32,6 +36,11 @@ public class CCMBlockCipher
     private byte[]                macBlock;
     private ExposedByteArrayOutputStream associatedText = new ExposedByteArrayOutputStream();
     private ExposedByteArrayOutputStream data = new ExposedByteArrayOutputStream();
+
+    public static CCMModeCipher newInstance(BlockCipher cipher)
+    {
+        return new CCMBlockCipher(new AESEngine());
+    }
 
     /**
      * Basic constructor.

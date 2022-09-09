@@ -1,17 +1,15 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.DefaultMultiBlockCipher;
+import org.bouncycastle.crypto.modes.CBCModeCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.dispose.NativeReference;
 
-
 public class AESNativeCBC
-    extends DefaultMultiBlockCipher
+    implements CBCModeCipher
 {
 
     private CBCRefWrapper wrapper;

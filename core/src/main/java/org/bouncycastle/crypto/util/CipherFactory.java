@@ -29,6 +29,7 @@ import org.bouncycastle.crypto.io.CipherOutputStream;
 import org.bouncycastle.crypto.modes.AEADBlockCipher;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.CCMBlockCipher;
+import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.paddings.PKCS7Padding;
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -176,7 +177,7 @@ public class CipherFactory
             || NISTObjectIdentifiers.id_aes192_GCM.equals(algorithm)
             || NISTObjectIdentifiers.id_aes256_GCM.equals(algorithm))
         {
-            return AESFactory.createGCM();
+            return GCMBlockCipher.newInstance(AESEngine.newInstance());
         }
         if (NISTObjectIdentifiers.id_aes128_CCM.equals(algorithm)
             || NISTObjectIdentifiers.id_aes192_CCM.equals(algorithm)
@@ -199,7 +200,7 @@ public class CipherFactory
             || NISTObjectIdentifiers.id_aes192_CBC.equals(algorithm)
             || NISTObjectIdentifiers.id_aes256_CBC.equals(algorithm))
         {
-            cipher = AESFactory.createCBC();
+            cipher = CBCBlockCipher.newInstance(AESEngine.newInstance());
         }
         else if (PKCSObjectIdentifiers.des_EDE3_CBC.equals(algorithm))
         {
