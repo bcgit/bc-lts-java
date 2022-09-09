@@ -19,6 +19,7 @@ import org.bouncycastle.crypto.engines.SerpentEngine;
 import org.bouncycastle.crypto.engines.TEAEngine;
 import org.bouncycastle.crypto.engines.TwofishEngine;
 import org.bouncycastle.crypto.engines.XTEAEngine;
+import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
 import org.bouncycastle.crypto.modes.GOFBBlockCipher;
 import org.bouncycastle.crypto.modes.OFBBlockCipher;
@@ -27,7 +28,6 @@ import org.bouncycastle.crypto.modes.PGPCFBBlockCipher;
 import org.bouncycastle.crypto.modes.SICBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
-import org.bouncycastle.crypto.util.AESFactory;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
@@ -67,7 +67,7 @@ public class BlockCipherResetTest
         testReset("XTEAEngine", new XTEAEngine(), new XTEAEngine(), new KeyParameter(new byte[16]));
 
         // primitive block cipher modes (don't reset on processBlock)
-        testModeReset("AES/CBC", AESFactory.createCBC(), AESFactory.createCBC(),
+        testModeReset("AES/CBC", CBCBlockCipher.newInstance(AESEngine.newInstance()), CBCBlockCipher.newInstance(AESEngine.newInstance()),
             new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
         testModeReset("AES/SIC", new SICBlockCipher(new AESEngine()), new SICBlockCipher(new AESEngine()),
             new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));

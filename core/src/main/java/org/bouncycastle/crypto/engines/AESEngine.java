@@ -5,6 +5,7 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultMultiBlockCipher;
+import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -419,6 +420,21 @@ private static final int[] Tinv0 =
     private byte[]      s;
 
     private static final int BLOCK_SIZE = 16;
+
+    /**
+     * Return an AESEngine - native mode if possible.
+     *
+     * @return an AES ECB mode cipher.
+     */
+    public static MultiBlockCipher newInstance()
+    {
+        if (CryptoServicesRegistrar.getNativeServices().hasFeature("AES/ECB"))
+        {
+            return new AESNativeEngine();
+        }
+
+        return new AESEngine();
+    }
 
     /**
      * default constructor - 128 bit block size.

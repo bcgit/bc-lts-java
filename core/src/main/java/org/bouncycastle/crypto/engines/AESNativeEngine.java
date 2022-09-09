@@ -7,9 +7,9 @@ import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.dispose.NativeReference;
 
-
-public class AESNativeEngine
+class AESNativeEngine
     extends DefaultMultiBlockCipher
+    implements NativeEngine
 {
     protected NativeReference wrapper = null;
 

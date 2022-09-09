@@ -24,6 +24,7 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.KeyEncoder;
 import org.bouncycastle.crypto.agreement.DHBasicAgreement;
+import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.DESedeEngine;
 import org.bouncycastle.crypto.engines.IESEngine;
 import org.bouncycastle.crypto.generators.DHKeyPairGenerator;
@@ -49,7 +50,6 @@ import org.bouncycastle.jcajce.util.BCJcaJceHelper;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
 import org.bouncycastle.jce.interfaces.IESKey;
 import org.bouncycastle.jce.spec.IESParameterSpec;
-import org.bouncycastle.crypto.util.AESFactory;
 import org.bouncycastle.util.BigIntegers;
 import org.bouncycastle.util.Strings;
 
@@ -540,7 +540,7 @@ public class IESCipher
             super(new IESEngine(new DHBasicAgreement(),
                 new KDF2BytesGenerator(DigestFactory.createSHA1()),
                 new HMac(DigestFactory.createSHA1()),
-                new PaddedBufferedBlockCipher(AESFactory.createCBC())), 16);
+                new PaddedBufferedBlockCipher(CBCBlockCipher.newInstance(AESEngine.newInstance()))), 16);
         }
     }
 }

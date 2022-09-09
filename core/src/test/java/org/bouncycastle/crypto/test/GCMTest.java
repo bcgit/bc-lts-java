@@ -7,7 +7,7 @@ import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.DESEngine;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
-import org.bouncycastle.crypto.modes.GCMCipher;
+import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.modes.gcm.BasicGCMMultiplier;
 import org.bouncycastle.crypto.modes.gcm.GCMMultiplier;
 import org.bouncycastle.crypto.modes.gcm.Tables4kGCMMultiplier;
@@ -15,7 +15,6 @@ import org.bouncycastle.crypto.modes.gcm.Tables64kGCMMultiplier;
 import org.bouncycastle.crypto.modes.gcm.Tables8kGCMMultiplier;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
-import org.bouncycastle.crypto.util.AESFactory;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.Times;
 import org.bouncycastle.util.encoders.Hex;
@@ -320,7 +319,7 @@ public class GCMTest
     private void testExceptions()
         throws InvalidCipherTextException
     {
-        GCMCipher gcm = AESFactory.createGCM(); // new GCMBlockCipher(createAESEngine());
+        GCMModeCipher gcm = GCMBlockCipher.newInstance(AESEngine.newInstance());
 
         try
         {
@@ -349,7 +348,7 @@ public class GCMTest
         byte[] P = Strings.toByteArray("Hello world!");
         byte[] buf = new byte[100];
 
-        GCMCipher c = AESFactory.createGCM(); //   new GCMBlockCipher(createAESEngine());
+        GCMModeCipher c = GCMBlockCipher.newInstance(AESEngine.newInstance());
         AEADParameters aeadParameters = new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]);
         c.init(true, aeadParameters);
 
@@ -448,8 +447,8 @@ public class GCMTest
         throws InvalidCipherTextException
     {
         AEADParameters parameters = new AEADParameters(new KeyParameter(K), T.length * 8, IV, A);
-        GCMCipher encCipher = initCipher(encM, true, parameters);
-        GCMCipher decCipher = initCipher(decM, false, parameters);
+        GCMModeCipher encCipher = initCipher(encM, true, parameters);
+        GCMModeCipher decCipher = initCipher(decM, false, parameters);
         checkTestCase(encCipher, decCipher, testName, SA, P, C, T);
         encCipher = initCipher(encM, true, parameters);
         checkTestCase(encCipher, decCipher, testName + " (reused)", SA, P, C, T);
@@ -468,16 +467,16 @@ public class GCMTest
         }
     }
 
-    private GCMCipher initCipher(GCMMultiplier m, boolean forEncryption, AEADParameters parameters)
+    private GCMModeCipher initCipher(GCMMultiplier m, boolean forEncryption, AEADParameters parameters)
     {
-        GCMCipher c = AESFactory.createGCM();//    new GCMBlockCipher(createAESEngine(), m);
+        GCMModeCipher c = GCMBlockCipher.newInstance(AESEngine.newInstance(), m);
         c.init(forEncryption, parameters);
         return c;
     }
 
     private void checkTestCase(
-        GCMCipher encCipher,
-        GCMCipher decCipher,
+        GCMModeCipher encCipher,
+        GCMModeCipher decCipher,
         String testName,
         byte[] SA,
         byte[] P,
@@ -584,7 +583,7 @@ public class GCMTest
         srng.nextBytes(IV);
 
         AEADParameters parameters = new AEADParameters(new KeyParameter(K), 16 * 8, IV, A);
-        GCMCipher cipher = initCipher(m, true, parameters);
+        GCMModeCipher cipher = initCipher(m, true, parameters);
         byte[] C = new byte[cipher.getOutputSize(P.length)];
         int predicted = cipher.getUpdateOutputSize(P.length);
 
@@ -673,7 +672,7 @@ public class GCMTest
         byte[] IV = new byte[16];
 
         AEADParameters parameters = new AEADParameters(new KeyParameter(K), 16 * 8, IV, A);
-        GCMCipher cipher = initCipher(null, true, parameters);
+        GCMModeCipher cipher = initCipher(null, true, parameters);
 
         if (cipher.getUpdateOutputSize(0) != 0)
         {
