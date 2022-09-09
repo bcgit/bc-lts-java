@@ -29,7 +29,6 @@ import org.bouncycastle.crypto.io.CipherOutputStream;
 import org.bouncycastle.crypto.modes.AEADBlockCipher;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.CCMBlockCipher;
-import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.paddings.PKCS7Padding;
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -38,7 +37,6 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.crypto.params.RC2Parameters;
 import org.bouncycastle.internal.asn1.cms.CCMParameters;
 import org.bouncycastle.internal.asn1.cms.GCMParameters;
-import org.bouncycastle.util.AESFactory;
 
 /**
  * Factory methods for creating Cipher objects and CipherOutputStreams.

@@ -31,10 +31,8 @@ import org.bouncycastle.crypto.engines.RFC5649WrapEngine;
 import org.bouncycastle.crypto.generators.Poly1305KeyGenerator;
 import org.bouncycastle.crypto.macs.CMac;
 import org.bouncycastle.crypto.macs.GMac;
-import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.CCMBlockCipher;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
-import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.modes.OFBBlockCipher;
 import org.bouncycastle.jcajce.provider.config.ConfigurableProvider;
 import org.bouncycastle.jcajce.provider.symmetric.util.BaseAlgorithmParameterGenerator;
@@ -49,7 +47,7 @@ import org.bouncycastle.jcajce.provider.symmetric.util.GcmSpecUtil;
 import org.bouncycastle.jcajce.provider.symmetric.util.IvAlgorithmParameters;
 import org.bouncycastle.jcajce.provider.symmetric.util.PBESecretKeyFactory;
 import org.bouncycastle.jcajce.spec.AEADParameterSpec;
-import org.bouncycastle.util.AESFactory;
+import org.bouncycastle.crypto.util.AESFactory;
 
 public final class AES
 {

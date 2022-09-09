@@ -15,7 +15,7 @@ import org.bouncycastle.crypto.modes.gcm.Tables64kGCMMultiplier;
 import org.bouncycastle.crypto.modes.gcm.Tables8kGCMMultiplier;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
-import org.bouncycastle.util.AESFactory;
+import org.bouncycastle.crypto.util.AESFactory;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.Times;
 import org.bouncycastle.util.encoders.Hex;

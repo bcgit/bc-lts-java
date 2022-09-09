@@ -2,12 +2,10 @@ package org.bouncycastle.crypto.test;
 
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.Mac;
-import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.macs.GMac;
-import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
-import org.bouncycastle.util.AESFactory;
+import org.bouncycastle.crypto.util.AESFactory;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
 
