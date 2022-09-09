@@ -2,8 +2,10 @@ package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.StreamBlockCipher;
+import org.bouncycastle.crypto.engines.NativeEngine;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 
@@ -12,6 +14,7 @@ import org.bouncycastle.util.Arrays;
  */
 public class CFBBlockCipher
     extends StreamBlockCipher
+    implements CFBModeCipher
 {
     private byte[]          IV;
     private byte[]          cfbV;
@@ -22,6 +25,28 @@ public class CFBBlockCipher
     private BlockCipher     cipher = null;
     private boolean         encrypting;
     private int             byteCount;
+
+    /**
+     * Return a new CFB mode cipher based on the passed in base cipher
+     *
+     * @param cipher the base cipher for the CFB mode.
+     * @param blockSize the block size (in bits) used for the CFB mode.
+     */
+    public static CFBModeCipher newInstance(BlockCipher cipher, int blockSize)
+    {
+        if (cipher instanceof NativeEngine)
+        {
+            if (cipher.getAlgorithmName().equals("AES"))
+            {
+                if (blockSize == 128 && CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
+                {
+                   // return new AESNativeCFB();
+                }
+            }
+        }
+
+        return new CFBBlockCipher(cipher, blockSize);
+    }
 
     /**
      * Basic constructor.

@@ -34,9 +34,14 @@ public class CCMBlockCipher
     private ExposedByteArrayOutputStream associatedText = new ExposedByteArrayOutputStream();
     private ExposedByteArrayOutputStream data = new ExposedByteArrayOutputStream();
 
+    /**
+     * Return a new CCM mode cipher based on the passed in base cipher
+     *
+     * @param cipher the base cipher for the CCM mode.
+     */
     public static CCMModeCipher newInstance(BlockCipher cipher)
     {
-        return new CCMBlockCipher(new AESEngine());
+        return new CCMBlockCipher(cipher);
     }
 
     /**

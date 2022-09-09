@@ -13,6 +13,7 @@ import javax.crypto.spec.IvParameterSpec;
 
 import org.bouncycastle.asn1.bc.BCObjectIdentifiers;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
+import org.bouncycastle.crypto.modes.CCMModeCipher;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.internal.asn1.cms.CCMParameters;
 import org.bouncycastle.internal.asn1.cms.GCMParameters;
@@ -93,7 +94,7 @@ public final class AES
     {
         public CFB()
         {
-            super(new BufferedBlockCipher(new CFBBlockCipher(new AESEngine(), 128)), 128);
+            super(new BufferedBlockCipher(CFBBlockCipher.newInstance(AESEngine.newInstance(), 128)), 128);
         }
     }
 
@@ -120,7 +121,7 @@ public final class AES
     {
         public CCM()
         {
-            super(new CCMBlockCipher(new AESEngine()), false, 12);
+            super(CCMBlockCipher.newInstance(AESEngine.newInstance()), false, 12);
         }
     }
 
@@ -129,7 +130,7 @@ public final class AES
     {
         public AESCMAC()
         {
-            super(new CMac(new AESEngine()));
+            super(new CMac(AESEngine.newInstance()));
         }
     }
 
@@ -153,7 +154,7 @@ public final class AES
         private static class CCMMac
             implements Mac
         {
-            private final CCMBlockCipher ccm = new CCMBlockCipher(new AESEngine());
+            private final CCMModeCipher ccm = CCMBlockCipher.newInstance(AESEngine.newInstance());
 
             private int macLength = 8;
 

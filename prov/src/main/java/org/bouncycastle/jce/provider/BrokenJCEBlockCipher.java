@@ -155,7 +155,7 @@ public class BrokenJCEBlockCipher
         {
             ivLength = cipher.getUnderlyingCipher().getBlockSize();
             cipher = new PaddedBufferedBlockCipher(
-                            new CBCBlockCipher(cipher.getUnderlyingCipher()));
+                            CBCBlockCipher.newInstance(cipher.getUnderlyingCipher()));
         }
         else if (modeName.startsWith("OFB"))
         {
@@ -556,7 +556,7 @@ public class BrokenJCEBlockCipher
     {
         public BrokePBEWithMD5AndDES()
         {
-            super(new CBCBlockCipher(new DESEngine()), PKCS5S1, MD5, 64, 64);
+            super(CBCBlockCipher.newInstance(new DESEngine()), PKCS5S1, MD5, 64, 64);
         }
     }
 
@@ -568,7 +568,7 @@ public class BrokenJCEBlockCipher
     {
         public BrokePBEWithSHA1AndDES()
         {
-            super(new CBCBlockCipher(new DESEngine()), PKCS5S1, SHA1, 64, 64);
+            super(CBCBlockCipher.newInstance(new DESEngine()), PKCS5S1, SHA1, 64, 64);
         }
     }
 
@@ -580,7 +580,7 @@ public class BrokenJCEBlockCipher
     {
         public BrokePBEWithSHAAndDES3Key()
         {
-            super(new CBCBlockCipher(new DESedeEngine()), PKCS12, SHA1, 192, 64);
+            super(CBCBlockCipher.newInstance(new DESedeEngine()), PKCS12, SHA1, 192, 64);
         }
     }
 
@@ -592,7 +592,7 @@ public class BrokenJCEBlockCipher
     {
         public OldPBEWithSHAAndDES3Key()
         {
-            super(new CBCBlockCipher(new DESedeEngine()), OLD_PKCS12, SHA1, 192, 64);
+            super(CBCBlockCipher.newInstance(new DESedeEngine()), OLD_PKCS12, SHA1, 192, 64);
         }
     }
 
@@ -604,7 +604,7 @@ public class BrokenJCEBlockCipher
     {
         public BrokePBEWithSHAAndDES2Key()
         {
-            super(new CBCBlockCipher(new DESedeEngine()), PKCS12, SHA1, 128, 64);
+            super(CBCBlockCipher.newInstance(new DESedeEngine()), PKCS12, SHA1, 128, 64);
         }
     }
 
@@ -616,7 +616,7 @@ public class BrokenJCEBlockCipher
     {
         public OldPBEWithSHAAndTwofish()
         {
-            super(new CBCBlockCipher(new TwofishEngine()), OLD_PKCS12, SHA1, 256, 128);
+            super(CBCBlockCipher.newInstance(new TwofishEngine()), OLD_PKCS12, SHA1, 256, 128);
         }
     }
 }

@@ -38,7 +38,7 @@ public class NISTCTSBlockCipher
         BlockCipher cipher)
     {
         this.type = type;
-        this.cipher = new CBCBlockCipher(cipher);
+        this.cipher = CBCBlockCipher.newInstance(cipher);
 
         blockSize = cipher.getBlockSize();
 

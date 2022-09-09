@@ -6,7 +6,6 @@ import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.OutputLengthException;
-import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.NativeEngine;
 import org.bouncycastle.crypto.modes.gcm.BasicGCMExponentiator;
 import org.bouncycastle.crypto.modes.gcm.GCMExponentiator;
@@ -56,6 +55,11 @@ public class GCMBlockCipher
     private long        atLength;
     private long        atLengthPre;
 
+    /**
+     * Return a new GCM mode cipher based on the passed in base cipher
+     *
+     * @param cipher the base cipher for the GCM mode.
+     */
     public static GCMModeCipher newInstance(BlockCipher cipher)
     {
         if (cipher instanceof NativeEngine)
@@ -69,12 +73,18 @@ public class GCMBlockCipher
             }
         }
 
-        return new GCMBlockCipher(new AESEngine());
+        return new GCMBlockCipher(cipher);
     }
 
+    /**
+     * Return a new GCM mode cipher based on the passed in base cipher and multiplier.
+     *
+     * @param cipher the base cipher for the GCM mode.
+     * @param m the GCM multiplier to use.
+     */
     public static GCMModeCipher newInstance(BlockCipher cipher, GCMMultiplier m)
     {
-        return new GCMBlockCipher(new AESEngine(), m);
+        return new GCMBlockCipher(cipher, m);
     }
 
     public GCMBlockCipher(BlockCipher c)
