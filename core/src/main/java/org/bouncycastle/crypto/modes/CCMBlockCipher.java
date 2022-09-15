@@ -36,7 +36,7 @@ public class CCMBlockCipher
 
     public static CCMModeCipher newInstance(BlockCipher cipher)
     {
-        return new CCMBlockCipher(new AESEngine());
+        return new CCMBlockCipher(cipher);
     }
 
     /**

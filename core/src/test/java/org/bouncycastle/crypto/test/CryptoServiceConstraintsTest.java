@@ -8,6 +8,7 @@ import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.asn1.x9.X962NamedCurves;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.BasicAgreement;
+import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServiceConstraintsException;
 import org.bouncycastle.crypto.CryptoServicePurpose;
@@ -544,7 +545,7 @@ public class CryptoServiceConstraintsTest
     private void testAES()
     {
         CryptoServicesRegistrar.setServicesConstraints(new LegacyBitsOfSecurityConstraint(192));
-        AESEngine engine = new AESEngine();
+        BlockCipher engine = AESEngine.newInstance();
         try
         {
             engine.init(true, new KeyParameter(new byte[16]));
@@ -617,7 +618,7 @@ public class CryptoServiceConstraintsTest
     private void testARIA()
     {
         CryptoServicesRegistrar.setServicesConstraints(new LegacyBitsOfSecurityConstraint(192));
-        AESEngine engine = new AESEngine();
+        BlockCipher engine = AESEngine.newInstance();
         try
         {
             engine.init(true, new KeyParameter(new byte[16]));

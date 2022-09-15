@@ -313,7 +313,7 @@ public class GCMTest
 
     protected BlockCipher createAESEngine()
     {
-        return new AESEngine();
+        return AESEngine.newInstance();
     }
 
     private void testExceptions()

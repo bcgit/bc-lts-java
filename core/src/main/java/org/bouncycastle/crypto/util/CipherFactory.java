@@ -183,7 +183,7 @@ public class CipherFactory
             || NISTObjectIdentifiers.id_aes192_CCM.equals(algorithm)
             || NISTObjectIdentifiers.id_aes256_CCM.equals(algorithm))
         {
-            return new CCMBlockCipher(new AESEngine());
+            return new CCMBlockCipher(AESEngine.newInstance());
         }
         else
         {

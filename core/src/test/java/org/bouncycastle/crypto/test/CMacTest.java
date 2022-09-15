@@ -344,7 +344,7 @@ public class CMacTest
     {
         try 
         {
-            CMac mac = new CMac(new AESEngine());
+            CMac mac = new CMac(AESEngine.newInstance());
             mac.init(new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
             fail("CMac does not accept IV");
         } catch(IllegalArgumentException e)
