@@ -313,7 +313,7 @@ class Utils
 
     private static void generateAES256CTRStream(byte[] in, byte[] out, byte[] nonce, byte[] key)
     {
-        StreamCipher cipher = new SICBlockCipher(new AESEngine());
+        StreamCipher cipher = new SICBlockCipher(AESEngine.newInstance());
         cipher.init(true, new ParametersWithIV(new KeyParameter(key), nonce));
         cipher.processBytes(in, 0, out.length, out, 0);
     }

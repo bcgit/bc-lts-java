@@ -2,6 +2,7 @@ package org.bouncycastle.pqc.crypto.test;
 
 import java.security.SecureRandom;
 
+import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.test.FixedSecureRandom;
@@ -113,7 +114,7 @@ public class NISTSecureRandom
     {
         try
         {
-            AESEngine cipher = new AESEngine();
+            BlockCipher cipher = AESEngine.newInstance();
 
             cipher.init(true, new KeyParameter(key));
 

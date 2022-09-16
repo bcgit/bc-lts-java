@@ -5,6 +5,7 @@ import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultMultiBlockCipher;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 class AESNativeEngine
@@ -33,10 +34,6 @@ class AESNativeEngine
             case 32:
                 synchronized (this)
                 {
-                    if (wrapper != null)
-                    {
-                        wrapper.dispose();
-                    }
                     wrapper = new ECBNativeRef(makeInstance(key.length, forEncryption));
                 }
                 break;
@@ -99,7 +96,7 @@ class AESNativeEngine
         throws DataLengthException, IllegalStateException
     {
 
-        if (wrapper == null || wrapper.isDisposed())
+        if (wrapper == null)
         {
             throw new IllegalStateException("AES engine not initialised");
         }
@@ -127,7 +124,7 @@ class AESNativeEngine
     public void reset()
     {
         // skip over spurious resets that may occur before init is called.
-        if (wrapper == null || wrapper.isDisposed())
+        if (wrapper == null)
         {
             return;
         }
@@ -150,6 +147,21 @@ class AESNativeEngine
     private static native void init(long nativeRef, byte[] key);
 
 
+    private static class Disposer
+        extends NativeDisposer
+    {
+        Disposer(long ref)
+        {
+            super(ref);
+        }
+
+        @Override
+        protected void dispose(long reference)
+        {
+            AESNativeEngine.dispose(reference);
+        }
+    }
+
     private static class ECBNativeRef
         extends NativeReference
     {
@@ -160,17 +172,11 @@ class AESNativeEngine
         }
 
         @Override
-        protected void destroy(long reference)
+        protected Runnable createAction()
         {
-            AESNativeEngine.dispose(reference);
+            return new Disposer(reference);
         }
     }
 
-    @Override
-    protected void finalize()
-        throws Throwable
-    {
-        super.finalize();
-        System.out.println("here!");
-    }
+
 }

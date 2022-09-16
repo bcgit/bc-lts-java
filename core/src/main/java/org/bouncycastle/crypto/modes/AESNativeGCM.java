@@ -8,6 +8,7 @@ import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 class AESNativeGCM
@@ -113,10 +114,7 @@ class AESNativeGCM
 
     private void initRef(int keySize)
     {
-        if (refWrapper != null)
-        {
-            refWrapper.dispose();
-        }
+        refWrapper = null;
         refWrapper = new GCMRefWrapper(makeInstance(keySize));
     }
 
@@ -227,7 +225,7 @@ class AESNativeGCM
     @Override
     public void reset()
     {
-        if (refWrapper == null || refWrapper.isDisposed())
+        if (refWrapper == null || refWrapper.isActionRead())
         {
             // deal with reset being called before init.
             return;
@@ -279,12 +277,27 @@ class AESNativeGCM
         }
 
         @Override
-        protected void destroy(long reference)
+        public Runnable createAction()
+        {
+            return new Disposer(reference);
+        }
+
+    }
+
+
+    private static class Disposer extends NativeDisposer
+    {
+        Disposer(long ref)
+        {
+            super(ref);
+        }
+
+        @Override
+        protected void dispose(long reference)
         {
             AESNativeGCM.dispose(reference);
         }
     }
-
 
     static class VoidBlockCipher
         implements BlockCipher

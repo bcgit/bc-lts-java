@@ -5,6 +5,7 @@ import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 class AESNativeCBC
@@ -21,11 +22,6 @@ class AESNativeCBC
     public void init(boolean forEncryption, CipherParameters params)
         throws IllegalArgumentException
     {
-
-        if (wrapper != null)
-        {
-            wrapper.dispose();
-        }
 
         boolean oldEncrypting = this.encrypting;
 
@@ -129,7 +125,7 @@ class AESNativeCBC
     public void reset()
     {
         // skip over spurious resets that may occur before init is called.
-        if (wrapper == null || wrapper.isDisposed())
+        if (wrapper == null || wrapper.isActionRead())
         {
             return;
         }
@@ -164,7 +160,7 @@ class AESNativeCBC
             throw new DataLengthException("block count < 0");
         }
 
-        if (wrapper == null || wrapper.isDisposed())
+        if (wrapper == null)
         {
             throw new IllegalStateException("CBC engine not initialised");
         }
@@ -186,9 +182,23 @@ class AESNativeCBC
 
     private static native void reset(long nativeRef);
 
+
+    private static class Disposer extends NativeDisposer
+    {
+        Disposer(long ref)
+        {
+            super(ref);
+        }
+
+        @Override
+        protected void dispose(long reference)
+        {
+            AESNativeCBC.dispose(reference);
+        }
+    }
+
     private static class CBCRefWrapper extends NativeReference
     {
-
 
         public CBCRefWrapper(long reference)
         {
@@ -196,9 +206,9 @@ class AESNativeCBC
         }
 
         @Override
-        protected void destroy(long reference)
+        public Runnable createAction()
         {
-            AESNativeCBC.dispose(reference);
+            return new Disposer(reference);
         }
     }
 

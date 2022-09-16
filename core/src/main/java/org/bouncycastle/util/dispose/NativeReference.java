@@ -4,47 +4,38 @@ public abstract class NativeReference
     implements Disposable
 {
     protected final long reference;
-    private boolean disposed = false;
+
+    private boolean actionRead = false;
 
 
     public NativeReference(long reference)
     {
         this.reference = reference;
-
         DisposalDaemon.addDisposable(this);
     }
 
 
-    @Override
-    public void dispose()
+    public final Runnable getDisposeAction()
     {
-        if (disposed)
+        if (actionRead)
         {
-            return;
+            return null;
         }
-        destroy(reference);
-        disposed = true;
+        actionRead = true;
+        return createAction();
     }
 
-    /**
-     * Implement this method to tie in whatever logic is needed
-     * to call the native side to clean up / free memory allocated there.
-     * @param reference the reference.
-     */
-    protected abstract void destroy(long reference);
+    protected abstract Runnable createAction();
 
-
-    public boolean isDisposed()
+    public boolean isActionRead()
     {
-        return disposed;
+        return actionRead;
     }
+
 
     public long getReference()
     {
-        if (disposed)
-        {
-            throw new IllegalStateException("native reference has been disposed");
-        }
         return reference;
     }
+
 }

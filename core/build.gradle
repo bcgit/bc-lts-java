@@ -162,3 +162,42 @@ tasks.clean.dependsOn(cleanFipsVariations);
     }
   }
 
+
+task('testAVX', type: Test) {
+  systemProperty 'bc.test.data.home', bcTestDataHome
+  maxHeapSize = "2048m"
+  testLogging.showStandardStreams = true
+  testLogging.showCauses = true
+  testLogging.showExceptions = true
+  testLogging.showStackTraces = true
+
+
+//  doFirst {
+//    removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
+//  }
+
+  jvmArgs propValsAsArgs(project, "testAVX", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
+          propValsAsArgs(project, "testAVX", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
+          propValsAsArgs(project, "testAVX", "x86_64", "failsafe_skip", "test.bcfips.ignore.native")
+
+  // jvmArgs '-Dtest.bcfips.ignore.native=sha', '-Dorg.bouncycastle.native.library_path=/tmp/bcfipslibs', '-Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx'
+
+}
+
+task('testSSE', type: Test) {
+  systemProperty 'bc.test.data.home', bcTestDataHome
+  maxHeapSize = "2048m"
+  testLogging.showStandardStreams = true
+  testLogging.showCauses = true
+  testLogging.showExceptions = true
+  testLogging.showStackTraces = true
+
+  // doFirst {
+  //   removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
+  // }
+  jvmArgs propValsAsArgs(project, "testSSE", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
+          propValsAsArgs(project, "testSSE", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
+          propValsAsArgs(project, "testSSE", "x86_64", "failsafe_skip", "test.bcfips.ignore.native");
+}
+
+

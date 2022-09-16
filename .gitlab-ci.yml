@@ -1,0 +1,43 @@
+stages:
+  - test
+  - testSSE
+  - testAVX
+
+
+
+test-java-code:
+  stage: test
+  script:
+    - "apply_overlay bc-fips-2-0-X-java ./"
+    - . cienv.sh
+    - "gradle clean build -Pskip.pqc.tests"
+
+test-code-sse:
+  stage: testSSE
+  script:
+    - "apply_overlay bc-fips-2-0-X-java ./"
+    - "rm -rf /tmp/bcfipslibs"
+    - "mkdir -p /tmp/bcfipslibs"
+    - . cienv.sh
+    - "gradle clean compileJava; \ cd native; \ ./build_linux.sh; \ cd .."
+    - "gradle withNative build copyJars  -x test"
+    - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
+    - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
+    - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-sse -cp jars/bc-fips-2.0.1-SNAPSHOT.jar org.bouncycastle.util.DumpInfo -verbose"
+    - "gradle clean withNative build testSSE  -x test -Pskip.pqc.tests"
+
+
+test-code-avx:
+  stage: testAVX
+  script:
+    - "apply_overlay bc-fips-2-0-X-java ./"
+    - "rm -rf /tmp/bcfipslibs"
+    - "mkdir -p /tmp/bcfipslibs"
+    - . cienv.sh
+    - "gradle clean compileJava; \ cd native; \ ./build_linux.sh; \ cd .."
+    - "gradle withNative build copyJars  -x test"
+    - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
+    - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
+    - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx -cp jars/bc-fips-2.0.1-SNAPSHOT.jar org.bouncycastle.util.DumpInfo -verbose"
+    - "gradle clean withNative build testAVX  -x test -Pskip.pqc.tests"
+
