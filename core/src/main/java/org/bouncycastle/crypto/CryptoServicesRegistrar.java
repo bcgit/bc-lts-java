@@ -57,6 +57,8 @@ public final class CryptoServicesRegistrar
     private static final boolean preconfiguredConstraints;
     private static final AtomicReference<CryptoServicesConstraints> servicesConstraints = new AtomicReference<CryptoServicesConstraints>();
 
+    private static final NativeServices nativeServices;
+
     static
     {
         // default domain parameters for DSA and Diffie-Hellman
@@ -127,6 +129,8 @@ public final class CryptoServicesRegistrar
         // Load the native code.
         //
         NativeLoader.loadDriver();
+
+        nativeServices = new NativeServices();
     }
 
 
@@ -149,7 +153,7 @@ public final class CryptoServicesRegistrar
 
     public static NativeServices getNativeServices()
     {
-        return new NativeServices(); // TODO: should probably be a static final
+        return nativeServices;
     }
 
     /**
