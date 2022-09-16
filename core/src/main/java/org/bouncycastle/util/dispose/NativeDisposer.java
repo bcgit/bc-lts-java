@@ -16,7 +16,8 @@ public abstract class NativeDisposer
     @Override
     public void run()
     {
-        if (called) {
+        if (called)
+        {
             return;
         }
         called = true;

@@ -15,8 +15,10 @@ public abstract class NativeReference
     }
 
 
-    public final Runnable getDisposeAction() {
-        if (actionRead) {
+    public final Runnable getDisposeAction()
+    {
+        if (actionRead)
+        {
             return null;
         }
         actionRead = true;
