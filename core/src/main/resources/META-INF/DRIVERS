@@ -1,0 +1,7 @@
+java:/
+linux-x86_64-sse:/native/linux/x86_64/sse
+linux-x86_64-avx:/native/linux/x86_64/avx
+linux-x86_64-probe:/native/linux/x86_64/probe
+darwin-x86_64-sse:/native/darwin/x86_64/sse
+darwin-x86_64-avx:/native/darwin/x86_64/avx
+darwin-x86_64-probe:/native/darwin/x86_64/probe

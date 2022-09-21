@@ -183,7 +183,7 @@ public class CipherFactory
             || NISTObjectIdentifiers.id_aes192_CCM.equals(algorithm)
             || NISTObjectIdentifiers.id_aes256_CCM.equals(algorithm))
         {
-            return new CCMBlockCipher(AESEngine.newInstance());
+            return CCMBlockCipher.newInstance(AESEngine.newInstance());
         }
         else
         {
@@ -204,19 +204,19 @@ public class CipherFactory
         }
         else if (PKCSObjectIdentifiers.des_EDE3_CBC.equals(algorithm))
         {
-            cipher = new CBCBlockCipher(new DESedeEngine());
+            cipher = CBCBlockCipher.newInstance(new DESedeEngine());
         }
         else if (OIWObjectIdentifiers.desCBC.equals(algorithm))
         {
-            cipher = new CBCBlockCipher(new DESEngine());
+            cipher = CBCBlockCipher.newInstance(new DESEngine());
         }
         else if (PKCSObjectIdentifiers.RC2_CBC.equals(algorithm))
         {
-            cipher = new CBCBlockCipher(new RC2Engine());
+            cipher = CBCBlockCipher.newInstance(new RC2Engine());
         }
         else if (MiscObjectIdentifiers.cast5CBC.equals(algorithm))
         {
-            cipher = new CBCBlockCipher(new CAST5Engine());
+            cipher = CBCBlockCipher.newInstance(new CAST5Engine());
         }
         else
         {

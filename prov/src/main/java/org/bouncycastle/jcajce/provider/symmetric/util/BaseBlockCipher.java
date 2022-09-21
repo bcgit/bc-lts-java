@@ -348,7 +348,7 @@ public class BaseBlockCipher
         {
             ivLength = baseEngine.getBlockSize();
             cipher = new BufferedGenericBlockCipher(
-                new CBCBlockCipher(baseEngine));
+                CBCBlockCipher.newInstance(baseEngine));
         }
         else if (modeName.startsWith("OFB"))
         {
@@ -454,7 +454,7 @@ public class BaseBlockCipher
         else if (modeName.equals("CTS"))
         {
             ivLength = baseEngine.getBlockSize();
-            cipher = new BufferedGenericBlockCipher(new CTSBlockCipher(new CBCBlockCipher(baseEngine)));
+            cipher = new BufferedGenericBlockCipher(new CTSBlockCipher(CBCBlockCipher.newInstance(baseEngine)));
         }
         else if (modeName.equals("CCM"))
         {

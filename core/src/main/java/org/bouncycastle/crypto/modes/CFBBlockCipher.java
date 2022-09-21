@@ -48,6 +48,28 @@ public class CFBBlockCipher
     }
 
     /**
+     * Return a new CFB mode cipher based on the passed in base cipher
+     *
+     * @param cipher the base cipher for the CFB mode.
+     * @param blockSize the block size (in bits) used for the CFB mode.
+     */
+    public static CFBModeCipher newInstance(BlockCipher cipher, int blockSize)
+    {
+        if (cipher instanceof NativeEngine)
+        {
+            if (cipher.getAlgorithmName().equals("AES"))
+            {
+                if (blockSize == 128 && CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
+                {
+                   // return new AESNativeCFB();
+                }
+            }
+        }
+
+        return new CFBBlockCipher(cipher, blockSize);
+    }
+
+    /**
      * Basic constructor.
      *
      * @param cipher       the block cipher to be used as the basis of the

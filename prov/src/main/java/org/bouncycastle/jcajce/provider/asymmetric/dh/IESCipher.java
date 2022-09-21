@@ -528,7 +528,7 @@ public class IESCipher
             super(new IESEngine(new DHBasicAgreement(),
                 new KDF2BytesGenerator(DigestFactory.createSHA1()),
                 new HMac(DigestFactory.createSHA1()),
-                new PaddedBufferedBlockCipher(new CBCBlockCipher(new DESedeEngine()))), 8);
+                new PaddedBufferedBlockCipher(CBCBlockCipher.newInstance(new DESedeEngine()))), 8);
         }
     }
 
