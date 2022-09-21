@@ -1,35 +1,33 @@
 //
-// Created by 25/7/2022.
+// Created by MEGAN WOODS on 20/9/2022.
 //
 
-#include <stdexcept>
+#include "cfb.h"
 #include <cstring>
 #include <iostream>
-#include "CBC.h"
-#include "AesCBC.h"
-#include "../../debug.h"
-
 
 namespace intel {
-    namespace cbc {
+    namespace cfb {
 
 
-        CBC::CBC() {
+        CFB::CFB() {
             roundKeys = new __m128i[15];
             memset(roundKeys, 0, 15 * sizeof(__m128i));
             feedback = _mm_setzero_si128();
             initialFeedback = _mm_setzero_si128();
+            byteCount = 0;
         }
 
-        CBC::~CBC() {
+        CFB::~CFB() {
             memset(roundKeys, 0, 15 * sizeof(__m128i));
             delete[] roundKeys;
             feedback = _mm_setzero_si128();
             initialFeedback = _mm_setzero_si128();
         }
 
-        void CBC::init(unsigned char *key, unsigned long keylen, unsigned char *iv, unsigned long ivlen) {
+        void CFB::init(unsigned char *key, unsigned long keylen, unsigned char *iv, unsigned long ivlen) {
 
+            byteCount = 0;
             feedback = _mm_loadu_si128((__m128i *) (iv));
             initialFeedback = feedback;
 
@@ -37,18 +35,14 @@ namespace intel {
             memset(roundKeys, 0, 15 * sizeof(__m128i));
             init(key);
 
-
         }
 
-        void CBC::reset() {
+        void CFB::reset() {
             feedback = initialFeedback;
         }
 
-        uint32_t CBC::getMultiBlockSize() {
-            return CBC_BLOCK_SIZE;
-        }
 
-        size_t CBC::processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) {
+        size_t CFB::processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) {
             unsigned char *outStart = out;
 
             for (int t = 0; t < blocks; t++) {
@@ -60,16 +54,12 @@ namespace intel {
 
                 _mm_storeu_si128((__m128i *) out, result);
 
-                in += CBC_BLOCK_SIZE;
-                out += CBC_BLOCK_SIZE;
+                in += CFB_BLOCK_SIZE;
+                out += CFB_BLOCK_SIZE;
             }
 
             return out - outStart;
         }
 
     }
-
-
 }
-
-

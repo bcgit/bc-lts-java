@@ -17,15 +17,6 @@ void cpuid(cpuid_t *info, unsigned int leaf, unsigned int subleaf) {
 }
 
 
-/*
- * Class:     org_bouncycastle_crypto_NativeFeatures
- * Method:    nativeCFB
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCFB
-        (JNIEnv *, jclass) {
-    return JNI_FALSE;
-}
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
@@ -39,6 +30,21 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCBC
 
     return (info.ecx & (1 << 25)) != 0 ? JNI_TRUE : JNI_FALSE;
 }
+
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeCFB
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCFB
+        (JNIEnv *, jclass) {
+    cpuid_t info;
+    cpuid(&info, 1, 0);
+
+    return (info.ecx & (1 << 25)) != 0 ? JNI_TRUE : JNI_FALSE;
+}
+
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures

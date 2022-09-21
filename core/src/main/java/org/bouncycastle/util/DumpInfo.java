@@ -9,6 +9,10 @@ public class DumpInfo
     {
         CryptoServicesRegistrar.getNativeServices();
 
+        //-DM System.out.println
+        //-DM System.out.println
+        //-DM System.out.println
+        //-DM System.out.println
         System.out.println("BC-JAVA");
         System.out.println("Native Status: " + NativeServices.getStatusMessage());
         System.out.println("Native Variant: " + NativeServices.getVariant());

@@ -1,10 +1,30 @@
 
-
 dependencies {
-  implementation project(":core")
-  implementation project(":util")
-  implementation project(":prov")
+  implementation project(':core')
+  implementation project(':util')
+  implementation project(':prov')
 }
+
+jar.archiveBaseName = "bcpkix-$vmrange"
+
+task sourcesJar(type: Jar) {
+  archiveBaseName = jar.archiveBaseName
+  classifier = 'sources'
+  from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  archiveBaseName = jar.archiveBaseName
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+}
+
+artifacts {
+  archives jar
+  archives javadocJar
+  archives sourcesJar
+}
+
 
 
 

@@ -824,7 +824,7 @@ size_t intel::gcm::AesGcm::doFinal(unsigned char *output, size_t outOff, size_t 
         outPtr += macBlockLen;
     } else {
         if (!areEqualCT(macBlock, bufBlock + limit, macBlockLen)) {
-            throw exceptions::CipherTextException("tag does not match");
+            throw exceptions::CipherTextException("mac check in GCM failed");
         }
     }
 

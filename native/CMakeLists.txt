@@ -155,18 +155,28 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             intel/cbc/CBC.cpp
             intel/cbc/CBC.h
             intel/jni/cbc_jni.cpp)
+
+    set(CFB intel/cfb/AesCFB.h
+            intel/cfb/AesCFB128Impl.cpp
+            intel/cfb/AesCFB192Impl.cpp
+            intel/cfb/AesCFB256Impl.cpp
+            intel/cfb/cfb.cpp
+            intel/cfb/cfb.h
+            intel/jni/cfb_jni.cpp
+            )
+
     set(ECB intel/ecb/AesEcb.cpp
             intel/ecb/AesEcb.h
             intel/ecb/ecb.cpp
             intel/ecb/ecb.h
             intel/jni/ecb_jni.cpp
             )
+
     set(GCM intel/jni/gcm_jni.cpp
             intel/gcm/AesGcm.cpp
             intel/gcm/AesGcm.h
             intel/gcm/gcm.cpp
             intel/gcm/gcm.h)
-
 
 
     #
@@ -198,6 +208,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${GCM}
             ${CBC}
             ${ECB}
+            ${CFB}
             ${EXCEPTIONS}
             debug.cpp
             debug.h
@@ -231,6 +242,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${GCM}
             ${CBC}
             ${ECB}
+            ${CFB}
             ${EXCEPTIONS}
             debug.cpp
             debug.h
