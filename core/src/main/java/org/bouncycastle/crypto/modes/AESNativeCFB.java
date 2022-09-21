@@ -123,6 +123,19 @@ class AESNativeCFB
     }
 
     @Override
+    public byte returnByte(byte in)
+    {
+        return 0;
+    }
+
+    @Override
+    public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
+        throws DataLengthException
+    {
+        return 0;
+    }
+
+    @Override
     public int getBlockSize()
     {
         return bitSize/8;
