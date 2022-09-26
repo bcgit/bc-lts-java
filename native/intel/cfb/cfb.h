@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <emmintrin.h>
+#include <jni_md.h>
 
 #define CFB_BLOCK_SIZE 16
 
@@ -16,12 +17,12 @@ namespace intel {
             __m128i *roundKeys;
             __m128i feedback;
             __m128i initialFeedback;
-
             int byteCount;
+            bool encryption;
 
             virtual void init(unsigned char *key) = 0;
 
-            virtual void xform(__m128i data, __m128i *pInt, __m128i &result, __m128i &feedback) = 0;
+            virtual void encryptBlock(__m128i in, __m128i &out) = 0;
 
 
         public:
@@ -30,11 +31,15 @@ namespace intel {
 
             virtual ~CFB();
 
-            void init(unsigned char *key, unsigned long keylen, unsigned char *iv, unsigned long ivlen);
+            void
+            init(bool encryption, unsigned char *key, unsigned long keylen, unsigned char *iv, unsigned long ivlen);
 
             void reset();
 
-           virtual size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out);
+            size_t processBytes(unsigned char *src, size_t len, unsigned char *dest);
+
+            jbyte processByte(unsigned char in);
+
 
         };
 

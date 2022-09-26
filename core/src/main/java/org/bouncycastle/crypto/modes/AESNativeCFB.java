@@ -2,6 +2,7 @@ package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
@@ -13,7 +14,7 @@ class AESNativeCFB
 {
 
     private final int bitSize;
-    private CFBRefWrapper wrapper;
+    private CFBRefWrapper referenceWrapper;
 
     private byte[] oldKey;
     private byte[] oldIv;
@@ -99,7 +100,6 @@ class AESNativeCFB
 
         }
 
-
         if (key == null && oldEncrypting != encrypting)
         {
             throw new IllegalArgumentException("cannot change encrypting state without providing key.");
@@ -110,8 +110,8 @@ class AESNativeCFB
             throw new IllegalArgumentException("iv is null");
         }
 
-        wrapper = new CFBRefWrapper(makeNative(key.length, encrypting));
-        init(wrapper.getReference(), key, iv);
+        referenceWrapper = new CFBRefWrapper(makeNative(key.length));
+        init(referenceWrapper.getReference(), encrypting, key, iv);
 
     }
 
@@ -125,20 +125,35 @@ class AESNativeCFB
     @Override
     public byte returnByte(byte in)
     {
-        return 0;
+        return processByte(referenceWrapper.getReference(), in);
     }
 
     @Override
     public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
         throws DataLengthException
     {
-        return 0;
+
+        if (inOff + len > in.length)
+        {
+            throw new DataLengthException("input buffer too small");
+        }
+        if (outOff + len > out.length)
+        {
+            throw new OutputLengthException("output buffer too short");
+        }
+
+        //
+        // Total bytes we can process.
+        //
+        len = Math.min(in.length - inOff, out.length - outOff);
+
+        return processBytes(referenceWrapper.getReference(), in, inOff, len, out, outOff);
     }
 
     @Override
     public int getBlockSize()
     {
-        return bitSize/8;
+        return bitSize / 8;
     }
 
 
@@ -157,20 +172,19 @@ class AESNativeCFB
             throw new DataLengthException("output buffer too short");
         }
 
-
-        return process(wrapper.getReference(), in, inOff, 1, out, outOff);
+        return processBytes(referenceWrapper.getReference(), in, inOff, getBlockSize(), out, outOff);
     }
 
     @Override
     public void reset()
     {
         // skip over spurious resets that may occur before init is called.
-        if (wrapper == null || wrapper.isActionRead())
+        if (referenceWrapper == null)
         {
             return;
         }
 
-        reset(wrapper.getReference());
+        reset(referenceWrapper.getReference());
 
     }
 
@@ -178,7 +192,7 @@ class AESNativeCFB
     @Override
     public int getMultiBlockSize()
     {
-       return bitSize/8;
+        return bitSize / 8;
     }
 
     @Override
@@ -200,20 +214,23 @@ class AESNativeCFB
             throw new DataLengthException("block count < 0");
         }
 
-        if (wrapper == null)
+        if (referenceWrapper == null)
         {
-            throw new IllegalStateException("CBC engine not initialised");
+            throw new IllegalStateException("CFB engine not initialised");
         }
 
-        return process(wrapper.getReference(), in, inOff, blockCount, out, outOff);
+        return processBytes(in, inOff, blockCount * getBlockSize(), out, outOff);
     }
 
-    private static native int process(long ref, byte[] in, int inOff, int blockCount, byte[] out, int outOff);
 
+    private static native byte processByte(long ref, byte in);
 
-    private static native long makeNative(int keyLen, boolean encryption);
+    private static native int processBytes(long ref, byte[] in, int inOff, int len, byte[] out, int outOff)
+        throws DataLengthException;
 
-    private native void init(long nativeRef, byte[] key, byte[] iv);
+    private static native long makeNative(int keyLen);
+
+    private native void init(long nativeRef, boolean encrypting, byte[] key, byte[] iv);
 
     private static native void dispose(long ref);
 

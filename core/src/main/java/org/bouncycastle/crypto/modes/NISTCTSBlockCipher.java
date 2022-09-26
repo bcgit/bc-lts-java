@@ -295,7 +295,7 @@ public class NISTCTSBlockCipher
                 }
                 else
                 {
-                    BlockCipher c = ((CBCBlockCipher)cipher).getUnderlyingCipher();
+                    BlockCipher c = ((CBCModeCipher)cipher).getUnderlyingCipher();
 
                     c.processBlock(buf, bufOff - blockSize, lastBlock, 0);
 

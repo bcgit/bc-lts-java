@@ -17,7 +17,8 @@ namespace intel {
 
             void init(unsigned char *key) override;
 
-            void xform(__m128i data, __m128i *pInt, __m128i &result, __m128i &feedback) override;
+            void encryptBlock(__m128i in, __m128i &out) override;
+
 
         public:
             AesCFB128Enc();
@@ -25,26 +26,13 @@ namespace intel {
             ~AesCFB128Enc() override;
         };
 
-        class AesCFB128Dec : public CFB {
-        private:
-
-            void init(unsigned char *key) override;
-
-            void xform(__m128i data, __m128i *pInt, __m128i &result, __m128i &feedback) override;
-
-        public:
-            AesCFB128Dec();
-
-            ~AesCFB128Dec() override;
-        };
-
-
         class AesCFB192Enc : public CFB {
         private:
 
             void init(unsigned char *key) override;
 
-            void xform(__m128i data, __m128i *pInt, __m128i &result, __m128i &feedback) override;
+            void encryptBlock(__m128i in, __m128i &out) override;
+
 
         public:
             AesCFB192Enc();
@@ -52,25 +40,14 @@ namespace intel {
             ~AesCFB192Enc() override;
         };
 
-        class AesCFB192Dec : public CFB {
-        private:
-
-            void init(unsigned char *key) override;
-
-            void xform(__m128i data, __m128i *pInt, __m128i &result, __m128i &feedback) override;
-
-        public:
-            AesCFB192Dec();
-
-            ~AesCFB192Dec() override;
-        };
 
         class AesCFB256Enc : public CFB {
         private:
 
             void init(unsigned char *key) override;
 
-            void xform(__m128i data, __m128i *pInt, __m128i &result, __m128i &feedback) override;
+            void encryptBlock(__m128i in, __m128i &out) override;
+
 
         public:
             AesCFB256Enc();
@@ -78,18 +55,6 @@ namespace intel {
             ~AesCFB256Enc() override;
         };
 
-        class AesCFB256Dec : public CFB {
-        private:
-
-            void init(unsigned char *key) override;
-
-            void xform(__m128i data, __m128i *pInt, __m128i &result, __m128i &feedback) override;
-
-        public:
-            AesCFB256Dec();
-
-            ~AesCFB256Dec() override;
-        };
 
     }
 }

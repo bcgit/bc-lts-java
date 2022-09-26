@@ -131,8 +131,10 @@ public class NativeACVPTest
                     {
                         nativeGCM.doFinal(nativeResult, nrl);
                         nPass = true;
-                    } catch (Exception ex) {
-                        Assert.assertEquals("mac check in GCM failed",ex.getMessage());
+                    }
+                    catch (Exception ex)
+                    {
+                        Assert.assertEquals("mac check in GCM failed", ex.getMessage());
                         nPass = false;
                     }
 
@@ -141,12 +143,15 @@ public class NativeACVPTest
                     {
                         javaGCM.doFinal(javaResult, jrl);
                         jPass = true;
-                    } catch (Exception ex) {
-                        Assert.assertEquals("mac check in GCM failed",ex.getMessage());
+                    }
+                    catch (Exception ex)
+                    {
+                        Assert.assertEquals("mac check in GCM failed", ex.getMessage());
                         jPass = false;
                     }
 
-                    if (!rspTest.containsKey("testPassed") && !rspTest.containsKey("pt")) {
+                    if (!rspTest.containsKey("testPassed") && !rspTest.containsKey("pt"))
+                    {
 
                         //
                         // Sanity.
@@ -162,12 +167,12 @@ public class NativeACVPTest
                         TestCase.assertEquals(testPassed, jPass);
                         TestCase.assertEquals(testPassed, nPass);
                     }
-                    if (rspTest.containsKey("pt")) {
+                    if (rspTest.containsKey("pt"))
+                    {
                         byte[] expected = Hex.decode(rspTest.get("pt").toString());
                         TestCase.assertTrue("native GCM", Arrays.areEqual(nativeResult, expected));
                         TestCase.assertTrue("java GCM", Arrays.areEqual(javaResult, expected));
                     }
-
 
 
                 }
@@ -189,7 +194,6 @@ public class NativeACVPTest
             System.out.println("Skipping CFB native ACVP vector test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
-
 
         List<Map<String, Object>> req = mapper.readValue(
             NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/CFB128.req.json"),
@@ -289,6 +293,136 @@ public class NativeACVPTest
                     TestCase.assertEquals("native output len matches java output len", nrl, jrl);
                     TestCase.assertTrue("native matches expected", Arrays.areEqual(nativeResult, expected));
                     TestCase.assertTrue("java matches expected", Arrays.areEqual(javaResult, expected));
+                }
+            }
+
+
+        }
+    }
+
+    @Test
+    public void testCFBStreamCipher()
+        throws Exception
+    {
+        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
+        {
+            System.out.println("Skipping CFB native ACVP vector test: " + CryptoServicesRegistrar.getNativeStatus());
+            return;
+        }
+
+        List<Map<String, Object>> req = mapper.readValue(
+            NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/CFB128.req.json"),
+            List.class);
+
+        List<Map<String, Object>> rsp = mapper.readValue(
+            NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/CFB128.rsp.json"),
+            List.class);
+
+        List<Map<String, Object>> reqGroups = ((List<Map<String, Object>>)(req.get(1)).get("testGroups"));
+
+        List<Map<String, Object>> rspGroups = ((List<Map<String, Object>>)(rsp.get(1)).get("testGroups"));
+
+
+        AESNativeCFB nativeCFB = new AESNativeCFB();
+        AESNativeCFB nativeCFBByte = new AESNativeCFB();
+        CFBBlockCipher javaCBC = new CFBBlockCipher(new AESEngine(), 128);
+
+        for (int gi = 0; gi < reqGroups.size(); gi++)
+        {
+            Map<String, Object> reqGroup = reqGroups.get(gi);
+            Map<String, Object> rspGroup = rspGroups.get(gi);
+
+            List<Map<String, Object>> reqTests = (List<Map<String, Object>>)reqGroup.get("tests");
+            List<Map<String, Object>> rspTests = (List<Map<String, Object>>)rspGroup.get("tests");
+
+            String testType = (String)reqGroup.get("testType");
+
+
+            for (int ti = 0; ti < reqTests.size(); ti++)
+            {
+
+
+                Map<String, Object> reqTest = reqTests.get(ti);
+                Map<String, Object> rspTest = rspTests.get(ti);
+
+
+                if ("MCT".equals(testType))
+                {
+
+                    List<Map<String, Object>> expected = (List<Map<String, Object>>)rspTest.get("resultsArray");
+                    {
+                        //
+                        // Native CFB.
+                        //
+                        List<Map<String, Object>> results = performMonteCarloTest(nativeCFBByte, reqGroup, reqTest, "CFB128");
+                        TestCase.assertEquals(expected.size(), results.size());
+                        for (int t = 0; t < expected.size(); t++)
+                        {
+                            Map<String, Object> left = expected.get(t);
+                            Map<String, Object> right = results.get(t);
+
+                            for (String key : right.keySet())
+                            {
+                                TestCase.assertTrue("native " + t + " - " + key, Arrays.areEqual(Hex.decode(left.get(key).toString()), (byte[])right.get(key)));
+                            }
+                        }
+                    }
+
+
+                    {
+                        //
+                        // Java CFB.
+                        //
+                        List<Map<String, Object>> results = performMonteCarloTest(javaCBC, reqGroup, reqTest, "CFB128");
+                        TestCase.assertEquals(expected.size(), results.size());
+                        for (int t = 0; t < expected.size(); t++)
+                        {
+                            Map<String, Object> left = expected.get(t);
+                            Map<String, Object> right = results.get(t);
+
+                            for (String key : right.keySet())
+                            {
+                                TestCase.assertTrue("java " + t + " - " + key, Arrays.areEqual(Hex.decode(left.get(key).toString()), (byte[])right.get(key)));
+                            }
+                        }
+                    }
+
+
+                }
+                else
+                {
+
+                    boolean encryption = "encrypt".equals(reqGroup.get("direction"));
+                    ParametersWithIV params = new ParametersWithIV(new KeyParameter(Hex.decode(reqTest.get("key").toString())), Hex.decode(reqTest.get("iv").toString()));
+                    byte[] msg = Hex.decode((reqTest.containsKey("pt") ? reqTest.get("pt") : reqTest.get("ct")).toString());
+                    byte[] expected = Hex.decode((rspTest.containsKey("pt") ? rspTest.get("pt") : rspTest.get("ct")).toString());
+
+                    nativeCFB.init(encryption, params);
+                    nativeCFBByte.init(encryption, params);
+                    javaCBC.init(encryption, params);
+
+                    byte[] nativeResult = new byte[expected.length];
+                    byte[] javaResult = new byte[expected.length];
+
+                    int nrl = nativeCFB.processBytes(msg, 0, msg.length, nativeResult, 0);
+                    int jrl = javaCBC.processBytes(msg, 0, msg.length, javaResult, 0);
+
+                    TestCase.assertEquals("native output len matches java output len", nrl, jrl);
+                    TestCase.assertTrue("native matches expected", Arrays.areEqual(nativeResult, expected));
+                    TestCase.assertTrue("java matches expected", Arrays.areEqual(javaResult, expected));
+
+                    //
+                    // Test byte by byte interface works.
+                    //
+
+                    int exptPtr = 0;
+                    for (int t = 0; t < msg.length; t++)
+                    {
+                        byte z = nativeCFBByte.returnByte(msg[t]);
+                        TestCase.assertEquals(z, nativeResult[exptPtr++]);
+                    }
+
+
                 }
             }
 
