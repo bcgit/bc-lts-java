@@ -23,7 +23,7 @@ test-code-sse:
     - "gradle withNative build  -x test"
     - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
-    - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-sse -cp jars/bc-fips-2.0.1-SNAPSHOT.jar org.bouncycastle.util.DumpInfo -verbose"
+    - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-sse -cp core/build/libs/core-1.70.jar org.bouncycastle.util.DumpInfo"
     - "gradle clean withNative build testSSE  -x test -Pskip.pqc.tests"
 
 
@@ -38,6 +38,6 @@ test-code-avx:
     - "gradle withNative build  -x test"
     - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
-    - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx -cp jars/bc-fips-2.0.1-SNAPSHOT.jar org.bouncycastle.util.DumpInfo -verbose"
+    - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx -cp core/build/libs/core-1.70.jar org.bouncycastle.util.DumpInfo"
     - "gradle clean withNative build testAVX  -x test -Pskip.pqc.tests"
 
