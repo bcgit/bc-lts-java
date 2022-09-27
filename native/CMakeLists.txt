@@ -210,8 +210,6 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${ECB}
             ${CFB}
             ${EXCEPTIONS}
-            debug.cpp
-            debug.h
             )
     target_include_directories("${LIB_NATIVE}-sse" PUBLIC ${JNI_INCLUDES})
 
@@ -244,9 +242,6 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${ECB}
             ${CFB}
             ${EXCEPTIONS}
-            debug.cpp
-            debug.h
-
             )
     target_include_directories("${LIB_NATIVE}-avx" PUBLIC ${JNI_INCLUDES})
 
