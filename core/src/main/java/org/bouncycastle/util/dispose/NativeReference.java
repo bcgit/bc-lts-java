@@ -5,8 +5,6 @@ public abstract class NativeReference
 {
     protected final long reference;
 
-    private boolean actionRead = false;
-
 
     public NativeReference(long reference)
     {
@@ -17,20 +15,10 @@ public abstract class NativeReference
 
     public final Runnable getDisposeAction()
     {
-        if (actionRead)
-        {
-            return null;
-        }
-        actionRead = true;
         return createAction();
     }
 
     protected abstract Runnable createAction();
-
-    public boolean isActionRead()
-    {
-        return actionRead;
-    }
 
 
     public long getReference()

@@ -1,8 +1,11 @@
 package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.CryptoServicePurpose;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.OutputLengthException;
+import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
@@ -109,6 +112,15 @@ class AESNativeCFB
         {
             throw new IllegalArgumentException("iv is null");
         }
+
+
+        CryptoServicesRegistrar.checkConstraints(
+            new DefaultServiceProperties(
+                getAlgorithmName(),
+                key.length * 8,
+                params,
+                forEncryption ? CryptoServicePurpose.ENCRYPTION : CryptoServicePurpose.DECRYPTION
+            ));
 
         referenceWrapper = new CFBRefWrapper(makeNative(key.length));
         init(referenceWrapper.getReference(), encrypting, key, iv);

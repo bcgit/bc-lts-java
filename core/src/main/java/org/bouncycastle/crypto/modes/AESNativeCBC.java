@@ -2,7 +2,10 @@ package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.CryptoServicePurpose;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -14,7 +17,7 @@ class AESNativeCBC
     implements CBCModeCipher
 {
 
-    private CBCRefWrapper wrapper;
+    private CBCRefWrapper referenceWrapper;
 
     private byte[] oldKey;
     private byte[] oldIv;
@@ -74,7 +77,6 @@ class AESNativeCBC
 
         }
 
-
         if (key == null && oldEncrypting != encrypting)
         {
             throw new IllegalArgumentException("cannot change encrypting state without providing key.");
@@ -85,8 +87,17 @@ class AESNativeCBC
             throw new IllegalArgumentException("iv is null");
         }
 
-        wrapper = new CBCRefWrapper(makeNative(key.length, encrypting));
-        init(wrapper.getReference(), key, iv);
+        CryptoServicesRegistrar.checkConstraints(
+            new DefaultServiceProperties(
+                getAlgorithmName(),
+                key.length * 8,
+                params,
+                forEncryption ? CryptoServicePurpose.ENCRYPTION : CryptoServicePurpose.DECRYPTION
+            ));
+
+
+        referenceWrapper = new CBCRefWrapper(makeNative(key.length, encrypting));
+        init(referenceWrapper.getReference(), key, iv);
 
     }
 
@@ -120,19 +131,19 @@ class AESNativeCBC
         }
 
 
-        return process(wrapper.getReference(), in, inOff, 1, out, outOff);
+        return process(referenceWrapper.getReference(), in, inOff, 1, out, outOff);
     }
 
     @Override
     public void reset()
     {
         // skip over spurious resets that may occur before init is called.
-        if (wrapper == null || wrapper.isActionRead())
+        if (referenceWrapper == null )
         {
             return;
         }
 
-        reset(wrapper.getReference());
+        reset(referenceWrapper.getReference());
 
     }
 
@@ -162,12 +173,12 @@ class AESNativeCBC
             throw new DataLengthException("block count < 0");
         }
 
-        if (wrapper == null)
+        if (referenceWrapper == null)
         {
             throw new IllegalStateException("CBC engine not initialised");
         }
 
-        return process(wrapper.getReference(), in, inOff, blockCount, out, outOff);
+        return process(referenceWrapper.getReference(), in, inOff, blockCount, out, outOff);
     }
 
     private static native int process(long ref, byte[] in, int inOff, int blockCount, byte[] out, int outOff);

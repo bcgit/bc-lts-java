@@ -2,8 +2,12 @@ package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.CryptoServicePurpose;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
+import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -16,11 +20,13 @@ class AESNativeGCM
 {
 
     private GCMRefWrapper refWrapper;
-    private int macSizeBits = 0;
+    private int macSize = 0;
 
-    private byte[] lastNonce;
+    private byte[] nonce;
 
     private byte[] lastKey;
+
+    private byte[] initialAssociatedText;
 
     private boolean doFinalCalled = false;
 
@@ -29,92 +35,97 @@ class AESNativeGCM
     @Override
     public BlockCipher getUnderlyingCipher()
     {
-        return VoidBlockCipher.instance;
+        BlockCipher engine = AESEngine.newInstance();
+        engine.init(true, new KeyParameter(lastKey));
+        return engine;
     }
 
 
-    @Override
     public void init(boolean forEncryption, CipherParameters params)
         throws IllegalArgumentException
     {
-        byte[] key = null;
-        byte[] nonce = null;
-        byte[] initialAssociatedText = null;
-
-        this.forEncryption = forEncryption;
+        KeyParameter keyParam;
+        byte[] newNonce = null;
 
         if (params instanceof AEADParameters)
         {
             AEADParameters param = (AEADParameters)params;
 
-            nonce = param.getNonce();
-
+            newNonce = param.getNonce();
             initialAssociatedText = param.getAssociatedText();
 
-            macSizeBits = param.getMacSize();
+            int macSizeBits = param.getMacSize();
             if (macSizeBits < 32 || macSizeBits > 128 || macSizeBits % 8 != 0)
             {
                 throw new IllegalArgumentException("Invalid value for MAC size: " + macSizeBits);
             }
 
-            if (param.getKey() != null)
-            {
-                key = param.getKey().getKey();
-            }
-            else if (!forEncryption)
-            {
-                // Decryption so reuse last key
-                key = Arrays.clone(lastKey);
-            }
+            macSize = macSizeBits;
+            keyParam = param.getKey();
         }
         else if (params instanceof ParametersWithIV)
         {
             ParametersWithIV param = (ParametersWithIV)params;
-            nonce = param.getIV();
-            macSizeBits = 128;
-            if (param.getParameters() != null)
-            {
-                key = ((KeyParameter)param.getParameters()).getKey();
-            }
-            else if (!forEncryption)
-            {
-                // Decryption so reuse last key
-                key = Arrays.clone(lastKey);
-            }
+
+            newNonce = param.getIV();
+            initialAssociatedText = null;
+            macSize = 128;
+            keyParam = (KeyParameter)param.getParameters();
         }
         else
         {
             throw new IllegalArgumentException("invalid parameters passed to GCM");
         }
 
+
+        if (newNonce == null || newNonce.length < 1)
+        {
+            throw new IllegalArgumentException("IV must be at least 1 byte");
+        }
+
         if (forEncryption)
         {
-            if (lastNonce != null && Arrays.areEqual(lastNonce, nonce))
+            if (nonce != null && Arrays.areEqual(nonce, newNonce))
             {
-                if (key == null)
+                if (keyParam == null)
                 {
                     throw new IllegalArgumentException("cannot reuse nonce for GCM encryption");
                 }
-                if (lastKey != null && Arrays.areEqual(lastKey, key))
+                if (lastKey != null && Arrays.areEqual(lastKey, keyParam.getKey()))
                 {
                     throw new IllegalArgumentException("cannot reuse nonce for GCM encryption");
                 }
             }
         }
 
-        initRef(key.length);
-        initNative(refWrapper.getReference(), forEncryption, key, nonce, initialAssociatedText, macSizeBits);
+        nonce = newNonce;
+        if (keyParam != null)
+        {
+            lastKey = keyParam.getKey();
+        }
 
-        lastNonce = Arrays.clone(nonce);
-        lastKey = Arrays.clone(key);
+        CryptoServicesRegistrar.checkConstraints(
+            new DefaultServiceProperties(
+                getAlgorithmName(),
+                lastKey.length * 8,
+                params,
+                forEncryption ? CryptoServicePurpose.ENCRYPTION : CryptoServicePurpose.DECRYPTION
+            ));
 
+
+        initRef(lastKey.length);
+
+
+        initNative(
+            refWrapper.getReference(),
+            forEncryption, lastKey,
+            nonce, initialAssociatedText, macSize);
         doFinalCalled = false;
     }
 
 
     private void initRef(int keySize)
     {
-        refWrapper = null;
         refWrapper = new GCMRefWrapper(makeInstance(keySize));
     }
 
@@ -225,7 +236,7 @@ class AESNativeGCM
     @Override
     public void reset()
     {
-        if (refWrapper == null || refWrapper.isActionRead())
+        if (refWrapper == null)
         {
             // deal with reset being called before init.
             return;
@@ -285,7 +296,8 @@ class AESNativeGCM
     }
 
 
-    private static class Disposer extends NativeDisposer
+    private static class Disposer
+        extends NativeDisposer
     {
         Disposer(long ref)
         {
@@ -299,42 +311,4 @@ class AESNativeGCM
         }
     }
 
-    static class VoidBlockCipher
-        implements BlockCipher
-    {
-
-        private static VoidBlockCipher instance = new VoidBlockCipher();
-
-        @Override
-        public void init(boolean forEncryption, CipherParameters params)
-            throws IllegalArgumentException
-        {
-            throw new IllegalStateException("void cipher cannot be initialized");
-        }
-
-        @Override
-        public String getAlgorithmName()
-        {
-            return "VOID";
-        }
-
-        @Override
-        public int getBlockSize()
-        {
-            return 0;
-        }
-
-        @Override
-        public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
-            throws DataLengthException, IllegalStateException
-        {
-            throw new IllegalStateException("void cipher cannot process blocks");
-        }
-
-        @Override
-        public void reset()
-        {
-
-        }
-    }
 }

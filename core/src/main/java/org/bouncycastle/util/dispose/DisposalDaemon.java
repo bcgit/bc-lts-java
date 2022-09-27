@@ -3,6 +3,8 @@ package org.bouncycastle.util.dispose;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicLong;
@@ -16,7 +18,7 @@ public class DisposalDaemon
 
     private static ReferenceQueue<Disposable> referenceQueue = new ReferenceQueue<Disposable>();
 
-    private static Set<ReferenceWrapperWithDisposerRunnable> refs = new ConcurrentSkipListSet<ReferenceWrapperWithDisposerRunnable>();
+    private static Set<ReferenceWrapperWithDisposerRunnable> refs = Collections.synchronizedSet(new HashSet<ReferenceWrapperWithDisposerRunnable>());
 
     private static AtomicLong ctr = new AtomicLong(Long.MIN_VALUE);
 
@@ -80,7 +82,6 @@ public class DisposalDaemon
             }
             catch (Throwable e)
             {
-                e.printStackTrace();
                 if (LOG.isLoggable(Level.FINE))
                 {
                     LOG.fine("exception in disposal thread: " + e.getMessage());
@@ -91,7 +92,7 @@ public class DisposalDaemon
 
     private static class ReferenceWrapperWithDisposerRunnable
         extends PhantomReference<Disposable>
-        implements Comparable<ReferenceWrapperWithDisposerRunnable>
+//        implements Comparable<ReferenceWrapperWithDisposerRunnable>
     {
 
         private final long id;
@@ -122,11 +123,11 @@ public class DisposalDaemon
             disposer.run();
         }
 
-        @Override
-        public int compareTo(ReferenceWrapperWithDisposerRunnable o)
-        {
-            return Long.valueOf(o.id).compareTo(id);
-        }
+//        @Override
+//        public int compareTo(ReferenceWrapperWithDisposerRunnable o)
+//        {
+//            return Long.valueOf(o.id).compareTo(id);
+//        }
     }
 }
 
