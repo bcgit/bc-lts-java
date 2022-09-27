@@ -10,6 +10,16 @@ test {
   jvmArgs propValsAsArgs(project, test.name, "variant", "org.bouncycastle.native.cpu_variant"),
           propValsAsArgs(project, test.name, "failsafe_skip", "test.bcfips.ignore.native");
 //  jvmArgs '-Dtest.bcfips.ignore.native=sha,gcm,cbc,ecb,rand,seed', '-Dorg.bouncycastle.native.cpu_variant=java'
+
+  filter {
+    includeTestsMatching "AllTest*"
+
+    if (rootProject.hasProperty("skip.pqc.tests"))
+    {
+      exclude('**/pqc/**')
+    }
+  }
+
 }
 
 
@@ -175,6 +185,14 @@ task('testAVX', type: Test) {
   testLogging.showExceptions = true
   testLogging.showStackTraces = true
 
+  filter {
+    includeTestsMatching "AllTest*"
+
+    if (rootProject.hasProperty("skip.pqc.tests"))
+    {
+      exclude('**/pqc/**')
+    }
+  }
 
 //  doFirst {
 //    removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
@@ -195,6 +213,15 @@ task('testSSE', type: Test) {
   testLogging.showCauses = true
   testLogging.showExceptions = true
   testLogging.showStackTraces = true
+
+  filter {
+    includeTestsMatching "AllTest*"
+
+    if (rootProject.hasProperty("skip.pqc.tests"))
+    {
+      exclude('**/pqc/**')
+    }
+  }
 
   // doFirst {
   //   removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
