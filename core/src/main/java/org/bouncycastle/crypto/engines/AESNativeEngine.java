@@ -5,19 +5,27 @@ import org.bouncycastle.crypto.CryptoServicePurpose;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultMultiBlockCipher;
+import org.bouncycastle.crypto.NativeBlockCipherProvider;
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
+import org.bouncycastle.crypto.modes.CBCBlockCipher;
+import org.bouncycastle.crypto.modes.CBCModeCipher;
+import org.bouncycastle.crypto.modes.CFBBlockCipher;
+import org.bouncycastle.crypto.modes.CFBModeCipher;
+import org.bouncycastle.crypto.modes.GCMBlockCipher;
+import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 class AESNativeEngine
     extends DefaultMultiBlockCipher
-    implements NativeEngine
+    implements NativeBlockCipherProvider
 {
     protected NativeReference wrapper = null;
 
-    public AESNativeEngine()
+    AESNativeEngine()
     {
 
     }
@@ -158,6 +166,32 @@ class AESNativeEngine
 
     private static native void init(long nativeRef, byte[] key);
 
+    public GCMModeCipher createGCM()
+    {
+        if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.AES_GCM))
+        {
+            return new AESNativeGCM();
+        }
+
+        return new GCMBlockCipher(new AESEngine());
+    }
+
+    @Override
+    public CBCModeCipher createCBC()
+    {
+        return new CBCBlockCipher(new AESNativeEngine());
+    }
+
+    @Override
+    public CFBModeCipher createCFB(int bitSize)
+    {
+        if (bitSize % 8 != 0 || bitSize == 0 || bitSize > 128)
+        {
+            throw new IllegalArgumentException("invalid CFB bitsize: " + bitSize);
+        }
+        
+        return new CFBBlockCipher(new AESNativeEngine(), bitSize);
+    }
 
     private static class Disposer
         extends NativeDisposer

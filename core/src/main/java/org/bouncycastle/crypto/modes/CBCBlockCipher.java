@@ -2,10 +2,9 @@ package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultMultiBlockCipher;
-import org.bouncycastle.crypto.engines.NativeEngine;
+import org.bouncycastle.crypto.NativeBlockCipherProvider;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 
@@ -31,15 +30,9 @@ public class CBCBlockCipher
      */
     public static CBCModeCipher newInstance(BlockCipher cipher)
     {
-        if (cipher instanceof NativeEngine)
+        if (cipher instanceof NativeBlockCipherProvider)
         {
-            if (cipher.getAlgorithmName().equals("AES"))
-            {
-                if (CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC"))
-                {
-                    return new AESNativeCBC();
-                }
-            }
+            return ((NativeBlockCipherProvider)cipher).createCBC();
         }
 
         return new CBCBlockCipher(cipher);

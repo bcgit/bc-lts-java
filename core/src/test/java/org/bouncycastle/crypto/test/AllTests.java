@@ -5,7 +5,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.bouncycastle.crypto.NativeEntropyTest;
-import org.bouncycastle.crypto.NativeFailsafeTest;
+import org.bouncycastle.crypto.engines.NativeFailsafeTest;
 
 public class AllTests
     extends TestCase

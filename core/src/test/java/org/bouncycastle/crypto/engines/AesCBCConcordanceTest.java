@@ -1,11 +1,14 @@
-package org.bouncycastle.crypto.modes;
+package org.bouncycastle.crypto.engines;
 
 import java.security.SecureRandom;
 
 import junit.framework.TestCase;
+
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.AESNativeCBC;
+import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
@@ -14,22 +17,22 @@ import org.junit.Test;
 /**
  * Compare output of native and java implementations of the same transformations.
  */
-public class AesCFBConcordanceTest
+public class AesCBCConcordanceTest
 {
 
     @Test
-    public void testCFBConcordance()
+    public void testCBCConcordance()
         throws Exception
     {
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
+        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC"))
         {
-            System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.getNativeStatus());
+            System.out.println("Skipping CBC native concordance test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
 
-        SecureRandom secureRandom = new SecureRandom();
 
+        SecureRandom secureRandom = new SecureRandom();
 
         for (int keySize : new int[]{16, 24, 32})
         {
@@ -37,8 +40,8 @@ public class AesCFBConcordanceTest
             for (int t = 0; t < 10000; t++)
             {
 
-                MultiBlockCipher javaEngine = new CFBBlockCipher(new AESEngine(), 128);
-                AESNativeCFB nativeEngine = new AESNativeCFB(128);
+                MultiBlockCipher javaEngine = new CBCBlockCipher(new AESEngine());
+                AESNativeCBC nativeEngine = new AESNativeCBC();
 
                 int blocks = secureRandom.nextInt(100) + 1;
                 byte[] msg = new byte[blocks * 16];
@@ -94,8 +97,8 @@ public class AesCFBConcordanceTest
 
             }
 
-
         }
+
 
     }
 }

@@ -2,11 +2,10 @@ package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.NativeBlockCipherProvider;
 import org.bouncycastle.crypto.OutputLengthException;
-import org.bouncycastle.crypto.engines.NativeEngine;
 import org.bouncycastle.crypto.modes.gcm.BasicGCMExponentiator;
 import org.bouncycastle.crypto.modes.gcm.GCMExponentiator;
 import org.bouncycastle.crypto.modes.gcm.GCMMultiplier;
@@ -62,15 +61,11 @@ public class GCMBlockCipher
      */
     public static GCMModeCipher newInstance(BlockCipher cipher)
     {
-        if (cipher instanceof NativeEngine)
+        if (cipher instanceof NativeBlockCipherProvider)
         {
-            if (cipher.getAlgorithmName().equals("AES"))
-            {
-                if (CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
-                {
-                    return new AESNativeGCM();
-                }
-            }
+            NativeBlockCipherProvider engine = (NativeBlockCipherProvider)cipher;
+
+            return engine.createGCM();
         }
 
         return new GCMBlockCipher(cipher);

@@ -2,10 +2,9 @@ package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.NativeBlockCipherProvider;
 import org.bouncycastle.crypto.StreamBlockCipher;
-import org.bouncycastle.crypto.engines.NativeEngine;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 
@@ -33,15 +32,9 @@ public class CFBBlockCipher
      */
     public static CFBModeCipher newInstance(BlockCipher cipher, int bitSize)
     {
-        if (bitSize == 128 && cipher instanceof NativeEngine)
+        if (cipher instanceof NativeBlockCipherProvider)
         {
-            if (cipher.getAlgorithmName().equals("AES"))
-            {
-                if (CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC"))
-                {
-                    return new AESNativeCFB(bitSize);
-                }
-            }
+            return ((NativeBlockCipherProvider)cipher).createCFB(bitSize);
         }
 
         return new CFBBlockCipher(cipher, bitSize);

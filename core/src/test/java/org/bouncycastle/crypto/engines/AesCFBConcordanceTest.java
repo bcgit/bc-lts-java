@@ -1,12 +1,13 @@
-package org.bouncycastle.crypto.modes;
+package org.bouncycastle.crypto.engines;
 
 import java.security.SecureRandom;
 
 import junit.framework.TestCase;
-
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.AESNativeCFB;
+import org.bouncycastle.crypto.modes.CFBBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
@@ -15,22 +16,22 @@ import org.junit.Test;
 /**
  * Compare output of native and java implementations of the same transformations.
  */
-public class AesCBCConcordanceTest
+public class AesCFBConcordanceTest
 {
 
     @Test
-    public void testCBCConcordance()
+    public void testCFBConcordance()
         throws Exception
     {
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC"))
+        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
         {
-            System.out.println("Skipping CBC native concordance test: " + CryptoServicesRegistrar.getNativeStatus());
+            System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
 
-
         SecureRandom secureRandom = new SecureRandom();
+
 
         for (int keySize : new int[]{16, 24, 32})
         {
@@ -38,8 +39,8 @@ public class AesCBCConcordanceTest
             for (int t = 0; t < 10000; t++)
             {
 
-                MultiBlockCipher javaEngine = new CBCBlockCipher(new AESEngine());
-                AESNativeCBC nativeEngine = new AESNativeCBC();
+                MultiBlockCipher javaEngine = new CFBBlockCipher(new AESEngine(), 128);
+                AESNativeCFB nativeEngine = new AESNativeCFB(128);
 
                 int blocks = secureRandom.nextInt(100) + 1;
                 byte[] msg = new byte[blocks * 16];
@@ -95,8 +96,8 @@ public class AesCBCConcordanceTest
 
             }
 
-        }
 
+        }
 
     }
 }

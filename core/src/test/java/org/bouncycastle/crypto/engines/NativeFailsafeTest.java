@@ -1,6 +1,7 @@
-package org.bouncycastle.crypto;
+package org.bouncycastle.crypto.engines;
 
 import junit.framework.TestCase;
+import org.bouncycastle.crypto.NativeLoader;
 import org.junit.Test;
 
 import static junit.framework.TestCase.fail;
