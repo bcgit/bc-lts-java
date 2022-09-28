@@ -311,11 +311,6 @@ public class GCMTest
         testExceptions();
     }
 
-    protected BlockCipher createAESEngine()
-    {
-        return AESEngine.newInstance();
-    }
-
     private void testExceptions()
         throws InvalidCipherTextException
     {

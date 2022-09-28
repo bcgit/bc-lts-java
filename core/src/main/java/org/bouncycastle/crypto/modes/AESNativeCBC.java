@@ -74,6 +74,11 @@ class AESNativeCBC
                 oldKey = Arrays.clone(key);
                 iv = oldIv;
             }
+            else
+            {
+                key = oldKey;
+                iv = oldIv;
+            }
 
         }
 
@@ -84,7 +89,7 @@ class AESNativeCBC
 
         if (iv == null)
         {
-            throw new IllegalArgumentException("iv is null");
+            iv = new byte[getBlockSize()];
         }
 
         CryptoServicesRegistrar.checkConstraints(
@@ -138,7 +143,7 @@ class AESNativeCBC
     public void reset()
     {
         // skip over spurious resets that may occur before init is called.
-        if (referenceWrapper == null )
+        if (referenceWrapper == null)
         {
             return;
         }
@@ -198,13 +203,14 @@ class AESNativeCBC
     @Override
     public BlockCipher getUnderlyingCipher()
     {
-      BlockCipher engine =  AESEngine.newInstance();
-      engine.init(encrypting,new KeyParameter(oldKey));
-      return engine;
+        BlockCipher engine = AESEngine.newInstance();
+        engine.init(encrypting, new KeyParameter(oldKey));
+        return engine;
     }
 
 
-    private static class Disposer extends NativeDisposer
+    private static class Disposer
+        extends NativeDisposer
     {
         Disposer(long ref)
         {
@@ -218,7 +224,8 @@ class AESNativeCBC
         }
     }
 
-    private static class CBCRefWrapper extends NativeReference
+    private static class CBCRefWrapper
+        extends NativeReference
     {
 
         public CBCRefWrapper(long reference)

@@ -272,9 +272,9 @@ public class NISTCTSBlockCipher
             {
                 if (this.type == CS3 || (this.type == CS2 && ((buf.length - bufOff) % blockSize) != 0))
                 {
-                    if (cipher instanceof CBCBlockCipher)
+                    if (cipher instanceof CBCModeCipher)
                     {
-                        BlockCipher c = ((CBCBlockCipher)cipher).getUnderlyingCipher();
+                        BlockCipher c = ((CBCModeCipher)cipher).getUnderlyingCipher();
 
                         c.processBlock(buf, 0, block, 0);
                     }

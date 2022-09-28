@@ -28,9 +28,9 @@ class AESNativeGCM
 
     private byte[] initialAssociatedText;
 
-    private boolean doFinalCalled = false;
-
     private boolean forEncryption = false;
+
+    private boolean initialised = false;
 
     @Override
     public BlockCipher getUnderlyingCipher()
@@ -120,7 +120,9 @@ class AESNativeGCM
             refWrapper.getReference(),
             forEncryption, lastKey,
             nonce, initialAssociatedText, macSize);
-        doFinalCalled = false;
+
+        this.forEncryption = forEncryption;
+        initialised = true;
     }
 
 
@@ -190,24 +192,13 @@ class AESNativeGCM
         throws IllegalStateException, InvalidCipherTextException
     {
 
-        if (forEncryption)
-        {
-            if (doFinalCalled)
-            {
-                throw new IllegalStateException("GCM cipher cannot be reused for encryption");
-            }
-            else
-            {
-                doFinalCalled = true;
-            }
-        }
-
-
+        checkStatus();
         if (outOff > out.length)
         {
             throw new IllegalArgumentException("offset past end of output array");
         }
 
+        initialised = false;
         return doFinal(refWrapper.getReference(), out, outOff);
     }
 
@@ -244,6 +235,19 @@ class AESNativeGCM
 
         reset(refWrapper.getReference());
     }
+
+    private void checkStatus()
+    {
+        if (!initialised)
+        {
+            if (forEncryption)
+            {
+                throw new IllegalStateException("GCM cipher cannot be reused for encryption");
+            }
+            throw new IllegalStateException("GCM cipher needs to be initialised");
+        }
+    }
+
 
     private native void reset(long ref);
 

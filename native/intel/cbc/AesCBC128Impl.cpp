@@ -177,10 +177,6 @@ namespace intel {
             feedback = data;
         }
 
-
-
-
-
     }
 }
 

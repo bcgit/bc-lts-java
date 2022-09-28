@@ -1,9 +1,12 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.CryptoServicePurpose;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultMultiBlockCipher;
 import org.bouncycastle.crypto.OutputLengthException;
+import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
@@ -41,6 +44,15 @@ class AESNativeEngine
             default:
                 throw new IllegalArgumentException("key must be 16, 24 or 32 bytes");
             }
+
+            CryptoServicesRegistrar.checkConstraints(
+                new DefaultServiceProperties(
+                    getAlgorithmName(),
+                    key.length * 8,
+                    params,
+                    forEncryption ? CryptoServicePurpose.ENCRYPTION : CryptoServicePurpose.DECRYPTION
+                ));
+
 
             init(wrapper.getReference(), key);
 
