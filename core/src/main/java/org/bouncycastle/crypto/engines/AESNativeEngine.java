@@ -179,6 +179,10 @@ class AESNativeEngine
     @Override
     public CBCModeCipher createCBC()
     {
+        if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.AES_CBC))
+        {
+            return new AESNativeCBC();
+        }
         return new CBCBlockCipher(new AESNativeEngine());
     }
 
@@ -189,7 +193,12 @@ class AESNativeEngine
         {
             throw new IllegalArgumentException("invalid CFB bitsize: " + bitSize);
         }
-        
+
+        if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.AES_CFB))
+        {
+            return new AESNativeCFB(bitSize);
+        }
+
         return new CFBBlockCipher(new AESNativeEngine(), bitSize);
     }
 

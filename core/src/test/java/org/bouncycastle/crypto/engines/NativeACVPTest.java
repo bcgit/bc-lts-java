@@ -28,6 +28,118 @@ public class NativeACVPTest
     private static ObjectMapper mapper = new ObjectMapper();
 
 
+    public void testECB()
+        throws Exception
+    {
+        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/ECB"))
+        {
+            System.out.println("Skipping ECB native ACVP vector test: " + CryptoServicesRegistrar.getNativeStatus());
+            return;
+        }
+
+
+        List<Map<String, Object>> req = mapper.readValue(
+            NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/ECB.req.json"),
+            List.class);
+
+        List<Map<String, Object>> rsp = mapper.readValue(
+            NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/ECB.rsp.json"),
+            List.class);
+
+        List<Map<String, Object>> reqGroups = ((List<Map<String, Object>>)(req.get(1)).get("testGroups"));
+
+        List<Map<String, Object>> rspGroups = ((List<Map<String, Object>>)(rsp.get(1)).get("testGroups"));
+
+
+        AESNativeEngine nativeEngine = new AESNativeEngine();
+        AESEngine javaEngine = new AESEngine();
+
+        for (int gi = 0; gi < reqGroups.size(); gi++)
+        {
+            Map<String, Object> reqGroup = reqGroups.get(gi);
+            Map<String, Object> rspGroup = rspGroups.get(gi);
+
+            List<Map<String, Object>> reqTests = (List<Map<String, Object>>)reqGroup.get("tests");
+            List<Map<String, Object>> rspTests = (List<Map<String, Object>>)rspGroup.get("tests");
+
+            String testType = (String)reqGroup.get("testType");
+
+
+            for (int ti = 0; ti < reqTests.size(); ti++)
+            {
+                Map<String, Object> reqTest = reqTests.get(ti);
+                Map<String, Object> rspTest = rspTests.get(ti);
+
+                if ("MCT".equals(testType))
+                {
+
+                    List<Map<String, Object>> expected = (List<Map<String, Object>>)rspTest.get("resultsArray");
+                    {
+                        //
+                        // Native CBC.
+                        //
+                        List<Map<String, Object>> results = performMonteCarloTest(nativeEngine, reqGroup, reqTest, "ECB");
+                        TestCase.assertEquals(expected.size(), results.size());
+                        for (int t = 0; t < expected.size(); t++)
+                        {
+                            Map<String, Object> left = expected.get(t);
+                            Map<String, Object> right = results.get(t);
+
+                            for (String key : right.keySet())
+                            {
+                                TestCase.assertTrue("native " + t + " - " + key, Arrays.areEqual(Hex.decode(left.get(key).toString()), (byte[])right.get(key)));
+                            }
+                        }
+                    }
+
+
+                    {
+                        //
+                        // Java CBC.
+                        //
+                        List<Map<String, Object>> results = performMonteCarloTest(javaEngine, reqGroup, reqTest, "ECB");
+                        TestCase.assertEquals(expected.size(), results.size());
+                        for (int t = 0; t < expected.size(); t++)
+                        {
+                            Map<String, Object> left = expected.get(t);
+                            Map<String, Object> right = results.get(t);
+
+                            for (String key : right.keySet())
+                            {
+                                TestCase.assertTrue("java " + t + " - " + key, Arrays.areEqual(Hex.decode(left.get(key).toString()), (byte[])right.get(key)));
+                            }
+                        }
+                    }
+
+                }
+                else
+                {
+
+                    boolean encryption = "encrypt".equals(reqGroup.get("direction"));
+                    KeyParameter params = new KeyParameter(Hex.decode(reqTest.get("key").toString()));
+                    byte[] msg = Hex.decode((reqTest.containsKey("pt") ? reqTest.get("pt") : reqTest.get("ct")).toString());
+                    byte[] expected = Hex.decode((encryption ? rspTest.get("ct") : rspTest.get("pt")).toString());
+
+                    nativeEngine.init(encryption, params);
+                    javaEngine.init(encryption, params);
+
+                    byte[] nativeResult = new byte[expected.length];
+                    byte[] javaResult = new byte[expected.length];
+
+                    int nrl = nativeEngine.processBlocks(msg, 0, msg.length / nativeEngine.getBlockSize(), nativeResult, 0);
+                    int jrl = javaEngine.processBlocks(msg, 0, msg.length / javaEngine.getBlockSize(), javaResult, 0);
+
+                    TestCase.assertEquals("native output len matches java output len", nrl, jrl);
+                    TestCase.assertTrue("native matches expected", Arrays.areEqual(nativeResult, expected));
+                    TestCase.assertTrue("java matches expected", Arrays.areEqual(javaResult, expected));
+                }
+            }
+
+
+        }
+    }
+
+
     @Test
     public void testGCM()
         throws Exception

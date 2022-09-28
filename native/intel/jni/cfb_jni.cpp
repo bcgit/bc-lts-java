@@ -1,4 +1,4 @@
-#include "org_bouncycastle_crypto_modes_AESNativeCFB.h"
+#include "org_bouncycastle_crypto_engines_AESNativeCFB.h"
 
 #include "../cfb/cfb.h"
 #include "../cfb/AesCFB.h"
@@ -15,22 +15,22 @@
 
 
 /*
- * Class:     org_bouncycastle_crypto_modes_AESNativeCFB
+ * Class:     org_bouncycastle_crypto_engines_AESNativeCFB
  * Method:    processByte
  * Signature: (JB)B
  */
-JNIEXPORT jbyte JNICALL Java_org_bouncycastle_crypto_modes_AESNativeCFB_processByte
+JNIEXPORT jbyte JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_processByte
         (JNIEnv *env, jclass, jlong ref, jbyte in) {
     auto instance = static_cast<intel::cfb::CFB *>((void *) ref);
     return instance->processByte(in);
 }
 
 /*
- * Class:     org_bouncycastle_crypto_modes_AESNativeCFB
+ * Class:     org_bouncycastle_crypto_engines_AESNativeCFB
  * Method:    processBytes
  * Signature: (J[BII[BI)I
  */
-JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_modes_AESNativeCFB_processBytes
+JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_processBytes
         (JNIEnv *env, jclass, jlong ref, jbyteArray in_, jint inOff, jint len, jbyteArray out_, jint outOff) {
     auto instance = static_cast<intel::cfb::CFB *>((void *) ref);
 
@@ -50,7 +50,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_modes_AESNativeCFB_processBy
  * Method:    makeNative
  * Signature: (IZ)J
  */
-JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_modes_AESNativeCFB_makeNative
+JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_makeNative
         (JNIEnv *env, jclass, jint keySize) {
 
     void *instance = nullptr;
@@ -83,7 +83,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_modes_AESNativeCFB_makeNati
  * Method:    init
  * Signature: (J[B[B)V
  */
-JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_modes_AESNativeCFB_init
+JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_init
         (JNIEnv *env, jobject, jlong ref, jboolean encryption, jbyteArray key_, jbyteArray iv_) {
 
     auto instance = static_cast<intel::cfb::CFB *>((void *) ref);
@@ -101,7 +101,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_modes_AESNativeCFB_init
  * Method:    dispose
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_modes_AESNativeCFB_dispose
+JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_dispose
         (JNIEnv *, jclass, jlong ref) {
 
     auto instance = static_cast<intel::cfb::CFB *>((void *) ref);
@@ -114,7 +114,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_modes_AESNativeCFB_dispose
  * Method:    reset
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_modes_AESNativeCFB_reset
+JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_reset
         (JNIEnv *, jclass, jlong ref) {
     auto instance = static_cast<intel::cfb::CFB *>((void *) ref);
     instance->reset();

@@ -1,4 +1,4 @@
-#include "org_bouncycastle_crypto_modes_AESNativeGCM.h"
+#include "org_bouncycastle_crypto_engines_AESNativeGCM.h"
 
 #include "../gcm/gcm.h"
 #include "../gcm/AesGcm.h"
@@ -20,7 +20,7 @@
  * Method:    reset
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_reset
+JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_reset
         (JNIEnv *, jobject, jlong ref) {
     auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
     instance->reset(false);
@@ -31,7 +31,7 @@ JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_reset
  * Method:    initNative
  * Signature: (JZ[B[B[BI)V
  */
-JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_initNative
+JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_initNative
         (JNIEnv *env, jclass, jlong ref, jboolean direction, jbyteArray key_, jbyteArray nonce_, jbyteArray aad_,
          jint macSizeInBits) {
 
@@ -56,7 +56,7 @@ JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_initNati
  * Method:    makeInstance
  * Signature: (I)J
  */
-JNIEXPORT jlong JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_makeInstance
+JNIEXPORT jlong JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_makeInstance
         (JNIEnv *, jclass, jint keySize) {
 
     // TODO add key size implementations.
@@ -70,7 +70,7 @@ JNIEXPORT jlong JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_makeIns
  * Method:    dispose
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_dispose
+JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_dispose
         (JNIEnv *, jclass, jlong ref) {
     auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
     delete instance;
@@ -81,7 +81,7 @@ JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_dispose
  * Method:    processAADByte
  * Signature: (JB)V
  */
-JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_processAADByte
+JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_processAADByte
         (JNIEnv *, jclass, jlong ref, jbyte b) {
     auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
     instance->processAADByte(b);
@@ -92,7 +92,7 @@ JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_processA
  * Method:    processAADBytes
  * Signature: (J[BII)V
  */
-JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_processAADBytes
+JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_processAADBytes
         (JNIEnv *env, jclass, jlong ref, jbyteArray aad_, jint offset, jint len) {
 
     jniutil::JavaByteArray aad(env, aad_);
@@ -105,7 +105,7 @@ JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_processA
  * Method:    processByte
  * Signature: (JB[BI)I
  */
-JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_processByte
+JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_processByte
         (JNIEnv *env, jclass, jlong ref, jbyte in, jbyteArray out_, jint outOff) {
 
     jniutil::JavaByteArray out(env, out_);
@@ -118,7 +118,7 @@ JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_processB
  * Method:    processBytes
  * Signature: (J[BII[BI)I
  */
-JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_processBytes
+JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_processBytes
         (JNIEnv *env, jclass, jlong ref, jbyteArray in_, jint inOff, jint len, jbyteArray out_, jint outOff) {
 
     jniutil::JavaByteArray out(env, out_);
@@ -134,7 +134,7 @@ JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_processB
  * Method:    doFinal
  * Signature: (J[BI)I
  */
-JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_doFinal
+JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_doFinal
         (JNIEnv *env, jclass, jlong ref, jbyteArray out_, jint outOff) {
 
     jniutil::JavaByteArray out(env, out_);
@@ -162,7 +162,7 @@ JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_doFinal
  * Method:    getUpdateOutputSize
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_getUpdateOutputSize
+JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_getUpdateOutputSize
         (JNIEnv *, jclass, jlong ref, jint len) {
     auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
     return (jint) instance->getUpdateOutputSize(len);
@@ -173,7 +173,7 @@ JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_getUpdat
  * Method:    getOutputSize
  * Signature: (JI)I
  */
-JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_getOutputSize
+JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_getOutputSize
         (JNIEnv *, jclass, jlong ref, jint len) {
     auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
     return (jint) instance->getOutputSize(len);
@@ -184,7 +184,7 @@ JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_getOutpu
  * Method:    getMac
  * Signature: (J)[B
  */
-JNIEXPORT jbyteArray JNICALL  Java_org_bouncycastle_crypto_modes_AESNativeGCM_getMac
+JNIEXPORT jbyteArray JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_getMac
         (JNIEnv *env, jclass, jlong ref) {
 
     auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
