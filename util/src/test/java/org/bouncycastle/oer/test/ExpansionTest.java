@@ -312,7 +312,7 @@ public class ExpansionTest
 
             try
             {
-                Constructor lac = upperLevelClass.getConstructor(java.util.List.class);
+                Constructor lac = upperLevelClass.getConstructor(List.class);
                 ArrayList ar = new ArrayList();
                 ar.add(create(listElementType, element.getChildren().get(0)));
                 Object seqOf = lac.newInstance(ar);

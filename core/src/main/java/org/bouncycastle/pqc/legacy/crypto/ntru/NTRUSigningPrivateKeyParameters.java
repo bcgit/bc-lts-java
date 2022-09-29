@@ -16,7 +16,7 @@ import org.bouncycastle.pqc.legacy.math.ntru.polynomial.ProductFormPolynomial;
 import org.bouncycastle.pqc.legacy.math.ntru.polynomial.SparseTernaryPolynomial;
 
 /**
- * A NtruSign private key comprises one or more {@link NTRUSigningPrivateKeyParameters.Basis} of three polynomials each,
+ * A NtruSign private key comprises one or more {@link Basis} of three polynomials each,
  * except the zeroth basis for which <code>h</code> is undefined.
  */
 public class NTRUSigningPrivateKeyParameters

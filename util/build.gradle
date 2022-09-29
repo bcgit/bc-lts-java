@@ -1,5 +1,6 @@
 dependencies {
   implementation project(':core')
+  testImplementation project(':core' )
 
   testImplementation group: 'junit', name: 'junit', version: '4.11'
 }

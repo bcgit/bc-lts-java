@@ -45,7 +45,6 @@ public class Grain128Test
         grain.init(true, params);
 
         grain.processBytes(in, 0, in.length, out, 0);
-
         if (!areEqual(out, Hex.decode(keyStream1)))
         {
             mismatch("Keystream 1", keyStream1, out);

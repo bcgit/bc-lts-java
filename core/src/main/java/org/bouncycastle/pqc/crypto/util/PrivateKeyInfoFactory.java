@@ -3,6 +3,7 @@ package org.bouncycastle.pqc.crypto.util;
 import java.io.IOException;
 
 import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.DEROctetString;
@@ -26,6 +27,7 @@ import org.bouncycastle.pqc.crypto.crystals.dilithium.DilithiumPrivateKeyParamet
 import org.bouncycastle.pqc.crypto.crystals.kyber.KyberPrivateKeyParameters;
 import org.bouncycastle.pqc.crypto.falcon.FalconPrivateKeyParameters;
 import org.bouncycastle.pqc.crypto.frodo.FrodoPrivateKeyParameters;
+import org.bouncycastle.pqc.crypto.hqc.HQCPrivateKeyParameters;
 import org.bouncycastle.pqc.crypto.lms.Composer;
 import org.bouncycastle.pqc.crypto.lms.HSSPrivateKeyParameters;
 import org.bouncycastle.pqc.crypto.lms.LMSPrivateKeyParameters;
@@ -62,7 +64,7 @@ public class PrivateKeyInfoFactory
      *
      * @param privateKey the key to be encoded into the info object.
      * @return the appropriate PrivateKeyInfo
-     * @throws java.io.IOException on an error encoding the key
+     * @throws IOException on an error encoding the key
      */
     public static PrivateKeyInfo createPrivateKeyInfo(AsymmetricKeyParameter privateKey) throws IOException
     {
@@ -75,7 +77,7 @@ public class PrivateKeyInfoFactory
      * @param privateKey the key to be encoded into the info object.
      * @param attributes the set of attributes to be included.
      * @return the appropriate PrivateKeyInfo
-     * @throws java.io.IOException on an error encoding the key
+     * @throws IOException on an error encoding the key
      */
     public static PrivateKeyInfo createPrivateKeyInfo(AsymmetricKeyParameter privateKey, ASN1Set attributes) throws IOException
     {
@@ -235,21 +237,35 @@ public class PrivateKeyInfoFactory
         {
             FalconPrivateKeyParameters params = (FalconPrivateKeyParameters)privateKey;
 
-            byte[] encoding = params.getEncoded();
+            ASN1EncodableVector v = new ASN1EncodableVector();
+
+            v.add(new ASN1Integer(1));
+            v.add(new DEROctetString(params.getSpolyf()));
+            v.add(new DEROctetString(params.getG()));
+            v.add(new DEROctetString(params.getSpolyF()));
 
             AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(Utils.falconOidLookup(params.getParameters()));
 
-            return new PrivateKeyInfo(algorithmIdentifier, new DEROctetString(encoding), attributes);
+            return new PrivateKeyInfo(algorithmIdentifier, new DERSequence(v), attributes, params.getPublicKey());
         }
         else if (privateKey instanceof KyberPrivateKeyParameters)
         {
             KyberPrivateKeyParameters params = (KyberPrivateKeyParameters)privateKey;
+            
+            ASN1EncodableVector v = new ASN1EncodableVector();
 
-            byte[] encoding = params.getEncoded();
+            v.add(new ASN1Integer(0));
+            v.add(new DEROctetString(params.getS()));
+            v.add(new DEROctetString(params.getHPK()));
+            v.add(new DEROctetString(params.getNonce()));
 
             AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(Utils.kyberOidLookup(params.getParameters()));
 
-            return new PrivateKeyInfo(algorithmIdentifier, new DEROctetString(encoding), attributes);
+            ASN1EncodableVector vPub = new ASN1EncodableVector();
+            vPub.add(new DEROctetString(params.getT()));
+            vPub.add(new DEROctetString(params.getRho()));
+
+            return new PrivateKeyInfo(algorithmIdentifier, new DERSequence(v), attributes, new DERSequence(vPub).getEncoded());
         }
         else if (privateKey instanceof NTRULPRimePrivateKeyParameters)
         {
@@ -288,6 +304,7 @@ public class PrivateKeyInfoFactory
 
             ASN1EncodableVector v = new ASN1EncodableVector();
 
+            v.add(new ASN1Integer(0));
             v.add(new DERBitString(params.getRho()));
             v.add(new DERBitString(params.getK()));
             v.add(new DERBitString(params.getTr()));
@@ -297,13 +314,24 @@ public class PrivateKeyInfoFactory
 
             AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(Utils.dilithiumOidLookup(params.getParameters()));
 
-            return new PrivateKeyInfo(algorithmIdentifier, new DERSequence(v), attributes);
+            ASN1EncodableVector vPub = new ASN1EncodableVector();
+            vPub.add(new DEROctetString(params.getRho()));
+            vPub.add(new DEROctetString(params.getT1()));
+
+            return new PrivateKeyInfo(algorithmIdentifier, new DERSequence(v), attributes, new DERSequence(vPub).getEncoded());
         }
         else if (privateKey instanceof BIKEPrivateKeyParameters)
         {
             BIKEPrivateKeyParameters params = (BIKEPrivateKeyParameters)privateKey;
             AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(Utils.bikeOidLookup(params.getParameters()));
             byte[] encoding = params.getEncoded();
+            return new PrivateKeyInfo(algorithmIdentifier, new DEROctetString(encoding), attributes);
+        }
+        else if (privateKey instanceof HQCPrivateKeyParameters)
+        {
+            HQCPrivateKeyParameters params = (HQCPrivateKeyParameters)privateKey;
+            AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(Utils.hqcOidLookup(params.getParameters()));
+            byte[] encoding = params.getPrivateKey();
             return new PrivateKeyInfo(algorithmIdentifier, new DEROctetString(encoding), attributes);
         }
         else

@@ -111,7 +111,7 @@ public class GMSSPrivateKeyParameters
      * @param nextRoot         the roots of the next subtree
      * @param currentRootSig   array of signatures of the roots of the current subtrees
      * @param gmssParameterset the GMSS Parameterset
-     * @see org.bouncycastle.pqc.legacy.crypto.gmss.GMSSKeyPairGenerator
+     * @see GMSSKeyPairGenerator
      */
 
     public GMSSPrivateKeyParameters(byte[][] currentSeed, byte[][] nextNextSeed,

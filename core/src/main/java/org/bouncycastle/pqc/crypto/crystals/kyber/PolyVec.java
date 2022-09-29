@@ -1,6 +1,6 @@
 package org.bouncycastle.pqc.crypto.crystals.kyber;
 
-import java.util.Arrays;
+import org.bouncycastle.util.Arrays;
 
 class PolyVec
 {
@@ -53,21 +53,8 @@ class PolyVec
     public byte[] compressPolyVec()
     {
         int i, j, k;
-        // System.out.print("bp before sub q = [");
-        // for (i = 0; i < kyberK; i++) {
-        //     Helper.printShortArray(this.getVectorIndex(i).getCoeffs());
-        //     System.out.print("], \n");
-        // }
-        // System.out.println("]"); 
 
         this.conditionalSubQ();
-
-        // System.out.print("bp sub q = [");
-        // for (i = 0; i < kyberK; i++) {
-        //     Helper.printShortArray(this.getVectorIndex(i).getCoeffs());
-        //     System.out.print("], \n");
-        // }
-        // System.out.println("]"); 
         short[] t;
         byte[] r = new byte[engine.getKyberPolyVecCompressedBytes()];
         int count = 0;
@@ -251,11 +238,17 @@ class PolyVec
 
     public String toString()
     {
-        String[] out = new String[engine.getKyberK()];
+        StringBuffer out = new StringBuffer();
+        out.append("[");
         for (int i = 0; i < kyberK; i++)
         {
-            out[i] = vec[i].toString();
+            out.append(vec[i].toString());
+            if (i != kyberK - 1)
+            {
+                out.append(", ");
+            }
         }
-        return Arrays.toString(out);
+        out.append("]");
+        return out.toString();
     }
 }

@@ -159,7 +159,7 @@ public class NTRUSigningKeyGenerationParameters
      * Reads a parameter set from an input stream.
      *
      * @param is an input stream
-     * @throws java.io.IOException
+     * @throws IOException
      */
     public NTRUSigningKeyGenerationParameters(InputStream is)
         throws IOException
@@ -199,7 +199,7 @@ public class NTRUSigningKeyGenerationParameters
      * Writes the parameter set to an output stream
      *
      * @param os an output stream
-     * @throws java.io.IOException
+     * @throws IOException
      */
     public void writeTo(OutputStream os)
         throws IOException

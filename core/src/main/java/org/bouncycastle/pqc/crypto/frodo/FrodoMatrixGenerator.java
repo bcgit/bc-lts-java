@@ -61,7 +61,7 @@ abstract class FrodoMatrixGenerator
         public Aes128MatrixGenerator(int n, int q)
         {
             super(n, q);
-            cipher = new BufferedBlockCipher(AESEngine.newInstance());
+            cipher = new BufferedBlockCipher(new AESEngine());
 
         }
 

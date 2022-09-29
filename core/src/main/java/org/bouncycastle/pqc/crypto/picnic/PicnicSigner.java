@@ -1,8 +1,8 @@
 package org.bouncycastle.pqc.crypto.picnic;
 
-import org.bouncycastle.util.Arrays;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.pqc.crypto.MessageSigner;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
 
 public class PicnicSigner

@@ -31,9 +31,9 @@ import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.operator.PGPDataDecryptor;
 import org.bouncycastle.openpgp.operator.PGPDigestCalculator;
-
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.BigIntegers;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Pack;
 import org.bouncycastle.util.io.Streams;
 
@@ -138,7 +138,7 @@ class BcUtil
                 }
                 catch (IOException e)
                 {
-                    throw new IllegalStateException("unable to open stream: " + e.getMessage(), e);
+                    throw Exceptions.illegalStateException("unable to open stream: " + e.getMessage(), e);
                 }
             }
 
@@ -167,11 +167,11 @@ class BcUtil
         switch (aeadAlgorithm)
         {
         case AEADAlgorithmTags.EAX:
-            return new EAXBlockCipher(AESEngine.newInstance());
+            return new EAXBlockCipher(new AESEngine());
         case AEADAlgorithmTags.OCB:
-            return new OCBBlockCipher(AESEngine.newInstance(), AESEngine.newInstance());
+            return new OCBBlockCipher(new AESEngine(), new AESEngine());
         case AEADAlgorithmTags.GCM:
-            return GCMBlockCipher.newInstance(AESEngine.newInstance());
+            return new GCMBlockCipher(new AESEngine());
         default:
             throw new PGPException("unrecognised AEAD algorithm: " + aeadAlgorithm);
         }
@@ -480,7 +480,7 @@ class BcUtil
             {
                 c.init(true, new AEADParameters(secretKey, 128, getNonce(iv, chunkIndex)));  // always full tag.
 
-                c.processAADBytes(adata, 0, adata.length);
+                c.processAADBytes(adata, 0,adata.length);
 
                 int len = c.processBytes(data, 0, dataOff, data, 0);
 
@@ -492,7 +492,6 @@ class BcUtil
             }
             catch (InvalidCipherTextException e)
             {
-                e.printStackTrace();
                 throw new IOException("exception processing chunk " + chunkIndex + ": " + e.getMessage());
             }
 

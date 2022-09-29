@@ -6,7 +6,7 @@ import org.bouncycastle.util.Arrays;
  * This class provides a specification for the GMSS parameters that are used by
  * the GMSSKeyPairGenerator and GMSSSignature classes.
  *
- * @see org.bouncycastle.pqc.legacy.crypto.gmss.GMSSKeyPairGenerator
+ * @see GMSSKeyPairGenerator
  */
 public class GMSSParameters
 {

@@ -3,7 +3,6 @@ package org.bouncycastle.pqc.crypto.crystals.dilithium;
 import java.security.SecureRandom;
 
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
 import org.bouncycastle.pqc.crypto.MessageSigner;
 
@@ -31,7 +30,7 @@ public class DilithiumSigner
             else
             {
                 privKey = (DilithiumPrivateKeyParameters)param;
-                random = CryptoServicesRegistrar.getSecureRandom();
+                random = null;
             }
         }
         else
@@ -44,14 +43,13 @@ public class DilithiumSigner
     {
         DilithiumEngine engine = privKey.getParameters().getEngine(random);
 
-        // TODO: finish unpacking secret key
-        return engine.sign(message, message.length, privKey.rho, privKey.k, privKey.tr, privKey.getPrivateKey());
+        return engine.sign(message, message.length, privKey.rho, privKey.k, privKey.tr, privKey.t0, privKey.s1, privKey.s2);
     }
 
     public boolean verifySignature(byte[] message, byte[] signature)
     {
         DilithiumEngine engine = pubKey.getParameters().getEngine(random);
 
-        return engine.signOpen(message, signature, signature.length, pubKey.getPublicKey());
+        return engine.signOpen(message, signature, signature.length, pubKey.rho, pubKey.t1);
     }
 }

@@ -31,7 +31,6 @@ public class AllTests
     static class BCTestSetup
         extends TestSetup
     {
-
         public BCTestSetup(Test test)
         {
             super(test);

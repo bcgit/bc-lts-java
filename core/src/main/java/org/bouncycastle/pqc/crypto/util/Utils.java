@@ -21,6 +21,7 @@ import org.bouncycastle.pqc.crypto.crystals.dilithium.DilithiumParameters;
 import org.bouncycastle.pqc.crypto.crystals.kyber.KyberParameters;
 import org.bouncycastle.pqc.crypto.falcon.FalconParameters;
 import org.bouncycastle.pqc.crypto.frodo.FrodoParameters;
+import org.bouncycastle.pqc.crypto.hqc.HQCParameters;
 import org.bouncycastle.pqc.crypto.ntru.NTRUParameters;
 import org.bouncycastle.pqc.crypto.ntruprime.NTRULPRimeParameters;
 import org.bouncycastle.pqc.crypto.ntruprime.SNTRUPrimeParameters;
@@ -86,6 +87,9 @@ class Utils
 
     static final Map bikeOids = new HashMap();
     static final Map bikeParams = new HashMap();
+
+    static final Map hqcOids = new HashMap();
+    static final Map hqcParams = new HashMap();
 
     static
     {
@@ -214,11 +218,17 @@ class Utils
         kyberOids.put(KyberParameters.kyber512, BCObjectIdentifiers.kyber512);
         kyberOids.put(KyberParameters.kyber768, BCObjectIdentifiers.kyber768);
         kyberOids.put(KyberParameters.kyber1024, BCObjectIdentifiers.kyber1024);
+        kyberOids.put(KyberParameters.kyber512_aes, BCObjectIdentifiers.kyber512_aes);
+        kyberOids.put(KyberParameters.kyber768_aes, BCObjectIdentifiers.kyber768_aes);
+        kyberOids.put(KyberParameters.kyber1024_aes, BCObjectIdentifiers.kyber1024_aes);
 
         kyberParams.put(BCObjectIdentifiers.kyber512, KyberParameters.kyber512);
         kyberParams.put(BCObjectIdentifiers.kyber768, KyberParameters.kyber768);
         kyberParams.put(BCObjectIdentifiers.kyber1024, KyberParameters.kyber1024);
-        
+        kyberParams.put(BCObjectIdentifiers.kyber512_aes, KyberParameters.kyber512_aes);
+        kyberParams.put(BCObjectIdentifiers.kyber768_aes, KyberParameters.kyber768_aes);
+        kyberParams.put(BCObjectIdentifiers.kyber1024_aes, KyberParameters.kyber1024_aes);
+
         ntruprimeOids.put(NTRULPRimeParameters.ntrulpr653, BCObjectIdentifiers.ntrulpr653);
         ntruprimeOids.put(NTRULPRimeParameters.ntrulpr761, BCObjectIdentifiers.ntrulpr761);
         ntruprimeOids.put(NTRULPRimeParameters.ntrulpr857, BCObjectIdentifiers.ntrulpr857);
@@ -246,14 +256,20 @@ class Utils
         sntruprimeParams.put(BCObjectIdentifiers.sntrup953, SNTRUPrimeParameters.sntrup953);
         sntruprimeParams.put(BCObjectIdentifiers.sntrup1013, SNTRUPrimeParameters.sntrup1013);
         sntruprimeParams.put(BCObjectIdentifiers.sntrup1277, SNTRUPrimeParameters.sntrup1277);
-         
+
         dilithiumOids.put(DilithiumParameters.dilithium2, BCObjectIdentifiers.dilithium2);
         dilithiumOids.put(DilithiumParameters.dilithium3, BCObjectIdentifiers.dilithium3);
         dilithiumOids.put(DilithiumParameters.dilithium5, BCObjectIdentifiers.dilithium5);
+        dilithiumOids.put(DilithiumParameters.dilithium2_aes, BCObjectIdentifiers.dilithium2_aes);
+        dilithiumOids.put(DilithiumParameters.dilithium3_aes, BCObjectIdentifiers.dilithium3_aes);
+        dilithiumOids.put(DilithiumParameters.dilithium5_aes, BCObjectIdentifiers.dilithium5_aes);
 
         dilithiumParams.put(BCObjectIdentifiers.dilithium2, DilithiumParameters.dilithium2);
         dilithiumParams.put(BCObjectIdentifiers.dilithium3, DilithiumParameters.dilithium3);
         dilithiumParams.put(BCObjectIdentifiers.dilithium5, DilithiumParameters.dilithium5);
+        dilithiumParams.put(BCObjectIdentifiers.dilithium2_aes, DilithiumParameters.dilithium2_aes);
+        dilithiumParams.put(BCObjectIdentifiers.dilithium3_aes, DilithiumParameters.dilithium3_aes);
+        dilithiumParams.put(BCObjectIdentifiers.dilithium5_aes, DilithiumParameters.dilithium5_aes);
 
         bikeParams.put(BCObjectIdentifiers.bike128, BIKEParameters.bike128);
         bikeParams.put(BCObjectIdentifiers.bike192, BIKEParameters.bike192);
@@ -262,6 +278,14 @@ class Utils
         bikeOids.put(BIKEParameters.bike128, BCObjectIdentifiers.bike128);
         bikeOids.put(BIKEParameters.bike192, BCObjectIdentifiers.bike192);
         bikeOids.put(BIKEParameters.bike256, BCObjectIdentifiers.bike256);
+
+        hqcParams.put(BCObjectIdentifiers.hqc128, HQCParameters.hqc128);
+        hqcParams.put(BCObjectIdentifiers.hqc192, HQCParameters.hqc192);
+        hqcParams.put(BCObjectIdentifiers.hqc256, HQCParameters.hqc256);
+
+        hqcOids.put(HQCParameters.hqc128, BCObjectIdentifiers.hqc128);
+        hqcOids.put(HQCParameters.hqc192, BCObjectIdentifiers.hqc192);
+        hqcOids.put(HQCParameters.hqc256, BCObjectIdentifiers.hqc256);
     }
 
     static int qTeslaLookupSecurityCategory(AlgorithmIdentifier algorithm)
@@ -418,7 +442,12 @@ class Utils
     {
         int pId = SPHINCSPlusParameters.getID(params);
 
-        if ((pId & 0x020000) == 0x020000)
+        if ((pId & 0x030000) == 0x030000)
+        {
+            return BCObjectIdentifiers.sphincsPlus_haraka;
+        }
+
+        if ((pId & 0x030000) == 0x020000)
         {
             return BCObjectIdentifiers.sphincsPlus_shake_256;
         }
@@ -510,7 +539,7 @@ class Utils
     {
         return (KyberParameters)kyberParams.get(oid);
     }
-    
+
     static ASN1ObjectIdentifier ntrulprimeOidLookup(NTRULPRimeParameters params)
     {
         return (ASN1ObjectIdentifier)ntruprimeOids.get(params);
@@ -549,5 +578,15 @@ class Utils
     static BIKEParameters bikeParamsLookup(ASN1ObjectIdentifier oid)
     {
         return (BIKEParameters)bikeParams.get(oid);
+    }
+    
+    static ASN1ObjectIdentifier hqcOidLookup(HQCParameters params)
+    {
+        return (ASN1ObjectIdentifier)hqcOids.get(params);
+    }
+
+    static HQCParameters hqcParamsLookup(ASN1ObjectIdentifier oid)
+    {
+        return (HQCParameters)hqcParams.get(oid);
     }
 }

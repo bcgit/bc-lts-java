@@ -1,8 +1,8 @@
 package org.bouncycastle.pqc.jcajce.interfaces;
 
-import org.bouncycastle.pqc.jcajce.spec.SABERParameterSpec;
-
 import java.security.Key;
+
+import org.bouncycastle.pqc.jcajce.spec.SABERParameterSpec;
 
 public interface SABERKey
     extends Key

@@ -262,7 +262,7 @@ public class BouncyCastleJsseProvider
         put(key, value);
     }
 
-    public synchronized final Provider.Service getService(String type, String algorithm)
+    public synchronized final Service getService(String type, String algorithm)
     {
         String upperCaseAlgName = Strings.toUpperCase(algorithm);
 
@@ -314,12 +314,12 @@ public class BouncyCastleJsseProvider
         return service;
     }
 
-    public synchronized final Set<Provider.Service> getServices()
+    public synchronized final Set<Service> getServices()
     {
-        Set<Provider.Service> serviceSet = super.getServices();
-        Set<Provider.Service> bcServiceSet = new HashSet<Provider.Service>();
+        Set<Service> serviceSet = super.getServices();
+        Set<Service> bcServiceSet = new HashSet<Service>();
 
-        for (Provider.Service service: serviceSet)
+        for (Service service: serviceSet)
         {
             bcServiceSet.add(getService(service.getType(), service.getAlgorithm()));
         }
@@ -353,7 +353,7 @@ public class BouncyCastleJsseProvider
     }
 
     private static class BcJsseService
-        extends Provider.Service
+        extends Service
     {
         private final EngineCreator creator;
 

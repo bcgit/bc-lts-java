@@ -1,21 +1,13 @@
 package org.bouncycastle.pqc.crypto.crystals.kyber;
 
 import java.security.SecureRandom;
-import java.util.Arrays;
 
-import org.bouncycastle.crypto.digests.SHA3Digest;
-import org.bouncycastle.crypto.digests.SHAKEDigest;
-
+import org.bouncycastle.util.Arrays;
 
 class KyberEngine
 {
-
     private SecureRandom random;
     private KyberIndCpa indCpa;
-    private SHA3Digest sha3Digest256 = new SHA3Digest(256);
-    private SHA3Digest sha3Digest512 = new SHA3Digest(512);
-    private SHAKEDigest shakeDigest = new SHAKEDigest(256);
-
 
     // constant parameters
     public final static int KyberN = 256;
@@ -52,7 +44,12 @@ class KyberEngine
     private final int CryptoCipherTextBytes;
 
     private final int sessionKeyLength;
+    private final Symmetric symmetric;
 
+    public Symmetric getSymmetric()
+    {
+        return symmetric;
+    }
     public static int getKyberEta2()
     {
         return KyberEta2;
@@ -139,7 +136,7 @@ class KyberEngine
         return KyberEta1;
     }
 
-    public KyberEngine(int k)
+    public KyberEngine(int k, boolean usingAes)
     {
         this.KyberK = k;
         switch (k)
@@ -180,15 +177,16 @@ class KyberEngine
         this.CryptoPublicKeyBytes = KyberPublicKeyBytes;
         this.CryptoCipherTextBytes = KyberCipherTextBytes;
 
+        if(usingAes)
+        {
+            symmetric = new Symmetric.AesSymmetric();
+        }
+        else
+        {
+            symmetric = new Symmetric.ShakeSymmetric();
+        }
+
         this.indCpa = new KyberIndCpa(this);
-
-
-        // Testing Random
-        // byte[] b = new byte[48];
-
-        // random.nextBytes(b);
-
-        // Helper.printByteArray(b);
     }
 
     public void init(SecureRandom random)
@@ -200,25 +198,20 @@ class KyberEngine
     {
         byte[][] indCpaKeyPair = indCpa.generateKeyPair();
 
-        byte[] secretKey = new byte[KyberSecretKeyBytes];
+        byte[] s = new byte[KyberIndCpaSecretKeyBytes];
 
-        System.arraycopy(indCpaKeyPair[1], 0, secretKey, 0, KyberIndCpaSecretKeyBytes);
-        System.arraycopy(indCpaKeyPair[0], 0, secretKey, KyberIndCpaSecretKeyBytes, KyberIndCpaPublicKeyBytes);
+        System.arraycopy(indCpaKeyPair[1], 0, s, 0, KyberIndCpaSecretKeyBytes);
 
         byte[] hashedPublicKey = new byte[32];
 
-        sha3Digest256.update(indCpaKeyPair[0], 0, KyberIndCpaPublicKeyBytes);
-        sha3Digest256.doFinal(hashedPublicKey, 0);
-
-        System.arraycopy(hashedPublicKey, 0, secretKey, KyberSecretKeyBytes - 2 * KyberSymBytes, KyberSymBytes);
+        symmetric.hash_h(hashedPublicKey, indCpaKeyPair[0], 0);
 
         byte[] z = new byte[KyberSymBytes];
         random.nextBytes(z);
-        System.arraycopy(z, 0, secretKey, KyberSecretKeyBytes - KyberSymBytes, KyberSymBytes);
 
         byte[] outputPublicKey = new byte[KyberIndCpaPublicKeyBytes];
         System.arraycopy(indCpaKeyPair[0], 0, outputPublicKey, 0, KyberIndCpaPublicKeyBytes);
-        return new byte[][]{outputPublicKey, secretKey};
+        return new byte[][]{ Arrays.copyOfRange(outputPublicKey, 0, outputPublicKey.length - 32), Arrays.copyOfRange(outputPublicKey, outputPublicKey.length - 32, outputPublicKey.length), s, hashedPublicKey, z };
     }
 
     public byte[][] kemEncrypt(byte[] publicKeyInput)
@@ -233,35 +226,24 @@ class KyberEngine
         random.nextBytes(randBytes);
 
         // SHA3-256 Random Bytes
-        sha3Digest256.update(randBytes, 0, KyberSymBytes);
-        sha3Digest256.doFinal(randBytes, 0);
+        symmetric.hash_h(randBytes, randBytes, 0);
         System.arraycopy(randBytes, 0, buf, 0, KyberSymBytes);
 
         // SHA3-256 Public Key
-        sha3Digest256.update(publicKeyInput, 0, KyberIndCpaPublicKeyBytes);
-        sha3Digest256.doFinal(buf, KyberSymBytes);
+        symmetric.hash_h(buf, publicKeyInput, KyberSymBytes);
 
         // SHA3-512( SHA3-256(RandBytes) || SHA3-256(PublicKey) )
 
-        sha3Digest512.update(buf, 0, 2 * KyberSymBytes);
-        sha3Digest512.doFinal(kr, 0);
-
-        // System.out.println("buffer len = " + buf.length);
+        symmetric.hash_g(kr, buf);
 
         // IndCpa Encryption
         outputCipherText = indCpa.encrypt(Arrays.copyOfRange(buf, 0, KyberSymBytes), publicKeyInput, Arrays.copyOfRange(kr, 32, kr.length));
 
-        // System.out.printf("cipher text = %d [", outputCipherText.length);
-        // Helper.printByteArray(outputCipherText);
-        // System.out.print("]\n");
-
-        sha3Digest256.update(outputCipherText, 0, CryptoCipherTextBytes);
-        sha3Digest256.doFinal(kr, KyberSymBytes);
+        symmetric.hash_h(kr, outputCipherText, KyberSymBytes);
 
         byte[] outputSharedSecret = new byte[sessionKeyLength];
 
-        shakeDigest.update(kr, 0, 2 * KyberSymBytes);
-        shakeDigest.doFinal(outputSharedSecret, 0, sessionKeyLength);
+        symmetric.kdf(outputSharedSecret, kr);
 
         byte[][] outBuf = new byte[2][];
         outBuf[0] = outputSharedSecret;
@@ -275,34 +257,25 @@ class KyberEngine
         byte[] buf = new byte[2 * KyberSymBytes],
             kr = new byte[2 * KyberSymBytes];
 
-        int i;
         byte[] publicKey = Arrays.copyOfRange(secretKey, KyberIndCpaSecretKeyBytes, secretKey.length);
 
         System.arraycopy(indCpa.decrypt(cipherText, secretKey), 0, buf, 0, KyberSymBytes);
 
-        // System.out.print("ct = ");
-        // Helper.printByteArray(Arrays.copyOfRange(cipherText, 0, KyberSymBytes));
-
         System.arraycopy(secretKey, KyberSecretKeyBytes - 2 * KyberSymBytes, buf, KyberSymBytes, KyberSymBytes);
 
-        sha3Digest512.update(buf, 0, 2 * KyberSymBytes);
-        sha3Digest512.doFinal(kr, 0);
+        symmetric.hash_g(kr, buf);
 
         byte[] cmp = indCpa.encrypt(Arrays.copyOfRange(buf, 0, KyberSymBytes), publicKey, Arrays.copyOfRange(kr, KyberSymBytes, kr.length));
 
-        boolean fail = !(Arrays.equals(cipherText, cmp));
+        boolean fail = !(Arrays.constantTimeAreEqual(cipherText, cmp));
 
-        // System.out.println("fail = " + fail);
-
-        sha3Digest256.update(cipherText, 0, KyberCipherTextBytes);
-        sha3Digest256.doFinal(kr, KyberSymBytes);
+        symmetric.hash_h(kr, cipherText, KyberSymBytes);
 
         cmov(kr, Arrays.copyOfRange(secretKey, KyberSecretKeyBytes - KyberSymBytes, KyberSecretKeyBytes), KyberSymBytes, fail);
 
         byte[] outputSharedSecret = new byte[sessionKeyLength];
 
-        shakeDigest.update(kr, 0, 2 * KyberSymBytes);
-        shakeDigest.doFinal(outputSharedSecret, 0, sessionKeyLength);
+        symmetric.kdf(outputSharedSecret, kr);
 
         return outputSharedSecret;
     }
@@ -323,5 +296,4 @@ class KyberEngine
     {
         this.random.nextBytes(buf);
     }
-
 }

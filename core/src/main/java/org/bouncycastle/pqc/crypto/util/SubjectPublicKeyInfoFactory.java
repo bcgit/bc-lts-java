@@ -2,6 +2,7 @@ package org.bouncycastle.pqc.crypto.util;
 
 import java.io.IOException;
 
+import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.isara.IsaraObjectIdentifiers;
@@ -23,6 +24,7 @@ import org.bouncycastle.pqc.crypto.crystals.dilithium.DilithiumPublicKeyParamete
 import org.bouncycastle.pqc.crypto.crystals.kyber.KyberPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.falcon.FalconPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.frodo.FrodoPublicKeyParameters;
+import org.bouncycastle.pqc.crypto.hqc.HQCPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.lms.Composer;
 import org.bouncycastle.pqc.crypto.lms.HSSPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.lms.LMSPublicKeyParameters;
@@ -55,7 +57,7 @@ public class SubjectPublicKeyInfoFactory
      *
      * @param publicKey the key to be encoded into the info object.
      * @return a SubjectPublicKeyInfo representing the key.
-     * @throws java.io.IOException on an error encoding the key
+     * @throws IOException on an error encoding the key
      */
     public static SubjectPublicKeyInfo createSubjectPublicKeyInfo(AsymmetricKeyParameter publicKey)
         throws IOException
@@ -186,8 +188,7 @@ public class SubjectPublicKeyInfoFactory
             byte[] encoding = params.getEncoded();
 
             AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(Utils.saberOidLookup(params.getParameters()));
-
-            // https://datatracker.ietf.org/doc/draft-uni-qsckeys/
+            
             return new SubjectPublicKeyInfo(algorithmIdentifier, new DERSequence(new DEROctetString(encoding)));
         }
         else if (publicKey instanceof PicnicPublicKeyParameters)
@@ -220,19 +221,20 @@ public class SubjectPublicKeyInfoFactory
         {
             FalconPublicKeyParameters params = (FalconPublicKeyParameters)publicKey;
 
-            byte[] encoding = params.getEncoded();
+            byte[] encoding = params.getH();
             AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(Utils.falconOidLookup(params.getParameters()));
 
-            return new SubjectPublicKeyInfo(algorithmIdentifier, new DEROctetString(encoding));
+            return new SubjectPublicKeyInfo(algorithmIdentifier, new DERSequence(new DEROctetString(encoding)));
         }
         else if (publicKey instanceof KyberPublicKeyParameters)
         {
             KyberPublicKeyParameters params = (KyberPublicKeyParameters)publicKey;
 
-            byte[] encoding = params.getEncoded();
             AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(Utils.kyberOidLookup(params.getParameters()));
-
-            return new SubjectPublicKeyInfo(algorithmIdentifier, new DEROctetString(encoding));
+            ASN1EncodableVector v = new ASN1EncodableVector();
+            v.add(new DEROctetString(params.getT()));
+            v.add(new DEROctetString(params.getRho()));
+            return new SubjectPublicKeyInfo(algorithmIdentifier, new DERSequence(v));
         }
         else if (publicKey instanceof NTRULPRimePublicKeyParameters)
         {
@@ -256,10 +258,11 @@ public class SubjectPublicKeyInfoFactory
         {
             DilithiumPublicKeyParameters params = (DilithiumPublicKeyParameters)publicKey;
 
-            byte[] encoding = params.getEncoded();
             AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(Utils.dilithiumOidLookup(params.getParameters()));
-
-            return new SubjectPublicKeyInfo(algorithmIdentifier, new DEROctetString(encoding));
+            ASN1EncodableVector v = new ASN1EncodableVector();
+            v.add(new DEROctetString(params.getRho()));
+            v.add(new DEROctetString(params.getT1()));
+            return new SubjectPublicKeyInfo(algorithmIdentifier, new DERSequence(v));
         }
         else if (publicKey instanceof BIKEPublicKeyParameters)
         {
@@ -268,6 +271,16 @@ public class SubjectPublicKeyInfoFactory
             byte[] encoding = params.getEncoded();
 
             AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(Utils.bikeOidLookup(params.getParameters()));
+
+            return new SubjectPublicKeyInfo(algorithmIdentifier, new DEROctetString(encoding));
+        }
+        else if (publicKey instanceof HQCPublicKeyParameters)
+        {
+            HQCPublicKeyParameters params = (HQCPublicKeyParameters) publicKey;
+
+            byte[] encoding = params.getEncoded();
+
+            AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(Utils.hqcOidLookup(params.getParameters()));
 
             return new SubjectPublicKeyInfo(algorithmIdentifier, new DEROctetString(encoding));
         }

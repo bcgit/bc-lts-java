@@ -49,7 +49,7 @@ public final class CryptoServicesRegistrar
     {
         public void check(CryptoServiceProperties service)
         {
-            // anything goes.
+             // anything goes.
         }
     };
 

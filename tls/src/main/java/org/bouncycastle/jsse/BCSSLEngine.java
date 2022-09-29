@@ -3,7 +3,7 @@ package org.bouncycastle.jsse;
 import javax.net.ssl.SSLEngine;
 
 /**
- * A BCJSSE-specific interface to expose extended functionality on {@link javax.net.ssl.SSLEngine}
+ * A BCJSSE-specific interface to expose extended functionality on {@link SSLEngine}
  * implementations.
  */
 public interface BCSSLEngine

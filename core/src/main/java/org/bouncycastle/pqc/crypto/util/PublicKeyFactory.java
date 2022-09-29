@@ -35,6 +35,8 @@ import org.bouncycastle.pqc.crypto.falcon.FalconParameters;
 import org.bouncycastle.pqc.crypto.falcon.FalconPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.frodo.FrodoParameters;
 import org.bouncycastle.pqc.crypto.frodo.FrodoPublicKeyParameters;
+import org.bouncycastle.pqc.crypto.hqc.HQCParameters;
+import org.bouncycastle.pqc.crypto.hqc.HQCPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.lms.HSSPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.lms.LMSPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.newhope.NHPublicKeyParameters;
@@ -87,6 +89,7 @@ public class PublicKeyFactory
         converters.put(BCObjectIdentifiers.sphincsPlus_shake_256, new SPHINCSPlusConverter());
         converters.put(BCObjectIdentifiers.sphincsPlus_sha_256, new SPHINCSPlusConverter());
         converters.put(BCObjectIdentifiers.sphincsPlus_sha_512, new SPHINCSPlusConverter());
+        converters.put(BCObjectIdentifiers.sphincsPlus_haraka, new SPHINCSPlusConverter());
         converters.put(BCObjectIdentifiers.mceliece348864_r3, new CMCEConverter());
         converters.put(BCObjectIdentifiers.mceliece348864f_r3, new CMCEConverter());
         converters.put(BCObjectIdentifiers.mceliece460896_r3, new CMCEConverter());
@@ -141,6 +144,9 @@ public class PublicKeyFactory
         converters.put(BCObjectIdentifiers.kyber512, new KyberConverter());
         converters.put(BCObjectIdentifiers.kyber768, new KyberConverter());
         converters.put(BCObjectIdentifiers.kyber1024, new KyberConverter());
+        converters.put(BCObjectIdentifiers.kyber512_aes, new KyberConverter());
+        converters.put(BCObjectIdentifiers.kyber768_aes, new KyberConverter());
+        converters.put(BCObjectIdentifiers.kyber1024_aes, new KyberConverter());
         converters.put(BCObjectIdentifiers.ntrulpr653, new NTRULPrimeConverter());
         converters.put(BCObjectIdentifiers.ntrulpr761, new NTRULPrimeConverter());
         converters.put(BCObjectIdentifiers.ntrulpr857, new NTRULPrimeConverter());
@@ -156,9 +162,15 @@ public class PublicKeyFactory
         converters.put(BCObjectIdentifiers.dilithium2, new DilithiumConverter());
         converters.put(BCObjectIdentifiers.dilithium3, new DilithiumConverter());
         converters.put(BCObjectIdentifiers.dilithium5, new DilithiumConverter());
+        converters.put(BCObjectIdentifiers.dilithium2_aes, new DilithiumConverter());
+        converters.put(BCObjectIdentifiers.dilithium3_aes, new DilithiumConverter());
+        converters.put(BCObjectIdentifiers.dilithium5_aes, new DilithiumConverter());
         converters.put(BCObjectIdentifiers.bike128, new BIKEConverter());
         converters.put(BCObjectIdentifiers.bike192, new BIKEConverter());
         converters.put(BCObjectIdentifiers.bike256, new BIKEConverter());
+        converters.put(BCObjectIdentifiers.hqc128, new HQCConverter());
+        converters.put(BCObjectIdentifiers.hqc192, new HQCConverter());
+        converters.put(BCObjectIdentifiers.hqc256, new HQCConverter());
     }
 
     /**
@@ -461,11 +473,26 @@ public class PublicKeyFactory
         AsymmetricKeyParameter getPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
             throws IOException
         {
-            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePublicKey()).getOctets();
-
             FalconParameters falconParams = Utils.falconParamsLookup(keyInfo.getAlgorithm().getAlgorithm());
 
-            return new FalconPublicKeyParameters(falconParams, keyEnc);
+            ASN1Primitive obj = keyInfo.parsePublicKey();
+            if (obj instanceof ASN1Sequence)
+            {
+                byte[] keyEnc = ASN1OctetString.getInstance(ASN1Sequence.getInstance(obj).getObjectAt(0)).getOctets();
+
+                return new FalconPublicKeyParameters(falconParams, keyEnc);
+            }
+            else
+            {
+                // header byte + h
+                byte[] keyEnc = ASN1OctetString.getInstance(obj).getOctets();
+
+                if (keyEnc[0] != (byte)(0x00 + falconParams.getLogN()))
+                {
+                    throw new IllegalArgumentException("byte[] enc of Falcon h value not tagged correctly");
+                }
+                return new FalconPublicKeyParameters(falconParams, Arrays.copyOfRange(keyEnc, 1, keyEnc.length));
+            }
         }
     }
 
@@ -475,11 +502,23 @@ public class PublicKeyFactory
         AsymmetricKeyParameter getPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
             throws IOException
         {
-            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePublicKey()).getOctets();
+            KyberParameters kyberParameters = Utils.kyberParamsLookup(keyInfo.getAlgorithm().getAlgorithm());
 
-            KyberParameters kyberParams = Utils.kyberParamsLookup(keyInfo.getAlgorithm().getAlgorithm());
+            ASN1Primitive obj = keyInfo.parsePublicKey();
+            if (obj instanceof ASN1Sequence)
+            {
+                ASN1Sequence keySeq = ASN1Sequence.getInstance(obj);
 
-            return new KyberPublicKeyParameters(kyberParams, keyEnc);
+                return new KyberPublicKeyParameters(kyberParameters,
+                    ASN1OctetString.getInstance(keySeq.getObjectAt(0)).getOctets(),
+                    ASN1OctetString.getInstance(keySeq.getObjectAt(1)).getOctets());
+            }
+            else
+            {
+                byte[] encKey = ASN1OctetString.getInstance(obj).getOctets();
+
+                return new KyberPublicKeyParameters(kyberParameters, encKey);
+            }
         }
     }
 
@@ -517,11 +556,23 @@ public class PublicKeyFactory
         AsymmetricKeyParameter getPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
             throws IOException
         {
-            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePublicKey()).getOctets();
-
             DilithiumParameters dilithiumParams = Utils.dilithiumParamsLookup(keyInfo.getAlgorithm().getAlgorithm());
 
-            return new DilithiumPublicKeyParameters(dilithiumParams, keyEnc);
+            ASN1Primitive obj = keyInfo.parsePublicKey();
+            if (obj instanceof ASN1Sequence)
+            {
+                ASN1Sequence keySeq = ASN1Sequence.getInstance(obj);
+
+                return new DilithiumPublicKeyParameters(dilithiumParams,
+                    ASN1OctetString.getInstance(keySeq.getObjectAt(0)).getOctets(),
+                    ASN1OctetString.getInstance(keySeq.getObjectAt(1)).getOctets());
+            }
+            else
+            {
+                byte[] encKey = ASN1OctetString.getInstance(obj).getOctets();
+
+                return new DilithiumPublicKeyParameters(dilithiumParams, encKey);
+            }
         }
     }
 
@@ -536,6 +587,20 @@ public class PublicKeyFactory
             BIKEParameters bikeParams = Utils.bikeParamsLookup(keyInfo.getAlgorithm().getAlgorithm());
 
             return new BIKEPublicKeyParameters(bikeParams, keyEnc);
+        }
+    }
+
+    private static class HQCConverter
+            extends SubjectPublicKeyInfoConverter
+    {
+        AsymmetricKeyParameter getPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+                throws IOException
+        {
+            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePublicKey()).getOctets();
+
+            HQCParameters hqcParams = Utils.hqcParamsLookup(keyInfo.getAlgorithm().getAlgorithm());
+
+            return new HQCPublicKeyParameters(hqcParams, keyEnc);
         }
     }
 }

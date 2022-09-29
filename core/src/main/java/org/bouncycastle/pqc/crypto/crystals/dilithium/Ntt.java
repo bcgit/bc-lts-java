@@ -1,6 +1,6 @@
 package org.bouncycastle.pqc.crypto.crystals.dilithium;
 
-import java.util.Arrays;
+import org.bouncycastle.util.Arrays;
 
 class Ntt
 {
@@ -59,7 +59,6 @@ class Ntt
                     r[j] = r[j] + t;
                 }
             }
-            // System.out.println();
         }
         return r;
     }

@@ -8,7 +8,6 @@ import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.Mac;
 import org.bouncycastle.crypto.OutputLengthException;
-import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.macs.CBCBlockCipherMac;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -465,7 +464,7 @@ public class CCMBlockCipher
         return getAssociatedTextLength() > 0;
     }
 
-    private class ExposedByteArrayOutputStream
+    private static class ExposedByteArrayOutputStream
         extends ByteArrayOutputStream
     {
         public ExposedByteArrayOutputStream()

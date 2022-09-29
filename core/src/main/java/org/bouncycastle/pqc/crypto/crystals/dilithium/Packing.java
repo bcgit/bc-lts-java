@@ -1,62 +1,56 @@
 package org.bouncycastle.pqc.crypto.crystals.dilithium;
 
-import java.util.Arrays;
+import org.bouncycastle.util.Arrays;
 
 class Packing
 {
 
-    static byte[] packPublicKey(byte[] rho, PolyVecK t1, DilithiumEngine engine)
+    static byte[] packPublicKey(PolyVecK t1, DilithiumEngine engine)
     {
-        byte[] out = new byte[engine.getCryptoPublicKeyBytes()];
-        System.arraycopy(rho, 0, out, 0, DilithiumEngine.SeedBytes);
+        byte[] out = new byte[engine.getCryptoPublicKeyBytes() - DilithiumEngine.SeedBytes];
 
         for (int i = 0; i < engine.getDilithiumK(); ++i)
         {
-            System.arraycopy(t1.getVectorIndex(i).polyt1Pack(), 0, out, DilithiumEngine.SeedBytes + i * DilithiumEngine.DilithiumPolyT1PackedBytes, DilithiumEngine.DilithiumPolyT1PackedBytes);
+            System.arraycopy(t1.getVectorIndex(i).polyt1Pack(), 0, out, i * DilithiumEngine.DilithiumPolyT1PackedBytes, DilithiumEngine.DilithiumPolyT1PackedBytes);
         }
         return out;
     }
 
-    static byte[] unpackPublicKey(PolyVecK t1, byte[] publicKey, DilithiumEngine engine)
+    static PolyVecK unpackPublicKey(PolyVecK t1, byte[] publicKey, DilithiumEngine engine)
     {
         int i;
 
         for (i = 0; i < engine.getDilithiumK(); ++i)
         {
-            t1.getVectorIndex(i).polyt1Unpack(Arrays.copyOfRange(publicKey, DilithiumEngine.SeedBytes + i * DilithiumEngine.DilithiumPolyT1PackedBytes, DilithiumEngine.SeedBytes + (i + 1) * DilithiumEngine.DilithiumPolyT1PackedBytes));
+            t1.getVectorIndex(i).polyt1Unpack(Arrays.copyOfRange(publicKey, i * DilithiumEngine.DilithiumPolyT1PackedBytes, DilithiumEngine.SeedBytes + (i + 1) * DilithiumEngine.DilithiumPolyT1PackedBytes));
         }
-        return Arrays.copyOfRange(publicKey, 0, DilithiumEngine.SeedBytes);
+        return t1;
     }
 
     static byte[][] packSecretKey(byte[] rho, byte[] tr, byte[] key, PolyVecK t0, PolyVecL s1, PolyVecK s2, DilithiumEngine engine)
     {
         byte[][] out = new byte[6][];
 
-        out[0] = new byte[DilithiumEngine.SeedBytes];
-        System.arraycopy(rho, 0, out[0], 0, DilithiumEngine.SeedBytes);
-
-        out[1] = new byte[DilithiumEngine.SeedBytes];
-        System.arraycopy(key, 0, out[1], 0, DilithiumEngine.SeedBytes);
-
-        out[2] = new byte[DilithiumEngine.SeedBytes];
-        System.arraycopy(tr, 0, out[2], 0, DilithiumEngine.SeedBytes);
+        out[0] = rho;
+        out[1] = key;
+        out[2] = tr;
 
         out[3] = new byte[engine.getDilithiumL() * engine.getDilithiumPolyEtaPackedBytes()];
         for (int i = 0; i < engine.getDilithiumL(); ++i)
         {
-            System.arraycopy(s1.getVectorIndex(i).polyEtaPack(), 0, out[3], i * engine.getDilithiumPolyEtaPackedBytes(), engine.getDilithiumPolyEtaPackedBytes());
+            s1.getVectorIndex(i).polyEtaPack(out[3], i * engine.getDilithiumPolyEtaPackedBytes());
         }
 
         out[4] = new byte[engine.getDilithiumK() * engine.getDilithiumPolyEtaPackedBytes()];
         for (int i = 0; i < engine.getDilithiumK(); ++i)
         {
-            System.arraycopy(s2.getVectorIndex(i).polyEtaPack(), 0, out[4], i * engine.getDilithiumPolyEtaPackedBytes(), engine.getDilithiumPolyEtaPackedBytes());
+            s2.getVectorIndex(i).polyEtaPack(out[4], i * engine.getDilithiumPolyEtaPackedBytes());
         }
 
         out[5] = new byte[engine.getDilithiumK() * DilithiumEngine.DilithiumPolyT0PackedBytes];
         for (int i = 0; i < engine.getDilithiumK(); ++i)
         {
-            System.arraycopy(t0.getVectorIndex(i).polyt0Pack(), 0, out[5], i * DilithiumEngine.DilithiumPolyT0PackedBytes, DilithiumEngine.DilithiumPolyT0PackedBytes);
+            t0.getVectorIndex(i).polyt0Pack(out[5], i * DilithiumEngine.DilithiumPolyT0PackedBytes);
         }
         return out;
     }
@@ -65,37 +59,25 @@ class Packing
      * @param t0
      * @param s1
      * @param s2
-     * @param secretKey
      * @param engine
      * @return Byte matrix where byte[0] = rho, byte[1] = tr, byte[2] = key
      */
 
-    static void unpackSecretKey(PolyVecK t0, PolyVecL s1, PolyVecK s2, byte[] secretKey, DilithiumEngine engine)
+    static void unpackSecretKey(PolyVecK t0, PolyVecL s1, PolyVecK s2, byte[] t0Enc, byte[] s1Enc, byte[] s2Enc, DilithiumEngine engine)
     {
-        int i, end;
-        
-        end = 3 * DilithiumEngine.SeedBytes;
-
-        for (i = 0; i < engine.getDilithiumL(); ++i)
+        for (int i = 0; i < engine.getDilithiumL(); ++i)
         {
-            // TODO: reduce copying
-            s1.getVectorIndex(i).polyEtaUnpack(Arrays.copyOfRange(secretKey, end + i * engine.getDilithiumPolyEtaPackedBytes(), end + (i + 1) * engine.getDilithiumPolyEtaPackedBytes()));
+            s1.getVectorIndex(i).polyEtaUnpack(s1Enc, i * engine.getDilithiumPolyEtaPackedBytes());
         }
 
-        end += engine.getDilithiumL() * engine.getDilithiumPolyEtaPackedBytes();
-
-        for (i = 0; i < engine.getDilithiumK(); ++i)
+        for (int i = 0; i < engine.getDilithiumK(); ++i)
         {
-            // TODO: reduce copying
-            s2.getVectorIndex(i).polyEtaUnpack(Arrays.copyOfRange(secretKey, end + i * engine.getDilithiumPolyEtaPackedBytes(), end + (i + 1) * engine.getDilithiumPolyEtaPackedBytes()));
+            s2.getVectorIndex(i).polyEtaUnpack(s2Enc, i * engine.getDilithiumPolyEtaPackedBytes());
         }
 
-        end += engine.getDilithiumK() * engine.getDilithiumPolyEtaPackedBytes();
-
-        for (i = 0; i < engine.getDilithiumK(); ++i)
+        for (int i = 0; i < engine.getDilithiumK(); ++i)
         {
-            // TODO: reduce copying
-            t0.getVectorIndex(i).polyt0Unpack(Arrays.copyOfRange(secretKey, end + i * DilithiumEngine.DilithiumPolyT0PackedBytes, end + (i + 1) * DilithiumEngine.DilithiumPolyT0PackedBytes));
+            t0.getVectorIndex(i).polyt0Unpack(t0Enc, i * DilithiumEngine.DilithiumPolyT0PackedBytes);
         }
     }
 

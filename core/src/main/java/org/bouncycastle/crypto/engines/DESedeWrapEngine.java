@@ -8,7 +8,6 @@ import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.Wrapper;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
-import org.bouncycastle.crypto.modes.CBCModeCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
@@ -31,7 +30,7 @@ public class DESedeWrapEngine
     implements Wrapper
 {
    /** Field engine */
-   private CBCModeCipher engine;
+   private CBCBlockCipher engine;
 
    /** Field param */
    private KeyParameter param;
@@ -66,7 +65,7 @@ public class DESedeWrapEngine
     {
 
         this.forWrapping = forWrapping;
-        this.engine = CBCBlockCipher.newInstance(new DESedeEngine());
+        this.engine = new CBCBlockCipher(new DESedeEngine());
 
         SecureRandom sr;
         if (param instanceof ParametersWithRandom)

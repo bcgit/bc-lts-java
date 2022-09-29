@@ -1,8 +1,8 @@
 package org.bouncycastle.pqc.jcajce.interfaces;
 
-import org.bouncycastle.pqc.jcajce.spec.FrodoParameterSpec;
-
 import java.security.Key;
+
+import org.bouncycastle.pqc.jcajce.spec.FrodoParameterSpec;
 
 public interface FrodoKey
     extends Key

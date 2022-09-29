@@ -1,13 +1,12 @@
 package org.bouncycastle.pqc.crypto.ntru;
 
-import java.util.Arrays;
-
 import org.bouncycastle.pqc.math.ntru.HPSPolynomial;
 import org.bouncycastle.pqc.math.ntru.HRSSPolynomial;
 import org.bouncycastle.pqc.math.ntru.Polynomial;
 import org.bouncycastle.pqc.math.ntru.parameters.NTRUHPSParameterSet;
 import org.bouncycastle.pqc.math.ntru.parameters.NTRUHRSSParameterSet;
 import org.bouncycastle.pqc.math.ntru.parameters.NTRUParameterSet;
+import org.bouncycastle.util.Arrays;
 
 /**
  * NTRU sampling.
@@ -35,7 +34,7 @@ class NTRUSampling
      */
     public PolynomialPair sampleFg(byte[] uniformBytes)
     {
-        assert uniformBytes.length == this.params.sampleFgBytes();
+        // assert uniformBytes.length == this.params.sampleFgBytes();
         if (this.params instanceof NTRUHRSSParameterSet)
         {
             HRSSPolynomial f = this.sampleIidPlus(Arrays.copyOfRange(uniformBytes, 0, this.params.sampleIidBytes()));
@@ -63,7 +62,7 @@ class NTRUSampling
      */
     public PolynomialPair sampleRm(byte[] uniformBytes)
     {
-        assert uniformBytes.length == this.params.sampleRmBytes();
+        // assert uniformBytes.length == this.params.sampleRmBytes();
         if (this.params instanceof NTRUHRSSParameterSet)
         {
             HRSSPolynomial r = (HRSSPolynomial)this.sampleIid(Arrays.copyOfRange(uniformBytes, 0, this.params.sampleIidBytes()));
@@ -89,7 +88,7 @@ class NTRUSampling
      */
     public Polynomial sampleIid(byte[] uniformBytes)
     {
-        assert uniformBytes.length == this.params.sampleIidBytes();
+        // assert uniformBytes.length == this.params.sampleIidBytes();
         Polynomial r = this.params.createPolynomial();
         for (int i = 0; i < this.params.n() - 1; i++)
         {
@@ -106,7 +105,7 @@ class NTRUSampling
      */
     public HPSPolynomial sampleFixedType(byte[] uniformBytes)
     {
-        assert uniformBytes.length == this.params.sampleFixedTypeBytes();
+        // assert uniformBytes.length == this.params.sampleFixedTypeBytes();
         int n = this.params.n();
         int weight = ((NTRUHPSParameterSet)this.params).weight();
         HPSPolynomial r = new HPSPolynomial((NTRUHPSParameterSet)this.params);
@@ -139,7 +138,7 @@ class NTRUSampling
             s[i] |= 2;
         }
 
-        Arrays.sort(s);
+        java.util.Arrays.sort(s);
 
         for (i = 0; i < n - 1; i++)
         {
@@ -157,7 +156,7 @@ class NTRUSampling
      */
     public HRSSPolynomial sampleIidPlus(byte[] uniformBytes)
     {
-        assert uniformBytes.length == this.params.sampleIidBytes();
+        // assert uniformBytes.length == this.params.sampleIidBytes();
         int n = this.params.n();
         int i;
         short s = 0;

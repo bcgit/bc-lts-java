@@ -115,7 +115,7 @@ public class GF2Matrix
      */
     public GF2Matrix(int n, char typeOfMatrix)
     {
-        this(n, typeOfMatrix, new java.security.SecureRandom());
+        this(n, typeOfMatrix, new SecureRandom());
     }
 
     /**

@@ -242,7 +242,7 @@ public final class XMSSPrivateKeyParameters
             /* prepare authentication path for next leaf */
             if (usageCount <= this.getUsagesRemaining())
             {
-                XMSSPrivateKeyParameters keyParams = new XMSSPrivateKeyParameters.Builder(params)
+                XMSSPrivateKeyParameters keyParams = new Builder(params)
                     .withSecretKeySeed(secretKeySeed).withSecretKeyPRF(secretKeyPRF)
                     .withPublicSeed(publicSeed).withRoot(root)
                     .withIndex(getIndex())

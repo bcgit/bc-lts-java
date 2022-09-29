@@ -1,9 +1,11 @@
 package org.bouncycastle.pqc.crypto.picnic;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Pack;
 import org.bouncycastle.util.encoders.Hex;
 
@@ -104,7 +106,7 @@ class LowmcConstants
         }
         catch (IOException e)
         {
-            throw new IllegalStateException("unable to load Picnic properties: " + e.getMessage(), e);
+            throw Exceptions.illegalStateException("unable to load Picnic properties: " + e.getMessage(), e);
         }
 
         // Parameters for security level L1
@@ -194,14 +196,28 @@ class LowmcConstants
     static private int[] ReadFromProperty(Properties props, String key, int intSize)
     {
         String s = props.getProperty(key);
-        s = s.replaceAll(",", "");
-        byte[] bytes = Hex.decode(s);
+        byte[] bytes = Hex.decode(removeCommas(s));
         int[] ints = new int[intSize];
         for (int i = 0; i < bytes.length / 4; i++)
         {
             ints[i] = Pack.littleEndianToInt(bytes, i * 4);
         }
         return ints;
+    }
+
+    private static byte[] removeCommas(String s)
+    {
+        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+        for (int i = 0; i != s.length(); i++)
+        {
+            if (s.charAt(i) == ',')
+            {
+                continue;
+            }
+            bOut.write(s.charAt(i));
+
+        }
+        return bOut.toByteArray();
     }
 
     // Functions to return individual matricies and round constants
@@ -310,9 +326,9 @@ class LowmcConstants
     }
 
     /* Return the LowMC inverse key matrix for this round */
-    static KMatricesWithPointer KMatrixInv(PicnicEngine engine, int round)
+    static KMatricesWithPointer KMatrixInv(PicnicEngine engine)
     {
-        assert (round == 0);
+        int round = 0;
         if (engine.stateSizeBits == 129)
         {
             return GET_MAT(KMatrix_L1_inv, round);

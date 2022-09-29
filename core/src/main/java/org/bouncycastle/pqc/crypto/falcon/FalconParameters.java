@@ -5,7 +5,6 @@ import org.bouncycastle.crypto.CipherParameters;
 public class FalconParameters
     implements CipherParameters
 {
-
     public static final FalconParameters falcon_512 = new FalconParameters("falcon-512", 9, 40);
     public static final FalconParameters falcon_1024 = new FalconParameters("falcon-1024", 10, 40);
 
@@ -13,9 +12,12 @@ public class FalconParameters
     private final int logn;
     private final int nonce_length;
 
-    public FalconParameters(String name, int logn, int nonce_length)
+    private FalconParameters(String name, int logn, int nonce_length)
     {
-        assert logn > 0 && logn <= 10 : "Log N degree should be between 1 and 10";
+        if (logn < 1 || logn > 10)
+        {
+            throw new IllegalArgumentException("Log N degree should be between 1 and 10");
+        }
         this.name = name;
         this.logn = logn;
         this.nonce_length = nonce_length;
@@ -26,7 +28,7 @@ public class FalconParameters
         return logn;
     }
 
-    public int getNonceLength()
+    int getNonceLength()
     {
         return nonce_length;
     }

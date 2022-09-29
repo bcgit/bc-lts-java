@@ -1,10 +1,10 @@
 package org.bouncycastle.pqc.crypto.saber;
 
+import java.security.SecureRandom;
+
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator;
 import org.bouncycastle.crypto.KeyGenerationParameters;
-
-import java.security.SecureRandom;
 
 public class SABERKeyPairGenerator
         implements AsymmetricCipherKeyPairGenerator

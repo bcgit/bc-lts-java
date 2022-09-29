@@ -6,7 +6,7 @@ import javax.net.SocketFactory;
 import javax.net.ssl.SSLSocket;
 
 /**
- * A BCJSSE-specific interface to expose extended functionality on {@link javax.net.ssl.SSLSocket}
+ * A BCJSSE-specific interface to expose extended functionality on {@link SSLSocket}
  * implementations.
  */
 public interface BCSSLSocket

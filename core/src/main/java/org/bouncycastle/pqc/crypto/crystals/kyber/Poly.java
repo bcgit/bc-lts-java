@@ -1,9 +1,5 @@
 package org.bouncycastle.pqc.crypto.crystals.kyber;
 
-import java.util.Arrays;
-
-import org.bouncycastle.crypto.digests.SHAKEDigest;
-
 class Poly
 {
     private short[] coeffs;
@@ -12,6 +8,8 @@ class Poly
     private int eta1;
     private int eta2;
 
+    private Symmetric symmetric;
+
     public Poly(KyberEngine engine)
     {
         this.coeffs = new short[KyberEngine.KyberN];
@@ -19,6 +17,7 @@ class Poly
         polyCompressedBytes = engine.getKyberPolyCompressedBytes();
         this.eta1 = engine.getKyberEta1();
         this.eta2 = KyberEngine.getKyberEta2();
+        this.symmetric = engine.getSymmetric();
     }
 
     public short getCoeffIndex(int i)
@@ -44,11 +43,6 @@ class Poly
     public void polyNtt()
     {
         this.setCoeffs(Ntt.ntt(this.getCoeffs()));
-        // System.out.print("PolyNTT = [");
-        // for (int i = 0; i < KyberEngine.KyberN; i++) {
-        //     System.out.printf("%d, ", this.getCoeffIndex(i));
-        // }
-        // System.out.println("]");
         this.reduce();
     }
 
@@ -297,16 +291,14 @@ class Poly
     public void getEta1Noise(byte[] seed, byte nonce)
     {
         byte[] buf = new byte[KyberEngine.KyberN * eta1 / 4];
-        SHAKEDigest prf = Symmetric.KyberPRF(seed, nonce);
-        prf.doFinal(buf, 0, buf.length);
+        symmetric.prf(buf, seed, nonce);
         CBD.kyberCBD(this, buf, eta1);
     }
 
     public void getEta2Noise(byte[] seed, byte nonce)
     {
         byte[] buf = new byte[KyberEngine.KyberN * eta2 / 4];
-        SHAKEDigest prf = Symmetric.KyberPRF(seed, nonce);
-        prf.doFinal(buf, 0, buf.length);
+        symmetric.prf(buf, seed, nonce);
         CBD.kyberCBD(this, buf, eta2);
     }
 
@@ -321,7 +313,18 @@ class Poly
 
     public String toString()
     {
-        return Arrays.toString(coeffs);
+        StringBuffer out = new StringBuffer();
+        out.append("[");
+        for (int i = 0; i < coeffs.length; i++)
+        {
+            out.append(coeffs[i]);
+            if (i != coeffs.length - 1)
+            {
+                out.append(", ");
+            }
+        }
+        out.append("]");
+        return out.toString();
     }
 }
 

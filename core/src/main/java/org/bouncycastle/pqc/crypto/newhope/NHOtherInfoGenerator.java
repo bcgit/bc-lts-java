@@ -45,7 +45,7 @@ public class NHOtherInfoGenerator
         private AsymmetricCipherKeyPair aKp;
         private NHAgreement agreement = new NHAgreement();
 
-        public PartyU(AlgorithmIdentifier algorithmID, byte[] partyUInfo, byte[] partyVInfo, java.security.SecureRandom random)
+        public PartyU(AlgorithmIdentifier algorithmID, byte[] partyUInfo, byte[] partyVInfo, SecureRandom random)
         {
             super(algorithmID, partyUInfo, partyVInfo, random);
 

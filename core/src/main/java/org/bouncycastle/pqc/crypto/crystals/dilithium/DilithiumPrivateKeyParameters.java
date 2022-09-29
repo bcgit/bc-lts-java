@@ -5,19 +5,21 @@ import org.bouncycastle.util.Arrays;
 public class DilithiumPrivateKeyParameters
     extends DilithiumKeyParameters
 {
-    protected final byte[] rho;
-    protected final byte[] k;
-    protected final byte[] tr;
-    private final byte[] s1;
-    private final byte[] s2;
-    private final byte[] t0;
+    final byte[] rho;
+    final byte[] k;
+    final byte[] tr;
+    final byte[] s1;
+    final byte[] s2;
+    final byte[] t0;
+
+    private final byte[] t1;
 
     public byte[] getPrivateKey()
     {
         return getEncoded();
     }
 
-    public DilithiumPrivateKeyParameters(DilithiumParameters params, byte[] rho, byte[] K, byte[] tr, byte[] s1, byte[] s2, byte[] t0)
+    public DilithiumPrivateKeyParameters(DilithiumParameters params, byte[] rho, byte[] K, byte[] tr, byte[] s1, byte[] s2, byte[] t0, byte[] t1)
     {
         super(true, params);
         this.rho = Arrays.clone(rho);
@@ -26,6 +28,7 @@ public class DilithiumPrivateKeyParameters
         this.s1 = Arrays.clone(s1);
         this.s2 = Arrays.clone(s2);
         this.t0 = Arrays.clone(t0);
+        this.t1 = Arrays.clone(t1);
     }
 
     public byte[] getRho()
@@ -56,6 +59,11 @@ public class DilithiumPrivateKeyParameters
     public byte[] getT0()
     {
         return Arrays.clone(t0);
+    }
+
+    public byte[] getT1()
+    {
+        return t1;
     }
 
     public byte[] getEncoded()

@@ -394,7 +394,7 @@ public final class XMSSMTPrivateKeyParameters
             /* prepare authentication path for next leaf */
             if (usageCount <= this.getUsagesRemaining())
             {
-                XMSSMTPrivateKeyParameters keyParams = new XMSSMTPrivateKeyParameters.Builder(params)
+                XMSSMTPrivateKeyParameters keyParams = new Builder(params)
                                     .withSecretKeySeed(secretKeySeed).withSecretKeyPRF(secretKeyPRF)
                                     .withPublicSeed(publicSeed).withRoot(root)
                                     .withIndex(getIndex())

@@ -59,11 +59,11 @@ public class OOBCert
         {
             try
             {
-                return OOBCert.getInstance(((CMPCertificate)o).getEncoded());
+                return getInstance(((CMPCertificate)o).getEncoded());
             }
             catch (IOException e)
             {
-                throw new RuntimeException(e.getMessage(), e);
+                throw new IllegalArgumentException(e.getMessage(), e);
             }
         }
 
@@ -75,7 +75,7 @@ public class OOBCert
             }
             catch (IOException e)
             {
-                throw new IllegalArgumentException("Invalid encoding in CMPCertificate");
+                throw new IllegalArgumentException("Invalid encoding in OOBCert");
             }
         }
 

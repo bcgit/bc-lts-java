@@ -3,18 +3,17 @@ package org.bouncycastle.pqc.jcajce.provider.falcon;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.security.PublicKey;
 
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.pqc.crypto.falcon.FalconPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.util.PublicKeyFactory;
 import org.bouncycastle.pqc.crypto.util.SubjectPublicKeyInfoFactory;
-import org.bouncycastle.pqc.jcajce.interfaces.FalconKey;
+import org.bouncycastle.pqc.jcajce.interfaces.FalconPublicKey;
 import org.bouncycastle.pqc.jcajce.spec.FalconParameterSpec;
 import org.bouncycastle.util.Arrays;
 
 public class BCFalconPublicKey
-    implements PublicKey, FalconKey
+    implements FalconPublicKey
 {
     private static final long serialVersionUID = 1L;
 
@@ -55,7 +54,7 @@ public class BCFalconPublicKey
         {
             BCFalconPublicKey otherKey = (BCFalconPublicKey)o;
 
-            return Arrays.areEqual(params.getEncoded(), otherKey.params.getEncoded());
+            return Arrays.areEqual(params.getH(), otherKey.params.getH());
         }
 
         return false;
@@ -63,7 +62,7 @@ public class BCFalconPublicKey
 
     public int hashCode()
     {
-        return Arrays.hashCode(params.getEncoded());
+        return Arrays.hashCode(params.getH());
     }
 
     /**

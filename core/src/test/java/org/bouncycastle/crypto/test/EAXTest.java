@@ -2,8 +2,8 @@ package org.bouncycastle.crypto.test;
 
 import java.security.SecureRandom;
 
-import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.AEADBlockCipher;
 import org.bouncycastle.crypto.modes.EAXBlockCipher;
@@ -326,7 +326,7 @@ public class EAXTest
         srng.nextBytes(datIn);
         srng.nextBytes(key);
 
-        BlockCipher engine = AESEngine.newInstance();
+        MultiBlockCipher engine = AESEngine.newInstance();
         KeyParameter sessKey = new KeyParameter(key);
         EAXBlockCipher eaxCipher = new EAXBlockCipher(engine);
 
