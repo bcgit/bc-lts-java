@@ -1,6 +1,6 @@
 package org.bouncycastle.crypto;
 
-public interface NativeProvider
+public interface NativeServiceProvider
 {
     /**
      * Return the name of the algorithm the provider supports.

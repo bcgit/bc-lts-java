@@ -6,6 +6,7 @@
 #include "../../exceptions/OutputLengthException.h"
 #include "../../jniutil/JavaEnvUtils.h"
 #include "../../exceptions/CipherTextException.h"
+#include "../../jniutil/JavaByteArrayCritical.h"
 
 
 //
@@ -95,7 +96,7 @@ JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_proces
 JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_processAADBytes
         (JNIEnv *env, jclass, jlong ref, jbyteArray aad_, jint offset, jint len) {
 
-    jniutil::JavaByteArray aad(env, aad_);
+    jniutil::JavaByteArrayCritical aad(env, aad_);
     auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
     instance->processAADBytes(aad.uvalue(), offset, len);
 }
@@ -121,8 +122,8 @@ JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_proces
 JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_processBytes
         (JNIEnv *env, jclass, jlong ref, jbyteArray in_, jint inOff, jint len, jbyteArray out_, jint outOff) {
 
-    jniutil::JavaByteArray out(env, out_);
-    jniutil::JavaByteArray in(env, in_);
+    jniutil::JavaByteArrayCritical out(env, out_);
+    jniutil::JavaByteArrayCritical in(env, in_);
 
     auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
     return (jint) instance->processBytes(in.uvalue(), inOff, len, out.uvalue(), outOff, out.length());
@@ -137,20 +138,23 @@ JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_proces
 JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeGCM_doFinal
         (JNIEnv *env, jclass, jlong ref, jbyteArray out_, jint outOff) {
 
-    jniutil::JavaByteArray out(env, out_);
+    jniutil::JavaByteArrayCritical out(env, out_);
 
     auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
     try {
         return (jint) instance->doFinal(out.uvalue(), outOff, out.length());
     } catch (const exceptions::OutputLengthException &exp) {
+        out.disposeNow();
         jniutil::JavaEnvUtils::throwException(env,
                                               "org/bouncycastle/crypto/OutputLengthException",
                                               exp.what());
     } catch (const exceptions::CipherTextException &exp) {
+        out.disposeNow();
         jniutil::JavaEnvUtils::throwException(env,
                                               "org/bouncycastle/crypto/InvalidCipherTextException",
                                               exp.what());
     } catch (const std::runtime_error &err) {
+        out.disposeNow();
         jniutil::JavaEnvUtils::throwIllegalArgumentException(env, err.what());
     }
 

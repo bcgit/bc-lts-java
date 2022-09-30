@@ -7,6 +7,7 @@
 #include "../rand/Rand.h"
 #include "org_bouncycastle_crypto_NativeEntropySource.h"
 #include "../../jniutil/JavaEnvUtils.h"
+#include "../../jniutil/JavaByteArrayCritical.h"
 
 using jniutil::JavaEnvUtils;
 
@@ -39,15 +40,17 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_modulus
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_seedBuffer
         (JNIEnv *env, jobject, jbyteArray array, jboolean useSeedSource) {
 
-    jniutil::JavaByteArray byteArray(env, array);
+    jniutil::JavaByteArrayCritical byteArray(env, array);
 
     if (byteArray.isNull()) {
+        byteArray.disposeNow();
         JavaEnvUtils::throwIllegalArgumentException(env,
                                                     "null byte array passed to native entropy source");
         return;
     }
 
     if (byteArray.length() % intel::Rand::modulus() != 0) {
+        byteArray.disposeNow();
         JavaEnvUtils::throwIllegalArgumentException(env,
                                                     "array length not multiple of modulus");
         return;

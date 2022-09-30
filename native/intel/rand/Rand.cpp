@@ -8,6 +8,7 @@
 #include <immintrin.h>
 
 #include "Rand.h"
+#include "../../jniutil/JavaByteArrayCritical.h"
 
 #define RAND_MOD 8
 
@@ -22,7 +23,7 @@ namespace intel {
     }
 
 
-    void Rand::populateArrayRng(jniutil::JavaByteArray *array) {
+    void Rand::populateArrayRng(jniutil::JavaByteArrayCritical *array) {
 
         // Assert the target is not null.
         assert(!array->isNull());
@@ -56,7 +57,7 @@ namespace intel {
 
     }
 
-    void Rand::populateArraySeed(jniutil::JavaByteArray *array) {
+    void Rand::populateArraySeed(jniutil::JavaByteArrayCritical *array) {
         // Assert the target is not null.
         assert(!array->isNull());
 

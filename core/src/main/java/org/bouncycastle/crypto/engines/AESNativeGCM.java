@@ -6,6 +6,7 @@ import org.bouncycastle.crypto.CryptoServicePurpose;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.NativeService;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -15,8 +16,8 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
-public class AESNativeGCM
-    implements GCMModeCipher
+class AESNativeGCM
+    implements GCMModeCipher, NativeService
 {
 
     private GCMRefWrapper refWrapper;

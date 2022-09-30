@@ -3,7 +3,7 @@
 #include "../cbc/CBC.h"
 #include "../cbc/AesCBC.h"
 #include "../../jniutil/JavaByteArray.h"
-
+#include "../../jniutil/JavaByteArrayCritical.h"
 
 //
 // NOTE:
@@ -21,11 +21,12 @@ JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_proces
         (JNIEnv *env, jclass, jlong ref, jbyteArray in_, jint inOff, jint blocks, jbyteArray out_, jint outOff) {
 
 
+
     //
     // Always wrap output array first.
     //
-    jniutil::JavaByteArray out(env, out_);
-    jniutil::JavaByteArray in(env, in_);
+    jniutil::JavaByteArrayCritical out(env, out_);
+    jniutil::JavaByteArrayCritical in(env, in_);
 
     auto instance = static_cast<intel::cbc::CBC *>((void *) ref);
    return (jint)instance->processBlock(in.uvalue() + inOff, blocks, out.uvalue() + outOff);

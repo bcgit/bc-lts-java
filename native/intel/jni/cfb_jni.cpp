@@ -4,6 +4,7 @@
 #include "../cfb/AesCFB.h"
 #include "../../jniutil/JavaByteArray.h"
 #include "../../jniutil/JavaEnvUtils.h"
+#include "../../jniutil/JavaByteArrayCritical.h"
 #include <exception>
 
 
@@ -37,8 +38,8 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_process
     //
     // Always wrap the output array first
     //
-    jniutil::JavaByteArray out(env, out_);
-    jniutil::JavaByteArray in(env, in_);
+    jniutil::JavaByteArrayCritical out(env, out_);
+    jniutil::JavaByteArrayCritical in(env, in_);
 
     return instance->processBytes(in.uvalue() + inOff, len, out.uvalue() + outOff);
 

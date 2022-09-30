@@ -5,6 +5,7 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicePurpose;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.NativeService;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.modes.CBCModeCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -14,7 +15,7 @@ import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 class AESNativeCBC
-    implements CBCModeCipher
+    implements CBCModeCipher, NativeService
 {
 
     private CBCRefWrapper referenceWrapper;

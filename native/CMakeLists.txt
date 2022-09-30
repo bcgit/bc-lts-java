@@ -142,7 +142,7 @@ endif ()
 
 
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
-    set(JVM_UTIL_HEADERS jniutil/JavaEnvUtils.h jniutil/JavaByteArray.h)
+    set(JVM_UTIL_HEADERS jniutil/JavaEnvUtils.h jniutil/JavaByteArray.h jniutil/JavaByteArrayCritical.h jniutil/JavaByteArrayCritical.cpp )
     set(JVM_UTIL_IMPL jniutil/JavaByteArray.cpp jniutil/JavaEnvUtils.cpp)
     set(RAND_HEADERS intel/rand/Rand.h)
     set(RAND_IMPL intel/rand/Rand.cpp intel/jni/native_entropy_source_jni.cpp)

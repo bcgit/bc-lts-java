@@ -4,6 +4,7 @@
 #include "../ecb/ecb.h"
 #include "../../jniutil/JavaByteArray.h"
 #include "../ecb/AesEcb.h"
+#include "../../jniutil/JavaByteArrayCritical.h"
 
 
 //
@@ -36,8 +37,8 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_proc
     //
     // Always wrap output array first.
     //
-    jniutil::JavaByteArray out(env, _out);
-    jniutil::JavaByteArray in(env, _in);
+    jniutil::JavaByteArrayCritical out(env, _out);
+    jniutil::JavaByteArrayCritical in(env, _in);
 
     auto instance = static_cast<intel::ecb::ECB *>((void *) ref);
     return (jint) instance->processBlocks(in.uvalue(), inOffset, in.length(), blocks, out.uvalue(), outOffset);

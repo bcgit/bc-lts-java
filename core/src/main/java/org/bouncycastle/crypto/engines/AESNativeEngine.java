@@ -6,6 +6,7 @@ import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultMultiBlockCipher;
 import org.bouncycastle.crypto.NativeBlockCipherProvider;
+import org.bouncycastle.crypto.NativeService;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
@@ -21,7 +22,7 @@ import org.bouncycastle.util.dispose.NativeReference;
 
 class AESNativeEngine
     extends DefaultMultiBlockCipher
-    implements NativeBlockCipherProvider
+    implements NativeBlockCipherProvider, NativeService
 {
     protected NativeReference wrapper = null;
 

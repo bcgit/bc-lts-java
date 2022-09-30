@@ -1,4 +1,4 @@
-package org.bouncycastle.crypto.engines;
+package org.bouncycastle.test.engines;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,9 +9,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.MultiBlockCipher;
+import org.bouncycastle.crypto.NativeBlockCipherProvider;
+import org.bouncycastle.crypto.NativeService;
+import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.CBCModeCipher;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
+import org.bouncycastle.crypto.modes.CFBModeCipher;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -28,6 +32,7 @@ public class NativeACVPTest
     private static ObjectMapper mapper = new ObjectMapper();
 
 
+    @Test
     public void testECB()
         throws Exception
     {
@@ -39,11 +44,11 @@ public class NativeACVPTest
 
 
         List<Map<String, Object>> req = mapper.readValue(
-            NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/ECB.req.json"),
+            NativeACVPTest.class.getResourceAsStream("/crypto/modes/crypto/modes/ECB.req.json"),
             List.class);
 
         List<Map<String, Object>> rsp = mapper.readValue(
-            NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/ECB.rsp.json"),
+            NativeACVPTest.class.getResourceAsStream("/crypto/modes/crypto/modes/ECB.rsp.json"),
             List.class);
 
         List<Map<String, Object>> reqGroups = ((List<Map<String, Object>>)(req.get(1)).get("testGroups"));
@@ -51,7 +56,13 @@ public class NativeACVPTest
         List<Map<String, Object>> rspGroups = ((List<Map<String, Object>>)(rsp.get(1)).get("testGroups"));
 
 
-        AESNativeEngine nativeEngine = new AESNativeEngine();
+        MultiBlockCipher nativeEngine = AESEngine.newInstance();
+        if (!(nativeEngine instanceof NativeBlockCipherProvider))
+        {
+            throw new IllegalStateException("did not get instance of ");
+        }
+
+
         AESEngine javaEngine = new AESEngine();
 
         for (int gi = 0; gi < reqGroups.size(); gi++)
@@ -152,11 +163,11 @@ public class NativeACVPTest
 
 
         List<Map<String, Object>> req = mapper.readValue(
-            NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/GCM.req.json"),
+            NativeACVPTest.class.getResourceAsStream("/crypto/modes/crypto/modes/GCM.req.json"),
             List.class);
 
         List<Map<String, Object>> rsp = mapper.readValue(
-            NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/GCM.rsp.json"),
+            NativeACVPTest.class.getResourceAsStream("/crypto/modes/crypto/modes/GCM.rsp.json"),
             List.class);
 
         List<Map<String, Object>> reqGroups = ((List<Map<String, Object>>)(req.get(1)).get("testGroups"));
@@ -164,7 +175,12 @@ public class NativeACVPTest
         List<Map<String, Object>> rspGroups = ((List<Map<String, Object>>)(rsp.get(1)).get("testGroups"));
 
 
-        AESNativeGCM nativeGCM = new AESNativeGCM();
+        GCMModeCipher nativeGCM = ((NativeBlockCipherProvider)AESEngine.newInstance()).createGCM();
+        if (!(nativeGCM instanceof NativeService))
+        {
+            throw new IllegalStateException("expected native GCM got " + nativeGCM.getClass().getName());
+        }
+
         GCMModeCipher javaGCM = new GCMBlockCipher(new AESEngine());
 
         for (int gi = 0; gi < reqGroups.size(); gi++)
@@ -307,11 +323,11 @@ public class NativeACVPTest
         }
 
         List<Map<String, Object>> req = mapper.readValue(
-            NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/CFB128.req.json"),
+            NativeACVPTest.class.getResourceAsStream("/crypto/modes/crypto/modes/CFB128.req.json"),
             List.class);
 
         List<Map<String, Object>> rsp = mapper.readValue(
-            NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/CFB128.rsp.json"),
+            NativeACVPTest.class.getResourceAsStream("/crypto/modes/crypto/modes/CFB128.rsp.json"),
             List.class);
 
         List<Map<String, Object>> reqGroups = ((List<Map<String, Object>>)(req.get(1)).get("testGroups"));
@@ -319,7 +335,12 @@ public class NativeACVPTest
         List<Map<String, Object>> rspGroups = ((List<Map<String, Object>>)(rsp.get(1)).get("testGroups"));
 
 
-        AESNativeCFB nativeCFB = new AESNativeCFB();
+        CFBModeCipher nativeCFB = ((NativeBlockCipherProvider)AESEngine.newInstance()).createCFB(128);
+        if (!(nativeCFB instanceof NativeService))
+        {
+            throw new IllegalStateException("expected native CFB got " + nativeCFB.getClass().getName());
+        }
+
         CFBBlockCipher javaCBC = new CFBBlockCipher(new AESEngine(), 128);
 
         for (int gi = 0; gi < reqGroups.size(); gi++)
@@ -422,11 +443,11 @@ public class NativeACVPTest
         }
 
         List<Map<String, Object>> req = mapper.readValue(
-            NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/CFB128.req.json"),
+            NativeACVPTest.class.getResourceAsStream("/crypto/modes/crypto/modes/CFB128.req.json"),
             List.class);
 
         List<Map<String, Object>> rsp = mapper.readValue(
-            NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/CFB128.rsp.json"),
+            NativeACVPTest.class.getResourceAsStream("/crypto/modes/crypto/modes/CFB128.rsp.json"),
             List.class);
 
         List<Map<String, Object>> reqGroups = ((List<Map<String, Object>>)(req.get(1)).get("testGroups"));
@@ -434,9 +455,14 @@ public class NativeACVPTest
         List<Map<String, Object>> rspGroups = ((List<Map<String, Object>>)(rsp.get(1)).get("testGroups"));
 
 
-        AESNativeCFB nativeCFB = new AESNativeCFB();
-        AESNativeCFB nativeCFBByte = new AESNativeCFB();
-        CFBBlockCipher javaCBC = new CFBBlockCipher(new AESEngine(), 128);
+        CFBModeCipher nativeCFB = ((NativeBlockCipherProvider)AESEngine.newInstance()).createCFB(128);
+        if (!(nativeCFB instanceof NativeService))
+        {
+            throw new IllegalStateException("expected native CFB got " + nativeCFB.getClass().getName());
+        }
+
+        CFBModeCipher nativeCFBByte = ((NativeBlockCipherProvider)AESEngine.newInstance()).createCFB(128);
+        CFBBlockCipher javaCFB = new CFBBlockCipher(new AESEngine(), 128);
 
         for (int gi = 0; gi < reqGroups.size(); gi++)
         {
@@ -484,7 +510,7 @@ public class NativeACVPTest
                         //
                         // Java CFB.
                         //
-                        List<Map<String, Object>> results = performMonteCarloTest(javaCBC, reqGroup, reqTest, "CFB128");
+                        List<Map<String, Object>> results = performMonteCarloTest(javaCFB, reqGroup, reqTest, "CFB128");
                         TestCase.assertEquals(expected.size(), results.size());
                         for (int t = 0; t < expected.size(); t++)
                         {
@@ -510,13 +536,13 @@ public class NativeACVPTest
 
                     nativeCFB.init(encryption, params);
                     nativeCFBByte.init(encryption, params);
-                    javaCBC.init(encryption, params);
+                    javaCFB.init(encryption, params);
 
                     byte[] nativeResult = new byte[expected.length];
                     byte[] javaResult = new byte[expected.length];
 
                     int nrl = nativeCFB.processBytes(msg, 0, msg.length, nativeResult, 0);
-                    int jrl = javaCBC.processBytes(msg, 0, msg.length, javaResult, 0);
+                    int jrl = javaCFB.processBytes(msg, 0, msg.length, javaResult, 0);
 
                     TestCase.assertEquals("native output len matches java output len", nrl, jrl);
                     TestCase.assertTrue("native matches expected", Arrays.areEqual(nativeResult, expected));
@@ -554,11 +580,11 @@ public class NativeACVPTest
 
 
         List<Map<String, Object>> req = mapper.readValue(
-            NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/CBC.req.json"),
+            NativeACVPTest.class.getResourceAsStream("/crypto/modes/crypto/modes/CBC.req.json"),
             List.class);
 
         List<Map<String, Object>> rsp = mapper.readValue(
-            NativeACVPTest.class.getResourceAsStream("/org/bouncycastle/crypto/modes/CBC.rsp.json"),
+            NativeACVPTest.class.getResourceAsStream("/crypto/modes/crypto/modes/CBC.rsp.json"),
             List.class);
 
         List<Map<String, Object>> reqGroups = ((List<Map<String, Object>>)(req.get(1)).get("testGroups"));
@@ -566,7 +592,12 @@ public class NativeACVPTest
         List<Map<String, Object>> rspGroups = ((List<Map<String, Object>>)(rsp.get(1)).get("testGroups"));
 
 
-        AESNativeCBC nativeCBC = new AESNativeCBC();
+        CBCModeCipher nativeCBC = ((NativeBlockCipherProvider)AESEngine.newInstance()).createCBC();
+        if (!(nativeCBC instanceof NativeService))
+        {
+            throw new IllegalStateException("expected native CFB got " + nativeCBC.getClass().getName());
+        }
+
         CBCBlockCipher javaCBC = new CBCBlockCipher(new AESEngine());
 
         for (int gi = 0; gi < reqGroups.size(); gi++)
