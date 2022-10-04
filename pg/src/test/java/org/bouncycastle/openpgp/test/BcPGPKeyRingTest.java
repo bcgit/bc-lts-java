@@ -1885,11 +1885,6 @@ public class BcPGPKeyRingTest
         {
             PGPPublicKey pubKey = ((PGPSecretKey)secretKeys.next()).getPublicKey();
 
-            if (pubKey.getValidDays() != 28)
-            {
-                fail("days wrong on secret key ring");
-            }
-
             if (pubKey.getValidSeconds() != 28 * 24 * 60 * 60)
             {
                 fail("seconds wrong on secret key ring");
@@ -1902,11 +1897,6 @@ public class BcPGPKeyRingTest
         while (publicKeys.hasNext())
         {
             PGPPublicKey pubKey = (PGPPublicKey)publicKeys.next();
-
-            if (pubKey.getValidDays() != 28)
-            {
-                fail("days wrong on public key ring");
-            }
 
             if (pubKey.getValidSeconds() != 28 * 24 * 60 * 60)
             {

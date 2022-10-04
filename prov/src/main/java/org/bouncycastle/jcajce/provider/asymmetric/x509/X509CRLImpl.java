@@ -52,7 +52,6 @@ import org.bouncycastle.asn1.x509.Time;
 import org.bouncycastle.jcajce.CompositePublicKey;
 import org.bouncycastle.jcajce.io.OutputStreamFactory;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
-import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Strings;
 
@@ -390,7 +389,7 @@ abstract class X509CRLImpl
 
     public Principal getIssuerDN()
     {
-        return new X509Principal(X500Name.getInstance(c.getIssuer().toASN1Primitive()));
+        return getIssuerX500Principal();
     }
 
     public X500Principal getIssuerX500Principal()

@@ -7,7 +7,48 @@ import org.bouncycastle.crypto.CryptoServicePurpose;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.KeyGenerationParameters;
 import org.bouncycastle.crypto.constraints.LegacyBitsOfSecurityConstraint;
-import org.bouncycastle.crypto.engines.*;
+import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.AESLightEngine;
+import org.bouncycastle.crypto.engines.ARIAEngine;
+import org.bouncycastle.crypto.engines.BlowfishEngine;
+import org.bouncycastle.crypto.engines.CAST5Engine;
+import org.bouncycastle.crypto.engines.CAST6Engine;
+import org.bouncycastle.crypto.engines.CamelliaEngine;
+import org.bouncycastle.crypto.engines.CamelliaLightEngine;
+import org.bouncycastle.crypto.engines.ChaCha7539Engine;
+import org.bouncycastle.crypto.engines.ChaChaEngine;
+import org.bouncycastle.crypto.engines.DESedeEngine;
+import org.bouncycastle.crypto.engines.DSTU7624Engine;
+import org.bouncycastle.crypto.engines.GOST28147Engine;
+import org.bouncycastle.crypto.engines.Grain128AEADEngine;
+import org.bouncycastle.crypto.engines.Grain128Engine;
+import org.bouncycastle.crypto.engines.Grainv1Engine;
+import org.bouncycastle.crypto.engines.HC128Engine;
+import org.bouncycastle.crypto.engines.HC256Engine;
+import org.bouncycastle.crypto.engines.IDEAEngine;
+import org.bouncycastle.crypto.engines.ISAACEngine;
+import org.bouncycastle.crypto.engines.LEAEngine;
+import org.bouncycastle.crypto.engines.NoekeonEngine;
+import org.bouncycastle.crypto.engines.RC2Engine;
+import org.bouncycastle.crypto.engines.RC532Engine;
+import org.bouncycastle.crypto.engines.RC564Engine;
+import org.bouncycastle.crypto.engines.RC6Engine;
+import org.bouncycastle.crypto.engines.RijndaelEngine;
+import org.bouncycastle.crypto.engines.SEEDEngine;
+import org.bouncycastle.crypto.engines.SM4Engine;
+import org.bouncycastle.crypto.engines.Salsa20Engine;
+import org.bouncycastle.crypto.engines.SerpentEngine;
+import org.bouncycastle.crypto.engines.Shacal2Engine;
+import org.bouncycastle.crypto.engines.SkipjackEngine;
+import org.bouncycastle.crypto.engines.TEAEngine;
+import org.bouncycastle.crypto.engines.ThreefishEngine;
+import org.bouncycastle.crypto.engines.TnepresEngine;
+import org.bouncycastle.crypto.engines.TwofishEngine;
+import org.bouncycastle.crypto.engines.VMPCEngine;
+import org.bouncycastle.crypto.engines.VMPCKSA3Engine;
+import org.bouncycastle.crypto.engines.XSalsa20Engine;
+import org.bouncycastle.crypto.engines.Zuc128Engine;
+import org.bouncycastle.crypto.engines.Zuc256Engine;
 import org.bouncycastle.crypto.generators.DESKeyGenerator;
 import org.bouncycastle.crypto.generators.DESedeKeyGenerator;
 import org.bouncycastle.crypto.macs.GOST28147Mac;
@@ -34,7 +75,6 @@ public class SymmetricConstraintsTest
         testTwofish();
         testSkipjack();
         testAES();
-        testAESFast();
         testAESLight();
         testARIA();
         testIDEA();
@@ -219,27 +259,6 @@ public class SymmetricConstraintsTest
 
         engine.init(true, new KeyParameter(new byte[32]));
         engine.init(false, new KeyParameter(new byte[32]));
-
-        CryptoServicesRegistrar.setServicesConstraints(null);
-    }
-
-    private void testAESFast()
-    {
-        CryptoServicesRegistrar.setServicesConstraints(new LegacyBitsOfSecurityConstraint(192));
-
-        AESFastEngine engine = new AESFastEngine();
-        try
-        {
-            engine.init(true, new KeyParameter(new byte[16]));
-            fail("no exception!");
-        }
-        catch (CryptoServiceConstraintsException e)
-        {
-            isEquals("service does not provide 192 bits of security only 128", e.getMessage());
-        }
-
-
-        engine.init(false, new KeyParameter(new byte[16]));
 
         CryptoServicesRegistrar.setServicesConstraints(null);
     }

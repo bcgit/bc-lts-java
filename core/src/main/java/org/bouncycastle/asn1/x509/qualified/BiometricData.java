@@ -8,7 +8,6 @@ import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
-import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 
@@ -99,16 +98,6 @@ public class BiometricData
     public ASN1OctetString getBiometricDataHash()
     {
         return biometricDataHash;
-    }
-
-    /**
-     * @deprecated Use {@link #getSourceDataUriIA5()} instead.
-     */
-    public DERIA5String getSourceDataUri()
-    {
-        return null == sourceDataUri || sourceDataUri instanceof DERIA5String
-            ?   (DERIA5String)sourceDataUri
-            :   new DERIA5String(sourceDataUri.getString(), false);
     }
 
     public ASN1IA5String getSourceDataUriIA5()

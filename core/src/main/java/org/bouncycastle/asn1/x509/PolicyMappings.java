@@ -1,11 +1,7 @@
 package org.bouncycastle.asn1.x509;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
-
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Object;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.DERSequence;
@@ -48,32 +44,6 @@ public class PolicyMappings
     private PolicyMappings(ASN1Sequence seq)
     {
         this.seq = seq;
-    }
-
-    /**
-     * Creates a new <code>PolicyMappings</code> instance.
-     *
-     * @param mappings a <code>HashMap</code> value that maps
-     *                 <code>String</code> oids
-     *                 to other <code>String</code> oids.
-     * @deprecated use CertPolicyId constructors.
-     */
-    public PolicyMappings(Hashtable mappings)
-    {
-        ASN1EncodableVector dev = new ASN1EncodableVector(mappings.size());
-
-        Enumeration it = mappings.keys();
-        while (it.hasMoreElements())
-        {
-            String idp = (String)it.nextElement();
-            String sdp = (String)mappings.get(idp);
-            ASN1EncodableVector dv = new ASN1EncodableVector(2);
-            dv.add(new ASN1ObjectIdentifier(idp));
-            dv.add(new ASN1ObjectIdentifier(sdp));
-            dev.add(new DERSequence(dv));
-        }
-
-        seq = new DERSequence(dev);
     }
 
     public PolicyMappings(CertPolicyId issuerDomainPolicy, CertPolicyId subjectDomainPolicy)

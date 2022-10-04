@@ -2447,11 +2447,6 @@ public class PGPKeyRingTest
         {
             PGPPublicKey pubKey = ((PGPSecretKey)secretKeys.next()).getPublicKey();
             
-            if (pubKey.getValidDays() != 28)
-            {
-                fail("days wrong on secret key ring");
-            }
-            
             if (pubKey.getValidSeconds() != 28 * 24 * 60 * 60)
             {
                 fail("seconds wrong on secret key ring");

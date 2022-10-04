@@ -19,9 +19,9 @@ public class PKCS1Encoding
     implements AsymmetricBlockCipher
 {
     /**
-     * @deprecated use NOT_STRICT_LENGTH_ENABLED_PROPERTY
+     * old property name - use NOT_STRICT_LENGTH_ENABLED_PROPERTY
      */
-    public static final String STRICT_LENGTH_ENABLED_PROPERTY = "org.bouncycastle.pkcs1.strict";
+    private static final String STRICT_LENGTH_ENABLED_PROPERTY = "org.bouncycastle.pkcs1.strict";
 
     /**
      * some providers fail to include the leading zero in PKCS1 encoded blocks. If you need to

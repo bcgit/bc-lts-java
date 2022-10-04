@@ -175,14 +175,6 @@ public class SecurityParameters
     }
 
     /**
-     * @deprecated Use {@link #getPRFAlgorithm()} instead.
-     */
-    public int getPrfAlgorithm()
-    {
-        return prfAlgorithm;
-    }
-
-    /**
      * @return {@link PRFAlgorithm}
      */
     public int getPRFAlgorithm()
@@ -196,16 +188,6 @@ public class SecurityParameters
     public int getPRFCryptoHashAlgorithm()
     {
         return prfCryptoHashAlgorithm;
-    }
-
-    /**
-     * @return {@link HashAlgorithm} for the current {@link PRFAlgorithm}
-     * 
-     * @deprecated Use {@link #getPRFCryptoHashAlgorithm()} instead.
-     */
-    public short getPRFHashAlgorithm()
-    {
-        return prfHashAlgorithm;
     }
 
     public int getPRFHashLength()

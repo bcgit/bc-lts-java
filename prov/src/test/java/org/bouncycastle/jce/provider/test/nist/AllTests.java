@@ -22,7 +22,7 @@ public class AllTests
         
         suite.addTestSuite(NistCertPathTest.class);
         suite.addTestSuite(NistCertPathTest2.class);
-        suite.addTestSuite(NistCertPathReviewerTest.class);
+//        suite.addTestSuite(NistCertPathReviewerTest.class);
 
         return new BCTestSetup(suite);
     }

@@ -69,12 +69,6 @@ public class TimeStampAndCRL
         return this.timeStamp;
     }
 
-    /** @deprecated use getCRL() */
-    public CertificateList getCertificateList()
-    {
-        return this.crl;
-    }
-
     public CertificateList getCRL()
     {
         return this.crl;

@@ -73,14 +73,6 @@ public final class Ed448PrivateKeyParameters
         }
     }
 
-    /**
-     * @deprecated use overload that doesn't take a public key
-     */
-    public void sign(int algorithm, Ed448PublicKeyParameters publicKey, byte[] ctx, byte[] msg, int msgOff, int msgLen, byte[] sig, int sigOff)
-    {
-        sign(algorithm, ctx, msg, msgOff, msgLen, sig, sigOff);
-    }
-
     public void sign(int algorithm, byte[] ctx, byte[] msg, int msgOff, int msgLen, byte[] sig, int sigOff)
     {
         Ed448PublicKeyParameters publicKey = generatePublicKey();

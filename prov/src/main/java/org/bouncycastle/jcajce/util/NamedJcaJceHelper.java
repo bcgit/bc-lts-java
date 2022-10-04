@@ -95,13 +95,6 @@ public class NamedJcaJceHelper
         return KeyPairGenerator.getInstance(algorithm, providerName);
     }
 
-    /** @deprecated Use createMessageDigest instead */
-    public MessageDigest createDigest(String algorithm)
-        throws NoSuchAlgorithmException, NoSuchProviderException
-    {
-        return MessageDigest.getInstance(algorithm, providerName);
-    }
-
     public MessageDigest createMessageDigest(String algorithm)
         throws NoSuchAlgorithmException, NoSuchProviderException
     {

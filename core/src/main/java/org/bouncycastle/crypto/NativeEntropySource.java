@@ -6,7 +6,7 @@ import org.bouncycastle.crypto.prng.EntropySource;
 
 
 class NativeEntropySource
-    implements EntropySource
+    implements EntropySource, NativeService
 {
 
     private final int size;

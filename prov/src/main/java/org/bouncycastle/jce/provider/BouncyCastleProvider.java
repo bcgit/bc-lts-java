@@ -13,9 +13,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.bc.BCObjectIdentifiers;
-import org.bouncycastle.asn1.isara.IsaraObjectIdentifiers;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.crypto.CryptoServiceConstraintsException;
@@ -27,19 +24,6 @@ import org.bouncycastle.jcajce.provider.config.ProviderConfiguration;
 import org.bouncycastle.jcajce.provider.symmetric.util.ClassUtil;
 import org.bouncycastle.jcajce.provider.util.AlgorithmProvider;
 import org.bouncycastle.jcajce.provider.util.AsymmetricKeyInfoConverter;
-import org.bouncycastle.pqc.asn1.PQCObjectIdentifiers;
-import org.bouncycastle.pqc.jcajce.provider.falcon.FalconKeyFactorySpi;
-import org.bouncycastle.pqc.jcajce.provider.lms.LMSKeyFactorySpi;
-import org.bouncycastle.pqc.jcajce.provider.mceliece.McElieceCCA2KeyFactorySpi;
-import org.bouncycastle.pqc.jcajce.provider.mceliece.McElieceKeyFactorySpi;
-import org.bouncycastle.pqc.jcajce.provider.newhope.NHKeyFactorySpi;
-import org.bouncycastle.pqc.jcajce.provider.picnic.PicnicKeyFactorySpi;
-import org.bouncycastle.pqc.jcajce.provider.qtesla.QTESLAKeyFactorySpi;
-import org.bouncycastle.pqc.jcajce.provider.rainbow.RainbowKeyFactorySpi;
-import org.bouncycastle.pqc.jcajce.provider.sphincs.Sphincs256KeyFactorySpi;
-import org.bouncycastle.pqc.jcajce.provider.sphincsplus.SPHINCSPlusKeyFactorySpi;
-import org.bouncycastle.pqc.jcajce.provider.xmss.XMSSKeyFactorySpi;
-import org.bouncycastle.pqc.jcajce.provider.xmss.XMSSMTKeyFactorySpi;
 
 /**
  * To add the provider at runtime use:
@@ -122,7 +106,7 @@ public final class BouncyCastleProvider extends Provider
 
     private static final String[] ASYMMETRIC_CIPHERS =
     {
-        "DSA", "DH", "EC", "RSA", "GOST", "ECGOST", "ElGamal", "DSTU4145", "GM", "EdEC", "LMS", "SPHINCSPlus"
+        "DSA", "DH", "EC", "RSA", "GOST", "ECGOST", "ElGamal", "DSTU4145", "GM", "EdEC"
     };
 
     /*
@@ -192,43 +176,12 @@ public final class BouncyCastleProvider extends Provider
         loadAlgorithms(SECURE_RANDOM_PACKAGE, SECURE_RANDOMS);
 
         loadPQCKeys();  // so we can handle certificates containing them.
-
-        //
-        // X509Store
-        //
-        put("X509Store.CERTIFICATE/COLLECTION", "org.bouncycastle.jce.provider.X509StoreCertCollection");
-        put("X509Store.ATTRIBUTECERTIFICATE/COLLECTION", "org.bouncycastle.jce.provider.X509StoreAttrCertCollection");
-        put("X509Store.CRL/COLLECTION", "org.bouncycastle.jce.provider.X509StoreCRLCollection");
-        put("X509Store.CERTIFICATEPAIR/COLLECTION", "org.bouncycastle.jce.provider.X509StoreCertPairCollection");
-
-        put("X509Store.CERTIFICATE/LDAP", "org.bouncycastle.jce.provider.X509StoreLDAPCerts");
-        put("X509Store.CRL/LDAP", "org.bouncycastle.jce.provider.X509StoreLDAPCRLs");
-        put("X509Store.ATTRIBUTECERTIFICATE/LDAP", "org.bouncycastle.jce.provider.X509StoreLDAPAttrCerts");
-        put("X509Store.CERTIFICATEPAIR/LDAP", "org.bouncycastle.jce.provider.X509StoreLDAPCertPairs");
-
-        //
-        // X509StreamParser
-        //
-        put("X509StreamParser.CERTIFICATE", "org.bouncycastle.jce.provider.X509CertParser");
-        put("X509StreamParser.ATTRIBUTECERTIFICATE", "org.bouncycastle.jce.provider.X509AttrCertParser");
-        put("X509StreamParser.CRL", "org.bouncycastle.jce.provider.X509CRLParser");
-        put("X509StreamParser.CERTIFICATEPAIR", "org.bouncycastle.jce.provider.X509CertPairParser");
-
-        //
-        // cipher engines
-        //
-        put("Cipher.BROKENPBEWITHMD5ANDDES", "org.bouncycastle.jce.provider.BrokenJCEBlockCipher$BrokePBEWithMD5AndDES");
-
-        put("Cipher.BROKENPBEWITHSHA1ANDDES", "org.bouncycastle.jce.provider.BrokenJCEBlockCipher$BrokePBEWithSHA1AndDES");
-
-
-        put("Cipher.OLDPBEWITHSHAANDTWOFISH-CBC", "org.bouncycastle.jce.provider.BrokenJCEBlockCipher$OldPBEWithSHAAndTwofish");
-
+        
         // Certification Path API
         if (revChkClass != null)
         {
-            put("CertPathValidator.RFC3281", "org.bouncycastle.jce.provider.PKIXAttrCertPathValidatorSpi");
-            put("CertPathBuilder.RFC3281", "org.bouncycastle.jce.provider.PKIXAttrCertPathBuilderSpi");
+            put("CertPathValidator.RFC5280", "org.bouncycastle.jce.provider.PKIXCertPathValidatorSpi_8");
+            put("CertPathBuilder.RFC5280", "org.bouncycastle.jce.provider.PKIXCertPathBuilderSpi_8");
             put("CertPathValidator.RFC3280", "org.bouncycastle.jce.provider.PKIXCertPathValidatorSpi_8");
             put("CertPathBuilder.RFC3280", "org.bouncycastle.jce.provider.PKIXCertPathBuilderSpi_8");
             put("CertPathValidator.PKIX", "org.bouncycastle.jce.provider.PKIXCertPathValidatorSpi_8");
@@ -236,8 +189,8 @@ public final class BouncyCastleProvider extends Provider
         }
         else
         {
-            put("CertPathValidator.RFC3281", "org.bouncycastle.jce.provider.PKIXAttrCertPathValidatorSpi");
-            put("CertPathBuilder.RFC3281", "org.bouncycastle.jce.provider.PKIXAttrCertPathBuilderSpi");
+            put("CertPathValidator.RFC5280", "org.bouncycastle.jce.provider.PKIXCertPathValidatorSpi");
+            put("CertPathBuilder.RFC5280", "org.bouncycastle.jce.provider.PKIXCertPathBuilderSpi");
             put("CertPathValidator.RFC3280", "org.bouncycastle.jce.provider.PKIXCertPathValidatorSpi");
             put("CertPathBuilder.RFC3280", "org.bouncycastle.jce.provider.PKIXCertPathBuilderSpi");
             put("CertPathValidator.PKIX", "org.bouncycastle.jce.provider.PKIXCertPathValidatorSpi");
@@ -298,25 +251,7 @@ public final class BouncyCastleProvider extends Provider
 
     private void loadPQCKeys()
     {
-        addKeyInfoConverter(BCObjectIdentifiers.sphincsPlus, new SPHINCSPlusKeyFactorySpi());
-        addKeyInfoConverter(BCObjectIdentifiers.sphincsPlus_shake_256, new SPHINCSPlusKeyFactorySpi());
-        addKeyInfoConverter(BCObjectIdentifiers.sphincsPlus_sha_256, new SPHINCSPlusKeyFactorySpi());
-        addKeyInfoConverter(BCObjectIdentifiers.sphincsPlus_sha_512, new SPHINCSPlusKeyFactorySpi());
-        addKeyInfoConverter(PQCObjectIdentifiers.sphincs256, new Sphincs256KeyFactorySpi());
-        addKeyInfoConverter(PQCObjectIdentifiers.newHope, new NHKeyFactorySpi());
-        addKeyInfoConverter(PQCObjectIdentifiers.xmss, new XMSSKeyFactorySpi());
-        addKeyInfoConverter(IsaraObjectIdentifiers.id_alg_xmss, new XMSSKeyFactorySpi());
-        addKeyInfoConverter(PQCObjectIdentifiers.xmss_mt, new XMSSMTKeyFactorySpi());
-        addKeyInfoConverter(IsaraObjectIdentifiers.id_alg_xmssmt, new XMSSMTKeyFactorySpi());
-        addKeyInfoConverter(PQCObjectIdentifiers.mcEliece, new McElieceKeyFactorySpi());
-        addKeyInfoConverter(PQCObjectIdentifiers.mcElieceCca2, new McElieceCCA2KeyFactorySpi());
-        addKeyInfoConverter(PQCObjectIdentifiers.rainbow, new RainbowKeyFactorySpi());
-        addKeyInfoConverter(PQCObjectIdentifiers.qTESLA_p_I, new QTESLAKeyFactorySpi());
-        addKeyInfoConverter(PQCObjectIdentifiers.qTESLA_p_III, new QTESLAKeyFactorySpi());
-        addKeyInfoConverter(PKCSObjectIdentifiers.id_alg_hss_lms_hashsig, new LMSKeyFactorySpi());
-        addKeyInfoConverter(BCObjectIdentifiers.picnic_key, new PicnicKeyFactorySpi());
-        addKeyInfoConverter(BCObjectIdentifiers.falcon_512, new FalconKeyFactorySpi());
-        addKeyInfoConverter(BCObjectIdentifiers.falcon_1024, new FalconKeyFactorySpi());
+  // none for now
     }
 
     public void setParameter(String parameterName, Object parameter)
@@ -402,11 +337,6 @@ public final class BouncyCastleProvider extends Provider
     public static PublicKey getPublicKey(SubjectPublicKeyInfo publicKeyInfo)
         throws IOException
     {
-        if (publicKeyInfo.getAlgorithm().getAlgorithm().on(BCObjectIdentifiers.picnic_key))
-        {
-            return new PicnicKeyFactorySpi().generatePublic(publicKeyInfo);
-        }
-        
         AsymmetricKeyInfoConverter converter = getAsymmetricKeyInfoConverter(publicKeyInfo.getAlgorithm().getAlgorithm());
 
         if (converter == null)

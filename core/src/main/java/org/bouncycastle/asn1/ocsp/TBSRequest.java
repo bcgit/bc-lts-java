@@ -10,7 +10,6 @@ import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.x509.Extensions;
 import org.bouncycastle.asn1.x509.GeneralName;
-import org.bouncycastle.asn1.x509.X509Extensions;
 
 public class TBSRequest
     extends ASN1Object
@@ -23,23 +22,6 @@ public class TBSRequest
     Extensions  requestExtensions;
 
     boolean         versionSet;
-
-    /**
-     * @deprecated use method taking Extensions
-     * @param requestorName
-     * @param requestList
-     * @param requestExtensions
-     */
-    public TBSRequest(
-        GeneralName     requestorName,
-        ASN1Sequence    requestList,
-        X509Extensions requestExtensions)
-    {
-        this.version = V1;
-        this.requestorName = requestorName;
-        this.requestList = requestList;
-        this.requestExtensions = Extensions.getInstance(requestExtensions);
-    }
 
     public TBSRequest(
         GeneralName     requestorName,

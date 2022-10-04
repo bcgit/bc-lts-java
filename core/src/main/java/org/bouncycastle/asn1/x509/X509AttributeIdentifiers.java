@@ -4,11 +4,6 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 
 public interface X509AttributeIdentifiers
 {
-    /**
-     * @deprecated use id_at_role
-     */
-    static final ASN1ObjectIdentifier RoleSyntax = new ASN1ObjectIdentifier("2.5.4.72");
-
     static final ASN1ObjectIdentifier id_pe_ac_auditIdentity = X509ObjectIdentifiers.id_pe.branch("4");
     static final ASN1ObjectIdentifier id_pe_aaControls       = X509ObjectIdentifiers.id_pe.branch("6");
     static final ASN1ObjectIdentifier id_pe_ac_proxying      = X509ObjectIdentifiers.id_pe.branch("10");

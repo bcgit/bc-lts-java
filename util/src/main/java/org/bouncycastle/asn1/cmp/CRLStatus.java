@@ -68,14 +68,6 @@ public class CRLStatus
         return thisUpdate;
     }
 
-    /**
-     * @deprecated Use {@link #getThisUpdate()} instead.
-     */
-    public Time getTime()
-    {
-        return thisUpdate;
-    }
-
     public ASN1Primitive toASN1Primitive()
     {
         ASN1EncodableVector v = new ASN1EncodableVector(2);

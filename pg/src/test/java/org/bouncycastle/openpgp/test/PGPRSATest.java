@@ -1615,7 +1615,7 @@ public class PGPRSATest
         PGPPublicKeyRing pubRing = new PGPPublicKeyRing(encodedRing, new JcaKeyFingerprintCalculator());
         PGPPublicKey k = pubRing.getPublicKey();
         
-        if (k.getValidDays() != masterDays)
+        if (k.getValidSeconds() / (24L * 60 * 60) != masterDays)
         {
             fail("mismatch on master valid days.");
         }
@@ -1626,7 +1626,7 @@ public class PGPRSATest
         
         k = (PGPPublicKey)it.next();
         
-        if (k.getValidDays() != subKeyDays)
+        if (k.getValidSeconds()  / (24L * 60 * 60) != subKeyDays)
         {
             fail("mismatch on subkey valid days.");
         }

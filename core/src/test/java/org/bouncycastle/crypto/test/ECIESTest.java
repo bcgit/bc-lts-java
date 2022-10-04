@@ -532,7 +532,7 @@ public class ECIESTest
         byte[] mySenderKey = mySender.getKey();
 
         /* Accept agreement */
-        ECIESKEMExtractor kemExt = new ECIESKEMExtractor((ECPrivateKeyParameters)myPair.getPrivate(), myKeyLen, new KDF2BytesGenerator(new SHA512Digest()));
+        ECIESKEMExtractor kemExt = new ECIESKEMExtractor((ECPrivateKeyParameters)myPair.getPrivate(), myKeyLen, new KDF2BytesGenerator(new SHA512Digest()), newCofactorMode, oldCofactorMode, false);
 
         KeyParameter myReceiver = new KeyParameter(kemExt.extractSecret(secEnc.getEncapsulation()));
         byte[] myReceiverKey = myReceiver.getKey();

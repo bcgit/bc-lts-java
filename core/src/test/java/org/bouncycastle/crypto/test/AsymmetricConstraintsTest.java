@@ -79,7 +79,6 @@ import org.bouncycastle.crypto.params.ElGamalKeyGenerationParameters;
 import org.bouncycastle.crypto.params.ElGamalParameters;
 import org.bouncycastle.crypto.params.GOST3410KeyGenerationParameters;
 import org.bouncycastle.crypto.params.GOST3410Parameters;
-import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.MQVPrivateParameters;
 import org.bouncycastle.crypto.params.MQVPublicParameters;
 import org.bouncycastle.crypto.params.NaccacheSternKeyGenerationParameters;
@@ -95,7 +94,6 @@ import org.bouncycastle.crypto.signers.DSASigner;
 import org.bouncycastle.crypto.signers.DSTU4145Signer;
 import org.bouncycastle.crypto.signers.ECDSASigner;
 import org.bouncycastle.crypto.signers.ECGOST3410Signer;
-import org.bouncycastle.crypto.signers.ECGOST3410_2012Signer;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.bouncycastle.crypto.signers.Ed25519ctxSigner;
 import org.bouncycastle.crypto.signers.Ed25519phSigner;
@@ -389,7 +387,6 @@ public class AsymmetricConstraintsTest
         // first though.
         ecSignerTest(kp.getPublic(), kp.getPrivate(), new ECDSASigner());
         ecSignerTest(kp.getPublic(), kp.getPrivate(), new DSTU4145Signer());
-        ecSignerTest(kp.getPublic(), kp.getPrivate(), new ECGOST3410_2012Signer());
         ecSignerTest(kp.getPublic(), kp.getPrivate(), new ECGOST3410Signer());
         ecSignerTest(kp.getPublic(), kp.getPrivate(), new SM2Signer());
 

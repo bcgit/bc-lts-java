@@ -6,7 +6,6 @@ import org.bouncycastle.crypto.CipherKeyGenerator;
 import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.digests.SHA512tDigest;
 import org.bouncycastle.crypto.macs.HMac;
-import org.bouncycastle.crypto.macs.OldHMac;
 import org.bouncycastle.jcajce.provider.config.ConfigurableProvider;
 import org.bouncycastle.jcajce.provider.symmetric.util.BaseKeyGenerator;
 import org.bouncycastle.jcajce.provider.symmetric.util.BaseMac;
@@ -102,18 +101,6 @@ public class SHA512
     }
 
     /**
-     * SHA-512 HMac
-     */
-    public static class OldSHA512
-        extends BaseMac
-    {
-        public OldSHA512()
-        {
-            super(new OldHMac(new SHA512Digest()));
-        }
-    }
-
-    /**
      * HMACSHA512
      */
     public static class KeyGenerator
@@ -171,8 +158,6 @@ public class SHA512
             provider.addAlgorithm("Alg.Alias.MessageDigest.SHA-512(256)", "SHA-512/256");
             provider.addAlgorithm("Alg.Alias.MessageDigest.SHA512(256)", "SHA-512/256");
             provider.addAlgorithm("Alg.Alias.MessageDigest." + NISTObjectIdentifiers.id_sha512_256, "SHA-512/256");
-
-            provider.addAlgorithm("Mac.OLDHMACSHA512", PREFIX + "$OldSHA512");
 
             provider.addAlgorithm("Mac.PBEWITHHMACSHA512", PREFIX + "$HashMac");
 

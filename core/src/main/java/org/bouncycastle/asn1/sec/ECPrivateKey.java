@@ -49,15 +49,6 @@ public class ECPrivateKey
     }
 
     /**
-     * @deprecated use constructor which takes orderBitLength to guarantee correct encoding.
-     */
-    public ECPrivateKey(
-        BigInteger key)
-    {
-        this(key.bitLength(), key);
-    }
-
-    /**
      * Base constructor.
      *
      * @param orderBitLength the bitLength of the order of the curve.
@@ -75,27 +66,6 @@ public class ECPrivateKey
         v.add(new DEROctetString(bytes));
 
         seq = new DERSequence(v);
-    }
-
-    /**
-     * @deprecated use constructor which takes orderBitLength to guarantee correct encoding.
-     */
-    public ECPrivateKey(
-        BigInteger key,
-        ASN1Encodable parameters)
-    {
-        this(key, null, parameters);
-    }
-
-    /**
-     * @deprecated use constructor which takes orderBitLength to guarantee correct encoding.
-     */
-    public ECPrivateKey(
-        BigInteger key,
-        ASN1BitString publicKey,
-        ASN1Encodable parameters)
-    {
-        this(key.bitLength(), key, publicKey, parameters);
     }
 
     public ECPrivateKey(
@@ -142,15 +112,6 @@ public class ECPrivateKey
     public ASN1BitString getPublicKey()
     {
         return (ASN1BitString)getObjectInTag(1, BERTags.BIT_STRING);
-    }
-
-    /**
-     * @deprecated Use {@link #getParametersObject()} instead and getInstance
-     *             methods or similar to get the object at the desired type.
-     */
-    public ASN1Primitive getParameters()
-    {
-        return getParametersObject().toASN1Primitive();
     }
 
     public ASN1Object getParametersObject()

@@ -5,7 +5,6 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.engines.AESFastEngine;
 import org.bouncycastle.crypto.engines.AESLightEngine;
 import org.bouncycastle.crypto.engines.BlowfishEngine;
 import org.bouncycastle.crypto.engines.CAST5Engine;
@@ -48,7 +47,7 @@ public class BlockCipherResetTest
         throws Exception
     {
         // 128 bit block ciphers
-        testReset("AESFastEngine", new AESFastEngine(), new AESFastEngine(), new KeyParameter(new byte[16]));
+        testReset("AESFastEngine", new AESEngine(), new AESEngine(), new KeyParameter(new byte[16]));
         testReset("AESEngine", AESEngine.newInstance(), AESEngine.newInstance(), new KeyParameter(new byte[16]));
         testReset("AESLightEngine", new AESLightEngine(), new AESLightEngine(), new KeyParameter(new byte[16]));
         testReset("Twofish", new TwofishEngine(), new TwofishEngine(), new KeyParameter(new byte[16]));

@@ -8,7 +8,6 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1UTF8String;
 import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.asn1.DERUTF8String;
 
 public class ContentHints
     extends ASN1Object
@@ -65,16 +64,6 @@ public class ContentHints
     public ASN1ObjectIdentifier getContentType()
     {
         return contentType;
-    }
-
-    /**
-     * @deprecated Use {@link #getContentDescriptionUTF8()} instead.
-     */
-    public DERUTF8String getContentDescription()
-    {
-        return null == contentDescription || contentDescription instanceof DERUTF8String
-            ?   (DERUTF8String)contentDescription
-            :   new DERUTF8String(contentDescription.getString());
     }
 
     public ASN1UTF8String getContentDescriptionUTF8()

@@ -9,7 +9,6 @@ public class RegressionTest
         {
             new AESTest(),
             new AESLightTest(),
-            new AESFastTest(),
             new AESWrapTest(),
             new AESWrapPadTest(),
             new ARIATest(),

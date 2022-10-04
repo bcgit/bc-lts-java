@@ -1,6 +1,5 @@
 package org.bouncycastle.util;
 
-import org.bouncycastle.crypto.digests.SHA512tDigest;
 import org.bouncycastle.crypto.digests.SHAKEDigest;
 
 /**
@@ -36,25 +35,6 @@ public class Fingerprint
     public Fingerprint(byte[] source, int bitLength)
     {
         this.fingerprint = calculateFingerprint(source, bitLength);
-    }
-
-    /**
-     * Base constructor - for backwards compatibility.
-     *
-     * @param source original data to calculate the fingerprint from.
-     * @param useSHA512t use the old SHA512/160 calculation.
-     * @deprecated use the SHAKE only version.
-     */
-    public Fingerprint(byte[] source, boolean useSHA512t)
-    {
-        if (useSHA512t)
-        {
-            this.fingerprint = calculateFingerprintSHA512_160(source);
-        }
-        else
-        {
-            this.fingerprint = calculateFingerprint(source);
-        }
     }
 
     public byte[] getFingerprint()
@@ -131,27 +111,6 @@ public class Fingerprint
         byte[] rv = new byte[bitLength / 8];
 
         digest.doFinal(rv, 0, bitLength / 8);
-
-        return rv;
-    }
-
-    /**
-     * Return a byte array containing a calculated fingerprint for the passed in input data.
-     * The fingerprint is based on SHA512/160.
-     *
-     * @param input data to base the fingerprint on.
-     * @return a byte array containing a 20 byte fingerprint.
-     * @deprecated use the SHAKE based version.
-     */
-    public static byte[] calculateFingerprintSHA512_160(byte[] input)
-    {
-        SHA512tDigest digest = new SHA512tDigest(160);
-
-        digest.update(input, 0, input.length);
-
-        byte[] rv = new byte[digest.getDigestSize()];
-
-        digest.doFinal(rv, 0);
 
         return rv;
     }
