@@ -183,6 +183,7 @@ public class RegressionTest
             new ParallelHashTest(),
             new CryptoServiceConstraintsTest(),
             new SymmetricConstraintsTest(),
+            new AsymmetricConstraintsTest(),
             new DigestConstraintsTest(),
             new RadixConverterTest(),
             new Grain128AEADTest()
