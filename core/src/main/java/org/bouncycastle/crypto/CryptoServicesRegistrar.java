@@ -18,6 +18,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.bouncycastle.asn1.x9.X9ECParameters;
@@ -743,7 +744,7 @@ public final class CryptoServicesRegistrar
         @Override
         public void run()
         {
-            for (; ; )
+            while (!Thread.currentThread().isInterrupted())
             {
                 Runnable task = tasks.pollFirst();
 
@@ -769,6 +770,11 @@ public final class CryptoServicesRegistrar
                         Thread.currentThread().interrupt();
                     }
                 }
+            }
+
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.fine("entropy thread interrupted - exiting");
             }
         }
     }
