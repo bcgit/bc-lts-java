@@ -2,6 +2,7 @@ package org.bouncycastle.cert.crmf;
 
 import java.io.IOException;
 
+import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1UTF8String;
@@ -77,6 +78,16 @@ public class CertificateRequestMessage
     public CertReqMsg toASN1Structure()
     {
         return certReqMsg;
+    }
+
+    /**
+     * Return the certificate request ID for this message.
+     *
+     * @return the certificate request ID.
+     */
+    public ASN1Integer getCertReqId()
+    {
+        return certReqMsg.getCertReq().getCertReqId();
     }
 
     /**
