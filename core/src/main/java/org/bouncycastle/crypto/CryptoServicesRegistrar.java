@@ -14,7 +14,7 @@ import java.security.Security;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -734,7 +734,7 @@ public final class CryptoServicesRegistrar
     private static class EntropyDaemon
         implements Runnable
     {
-        private final ConcurrentLinkedDeque<Runnable> tasks = new ConcurrentLinkedDeque<Runnable>();
+        private final ConcurrentLinkedQueue<Runnable> tasks = new ConcurrentLinkedQueue<Runnable>();
 
         void addTask(Runnable task)
         {
@@ -746,7 +746,7 @@ public final class CryptoServicesRegistrar
         {
             while (!Thread.currentThread().isInterrupted())
             {
-                Runnable task = tasks.pollFirst();
+                Runnable task = tasks.poll();
 
                 if (task != null)
                 {
