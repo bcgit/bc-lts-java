@@ -7,7 +7,8 @@ gradlew.bat
 /*/build/
 /out/
 /build/
-/.idea/
+/.idea
+/.idea/.gitignore
 /core/src/main/resources/META-INF/DRIVERS
 /*.iml
 /*/*.iml

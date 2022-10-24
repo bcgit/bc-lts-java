@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.Iterator;
 
 import junit.framework.TestCase;
+import org.bouncycastle.asn1.cmp.CMPCertificate;
 import org.bouncycastle.asn1.cmp.PKIBody;
 import org.bouncycastle.asn1.cmp.PKIStatus;
 import org.bouncycastle.asn1.cmp.PKIStatusInfo;
@@ -177,26 +178,13 @@ public class ElgamalDSATest
 
         CertificateResponse certResp = certRepMessage.getResponses()[0];
 
-        CMSEnvelopedData receivedEnvelope = certResp.getEncryptedCertificate();
-        RecipientInformationStore recipients = receivedEnvelope.getRecipientInfos();
-
-        Collection c = recipients.getRecipients();
-
-        assertEquals(1, c.size());
-
-        Iterator it = c.iterator();
-
-        RecipientInformation recInfo = (RecipientInformation)it.next();
-
-        assertEquals(recInfo.getKeyEncryptionAlgOID(), OIWObjectIdentifiers.elGamalAlgorithm.getId());
-
         // Note: we don't specify the provider here as we're actually using both BC and BCPQC
 
-        byte[] recData = recInfo.getContent(new JceKeyTransEnvelopedRecipient(elgKp.getPrivate()));
+        CMPCertificate cmpCert = certResp.getCertificate(new JceKeyTransEnvelopedRecipient(elgKp.getPrivate()));
 
-        assertEquals(true, Arrays.equals(cert.getEncoded(), recData));
+        assertEquals(true, Arrays.equals(cert.getEncoded(), cmpCert.getEncoded()));
 
-        X509CertificateHolder receivedCert = new X509CertificateHolder(recData);
+        X509CertificateHolder receivedCert = new X509CertificateHolder(cmpCert.getX509v3PKCert());
 
         X509CertificateHolder caCertHolder = certRepMessage.getX509Certificates()[0];
 
