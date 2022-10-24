@@ -52,6 +52,7 @@ import org.bouncycastle.cms.jcajce.JceCMSContentEncryptorBuilder;
 import org.bouncycastle.cms.jcajce.JceKeyTransEnvelopedRecipient;
 import org.bouncycastle.cms.jcajce.JceKeyTransRecipientInfoGenerator;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.params.DHParameters;
 import org.bouncycastle.crypto.params.DSAParameters;
 import org.bouncycastle.jcajce.spec.DHDomainParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -101,7 +102,7 @@ public class ElgamalDSATest
         KeyPairGenerator elgKpGen = KeyPairGenerator.getInstance("Elgamal", "BC");
 
         elgKpGen.initialize(
-            new DHDomainParameterSpec(CryptoServicesRegistrar.getSizedProperty(CryptoServicesRegistrar.Property.DH_DEFAULT_PARAMS, 2048)));
+            new DHDomainParameterSpec((DHParameters)CryptoServicesRegistrar.getSizedProperty(CryptoServicesRegistrar.Property.DH_DEFAULT_PARAMS, 2048)));
             
         KeyPair elgKp = elgKpGen.generateKeyPair();
 
