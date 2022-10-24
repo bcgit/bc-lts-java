@@ -3,13 +3,11 @@ gradlew
 gradlew.bat
 /buildSrc/build/
 /buildSrc/.gradle/
-/core/out/
-/mail/out/
-/pkix/out/
-/prov/out/
-/tls/out/
+/*/out/
+/*/build/
 /out/
-.idea
+/build/
+/.idea/
 /core/src/main/resources/META-INF/DRIVERS
 /*.iml
 /*/*.iml
