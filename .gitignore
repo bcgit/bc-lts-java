@@ -9,4 +9,8 @@ gradlew.bat
 /prov/out/
 /tls/out/
 /out/
+.idea
 /core/src/main/resources/META-INF/DRIVERS
+/*.iml
+/*/*.iml
+
