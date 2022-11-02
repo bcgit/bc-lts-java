@@ -104,21 +104,6 @@ public class PKIFreeText
      *
      * @param i index of the string of interest
      * @return the string at index i.
-     * @deprecated Use {@link #getStringAtUTF8(int)} instead.
-     */
-    public DERUTF8String getStringAt(int i)
-    {
-        ASN1UTF8String stringAt = getStringAtUTF8(i);
-        return null == stringAt || stringAt instanceof DERUTF8String
-            ? (DERUTF8String)stringAt
-            : new DERUTF8String(stringAt.getString());
-    }
-
-    /**
-     * Return the UTF8STRING at index i.
-     *
-     * @param i index of the string of interest
-     * @return the string at index i.
      */
     public ASN1UTF8String getStringAtUTF8(int i)
     {

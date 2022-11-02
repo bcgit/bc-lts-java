@@ -101,7 +101,7 @@ public class AllTests
 
     public static Test suite()
     {
-        return new TestSuite(AllTests.class);
+        return new TestSuite(new Class[] { AllTests.class, ElgamalDSATest.class });
     }
 
     public void setUp()

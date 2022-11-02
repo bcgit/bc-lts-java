@@ -15,23 +15,6 @@ import org.bouncycastle.util.Arrays;
 public class ISO9796d2Signer
     implements SignerWithRecovery
 {
-    /** @deprecated use ISOTrailers */
-    static final public int   TRAILER_IMPLICIT    = 0xBC;
-    /** @deprecated use ISOTrailers */
-    static final public int   TRAILER_RIPEMD160   = 0x31CC;
-    /** @deprecated use ISOTrailers */
-    static final public int   TRAILER_RIPEMD128   = 0x32CC;
-    /** @deprecated use ISOTrailers */
-    static final public int   TRAILER_SHA1        = 0x33CC;
-    /** @deprecated use ISOTrailers */
-    static final public int   TRAILER_SHA256      = 0x34CC;
-    /** @deprecated use ISOTrailers */
-    static final public int   TRAILER_SHA512      = 0x35CC;
-    /** @deprecated use ISOTrailers */
-    static final public int   TRAILER_SHA384      = 0x36CC;
-    /** @deprecated use ISOTrailers */
-    static final public int   TRAILER_WHIRLPOOL   = 0x37CC;
-
     private Digest                      digest;
     private AsymmetricBlockCipher       cipher;
 

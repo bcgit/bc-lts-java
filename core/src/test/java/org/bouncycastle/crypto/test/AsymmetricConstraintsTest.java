@@ -52,8 +52,8 @@ import org.bouncycastle.crypto.generators.NaccacheSternKeyPairGenerator;
 import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.generators.X25519KeyPairGenerator;
 import org.bouncycastle.crypto.generators.X448KeyPairGenerator;
-import org.bouncycastle.crypto.kems.ECIESKeyEncapsulation;
-import org.bouncycastle.crypto.kems.RSAKeyEncapsulation;
+import org.bouncycastle.crypto.kems.RSAKEMExtractor;
+import org.bouncycastle.crypto.kems.RSAKEMGenerator;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.params.CramerShoupKeyGenerationParameters;
 import org.bouncycastle.crypto.params.DHKeyGenerationParameters;
@@ -79,7 +79,6 @@ import org.bouncycastle.crypto.params.ElGamalKeyGenerationParameters;
 import org.bouncycastle.crypto.params.ElGamalParameters;
 import org.bouncycastle.crypto.params.GOST3410KeyGenerationParameters;
 import org.bouncycastle.crypto.params.GOST3410Parameters;
-import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.MQVPrivateParameters;
 import org.bouncycastle.crypto.params.MQVPublicParameters;
 import org.bouncycastle.crypto.params.NaccacheSternKeyGenerationParameters;
@@ -95,7 +94,6 @@ import org.bouncycastle.crypto.signers.DSASigner;
 import org.bouncycastle.crypto.signers.DSTU4145Signer;
 import org.bouncycastle.crypto.signers.ECDSASigner;
 import org.bouncycastle.crypto.signers.ECGOST3410Signer;
-import org.bouncycastle.crypto.signers.ECGOST3410_2012Signer;
 import org.bouncycastle.crypto.signers.Ed25519Signer;
 import org.bouncycastle.crypto.signers.Ed25519ctxSigner;
 import org.bouncycastle.crypto.signers.Ed25519phSigner;
@@ -389,7 +387,6 @@ public class AsymmetricConstraintsTest
         // first though.
         ecSignerTest(kp.getPublic(), kp.getPrivate(), new ECDSASigner());
         ecSignerTest(kp.getPublic(), kp.getPrivate(), new DSTU4145Signer());
-        ecSignerTest(kp.getPublic(), kp.getPrivate(), new ECGOST3410_2012Signer());
         ecSignerTest(kp.getPublic(), kp.getPrivate(), new ECGOST3410Signer());
         ecSignerTest(kp.getPublic(), kp.getPrivate(), new SM2Signer());
 
@@ -862,11 +859,11 @@ public class AsymmetricConstraintsTest
 
         KDF2BytesGenerator kdf = new KDF2BytesGenerator(new SHA1Digest());
         SecureRandom rnd = new SecureRandom();
-        RSAKeyEncapsulation rsaKem = new RSAKeyEncapsulation(kdf, rnd);
+        RSAKEMGenerator rsaKem = new RSAKEMGenerator(128 / 8, kdf, rnd);
 
         try
         {
-            rsaKem.init(kp.getPublic());
+            rsaKem.generateEncapsulated(kp.getPublic());
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -875,7 +872,7 @@ public class AsymmetricConstraintsTest
         }
 
         // will pass as decryption
-        rsaKem.init(kp.getPrivate());
+        RSAKEMExtractor rsaExt = new RSAKEMExtractor((RSAKeyParameters)kp.getPrivate(), 128 / 8, kdf);
 
         try
         {
@@ -901,32 +898,32 @@ public class AsymmetricConstraintsTest
         AsymmetricCipherKeyPair kp = ecKp.generateKeyPair();
 
         byte[] out = new byte[49];
-        ECIESKeyEncapsulation kem = new ECIESKeyEncapsulation(kdf, random);
-
-        kem.init(kp.getPublic());
-        KeyParameter key1 = (KeyParameter)kem.encrypt(out, 128);
-
-        CryptoServicesRegistrar.setServicesConstraints(new LegacyBitsOfSecurityConstraint(128, 80));
-
-
-        ECIESKeyEncapsulation eciesKEM = new ECIESKeyEncapsulation(kdf, random);
-
-        try
-        {
-            eciesKEM.init(kp.getPublic());
-
-            eciesKEM.encrypt(new byte[0], 128);
-            fail("no exception");
-        }
-        catch (CryptoServiceConstraintsException e)
-        {
-            isEquals(e.getMessage(), "service does not provide 128 bits of security only 96", e.getMessage());
-        }
-
-        // will pass as decryption
-        eciesKEM.init(kp.getPrivate());
-
-        eciesKEM.decrypt(out, 128);
+//        ECIESKeyEncapsulation kem = new ECIESKeyEncapsulation(kdf, random);
+//
+//        kem.init(kp.getPublic());
+//        KeyParameter key1 = (KeyParameter)kem.encrypt(out, 128);
+//
+//        CryptoServicesRegistrar.setServicesConstraints(new LegacyBitsOfSecurityConstraint(128, 80));
+//
+//
+//        ECIESKeyEncapsulation eciesKEM = new ECIESKeyEncapsulation(kdf, random);
+//
+//        try
+//        {
+//            eciesKEM.init(kp.getPublic());
+//
+//            eciesKEM.encrypt(new byte[0], 128);
+//            fail("no exception");
+//        }
+//        catch (CryptoServiceConstraintsException e)
+//        {
+//            isEquals(e.getMessage(), "service does not provide 128 bits of security only 96", e.getMessage());
+//        }
+//
+//        // will pass as decryption
+//        eciesKEM.init(kp.getPrivate());
+//
+//        eciesKEM.decrypt(out, 128);
 
         CryptoServicesRegistrar.setServicesConstraints(null);
     }

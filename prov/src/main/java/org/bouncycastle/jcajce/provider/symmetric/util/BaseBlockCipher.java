@@ -798,7 +798,7 @@ public class BaseBlockCipher
             GOST28147ParameterSpec gost28147Param = (GOST28147ParameterSpec)params;
 
             param = new ParametersWithSBox(
-                new KeyParameter(key.getEncoded()), ((GOST28147ParameterSpec)params).getSbox());
+                new KeyParameter(key.getEncoded()), ((GOST28147ParameterSpec)params).getSBox());
 
             if (gost28147Param.getIV() != null && ivLength != 0)
             {
@@ -982,7 +982,7 @@ public class BaseBlockCipher
                 // need to pick up IV and SBox.
                 GOST28147ParameterSpec gost28147Param = (GOST28147ParameterSpec)params;
 
-                param = new ParametersWithSBox(param, gost28147Param.getSbox());
+                param = new ParametersWithSBox(param, gost28147Param.getSBox());
 
                 if (gost28147Param.getIV() != null && ivLength != 0)
                 {
@@ -1005,7 +1005,7 @@ public class BaseBlockCipher
                 // need to pick up IV and SBox.
                 GOST28147ParameterSpec gost28147Param = (GOST28147ParameterSpec)params;
 
-                param = new ParametersWithSBox(param, gost28147Param.getSbox());
+                param = new ParametersWithSBox(param, gost28147Param.getSBox());
 
                 if (gost28147Param.getIV() != null && ivLength != 0)
                 {

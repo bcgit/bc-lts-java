@@ -81,7 +81,6 @@ import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.Selector;
 import org.bouncycastle.util.Store;
 import org.bouncycastle.util.StoreException;
-import org.bouncycastle.x509.X509AttributeCertificate;
 
 class CertPathValidatorUtilities
 {
@@ -1399,20 +1398,10 @@ class CertPathValidatorUtilities
     {
         if (crls.isEmpty())
         {
-            if (cert instanceof X509AttributeCertificate)
-            {
-                X509AttributeCertificate aCert = (X509AttributeCertificate)cert;
+            X509Certificate xCert = (X509Certificate)cert;
 
-                throw new RecoverableCertPathValidatorException("No CRLs found for issuer \"" + aCert.getIssuer().getPrincipals()[0] + "\"", null,
-                                params.getCertPath(), params.getIndex());
-            }
-            else
-            {
-                X509Certificate xCert = (X509Certificate)cert;
-
-                throw new RecoverableCertPathValidatorException("No CRLs found for issuer \"" + RFC4519Style.INSTANCE.toString(PrincipalUtils.getIssuerPrincipal(xCert)) + "\"", null,
-                    params.getCertPath(), params.getIndex());
-            }
+            throw new RecoverableCertPathValidatorException("No CRLs found for issuer \"" + RFC4519Style.INSTANCE.toString(PrincipalUtils.getIssuerPrincipal(xCert)) + "\"", null,
+                params.getCertPath(), params.getIndex());
         }
     }
 }

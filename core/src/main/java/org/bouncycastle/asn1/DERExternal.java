@@ -7,25 +7,6 @@ public class DERExternal
     extends ASN1External
 {
     /**
-     * Construct a DER EXTERNAL object, the input encoding vector must have exactly two elements on it.
-     * <p>
-     * Acceptable input formats are:
-     * <ul>
-     * <li> {@link ASN1ObjectIdentifier} + data {@link DERTaggedObject} (direct reference form)</li>
-     * <li> {@link ASN1Integer} + data {@link DERTaggedObject} (indirect reference form)</li>
-     * <li> Anything but {@link DERTaggedObject} + data {@link DERTaggedObject} (data value form)</li>
-     * </ul>
-     *
-     * @throws IllegalArgumentException if input size is wrong, or input is not an acceptable format
-     * 
-     * @deprecated Use {@link DERExternal#DERExternal(DERSequence)} instead.
-     */
-    public DERExternal(ASN1EncodableVector vector)
-    {
-        this(DERFactory.createSequence(vector));
-    }
-
-    /**
      * Construct a DER EXTERNAL object, the input sequence must have exactly two elements on it.
      * <p>
      * Acceptable input formats are:

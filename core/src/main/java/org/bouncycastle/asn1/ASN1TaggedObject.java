@@ -317,7 +317,7 @@ public abstract class ASN1TaggedObject
      *             {@link #getBaseUniversal(boolean, int)} only after confirming the
      *             expected tag class.
      */
-    public ASN1Primitive getObject()
+    ASN1Primitive getObject()
     {
         if (BERTags.CONTEXT_SPECIFIC != getTagClass())
         {
@@ -445,19 +445,6 @@ public abstract class ASN1TaggedObject
         }
     }
 
-    /**
-     * @deprecated See {@link ASN1TaggedObjectParser#getObjectParser(int, boolean)}.
-     */
-    public ASN1Encodable getObjectParser(int tag, boolean isExplicit) throws IOException
-    {
-        if (BERTags.CONTEXT_SPECIFIC != getTagClass())
-        {
-            throw new ASN1Exception("this method only valid for CONTEXT_SPECIFIC tags");
-        }
-
-        return parseBaseUniversal(isExplicit, tag);
-    }
-
     public ASN1Encodable parseBaseUniversal(boolean declaredExplicit, int baseTagNo) throws IOException
     {
         ASN1Primitive primitive = getBaseUniversal(declaredExplicit, baseTagNo);
@@ -526,13 +513,7 @@ public abstract class ASN1TaggedObject
             ?   new DLTaggedObject(PARSED_EXPLICIT, tagClass, tagNo, contentsElements.get(0))
             :   new DLTaggedObject(PARSED_IMPLICIT, tagClass, tagNo, DLFactory.createSequence(contentsElements));
 
-        switch (tagClass)
-        {
-        case BERTags.APPLICATION:
-            return new DLApplicationSpecific(taggedObject);
-        default:
-            return taggedObject;
-        }
+        return taggedObject;
     }
 
     static ASN1Primitive createConstructedIL(int tagClass, int tagNo, ASN1EncodableVector contentsElements)
@@ -543,13 +524,7 @@ public abstract class ASN1TaggedObject
             ?   new BERTaggedObject(PARSED_EXPLICIT, tagClass, tagNo, contentsElements.get(0))
             :   new BERTaggedObject(PARSED_IMPLICIT, tagClass, tagNo, BERFactory.createSequence(contentsElements));
 
-        switch (tagClass)
-        {
-        case BERTags.APPLICATION:
-            return new BERApplicationSpecific(taggedObject);
-        default:
             return taggedObject;
-        }
     }
 
     static ASN1Primitive createPrimitive(int tagClass, int tagNo, byte[] contentsOctets)
@@ -558,13 +533,7 @@ public abstract class ASN1TaggedObject
         ASN1TaggedObject taggedObject = new DLTaggedObject(PARSED_IMPLICIT, tagClass, tagNo,
             new DEROctetString(contentsOctets));
 
-        switch (tagClass)
-        {
-        case BERTags.APPLICATION:
-            return new DLApplicationSpecific(taggedObject);
-        default:
-            return taggedObject;
-        }
+        return taggedObject;
     }
 
     private static ASN1TaggedObject checkedCast(ASN1Primitive primitive)

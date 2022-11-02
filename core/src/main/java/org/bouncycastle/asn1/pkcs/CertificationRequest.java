@@ -54,10 +54,7 @@ public class CertificationRequest
         this.sigBits = signature;
     }
 
-    /**
-     * @deprecated use getInstance()
-     */
-    public CertificationRequest(
+    private CertificationRequest(
         ASN1Sequence seq)
     {
         reqInfo = CertificationRequestInfo.getInstance(seq.getObjectAt(0));

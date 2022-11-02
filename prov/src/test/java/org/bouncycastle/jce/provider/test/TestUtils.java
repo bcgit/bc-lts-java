@@ -18,7 +18,6 @@ import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.CertificateNotYetValidException;
-import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.HashMap;
@@ -38,8 +37,6 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.BasicConstraints;
-import org.bouncycastle.asn1.x509.CRLNumber;
-import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.Extension;
@@ -58,9 +55,6 @@ import org.bouncycastle.asn1.x509.V3TBSCertificateGenerator;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.SHA1Digest;
-import org.bouncycastle.jce.PrincipalUtil;
-import org.bouncycastle.x509.X509V2CRLGenerator;
-import org.bouncycastle.x509.extension.AuthorityKeyIdentifierStructure;
 
 /**
  * Test Utils
@@ -263,30 +257,6 @@ class TestUtils
         return createCert(
             caCertLw.getSubject(),
             caKey, subject, "SHA256withRSA", extGen.generate(), entityKey);
-    }
-
-    public static X509CRL createCRL(
-        X509Certificate caCert,
-        PrivateKey caKey,
-        BigInteger serialNumber)
-        throws Exception
-    {
-        X509V2CRLGenerator crlGen = new X509V2CRLGenerator();
-        Date now = new Date();
-        BigInteger revokedSerialNumber = BigInteger.valueOf(2);
-
-        crlGen.setIssuerDN(PrincipalUtil.getSubjectX509Principal(caCert));
-
-        crlGen.setThisUpdate(now);
-        crlGen.setNextUpdate(new Date(now.getTime() + 100000));
-        crlGen.setSignatureAlgorithm("SHA256WithRSAEncryption");
-
-        crlGen.addCRLEntry(serialNumber, now, CRLReason.privilegeWithdrawn);
-
-        crlGen.addExtension(Extension.authorityKeyIdentifier, false, new AuthorityKeyIdentifierStructure(caCert));
-        crlGen.addExtension(Extension.cRLNumber, false, new CRLNumber(BigInteger.valueOf(1)));
-
-        return crlGen.generate(caKey, "BC");
     }
 
     public static X509Certificate createExceptionCertificate(boolean exceptionOnEncode)

@@ -3,7 +3,6 @@ package org.bouncycastle.openpgp;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,9 +28,6 @@ import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
 import org.bouncycastle.bcpg.TrustPacket;
 import org.bouncycastle.bcpg.UserAttributePacket;
 import org.bouncycastle.bcpg.UserIDPacket;
-import org.bouncycastle.gpg.SExprParser;
-import org.bouncycastle.openpgp.operator.KeyFingerPrintCalculator;
-import org.bouncycastle.openpgp.operator.PBEProtectionRemoverFactory;
 import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor;
 import org.bouncycastle.openpgp.operator.PBESecretKeyEncryptor;
 import org.bouncycastle.openpgp.operator.PGPContentSignerBuilder;
@@ -974,29 +970,5 @@ public class PGPSecretKey
         }
 
         return new PGPSecretKey(secretKey.secret, publicKey);
-    }
-
-    /**
-     * Parse a secret key from one of the GPG S expression keys associating it with the passed in public key.
-     *
-     * @return a secret key object.
-     * @deprecated use org.bouncycastle.gpg.SExprParser - it will also allow you to verify the protection checksum if it is available.
-     */
-    public static PGPSecretKey parseSecretKeyFromSExpr(InputStream inputStream, PBEProtectionRemoverFactory keyProtectionRemoverFactory, PGPPublicKey pubKey)
-        throws IOException, PGPException
-    {
-        return new SExprParser(null).parseSecretKey(inputStream, keyProtectionRemoverFactory, pubKey);
-    }
-
-    /**
-     * Parse a secret key from one of the GPG S expression keys.
-     *
-     * @return a secret key object.
-     * @deprecated use org.bouncycastle.gpg.SExprParser - it will also allow you to verify the protection checksum if it is available.
-     */
-    public static PGPSecretKey parseSecretKeyFromSExpr(InputStream inputStream, PBEProtectionRemoverFactory keyProtectionRemoverFactory, KeyFingerPrintCalculator fingerPrintCalculator)
-        throws IOException, PGPException
-    {
-        return new SExprParser(null).parseSecretKey(inputStream, keyProtectionRemoverFactory, fingerPrintCalculator);
     }
 }
