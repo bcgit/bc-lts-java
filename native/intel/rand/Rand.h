@@ -15,7 +15,7 @@ namespace intel {
 
     public:
 
-        static int modulus();
+        static unsigned char modulus();
 
         static bool isPredictionResistant();
 

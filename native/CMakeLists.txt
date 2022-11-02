@@ -34,12 +34,14 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
         string(APPEND CMAKE_ASM_NASM_FLAGS "-g -i${ASM_INCLUDE}")
         set(CMAKE_ASM_NASM_OBJECT_FORMAT macho64)
         set(VARIANT_PREFIX "darwin-x86_64")
+        set(OPTIONS -Wconversion)
     else ()
         MESSAGE("Building for Darwin ARM 64")
         set(JNI_INCLUDE_PLATFORM ${JNI_INCLUDE}/darwin)
         set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/darwin)
         set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/darwin/arm64)
         set(VARIANT_PREFIX "darwin-arm64")
+        set(OPTIONS -Wconversion)
     endif ()
 
 
@@ -55,6 +57,7 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         set(ASM_DEFINES LINUX32E)
         string(APPEND CMAKE_ASM_NASM_FLAGS "-g -i${ASM_INCLUDE}")
         set(VARIANT_PREFIX "linux-x86_64")
+        set(OPTIONS -Wconversion)
     else ()
 
     endif ()
@@ -147,14 +150,21 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     set(RAND_HEADERS intel/rand/Rand.h)
     set(RAND_IMPL intel/rand/Rand.cpp intel/jni/native_entropy_source_jni.cpp)
     set(IDENT_IMPL intel/jni/ident_jni.cpp intel/jni/native_features.cpp)
+    set(MACRO macro.h)
     set(COMMON intel/common.cpp intel/common.h)
-    set(CBC intel/cbc/AesCBC128Impl.cpp
-            intel/cbc/AesCBC192Impl.cpp
-            intel/cbc/AesCBC256Impl.cpp
-            intel/cbc/AesCBC.h
-            intel/cbc/CBC.cpp
-            intel/cbc/CBC.h
+    set(CBC
+            intel/cbc/CBCLike.h
+            intel/cbc/CBCLike.cpp
+            intel/cbc/AesCBCEncrypt.cpp
+            intel/cbc/AesCBC128NarrowImpl.cpp
+            intel/cbc/AesCBC192NarrowImpl.cpp
+            intel/cbc/AesCBC256NarrowImpl.cpp
+            intel/cbc/AesCBCNarrow.h
+            intel/cbc/CBCNarrow.cpp
+            intel/cbc/CBCNarrow.h
             intel/jni/cbc_jni.cpp)
+
+    set (CBC_VAES )
 
     set(CFB intel/cfb/AesCFB.h
             intel/cfb/AesCFB128Impl.cpp
@@ -186,16 +196,17 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     #
     # Probe project a simple lib for probing the CPUs features
     #
-    add_library(${LIB_PROBE} SHARED intel/jni/variant_selector_intel.cpp)
+    add_library(${LIB_PROBE} SHARED  ${MACRO} intel/jni/variant_selector_intel.cpp)
 
     target_include_directories(${LIB_PROBE} PUBLIC ${JNI_INCLUDES})
-    target_compile_options(${LIB_PROBE} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-O3 -msse4.1>)
+    target_compile_options(${LIB_PROBE} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-O3 -msse4.1 ${OPTIONS}>)
     target_compile_definitions(${LIB_PROBE} PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\")
     install(TARGETS "${LIB_PROBE}" LIBRARY DESTINATION ${PLATFORM_TARGET}/probe)
 
 
     add_library("${LIB_NATIVE}-sse" SHARED
 
+            ${MACRO}
             ${COMMON}
 
             ${RAND_HEADERS}
@@ -217,17 +228,17 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     # Intel
     #
     target_compile_options("${LIB_NATIVE}-sse" PRIVATE
-            $<$<COMPILE_LANGUAGE:CXX>:-O3 -msse4.1 -msha -maes -mpclmul -mrdrnd -mrdseed>
-            $<$<COMPILE_LANGUAGE:C>:-O3 -msse4.1 -msha -maes -mpclmul -mrdrnd -mrdseed>
+            $<$<COMPILE_LANGUAGE:CXX>:-O3 -msse4.1 -msha -maes -mpclmul -mrdrnd -mrdseed ${OPTIONS}>
+            $<$<COMPILE_LANGUAGE:C>:-O3 -msse4.1 -msha -maes -mpclmul -mrdrnd -mrdseed ${OPTIONS}>
             )
     install(TARGETS "${LIB_NATIVE}-sse" LIBRARY DESTINATION ${PLATFORM_TARGET}/sse)
     target_compile_definitions("${LIB_NATIVE}-sse" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"sse\")
 
 
     # specify the C++ standard
-    #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed")
     add_library("${LIB_NATIVE}-avx" SHARED
 
+            ${MACRO}
             ${COMMON}
 
             ${RAND_HEADERS}
@@ -248,55 +259,49 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 
     #Intel
     target_compile_options("${LIB_NATIVE}-avx" PRIVATE
-            $<$<COMPILE_LANGUAGE:CXX>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt>
-            $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt>
+            $<$<COMPILE_LANGUAGE:CXX>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS}>
+            $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS}>
             )
     install(TARGETS "${LIB_NATIVE}-avx" LIBRARY DESTINATION ${PLATFORM_TARGET}/avx)
     target_compile_definitions("${LIB_NATIVE}-avx" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"avx\")
+
+
+    #
+    # VAES VERSION
+    #
+    add_library("${LIB_NATIVE}-vaes" SHARED
+
+            ${MACRO}
+            ${COMMON}
+
+            ${RAND_HEADERS}
+            ${RAND_IMPL}
+
+            ${JVM_UTIL_HEADERS}
+            ${JVM_UTIL_IMPL}
+            ${IDENT_IMPL}
+
+            ${GCM}
+            ${CBC}
+            ${CBC_VAES}
+            ${ECB}
+            ${CFB}
+            ${EXCEPTIONS}
+            )
+    target_include_directories("${LIB_NATIVE}-vaes" PUBLIC ${JNI_INCLUDES})
+
+
+    #Intel
+    target_compile_options("${LIB_NATIVE}-vaes" PRIVATE
+            $<$<COMPILE_LANGUAGE:CXX>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes ${OPTIONS}>
+            $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes ${OPTIONS}>
+            )
+    install(TARGETS "${LIB_NATIVE}-vaes" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaes)
+    target_compile_definitions("${LIB_NATIVE}-vaes" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"vaes\" BC_VAES)
+
+
 endif ()
 
-#
-## specify the C++ standard
-##set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed")
-#add_library("${LIB_NATIVE}-vaes" SHARED
-#        ${IPPC_C}
-#        ${INTEL_ASM}
-#
-#        ${PROBE_HEADERS}
-#        ${PROBE_IMPL}
-#        ${RAND_HEADERS}
-#        ${RAND_IMPL}
-#
-#        ${JVM_UTIL_HEADERS}
-#        ${JVM_UTIL_IMPL}
-#
-#        ${GCM_HEADERS}
-#        ${GCM_IMPL}
-#
-#        ${ECB_HEADERS}
-#        ${ECB_IMPL}
-#
-#        ${AES_FUNC}
-#        ${CT_FUNC}
-#
-#        ${EXCEPTIONS}
-#
-#        ${DEBUG_FUNC}
-#        ${CBC_HEADERS}
-#        ${CBC_IMPL}
-#
-#        ${DIGEST_HEADERS}
-#        ${DIGEST_IMPL}
-#
-#        ${IDENT_IMPL}
-#        )
-#target_include_directories("${LIB_NATIVE}-vaes" PUBLIC ${JNI_INCLUDES})
-##target_link_libraries("${LIB_NATIVE}-vaes" ${LIB_PROBE})
-#target_compile_options("${LIB_NATIVE}-vaes" PRIVATE -O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mvaes)
-#install(TARGETS "${LIB_NATIVE}-vaes" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaes)
-#target_compile_definitions("${LIB_NATIVE}-vaes" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"vaes\" BC_VAES ${ASM_DEFINES})
-#
-#
 
 
 #intel/gcm/gcm_func.cpp intel/gcm/gcm_func.h intel/gcm/gcm_intel.cpp intel/gcm/gcm_intel.h

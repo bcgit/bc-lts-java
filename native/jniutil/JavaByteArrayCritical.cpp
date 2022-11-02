@@ -25,7 +25,7 @@ namespace jniutil {
         jboolean isCopy = false;
         this->env = env;
         this->array = array;
-        len = env->GetArrayLength(array);
+        len = (size_t)env->GetArrayLength(array);
         val = reinterpret_cast<char *>( env->GetPrimitiveArrayCritical(array, &isCopy));
         wasCopy = isCopy != 0;
         wasNull = false;
@@ -47,7 +47,7 @@ namespace jniutil {
         jboolean isCopy = false;
         this->env = env;
         this->array = array;
-        len = env->GetArrayLength(array);
+        len = (size_t)env->GetArrayLength(array);
         val = reinterpret_cast<char *>( env->GetPrimitiveArrayCritical(array, &isCopy));
         wasCopy = isCopy != 0;
         wasNull = false;

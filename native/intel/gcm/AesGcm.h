@@ -32,7 +32,7 @@ namespace intel {
          * warn:
          * warning: ignoring attributes on template argument ‘__m128i’ {aka ‘__vector(2) long long int’}
          * Rather than squash the warning it is better to deal with it and in this case it is only
-         * used during the doFinal of GCM and only if addition associated text is supplied after init.
+         * used during the doFinal of GCM and only if addition associated text is supplied after initKey.
          *
          * Some conjecture indicates that the Intel C++ compiler does not have this issue.
          */
@@ -74,7 +74,7 @@ namespace intel {
             unsigned char *initAD = nullptr;
             size_t initADLen = 0;
 
-            int atBlockPos = 0;
+            uint32_t atBlockPos = 0;
             size_t atLengthPre = 0;
             int64_t blocksRemaining = 0;
 

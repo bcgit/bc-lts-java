@@ -657,12 +657,12 @@ size_t intel::gcm::AesGcm::processBytes(unsigned char *in, size_t inOff, size_t 
     unsigned char *outStart = outPtr;
 
     for (unsigned char *readPos = start; readPos < end;) {
-        processBuffer(readPos, end - readPos, outPtr, outputLen, read, written);
+        processBuffer(readPos, (size_t)(end - readPos), outPtr, outputLen, read, written);
         readPos += read;
         outPtr += written;
     }
 
-    return outPtr - outStart;
+    return (size_t)(outPtr - outStart);
 
 }
 
@@ -829,7 +829,7 @@ size_t intel::gcm::AesGcm::doFinal(unsigned char *output, size_t outOff, size_t 
     }
 
     reset(true);
-    return outPtr - start;
+    return (size_t)(outPtr - start);
 }
 
 void

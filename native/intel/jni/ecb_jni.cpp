@@ -1,10 +1,12 @@
 
 
+#include <cassert>
 #include "org_bouncycastle_crypto_engines_AESNativeEngine.h"
 #include "../ecb/ecb.h"
 #include "../../jniutil/JavaByteArray.h"
 #include "../ecb/AesEcb.h"
 #include "../../jniutil/JavaByteArrayCritical.h"
+#include "../../macro.h"
 
 
 //
@@ -34,6 +36,11 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_rese
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_process
         (JNIEnv *env, jclass, jlong ref, jbyteArray _in, jint inOffset, jint blocks, jbyteArray _out, jint outOffset) {
 
+
+    abortIfNegative(inOffset);
+    abortIfNegative(blocks);
+    abortIfNegative(outOffset);
+
     //
     // Always wrap output array first.
     //
@@ -41,7 +48,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_proc
     jniutil::JavaByteArrayCritical in(env, _in);
 
     auto instance = static_cast<intel::ecb::ECB *>((void *) ref);
-    return (jint) instance->processBlocks(in.uvalue(), inOffset, in.length(), blocks, out.uvalue(), outOffset);
+    return (jint) instance->processBlocks(in.uvalue(), (size_t)inOffset, in.length(),(uint32_t) blocks, out.uvalue(), (size_t)outOffset);
 
 }
 

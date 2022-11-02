@@ -29,7 +29,7 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_isPr
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_modulus
         (JNIEnv *, jobject) {
-    return intel::Rand::modulus();
+    return (jint)intel::Rand::modulus();
 }
 
 /*

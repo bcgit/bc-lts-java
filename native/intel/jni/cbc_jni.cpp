@@ -1,9 +1,11 @@
+#include <cassert>
 #include "org_bouncycastle_crypto_engines_AESNativeCBC.h"
 
-#include "../cbc/CBC.h"
-#include "../cbc/AesCBC.h"
+#include "../cbc/CBCNarrow.h"
+#include "../cbc/AesCBCNarrow.h"
 #include "../../jniutil/JavaByteArray.h"
 #include "../../jniutil/JavaByteArrayCritical.h"
+#include "../../macro.h"
 
 //
 // NOTE:
@@ -17,10 +19,11 @@
  * Method:    process
  * Signature: (J[BII[BI)I
  */
-JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_process
+JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_process
         (JNIEnv *env, jclass, jlong ref, jbyteArray in_, jint inOff, jint blocks, jbyteArray out_, jint outOff) {
 
-
+    // Absolutely has to be positive.
+    abortIfNegative(blocks);
 
     //
     // Always wrap output array first.
@@ -28,8 +31,11 @@ JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_proces
     jniutil::JavaByteArrayCritical out(env, out_);
     jniutil::JavaByteArrayCritical in(env, in_);
 
-    auto instance = static_cast<intel::cbc::CBC *>((void *) ref);
-   return (jint)instance->processBlock(in.uvalue() + inOff, blocks, out.uvalue() + outOff);
+    abortIf(out.isNull(), "output array passed to native layer was null");
+    abortIf(in.isNull(), "input array passed to native layer was null");
+
+    auto instance = static_cast<intel::cbc::CBCNarrow *>((void *) ref);
+    return (jint) instance->processBlock(in.uvalue() + inOff, (uint32_t) blocks, out.uvalue() + outOff);
 
 }
 
@@ -38,7 +44,7 @@ JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_proces
  * Method:    getMultiBlockSize
  * Signature: (I)I
  */
-JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_getMultiBlockSize
+JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_getMultiBlockSize
         (JNIEnv *, jclass, jint) {
     return CBC_BLOCK_SIZE;
 }
@@ -48,7 +54,7 @@ JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_getMul
  * Method:    getBlockSize
  * Signature: (J)I
  */
-JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_getBlockSize
+JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_getBlockSize
         (JNIEnv *, jclass, jlong) {
     return CBC_BLOCK_SIZE;
 }
@@ -58,7 +64,7 @@ JNIEXPORT jint JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_getBlo
  * Method:    makeNative
  * Signature: (IZ)J
  */
-JNIEXPORT jlong JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_makeNative
+JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_makeNative
         (JNIEnv *, jclass, jint keySize, jboolean encryption) {
 
     void *instance = nullptr;
@@ -105,12 +111,16 @@ JNIEXPORT jlong JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_makeN
  * Method:    init
  * Signature: (J[B[B)V
  */
-JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_init
+JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_init
         (JNIEnv *env, jobject, jlong ref, jbyteArray key_, jbyteArray iv_) {
 
-    auto instance = static_cast<intel::cbc::CBC *>((void *) ref);
+    auto instance = static_cast<intel::cbc::CBCNarrow *>((void *) ref);
     jniutil::JavaByteArray key(env, key_);
     jniutil::JavaByteArray iv(env, iv_);
+
+    abortIf(key.isNull(), "CBC key was null array");
+    abortIf(iv.isNull(), "CBC IV was null key");
+
     instance->init(key.uvalue(), key.length(), iv.uvalue(), iv.length());
 
 }
@@ -120,10 +130,10 @@ JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_init
  * Method:    dispose
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_dispose
+JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_dispose
         (JNIEnv *, jclass, jlong ref) {
 
-    auto instance = static_cast<intel::cbc::CBC *>((void *) ref);
+    auto instance = static_cast<intel::cbc::CBCNarrow *>((void *) ref);
     delete instance;
 
 }
@@ -133,8 +143,8 @@ JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_dispos
  * Method:    reset
  * Signature: (J)V
  */
-JNIEXPORT void JNICALL  Java_org_bouncycastle_crypto_engines_AESNativeCBC_reset
+JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_reset
         (JNIEnv *, jclass, jlong ref) {
-    auto instance = static_cast<intel::cbc::CBC *>((void *) ref);
+    auto instance = static_cast<intel::cbc::CBCNarrow *>((void *) ref);
     instance->reset();
 }

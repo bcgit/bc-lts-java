@@ -102,7 +102,23 @@ class AESNativeCBC
             ));
 
 
+        switch (key.length)
+        {
+        case 16:
+        case 24:
+        case 32:
+            break;
+        default:
+            throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
+        }
+
         referenceWrapper = new CBCRefWrapper(makeNative(key.length, encrypting));
+
+        if (referenceWrapper.getReference() == 0)
+        {
+            throw new IllegalStateException("Native CBC native instance returned a null pointer.");
+        }
+
         init(referenceWrapper.getReference(), key, iv);
 
     }

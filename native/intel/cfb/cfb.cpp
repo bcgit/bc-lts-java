@@ -78,7 +78,7 @@ namespace intel {
                     ptr += CFB_BLOCK_SIZE;
                 }
             }
-            return dest - destStart;
+            return (size_t) (dest - destStart);
         }
 
         jbyte CFB::processByte(unsigned char in) {
@@ -97,7 +97,7 @@ namespace intel {
             if (byteCount == CFB_BLOCK_SIZE) {
                 byteCount = 0;
             }
-            return out;
+            return (jbyte)out;
         }
 
     }

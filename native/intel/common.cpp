@@ -257,3 +257,6 @@ void init_128(__m128i *rk, unsigned char *uk, bool enc) {
     memset(&temp1, 0, sizeof(__m128i));
     memset(&temp2, 0, sizeof(__m128i));
 }
+
+
+

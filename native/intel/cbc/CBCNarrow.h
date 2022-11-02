@@ -9,30 +9,26 @@
 #include <cstddef>
 #include <cstdint>
 #include <emmintrin.h>
+#include "CBCLike.h"
 
 #define CBC_BLOCK_SIZE 16
 
 namespace intel {
     namespace cbc {
 
-        class CBC {
+        class CBCNarrow: protected CBCLike {
 
         protected:
-            __m128i *roundKeys;
             __m128i feedback;
             __m128i initialFeedback;
-
-            virtual void init(unsigned char *key) = 0;
-
-            virtual void xform(__m128i data, __m128i *pInt, __m128i &result, __m128i &feedback) = 0;
 
         public:
 
 
 
-            CBC();
+            CBCNarrow();
 
-            virtual ~CBC();
+            virtual ~CBCNarrow();
 
             void init(unsigned char *key, unsigned long keylen, unsigned char *iv, unsigned long ivlen);
 
@@ -40,7 +36,7 @@ namespace intel {
 
             uint32_t getMultiBlockSize();
 
-            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out);
+            virtual size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) =0;
 
 
         };

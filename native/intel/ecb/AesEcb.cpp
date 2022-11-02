@@ -76,7 +76,7 @@ size_t intel::ecb::AesEcb128E::processBlocks(unsigned char *input,
         in += ECB_BLOCK_SIZE;
     }
 
-    return out - outStart;
+    return (size_t)(out - outStart);
 
 }
 
@@ -140,7 +140,7 @@ size_t intel::ecb::AesEcb192E::processBlocks(unsigned char *input,
         in += ECB_BLOCK_SIZE;
     }
 
-    return out - outStart;
+    return (size_t)(out - outStart);
 
 }
 
@@ -208,7 +208,7 @@ size_t intel::ecb::AesEcb256E::processBlocks(unsigned char *input,
         in += ECB_BLOCK_SIZE;
     }
 
-    return out - outStart;
+    return (size_t)(out - outStart);
 
 }
 
@@ -271,7 +271,7 @@ size_t intel::ecb::AesEcb128D::processBlocks(unsigned char *input,
         in += ECB_BLOCK_SIZE;
     }
 
-    return out - outStart;
+    return (size_t)(out - outStart);
 
 }
 
@@ -337,7 +337,7 @@ size_t intel::ecb::AesEcb192D::processBlocks(unsigned char *input,
         in += ECB_BLOCK_SIZE;
     }
 
-    return out - outStart;
+    return (size_t)(out - outStart);
 
 }
 
@@ -402,7 +402,7 @@ size_t intel::ecb::AesEcb256D::processBlocks(unsigned char *input,
         in += ECB_BLOCK_SIZE;
     }
 
-    return out - outStart;
+    return (size_t)(out - outStart);
 
 }
 
