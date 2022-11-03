@@ -15,6 +15,7 @@ test-java-code:
 test-code-sse:
   stage: testSSE
   script:
+    - "cat /proc/cpuinfo | grep avx"
     - "apply_overlay bc-fips-2-0-X-java ./"
     - "rm -rf /tmp/bcfipslibs"
     - "mkdir -p /tmp/bcfipslibs"
@@ -30,6 +31,7 @@ test-code-sse:
 test-code-avx:
   stage: testAVX
   script:
+    - "cat /proc/cpuinfo | grep avx"
     - "apply_overlay bc-fips-2-0-X-java ./"
     - "rm -rf /tmp/bcfipslibs"
     - "mkdir -p /tmp/bcfipslibs"
