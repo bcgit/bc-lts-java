@@ -74,6 +74,12 @@ subprojects {
   version = '1.70'
 
   task testFull(type: Test) {
+
+    testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
+
     systemProperties = [
             'bc.test.data.home': bcTestDataHome,
             'test.full'        : 'true'

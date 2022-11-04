@@ -145,26 +145,37 @@ endif ()
 
 
 if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
-    set(JVM_UTIL_HEADERS jniutil/JavaEnvUtils.h jniutil/JavaByteArray.h jniutil/JavaByteArrayCritical.h jniutil/JavaByteArrayCritical.cpp )
+    set(JVM_UTIL_HEADERS jniutil/JavaEnvUtils.h jniutil/JavaByteArray.h jniutil/JavaByteArrayCritical.h jniutil/JavaByteArrayCritical.cpp)
     set(JVM_UTIL_IMPL jniutil/JavaByteArray.cpp jniutil/JavaEnvUtils.cpp)
     set(RAND_HEADERS intel/rand/Rand.h)
     set(RAND_IMPL intel/rand/Rand.cpp intel/jni/native_entropy_source_jni.cpp)
     set(IDENT_IMPL intel/jni/ident_jni.cpp intel/jni/native_features.cpp)
     set(MACRO macro.h)
     set(COMMON intel/common.cpp intel/common.h)
+
     set(CBC
             intel/cbc/CBCLike.h
             intel/cbc/CBCLike.cpp
             intel/cbc/AesCBCEncrypt.cpp
-            intel/cbc/AesCBC128NarrowImpl.cpp
-            intel/cbc/AesCBC192NarrowImpl.cpp
-            intel/cbc/AesCBC256NarrowImpl.cpp
+            intel/cbc/AesCBCDecrypt.cpp
             intel/cbc/AesCBCNarrow.h
-            intel/cbc/CBCNarrow.cpp
-            intel/cbc/CBCNarrow.h
+            intel/cbc/CBC128wide.cpp
+            intel/cbc/CBC128wide.h
             intel/jni/cbc_jni.cpp)
 
-    set (CBC_VAES )
+    set(CBC_VAES
+            intel/cbc/CBCLike.h
+            intel/cbc/CBCLike.cpp
+            intel/cbc/CBC128wide.cpp
+            intel/cbc/CBC128wide.h
+            intel/cbc/AesCBCEncrypt.cpp
+            intel/cbc/AesCBCDecryptVaes.h
+            intel/cbc/AesCBCDecryptVaes.cpp
+            intel/cbc/CBC256wide.h
+            intel/cbc/CBC256wide.cpp
+            intel/cbc/AesCBCDecryptVaes.cpp
+            intel/jni/cbc_jni_vaes.cpp
+            )
 
     set(CFB intel/cfb/AesCFB.h
             intel/cfb/AesCFB128Impl.cpp
@@ -183,11 +194,17 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             )
 
     set(GCM intel/jni/gcm_jni.cpp
-            intel/gcm/AesGcm.cpp
-            intel/gcm/AesGcm.h
+            intel/gcm/AesGcm128wide.cpp
+            intel/gcm/AesGcm128wide.h
             intel/gcm/gcm.cpp
             intel/gcm/gcm.h)
 
+
+    set(GCM_VAES intel/jni/gcm_jni_vaes.cpp
+            intel/gcm/AesGcm256wide.cpp
+            intel/gcm/AesGcm256wide.h
+            intel/gcm/gcm.cpp
+            intel/gcm/gcm.h)
 
     #
     # INTEL
@@ -196,7 +213,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     #
     # Probe project a simple lib for probing the CPUs features
     #
-    add_library(${LIB_PROBE} SHARED  ${MACRO} intel/jni/variant_selector_intel.cpp)
+    add_library(${LIB_PROBE} SHARED ${MACRO} intel/jni/variant_selector_intel.cpp)
 
     target_include_directories(${LIB_PROBE} PUBLIC ${JNI_INCLUDES})
     target_compile_options(${LIB_PROBE} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-O3 -msse4.1 ${OPTIONS}>)
@@ -281,8 +298,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${JVM_UTIL_IMPL}
             ${IDENT_IMPL}
 
-            ${GCM}
-            ${CBC}
+            ${GCM_VAES}
             ${CBC_VAES}
             ${ECB}
             ${CFB}
@@ -291,17 +307,18 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     target_include_directories("${LIB_NATIVE}-vaes" PUBLIC ${JNI_INCLUDES})
 
 
+    #
+    #-mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS}
     #Intel
     target_compile_options("${LIB_NATIVE}-vaes" PRIVATE
-            $<$<COMPILE_LANGUAGE:CXX>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes ${OPTIONS}>
-            $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes ${OPTIONS}>
+            $<$<COMPILE_LANGUAGE:CXX>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS} >
+            $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS}>
             )
     install(TARGETS "${LIB_NATIVE}-vaes" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaes)
     target_compile_definitions("${LIB_NATIVE}-vaes" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"vaes\" BC_VAES)
 
 
 endif ()
-
 
 
 #intel/gcm/gcm_func.cpp intel/gcm/gcm_func.h intel/gcm/gcm_intel.cpp intel/gcm/gcm_intel.h
@@ -311,9 +328,9 @@ endif ()
 ##
 
 ## Uncomment to enable test project
-#add_executable(tryit main.cpp ${DEBUG_FUNC})
-#target_link_libraries(tryit "${LIB_NATIVE}-avx")
-#target_compile_options("tryit" PRIVATE $<$<COMPILE_LANGUAGE:CXX>: -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt> $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt>)
-#target_compile_definitions("tryit" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"avx\" ${ASM_DEFINES} _ARCH_EM64T _L9)
+#add_executable(tryit main.cpp debug.h debug.cpp)
+#target_link_libraries(tryit "${LIB_NATIVE}-vaes")
+#target_compile_options("tryit" PRIVATE $<$<COMPILE_LANGUAGE:CXX>: -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt> $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2>)
+#target_compile_definitions("tryit" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"vaes\" ${ASM_DEFINES} _ARCH_EM64T _L9)
 
 ###

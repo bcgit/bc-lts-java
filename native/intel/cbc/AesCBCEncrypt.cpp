@@ -3,13 +3,12 @@
 // AES CBC 128 Encryption
 //
 
-#include <emmintrin.h>
-#include <wmmintrin.h>
+
 #include <stdexcept>
 #include <cstring>
 #include <iostream>
 #include "AesCBCNarrow.h"
-#include "CBCNarrow.h"
+#include "CBC128wide.h"
 
 namespace intel {
     namespace cbc {
@@ -23,7 +22,7 @@ namespace intel {
         // AES CBC 128 Encryption
         //
 
-        AesCBC128Enc::AesCBC128Enc() : CBCNarrow() {
+        AesCBC128Enc::AesCBC128Enc() : CBC128wide() {
             encrypting = true;
         }
 
@@ -61,7 +60,7 @@ namespace intel {
 
 
 
-        AesCBC192Enc::AesCBC192Enc() : CBCNarrow() {
+        AesCBC192Enc::AesCBC192Enc() : CBC128wide() {
             encrypting = true;
         }
 
@@ -104,7 +103,7 @@ namespace intel {
         // AES CBC 256 Encryption
         //
 
-        AesCBC256Enc::AesCBC256Enc() : CBCNarrow() {
+        AesCBC256Enc::AesCBC256Enc() : CBC128wide() {
             encrypting = true;
         }
 

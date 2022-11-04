@@ -4,8 +4,6 @@ import java.security.SecureRandom;
 
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.engines.AESNativeGCM;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -17,7 +15,12 @@ import org.junit.Test;
  * Compare output of native and java implementations of the same transformations.
  */
 public class AesGCMConcordanceTest
+    extends TestCase
 {
+
+    public AesGCMConcordanceTest() {
+
+    }
 
     @Test
     public void testGCMConcordance()
@@ -36,7 +39,7 @@ public class AesGCMConcordanceTest
         for (int keySize : new int[]{16, 24, 32})
         {
 
-            for (int t = 0; t < 100000; t++)
+            for (int t = 0; t < 10000; t++)
             {
 
                 GCMBlockCipher javaEngine = new GCMBlockCipher(new AESEngine());

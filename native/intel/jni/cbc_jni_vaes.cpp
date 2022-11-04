@@ -5,8 +5,11 @@
 #include "../../jniutil/JavaByteArray.h"
 #include "../../jniutil/JavaByteArrayCritical.h"
 #include "../../macro.h"
-#include "../cbc/CBC128wide.h"
+
+
+#include  "../cbc/AesCBCDecryptVaes.h"
 #include "../cbc/AesCBCNarrow.h"
+
 
 
 //
@@ -88,17 +91,15 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_makeNa
         }
     } else {
         switch (keySize) {
-
             case 16:
-                instance = new intel::cbc::AesCBC128Dec();
+                instance = new intel::cbc::AesCBC128VaesDec();
                 break;
             case 24:
-                instance = new intel::cbc::AesCBC192Dec();
+                instance = new intel::cbc::AesCBC192VaesDec();
                 break;
             case 32:
-                instance = new intel::cbc::AesCBC256Dec();
+                instance = new intel::cbc::AesCBC256VaesDec();
                 break;
-
             default:
                 break;
         }
@@ -137,7 +138,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_init
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_dispose
         (JNIEnv *, jclass, jlong ref) {
 
-    auto instance = static_cast<intel::cbc::CBCLike *>((void *) ref);
+    auto instance = static_cast<intel::cbc::CBC256wide *>((void *) ref);
     delete instance;
 
 }

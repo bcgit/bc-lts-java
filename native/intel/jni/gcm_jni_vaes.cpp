@@ -1,13 +1,13 @@
 #include "org_bouncycastle_crypto_engines_AESNativeGCM.h"
 
 #include "../gcm/gcm.h"
-#include "../gcm/AesGcm128wide.h"
 #include "../../jniutil/JavaByteArray.h"
 #include "../../exceptions/OutputLengthException.h"
 #include "../../jniutil/JavaEnvUtils.h"
 #include "../../exceptions/CipherTextException.h"
 #include "../../jniutil/JavaByteArrayCritical.h"
 #include "../../macro.h"
+#include "../gcm/AesGcm256wide.h"
 
 
 //
@@ -63,7 +63,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_makeIn
 
     // TODO add key size implementations.
 
-    auto instance = new intel::gcm::AesGcm128wide();
+    auto instance = new intel::gcm::AesGcm256wide();
     return (jlong) instance;
 }
 

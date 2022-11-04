@@ -305,14 +305,20 @@ public class GCMTest
             runTestCase(TEST_VECTORS[i]);
         }
 
+
         randomTests();
         outputSizeTests();
         testExceptions();
     }
 
+
+
+
+
+
     protected BlockCipher createAESEngine()
     {
-        return new AESEngine();
+        return AESEngine.newInstance();
     }
 
     private void testExceptions() throws InvalidCipherTextException

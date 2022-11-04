@@ -3,7 +3,7 @@ package org.bouncycastle.crypto;
 import junit.framework.TestCase;
 import org.bouncycastle.util.Arrays;
 
-public class NativeEntropyTest
+public class NativeEntropyTests
     extends TestCase
 {
 

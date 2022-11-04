@@ -58,14 +58,15 @@ namespace intel {
         };
 
 
-        class AesGcm : public GCM {
+        class AesGcm256wide : public GCM {
         public:
         private:
 
             static __m128i BSWAP_EPI64;
             static __m128i BSWAP_MASK;
 
-            __m128i *roundKeys;
+            __m256i *roundKeys256;
+            __m128i *roundKeys128;
 
             // mac block
             unsigned char *macBlock;
@@ -115,9 +116,9 @@ namespace intel {
             void initCipher();
 
         public:
-            AesGcm();
+            AesGcm256wide();
 
-            ~AesGcm() override;
+            ~AesGcm256wide() override;
 
             void reset(bool keepMac) override;
 

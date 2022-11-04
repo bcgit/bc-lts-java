@@ -9,12 +9,17 @@
 //
 
 #define abortIfNot( condition, msg) if (! (condition)) {              \
-        std::cerr << #msg << " " << __FUNCTION__ << std::flush <<  std::endl; \
+        std::cerr << msg << " " << __FUNCTION__ << std::flush <<  std::endl; \
         abort();   \
     } \
 
 #define abortIf( condition, msg) if ( (condition)) {              \
-        std::cerr << #msg << " " << __FUNCTION__ << std::flush <<  std::endl; \
+        std::cerr << msg << " " << __FUNCTION__ << std::flush <<  std::endl; \
+        abort();   \
+    } \
+
+#define abortNull(var) if ( (var == nullptr)) {              \
+        std::cerr << #var << " was null" << __FUNCTION__ << std::flush <<  std::endl; \
         abort();   \
     } \
 

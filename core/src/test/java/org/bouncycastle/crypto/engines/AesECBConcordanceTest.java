@@ -4,8 +4,6 @@ import java.security.SecureRandom;
 
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.NativeServices;
-import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.Arrays;
 import org.junit.Test;
@@ -14,7 +12,12 @@ import org.junit.Test;
  * Compare output of native and java implementations of the same transformations.
  */
 public class AesECBConcordanceTest
+    extends TestCase
 {
+
+    public AesECBConcordanceTest()
+    {
+    }
 
     @Test
     public void testECBConcordance()

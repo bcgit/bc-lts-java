@@ -9,14 +9,14 @@
 #include <emmintrin.h>
 #include <wmmintrin.h>
 #include <jni_md.h>
-#include "CBCNarrow.h"
+#include "CBC128wide.h"
 
 
 namespace intel {
     namespace cbc {
 
 
-        class AesCBC128Enc : public CBCNarrow {
+        class AesCBC128Enc : public CBC128wide {
         private:
 
 
@@ -30,7 +30,7 @@ namespace intel {
 
         };
 
-        class AesCBC128Dec : public CBCNarrow {
+        class AesCBC128Dec : public CBC128wide {
         private:
 
 
@@ -44,7 +44,7 @@ namespace intel {
         };
 
 
-        class AesCBC192Enc : public CBCNarrow {
+        class AesCBC192Enc : public CBC128wide {
         private:
 
 
@@ -56,7 +56,7 @@ namespace intel {
 
         };
 
-        class AesCBC192Dec : public CBCNarrow {
+        class AesCBC192Dec : public CBC128wide {
         private:
 
 
@@ -70,7 +70,7 @@ namespace intel {
 
         };
 
-        class AesCBC256Enc : public CBCNarrow {
+        class AesCBC256Enc : public CBC128wide {
         private:
 
 
@@ -84,7 +84,7 @@ namespace intel {
 
         };
 
-        class AesCBC256Dec : public CBCNarrow {
+        class AesCBC256Dec : public CBC128wide {
         private:
 
 

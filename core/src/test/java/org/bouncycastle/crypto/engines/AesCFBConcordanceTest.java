@@ -5,8 +5,6 @@ import java.security.SecureRandom;
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.MultiBlockCipher;
-import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.engines.AESNativeCFB;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -17,7 +15,11 @@ import org.junit.Test;
  * Compare output of native and java implementations of the same transformations.
  */
 public class AesCFBConcordanceTest
+    extends TestCase
 {
+    public AesCFBConcordanceTest()
+    {
+    }
 
     @Test
     public void testCFBConcordance()

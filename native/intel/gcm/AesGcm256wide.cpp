@@ -5,17 +5,18 @@
 #include <cstring>
 #include <stdexcept>
 #include "gcm.h"
-#include "AesGcm.h"
+#include "AesGcm256wide.h"
 #include "../../exceptions/CipherTextException.h"
 #include "../../exceptions/OutputLengthException.h"
+#include "../../macro.h"
 #include <iostream>
 #include <wmmintrin.h>
 #include <emmintrin.h>
 #include <smmintrin.h>
 
 
-__m128i intel::gcm::AesGcm::BSWAP_EPI64 = _mm_set_epi8(8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7);
-__m128i intel::gcm::AesGcm::BSWAP_MASK = _mm_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
+__m128i intel::gcm::AesGcm256wide::BSWAP_EPI64 = _mm_set_epi8(8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7);
+__m128i intel::gcm::AesGcm256wide::BSWAP_MASK = _mm_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
 
 #define BLOCKS_REMAINING_INIT ((1L << 32) - 2L)
 
@@ -137,22 +138,6 @@ inline void init_256(__m128i *rk, unsigned char *uk, bool enc) {
     KEY_256_ASSIST_1(&temp1, &temp2);
     rk[14] = temp1;
 
-    if (!enc) {
-        rk[1] = _mm_aesimc_si128(rk[1]);
-        rk[2] = _mm_aesimc_si128(rk[2]);
-        rk[3] = _mm_aesimc_si128(rk[3]);
-        rk[4] = _mm_aesimc_si128(rk[4]);
-        rk[5] = _mm_aesimc_si128(rk[5]);
-        rk[6] = _mm_aesimc_si128(rk[6]);
-        rk[7] = _mm_aesimc_si128(rk[7]);
-        rk[8] = _mm_aesimc_si128(rk[8]);
-        rk[9] = _mm_aesimc_si128(rk[9]);
-        rk[10] = _mm_aesimc_si128(rk[10]);
-        rk[11] = _mm_aesimc_si128(rk[11]);
-        rk[12] = _mm_aesimc_si128(rk[12]);
-        rk[13] = _mm_aesimc_si128(rk[13]);
-    }
-
     memset(&temp1, 0, sizeof(__m128i));
     memset(&temp2, 0, sizeof(__m128i));
     memset(&temp3, 0, sizeof(__m128i));
@@ -222,20 +207,6 @@ inline void init_192(__m128i *rk, unsigned char *uk, bool enc) {
     rk[12] = temp1;
 
 
-    if (!enc) {
-        rk[1] = _mm_aesimc_si128(rk[1]);
-        rk[2] = _mm_aesimc_si128(rk[2]);
-        rk[3] = _mm_aesimc_si128(rk[3]);
-        rk[4] = _mm_aesimc_si128(rk[4]);
-        rk[5] = _mm_aesimc_si128(rk[5]);
-        rk[6] = _mm_aesimc_si128(rk[6]);
-        rk[7] = _mm_aesimc_si128(rk[7]);
-        rk[8] = _mm_aesimc_si128(rk[8]);
-        rk[9] = _mm_aesimc_si128(rk[9]);
-        rk[10] = _mm_aesimc_si128(rk[10]);
-        rk[11] = _mm_aesimc_si128(rk[11]);
-    }
-
     memset(&temp1, 0, sizeof(__m128i));
     memset(&temp2, 0, sizeof(__m128i));
     memset(&temp3, 0, sizeof(__m128i));
@@ -279,24 +250,15 @@ inline void init_128(__m128i *rk, unsigned char *uk, bool enc) {
     temp1 = AES_128_ASSIST(temp1, temp2);
     rk[10] = temp1;
 
-    if (!enc) {
-        rk[1] = _mm_aesimc_si128(rk[1]);
-        rk[2] = _mm_aesimc_si128(rk[2]);
-        rk[3] = _mm_aesimc_si128(rk[3]);
-        rk[4] = _mm_aesimc_si128(rk[4]);
-        rk[5] = _mm_aesimc_si128(rk[5]);
-        rk[6] = _mm_aesimc_si128(rk[6]);
-        rk[7] = _mm_aesimc_si128(rk[7]);
-        rk[8] = _mm_aesimc_si128(rk[8]);
-        rk[9] = _mm_aesimc_si128(rk[9]);
-    }
+
     memset(&temp1, 0, sizeof(__m128i));
     memset(&temp2, 0, sizeof(__m128i));
 }
 
 
-intel::gcm::AesGcm::AesGcm() : GCM() {
-    roundKeys = new __m128i[15];
+intel::gcm::AesGcm256wide::AesGcm256wide() : GCM() {
+    roundKeys256 = new __m256i[15];
+    roundKeys128 = new __m128i[15];
     rounds = 0;
     encryption = false;
     macBlock = nullptr;
@@ -313,9 +275,11 @@ intel::gcm::AesGcm::AesGcm() : GCM() {
     blocksRemaining = BLOCKS_REMAINING_INIT; // page 8, len(P) <= 2^39 - 256, one block taken by tag, but doFinal on J0.
 }
 
-intel::gcm::AesGcm::~AesGcm() {
-    memset(roundKeys, 0, sizeof(__m128i) * 15);
-    delete[] roundKeys;
+intel::gcm::AesGcm256wide::~AesGcm256wide() {
+    memset(roundKeys256, 0, sizeof(__m256i) * 15);
+    delete[] roundKeys256;
+    memset(roundKeys128, 0, sizeof(__m128i) * 15);
+    delete[] roundKeys128;
     rounds = 0;
     delete[] macBlock;
     delete[] initAD;
@@ -329,7 +293,7 @@ intel::gcm::AesGcm::~AesGcm() {
 
 }
 
-void intel::gcm::AesGcm::reset(bool keepMac) {
+void intel::gcm::AesGcm256wide::reset(bool keepMac) {
 
     atLength = 0;
     totalBytes = 0;
@@ -365,9 +329,10 @@ void intel::gcm::AesGcm::reset(bool keepMac) {
 }
 
 
-void intel::gcm::AesGcm::init(bool encryption, unsigned char *key, size_t keyLen, unsigned char *nonce, size_t nonceLen,
-                              unsigned char *initialText,
-                              size_t initialTextLen, size_t macSizeBytes) {
+void intel::gcm::AesGcm256wide::init(bool encryption, unsigned char *key, size_t keyLen, unsigned char *nonce,
+                                     size_t nonceLen,
+                                     unsigned char *initialText,
+                                     size_t initialTextLen, size_t macSizeBytes) {
 
 
     this->encryption = encryption;
@@ -432,22 +397,27 @@ void intel::gcm::AesGcm::init(bool encryption, unsigned char *key, size_t keyLen
     switch (keyLen) {
         case 16:
             rounds = 10;
-            init_128(this->roundKeys, key, true);
+            init_128(this->roundKeys128, key, true);
             break;
 
         case 24:
             rounds = 12;
-            init_192(this->roundKeys, key, true);
+            init_192(this->roundKeys128, key, true);
             break;
 
         case 32:
             rounds = 14;
-            init_256(this->roundKeys, key, true);
+            init_256(this->roundKeys128, key, true);
             break;
 
         default:
             throw std::invalid_argument("invalid key len");
     }
+
+    for (int t = 0; t < 15; t++) {
+        roundKeys256[t] = _mm256_set_m128i(roundKeys128[t], roundKeys128[t]);
+    }
+
 
 //    //
 //    // Set up key schedule.
@@ -463,34 +433,57 @@ void intel::gcm::AesGcm::init(bool encryption, unsigned char *key, size_t keyLen
     H = _mm_setzero_si128();
 
     __m128i tmp1, tmp2, tmp3, tmp4;
-
+    __m256i zulu1, zulu2;
     if (nonceLen == 12) {
         Y = _mm_loadu_si128((__m128i *) nonce);
         Y = _mm_insert_epi32(Y, 0x1000000, 3);
 
-        tmp1 = _mm_xor_si128(X, roundKeys[0]);
-        tmp2 = _mm_xor_si128(Y, roundKeys[0]);
+        __m256i zulu = _mm256_set_m128i(X, Y);
+
+        zulu = _mm256_xor_si256(zulu, roundKeys256[0]);
+
+        //tmp1 = _mm_xor_si128(X, roundKeys[0]);
+        // tmp2 = _mm_xor_si128(Y, roundKeys[0]);
+
+
+
         for (int j = 1; j < rounds - 1; j += 2) {
-            tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j]);
-            tmp2 = _mm_aesenc_si128(tmp2, roundKeys[j]);
-            tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j + 1]);
-            tmp2 = _mm_aesenc_si128(tmp2, roundKeys[j + 1]);
+
+            zulu = _mm256_aesenc_epi128(zulu, roundKeys256[j]);
+            zulu = _mm256_aesenc_epi128(zulu, roundKeys256[j + 1]);
+
+//            tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j]);
+//            tmp2 = _mm_aesenc_si128(tmp2, roundKeys[j]);
+//            tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j + 1]);
+//            tmp2 = _mm_aesenc_si128(tmp2, roundKeys[j + 1]);
         }
 
-        tmp1 = _mm_aesenc_si128(tmp1, roundKeys[rounds - 1]);
-        tmp2 = _mm_aesenc_si128(tmp2, roundKeys[rounds - 1]);
+        zulu = _mm256_aesenc_epi128(zulu, roundKeys256[rounds - 1]);
 
-        H = _mm_aesenclast_si128(tmp1, roundKeys[rounds]);
-        T = _mm_aesenclast_si128(tmp2, roundKeys[rounds]);
+
+//        tmp1 = _mm_aesenc_si128(tmp1, roundKeys[rounds - 1]);
+//        tmp2 = _mm_aesenc_si128(tmp2, roundKeys[rounds - 1]);
+
+
+
+//        H =    _mm_aesenclast_si128(tmp1, roundKeys[rounds]);
+//        T = _mm_aesenclast_si128(tmp2, roundKeys[rounds]);
+
+        zulu = _mm256_aesenclast_epi128(zulu, roundKeys256[rounds]);
+
+        H = _mm256_extracti128_si256(zulu, 1);
+        T = _mm256_extracti128_si256(zulu, 0);
+
         H = _mm_shuffle_epi8(H, BSWAP_MASK);
 
     } else {
-        tmp1 = _mm_xor_si128(X, roundKeys[0]);
+
+        tmp1 = _mm_xor_si128(X, roundKeys128[0]);
         int j;
         for (j = 1; j < rounds; j++) {
-            tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j]);
+            tmp1 = _mm_aesenc_si128(tmp1, roundKeys128[j]);
         }
-        H = _mm_aesenclast_si128(tmp1, roundKeys[rounds]);
+        H = _mm_aesenclast_si128(tmp1, roundKeys128[rounds]);
         H = _mm_shuffle_epi8(H, BSWAP_MASK);
         Y = _mm_xor_si128(Y, Y); // ?
         int i;
@@ -517,11 +510,11 @@ void intel::gcm::AesGcm::init(bool encryption, unsigned char *key, size_t keyLen
         Y = _mm_shuffle_epi8(Y, BSWAP_MASK);
         // E(K,Y0)
 
-        tmp1 = _mm_xor_si128(Y, roundKeys[0]);
+        tmp1 = _mm_xor_si128(Y, roundKeys128[0]);
         for (j = 1; j < rounds; j++) {
-            tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j]);
+            tmp1 = _mm_aesenc_si128(tmp1, roundKeys128[j]);
         }
-        T = _mm_aesenclast_si128(tmp1, roundKeys[rounds]);
+        T = _mm_aesenclast_si128(tmp1, roundKeys128[rounds]);
     }
 
     //
@@ -548,16 +541,16 @@ void intel::gcm::AesGcm::init(bool encryption, unsigned char *key, size_t keyLen
 
 }
 
-size_t intel::gcm::AesGcm::getMacLen() {
+size_t intel::gcm::AesGcm256wide::getMacLen() {
     return this->macBlockLen;
 }
 
-void intel::gcm::AesGcm::getMac(unsigned char *dest) {
+void intel::gcm::AesGcm256wide::getMac(unsigned char *dest) {
     memcpy(dest, macBlock, macBlockLen);
 }
 
 
-size_t intel::gcm::AesGcm::getOutputSize(size_t len) {
+size_t intel::gcm::AesGcm256wide::getOutputSize(size_t len) {
     size_t totalData = len + bufBlockPtr;
     if (encryption) {
         return totalData + macBlockLen;
@@ -565,18 +558,18 @@ size_t intel::gcm::AesGcm::getOutputSize(size_t len) {
     return totalData < macBlockLen ? 0 : totalData - macBlockLen;
 }
 
-size_t intel::gcm::AesGcm::getUpdateOutputSize(size_t len) {
+size_t intel::gcm::AesGcm256wide::getUpdateOutputSize(size_t len) {
     size_t totalData = len + bufBlockPtr;
     if (!encryption) {
         if (totalData < bufBlockLen) {
             return 0;
         }
-         totalData -= macBlockLen;
+        totalData -= macBlockLen;
     }
     return totalData - totalData % FOUR_BLOCKS;
 }
 
-void intel::gcm::AesGcm::processAADByte(unsigned char in) {
+void intel::gcm::AesGcm256wide::processAADByte(unsigned char in) {
     ((unsigned char *) &last_aad_block)[atBlockPos] = in;
     if (++atBlockPos == BLOCK_SIZE) {
         // _gcm_processAadBlock(&last_aad_block,&S_at,&H);
@@ -589,7 +582,7 @@ void intel::gcm::AesGcm::processAADByte(unsigned char in) {
     }
 }
 
-void intel::gcm::AesGcm::processAADBytes(unsigned char *in, size_t inOff, size_t len) {
+void intel::gcm::AesGcm256wide::processAADBytes(unsigned char *in, size_t inOff, size_t len) {
 
     auto start = in + inOff;
     auto end = start + len;
@@ -626,7 +619,7 @@ void intel::gcm::AesGcm::processAADBytes(unsigned char *in, size_t inOff, size_t
 }
 
 
-size_t intel::gcm::AesGcm::processByte(unsigned char in, unsigned char *out, size_t outputLen) {
+size_t intel::gcm::AesGcm256wide::processByte(unsigned char in, unsigned char *out, size_t outputLen) {
 
     if (totalBytes == 0) {
         initCipher();
@@ -641,7 +634,8 @@ size_t intel::gcm::AesGcm::processByte(unsigned char in, unsigned char *out, siz
 }
 
 
-size_t intel::gcm::AesGcm::processBytes(unsigned char *in, size_t inOff, size_t len, unsigned char *out, int outOff,
+size_t
+intel::gcm::AesGcm256wide::processBytes(unsigned char *in, size_t inOff, size_t len, unsigned char *out, int outOff,
                                         size_t outputLen) {
 
     if (totalBytes == 0) {
@@ -657,17 +651,17 @@ size_t intel::gcm::AesGcm::processBytes(unsigned char *in, size_t inOff, size_t 
     unsigned char *outStart = outPtr;
 
     for (unsigned char *readPos = start; readPos < end;) {
-        processBuffer(readPos, (size_t)(end - readPos), outPtr, outputLen, read, written);
+        processBuffer(readPos, (size_t) (end - readPos), outPtr, outputLen, read, written);
         readPos += read;
         outPtr += written;
     }
 
-    return (size_t)(outPtr - outStart);
+    return (size_t) (outPtr - outStart);
 
 }
 
 
-size_t intel::gcm::AesGcm::doFinal(unsigned char *output, size_t outOff, size_t outLen) {
+size_t intel::gcm::AesGcm256wide::doFinal(unsigned char *output, size_t outOff, size_t outLen) {
 
 
     if (totalBytes == 0) {
@@ -734,13 +728,13 @@ size_t intel::gcm::AesGcm::doFinal(unsigned char *output, size_t outOff, size_t 
 
             ctr1 = _mm_add_epi32(ctr1, ONE);
             tmp1 = _mm_shuffle_epi8(ctr1, BSWAP_EPI64);
-            tmp1 = _mm_xor_si128(tmp1, roundKeys[0]);
+            tmp1 = _mm_xor_si128(tmp1, roundKeys128[0]);
             for (int j = 1; j < rounds - 1; j += 2) {
-                tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j]);
-                tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j + 1]);
+                tmp1 = _mm_aesenc_si128(tmp1, roundKeys128[j]);
+                tmp1 = _mm_aesenc_si128(tmp1, roundKeys128[j + 1]);
             }
-            tmp1 = _mm_aesenc_si128(tmp1, roundKeys[rounds - 1]);
-            tmp1 = _mm_aesenclast_si128(tmp1, roundKeys[rounds]);
+            tmp1 = _mm_aesenc_si128(tmp1, roundKeys128[rounds - 1]);
+            tmp1 = _mm_aesenclast_si128(tmp1, roundKeys128[rounds]);
 
             __m128i in1 = _mm_loadu_si128((__m128i *) &bufBlock[t]);
 
@@ -829,13 +823,13 @@ size_t intel::gcm::AesGcm::doFinal(unsigned char *output, size_t outOff, size_t 
     }
 
     reset(true);
-    return (size_t)(outPtr - start);
+    return (size_t) (outPtr - start);
 }
 
 void
-intel::gcm::AesGcm::processBuffer(unsigned char *in, size_t inlen, unsigned char *out, size_t outputLen, size_t &read,
-                                  size_t &written) {
-
+intel::gcm::AesGcm256wide::processBuffer(unsigned char *in, size_t inlen, unsigned char *out, size_t outputLen,
+                                         size_t &read,
+                                         size_t &written) {
 
     size_t rem = bufBlockLen - bufBlockPtr;
     size_t toCopy = inlen < rem ? inlen : rem;
@@ -860,7 +854,7 @@ intel::gcm::AesGcm::processBuffer(unsigned char *in, size_t inlen, unsigned char
 }
 
 
-void intel::gcm::AesGcm::processBlock(unsigned char *in, unsigned char *out, size_t outputLen) {
+void intel::gcm::AesGcm256wide::processBlock(unsigned char *in, unsigned char *out, size_t outputLen) {
 
     blocksRemaining -= 1;
 
@@ -876,13 +870,13 @@ void intel::gcm::AesGcm::processBlock(unsigned char *in, unsigned char *out, siz
     __m128i tmp1 = _mm_shuffle_epi8(ctr1, BSWAP_EPI64);
 
     // print_bytes("ctr: ", &tmp1);
-    tmp1 = _mm_xor_si128(tmp1, roundKeys[0]);
+    tmp1 = _mm_xor_si128(tmp1, roundKeys128[0]);
     for (j = 1; j < rounds - 1; j += 2) {
-        tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j]);
-        tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j + 1]);
+        tmp1 = _mm_aesenc_si128(tmp1, roundKeys128[j]);
+        tmp1 = _mm_aesenc_si128(tmp1, roundKeys128[j + 1]);
     }
-    tmp1 = _mm_aesenc_si128(tmp1, roundKeys[rounds - 1]);
-    tmp1 = _mm_aesenclast_si128(tmp1, roundKeys[rounds]);
+    tmp1 = _mm_aesenc_si128(tmp1, roundKeys128[rounds - 1]);
+    tmp1 = _mm_aesenclast_si128(tmp1, roundKeys128[rounds]);
     __m128i in1 = _mm_loadu_si128((__m128i *) in);
     tmp1 = _mm_xor_si128(tmp1, in1);
     _mm_storeu_si128((__m128i *) (out), tmp1);
@@ -898,7 +892,10 @@ void intel::gcm::AesGcm::processBlock(unsigned char *in, unsigned char *out, siz
 
 }
 
-void intel::gcm::AesGcm::processFourBlocks(unsigned char *in, unsigned char *out) {
+void intel::gcm::AesGcm256wide::processFourBlocks(unsigned char *in, unsigned char *out) {
+
+    abortIf(out == nullptr, "out is null, output generated when no output was expected by caller");
+
     blocksRemaining -= 4;
     if (blocksRemaining < 0) {
         throw std::runtime_error("attempt to process too many blocks in GCM");
@@ -925,52 +922,82 @@ void intel::gcm::AesGcm::processFourBlocks(unsigned char *in, unsigned char *out
     in += BLOCK_SIZE;
 
 
-    tmp1 = _mm_xor_si128(tmp1, roundKeys[0]);
-    tmp2 = _mm_xor_si128(tmp2, roundKeys[0]);
-    tmp3 = _mm_xor_si128(tmp3, roundKeys[0]);
-    tmp4 = _mm_xor_si128(tmp4, roundKeys[0]);
+    __m256i tmp12 = _mm256_xor_si256(_mm256_set_m128i(tmp2, tmp1), roundKeys256[0]);
+    __m256i tmp34 = _mm256_xor_si256(_mm256_set_m128i(tmp4, tmp3), roundKeys256[0]);
+
+
+//    tmp1 = _mm_xor_si128(tmp1, roundKeys128[0]);
+//    tmp2 = _mm_xor_si128(tmp2, roundKeys128[0]);
+//    tmp3 = _mm_xor_si128(tmp3, roundKeys128[0]);
+//    tmp4 = _mm_xor_si128(tmp4, roundKeys128[0]);
 
 
     for (int j = 1; j < rounds - 1; j += 2) {
-        tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j]);
-        tmp2 = _mm_aesenc_si128(tmp2, roundKeys[j]);
-        tmp3 = _mm_aesenc_si128(tmp3, roundKeys[j]);
-        tmp4 = _mm_aesenc_si128(tmp4, roundKeys[j]);
 
-        tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j + 1]);
-        tmp2 = _mm_aesenc_si128(tmp2, roundKeys[j + 1]);
-        tmp3 = _mm_aesenc_si128(tmp3, roundKeys[j + 1]);
-        tmp4 = _mm_aesenc_si128(tmp4, roundKeys[j + 1]);
+        tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[j]);
+        tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[j]);
+
+//        tmp1 = _mm_aesenc_si128(tmp1, roundKeys128[j]);
+//        tmp2 = _mm_aesenc_si128(tmp2, roundKeys128[j]);
+//        tmp3 = _mm_aesenc_si128(tmp3, roundKeys128[j]);
+//        tmp4 = _mm_aesenc_si128(tmp4, roundKeys128[j]);
+
+        tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[j + 1]);
+        tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[j + 1 ]);
+
+
+//        tmp1 = _mm_aesenc_si128(tmp1, roundKeys128[j + 1]);
+//        tmp2 = _mm_aesenc_si128(tmp2, roundKeys128[j + 1]);
+//        tmp3 = _mm_aesenc_si128(tmp3, roundKeys128[j + 1]);
+//        tmp4 = _mm_aesenc_si128(tmp4, roundKeys128[j + 1]);
     }
 
-    tmp1 = _mm_aesenc_si128(tmp1, roundKeys[rounds - 1]);
-    tmp2 = _mm_aesenc_si128(tmp2, roundKeys[rounds - 1]);
-    tmp3 = _mm_aesenc_si128(tmp3, roundKeys[rounds - 1]);
-    tmp4 = _mm_aesenc_si128(tmp4, roundKeys[rounds - 1]);
+    tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[rounds - 1]);
+    tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[rounds - 1]);
 
-    tmp1 = _mm_aesenclast_si128(tmp1, roundKeys[rounds]);
-    tmp2 = _mm_aesenclast_si128(tmp2, roundKeys[rounds]);
-    tmp3 = _mm_aesenclast_si128(tmp3, roundKeys[rounds]);
-    tmp4 = _mm_aesenclast_si128(tmp4, roundKeys[rounds]);
+//    tmp1 = _mm_aesenc_si128(tmp1, roundKeys128[rounds - 1]);
+//    tmp2 = _mm_aesenc_si128(tmp2, roundKeys128[rounds - 1]);
+//    tmp3 = _mm_aesenc_si128(tmp3, roundKeys128[rounds - 1]);
+//    tmp4 = _mm_aesenc_si128(tmp4, roundKeys128[rounds - 1]);
 
-    tmp1 = _mm_xor_si128(tmp1, in1);
-    tmp2 = _mm_xor_si128(tmp2, in2);
-    tmp3 = _mm_xor_si128(tmp3, in3);
-    tmp4 = _mm_xor_si128(tmp4, in4);
 
-    _mm_storeu_si128((__m128i *) out, tmp1);
-    out += BLOCK_SIZE;
-    _mm_storeu_si128((__m128i *) out, tmp2);
-    out += BLOCK_SIZE;
-    _mm_storeu_si128((__m128i *) out, tmp3);
-    out += BLOCK_SIZE;
-    _mm_storeu_si128((__m128i *) out, tmp4);
-    out += BLOCK_SIZE;
+    tmp12 = _mm256_aesenclast_epi128(tmp12, roundKeys256[rounds]);
+    tmp34 = _mm256_aesenclast_epi128(tmp34, roundKeys256[rounds]);
 
-    tmp1 = _mm_shuffle_epi8(tmp1, BSWAP_MASK);
-    tmp2 = _mm_shuffle_epi8(tmp2, BSWAP_MASK);
-    tmp3 = _mm_shuffle_epi8(tmp3, BSWAP_MASK);
-    tmp4 = _mm_shuffle_epi8(tmp4, BSWAP_MASK);
+
+//    tmp1 = _mm_aesenclast_si128(tmp1, roundKeys128[rounds]);
+//    tmp2 = _mm_aesenclast_si128(tmp2, roundKeys128[rounds]);
+//    tmp3 = _mm_aesenclast_si128(tmp3, roundKeys128[rounds]);
+//    tmp4 = _mm_aesenclast_si128(tmp4, roundKeys128[rounds]);
+
+
+    tmp12 = _mm256_xor_si256(tmp12, _mm256_set_m128i(in2, in1));
+    tmp34 = _mm256_xor_si256(tmp34, _mm256_set_m128i(in4, in3));
+
+//    tmp1 = _mm_xor_si128(tmp1, in1);
+//    tmp2 = _mm_xor_si128(tmp2, in2);
+//    tmp3 = _mm_xor_si128(tmp3, in3);
+//    tmp4 = _mm_xor_si128(tmp4, in4);
+
+    _mm256_storeu_si256((__m256i *) out, tmp12);
+    out += BLOCK_SIZE * 2;
+    _mm256_storeu_si256((__m256i *) out, tmp34);
+    out += BLOCK_SIZE * 2;
+
+    //
+//    _mm_storeu_si128((__m128i *) out, tmp1);
+//    out += BLOCK_SIZE;
+//    _mm_storeu_si128((__m128i *) out, tmp2);
+//    out += BLOCK_SIZE;
+//    _mm_storeu_si128((__m128i *) out, tmp3);
+//    out += BLOCK_SIZE;
+//    _mm_storeu_si128((__m128i *) out, tmp4);
+//    out += BLOCK_SIZE;
+
+    tmp1 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp12, 0), BSWAP_MASK);
+    tmp2 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp12, 1), BSWAP_MASK);
+    tmp3 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp34, 0), BSWAP_MASK);
+    tmp4 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp34, 1), BSWAP_MASK);
 
     if (encryption) {
         X = _mm_xor_si128(X, tmp1);
@@ -995,7 +1022,159 @@ void intel::gcm::AesGcm::processFourBlocks(unsigned char *in, unsigned char *out
     ctr1 = ctr4;
 }
 
-void intel::gcm::AesGcm::initCipher() {
+
+/*
+ * void intel::gcm::AesGcm256wide::processFourBlocks(unsigned char *in, unsigned char *out) {
+
+    abortIf(out == nullptr, "out is null, output generated when no output was expected by caller");
+
+    blocksRemaining -= 4;
+    if (blocksRemaining < 0) {
+        throw std::runtime_error("attempt to process too many blocks in GCM");
+    }
+    ctr1 = _mm_add_epi32(ctr1, ONE);
+    __m128i ctr2 = _mm_add_epi32(ctr1, ONE);
+    __m128i ctr3 = _mm_add_epi32(ctr2, ONE);
+    __m128i ctr4 = _mm_add_epi32(ctr3, ONE);
+
+    __m128i tmp1 = _mm_shuffle_epi8(ctr1, BSWAP_EPI64);
+    __m128i tmp2 = _mm_shuffle_epi8(ctr2, BSWAP_EPI64);
+    __m128i tmp3 = _mm_shuffle_epi8(ctr3, BSWAP_EPI64);
+    __m128i tmp4 = _mm_shuffle_epi8(ctr4, BSWAP_EPI64);
+
+    __m256i tmp12 = _mm256_set_m128i(tmp1, tmp2);
+    __m256i tmp34 = _mm256_set_m128i(tmp3, tmp4);
+
+
+//    __m128i in1 = _mm_loadu_si128(((__m128i *) in));
+//    in += BLOCK_SIZE;
+//    __m128i in2 = _mm_loadu_si128(((__m128i *) in));
+//    in += BLOCK_SIZE;
+//    __m128i in3 = _mm_loadu_si128(((__m128i *) in));
+//    in += BLOCK_SIZE;
+//    __m128i in4 = _mm_loadu_si128(((__m128i *) in));
+//    in += BLOCK_SIZE;
+
+    __m256i in12 = _mm256_loadu2_m128i(((__m128i *) in) + 1, ((__m128i *) in));
+    __m256i in34 = _mm256_loadu2_m128i(((__m128i *) in) + 3, ((__m128i *) in) + 2);
+
+    in += BLOCK_SIZE * 4;
+
+
+    tmp12 = _mm256_xor_si256(tmp12, roundKeys256[0]);
+    tmp34 = _mm256_xor_si256(tmp34, roundKeys256[0]);
+
+
+//    tmp1 = _mm_xor_si128(tmp1, roundKeys256[0]);
+//    tmp2 = _mm_xor_si128(tmp2, roundKeys256[0]);
+//    tmp3 = _mm_xor_si128(tmp3, roundKeys256[0]);
+//    tmp4 = _mm_xor_si128(tmp4, roundKeys256[0]);
+
+
+    for (int j = 1; j < rounds - 1; j += 2) {
+//        tmp1 = _mm_aesenc_si128(tmp1, roundKeys256[j]);
+//        tmp2 = _mm_aesenc_si128(tmp2, roundKeys256[j]);
+
+        tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[j]);
+
+//        tmp3 = _mm_aesenc_si128(tmp3, roundKeys256[j]);
+//        tmp4 = _mm_aesenc_si128(tmp4, roundKeys256[j]);
+
+        tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[j]);
+
+//        tmp1 = _mm_aesenc_si128(tmp1, roundKeys256[j + 1]);
+//        tmp2 = _mm_aesenc_si128(tmp2, roundKeys256[j + 1]);
+
+        tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[j+1]);
+
+//        tmp3 = _mm_aesenc_si128(tmp3, roundKeys256[j + 1]);
+//        tmp4 = _mm_aesenc_si128(tmp4, roundKeys256[j + 1]);
+
+        tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[j+1]);
+    }
+
+//    tmp1 = _mm_aesenc_si128(tmp1, roundKeys256[rounds - 1]);
+//    tmp2 = _mm_aesenc_si128(tmp2, roundKeys256[rounds - 1]);
+
+    tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[rounds-1]);
+
+//    tmp3 = _mm_aesenc_si128(tmp3, roundKeys256[rounds - 1]);
+//    tmp4 = _mm_aesenc_si128(tmp4, roundKeys256[rounds - 1]);
+
+    tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[rounds-1]);
+
+
+//    tmp1 = _mm_aesenclast_si128(tmp1, roundKeys256[rounds]);
+//    tmp2 = _mm_aesenclast_si128(tmp2, roundKeys256[rounds]);
+
+    tmp12 = _mm256_aesenclast_epi128(tmp12, roundKeys256[rounds]);
+
+
+//    tmp3 = _mm_aesenclast_si128(tmp3, roundKeys256[rounds]);
+//    tmp4 = _mm_aesenclast_si128(tmp4, roundKeys256[rounds]);
+
+    tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[rounds]);
+
+
+    tmp12 = _mm256_xor_si256(tmp12, in12);
+    tmp34 = _mm256_xor_si256(tmp34, in34);
+
+//    tmp1 = _mm_xor_si128(tmp1, in1);
+//    tmp2 = _mm_xor_si128(tmp2, in2);
+//    tmp3 = _mm_xor_si128(tmp3, in3);
+//    tmp4 = _mm_xor_si128(tmp4, in4);
+
+//    __m256i in12 = _mm256_loadu2_m128i(((__m128i *) in) + 1, ((__m128i *) in));
+//    __m256i in34 = _mm256_loadu2_m128i(((__m128i *) in) + 3, ((__m128i *) in) + 2);
+
+    _mm256_storeu2_m128i(((__m128i *) in) + 1, ((__m128i *) in), in12);
+    _mm256_storeu2_m128i(((__m128i *) in) + 3, ((__m128i *) in) + 2, in34);
+
+    out += BLOCK_SIZE * 4;
+
+//    _mm_storeu_si128((__m128i *) out, tmp1);
+//    out += BLOCK_SIZE;
+//    _mm_storeu_si128((__m128i *) out, tmp2);
+//    out += BLOCK_SIZE;
+//    _mm_storeu_si128((__m128i *) out, tmp3);
+//    out += BLOCK_SIZE;
+//    _mm_storeu_si128((__m128i *) out, tmp4);
+//    out += BLOCK_SIZE;
+
+
+
+    if (encryption) {
+        tmp1 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp12,1), BSWAP_MASK);
+        tmp2 = _mm_shuffle_epi8(tmp2, BSWAP_MASK);
+        tmp3 = _mm_shuffle_epi8(tmp3, BSWAP_MASK);
+        tmp4 = _mm_shuffle_epi8(tmp4, BSWAP_MASK);
+
+        X = _mm_xor_si128(X, tmp1);
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, tmp2);
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, tmp3);
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, tmp4);
+        gfmul(X, H, &X);
+    } else {
+        X = _mm_xor_si128(X, _mm_shuffle_epi8(in1, BSWAP_MASK));
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, _mm_shuffle_epi8(in2, BSWAP_MASK));
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, _mm_shuffle_epi8(in3, BSWAP_MASK));
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, _mm_shuffle_epi8(in4, BSWAP_MASK));
+        gfmul(X, H, &X);
+    }
+
+    ctr1 = ctr4;
+}
+ */
+
+
+
+void intel::gcm::AesGcm256wide::initCipher() {
     if (atLength > 0) {
         S_atPre = S_at;
         atLengthPre = atLength;
@@ -1014,7 +1193,7 @@ void intel::gcm::AesGcm::initCipher() {
 
 }
 
-void intel::gcm::AesGcm::setBlocksRemainingDown(int64_t down) {
+void intel::gcm::AesGcm256wide::setBlocksRemainingDown(int64_t down) {
 
     if (totalBytes > 0) {
         throw std::runtime_error("cannot be called once transformation has processed data");

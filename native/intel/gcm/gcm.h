@@ -20,8 +20,6 @@ namespace intel::gcm {
 
     public:
 
-        static GCM * makeGCM();
-
         GCM();
 
         virtual ~GCM();

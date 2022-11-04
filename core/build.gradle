@@ -7,6 +7,10 @@ dependencies {
 
 test {
   testLogging.showStandardStreams = true
+  testLogging.showCauses = true
+  testLogging.showExceptions = true
+  testLogging.showStackTraces = true
+
   jvmArgs propValsAsArgs(project, test.name, "variant", "org.bouncycastle.native.cpu_variant"),
           propValsAsArgs(project, test.name, "failsafe_skip", "test.bcfips.ignore.native");
 //  jvmArgs '-Dtest.bcfips.ignore.native=sha,gcm,cbc,ecb,rand,seed', '-Dorg.bouncycastle.native.cpu_variant=java'
@@ -176,6 +180,34 @@ tasks.clean.dependsOn(cleanFipsVariations);
     }
   }
 
+task('testVAES', type: Test) {
+  systemProperty 'bc.test.data.home', bcTestDataHome
+  maxHeapSize = "2048m"
+  testLogging.showStandardStreams = true
+  testLogging.showCauses = true
+  testLogging.showExceptions = true
+  testLogging.showStackTraces = true
+
+  filter {
+    includeTestsMatching "AllTest*"
+
+    if (rootProject.hasProperty("skip.pqc.tests"))
+    {
+      exclude('**/pqc/**')
+    }
+  }
+
+//  doFirst {
+//    removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
+//  }
+
+  jvmArgs propValsAsArgs(project, "testVAES", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
+          propValsAsArgs(project, "testVAES", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
+          propValsAsArgs(project, "testVAES", "x86_64", "failsafe_skip", "test.bcfips.ignore.native")
+
+  // jvmArgs '-Dtest.bcfips.ignore.native=sha', '-Dorg.bouncycastle.native.library_path=/tmp/bcfipslibs', '-Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx'
+
+}
 
 task('testAVX', type: Test) {
   systemProperty 'bc.test.data.home', bcTestDataHome

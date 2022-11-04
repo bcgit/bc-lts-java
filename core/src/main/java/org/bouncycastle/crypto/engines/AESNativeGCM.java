@@ -37,7 +37,10 @@ class AESNativeGCM
     public BlockCipher getUnderlyingCipher()
     {
         BlockCipher engine = AESEngine.newInstance();
-        engine.init(true, new KeyParameter(lastKey));
+        if (lastKey != null)
+        {
+            engine.init(true, new KeyParameter(lastKey));
+        }
         return engine;
     }
 
@@ -179,7 +182,7 @@ class AESNativeGCM
             throw new IllegalStateException("inOdd + len is past end of input");
         }
 
-        if (outOff > out.length)
+        if (out != null && outOff > out.length)
         {
             throw new IllegalArgumentException("offset past end of output array");
         }
