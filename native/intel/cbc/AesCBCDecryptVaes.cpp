@@ -33,7 +33,7 @@ namespace intel {
             if (blocks % 2) {
 
                 //
-                // Single block if less than two blocks are supplied.
+                // Single block first if odd blocks are supplied.
                 //
 
                 __m128i data = _mm_loadu_si128((__m128i *) in);
@@ -75,15 +75,7 @@ namespace intel {
                 tmp = _mm256_aesdec_epi128(tmp, roundKeys[1]);
                 tmp = _mm256_aesdeclast_epi128(tmp, roundKeys[0]);
 
-                // First __m128i of feedback is from the previous call or the iv at init.
-                // Second __m128i of feed is the first block of ct.
-                // TODO 2 x XOR at 128 bits as opposed to this copying
 
-
-
-
-
-                // fb[1] = ((__m128i *) &data)[0];
 
                 _mm256_storeu_si256((__m256i *) out,
                                     _mm256_xor_si256(
@@ -122,7 +114,7 @@ namespace intel {
             if (blocks % 2) {
 
                 //
-                // Single block if less than two blocks are supplied.
+                // Single block first if odd blocks are supplied.
                 //
 
                 __m128i data = _mm_loadu_si128((__m128i *) in);
@@ -200,7 +192,7 @@ namespace intel {
             if (blocks % 2) {
 
                 //
-                // Single block if less than two blocks are supplied.
+                // Single block first if odd blocks are supplied.
                 //
 
                 __m128i data = _mm_loadu_si128((__m128i *) in);
