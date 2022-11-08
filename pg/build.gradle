@@ -5,7 +5,7 @@ dependencies {
   implementation project(':prov')
 }
 
-jar.archiveBaseName = "bcpg-$vmrange"
+jar.archiveBaseName = "bcpg-lts"
 
 task sourcesJar(type: Jar) {
   archiveBaseName = jar.archiveBaseName
@@ -23,6 +23,11 @@ artifacts {
   archives jar
   archives javadocJar
   archives sourcesJar
+}
+
+task('copyJars', type:Copy) {
+  from new File(projectDir,"build/libs")
+  into new File(rootDir,"jars")
 }
 
 

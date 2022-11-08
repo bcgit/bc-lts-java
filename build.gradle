@@ -79,7 +79,9 @@ subprojects {
     targetCompatibility = 1.8
   }
 
-  version = '1.70'
+  version = '2.0.0-SNAPSHOT'
+
+
 
 
   task('testVAES', type: Test) {

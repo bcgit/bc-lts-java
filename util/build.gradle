@@ -5,7 +5,7 @@ dependencies {
   testImplementation group: 'junit', name: 'junit', version: '4.11'
 }
 
-jar.archiveBaseName = "bcutil-$vmrange"
+jar.archiveBaseName = "bcutil-lts"
 
 task sourcesJar(type: Jar) {
   archiveBaseName = jar.archiveBaseName
@@ -23,5 +23,10 @@ artifacts {
   archives jar
   archives javadocJar
   archives sourcesJar
+}
+
+task('copyJars', type:Copy) {
+  from new File(projectDir,"build/libs")
+  into new File(rootDir,"jars")
 }
 

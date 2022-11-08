@@ -8,7 +8,7 @@ dependencies {
   implementation group: 'javax.mail', name: 'mail', version: '1.4'
 }
 
-jar.archiveBaseName = "bcmail-$vmrange"
+jar.archiveBaseName = "bcmail-lts"
 
 task sourcesJar(type: Jar) {
   archiveBaseName = jar.archiveBaseName
@@ -28,3 +28,7 @@ artifacts {
   archives sourcesJar
 }
 
+task('copyJars', type:Copy) {
+  from new File(projectDir,"build/libs")
+  into new File(rootDir,"jars")
+}

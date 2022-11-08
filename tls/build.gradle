@@ -5,7 +5,7 @@ dependencies {
   implementation project(':pkix')
 }
 
-jar.archiveBaseName = "bctls-$vmrange"
+jar.archiveBaseName = "bctls-lts"
 
 sourceSets {
   main {
@@ -31,5 +31,10 @@ artifacts {
   archives jar
   archives javadocJar
   archives sourcesJar
+}
+
+task('copyJars', type:Copy) {
+  from new File(projectDir,"build/libs")
+  into new File(rootDir,"jars")
 }
 
