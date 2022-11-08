@@ -640,7 +640,7 @@ public class BcTlsCrypto
 
     protected BlockCipher createAESEngine()
     {
-        return new AESEngine();
+        return  AESEngine.newInstance(); //  new AESEngine();
     }
 
     protected BlockCipher createARIAEngine()

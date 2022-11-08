@@ -66,7 +66,7 @@ public class CMacTest
 
     public void performTest()
     {
-        BlockCipher cipher = new AESEngine();
+        BlockCipher cipher = AESEngine.newInstance();
         Mac mac = new CMac(cipher, 128);
 
         //128 bytes key
@@ -263,7 +263,7 @@ public class CMacTest
 
         // CMAC with IV
         // 16 bytes message - 256 bytes key
-        mac = new CMacWithIV(new AESEngine());
+        mac = new CMacWithIV(AESEngine.newInstance());
 
         mac.init(key);
 
@@ -281,7 +281,7 @@ public class CMacTest
 
                 // CMAC with IV
         // 16 bytes message - 256 bytes key
-        mac = new CMacWithIV(new AESEngine());
+        mac = new CMacWithIV(AESEngine.newInstance());
 
         mac.init(new ParametersWithIV(key, Hex.decode("000102030405060708090a0b0c0d0e0f")));
 

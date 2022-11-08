@@ -6,6 +6,7 @@ import org.bouncycastle.crypto.CryptoServiceConstraintsException;
 import org.bouncycastle.crypto.CryptoServicePurpose;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.KeyGenerationParameters;
+import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.constraints.LegacyBitsOfSecurityConstraint;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.AESLightEngine;
@@ -240,7 +241,7 @@ public class SymmetricConstraintsTest
     private void testAES()
     {
         CryptoServicesRegistrar.setServicesConstraints(new LegacyBitsOfSecurityConstraint(192));
-        AESEngine engine = new AESEngine();
+        MultiBlockCipher engine = AESEngine.newInstance();
         try
         {
             engine.init(true, new KeyParameter(new byte[16]));

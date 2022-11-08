@@ -194,7 +194,7 @@ class PEMUtilities
                 throw new EncryptionException("unknown AES encryption with private key: " + dekAlgName);
             }
             sKey = getKey(password, keyBits / 8, salt);
-            engine = new AESEngine();
+            engine = AESEngine.newInstance();
         }
         else
         {

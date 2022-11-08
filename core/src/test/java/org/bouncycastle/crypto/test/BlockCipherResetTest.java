@@ -47,7 +47,7 @@ public class BlockCipherResetTest
         throws Exception
     {
         // 128 bit block ciphers
-        testReset("AESFastEngine", new AESEngine(), new AESEngine(), new KeyParameter(new byte[16]));
+        testReset("AESFastEngine", AESEngine.newInstance(), AESEngine.newInstance(), new KeyParameter(new byte[16]));
         testReset("AESEngine", AESEngine.newInstance(), AESEngine.newInstance(), new KeyParameter(new byte[16]));
         testReset("AESLightEngine", new AESLightEngine(), new AESLightEngine(), new KeyParameter(new byte[16]));
         testReset("Twofish", new TwofishEngine(), new TwofishEngine(), new KeyParameter(new byte[16]));

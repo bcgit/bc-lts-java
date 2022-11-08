@@ -245,7 +245,7 @@ public class AESVectorFileTest
     {
         protected BlockCipher createNewEngineForTest()
         {
-            return new AESEngine();
+            return AESEngine.newInstance();
         }
 
         public String getName()

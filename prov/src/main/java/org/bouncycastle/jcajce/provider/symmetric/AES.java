@@ -74,7 +74,7 @@ public final class AES
             {
                 public BlockCipher get()
                 {
-                    return new AESEngine();
+                    return AESEngine.newInstance();
                 }
             });
         }
@@ -103,7 +103,7 @@ public final class AES
     {
         public OFB()
         {
-            super(new BufferedBlockCipher(new OFBBlockCipher(new AESEngine(), 128)), 128);
+            super(new BufferedBlockCipher(new OFBBlockCipher(AESEngine.newInstance(), 128)), 128);
         }
     }
 
@@ -222,7 +222,7 @@ public final class AES
     {
         public Poly1305()
         {
-            super(new org.bouncycastle.crypto.macs.Poly1305(new AESEngine()));
+            super(new org.bouncycastle.crypto.macs.Poly1305(AESEngine.newInstance()));
         }
     }
 
@@ -258,7 +258,7 @@ public final class AES
     {
         public RFC3211Wrap()
         {
-            super(new RFC3211WrapEngine(new AESEngine()), 16);
+            super(new RFC3211WrapEngine(AESEngine.newInstance()), 16);
         }
     }
 
@@ -267,7 +267,7 @@ public final class AES
     {
         public RFC5649Wrap()
         {
-            super(new RFC5649WrapEngine(new AESEngine()));
+            super(new RFC5649WrapEngine(AESEngine.newInstance()));
         }
     }
 

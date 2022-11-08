@@ -38,7 +38,7 @@ public class ThroughputTest
 //        speedTestCipher(new Skein3FishEngine(), input);
 //        speedTestCipher(new ThreefishEngine(ThreefishEngine.BLOCKSIZE_1024), input);
 //        speedTestCipher(new ThreefishReferenceEngine(), input);
-        speedTestCipher(new AESEngine(), input);
+        speedTestCipher(AESEngine.newInstance(), input);
 //        speedTestCipher(new TwofishEngine(), input);
 //        speedTestCipher(new BlowfishEngine(), input);
     }

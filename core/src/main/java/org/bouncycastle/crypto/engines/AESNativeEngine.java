@@ -28,7 +28,7 @@ class AESNativeEngine
 
     AESNativeEngine()
     {
-
+        CryptoServicesRegistrar.checkConstraints(new DefaultServiceProperties(getAlgorithmName(), 256));
     }
 
     @Override
