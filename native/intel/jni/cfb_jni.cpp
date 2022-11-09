@@ -36,9 +36,6 @@ JNIEXPORT jbyte JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_proces
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_processBytes
         (JNIEnv *env, jclass, jlong ref, jbyteArray in_, jint inOff, jint len, jbyteArray out_, jint outOff) {
 
-    abortIfNegative(len);
-    abortIfNegative(outOff);
-
     auto instance = static_cast<intel::cfb::CFB *>((void *) ref);
 
     //

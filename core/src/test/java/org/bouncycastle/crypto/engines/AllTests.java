@@ -42,7 +42,6 @@ public class AllTests
     public static Test suite()
     {
         TestSuite suite = new TestSuite("Native concordance tests");
-
         suite.addTestSuite(AesCBCConcordanceTest.class);
         suite.addTestSuite(AesCFBConcordanceTest.class);
         suite.addTestSuite(AesECBConcordanceTest.class);
