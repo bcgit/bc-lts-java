@@ -88,20 +88,31 @@ class AESNativeEngine
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
         throws DataLengthException, IllegalStateException
     {
+        if (inOff < 0)
+        {
+            throw new IllegalStateException("inOff is negative");
+        }
+
+        if (outOff < 0)
+        {
+            throw new IllegalStateException("outOff is negative");
+        }
+
         if (wrapper == null)
         {
             throw new IllegalStateException("AES engine not initialised");
         }
 
-        if (inOff > (in.length - getBlockSize()))
+        if (inOff + getBlockSize() > in.length)
         {
             throw new DataLengthException("input buffer too short");
         }
 
-        if (outOff > (out.length - getBlockSize()))
+        if (outOff + getBlockSize() > out.length)
         {
-            throw new OutputLengthException("output buffer too short");
+            throw new DataLengthException("output buffer too short");
         }
+
         return process(wrapper.getReference(), in, inOff, 1, out, outOff);
     }
 
@@ -117,24 +128,36 @@ class AESNativeEngine
         throws DataLengthException, IllegalStateException
     {
 
-        if (wrapper == null)
+        if (inOff < 0)
         {
-            throw new IllegalStateException("AES engine not initialised");
+            throw new DataLengthException("input offset is negative");
         }
 
-        if ((inOff + getBlockSize()) > in.length)
+        if (outOff < 0)
         {
-            throw new DataLengthException("input buffer too short");
-        }
-
-        if (outOff + getBlockSize() > out.length)
-        {
-            throw new DataLengthException("output buffer too short");
+            throw new DataLengthException("output offset is negative");
         }
 
         if (blockCount < 0)
         {
-            throw new DataLengthException("block count < 0");
+            throw new DataLengthException("blockCount offset is negative");
+        }
+
+        int extent = getBlockSize() * blockCount;
+
+        if (inOff + extent > in.length)
+        {
+            throw new DataLengthException("input buffer too short");
+        }
+
+        if (outOff + extent > out.length)
+        {
+            throw new DataLengthException("output buffer too short");
+        }
+
+        if (wrapper == null)
+        {
+            throw new IllegalStateException("CBC engine not initialised");
         }
 
 

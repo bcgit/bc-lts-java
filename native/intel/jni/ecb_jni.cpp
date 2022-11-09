@@ -37,10 +37,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_proc
         (JNIEnv *env, jclass, jlong ref, jbyteArray _in, jint inOffset, jint blocks, jbyteArray _out, jint outOffset) {
 
 
-    abortIfNegative(inOffset);
-    abortIfNegative(blocks);
-    abortIfNegative(outOffset);
-
     //
     // Always wrap output array first.
     //
