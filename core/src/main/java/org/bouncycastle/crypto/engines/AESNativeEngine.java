@@ -98,11 +98,6 @@ class AESNativeEngine
             throw new IllegalStateException("outOff is negative");
         }
 
-        if (wrapper == null)
-        {
-            throw new IllegalStateException("AES engine not initialised");
-        }
-
         if (inOff + getBlockSize() > in.length)
         {
             throw new DataLengthException("input buffer too short");
@@ -111,6 +106,11 @@ class AESNativeEngine
         if (outOff + getBlockSize() > out.length)
         {
             throw new DataLengthException("output buffer too short");
+        }
+
+        if (wrapper == null)
+        {
+            throw new IllegalStateException("not initialized");
         }
 
         return process(wrapper.getReference(), in, inOff, 1, out, outOff);
@@ -130,17 +130,17 @@ class AESNativeEngine
 
         if (inOff < 0)
         {
-            throw new DataLengthException("input offset is negative");
+            throw new DataLengthException("inOff is negative");
         }
 
         if (outOff < 0)
         {
-            throw new DataLengthException("output offset is negative");
+            throw new DataLengthException("outOff is negative");
         }
 
         if (blockCount < 0)
         {
-            throw new DataLengthException("blockCount offset is negative");
+            throw new DataLengthException("blockCount is negative");
         }
 
         int extent = getBlockSize() * blockCount;
@@ -157,7 +157,7 @@ class AESNativeEngine
 
         if (wrapper == null)
         {
-            throw new IllegalStateException("CBC engine not initialised");
+            throw new IllegalStateException("not initialized");
         }
 
 

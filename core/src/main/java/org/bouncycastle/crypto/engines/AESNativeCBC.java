@@ -20,87 +20,79 @@ class AESNativeCBC
 
     private CBCRefWrapper referenceWrapper;
 
-    private byte[] oldKey;
-    private byte[] oldIv;
+    byte[] IV = new byte[16];
+    byte[] oldKey;
+
     private boolean encrypting;
 
     @Override
     public void init(boolean forEncryption, CipherParameters params)
         throws IllegalArgumentException
     {
-
         boolean oldEncrypting = this.encrypting;
 
         this.encrypting = forEncryption;
 
-        byte[] key = null;
-        byte[] iv = null;
-
         if (params instanceof ParametersWithIV)
         {
             ParametersWithIV ivParam = (ParametersWithIV)params;
-            iv = ivParam.getIV();
+            byte[] iv = ivParam.getIV();
+
             if (iv.length != getBlockSize())
             {
                 throw new IllegalArgumentException("initialisation vector must be the same length as block size");
             }
 
-            oldIv = Arrays.clone(iv);
+            System.arraycopy(iv, 0, IV, 0, iv.length);
 
+            reset();
+
+            // if null it's an IV changed only.
             if (ivParam.getParameters() != null)
             {
-                key = ((KeyParameter)ivParam.getParameters()).getKey();
+                init(ivParam.getParameters());
+                // cipher.init(encrypting, ivParam.getParameters());
             }
-
-            if (key != null)
+            else if (oldEncrypting != encrypting)
             {
-                oldEncrypting = encrypting; // Can change because key is supplied.
-                oldKey = Arrays.clone(key);
-            }
-            else
-            {
-                // Use old key, it may be null but that is tested later.
-                key = oldKey;
+                throw new IllegalArgumentException("cannot change encrypting state without providing key.");
             }
         }
         else
         {
-            //
-            // Change of key.
-            //
+            reset();
 
-            if (params instanceof KeyParameter)
+            // if it's null, key is to be reused.
+            if (params != null)
             {
-                key = ((KeyParameter)params).getKey();
-                oldKey = Arrays.clone(key);
-                iv = oldIv;
+                init(params);
+                // cipher.init(encrypting, params);
             }
-            else
+            else if (oldEncrypting != encrypting)
             {
-                key = oldKey;
-                iv = oldIv;
+                throw new IllegalArgumentException("cannot change encrypting state without providing key.");
             }
-
         }
 
-        if (key == null && oldEncrypting != encrypting)
+    }
+
+    private void init(CipherParameters parameters)
+    {
+
+        byte[] key = null;
+
+        if (parameters instanceof KeyParameter)
         {
-            throw new IllegalArgumentException("cannot change encrypting state without providing key.");
+            key = ((KeyParameter)parameters).getKey();
         }
-
-        if (iv == null)
+        else if (parameters instanceof ParametersWithIV)
         {
-            iv = new byte[getBlockSize()];
+            init(((ParametersWithIV)parameters).getParameters());
         }
-
-        CryptoServicesRegistrar.checkConstraints(
-            new DefaultServiceProperties(
-                getAlgorithmName(),
-                key.length * 8,
-                params,
-                forEncryption ? CryptoServicePurpose.ENCRYPTION : CryptoServicePurpose.DECRYPTION
-            ));
-
+        else
+        {
+            throw new IllegalStateException("must be KeyParameter or ParametersWithIV");
+        }
 
         switch (key.length)
         {
@@ -118,8 +110,8 @@ class AESNativeCBC
         {
             throw new IllegalStateException("Native CBC native instance returned a null pointer.");
         }
-
-        init(referenceWrapper.getReference(), key, iv);
+        oldKey = key;
+        init(referenceWrapper.getReference(), key, IV);
 
     }
 
@@ -164,7 +156,7 @@ class AESNativeCBC
 
         if (referenceWrapper == null)
         {
-            throw new IllegalStateException("not initialzed");
+            throw new IllegalStateException("not initialized");
         }
 
         return process(referenceWrapper.getReference(), in, inOff, 1, out, outOff);
@@ -196,17 +188,17 @@ class AESNativeCBC
     {
         if (inOff < 0)
         {
-            throw new DataLengthException("input offset is negative");
+            throw new DataLengthException("inOff is negative");
         }
 
         if (outOff < 0)
         {
-            throw new DataLengthException("output offset is negative");
+            throw new DataLengthException("outOff is negative");
         }
 
         if (blockCount < 0)
         {
-            throw new DataLengthException("blockCount offset is negative");
+            throw new DataLengthException("blockCount is negative");
         }
 
         int extent = getBlockSize() * blockCount;
@@ -223,7 +215,7 @@ class AESNativeCBC
 
         if (referenceWrapper == null)
         {
-            throw new IllegalStateException("CBC engine not initialised");
+            throw new IllegalStateException("not initialized");
         }
 
         return process(referenceWrapper.getReference(), in, inOff, blockCount, out, outOff);
@@ -252,7 +244,7 @@ class AESNativeCBC
     }
 
 
-    private static class Disposer
+    private class Disposer
         extends NativeDisposer
     {
         Disposer(long ref)
@@ -263,11 +255,13 @@ class AESNativeCBC
         @Override
         protected void dispose(long reference)
         {
+            Arrays.clear(oldKey);
+            Arrays.clear(IV);
             AESNativeCBC.dispose(reference);
         }
     }
 
-    private static class CBCRefWrapper
+    private class CBCRefWrapper
         extends NativeReference
     {
 
