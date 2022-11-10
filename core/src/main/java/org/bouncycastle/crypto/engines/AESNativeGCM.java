@@ -177,7 +177,8 @@ class AESNativeGCM
             throw new IllegalArgumentException("inOff + len past end of data");
         }
 
-        if (refWrapper == null) {
+        if (refWrapper == null)
+        {
             throw new IllegalStateException("GCM is uninitialized");
         }
 
@@ -199,7 +200,8 @@ class AESNativeGCM
             throw new IllegalArgumentException("offset past end of output array");
         }
 
-        if (refWrapper == null) {
+        if (refWrapper == null)
+        {
             throw new IllegalStateException("GCM is uninitialized");
         }
 
@@ -237,7 +239,8 @@ class AESNativeGCM
             throw new IllegalArgumentException("offset past end of output array");
         }
 
-        if (refWrapper == null) {
+        if (refWrapper == null)
+        {
             throw new IllegalStateException("GCM is uninitialized");
         }
 
