@@ -177,13 +177,18 @@ class AESNativeCFB
         }
         if (outOff + len > out.length)
         {
-            throw new OutputLengthException("output buffer too short");
+            throw new OutputLengthException("output buffer too small");
+        }
+
+        if (referenceWrapper == null)
+        {
+            throw new IllegalStateException("not initialized");
         }
 
         //
         // Total bytes we can process.
         //
-        len = Math.min(in.length - inOff, out.length - outOff);
+        len = Math.min(len, out.length - outOff);
 
         return processBytes(referenceWrapper.getReference(), in, inOff, len, out, outOff);
     }
@@ -218,6 +223,11 @@ class AESNativeCFB
         if (outOff + getBlockSize() > out.length)
         {
             throw new DataLengthException("output buffer too short");
+        }
+
+        if (referenceWrapper == null)
+        {
+            throw new IllegalStateException("not initialized");
         }
 
         return processBytes(referenceWrapper.getReference(), in, inOff, getBlockSize(), out, outOff);

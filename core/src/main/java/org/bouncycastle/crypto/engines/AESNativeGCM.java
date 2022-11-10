@@ -61,7 +61,7 @@ class AESNativeGCM
             int macSizeBits = param.getMacSize();
             if (macSizeBits < 32 || macSizeBits > 128 || macSizeBits % 8 != 0)
             {
-                throw new IllegalArgumentException("Invalid value for MAC size: " + macSizeBits);
+                throw new IllegalArgumentException("invalid value for MAC size: " + macSizeBits);
             }
 
             macSize = macSizeBits;
@@ -176,6 +176,11 @@ class AESNativeGCM
         {
             throw new IllegalArgumentException("inOff + len past end of data");
         }
+
+        if (refWrapper == null) {
+            throw new IllegalStateException("GCM is uninitialized");
+        }
+
         processAADBytes(refWrapper.getReference(), in, inOff, len);
     }
 
@@ -192,6 +197,10 @@ class AESNativeGCM
         if (outOff > out.length)
         {
             throw new IllegalArgumentException("offset past end of output array");
+        }
+
+        if (refWrapper == null) {
+            throw new IllegalStateException("GCM is uninitialized");
         }
 
         return processByte(refWrapper.getReference(), in, out, outOff);
@@ -226,6 +235,10 @@ class AESNativeGCM
         if (out != null && outOff > out.length)
         {
             throw new IllegalArgumentException("offset past end of output array");
+        }
+
+        if (refWrapper == null) {
+            throw new IllegalStateException("GCM is uninitialized");
         }
 
         return processBytes(refWrapper.getReference(), in, inOff, len, out, outOff);

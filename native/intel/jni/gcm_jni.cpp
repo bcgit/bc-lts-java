@@ -111,7 +111,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
         (JNIEnv *env, jclass, jlong ref, jbyte in, jbyteArray out_, jint outOff) {
 
 
-
     jniutil::JavaByteArray out(env, out_);
     auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
     return (jint) instance->processByte((unsigned char) in, out.uvalue() + outOff, out.length());
@@ -134,9 +133,22 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
     //
     // out can be a null byte array ( out.isNull() ) if no output is expected.
     //
+    try {
+        return (jint) instance->processBytes(in.uvalue(), (size_t) inOff, (size_t) len, out.uvalue(), outOff,
+                                             out.length() - (uint32_t)outOff);
+    } catch (const exceptions::OutputLengthException &exp) {
+        out.disposeNow();
+        in.disposeNow();
+        jniutil::JavaEnvUtils::throwException(env,
+                                              "org/bouncycastle/crypto/OutputLengthException",
+                                              exp.what());
+    } catch (const std::runtime_error &err) {
+        out.disposeNow();
+        in.disposeNow();
+        jniutil::JavaEnvUtils::throwIllegalArgumentException(env, err.what());
+    }
 
-    return (jint) instance->processBytes(in.uvalue(), (size_t) inOff, (size_t) len, out.uvalue(), outOff, out.length());
-
+    return 0;
 }
 
 /*
@@ -146,7 +158,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_doFinal
         (JNIEnv *env, jclass, jlong ref, jbyteArray out_, jint outOff) {
-
 
 
     jniutil::JavaByteArrayCritical out(env, out_);

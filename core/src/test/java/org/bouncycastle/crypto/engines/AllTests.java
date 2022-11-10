@@ -46,6 +46,7 @@ public class AllTests
         suite.addTestSuite(AesCFBConcordanceTest.class);
         suite.addTestSuite(AesECBConcordanceTest.class);
         suite.addTestSuite(AesGCMConcordanceTest.class);
+        suite.addTestSuite(NativeLimitTests.class);
 
         return new BCTestSetup(suite);
     }
