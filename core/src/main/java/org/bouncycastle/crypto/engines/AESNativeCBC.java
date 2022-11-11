@@ -53,9 +53,25 @@ class AESNativeCBC
                 init(ivParam.getParameters());
                 // cipher.init(encrypting, ivParam.getParameters());
             }
-            else if (oldEncrypting != encrypting)
+            else
             {
-                throw new IllegalArgumentException("cannot change encrypting state without providing key.");
+                // The key parameter was null which inidicates that they
+                // IV is being changed.
+
+                if (oldEncrypting != encrypting)
+                {
+                    throw new IllegalArgumentException("cannot change encrypting state without providing key.");
+                }
+
+                if (oldKey == null)
+                {
+                    throw new IllegalStateException("IV change attempted but not previously initialized with a key");
+                }
+
+                // We need to use the old key because
+                // the native layer requires a both key and iv each time.
+                init(new KeyParameter(oldKey));
+
             }
         }
         else
@@ -68,9 +84,22 @@ class AESNativeCBC
                 init(params);
                 // cipher.init(encrypting, params);
             }
-            else if (oldEncrypting != encrypting)
+            else
             {
-                throw new IllegalArgumentException("cannot change encrypting state without providing key.");
+                if (oldEncrypting != encrypting)
+                {
+                    throw new IllegalArgumentException("cannot change encrypting state without providing key.");
+                }
+
+                if (oldKey == null)
+                {
+                    throw new IllegalStateException("IV change attempted but not previously initialized with a key");
+                }
+
+                // We need to use the old key because the
+                // native layer requires a both key and iv each time.
+                init(new KeyParameter(oldKey));
+
             }
         }
 
@@ -110,7 +139,9 @@ class AESNativeCBC
         {
             throw new IllegalStateException("Native CBC native instance returned a null pointer.");
         }
-        oldKey = key;
+
+        oldKey = Arrays.clone(key);
+
         init(referenceWrapper.getReference(), key, IV);
 
     }
