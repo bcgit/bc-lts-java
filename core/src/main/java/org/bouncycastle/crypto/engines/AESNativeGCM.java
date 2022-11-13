@@ -61,7 +61,7 @@ class AESNativeGCM
             int macSizeBits = param.getMacSize();
             if (macSizeBits < 32 || macSizeBits > 128 || macSizeBits % 8 != 0)
             {
-                throw new IllegalArgumentException("Invalid value for MAC size: " + macSizeBits);
+                throw new IllegalArgumentException("invalid value for MAC size: " + macSizeBits);
             }
 
             macSize = macSizeBits;
@@ -117,6 +117,16 @@ class AESNativeGCM
             ));
 
 
+        switch (lastKey.length)
+        {
+        case 16:
+        case 24:
+        case 32:
+            break;
+        default:
+            throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
+        }
+
         initRef(lastKey.length);
 
 
@@ -152,10 +162,26 @@ class AESNativeGCM
     @Override
     public void processAADBytes(byte[] in, int inOff, int len)
     {
+        if (inOff < 0)
+        {
+            throw new IllegalArgumentException("inOff is negative");
+        }
+
+        if (len < 0)
+        {
+            throw new IllegalArgumentException("len is negative");
+        }
+
         if (inOff + len > in.length)
         {
             throw new IllegalArgumentException("inOff + len past end of data");
         }
+
+        if (refWrapper == null)
+        {
+            throw new IllegalStateException("GCM is uninitialized");
+        }
+
         processAADBytes(refWrapper.getReference(), in, inOff, len);
     }
 
@@ -164,9 +190,19 @@ class AESNativeGCM
     public int processByte(byte in, byte[] out, int outOff)
         throws DataLengthException
     {
+        if (outOff < 0)
+        {
+            throw new IllegalArgumentException("outOff is negative");
+        }
+
         if (outOff > out.length)
         {
             throw new IllegalArgumentException("offset past end of output array");
+        }
+
+        if (refWrapper == null)
+        {
+            throw new IllegalStateException("GCM is uninitialized");
         }
 
         return processByte(refWrapper.getReference(), in, out, outOff);
@@ -177,6 +213,22 @@ class AESNativeGCM
     public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
         throws DataLengthException
     {
+        if (inOff < 0)
+        {
+            throw new IllegalStateException("inOff is negative");
+        }
+
+        if (len < 0)
+        {
+            throw new IllegalStateException("len is negative");
+        }
+
+        if (outOff < 0)
+        {
+            throw new IllegalStateException("outOff is negative");
+        }
+
+
         if (inOff + len > in.length)
         {
             throw new IllegalStateException("inOdd + len is past end of input");
@@ -185,6 +237,11 @@ class AESNativeGCM
         if (out != null && outOff > out.length)
         {
             throw new IllegalArgumentException("offset past end of output array");
+        }
+
+        if (refWrapper == null)
+        {
+            throw new IllegalStateException("GCM is uninitialized");
         }
 
         return processBytes(refWrapper.getReference(), in, inOff, len, out, outOff);
@@ -196,11 +253,18 @@ class AESNativeGCM
         throws IllegalStateException, InvalidCipherTextException
     {
 
-        checkStatus();
+        if (outOff < 0)
+        {
+            throw new IllegalArgumentException("outOff is negative");
+        }
+
+
         if (outOff > out.length)
         {
             throw new IllegalArgumentException("offset past end of output array");
         }
+
+        checkStatus();
 
         initialised = false;
         return doFinal(refWrapper.getReference(), out, outOff);

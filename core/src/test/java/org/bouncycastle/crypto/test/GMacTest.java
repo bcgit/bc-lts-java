@@ -131,7 +131,7 @@ public class GMacTest extends SimpleTest
         }
         catch (IllegalArgumentException e)
         {
-            if (!e.getMessage().startsWith("Invalid value for MAC size"))
+            if (!e.getMessage().toLowerCase().startsWith("invalid value for mac size"))
             {
                 fail("Illegal mac size failed with unexpected message");
             }
