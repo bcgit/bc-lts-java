@@ -24,17 +24,11 @@
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_process
         (JNIEnv *env, jclass, jlong ref, jbyteArray in_, jint inOff, jint blocks, jbyteArray out_, jint outOff) {
 
-    // Absolutely has to be positive.
-    abortIfNegative(blocks);
-
     //
     // Always wrap output array first.
     //
     jniutil::JavaByteArrayCritical out(env, out_);
     jniutil::JavaByteArrayCritical in(env, in_);
-
-    abortIf(out.isNull(), "output array passed to native layer was null");
-    abortIf(in.isNull(), "input array passed to native layer was null");
 
     auto instance = static_cast<intel::cbc::CBCLike *>((void *) ref);
     return (jint) instance->processBlock(in.uvalue() + inOff, (uint32_t) blocks, out.uvalue() + outOff);
@@ -121,9 +115,6 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_init
     auto instance = static_cast<intel::cbc::CBCLike *>((void *) ref);
     jniutil::JavaByteArray key(env, key_);
     jniutil::JavaByteArray iv(env, iv_);
-
-    abortIf(key.isNull(), "CBC key was null array");
-    abortIf(iv.isNull(), "CBC IV was null key");
 
     instance->init(key.uvalue(), key.length(), iv.uvalue(), iv.length());
 
