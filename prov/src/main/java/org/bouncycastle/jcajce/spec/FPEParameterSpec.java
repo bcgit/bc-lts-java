@@ -34,9 +34,9 @@ public class FPEParameterSpec
         return radixConverter.getRadix();
     }
 
-    public int getRadixConverter()
+    public RadixConverter getRadixConverter()
         {
-            return radixConverter.getRadix();
+            return radixConverter;
         }
 
     public byte[] getTweak()
