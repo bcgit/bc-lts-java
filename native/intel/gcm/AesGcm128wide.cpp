@@ -20,7 +20,7 @@ __m128i intel::gcm::AesGcm128wide::BSWAP_MASK = _mm_set_epi8(0, 1, 2, 3, 4, 5, 6
 
 #define BLOCKS_REMAINING_INIT ((1L << 32) - 2L)
 
-bool areEqualCT(unsigned char *left, unsigned char *right, size_t len) {
+bool areEqualCT(const unsigned char *left, const unsigned char *right, size_t len) {
 
     if (left == nullptr) {
         throw (std::invalid_argument("left is null"));
