@@ -7,11 +7,11 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
-class DateUtil
+public class LocaleUtil
 {
     private static final Map localeCache = new HashMap();
 
-    static Locale EN_Locale = forEN();
+    public static Locale EN_Locale = forEN();
 
     private static Locale forEN()
     {
