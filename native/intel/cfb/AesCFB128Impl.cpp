@@ -78,6 +78,9 @@ namespace intel {
             temp2 = _mm_aeskeygenassist_si128 (temp1, 0x36);
             temp1 = AES_128_ASSIST(temp1, temp2);
             roundKeys[10] = temp1;
+
+            memset(&temp1, 0, sizeof(__m128i));
+            memset(&temp2, 0, sizeof(__m128i));
         }
 
 

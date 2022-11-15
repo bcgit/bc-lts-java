@@ -231,11 +231,10 @@ class AESNativeGCM
 
         if (inOff + len > in.length)
         {
-            throw new IllegalStateException("inOdd + len is past end of input");
+            throw new IllegalStateException("inOff + len is past end of input");
         }
 
-        if (out != null && outOff > out.length)
-        {
+        if (outOff > 0 && (out == null || outOff > out.length)) {
             throw new IllegalArgumentException("offset past end of output array");
         }
 
@@ -263,6 +262,7 @@ class AESNativeGCM
         {
             throw new IllegalArgumentException("offset past end of output array");
         }
+
 
         checkStatus();
 

@@ -900,7 +900,13 @@ void intel::gcm::AesGcm128wide::processBlock(unsigned char *in, unsigned char *o
 
 void intel::gcm::AesGcm128wide::processFourBlocks(unsigned char *in, unsigned char *out) {
 
-    abortIf(out == nullptr,"out is null, output generated when no output was expected by caller");
+    if (out == nullptr) {
+        //
+        // Java api my supply a null output array if it expects no output, however
+        // if output does occur then we need to catch that here.
+        //
+        throw std::runtime_error("out is null, output generated when no output was expected by caller");
+    }
 
     blocksRemaining -= 4;
     if (blocksRemaining < 0) {
@@ -970,12 +976,11 @@ void intel::gcm::AesGcm128wide::processFourBlocks(unsigned char *in, unsigned ch
     _mm_storeu_si128((__m128i *) out, tmp4);
     out += BLOCK_SIZE;
 
-    tmp1 = _mm_shuffle_epi8(tmp1, BSWAP_MASK);
-    tmp2 = _mm_shuffle_epi8(tmp2, BSWAP_MASK);
-    tmp3 = _mm_shuffle_epi8(tmp3, BSWAP_MASK);
-    tmp4 = _mm_shuffle_epi8(tmp4, BSWAP_MASK);
-
     if (encryption) {
+        tmp1 = _mm_shuffle_epi8(tmp1, BSWAP_MASK);
+        tmp2 = _mm_shuffle_epi8(tmp2, BSWAP_MASK);
+        tmp3 = _mm_shuffle_epi8(tmp3, BSWAP_MASK);
+        tmp4 = _mm_shuffle_epi8(tmp4, BSWAP_MASK);
         X = _mm_xor_si128(X, tmp1);
         gfmul(X, H, &X);
         X = _mm_xor_si128(X, tmp2);

@@ -1,6 +1,3 @@
-//
-//
-//
 
 #ifndef BCN_CBCLIKE_H
 #define BCN_CBCLIKE_H

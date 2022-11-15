@@ -894,7 +894,13 @@ void intel::gcm::AesGcm256wide::processBlock(unsigned char *in, unsigned char *o
 
 void intel::gcm::AesGcm256wide::processFourBlocks(unsigned char *in, unsigned char *out) {
 
-    abortIf(out == nullptr, "out is null, output generated when no output was expected by caller");
+    if (out == nullptr) {
+        //
+        // Java api my supply a null output array if it expects no output, however
+        // if output does occur then we need to catch that here.
+        //
+        throw std::runtime_error("out is null, output generated when no output was expected by caller");
+    }
 
     blocksRemaining -= 4;
     if (blocksRemaining < 0) {
