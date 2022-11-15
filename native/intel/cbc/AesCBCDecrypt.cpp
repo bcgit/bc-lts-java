@@ -57,7 +57,7 @@ namespace intel {
 
 
         //
-        // AES CBC 128 Decryption
+        // AES CBC 192 Decryption
         //
         AesCBC192Dec::AesCBC192Dec() : CBC128wide() {
 

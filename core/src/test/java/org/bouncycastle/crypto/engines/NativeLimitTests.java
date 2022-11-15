@@ -6,12 +6,14 @@ import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
+import org.junit.Test;
 
 public class NativeLimitTests
     extends TestCase
 {
 
 
+    @Test
     public void testCBCInit()
         throws Exception
     {
@@ -130,7 +132,7 @@ public class NativeLimitTests
         };
     }
 
-
+    @Test
     public void testCBCProcessBlock()
         throws Exception
     {
@@ -274,6 +276,7 @@ public class NativeLimitTests
     }
 
 
+    @Test
     public void testCBCProcessBlocks()
         throws Exception
     {
@@ -483,6 +486,7 @@ public class NativeLimitTests
     }
 
 
+    @Test
     public void testECBInit()
         throws Exception
     {
@@ -680,6 +684,7 @@ public class NativeLimitTests
     }
 
 
+    @Test
     public void testECBProcessBlocks()
         throws Exception
     {
@@ -889,6 +894,7 @@ public class NativeLimitTests
     }
 
 
+    @Test
     public void testGCMInitParamWithIV()
         throws Exception
     {
@@ -1028,6 +1034,7 @@ public class NativeLimitTests
         };
     }
 
+    @Test
     public void testGCMInitAEADParams()
         throws Exception
     {
@@ -1211,7 +1218,7 @@ public class NativeLimitTests
         };
     }
 
-
+    @Test
     public void testGCMAADBytes()
         throws Exception
     {
@@ -1291,7 +1298,7 @@ public class NativeLimitTests
         };
     }
 
-
+    @Test
     public void testGCMProcessByte()
         throws Exception
     {
@@ -1341,6 +1348,17 @@ public class NativeLimitTests
 
                 try
                 {
+                    processByte(b, null, 20);
+                    fail("null array positive offset");
+                }
+                catch (Exception ex)
+                {
+                    assertTrue(ex instanceof NullPointerException);
+                }
+
+
+                try
+                {
                     processByte(b, new byte[10], 10);
                     fail("not initialized");
                 }
@@ -1354,6 +1372,7 @@ public class NativeLimitTests
     }
 
 
+    @Test
     public void testGCMProcessBytes()
         throws Exception
     {
@@ -1447,6 +1466,7 @@ public class NativeLimitTests
      *
      * @throws Exception
      */
+    @Test
     public void testGCMOutputVariations()
         throws Exception
     {
@@ -1505,6 +1525,38 @@ public class NativeLimitTests
             assertTrue(ex.getMessage().contains("output len too short"));
         }
 
+        try
+        { // null output non zero offset.
+
+            AESNativeGCM nativeGCM = new AESNativeGCM();
+            nativeGCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
+            byte[] in = new byte[65];
+
+            nativeGCM.processBytes(in, 0, in.length, null, 20);
+            fail("zero len but output offset");
+        }
+        catch (Exception ex)
+        {
+            assertTrue(ex.getMessage().contains("offset past end of output array"));
+        }
+
+
+        try
+        { // zero len output, positive offset
+
+            AESNativeGCM nativeGCM = new AESNativeGCM();
+            nativeGCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
+            byte[] in = new byte[65];
+
+            nativeGCM.processBytes(in, 0, in.length, new byte[0], 20);
+            fail("zero len but output");
+        }
+        catch (Exception ex)
+        {
+            assertTrue(ex.getMessage().contains("offset past end of output array"));
+        }
+
+
 
         try
         { // null output array but output generated
@@ -1560,6 +1612,7 @@ public class NativeLimitTests
     }
 
 
+    @Test
     public void testCFBInit()
         throws Exception
     {
@@ -1692,7 +1745,7 @@ public class NativeLimitTests
         };
     }
 
-
+    @Test
     public void testCFBProcessBlock()
         throws Exception
     {
@@ -1834,6 +1887,7 @@ public class NativeLimitTests
         };
     }
 
+    @Test
     public void testCFBProcessBytes()
         throws Exception
     {
