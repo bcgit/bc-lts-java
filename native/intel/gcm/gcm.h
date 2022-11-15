@@ -45,6 +45,7 @@ namespace intel::gcm {
 
         virtual size_t processByte(unsigned char in, unsigned char *out, size_t outputLen) = 0;
 
+
         virtual size_t
         processBytes(unsigned char *in, size_t inOff, size_t len, unsigned char *out, int outOff, size_t outputLen) = 0;
 

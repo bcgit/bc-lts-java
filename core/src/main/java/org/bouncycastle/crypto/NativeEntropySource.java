@@ -16,6 +16,11 @@ class NativeEntropySource
 
     public NativeEntropySource(int sizeInBits)
     {
+        if (sizeInBits <= 0)
+        {
+            throw new IllegalArgumentException("bit size less than 1");
+        }
+
         //
         // Round up conversion to bytes.
         //

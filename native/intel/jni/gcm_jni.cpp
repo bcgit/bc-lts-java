@@ -12,8 +12,11 @@
 
 //
 // NOTE:
-// All input validation is done on the java side, this code is not intended to exist
-// away from its java counterpart.
+// 99% of input validation is done on the java side and this code is not intended to
+// stand apart from the java code that calls it. GCM implements some extra bounds checking
+// in doFinal because it needs information held within the native implementation.
+// GCM also has a limit to the number of blocks that can be processed, this is also
+// enforced within the native implementation.
 //
 
 

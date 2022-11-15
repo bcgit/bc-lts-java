@@ -34,4 +34,33 @@ public class NativeEntropyTests
 
     }
 
+    public void testESLimits()
+        throws Exception
+    {
+
+
+        NativeLoader.loadDriver();
+
+        if (!CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.ENTROPY))
+        {
+            System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getStatusMessage());
+            return;
+        }
+
+        try
+        {
+            NativeEntropySource nes = new NativeEntropySource(0);
+            fail("size un bits less than zero");
+        }
+        catch (Exception ex)
+        {
+            assertTrue(ex.getMessage().contains("bit size less than 1"));
+        }
+
+
+
+
+
+    }
+
 }
