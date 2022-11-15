@@ -44,10 +44,7 @@ class AESNativeEngine
             case 16:
             case 24:
             case 32:
-                synchronized (this)
-                {
-                    wrapper = new ECBNativeRef(makeInstance(key.length, forEncryption));
-                }
+                wrapper = new ECBNativeRef(makeInstance(key.length, forEncryption));
                 break;
 
             default:

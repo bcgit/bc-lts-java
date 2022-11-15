@@ -67,7 +67,7 @@ class AESNativeCFB
             if (iv.length < getBlockSize())
             {
                 byte[] newIv = new byte[getBlockSize()];
-                System.arraycopy(iv, 0, iv, newIv.length - iv.length, iv.length);
+                System.arraycopy(iv, 0, newIv, newIv.length - iv.length, iv.length);
                 iv = newIv;
             }
 
@@ -265,7 +265,7 @@ class AESNativeCFB
 
         if (blockCount < 0)
         {
-            throw new DataLengthException("block count is negative");
+            throw new DataLengthException("blockCount is negative");
         }
 
         if (outOff < 0)
@@ -287,7 +287,7 @@ class AESNativeCFB
 
         if (referenceWrapper == null)
         {
-            throw new IllegalStateException("CFB engine not initialised");
+            throw new IllegalStateException("CFB engine not initialized");
         }
 
         return processBytes(in, inOff, blockCount * getBlockSize(), out, outOff);

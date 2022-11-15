@@ -366,7 +366,8 @@ void intel::gcm::AesGcm128wide::reset(bool keepMac) {
 }
 
 
-void intel::gcm::AesGcm128wide::init(bool encryption, unsigned char *key, size_t keyLen, unsigned char *nonce, size_t nonceLen,
+void intel::gcm::AesGcm128wide::init(bool encryption, unsigned char *key, size_t keyLen, unsigned char *nonce,
+                                     size_t nonceLen,
                                      unsigned char *initialText,
                                      size_t initialTextLen, size_t macSizeBytes) {
 
@@ -572,7 +573,7 @@ size_t intel::gcm::AesGcm128wide::getUpdateOutputSize(size_t len) {
         if (totalData < bufBlockLen) {
             return 0;
         }
-         totalData -= macBlockLen;
+        totalData -= macBlockLen;
     }
     return totalData - totalData % FOUR_BLOCKS;
 }
@@ -642,8 +643,9 @@ size_t intel::gcm::AesGcm128wide::processByte(unsigned char in, unsigned char *o
 }
 
 
-size_t intel::gcm::AesGcm128wide::processBytes(unsigned char *in, size_t inOff, size_t len, unsigned char *out, int outOff,
-                                               size_t outputLen) {
+size_t
+intel::gcm::AesGcm128wide::processBytes(unsigned char *in, size_t inOff, size_t len, unsigned char *out, int outOff,
+                                        size_t outputLen) {
 
     if (totalBytes == 0) {
         initCipher();
@@ -658,12 +660,12 @@ size_t intel::gcm::AesGcm128wide::processBytes(unsigned char *in, size_t inOff, 
     unsigned char *outStart = outPtr;
 
     for (unsigned char *readPos = start; readPos < end;) {
-        processBuffer(readPos, (size_t)(end - readPos), outPtr, outputLen, read, written);
+        processBuffer(readPos, (size_t) (end - readPos), outPtr, outputLen, read, written);
         readPos += read;
         outPtr += written;
     }
 
-    return (size_t)(outPtr - outStart);
+    return (size_t) (outPtr - outStart);
 
 }
 
@@ -676,6 +678,7 @@ size_t intel::gcm::AesGcm128wide::doFinal(unsigned char *output, size_t outOff, 
     }
 
     unsigned char *start = output + outOff;
+
     unsigned char *outPtr = start;
 
     __m128i tmp1;
@@ -686,8 +689,19 @@ size_t intel::gcm::AesGcm128wide::doFinal(unsigned char *output, size_t outOff, 
         if (macBlockLen > bufBlockPtr) {
             throw exceptions::CipherTextException("cipher text too short");
         }
-        limit -= macBlockLen;
+        limit -= macBlockLen; // Limit of cipher text before tag.
         totalBytes -= macBlockLen;
+
+        // decryption so output buffer cannot be less than limit.
+        // bytes are to limit are the mac block (tag)
+        if (outLen - outOff < limit) {
+            throw exceptions::OutputLengthException("output buffer too small");
+        }
+    } else {
+        // encryption, output must take remaining buffer + mac block
+        if (outLen - outOff < bufBlockPtr + macBlockLen) {
+            throw exceptions::OutputLengthException("output buffer too small");
+        }
     }
 
     if (bufBlockPtr > 0) {
@@ -830,11 +844,12 @@ size_t intel::gcm::AesGcm128wide::doFinal(unsigned char *output, size_t outOff, 
     }
 
     reset(true);
-    return (size_t)(outPtr - start);
+    return (size_t) (outPtr - start);
 }
 
 void
-intel::gcm::AesGcm128wide::processBuffer(unsigned char *in, size_t inlen, unsigned char *out, size_t outputLen, size_t &read,
+intel::gcm::AesGcm128wide::processBuffer(unsigned char *in, size_t inlen, unsigned char *out, size_t outputLen,
+                                         size_t &read,
                                          size_t &written) {
 
     size_t rem = bufBlockLen - bufBlockPtr;

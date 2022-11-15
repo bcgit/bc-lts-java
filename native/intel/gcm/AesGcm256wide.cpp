@@ -670,6 +670,7 @@ size_t intel::gcm::AesGcm256wide::doFinal(unsigned char *output, size_t outOff, 
 
     unsigned char *start = output + outOff;
     unsigned char *outPtr = start;
+    unsigned char *end = start + outLen;
 
     __m128i tmp1;
 
@@ -681,6 +682,17 @@ size_t intel::gcm::AesGcm256wide::doFinal(unsigned char *output, size_t outOff, 
         }
         limit -= macBlockLen;
         totalBytes -= macBlockLen;
+
+        // decryption so output buffer cannot be less than limit.
+        // bytes are to limit are the mac block (tag)
+        if (outLen - outOff < limit) {
+            throw exceptions::OutputLengthException("output buffer too small");
+        }
+    } else {
+        // encryption, output must take remaining buffer + mac block
+        if (outLen - outOff < bufBlockPtr + macBlockLen) {
+            throw exceptions::OutputLengthException("output buffer too small");
+        }
     }
 
     if (bufBlockPtr > 0) {
@@ -985,7 +997,6 @@ void intel::gcm::AesGcm256wide::processFourBlocks(unsigned char *in, unsigned ch
 }
 
 
-
 void intel::gcm::AesGcm256wide::initCipher() {
     if (atLength > 0) {
         S_atPre = S_at;
@@ -1004,6 +1015,7 @@ void intel::gcm::AesGcm256wide::initCipher() {
     }
 
 }
+
 
 void intel::gcm::AesGcm256wide::setBlocksRemainingDown(int64_t down) {
 
@@ -1116,6 +1128,7 @@ void intel::gcm::Exponentiator::ensureAvailable(uint64_t bit) {
         } while (++count <= bit);
     }
 }
+
 
 
 

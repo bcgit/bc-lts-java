@@ -48,6 +48,7 @@ class AESNativeGCM
     public void init(boolean forEncryption, CipherParameters params)
         throws IllegalArgumentException
     {
+        this.forEncryption = forEncryption;
         KeyParameter keyParam;
         byte[] newNonce = null;
 
@@ -135,7 +136,7 @@ class AESNativeGCM
             forEncryption, lastKey,
             nonce, initialAssociatedText, macSize);
 
-        this.forEncryption = forEncryption;
+
         initialised = true;
     }
 
@@ -234,7 +235,8 @@ class AESNativeGCM
             throw new IllegalStateException("inOff + len is past end of input");
         }
 
-        if (outOff > 0 && (out == null || outOff > out.length)) {
+        if (outOff > 0 && (out == null || outOff > out.length))
+        {
             throw new IllegalArgumentException("offset past end of output array");
         }
 
