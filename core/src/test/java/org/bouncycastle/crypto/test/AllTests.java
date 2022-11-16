@@ -29,9 +29,13 @@ public class AllTests
 
         suite.addTestSuite(SimpleTestTest.class);
         suite.addTestSuite(GCMReorderTest.class);
-        suite.addTestSuite(NativeFailsafeTest.class);
-        suite.addTestSuite(NativeEntropyTests.class);
 
+        try
+        {
+            suite.addTestSuite(NativeFailsafeTest.class);
+            suite.addTestSuite(NativeEntropyTests.class);
+        } catch (NoClassDefFoundError ignored) {
+        }
 
         return new BCTestSetup(suite);
     }
