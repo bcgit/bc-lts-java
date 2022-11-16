@@ -1,17 +1,20 @@
 package org.bouncycastle.test.est;
 
+import java.io.PrintWriter;
+
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.bouncycastle.PrintResults;
 import org.bouncycastle.util.test.SimpleTestResult;
 
 public class AllTests
     extends TestCase
 {
-    public static void main (String[] args)
+    public static void main(String[] args)
     {
-        junit.textui.TestRunner.run(suite());
+        PrintResults.printResult(junit.textui.TestRunner.run(suite()));
     }
 
     public static Test suite()
@@ -24,11 +27,11 @@ public class AllTests
     }
 
     public static class SimpleTestTest
-       extends TestCase
+        extends TestCase
     {
         public void testSimple()
         {
-            org.bouncycastle.util.test.Test[] tests = new org.bouncycastle.util.test.Test[] {
+            org.bouncycastle.util.test.Test[] tests = new org.bouncycastle.util.test.Test[]{
                 // TODO:
             };
 
