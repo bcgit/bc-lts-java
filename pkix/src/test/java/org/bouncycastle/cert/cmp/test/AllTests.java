@@ -15,6 +15,7 @@ import java.util.Date;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.bouncycastle.PrintResults;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.DERSequence;
@@ -96,7 +97,9 @@ public class AllTests
 
     public static void main(String args[])
     {
-        junit.textui.TestRunner.run(AllTests.class);
+        TestSuite ts = new TestSuite();
+        ts.addTestSuite(AllTests.class);
+        PrintResults.printResult(junit.textui.TestRunner.run(ts));
     }
 
     public static Test suite()

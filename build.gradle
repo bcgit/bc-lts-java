@@ -62,6 +62,20 @@ task printProperties {
   }
 }
 
+task allTestJar(type: Jar) {
+  from(project(":core").sourceSets.test.output)
+  from(project(":mail").sourceSets.test.output)
+  from(project(":pkix").sourceSets.test.output)
+  from(project(":prov").sourceSets.test.output)
+  from(project(":tls").sourceSets.test.output)
+  from(project(":util").sourceSets.test.output)
+  from(project(":util").sourceSets.test.output)
+  classifier("tests")
+}
+
+allTestJar.dependsOn(compileTestJava);
+
+
 subprojects {
   apply plugin: 'eclipse'
 
@@ -80,8 +94,6 @@ subprojects {
   }
 
   version = '2.0.0-SNAPSHOT'
-
-
 
 
   task('testVAES', type: Test) {
@@ -168,7 +180,6 @@ subprojects {
   }
 
 
-
   task testFull(type: Test) {
 
     testLogging.showStandardStreams = true
@@ -233,7 +244,6 @@ subprojects {
   }
 
 }
-
 
 
 test.dependsOn([':core:test', ':prov:test', ':pkix:test', ':mail:test', 'pg:test', ':tls:test'])

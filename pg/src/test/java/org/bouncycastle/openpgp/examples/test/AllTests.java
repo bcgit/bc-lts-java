@@ -14,6 +14,7 @@ import java.io.PrintStream;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.bouncycastle.PrintResults;
 import org.bouncycastle.openpgp.examples.ClearSignedFileProcessor;
 import org.bouncycastle.openpgp.examples.DSAElGamalKeyRingGenerator;
 import org.bouncycastle.openpgp.examples.KeyBasedFileProcessor;
@@ -441,7 +442,7 @@ public class AllTests
     
     public static void main (String[] args)
     {
-        junit.textui.TestRunner.run(suite());
+       PrintResults.printResult( junit.textui.TestRunner.run(suite()));
     }
     
     public static Test suite()
