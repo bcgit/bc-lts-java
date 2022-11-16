@@ -18,6 +18,11 @@ a=(`$JAVA_HOME/bin/jar -tf "$testJar" | grep -E "AllTests\.class" | sed -e 's!.c
 
 for i in "${a[@]}"
 do
+  case $i in org\.bouncycaslte\.crypto\.engines\.*)
+    echo "skipping $i"
+    continue
+    esac
+
   echo $i
 
   java  \

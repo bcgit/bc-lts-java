@@ -1,11 +1,4 @@
-import static ExtraFunctions.propValsAsArgs
-import static ExtraFunctions.propValsAsArgs
-import static ExtraFunctions.propValsAsArgs
-import static ExtraFunctions.propValsAsArgs
-import static ExtraFunctions.propValsAsArgs
-import static ExtraFunctions.propValsAsArgs
-import static ExtraFunctions.propValsAsArgs
-import static ExtraFunctions.propValsAsArgs
+
 import static ExtraFunctions.propValsAsArgs
 
 buildscript {
@@ -64,12 +57,15 @@ task printProperties {
 
 task allTestJar(type: Jar) {
   from(project(":core").sourceSets.test.output)
+  exclude("org/bouncycastle/crypto/engines/*")
+  exclude("org/bouncycastle/crypto/NativeEntropyTests.*")
+  exclude("org/bouncycastle/crypto/NativeFailsafeTest.*")
   from(project(":mail").sourceSets.test.output)
   from(project(":pkix").sourceSets.test.output)
   from(project(":prov").sourceSets.test.output)
   from(project(":tls").sourceSets.test.output)
   from(project(":util").sourceSets.test.output)
-  from(project(":util").sourceSets.test.output)
+  from(project(":test").sourceSets.test.output)
   classifier("tests")
 }
 
