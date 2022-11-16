@@ -16,6 +16,8 @@ rm mtest/*-sources.jar
 
 a=(`$JAVA_HOME/bin/jar -tf "$testJar" | grep -E "AllTests\.class" | sed -e 's!.class!!' | sed -e 's|/|.|g'`);
 
+rm -rf /tmp/bc-libs
+mkdir /tmp/bc-libs
 
 export DYLIB_LIBRARY_PATH=/tmp/bc-libs
 export LD_LIBRARY_PATH=/tmp/bc-libs
@@ -25,12 +27,13 @@ java  \
   org.bouncycastle.util.DumpInfo
 
 
+
 for i in "${a[@]}"
 do
-  case $i in org\.bouncycaslte\.crypto\.engines\.*)
-    echo "skipping $i"
-    continue
-    esac
+#  case $i in org\.bouncycaslte\.crypto\.engines\.*)
+#    echo "skipping $i"
+#    continue
+#    esac
 
   echo $i
 

@@ -72,6 +72,20 @@ task allTestJar(type: Jar) {
 allTestJar.dependsOn(compileTestJava);
 
 
+task allTestUnisgnedJar(type: Jar) {
+  from(project(":core").sourceSets.test.output)
+  from(project(":mail").sourceSets.test.output)
+  from(project(":pkix").sourceSets.test.output)
+  from(project(":prov").sourceSets.test.output)
+  from(project(":tls").sourceSets.test.output)
+  from(project(":util").sourceSets.test.output)
+  from(project(":test").sourceSets.test.output)
+  classifier("unsigned-tests")
+}
+
+allTestUnisgnedJar.dependsOn(compileTestJava);
+
+
 subprojects {
   apply plugin: 'eclipse'
 
