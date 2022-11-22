@@ -9,7 +9,6 @@ public class RegressionTest
         {
             new AESTest(),
             new AESLightTest(),
-            new AESFastTest(),
             new AESWrapTest(),
             new AESWrapPadTest(),
             new ARIATest(),
@@ -183,7 +182,11 @@ public class RegressionTest
             new TupleHashTest(),
             new ParallelHashTest(),
             new CryptoServiceConstraintsTest(),
-            new RadixConverterTest()
+            new SymmetricConstraintsTest(),
+            new AsymmetricConstraintsTest(),
+            new DigestConstraintsTest(),
+            new RadixConverterTest(),
+            new Grain128AEADTest()
         };
 
     public static void main(String[] args)

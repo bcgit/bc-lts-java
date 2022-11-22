@@ -1,0 +1,60 @@
+stages:
+  - test
+  - testSSE
+  - testAVX
+  - testVAES
+
+
+
+test-java-code:
+  stage: test
+  script:
+    - "apply_overlay bc-fips-2-0-X-java ./"
+    - . cienv.sh
+    - "gradle clean build -Pskip.pqc.tests"
+
+test-code-sse:
+  stage: testSSE
+  script:
+    - "cat /proc/cpuinfo | grep avx"
+    - "apply_overlay bc-fips-2-0-X-java ./"
+    - "rm -rf /tmp/bcfipslibs"
+    - "mkdir -p /tmp/bcfipslibs"
+    - . cienv.sh
+    - "gradle clean compileJava; \ cd native; \ ./build_linux.sh; \ cd .."
+    - "gradle withNative build copyJars -x test"
+    - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
+    - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
+    - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-sse -cp jars/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo"
+    - "gradle -Pskip.pqc.tests clean withNative build testSSE  -x test"
+
+
+test-code-avx:
+  stage: testAVX
+  script:
+    - "cat /proc/cpuinfo | grep avx"
+    - "apply_overlay bc-fips-2-0-X-java ./"
+    - "rm -rf /tmp/bcfipslibs"
+    - "mkdir -p /tmp/bcfipslibs"
+    - . cienv.sh
+    - "gradle clean compileJava; \ cd native; \ ./build_linux.sh; \ cd .."
+    - "gradle withNative build copyJars -x test"
+    - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
+    - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
+    - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx -cp jars/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo"
+    - "gradle -Pskip.pqc.tests clean withNative build testAVX  -x test"
+
+test-code-vaes:
+  stage: testVAES
+  script:
+    - "cat /proc/cpuinfo | grep avx"
+    - "apply_overlay bc-fips-2-0-X-java ./"
+    - "rm -rf /tmp/bcfipslibs"
+    - "mkdir -p /tmp/bcfipslibs"
+    - . cienv.sh
+    - "gradle clean compileJava; \ cd native; \ ./build_linux.sh; \ cd .."
+    - "gradle withNative build copyJars -x test"
+    - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
+    - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
+    - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-vaes -cp jars/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo"
+    - "gradle -Pskip.pqc.tests clean withNative build testVAES  -x test"

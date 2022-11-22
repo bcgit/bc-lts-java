@@ -9,7 +9,6 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1UTF8String;
 import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.asn1.DERUTF8String;
 
 /**
  * <pre>
@@ -116,16 +115,6 @@ public class CMCStatusInfo
     public BodyPartID[] getBodyList()
     {
         return Utils.toBodyPartIDArray(bodyList);
-    }
-
-    /**
-     * @deprecated Use {@link #getStatusStringUTF8()} instead.
-     */
-    public DERUTF8String getStatusString()
-    {
-        return null == statusString || statusString instanceof DERUTF8String
-            ?   (DERUTF8String)statusString
-            :   new DERUTF8String(statusString.getString());
     }
 
     public ASN1UTF8String getStatusStringUTF8()

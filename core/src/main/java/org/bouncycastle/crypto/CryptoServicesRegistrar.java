@@ -1,18 +1,29 @@
 package org.bouncycastle.crypto;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
+import java.net.URL;
 import java.security.AccessController;
-import java.security.NoSuchAlgorithmException;
 import java.security.Permission;
 import java.security.PrivilegedAction;
+import java.security.Provider;
 import java.security.SecureRandom;
+import java.security.SecureRandomSpi;
+import java.security.Security;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.bouncycastle.asn1.x9.X9ECParameters;
+import org.bouncycastle.crypto.digests.SHA512Digest;
+import org.bouncycastle.crypto.macs.HMac;
 import org.bouncycastle.crypto.params.DHParameters;
 import org.bouncycastle.crypto.params.DHValidationParameters;
 import org.bouncycastle.crypto.params.DSAParameters;
@@ -20,7 +31,11 @@ import org.bouncycastle.crypto.params.DSAValidationParameters;
 import org.bouncycastle.crypto.prng.BasicEntropySourceProvider;
 import org.bouncycastle.crypto.prng.EntropySource;
 import org.bouncycastle.crypto.prng.EntropySourceProvider;
+import org.bouncycastle.crypto.prng.SP800SecureRandom;
+import org.bouncycastle.crypto.prng.SP800SecureRandomBuilder;
+import org.bouncycastle.util.Pack;
 import org.bouncycastle.util.Properties;
+import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
 
 /**
@@ -57,14 +72,10 @@ public final class CryptoServicesRegistrar
     private static final boolean preconfiguredConstraints;
     private static final AtomicReference<CryptoServicesConstraints> servicesConstraints = new AtomicReference<CryptoServicesConstraints>();
 
+    private static final NativeServices nativeServices;
+
     static
     {
-
-        //
-        // Load the native code.
-        //
-        NativeLoader.loadDriver();
-
         // default domain parameters for DSA and Diffie-Hellman
 
         DSAParameters def512Params = new DSAParameters(
@@ -128,6 +139,13 @@ public final class CryptoServicesRegistrar
 
         servicesConstraints.set(getDefaultConstraints());
         preconfiguredConstraints = (servicesConstraints.get() != noConstraintsImpl);
+
+        //
+        // Load the native code.
+        //
+        NativeLoader.loadDriver();
+
+        nativeServices = new NativeServices();
     }
 
 
@@ -150,7 +168,7 @@ public final class CryptoServicesRegistrar
 
     public static NativeServices getNativeServices()
     {
-        return new NativeServices(); // TODO: should probably be a static final
+        return nativeServices;
     }
 
     /**
@@ -227,14 +245,13 @@ public final class CryptoServicesRegistrar
         }
         else
         {
-            try
+            return new EntropySourceProvider()
             {
-                return new BasicEntropySourceProvider(SecureRandom.getInstanceStrong(), true);
-            }
-            catch (NoSuchAlgorithmException e)
-            {
-                throw new IllegalStateException("no system SecureRandom: " + e.getMessage(), e);
-            }
+                public EntropySource get(int bitsRequired)
+                {
+                    return new HybridEntropySource(entropyDaemon, createBaseEntropySourceProvider(), bitsRequired);
+                }
+            };
         }
     }
 
@@ -554,6 +571,11 @@ public final class CryptoServicesRegistrar
         return noConstraintsImpl;
     }
 
+    public static String getNativeStatus()
+    {
+        return NativeLoader.getStatusMessage();
+    }
+
     /**
      * Available properties that can be set.
      */
@@ -578,6 +600,398 @@ public final class CryptoServicesRegistrar
         {
             this.name = name;
             this.type = type;
+        }
+    }
+
+    // Entropy source selection for Java 7 and before.
+
+    // {"Provider class name","SecureRandomSpi class name"}
+    private static final String[][] initialEntropySourceNames = new String[][]
+        {
+            // Normal JVM
+            {"sun.security.provider.Sun", "sun.security.provider.SecureRandom"},
+            // Apache harmony
+            {"org.apache.harmony.security.provider.crypto.CryptoProvider", "org.apache.harmony.security.provider.crypto.SHA1PRNG_SecureRandomImpl"},
+            // Android.
+            {"com.android.org.conscrypt.OpenSSLProvider", "com.android.org.conscrypt.OpenSSLRandom"},
+            {"org.conscrypt.OpenSSLProvider", "org.conscrypt.OpenSSLRandom"},
+        };
+
+    // Cascade through providers looking for match.
+    private final static Object[] findSource()
+    {
+        for (int t = 0; t < initialEntropySourceNames.length; t++)
+        {
+            String[] pair = initialEntropySourceNames[t];
+            try
+            {
+                Object[] r = new Object[]{Class.forName(pair[0]).newInstance(), Class.forName(pair[1]).newInstance()};
+
+                return r;
+            }
+            catch (Throwable ex)
+            {
+                continue;
+            }
+        }
+
+        return null;
+    }
+
+    // unfortunately new SecureRandom() can cause a regress and it's the only reliable way of getting access
+    // to the JVM's seed generator.
+    private static EntropySourceProvider createBaseEntropySourceProvider()
+    {
+        if (Security.getProperty("securerandom.source") == null)
+        {
+             return createInternalEntropySourceProvider();
+        }
+        else
+        {
+            try
+            {
+                String source = Security.getProperty("securerandom.source");
+
+                return new URLSeededEntropySourceProvider(new URL(source));
+            }
+            catch (Exception e)
+            {
+                return createInternalEntropySourceProvider();
+            }
+        }
+    }
+
+    private static EntropySourceProvider createInternalEntropySourceProvider()
+    {
+        boolean hasGetInstanceStrong = AccessController.doPrivileged(new PrivilegedAction<Boolean>()
+        {
+            public Boolean run()
+            {
+                try
+                {
+                    Class def = SecureRandom.class;
+
+                    return def.getMethod("getInstanceStrong") != null;
+                }
+                catch (Exception e)
+                {
+                    return false;
+                }
+            }
+        });
+
+        if (hasGetInstanceStrong)
+        {
+            SecureRandom strong = AccessController.doPrivileged(new PrivilegedAction<SecureRandom>()
+            {
+                public SecureRandom run()
+                {
+                    try
+                    {
+                        return (SecureRandom)SecureRandom.class.getMethod("getInstanceStrong").invoke(null);
+                    }
+                    catch (Exception e)
+                    {
+                        return new CoreSecureRandom(findSource());
+                    }
+                }
+            });
+
+            return new BasicEntropySourceProvider(strong, true);
+        }
+        else
+        {
+            return new BasicEntropySourceProvider(AccessController.doPrivileged(new PrivilegedAction<SecureRandom>()
+            {
+                public SecureRandom run()
+                {
+                    return new CoreSecureRandom(findSource());
+                }
+            }), true);
+        }
+    }
+
+    private static class CoreSecureRandom
+        extends SecureRandom
+    {
+        CoreSecureRandom(Object[] initialEntropySourceAndSpi)
+        {
+            super((SecureRandomSpi)initialEntropySourceAndSpi[1], (Provider)initialEntropySourceAndSpi[0]);
+        }
+    }
+
+    private static EntropyDaemon entropyDaemon = null;
+    private static Thread entropyThread = null;
+
+    static
+    {
+        entropyDaemon = new EntropyDaemon();
+        entropyThread = new Thread(entropyDaemon, "BC Entropy Daemon");
+        entropyThread.setDaemon(true);
+        entropyThread.start();
+    }
+
+    private static class EntropyDaemon
+        implements Runnable
+    {
+        private final ConcurrentLinkedQueue<Runnable> tasks = new ConcurrentLinkedQueue<Runnable>();
+
+        void addTask(Runnable task)
+        {
+            tasks.add(task);
+        }
+
+        @Override
+        public void run()
+        {
+            while (!Thread.currentThread().isInterrupted())
+            {
+                Runnable task = tasks.poll();
+
+                if (task != null)
+                {
+                    try
+                    {
+                        task.run();
+                    }
+                    catch (Throwable e)
+                    {
+                        // ignore
+                    }
+                }
+                else
+                {
+                    try
+                    {
+                        Thread.sleep(5000);
+                    }
+                    catch (InterruptedException e)
+                    {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
+
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.fine("entropy thread interrupted - exiting");
+            }
+        }
+    }
+
+    private static class HybridEntropySource
+        implements EntropySource
+    {
+        private final AtomicBoolean seedAvailable = new AtomicBoolean(false);
+        private final AtomicInteger samples = new AtomicInteger(0);
+
+        private final SP800SecureRandom drbg;
+        private final SignallingEntropySource entropySource;
+        private final int bytesRequired;
+        private final byte[] additionalInput = Pack.longToBigEndian(System.currentTimeMillis());
+
+        HybridEntropySource(final EntropyDaemon entropyDaemon, EntropySourceProvider entropyProvider, final int bitsRequired)
+        {
+            bytesRequired = (bitsRequired + 7) / 8;
+            // remember for the seed generator we need the correct security strength for SHA-512
+            entropySource = new SignallingEntropySource(entropyDaemon, seedAvailable, entropyProvider, 256);
+            drbg = new SP800SecureRandomBuilder(new EntropySourceProvider()
+            {
+                public EntropySource get(final int bitsRequired)
+                {
+                    return entropySource;
+                }
+            })
+            .setPersonalizationString(Strings.toByteArray("Bouncy Castle Hybrid Entropy Source"))
+            .buildHMAC(new HMac(new SHA512Digest()), entropySource.getEntropy(), false);     // 32 byte nonce
+        }
+
+        @Override
+        public boolean isPredictionResistant()
+        {
+            return true;
+        }
+
+        @Override
+        public byte[] getEntropy()
+        {
+            byte[] entropy = new byte[bytesRequired];
+
+            // after 20 samples we'll start to check if there is new seed material.
+            if (samples.getAndIncrement() > 20)
+            {
+                if (seedAvailable.getAndSet(false))
+                {
+                    samples.set(0);
+                    drbg.reseed(additionalInput);
+                }
+                else
+                {
+                    entropySource.schedule();
+                }
+            }
+
+            drbg.nextBytes(entropy);
+
+            return entropy;
+        }
+
+        @Override
+        public int entropySize()
+        {
+            return bytesRequired * 8;
+        }
+
+        private class SignallingEntropySource
+            implements EntropySource
+        {
+            private final EntropyDaemon entropyDaemon;
+            private final AtomicBoolean seedAvailable;
+            private final EntropySource entropySource;
+            private final int byteLength;
+            private final AtomicReference entropy = new AtomicReference();
+            private final AtomicBoolean scheduled = new AtomicBoolean(false);
+
+            SignallingEntropySource(EntropyDaemon entropyDaemon, AtomicBoolean seedAvailable, EntropySourceProvider baseRandom, int bitsRequired)
+            {
+                this.entropyDaemon = entropyDaemon;
+                this.seedAvailable = seedAvailable;
+                this.entropySource = baseRandom.get(bitsRequired);
+                this.byteLength = (bitsRequired + 7) / 8;
+            }
+
+            public boolean isPredictionResistant()
+            {
+                return true;
+            }
+
+            public byte[] getEntropy()
+            {
+                byte[] seed = (byte[])entropy.getAndSet(null);
+
+                if (seed == null || seed.length != byteLength)
+                {
+                    seed = entropySource.getEntropy();
+                }
+                else
+                {
+                    scheduled.set(false);
+                }
+
+                schedule();
+
+                return seed;
+            }
+
+            void schedule()
+            {
+                if (!scheduled.getAndSet(true))
+                {
+                    entropyDaemon.addTask(new EntropyGatherer(entropySource));
+                }
+            }
+
+            public int entropySize()
+            {
+                return byteLength * 8;
+            }
+
+            private class EntropyGatherer
+                implements Runnable
+            {
+                private final EntropySource baseRandom;
+
+                EntropyGatherer(EntropySource baseRandom)
+                {
+                    this.baseRandom = baseRandom;
+                }
+
+                public void run()
+                {
+                    entropy.set(baseRandom.getEntropy());
+                    seedAvailable.set(true);
+                }
+            }
+        }
+    }
+
+    private static class URLSeededEntropySourceProvider
+            implements EntropySourceProvider
+    {
+        private final InputStream seedStream;
+
+        URLSeededEntropySourceProvider(final URL url)
+        {
+            this.seedStream = AccessController.doPrivileged(new PrivilegedAction<InputStream>()
+            {
+                public InputStream run()
+                {
+                    try
+                    {
+                        return url.openStream();
+                    }
+                    catch (IOException e)
+                    {
+                        throw new IllegalStateException("unable to open random source");
+                    }
+                }
+            });
+        }
+
+        private int privilegedRead(final byte[] data, final int off, final int len)
+        {
+            return AccessController.doPrivileged(new PrivilegedAction<Integer>()
+            {
+                public Integer run()
+                {
+                    try
+                    {
+                        return seedStream.read(data, off, len);
+                    }
+                    catch (IOException e)
+                    {
+                        throw new InternalError("unable to read random source");
+                    }
+                }
+            });
+        }
+
+        public EntropySource get(final int bitsRequired)
+        {
+            return new EntropySource()
+            {
+                private final int numBytes = (bitsRequired + 7) / 8;
+
+                public boolean isPredictionResistant()
+                {
+                    return true;
+                }
+
+                public byte[] getEntropy()
+                {
+                    byte[] data = new byte[numBytes];
+
+                    int off = 0;
+                    int len;
+
+                    while (off != data.length && (len = privilegedRead(data, off, data.length - off)) > -1)
+                    {
+                        off += len;
+                    }
+
+                    if (off != data.length)
+                    {
+                        throw new InternalError("unable to fully read random source");
+                    }
+
+                    return data;
+                }
+
+                public int entropySize()
+                {
+                    return bitsRequired;
+                }
+            };
         }
     }
 }

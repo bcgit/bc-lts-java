@@ -63,14 +63,6 @@ public class GOST3410ParamSetParameters
         a = (ASN1Integer)e.nextElement();
     }
 
-    /**
-     * @deprecated use getKeySize
-     */
-    public int getLKeySize()
-    {
-        return keySize;
-    }
-
     public int getKeySize()
     {
         return keySize;

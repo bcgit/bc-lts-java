@@ -1,9 +1,11 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.StreamCipher;
+import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
@@ -66,28 +68,37 @@ public class Grain128Engine
         if (iv == null || iv.length != 12)
         {
             throw new IllegalArgumentException(
-                "Grain-128  requires exactly 12 bytes of IV");
+                "Grain-128 requires exactly 12 bytes of IV");
         }
 
         if (!(ivParams.getParameters() instanceof KeyParameter))
         {
             throw new IllegalArgumentException(
-                "Grain-128 Init parameters must include a key");
+                "Grain-128 init parameters must include a key");
         }
 
         KeyParameter key = (KeyParameter)ivParams.getParameters();
+        byte[] keyBytes = key.getKey();
+        if (keyBytes.length != 16)
+        {
+            throw new IllegalArgumentException(
+                  "Grain-128 key must be 128 bits long");
+        }
+
+        CryptoServicesRegistrar.checkConstraints(new DefaultServiceProperties(
+                this.getAlgorithmName(), 128, params, Utils.getPurpose(forEncryption)));
 
         /**
          * Initialize variables.
          */
-        workingIV = new byte[key.getKey().length];
-        workingKey = new byte[key.getKey().length];
+        workingIV = new byte[keyBytes.length];
+        workingKey = new byte[keyBytes.length];
         lfsr = new int[STATE_SIZE];
         nfsr = new int[STATE_SIZE];
         out = new byte[4];
 
         System.arraycopy(iv, 0, workingIV, 0, iv.length);
-        System.arraycopy(key.getKey(), 0, workingKey, 0, key.getKey().length);
+        System.arraycopy(keyBytes, 0, workingKey, 0, keyBytes.length);
 
         reset();
     }
@@ -177,9 +188,9 @@ public class Grain128Engine
         int s60 = lfsr[1] >>> 28 | lfsr[2] << 4;
         int s79 = lfsr[2] >>> 15 | lfsr[3] << 17;
         int s93 = lfsr[2] >>> 29 | lfsr[3] << 3;
-        int s95 = lfsr[2] >>> 31 | lfsr[3] << 1;
+        int s94 = lfsr[2] >>> 31 | lfsr[3] << 1;
 
-        return b12 & s8 ^ s13 & s20 ^ b95 & s42 ^ s60 & s79 ^ b12 & b95 & s95 ^ s93
+        return b12 & s8 ^ s13 & s20 ^ b95 & s42 ^ s60 & s79 ^ b12 & b95 & s94 ^ s93
             ^ b2 ^ b15 ^ b36 ^ b45 ^ b64 ^ b73 ^ b89;
     }
 

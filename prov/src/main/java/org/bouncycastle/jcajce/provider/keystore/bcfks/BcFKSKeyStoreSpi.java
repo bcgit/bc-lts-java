@@ -61,7 +61,6 @@ import org.bouncycastle.asn1.bc.ObjectStoreIntegrityCheck;
 import org.bouncycastle.asn1.bc.PbkdMacIntegrityCheck;
 import org.bouncycastle.asn1.bc.SecretKeyData;
 import org.bouncycastle.asn1.bc.SignatureCheck;
-import org.bouncycastle.internal.asn1.cms.CCMParameters;
 import org.bouncycastle.asn1.kisa.KISAObjectIdentifiers;
 import org.bouncycastle.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.asn1.misc.ScryptParams;
@@ -89,8 +88,8 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.util.PBKDF2Config;
 import org.bouncycastle.crypto.util.PBKDFConfig;
 import org.bouncycastle.crypto.util.ScryptConfig;
+import org.bouncycastle.internal.asn1.cms.CCMParameters;
 import org.bouncycastle.jcajce.BCFKSLoadStoreParameter;
-import org.bouncycastle.jcajce.BCFKSStoreParameter;
 import org.bouncycastle.jcajce.BCLoadStoreParameter;
 import org.bouncycastle.jcajce.provider.keystore.util.AdaptingKeyStoreSpi;
 import org.bouncycastle.jcajce.provider.keystore.util.ParameterUtil;
@@ -836,17 +835,7 @@ class BcFKSKeyStoreSpi
             throw new IllegalArgumentException("'parameter' arg cannot be null");
         }
 
-        if (parameter instanceof BCFKSStoreParameter)
-        {
-            BCFKSStoreParameter bcParam = (BCFKSStoreParameter)parameter;
-
-            char[] password = ParameterUtil.extractPassword(parameter);
-
-            hmacPkbdAlgorithm = generatePkbdAlgorithmIdentifier(bcParam.getStorePBKDFConfig(), 512 / 8);
-
-            engineStore(bcParam.getOutputStream(), password);
-        }
-        else if (parameter instanceof BCFKSLoadStoreParameter)
+        if (parameter instanceof BCFKSLoadStoreParameter)
         {
             BCFKSLoadStoreParameter bcParam = (BCFKSLoadStoreParameter)parameter;
 

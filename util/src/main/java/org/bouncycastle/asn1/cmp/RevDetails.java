@@ -7,7 +7,6 @@ import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.crmf.CertTemplate;
 import org.bouncycastle.asn1.x509.Extensions;
-import org.bouncycastle.asn1.x509.X509Extensions;
 
 /**
  * <pre>
@@ -39,17 +38,6 @@ public class RevDetails
     public RevDetails(CertTemplate certDetails)
     {
         this.certDetails = certDetails;
-    }
-
-    /**
-     * @param certDetails
-     * @param crlEntryDetails
-     * @deprecated use method taking Extensions
-     */
-    public RevDetails(CertTemplate certDetails, X509Extensions crlEntryDetails)
-    {
-        this.certDetails = certDetails;
-        this.crlEntryDetails = Extensions.getInstance(crlEntryDetails.toASN1Primitive());
     }
 
     public RevDetails(CertTemplate certDetails, Extensions crlEntryDetails)

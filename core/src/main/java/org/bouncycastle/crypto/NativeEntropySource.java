@@ -6,7 +6,7 @@ import org.bouncycastle.crypto.prng.EntropySource;
 
 
 class NativeEntropySource
-    implements EntropySource
+    implements EntropySource, NativeService
 {
 
     private final int size;
@@ -16,6 +16,11 @@ class NativeEntropySource
 
     public NativeEntropySource(int sizeInBits)
     {
+        if (sizeInBits <= 0)
+        {
+            throw new IllegalArgumentException("bit size less than 1");
+        }
+
         //
         // Round up conversion to bytes.
         //

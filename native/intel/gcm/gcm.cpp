@@ -3,12 +3,9 @@
 //
 
 #include "gcm.h"
-#include "AesGcm.h"
+#include "AesGcm128wide.h"
 
 namespace intel::gcm {
-    GCM *GCM::makeGCM() {
-        return new AesGcm();
-    }
 
     GCM::GCM() {
 

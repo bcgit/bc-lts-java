@@ -133,14 +133,6 @@ public class PGPSignatureSubpacketVector
     }
 
     /**
-     * @deprecated use  getNotationDataOccurrences()
-     */
-    public NotationData[] getNotationDataOccurences()
-    {
-        return getNotationDataOccurrences();
-    }
-
-    /**
      * Return all {@link NotationData} occurrences which match the given notation name.
      *
      * @param notationName notation name

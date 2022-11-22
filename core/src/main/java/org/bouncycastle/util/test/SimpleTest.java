@@ -218,6 +218,11 @@ public abstract class SimpleTest
         }
         // -DM out.println
         out.println(result);
+        if (!result.isSuccessful())
+        {
+            // -DM System.exit
+            System.exit(1);
+        }
     }
 
     public static void runTests(Test[] tests)
@@ -266,7 +271,6 @@ public abstract class SimpleTest
                 System.out.println("=>  " + (TestResult)e.nextElement());
             }
         }
-
 
 
     }

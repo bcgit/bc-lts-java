@@ -50,7 +50,6 @@ import org.bouncycastle.jcajce.util.BCJcaJceHelper;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
 import org.bouncycastle.jce.interfaces.IESKey;
 import org.bouncycastle.jce.spec.IESParameterSpec;
-import org.bouncycastle.util.AESFactory;
 import org.bouncycastle.util.BigIntegers;
 import org.bouncycastle.util.Strings;
 
@@ -529,7 +528,7 @@ public class IESCipher
             super(new IESEngine(new DHBasicAgreement(),
                 new KDF2BytesGenerator(DigestFactory.createSHA1()),
                 new HMac(DigestFactory.createSHA1()),
-                new PaddedBufferedBlockCipher(new CBCBlockCipher(new DESedeEngine()))), 8);
+                new PaddedBufferedBlockCipher(CBCBlockCipher.newInstance(new DESedeEngine()))), 8);
         }
     }
 
@@ -541,7 +540,7 @@ public class IESCipher
             super(new IESEngine(new DHBasicAgreement(),
                 new KDF2BytesGenerator(DigestFactory.createSHA1()),
                 new HMac(DigestFactory.createSHA1()),
-                new PaddedBufferedBlockCipher(AESFactory.createCBC())), 16);
+                new PaddedBufferedBlockCipher(CBCBlockCipher.newInstance(AESEngine.newInstance()))), 16);
         }
     }
 }

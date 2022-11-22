@@ -6,7 +6,6 @@ import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
-import org.bouncycastle.asn1.x509.AttributeCertificate;
 import org.bouncycastle.asn1.x509.Certificate;
 
 /**
@@ -15,12 +14,6 @@ import org.bouncycastle.asn1.x509.Certificate;
 public class CertAnnContent
     extends CMPCertificate
 {
-
-    public CertAnnContent(AttributeCertificate x509v2AttrCert)
-    {
-        super(x509v2AttrCert);
-    }
-
     public CertAnnContent(int type, ASN1Object otherCert)
     {
         super(type, otherCert);
@@ -37,7 +30,7 @@ public class CertAnnContent
         {
             if (isExplicit)
             {
-                return CertAnnContent.getInstance(ato.getObject());
+                return CertAnnContent.getInstance(ato.getExplicitBaseObject());
             }
             else
             {
@@ -62,7 +55,7 @@ public class CertAnnContent
             }
             catch (IOException e)
             {
-                throw new RuntimeException(e.getMessage(), e);
+                throw new IllegalArgumentException(e.getMessage(), e);
             }
         }
 
@@ -74,7 +67,7 @@ public class CertAnnContent
             }
             catch (IOException e)
             {
-                throw new IllegalArgumentException("Invalid encoding in CMPCertificate");
+                throw new IllegalArgumentException("Invalid encoding in CertAnnContent");
             }
         }
 
@@ -87,7 +80,7 @@ public class CertAnnContent
         {
             ASN1TaggedObject taggedObject = (ASN1TaggedObject)o;
 
-            return new CertAnnContent(taggedObject.getTagNo(), taggedObject.getObject());
+            return new CertAnnContent(taggedObject.getTagNo(), taggedObject.getExplicitBaseObject());
         }
 
         throw new IllegalArgumentException("Invalid object: " + o.getClass().getName());

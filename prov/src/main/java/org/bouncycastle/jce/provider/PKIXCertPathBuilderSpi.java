@@ -18,12 +18,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.bouncycastle.asn1.x509.Extension;
-import org.bouncycastle.jcajce.PKIXCertStore;
 import org.bouncycastle.jcajce.PKIXExtendedBuilderParameters;
 import org.bouncycastle.jcajce.PKIXExtendedParameters;
 import org.bouncycastle.jcajce.provider.asymmetric.x509.CertificateFactory;
-import org.bouncycastle.x509.ExtendedPKIXBuilderParameters;
-import org.bouncycastle.x509.ExtendedPKIXParameters;
 
 /**
  * Implements the PKIX CertPathBuilding algorithm for BouncyCastle.
@@ -60,24 +57,7 @@ public class PKIXCertPathBuilderSpi
             PKIXExtendedParameters.Builder paramsPKIXBldr = new PKIXExtendedParameters.Builder((PKIXBuilderParameters)params);
             PKIXExtendedBuilderParameters.Builder paramsBldrPKIXBldr;
 
-            if (params instanceof ExtendedPKIXParameters)
-            {
-                ExtendedPKIXBuilderParameters extPKIX = (ExtendedPKIXBuilderParameters)params;
-
-                for (Iterator it = extPKIX.getAdditionalStores().iterator(); it.hasNext();)
-                {
-                     paramsPKIXBldr.addCertificateStore((PKIXCertStore)it.next());
-                }
-                paramsBldrPKIXBldr  = new PKIXExtendedBuilderParameters.Builder(paramsPKIXBldr.build());
-
-                paramsBldrPKIXBldr.addExcludedCerts(extPKIX.getExcludedCerts());
-                paramsBldrPKIXBldr.setMaxPathLength(extPKIX.getMaxPathLength());
-            }
-            else
-            {
-                paramsBldrPKIXBldr  = new PKIXExtendedBuilderParameters.Builder((PKIXBuilderParameters)params);
-            }
-
+            paramsBldrPKIXBldr  = new PKIXExtendedBuilderParameters.Builder((PKIXBuilderParameters)params);
             paramsPKIX = paramsBldrPKIXBldr.build();
         }
         else if (params instanceof PKIXExtendedBuilderParameters)

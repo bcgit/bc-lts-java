@@ -86,14 +86,6 @@ public class RSADigestSigner
     }
 
     /**
-     * @deprecated
-     */
-    public String getAlgorithmName()
-    {
-        return digest.getAlgorithmName() + "withRSA";
-    }
-
-    /**
      * Initialize the signer for signing or verification.
      *
      * @param forSigning

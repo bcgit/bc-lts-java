@@ -10,10 +10,7 @@ public interface PublicKeyAlgorithmTags
     int RSA_SIGN = 3;          // RSA Sign-Only
     int ELGAMAL_ENCRYPT = 16;  // Elgamal (Encrypt-Only), see [ELGAMAL]
     int DSA = 17;              // DSA (Digital Signature Standard)
-    /**
-     * @deprecated use ECDH
-     */
-    int EC = 18;               // Reserved for Elliptic Curve
+
     int ECDH = 18;             // Reserved for Elliptic Curve (actual algorithm name)
     int ECDSA = 19;            // Reserved for ECDSA
     int ELGAMAL_GENERAL = 20;  // Elgamal (Encrypt or Sign)

@@ -62,7 +62,6 @@ import org.bouncycastle.jcajce.CompositePublicKey;
 import org.bouncycastle.jcajce.interfaces.BCX509Certificate;
 import org.bouncycastle.jcajce.io.OutputStreamFactory;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
-import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Integers;
@@ -139,7 +138,7 @@ abstract class X509CertificateImpl
 
     public Principal getIssuerDN()
     {
-        return new X509Principal(c.getIssuer());
+        return getIssuerX500Principal();
     }
 
     public X500Principal getIssuerX500Principal()
@@ -158,7 +157,7 @@ abstract class X509CertificateImpl
 
     public Principal getSubjectDN()
     {
-        return new X509Principal(c.getSubject());
+        return getSubjectX500Principal();
     }
 
     public X500Principal getSubjectX500Principal()

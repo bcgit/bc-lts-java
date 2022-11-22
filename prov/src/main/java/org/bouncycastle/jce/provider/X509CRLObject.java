@@ -41,7 +41,6 @@ import org.bouncycastle.asn1.x509.Extensions;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.IssuingDistributionPoint;
 import org.bouncycastle.asn1.x509.TBSCertList;
-import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
 
@@ -282,7 +281,7 @@ public class X509CRLObject
 
     public Principal getIssuerDN()
     {
-        return new X509Principal(X500Name.getInstance(c.getIssuer().toASN1Primitive()));
+        return getIssuerX500Principal();
     }
 
     public X500Principal getIssuerX500Principal()

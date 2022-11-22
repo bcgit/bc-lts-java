@@ -52,7 +52,7 @@ public interface TlsCipher
      * @throws IOException
      */
     TlsEncodeResult encodePlaintext(long seqNo, short contentType, ProtocolVersion recordVersion, int headerAllocation,
-        byte[] plaintext, int offset, int len) throws IOException;
+                                    byte[] plaintext, int offset, int len) throws IOException;
 
     /**
      * Decode the passed in ciphertext using the current bulk cipher.
@@ -67,7 +67,7 @@ public interface TlsCipher
      * @throws IOException
      */
     TlsDecodeResult decodeCiphertext(long seqNo, short recordType, ProtocolVersion recordVersion, byte[] ciphertext,
-        int offset, int len) throws IOException;
+                                     int offset, int len) throws IOException;
 
     void rekeyDecoder() throws IOException;
 

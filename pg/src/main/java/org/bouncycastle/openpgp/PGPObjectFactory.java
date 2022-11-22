@@ -54,7 +54,7 @@ public class PGPObjectFactory
         InputStream              in,
         KeyFingerPrintCalculator fingerPrintCalculator)
     {
-        this.in = new BCPGInputStream(in);
+        this.in = BCPGInputStream.wrap(in);
         this.fingerPrintCalculator = fingerPrintCalculator;
     }
 
@@ -135,6 +135,9 @@ public class PGPObjectFactory
             return new PGPLiteralData(in);
         case PacketTags.PUBLIC_KEY_ENC_SESSION:
         case PacketTags.SYMMETRIC_KEY_ENC_SESSION:
+        case PacketTags.SYMMETRIC_KEY_ENC:
+        case PacketTags.SYM_ENC_INTEGRITY_PRO:
+        case PacketTags.AEAD_ENC_DATA:
             return new PGPEncryptedDataList(in);
         case PacketTags.ONE_PASS_SIGNATURE:
             l = new ArrayList();

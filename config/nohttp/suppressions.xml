@@ -3,12 +3,16 @@
 <suppressions>
 
   <!-- ignore intellij out directory and out directory -->
-  <suppress files="out.+" checks="NoHttp"/>
+  <suppress files="[\\/]out.+" checks=".*"/>
   <suppress files="(core|pg|pkix|prov|tls|util)[\\/]build.+" checks="NoHttp"/>
+  <suppress files="(core|pg|pkix|prov|tls|util)[\\/]src[\\/]main[\\/]resources[\\/].+" checks=".*"/>
+  <suppress files="(core|pg|pkix|prov|tls|util)[\\/]src[\\/]test[\\/]resources[\\/].+" checks=".*"/>
+  <suppress files="(core|pg|pkix|prov|tls|util)[\\/]out[\\/].+" checks=".*"/>
   <suppress files="test[\\/]est.+" checks="NoHttp"/>
 
+
   <!-- Suppress warnings in certificates, signatures, configs and emails for testing -->
-  <suppress files=".+\.(?:ers|pem|crt|cer|eml|cnf|sig|message)$" checks="NoHttp"/>
+  <suppress files=".+\.(?:ers|pem|crt|cer|eml|cnf|sig|rsp|req|message)$" checks=".*"/>
 
   <!-- This tests server doesn't seem to support HTTPS -->
   <suppress message="http://testrfc7030.com/" checks="NoHttp"/>

@@ -12,6 +12,9 @@ import java.util.Map;
 import javax.crypto.spec.IvParameterSpec;
 
 import org.bouncycastle.asn1.bc.BCObjectIdentifiers;
+import org.bouncycastle.crypto.modes.CBCBlockCipher;
+import org.bouncycastle.crypto.modes.CCMModeCipher;
+import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.internal.asn1.cms.CCMParameters;
 import org.bouncycastle.internal.asn1.cms.GCMParameters;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
@@ -31,10 +34,8 @@ import org.bouncycastle.crypto.engines.RFC5649WrapEngine;
 import org.bouncycastle.crypto.generators.Poly1305KeyGenerator;
 import org.bouncycastle.crypto.macs.CMac;
 import org.bouncycastle.crypto.macs.GMac;
-import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.CCMBlockCipher;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
-import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.modes.OFBBlockCipher;
 import org.bouncycastle.jcajce.provider.config.ConfigurableProvider;
 import org.bouncycastle.jcajce.provider.symmetric.util.BaseAlgorithmParameterGenerator;
@@ -49,7 +50,6 @@ import org.bouncycastle.jcajce.provider.symmetric.util.GcmSpecUtil;
 import org.bouncycastle.jcajce.provider.symmetric.util.IvAlgorithmParameters;
 import org.bouncycastle.jcajce.provider.symmetric.util.PBESecretKeyFactory;
 import org.bouncycastle.jcajce.spec.AEADParameterSpec;
-import org.bouncycastle.util.AESFactory;
 
 public final class AES
 {
@@ -74,7 +74,7 @@ public final class AES
             {
                 public BlockCipher get()
                 {
-                    return new AESEngine();
+                    return AESEngine.newInstance();
                 }
             });
         }
@@ -85,7 +85,7 @@ public final class AES
     {
         public CBC()
         {
-            super(AESFactory.createCBC(), 128);
+            super(CBCBlockCipher.newInstance(AESEngine.newInstance()), 128);
         }
     }
 
@@ -94,7 +94,7 @@ public final class AES
     {
         public CFB()
         {
-            super(new BufferedBlockCipher(new CFBBlockCipher(new AESEngine(), 128)), 128);
+            super(new BufferedBlockCipher(CFBBlockCipher.newInstance(AESEngine.newInstance(), 128)), 128);
         }
     }
 
@@ -103,7 +103,7 @@ public final class AES
     {
         public OFB()
         {
-            super(new BufferedBlockCipher(new OFBBlockCipher(new AESEngine(), 128)), 128);
+            super(new BufferedBlockCipher(new OFBBlockCipher(AESEngine.newInstance(), 128)), 128);
         }
     }
 
@@ -112,7 +112,7 @@ public final class AES
     {
         public GCM()
         {
-            super(AESFactory.createGCM());
+            super(GCMBlockCipher.newInstance(AESEngine.newInstance()));
         }
     }
 
@@ -121,7 +121,7 @@ public final class AES
     {
         public CCM()
         {
-            super(new CCMBlockCipher(new AESEngine()), false, 12);
+            super(CCMBlockCipher.newInstance(AESEngine.newInstance()), false, 12);
         }
     }
 
@@ -130,7 +130,7 @@ public final class AES
     {
         public AESCMAC()
         {
-            super(new CMac(new AESEngine()));
+            super(new CMac(AESEngine.newInstance()));
         }
     }
 
@@ -139,7 +139,7 @@ public final class AES
     {
         public AESGMAC()
         {
-            super(new GMac(AESFactory.createGCM()));
+            super(new GMac(GCMBlockCipher.newInstance(AESEngine.newInstance())));
         }
     }
 
@@ -154,7 +154,7 @@ public final class AES
         private static class CCMMac
             implements Mac
         {
-            private final CCMBlockCipher ccm = new CCMBlockCipher(new AESEngine());
+            private final CCMModeCipher ccm = CCMBlockCipher.newInstance(AESEngine.newInstance());
 
             private int macLength = 8;
 
@@ -222,7 +222,7 @@ public final class AES
     {
         public Poly1305()
         {
-            super(new org.bouncycastle.crypto.macs.Poly1305(new AESEngine()));
+            super(new org.bouncycastle.crypto.macs.Poly1305(AESEngine.newInstance()));
         }
     }
 
@@ -258,7 +258,7 @@ public final class AES
     {
         public RFC3211Wrap()
         {
-            super(new RFC3211WrapEngine(new AESEngine()), 16);
+            super(new RFC3211WrapEngine(AESEngine.newInstance()), 16);
         }
     }
 
@@ -267,7 +267,7 @@ public final class AES
     {
         public RFC5649Wrap()
         {
-            super(new RFC5649WrapEngine(new AESEngine()));
+            super(new RFC5649WrapEngine(AESEngine.newInstance()));
         }
     }
 
@@ -279,7 +279,7 @@ public final class AES
     {
         public PBEWithAESCBC()
         {
-            super(AESFactory.createCBC());
+            super(CBCBlockCipher.newInstance(AESEngine.newInstance()));
         }
     }
 
@@ -291,7 +291,7 @@ public final class AES
     {
         public PBEWithSHA1AESCBC128()
         {
-            super(AESFactory.createCBC(), PKCS12, SHA1, 128, 16);
+            super(CBCBlockCipher.newInstance(AESEngine.newInstance()), PKCS12, SHA1, 128, 16);
         }
     }
 
@@ -300,7 +300,7 @@ public final class AES
     {
         public PBEWithSHA1AESCBC192()
         {
-            super(AESFactory.createCBC(), PKCS12, SHA1, 192, 16);
+            super(CBCBlockCipher.newInstance(AESEngine.newInstance()), PKCS12, SHA1, 192, 16);
         }
     }
 
@@ -309,7 +309,7 @@ public final class AES
     {
         public PBEWithSHA1AESCBC256()
         {
-            super(AESFactory.createCBC(), PKCS12, SHA1, 256, 16);
+            super(CBCBlockCipher.newInstance(AESEngine.newInstance()), PKCS12, SHA1, 256, 16);
         }
     }
 
@@ -321,7 +321,7 @@ public final class AES
     {
         public PBEWithSHA256AESCBC128()
         {
-            super(AESFactory.createCBC(), PKCS12, SHA256, 128, 16);
+            super(CBCBlockCipher.newInstance(AESEngine.newInstance()), PKCS12, SHA256, 128, 16);
         }
     }
 
@@ -330,7 +330,7 @@ public final class AES
     {
         public PBEWithSHA256AESCBC192()
         {
-            super(AESFactory.createCBC(), PKCS12, SHA256, 192, 16);
+            super(CBCBlockCipher.newInstance(AESEngine.newInstance()), PKCS12, SHA256, 192, 16);
         }
     }
 
@@ -339,7 +339,7 @@ public final class AES
     {
         public PBEWithSHA256AESCBC256()
         {
-            super(AESFactory.createCBC(), PKCS12, SHA256, 256, 16);
+            super(CBCBlockCipher.newInstance(AESEngine.newInstance()), PKCS12, SHA256, 256, 16);
         }
     }
 

@@ -7,16 +7,6 @@ public class GenericKey
     private AlgorithmIdentifier algorithmIdentifier;
     private Object representation;
 
-    /**
-     * @deprecated provide an AlgorithmIdentifier.
-     * @param representation key data
-     */
-    public GenericKey(Object representation)
-    {
-        this.algorithmIdentifier = null;
-        this.representation = representation;
-    }
-
     public GenericKey(AlgorithmIdentifier algorithmIdentifier, byte[] representation)
     {
         this.algorithmIdentifier = algorithmIdentifier;

@@ -57,7 +57,6 @@ import org.bouncycastle.asn1.x509.Extensions;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.jcajce.provider.asymmetric.util.PKCS12BagAttributeCarrierImpl;
-import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.jce.interfaces.PKCS12BagAttributeCarrier;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Integers;
@@ -67,7 +66,7 @@ import org.bouncycastle.util.encoders.Hex;
 /**
  * @deprecated Do not use this class directly - either use org.bouncycastle.cert (bcpkix) or CertificateFactory.
  */
-public class X509CertificateObject
+class X509CertificateObject
     extends X509Certificate
     implements PKCS12BagAttributeCarrier
 {
@@ -160,7 +159,7 @@ public class X509CertificateObject
 
     public Principal getIssuerDN()
     {
-        return new X509Principal(c.getIssuer());
+        return getIssuerX500Principal();
     }
 
     public X500Principal getIssuerX500Principal()
@@ -177,7 +176,7 @@ public class X509CertificateObject
 
     public Principal getSubjectDN()
     {
-        return new X509Principal(c.getSubject());
+        return getSubjectX500Principal();
     }
 
     public X500Principal getSubjectX500Principal()

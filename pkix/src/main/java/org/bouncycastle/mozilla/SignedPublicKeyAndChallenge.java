@@ -2,21 +2,9 @@ package org.bouncycastle.mozilla;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.security.InvalidKeyException;
-import java.security.KeyFactory;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PublicKey;
-import java.security.Signature;
-import java.security.SignatureException;
-import java.security.spec.X509EncodedKeySpec;
 
-import org.bouncycastle.asn1.ASN1BitString;
 import org.bouncycastle.asn1.ASN1Encoding;
-import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.mozilla.PublicKeyAndChallenge;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.operator.ContentVerifier;
 import org.bouncycastle.operator.ContentVerifierProvider;
@@ -64,14 +52,6 @@ public class SignedPublicKeyAndChallenge
          return spkacSeq;
     }
 
-    /**
-     * @deprecated use toASN1Structure
-     */
-    public ASN1Primitive toASN1Primitive()
-    {
-        return spkacSeq.toASN1Primitive();
-    }
-
     public PublicKeyAndChallenge getPublicKeyAndChallenge()
     {
         return spkacSeq.getPublicKeyAndChallenge();
@@ -89,46 +69,6 @@ public class SignedPublicKeyAndChallenge
         return verifier.verify(spkacSeq.getSignature().getOctets());
     }
 
-    /**
-     * @deprecated use ContentVerifierProvider method
-     */
-    public boolean verify()
-        throws NoSuchAlgorithmException, SignatureException, 
-               NoSuchProviderException, InvalidKeyException
-    {
-        return verify((String)null);
-    }
-
-    /**
-     * @deprecated use ContentVerifierProvider method
-     */
-    public boolean verify(String provider)
-        throws NoSuchAlgorithmException, SignatureException, 
-               NoSuchProviderException, InvalidKeyException
-    {
-        Signature sig = null;
-        if (provider == null)
-        {
-            sig = Signature.getInstance(spkacSeq.getSignatureAlgorithm().getAlgorithm().getId());
-        }
-        else
-        {
-            sig = Signature.getInstance(spkacSeq.getSignatureAlgorithm().getAlgorithm().getId(), provider);
-        }
-        PublicKey pubKey = this.getPublicKey(provider);
-        sig.initVerify(pubKey);
-        try
-        {
-            sig.update(spkacSeq.getPublicKeyAndChallenge().getEncoded());
-
-            return sig.verify(spkacSeq.getSignature().getBytes());
-        }
-        catch (Exception e)
-        {
-            throw new InvalidKeyException("error encoding public key");
-        }
-    }
-
     public SubjectPublicKeyInfo getSubjectPublicKeyInfo()
     {
         return spkacSeq.getPublicKeyAndChallenge().getSubjectPublicKeyInfo();
@@ -136,35 +76,7 @@ public class SignedPublicKeyAndChallenge
 
     public String getChallenge()
     {
-        return spkacSeq.getPublicKeyAndChallenge().getChallenge().getString();
-    }
-
-    /**
-     * @deprecated use JcaSignedPublicKeyAndChallenge.getPublicKey()
-     */
-    public PublicKey getPublicKey(String provider)
-        throws NoSuchAlgorithmException, NoSuchProviderException, 
-               InvalidKeyException
-    {
-        SubjectPublicKeyInfo subjectPKInfo = spkacSeq.getPublicKeyAndChallenge().getSubjectPublicKeyInfo();
-        try
-        {
-            ASN1BitString bStr = new DERBitString(subjectPKInfo);
-            X509EncodedKeySpec xspec = new X509EncodedKeySpec(bStr.getOctets());
-            
-
-            AlgorithmIdentifier keyAlg = subjectPKInfo.getAlgorithm();
-
-            KeyFactory factory =
-                KeyFactory.getInstance(keyAlg.getAlgorithm().getId(),provider);
-
-            return factory.generatePublic(xspec);
-                           
-        }
-        catch (Exception e)
-        {
-            throw new InvalidKeyException("error encoding public key");
-        }
+        return spkacSeq.getPublicKeyAndChallenge().getChallengeIA5().getString();
     }
 
     public byte[] getEncoded()

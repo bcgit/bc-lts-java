@@ -2,7 +2,6 @@ package org.bouncycastle.asn1.x509;
 
 import java.util.Enumeration;
 import java.util.Hashtable;
-import java.util.Vector;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -116,26 +115,6 @@ public class ExtendedKeyUsage
         {
             v.add(usages[i]);
             this.usageTable.put(usages[i], usages[i]);
-        }
-
-        this.seq = new DERSequence(v);
-    }
-
-    /**
-     * @deprecated use KeyPurposeId[] constructor.
-     */
-    public ExtendedKeyUsage(
-        Vector usages)
-    {
-        ASN1EncodableVector v = new ASN1EncodableVector(usages.size());
-
-        Enumeration e = usages.elements();
-        while (e.hasMoreElements())
-        {
-            KeyPurposeId o = KeyPurposeId.getInstance(e.nextElement());
-
-            v.add(o);
-            this.usageTable.put(o, o);
         }
 
         this.seq = new DERSequence(v);

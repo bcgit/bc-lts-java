@@ -10,8 +10,6 @@ import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.Certificate;
-import org.bouncycastle.asn1.x509.X509CertificateStructure;
-import org.bouncycastle.asn1.x509.X509Name;
 
 /**
  * <a href="https://tools.ietf.org/html/rfc5652#section-10.2.4">RFC 5652</a>: IssuerAndSerialNumber object.
@@ -59,10 +57,7 @@ public class IssuerAndSerialNumber
         return null;
     }
 
-    /**
-     * @deprecated  use getInstance() method.
-     */
-    public IssuerAndSerialNumber(
+    private IssuerAndSerialNumber(
         ASN1Sequence    seq)
     {
         this.name = X500Name.getInstance(seq.getObjectAt(0));
@@ -76,44 +71,12 @@ public class IssuerAndSerialNumber
         this.serialNumber = certificate.getSerialNumber();
     }
 
-    /**
-     * @deprecated use constructor taking Certificate
-     */
-    public IssuerAndSerialNumber(
-        X509CertificateStructure certificate)
-    {
-        this.name = certificate.getIssuer();
-        this.serialNumber = certificate.getSerialNumber();
-    }
-
     public IssuerAndSerialNumber(
         X500Name name,
         BigInteger  serialNumber)
     {
         this.name = name;
         this.serialNumber = new ASN1Integer(serialNumber);
-    }
-
-    /**
-     * @deprecated use X500Name constructor
-     */
-    public IssuerAndSerialNumber(
-        X509Name    name,
-        BigInteger  serialNumber)
-    {
-        this.name = X500Name.getInstance(name);
-        this.serialNumber = new ASN1Integer(serialNumber);
-    }
-
-    /**
-     * @deprecated use X500Name constructor
-     */
-    public IssuerAndSerialNumber(
-        X509Name    name,
-        ASN1Integer  serialNumber)
-    {
-        this.name = X500Name.getInstance(name);
-        this.serialNumber = serialNumber;
     }
 
     public X500Name getName()

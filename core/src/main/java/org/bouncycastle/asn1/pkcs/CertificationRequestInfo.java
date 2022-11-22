@@ -13,7 +13,6 @@ import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.asn1.x509.X509Name;
 
 /**
  * PKCS10 CertificationRequestInfo object.
@@ -84,17 +83,6 @@ public class CertificationRequestInfo
         this.subject = subject;
         this.subjectPKInfo = pkInfo;
         this.attributes = attributes;
-    }
-
-    /**
-     * @deprecated use X500Name method.
-     */
-    public CertificationRequestInfo(
-        X509Name                subject,
-        SubjectPublicKeyInfo    pkInfo,
-        ASN1Set                 attributes)
-    {
-        this(X500Name.getInstance(subject.toASN1Primitive()), pkInfo, attributes);
     }
 
     private CertificationRequestInfo(

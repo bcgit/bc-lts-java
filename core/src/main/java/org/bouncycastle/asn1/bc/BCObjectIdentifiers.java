@@ -134,41 +134,6 @@ public interface BCObjectIdentifiers
     ASN1ObjectIdentifier xmss_mt_SHAKE128 = xmss_mt.branch("7");
     ASN1ObjectIdentifier xmss_mt_SHAKE256 = xmss_mt.branch("8");
 
-    // old OIDs.
-    /**
-     * @deprecated use xmss_SHA256ph
-     */
-    ASN1ObjectIdentifier xmss_with_SHA256 = xmss_SHA256ph;
-    /**
-     * @deprecated use xmss_SHA512ph
-     */
-    ASN1ObjectIdentifier xmss_with_SHA512 = xmss_SHA512ph;
-    /**
-     * @deprecated use xmss_SHAKE128ph
-     */
-    ASN1ObjectIdentifier xmss_with_SHAKE128 = xmss_SHAKE128ph;
-    /**
-     * @deprecated use xmss_SHAKE256ph
-     */
-    ASN1ObjectIdentifier xmss_with_SHAKE256 = xmss_SHAKE256ph;
-
-    /**
-     * @deprecated use xmss_mt_SHA256ph
-     */
-    ASN1ObjectIdentifier xmss_mt_with_SHA256 = xmss_mt_SHA256ph;
-    /**
-     * @deprecated use xmss_mt_SHA512ph
-     */
-    ASN1ObjectIdentifier xmss_mt_with_SHA512 = xmss_mt_SHA512ph;
-    /**
-     * @deprecated use xmss_mt_SHAKE128ph
-     */
-    ASN1ObjectIdentifier xmss_mt_with_SHAKE128 = xmss_mt_SHAKE128;
-    /**
-     * @deprecated use xmss_mt_SHAKE256ph
-     */
-    ASN1ObjectIdentifier xmss_mt_with_SHAKE256 = xmss_mt_SHAKE256;
-
     /**
      * qTESLA
      */
@@ -191,6 +156,7 @@ public interface BCObjectIdentifiers
     ASN1ObjectIdentifier sphincsPlus_shake_256 = sphincsPlus.branch("1");
     ASN1ObjectIdentifier sphincsPlus_sha_256 = sphincsPlus.branch("2");
     ASN1ObjectIdentifier sphincsPlus_sha_512 = sphincsPlus.branch("3");
+    ASN1ObjectIdentifier sphincsPlus_haraka = sphincsPlus.branch("4");
 
     /**
      * Picnic
@@ -235,6 +201,9 @@ public interface BCObjectIdentifiers
     ASN1ObjectIdentifier dilithium2 = new ASN1ObjectIdentifier("1.3.6.1.4.1.2.267.7.4.4"); // dilithium.branch("1");
     ASN1ObjectIdentifier dilithium3 = new ASN1ObjectIdentifier("1.3.6.1.4.1.2.267.7.6.5"); // dilithium.branch("2");
     ASN1ObjectIdentifier dilithium5 = new ASN1ObjectIdentifier("1.3.6.1.4.1.2.267.7.8.7"); // dilithium.branch("3");
+    ASN1ObjectIdentifier dilithium2_aes = new ASN1ObjectIdentifier("1.3.6.1.4.1.2.267.11.4.4"); // dilithium.branch("4");
+    ASN1ObjectIdentifier dilithium3_aes = new ASN1ObjectIdentifier("1.3.6.1.4.1.2.267.11.6.5"); // dilithium.branch("5");
+    ASN1ObjectIdentifier dilithium5_aes = new ASN1ObjectIdentifier("1.3.6.1.4.1.2.267.11.8.7"); // dilithium.branch("6");
 
     /**
      * key_exchange(3) algorithms
@@ -337,7 +306,10 @@ public interface BCObjectIdentifiers
     ASN1ObjectIdentifier kyber512 = pqc_kem_kyber.branch("1");
     ASN1ObjectIdentifier kyber768 = pqc_kem_kyber.branch("2");
     ASN1ObjectIdentifier kyber1024 = pqc_kem_kyber.branch("3");
-    
+    ASN1ObjectIdentifier kyber512_aes = pqc_kem_kyber.branch("4");
+    ASN1ObjectIdentifier kyber768_aes = pqc_kem_kyber.branch("5");
+    ASN1ObjectIdentifier kyber1024_aes = pqc_kem_kyber.branch("6");
+
     /**
      * NTRUPrime
      */

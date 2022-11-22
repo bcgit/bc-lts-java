@@ -17,7 +17,9 @@ import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
 
 import org.bouncycastle.jcajce.util.JcaJceHelper;
+import org.bouncycastle.jcajce.util.ProviderJcaJceHelper;
 import org.bouncycastle.tls.AlertDescription;
+import org.bouncycastle.tls.CertificateType;
 import org.bouncycastle.tls.DigitallySigned;
 import org.bouncycastle.tls.EncryptionAlgorithm;
 import org.bouncycastle.tls.HashAlgorithm;
@@ -150,6 +152,17 @@ public class JcaTlsCrypto
     public TlsCertificate createCertificate(byte[] encoding)
         throws IOException
     {
+        return createCertificate(CertificateType.X509, encoding);
+    }
+
+    public TlsCertificate createCertificate(short type, byte[] encoding)
+        throws IOException
+    {
+        if (type != CertificateType.X509)
+        {
+            throw new TlsFatalAlert(AlertDescription.unsupported_certificate);
+        }
+
         return new JcaTlsCertificate(this, encoding);
     }
 
@@ -872,7 +885,7 @@ public class JcaTlsCrypto
     protected TlsHash createHash(String digestName)
         throws GeneralSecurityException
     {
-        return new JcaTlsHash(helper.createDigest(digestName));
+        return new JcaTlsHash(helper.createMessageDigest(digestName));
     }
 
     /**
@@ -903,12 +916,22 @@ public class JcaTlsCrypto
     {
         try
         {
-            Signature signer = getHelper().createSignature(algorithmName);
+            SecureRandom random = needsRandom ? getSecureRandom() : null;
+
+            JcaJceHelper helper = getHelper();
+            if (null != parameter)
+            {
+                Signature dummySigner = helper.createSignature(algorithmName);
+                dummySigner.initSign(privateKey, random);
+                helper = new ProviderJcaJceHelper(dummySigner.getProvider());
+            }
+
+            Signature signer = helper.createSignature(algorithmName);
             if (null != parameter)
             {
                 signer.setParameter(parameter);
             }
-            signer.initSign(privateKey, needsRandom ? getSecureRandom() : null);
+            signer.initSign(privateKey, random);
             return new JcaTlsStreamSigner(signer);
         }
         catch (GeneralSecurityException e)
@@ -929,7 +952,15 @@ public class JcaTlsCrypto
     {
         try
         {
-            Signature verifier = getHelper().createSignature(algorithmName);
+            JcaJceHelper helper = getHelper();
+            if (null != parameter)
+            {
+                Signature dummyVerifier = helper.createSignature(algorithmName);
+                dummyVerifier.initVerify(publicKey);
+                helper = new ProviderJcaJceHelper(dummyVerifier.getProvider());
+            }
+
+            Signature verifier = helper.createSignature(algorithmName);
             if (null != parameter)
             {
                 verifier.setParameter(parameter);
@@ -948,7 +979,15 @@ public class JcaTlsCrypto
     {
         try
         {
-            Signature verifier = getHelper().createSignature(algorithmName);
+            JcaJceHelper helper = getHelper();
+            if (null != parameter)
+            {
+                Signature dummyVerifier = helper.createSignature(algorithmName);
+                dummyVerifier.initVerify(publicKey);
+                helper = new ProviderJcaJceHelper(dummyVerifier.getProvider());
+            }
+
+            Signature verifier = helper.createSignature(algorithmName);
             if (null != parameter)
             {
                 verifier.setParameter(parameter);

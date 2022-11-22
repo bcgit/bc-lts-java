@@ -11,6 +11,7 @@ import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
+import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.ASN1UTF8String;
 import org.bouncycastle.asn1.BERTags;
@@ -18,7 +19,6 @@ import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERPrintableString;
 import org.bouncycastle.asn1.DERUTF8String;
-import org.bouncycastle.asn1.DLApplicationSpecific;
 import org.bouncycastle.asn1.DLBitString;
 import org.bouncycastle.asn1.DLExternal;
 import org.bouncycastle.asn1.DLSequence;
@@ -85,7 +85,7 @@ public class DLExternalTest
         vec.add(new ASN1Integer(9L));
         vec.add(new DERUTF8String("something completely different"));
         vec.add(new DLTaggedObject(true, 0, new ASN1Integer(1234567890L)));
-        dle = new DLExternal(vec);
+        dle = new DLExternal(new DLSequence(vec));
 
         isEquals("check direct reference", null, dle.getDirectReference());
         isTrue("check existence of indirect reference", dle.getIndirectReference() != null);
@@ -100,13 +100,13 @@ public class DLExternalTest
         isEquals("check type of external content: " + ecType, ASN1Integer.class.getName(), ecType);
         isEquals("check value of external content", "1234567890", ((ASN1Integer)dle.getExternalContent()).getValue().toString());
 
-        dle = new DLExternal(createRealDataExample(0));
+        dle = new DLExternal(new DLSequence(createRealDataExample(0)));
         checkRealDataExample(0, dle);
 
-        dle = new DLExternal(createRealDataExample(1));
+        dle = new DLExternal(new DLSequence(createRealDataExample(1)));
         checkRealDataExample(1, dle);
 
-        dle = new DLExternal(createRealDataExample(2));
+        dle = new DLExternal(new DLSequence(createRealDataExample(2)));
         checkRealDataExample(2, dle);
     }
 
@@ -163,23 +163,23 @@ public class DLExternalTest
 
         DLSet msBindSet = (DLSet)msBind.getBaseUniversal(true, BERTags.SET);
         isEquals("check number of elements", 2, msBindSet.size());
-        isEquals("check first element in set: " + msBindSet.getObjectAt(0).getClass(), DLApplicationSpecific.class.getName(), msBindSet.getObjectAt(0).getClass().getName());
+        isEquals("check first element in set: " + msBindSet.getObjectAt(0).getClass(), DLTaggedObject.class.getName(), msBindSet.getObjectAt(0).getClass().getName());
 
-        DLApplicationSpecific objectName = (DLApplicationSpecific)msBindSet.getObjectAt(0);
-        isEquals("check tag number", 0, objectName.getApplicationTag());
-        isEquals("check application object: " + objectName.getEnclosedObject().getClass(), DLSequence.class.getName(), objectName.getEnclosedObject().getClass().getName());
-        DLSequence objNameElems = (DLSequence)objectName.getEnclosedObject();
+        ASN1TaggedObject objectName = (ASN1TaggedObject)msBindSet.getObjectAt(0);
+        isEquals("check tag number", 0, objectName.getTagNo());
+        isEquals("check application object: " + objectName.getBaseUniversal(true, BERTags.SEQUENCE).getClass(), DLSequence.class.getName(), objectName.getBaseUniversal(true, BERTags.SEQUENCE).getClass().getName());
+        ASN1Sequence objNameElems = ASN1Sequence.getInstance(objectName.getBaseUniversal(true, BERTags.SEQUENCE));
         isEquals("check number of elements", 4, objNameElems.size());
-        isEquals("check first element in set: " + objNameElems.getObjectAt(0).getClass(), DLApplicationSpecific.class.getName(), objNameElems.getObjectAt(0).getClass().getName());
-        DLApplicationSpecific objNameAppl = (DLApplicationSpecific)objNameElems.getObjectAt(0);
-        isEquals("check application number", 0, objNameAppl.getApplicationTag());
-        isEquals("check application object: " + objNameAppl.getEnclosedObject().getClass(), DERPrintableString.class.getName(), objNameAppl.getEnclosedObject().getClass().getName());
-        isEquals("check C", "de", ((DERPrintableString)objNameAppl.getEnclosedObject()).getString());
-        isEquals("check second element in set: " + objNameElems.getObjectAt(1).getClass(), DLApplicationSpecific.class.getName(), objNameElems.getObjectAt(1).getClass().getName());
-        objNameAppl = (DLApplicationSpecific)objNameElems.getObjectAt(1);
-        isEquals("check application number", 2, objNameAppl.getApplicationTag());
-        isEquals("check application object: " + objNameAppl.getEnclosedObject().getClass(), DERPrintableString.class.getName(), objNameAppl.getEnclosedObject().getClass().getName());
-        isEquals("check A", "viaT", ((DERPrintableString)objNameAppl.getEnclosedObject()).getString());
+        isEquals("check first element in set: " + objNameElems.getObjectAt(0).getClass(), DLTaggedObject.class.getName(), objNameElems.getObjectAt(0).getClass().getName());
+        ASN1TaggedObject objNameAppl = ASN1TaggedObject.getInstance(objNameElems.getObjectAt(0));
+        isEquals("check application number", 0, objNameAppl.getTagNo());
+        isEquals("check application object: " + objNameAppl.getBaseUniversal(true, BERTags.PRINTABLE_STRING).getClass(), DERPrintableString.class.getName(), objNameAppl.getBaseUniversal(true, BERTags.PRINTABLE_STRING).getClass().getName());
+        isEquals("check C", "de", ((DERPrintableString)objNameAppl.getBaseUniversal(true, BERTags.PRINTABLE_STRING)).getString());
+        isEquals("check second element in set: " + objNameElems.getObjectAt(1).getClass(), DLTaggedObject.class.getName(), objNameElems.getObjectAt(1).getClass().getName());
+        objNameAppl = (DLTaggedObject)objNameElems.getObjectAt(1);
+        isEquals("check application number", 2, objNameAppl.getTagNo());
+        isEquals("check application object: " + objNameAppl.getBaseUniversal(true, BERTags.PRINTABLE_STRING).getClass(), DERPrintableString.class.getName(), objNameAppl.getBaseUniversal(true, BERTags.PRINTABLE_STRING).getClass().getName());
+        isEquals("check A", "viaT", ((DERPrintableString)objNameAppl.getBaseUniversal(true, BERTags.PRINTABLE_STRING)).getString());
         isEquals("check third element in set: " + objNameElems.getObjectAt(2).getClass(), DLTaggedObject.class.getName(), objNameElems.getObjectAt(2).getClass().getName());
         DLTaggedObject objNameTagged = (DLTaggedObject)objNameElems.getObjectAt(2);
         isTrue("check tag", objNameTagged.hasContextTag(3));
@@ -215,12 +215,12 @@ public class DLExternalTest
         vec.add(new DERUTF8String("example data representing the User Data of an OSI.6 ConnectP containing an MSBind with username and password"));
 
         ASN1EncodableVector objectNameVec = new ASN1EncodableVector();
-        objectNameVec.add(new DLApplicationSpecific(0, new DERPrintableString("de")));
-        objectNameVec.add(new DLApplicationSpecific(2, new DERPrintableString("viaT")));
+        objectNameVec.add(new DLTaggedObject(BERTags.APPLICATION, 0, new DERPrintableString("de")));
+        objectNameVec.add(new DLTaggedObject(BERTags.APPLICATION, 2, new DERPrintableString("viaT")));
         objectNameVec.add(new DLTaggedObject(false, 3, new DEROctetString("Organization".getBytes("8859_1"))));
         objectNameVec.add(new DLTaggedObject(true, 5, new DLTaggedObject(false, 0, new DEROctetString("Common Name".getBytes("8859_1")))));
 
-        DLApplicationSpecific objectName = new DLApplicationSpecific(0, new DLSequence(objectNameVec));
+        DLTaggedObject objectName = new DLTaggedObject(BERTags.APPLICATION, 0, new DLSequence(objectNameVec));
         DLTaggedObject password = new DLTaggedObject(true, 2, new DERIA5String("SomePassword"));
         ASN1EncodableVector msBindVec = new ASN1EncodableVector();
         msBindVec.add(objectName);
@@ -249,7 +249,7 @@ public class DLExternalTest
 
     private void implTestReadEncoded(int encoding) throws Exception
     {
-        DLExternal dle = new DLExternal(createRealDataExample(encoding));
+        DLExternal dle = new DLExternal(new DLSequence(createRealDataExample(encoding)));
 
         ASN1InputStream ais = new ASN1InputStream(dle.getEncoded());
         ASN1Primitive ap = ais.readObject();

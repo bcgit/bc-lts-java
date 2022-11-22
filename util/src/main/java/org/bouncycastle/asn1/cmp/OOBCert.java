@@ -6,6 +6,7 @@ import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
+import org.bouncycastle.asn1.BERTags;
 import org.bouncycastle.asn1.x509.AttributeCertificate;
 import org.bouncycastle.asn1.x509.Certificate;
 
@@ -18,7 +19,7 @@ public class OOBCert
 
     public OOBCert(AttributeCertificate x509v2AttrCert)
     {
-        super(x509v2AttrCert);
+        super(1, x509v2AttrCert);
     }
 
     public OOBCert(int type, ASN1Object otherCert)
@@ -37,7 +38,7 @@ public class OOBCert
         {
             if (isExplicit)
             {
-                return OOBCert.getInstance(ato.getObject());
+                return OOBCert.getInstance(ato.getExplicitBaseObject());
             }
             else
             {
@@ -59,11 +60,11 @@ public class OOBCert
         {
             try
             {
-                return OOBCert.getInstance(((CMPCertificate)o).getEncoded());
+                return getInstance(((CMPCertificate)o).getEncoded());
             }
             catch (IOException e)
             {
-                throw new RuntimeException(e.getMessage(), e);
+                throw new IllegalArgumentException(e.getMessage(), e);
             }
         }
 
@@ -75,7 +76,7 @@ public class OOBCert
             }
             catch (IOException e)
             {
-                throw new IllegalArgumentException("Invalid encoding in CMPCertificate");
+                throw new IllegalArgumentException("Invalid encoding in OOBCert");
             }
         }
 
@@ -86,9 +87,9 @@ public class OOBCert
 
         if (o instanceof ASN1TaggedObject)
         {
-            ASN1TaggedObject taggedObject = (ASN1TaggedObject)o;
+            ASN1TaggedObject taggedObject = ASN1TaggedObject.getInstance(o, BERTags.CONTEXT_SPECIFIC);
 
-            return new OOBCert(taggedObject.getTagNo(), taggedObject.getObject());
+            return new OOBCert(taggedObject.getTagNo(), taggedObject.getExplicitBaseObject());
         }
 
         throw new IllegalArgumentException("Invalid object: " + o.getClass().getName());

@@ -1,8 +1,6 @@
 package org.bouncycastle.asn1;
 
 import java.io.IOException;
-import java.util.Enumeration;
-import java.util.NoSuchElementException;
 
 /**
  * ASN.1 OctetStrings, with indefinite length rules, and <i>constructed form</i> support.
@@ -107,61 +105,6 @@ public class BEROctetString
         super(string);
         this.elements = elements;
         this.segmentLimit = segmentLimit;
-    }
-
-    /**
-     * Return the OCTET STRINGs that make up this string.
-     *
-     * @return an Enumeration of the component OCTET STRINGs.
-     * 
-     * @deprecated Will be removed.
-     */
-    public Enumeration getObjects()
-    {
-        if (elements == null)
-        {
-            return new Enumeration()
-            {
-                int pos = 0;
-
-                public boolean hasMoreElements()
-                {
-                    return pos < string.length;
-                }
-
-                public Object nextElement()
-                {
-                    if (pos < string.length)
-                    {
-                        int length = Math.min(string.length - pos, segmentLimit);
-                        byte[] segment = new byte[length];
-                        System.arraycopy(string, pos, segment, 0, length);
-                        pos += length;
-                        return new DEROctetString(segment);
-                    }
-                    throw new NoSuchElementException();
-                }
-            };
-        }
-
-        return new Enumeration()
-        {
-            int counter = 0;
-
-            public boolean hasMoreElements()
-            {
-                return counter < elements.length;
-            }
-
-            public Object nextElement()
-            {
-                if (counter < elements.length)
-                {
-                    return elements[counter++];
-                }
-                throw new NoSuchElementException();
-            }
-        };
     }
 
     boolean encodeConstructed()

@@ -493,7 +493,7 @@ public class CipherStreamTest
         testModes(new RC2Engine(), new RC2Engine(), 16);
         testModes(new XTEAEngine(), new XTEAEngine(), 16);
 
-        testModes(new AESEngine(), new AESEngine(), 16);
+        testModes(AESEngine.newInstance(), AESEngine.newInstance(), 16);
         testModes(new NoekeonEngine(), new NoekeonEngine(), 16);
         testModes(new TwofishEngine(), new TwofishEngine(), 16);
         testModes(new CAST6Engine(), new CAST6Engine(), 16);
@@ -508,13 +508,13 @@ public class CipherStreamTest
         testMode(new Salsa20Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[8]));
         testMode(new XSalsa20Engine(), new ParametersWithIV(new KeyParameter(new byte[32]), new byte[24]));
         testMode(new ChaChaEngine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[8]));
-        testMode(new Grainv1Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[8]));
+        testMode(new Grainv1Engine(), new ParametersWithIV(new KeyParameter(new byte[10]), new byte[8]));
         testMode(new Grain128Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]));
         testMode(new HC128Engine(), new KeyParameter(new byte[16]));
         testMode(new HC256Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
 
         testSkipping(new Salsa20Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[8]));
-        testSkipping(new SICBlockCipher(new AESEngine()), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
+        testSkipping(new SICBlockCipher(AESEngine.newInstance()), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
     }
 
     private void testModes(BlockCipher cipher1, BlockCipher cipher2, int keySize)

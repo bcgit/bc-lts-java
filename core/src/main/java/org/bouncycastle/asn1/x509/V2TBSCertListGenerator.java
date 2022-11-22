@@ -74,15 +74,6 @@ public class V2TBSCertListGenerator
         this.signature = signature;
     }
 
-    /**
-     * @deprecated use X500Name method
-     */
-    public void setIssuer(
-        X509Name    issuer)
-    {
-        this.issuer = X500Name.getInstance(issuer.toASN1Primitive());
-    }
-
     public void setIssuer(X500Name issuer)
     {
         this.issuer = issuer;
@@ -193,12 +184,6 @@ public class V2TBSCertListGenerator
         }
         
         addCRLEntry(new DERSequence(v));
-    }
-
-    public void setExtensions(
-        X509Extensions    extensions)
-    {
-        setExtensions(Extensions.getInstance(extensions));
     }
 
     public void setExtensions(

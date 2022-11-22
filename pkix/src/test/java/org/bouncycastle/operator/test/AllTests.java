@@ -13,6 +13,8 @@ import javax.crypto.spec.PSource;
 
 import junit.framework.Assert;
 import junit.framework.TestCase;
+import junit.framework.TestSuite;
+import org.bouncycastle.PrintResults;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DEROctetString;
@@ -380,5 +382,12 @@ public class AllTests
         Assert.assertEquals(new AlgorithmIdentifier(digestOid, DERNull.INSTANCE), oaepParams.getMaskGenAlgorithm().getParameters());
         Assert.assertEquals(PKCSObjectIdentifiers.id_pSpecified, oaepParams.getPSourceAlgorithm().getAlgorithm());
         Assert.assertEquals(new DEROctetString(Hex.decode("beef")), oaepParams.getPSourceAlgorithm().getParameters());
+    }
+
+    public static void main(String[] args)
+    {
+        TestSuite ts = new TestSuite();
+        ts.addTestSuite(AllTests.class);
+        PrintResults.printResult(junit.textui.TestRunner.run(ts));
     }
 }

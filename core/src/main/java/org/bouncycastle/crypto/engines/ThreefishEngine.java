@@ -345,26 +345,6 @@ public class ThreefishEngine
     }
 
     /**
-     * Read a single 64 bit word from input in LSB first order.
-     * 
-     * @deprecated Will be removed
-     */
-    public static long bytesToWord(final byte[] bytes, final int off)
-    {
-        return Pack.littleEndianToLong(bytes, off);
-    }
-
-    /**
-     * Write a 64 bit word to output in LSB first order.
-     * 
-     * @deprecated Will be removed
-     */
-    public static void wordToBytes(final long word, final byte[] bytes, final int off)
-    {
-        Pack.longToLittleEndian(word, bytes, off);
-    }
-
-    /**
      * Rotate left + xor part of the mix operation.
      */
     // Package protected for efficient access from inner class

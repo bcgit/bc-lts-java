@@ -1,10 +1,5 @@
 package org.bouncycastle.oer.its;
 
-import java.lang.reflect.Method;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
-import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import org.bouncycastle.asn1.ASN1Encodable;
@@ -53,30 +48,5 @@ public class ItsUtils
     public static ASN1Sequence toSequence(ASN1Encodable... objs)
     {
         return new DERSequence(objs);
-    }
-
-    @Deprecated
-    public static <T> List<T> fillList(final Class<T> type, final ASN1Sequence sequence)
-    {
-        return AccessController.doPrivileged(new PrivilegedAction<List<T>>()
-        {
-            public List<T> run()
-            {
-                try
-                {
-                    List<T> accumulator = new ArrayList<T>();
-                    for (Iterator<ASN1Encodable> it = sequence.iterator(); it.hasNext(); )
-                    {
-                        Method m = type.getMethod("getInstance", Object.class);
-                        accumulator.add(type.cast(m.invoke(null, it.next())));
-                    }
-                    return accumulator;
-                }
-                catch (Exception ex)
-                {
-                    throw new IllegalStateException("could not invoke getInstance on type " + ex.getMessage(), ex);
-                }
-            }
-        });
     }
 }

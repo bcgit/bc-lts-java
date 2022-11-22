@@ -28,47 +28,6 @@ import org.bouncycastle.util.Integers;
 public class CRLReason
     extends ASN1Object
 {
-    /**
-     * @deprecated use lower case version
-     */
-    public static final int UNSPECIFIED = 0;
-    /**
-     * @deprecated use lower case version
-     */
-    public static final int KEY_COMPROMISE = 1;
-    /**
-     * @deprecated use lower case version
-     */
-    public static final int CA_COMPROMISE = 2;
-    /**
-     * @deprecated use lower case version
-     */
-    public static final int AFFILIATION_CHANGED = 3;
-    /**
-     * @deprecated use lower case version
-     */
-    public static final int SUPERSEDED = 4;
-    /**
-     * @deprecated use lower case version
-     */
-    public static final int CESSATION_OF_OPERATION = 5;
-    /**
-     * @deprecated use lower case version
-     */
-    public static final int CERTIFICATE_HOLD = 6;
-    /**
-     * @deprecated use lower case version
-     */
-    public static final int REMOVE_FROM_CRL = 8;
-    /**
-     * @deprecated use lower case version
-     */
-    public static final int PRIVILEGE_WITHDRAWN = 9;
-    /**
-     * @deprecated use lower case version
-     */
-    public static final int AA_COMPROMISE = 10;
-
     public static final int unspecified = 0;
     public static final int keyCompromise = 1;
     public static final int cACompromise = 2;
