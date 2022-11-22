@@ -8,12 +8,14 @@
 #include <immintrin.h>
 
 #include "Rand.h"
+#include "../../jniutil/JavaByteArrayCritical.h"
+#include "../../macro.h"
 
 #define RAND_MOD 8
 
 namespace intel {
 
-    int Rand::modulus() {
+    unsigned char Rand::modulus() {
         return RAND_MOD;
     }
 
@@ -22,13 +24,13 @@ namespace intel {
     }
 
 
-    void Rand::populateArrayRng(jniutil::JavaByteArray *array) {
+    void Rand::populateArrayRng(jniutil::JavaByteArrayCritical *array) {
 
         // Assert the target is not null.
-        assert(!array->isNull());
+        abortIf(array->isNull(), "array was null");
 
         // Assert that array length is a multiple of the modulus.
-        assert((array->length() % RAND_MOD) == 0);
+        abortIfNot((array->length() % RAND_MOD) == 0, "array length not multiple of modulus");
 
         // Clear on the way in.
         memset(array->value(), 0, array->length());
@@ -56,12 +58,12 @@ namespace intel {
 
     }
 
-    void Rand::populateArraySeed(jniutil::JavaByteArray *array) {
+    void Rand::populateArraySeed(jniutil::JavaByteArrayCritical *array) {
         // Assert the target is not null.
-        assert(!array->isNull());
+        abortIf(array->isNull(), "array was null");
 
         // Assert that array length is a multiple of the modulus.
-        assert((array->length() % RAND_MOD) == 0);
+        abortIfNot((array->length() % RAND_MOD) == 0, "array was not multiple of modulus");
 
         // Clear on the way in.
         memset(array->value(), 0, array->length());

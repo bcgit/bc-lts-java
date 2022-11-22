@@ -60,17 +60,6 @@ public class GeneralName
     private ASN1Encodable obj;
     private int           tag;
 
-    /**
-     * @deprecated use X500Name constructor.
-     * @param dirName
-     */
-        public GeneralName(
-        X509Name  dirName)
-    {
-        this.obj = X500Name.getInstance(dirName);
-        this.tag = 4;
-    }
-
     public GeneralName(
         X500Name  dirName)
     {
@@ -228,6 +217,11 @@ public class GeneralName
         ASN1TaggedObject tagObj,
         boolean          explicit)
     {
+        if (!explicit)
+        {
+            throw new IllegalArgumentException("choice item must be explicitly tagged");
+        }
+
         return GeneralName.getInstance(ASN1TaggedObject.getInstance(tagObj, true));
     }
 

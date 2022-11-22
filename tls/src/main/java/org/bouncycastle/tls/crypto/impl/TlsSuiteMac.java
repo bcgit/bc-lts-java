@@ -37,5 +37,5 @@ public interface TlsSuiteMac
      * @return A new byte array containing the MAC value.
      */
     byte[] calculateMacConstantTime(long seqNo, short type, byte[] message, int offset, int length, int expectedLength,
-        byte[] randomData);
+                                    byte[] randomData);
 }

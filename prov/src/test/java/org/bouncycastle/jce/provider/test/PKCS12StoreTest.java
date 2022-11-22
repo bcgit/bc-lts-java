@@ -45,11 +45,10 @@ import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.jcajce.PKCS12StoreParameter;
+import org.bouncycastle.jcajce.interfaces.BCX509Certificate;
 import org.bouncycastle.jce.PKCS12Util;
 import org.bouncycastle.jce.interfaces.PKCS12BagAttributeCarrier;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.jce.provider.JDKPKCS12StoreParameter;
-import org.bouncycastle.jce.provider.X509CertificateObject;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
@@ -1193,11 +1192,11 @@ public class PKCS12StoreTest
 
 
         //
-        // save test using LoadStoreParameter  - old version
+        // save test using LoadStoreParameter
         //
         bOut = new ByteArrayOutputStream();
 
-        storeParam = new org.bouncycastle.jcajce.provider.config.PKCS12StoreParameter(bOut, passwd, true);
+        storeParam = new PKCS12StoreParameter(bOut, passwd, true);
 
         store.store(storeParam);
 
@@ -1224,10 +1223,7 @@ public class PKCS12StoreTest
         //
         bOut = new ByteArrayOutputStream();
 
-        JDKPKCS12StoreParameter oldParam = new JDKPKCS12StoreParameter();
-        oldParam.setOutputStream(bOut);
-        oldParam.setPassword(passwd);
-        oldParam.setUseDEREncoding(true);
+        PKCS12StoreParameter oldParam = new PKCS12StoreParameter(bOut, passwd, true);
 
         store.store(oldParam);
 
@@ -1597,7 +1593,7 @@ public class PKCS12StoreTest
 
         if (type.contains("DEF"))
         {
-            if (c[0] instanceof X509CertificateObject)
+            if (c[0] instanceof BCX509Certificate)
             {
                 fail("wrong certificate type found");
             }

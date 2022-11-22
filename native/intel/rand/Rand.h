@@ -5,6 +5,7 @@
 
 #include <jni.h>
 #include "../../jniutil/JavaByteArray.h"
+#include "../../jniutil/JavaByteArrayCritical.h"
 
 namespace intel {
 
@@ -14,12 +15,12 @@ namespace intel {
 
     public:
 
-        static int modulus();
+        static unsigned char modulus();
 
         static bool isPredictionResistant();
 
-        static void populateArrayRng(jniutil::JavaByteArray *array);
-        static void populateArraySeed(jniutil::JavaByteArray *array);
+        static void populateArrayRng(jniutil::JavaByteArrayCritical *array);
+        static void populateArraySeed(jniutil::JavaByteArrayCritical *array);
     };
 
 }

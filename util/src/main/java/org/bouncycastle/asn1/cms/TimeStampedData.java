@@ -8,7 +8,6 @@ import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.BERSequence;
-import org.bouncycastle.asn1.DERIA5String;
 
 /**
  * <a href="https://tools.ietf.org/html/rfc5544">RFC 5544</a>:
@@ -82,16 +81,6 @@ public class TimeStampedData
             return (TimeStampedData)obj;
         }
         return new TimeStampedData(ASN1Sequence.getInstance(obj));
-    }
-
-    /**
-     * @deprecated Use {@link #getDataUriIA5()} instead.
-     */
-    public DERIA5String getDataUri()
-    {
-        return null == dataUri || dataUri instanceof DERIA5String
-            ?   (DERIA5String)dataUri
-            :   new DERIA5String(dataUri.getString(), false);
     }
 
     public ASN1IA5String getDataUriIA5()

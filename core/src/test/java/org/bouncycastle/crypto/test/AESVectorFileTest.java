@@ -13,7 +13,6 @@ import java.util.zip.ZipFile;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.engines.AESFastEngine;
 import org.bouncycastle.crypto.engines.AESLightEngine;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.encoders.Hex;
@@ -35,7 +34,7 @@ public class AESVectorFileTest
 
     protected BlockCipher createNewEngineForTest()
     {
-        return new AESEngine();
+        return AESEngine.newInstance();
     }
 
     private Test[] readTestVectors(InputStream inStream)
@@ -246,12 +245,12 @@ public class AESVectorFileTest
     {
         protected BlockCipher createNewEngineForTest()
         {
-            return new AESFastEngine();
+            return AESEngine.newInstance();
         }
 
         public String getName()
         {
-            return "AESFast";
+            return "AES";
         }
 
     }

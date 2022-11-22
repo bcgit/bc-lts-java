@@ -14,6 +14,7 @@ import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.ASN1UTCTime;
 import org.bouncycastle.asn1.DERGeneralizedTime;
 import org.bouncycastle.asn1.DERUTCTime;
+import org.bouncycastle.asn1.LocaleUtil;
 
 /**
  * <a href="https://tools.ietf.org/html/rfc5652#section-11.3">RFC 5652</a>:
@@ -41,7 +42,12 @@ public class Time
         ASN1TaggedObject obj,
         boolean          explicit)
     {
-        return getInstance(obj.getObject());
+        if (!explicit)
+        {
+            throw new IllegalArgumentException("choice item must be explicitly tagged");
+        }
+
+        return getInstance(obj.getExplicitBaseObject());
     }
 
     private Time(
@@ -67,7 +73,7 @@ public class Time
         Date    time)
     {
         SimpleTimeZone      tz = new SimpleTimeZone(0, "Z");
-        SimpleDateFormat    dateF = new SimpleDateFormat("yyyyMMddHHmmss");
+        SimpleDateFormat    dateF = new SimpleDateFormat("yyyyMMddHHmmss", LocaleUtil.EN_Locale);
 
         dateF.setTimeZone(tz);
 

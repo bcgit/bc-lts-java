@@ -1,6 +1,5 @@
 package org.bouncycastle.crypto.engines;
 
-import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.util.Pack;
 
 /**

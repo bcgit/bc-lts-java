@@ -87,7 +87,7 @@ class ContentInfo
                 throw new IllegalArgumentException("Bad tag for 'content'");
             }
 
-            content = tagged.getObject();
+            content = tagged.getExplicitBaseObject();
         }
     }
 

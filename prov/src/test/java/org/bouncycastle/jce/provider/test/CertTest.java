@@ -1201,7 +1201,7 @@ public class CertTest
             X509Certificate cert = (X509Certificate)fact.generateCertificate(bIn);
 
             PublicKey k = cert.getPublicKey();
-            if (!cert.getIssuerDN().toString().equals("C=DE,O=DATEV eG,0.2.262.1.10.7.20=1+CN=CA DATEV D03 1:PN"))
+            if (!cert.getIssuerDN().toString().equals("OID.0.2.262.1.10.7.20=1 + CN=CA DATEV D03 1:PN, O=DATEV eG, C=DE"))
             {
                 fail(id + " failed - name test.");
             }

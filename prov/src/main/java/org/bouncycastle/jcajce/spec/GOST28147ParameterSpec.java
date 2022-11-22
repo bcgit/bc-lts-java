@@ -61,14 +61,6 @@ public class GOST28147ParameterSpec
         this.iv = Arrays.clone(iv);
     }
 
-    /**
-     * @deprecated use getSBox()
-     */
-    public byte[] getSbox()
-    {
-        return Arrays.clone(sBox);
-    }
-
     public byte[] getSBox()
     {
         return Arrays.clone(sBox);

@@ -1,5 +1,8 @@
 package org.bouncycastle.crypto.test;
 
+import java.math.BigInteger;
+import java.security.SecureRandom;
+
 import org.bouncycastle.crypto.AsymmetricBlockCipher;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.InvalidCipherTextException;
@@ -12,9 +15,6 @@ import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
-
-import java.math.BigInteger;
-import java.security.SecureRandom;
 
 public class RSABlindedTest
     extends SimpleTest
@@ -81,9 +81,7 @@ public class RSABlindedTest
             }
         }
 
-        //System.setProperty(PKCS1Encoding.STRICT_LENGTH_ENABLED_PROPERTY, "false");
-
-        System.getProperties().put(PKCS1Encoding.STRICT_LENGTH_ENABLED_PROPERTY, "false");
+        System.getProperties().put(PKCS1Encoding.NOT_STRICT_LENGTH_ENABLED_PROPERTY, "true");
         eng = new PKCS1Encoding(new RSABlindedEngine());
 
         eng.init(false, pubParameters);
@@ -97,7 +95,7 @@ public class RSABlindedTest
             fail("RSA: failed - exception " + e.toString(), e);
         }
 
-        System.getProperties().remove(PKCS1Encoding.STRICT_LENGTH_ENABLED_PROPERTY);
+        System.getProperties().remove(PKCS1Encoding.NOT_STRICT_LENGTH_ENABLED_PROPERTY);
     }
 
     private void testTruncatedPKCS1Block(RSAKeyParameters pubParameters, RSAKeyParameters privParameters)

@@ -28,9 +28,9 @@ namespace intel {
 
             uint32_t getMultiBlockSize() override;
 
-            void init(bool encryption, unsigned char *key, unsigned long key_len) override;
-
             void reset() override;
+
+            virtual void init(unsigned char *key) override =0;
 
             virtual size_t processBlocks(
                     unsigned char *input,
@@ -48,6 +48,7 @@ namespace intel {
 
             ~AesEcb128E() override;
 
+            void init(unsigned char *key) override;
 
             size_t processBlocks(
                     unsigned char *input,
@@ -63,6 +64,7 @@ namespace intel {
 
             ~AesEcb128D() override;
 
+            void init(unsigned char *key) override;
 
             size_t processBlocks(
                     unsigned char *input,
@@ -79,6 +81,7 @@ namespace intel {
 
             ~AesEcb192E() override;
 
+            void init(unsigned char *key) override;
 
             size_t processBlocks(
                     unsigned char *input,
@@ -95,6 +98,7 @@ namespace intel {
 
             ~AesEcb192D() override;
 
+            void init(unsigned char *key) override;
 
             size_t processBlocks(
                     unsigned char *input,
@@ -112,6 +116,7 @@ namespace intel {
 
             ~AesEcb256E() override;
 
+            void init(unsigned char *key) override;
 
             size_t processBlocks(
                     unsigned char *input,
@@ -128,6 +133,7 @@ namespace intel {
 
             ~AesEcb256D() override;
 
+            void init(unsigned char *key) override;
 
             size_t processBlocks(
                     unsigned char *input,

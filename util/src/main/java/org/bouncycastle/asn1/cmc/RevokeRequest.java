@@ -11,7 +11,6 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1UTF8String;
 import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.asn1.DERUTF8String;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.util.Arrays;
@@ -126,16 +125,6 @@ public class RevokeRequest
     public void setPassphrase(ASN1OctetString passphrase)
     {
         this.passphrase = passphrase;
-    }
-
-    /**
-     * @deprecated Use {@link #getCommentUTF8()} instead.
-     */
-    public DERUTF8String getComment()
-    {
-        return null == comment || comment instanceof DERUTF8String
-            ?   (DERUTF8String)comment
-            :   new DERUTF8String(comment.getString());
     }
 
     public ASN1UTF8String getCommentUTF8()

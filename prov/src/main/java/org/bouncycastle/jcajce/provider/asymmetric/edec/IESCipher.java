@@ -54,7 +54,6 @@ import org.bouncycastle.jce.spec.IESParameterSpec;
 import org.bouncycastle.math.ec.ECCurve;
 import org.bouncycastle.util.Strings;
 
-
 public class IESCipher
     extends BaseCipherSpi
 {
@@ -439,8 +438,8 @@ public class IESCipher
 
         if (state == Cipher.ENCRYPT_MODE || state == Cipher.WRAP_MODE)
         {
-            // Generate the ephemeral key pair
-            AsymmetricCipherKeyPairGenerator kpGen = isX25519 ? new X25519KeyPairGenerator() : new X448KeyPairGenerator();
+            // Generate the ephemeral key pair - cast due to JVM compatibility
+            AsymmetricCipherKeyPairGenerator kpGen = isX25519 ? (AsymmetricCipherKeyPairGenerator)new X25519KeyPairGenerator() : (AsymmetricCipherKeyPairGenerator)new X448KeyPairGenerator();
             kpGen.init(new KeyGenerationParameters(random, fieldSize));
             EphemeralKeyPairGenerator epKpGen = new EphemeralKeyPairGenerator(kpGen, new KeyEncoder()
             {
@@ -568,7 +567,7 @@ public class IESCipher
     {
         public XIESwithDESedeCBC()
         {
-            super(new CBCBlockCipher(new DESedeEngine()), 8);
+            super(CBCBlockCipher.newInstance(new DESedeEngine()), 8);
         }
     }
 
@@ -577,7 +576,7 @@ public class IESCipher
     {
         public XIESwithSHA256andDESedeCBC()
         {
-            super(new CBCBlockCipher(new DESedeEngine()), 8, DigestFactory.createSHA256(), DigestFactory.createSHA256());
+            super(CBCBlockCipher.newInstance(new DESedeEngine()), 8, DigestFactory.createSHA256(), DigestFactory.createSHA256());
         }
     }
 
@@ -586,7 +585,7 @@ public class IESCipher
     {
         public XIESwithSHA384andDESedeCBC()
         {
-            super(new CBCBlockCipher(new DESedeEngine()), 8, DigestFactory.createSHA384(), DigestFactory.createSHA384());
+            super(CBCBlockCipher.newInstance(new DESedeEngine()), 8, DigestFactory.createSHA384(), DigestFactory.createSHA384());
         }
     }
 
@@ -595,7 +594,7 @@ public class IESCipher
     {
         public XIESwithSHA512andDESedeCBC()
         {
-            super(new CBCBlockCipher(new DESedeEngine()), 8, DigestFactory.createSHA512(), DigestFactory.createSHA512());
+            super(CBCBlockCipher.newInstance(new DESedeEngine()), 8, DigestFactory.createSHA512(), DigestFactory.createSHA512());
         }
     }
 
@@ -604,7 +603,7 @@ public class IESCipher
     {
         public XIESwithAESCBC()
         {
-            super(new CBCBlockCipher(new AESEngine()), 16);
+            super(CBCBlockCipher.newInstance(AESEngine.newInstance()), 16);
         }
     }
 
@@ -613,7 +612,7 @@ public class IESCipher
     {
         public XIESwithSHA256andAESCBC()
         {
-            super(new CBCBlockCipher(new AESEngine()), 16, DigestFactory.createSHA256(), DigestFactory.createSHA256());
+            super(CBCBlockCipher.newInstance(AESEngine.newInstance()), 16, DigestFactory.createSHA256(), DigestFactory.createSHA256());
         }
     }
 
@@ -622,7 +621,7 @@ public class IESCipher
     {
         public XIESwithSHA384andAESCBC()
         {
-            super(new CBCBlockCipher(new AESEngine()), 16, DigestFactory.createSHA384(), DigestFactory.createSHA384());
+            super(CBCBlockCipher.newInstance(AESEngine.newInstance()), 16, DigestFactory.createSHA384(), DigestFactory.createSHA384());
         }
     }
 
@@ -631,7 +630,7 @@ public class IESCipher
     {
         public XIESwithSHA512andAESCBC()
         {
-            super(new CBCBlockCipher(new AESEngine()), 16, DigestFactory.createSHA512(), DigestFactory.createSHA512());
+            super(CBCBlockCipher.newInstance(AESEngine.newInstance()), 16, DigestFactory.createSHA512(), DigestFactory.createSHA512());
         }
     }
 }

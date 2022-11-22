@@ -3,10 +3,10 @@ package org.bouncycastle.asn1.cms;
 import org.bouncycastle.asn1.ASN1Choice;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Object;
-import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
+import org.bouncycastle.asn1.BERTags;
 import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
 
@@ -35,15 +35,6 @@ public class OriginatorIdentifierOrKey
         this.id = id;
     }
 
-    /**
-     * @deprecated use version taking a SubjectKeyIdentifier
-     */
-    public OriginatorIdentifierOrKey(
-        ASN1OctetString id)
-    {
-        this(new SubjectKeyIdentifier(id.getOctets()));
-    }
-
     public OriginatorIdentifierOrKey(
         SubjectKeyIdentifier id)
     {
@@ -54,15 +45,6 @@ public class OriginatorIdentifierOrKey
         OriginatorPublicKey id)
     {
         this.id = new DERTaggedObject(false, 1, id);
-    }
-
-    /**
-     * @deprecated use more specific version
-     */
-    public OriginatorIdentifierOrKey(
-        ASN1Primitive id)
-    {
-        this.id = id;
     }
 
     /**
@@ -80,11 +62,10 @@ public class OriginatorIdentifierOrKey
     {
         if (!explicit)
         {
-            throw new IllegalArgumentException(
-                    "Can't implicitly tag OriginatorIdentifierOrKey");
+            throw new IllegalArgumentException("Can't implicitly tag OriginatorIdentifierOrKey");
         }
 
-        return getInstance(o.getObject());
+        return getInstance(o.getExplicitBaseObject());
     }
     
     /**
@@ -116,7 +97,7 @@ public class OriginatorIdentifierOrKey
 
         if (o instanceof ASN1TaggedObject)
         {
-            ASN1TaggedObject tagged = (ASN1TaggedObject)o;
+            ASN1TaggedObject tagged = ASN1TaggedObject.getInstance(o, BERTags.CONTEXT_SPECIFIC);
 
             if (tagged.getTagNo() == 0)
             {

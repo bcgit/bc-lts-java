@@ -277,7 +277,7 @@ class ProvSSLEngine
     }
 
     @Override
-    public synchronized SSLEngineResult.HandshakeStatus getHandshakeStatus()
+    public synchronized HandshakeStatus getHandshakeStatus()
     {
         if (protocol != null)
         {

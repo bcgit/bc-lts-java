@@ -39,11 +39,8 @@ public class X500Name
     private X500NameStyle style;
     private RDN[] rdns;
     private DERSequence rdnSeq;
-
-    /**
-     * @deprecated use the getInstance() method that takes a style.
-     */
-    public X500Name(X500NameStyle style, X500Name name)
+    
+    private X500Name(X500NameStyle style, X500Name name)
     {
         this.style = style;
         this.rdns = name.rdns;

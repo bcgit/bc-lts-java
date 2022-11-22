@@ -2,8 +2,11 @@ package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.NativeBlockCipherProvider;
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.modes.gcm.BasicGCMExponentiator;
 import org.bouncycastle.crypto.modes.gcm.GCMExponentiator;
@@ -21,7 +24,7 @@ import org.bouncycastle.util.Pack;
  * NIST Special Publication 800-38D.
  */
 public class GCMBlockCipher
-    implements AEADBlockCipher
+    implements GCMModeCipher
 {
     private static final int BLOCK_SIZE = 16;
 
@@ -52,6 +55,34 @@ public class GCMBlockCipher
     private int         atBlockPos;
     private long        atLength;
     private long        atLengthPre;
+
+    /**
+     * Return a new GCM mode cipher based on the passed in base cipher
+     *
+     * @param cipher the base cipher for the GCM mode.
+     */
+    public static GCMModeCipher newInstance(BlockCipher cipher)
+    {
+        if (cipher instanceof NativeBlockCipherProvider)
+        {
+            NativeBlockCipherProvider engine = (NativeBlockCipherProvider)cipher;
+
+            return engine.createGCM();
+        }
+
+        return new GCMBlockCipher(cipher);
+    }
+
+    /**
+     * Return a new GCM mode cipher based on the passed in base cipher and multiplier.
+     *
+     * @param cipher the base cipher for the GCM mode.
+     * @param m the GCM multiplier to use.
+     */
+    public static GCMModeCipher newInstance(BlockCipher cipher, GCMMultiplier m)
+    {
+        return new GCMBlockCipher(cipher, m);
+    }
 
     public GCMBlockCipher(BlockCipher c)
     {

@@ -34,7 +34,8 @@ namespace intel {
 
             virtual uint32_t getMultiBlockSize() = 0;
 
-            virtual void init(bool encryption, unsigned char *key, unsigned long key_len) = 0;
+            virtual  void init(unsigned char *key) =0;
+//            virtual void init(bool encryption, unsigned char *key, unsigned long key_len) = 0;
 
             virtual void reset() = 0;
 

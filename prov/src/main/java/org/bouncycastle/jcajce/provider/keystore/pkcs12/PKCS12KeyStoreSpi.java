@@ -109,7 +109,6 @@ import org.bouncycastle.jcajce.util.JcaJceHelper;
 import org.bouncycastle.jce.interfaces.BCKeyStore;
 import org.bouncycastle.jce.interfaces.PKCS12BagAttributeCarrier;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.jce.provider.JDKPKCS12StoreParameter;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Integers;
 import org.bouncycastle.util.Properties;
@@ -1301,23 +1300,13 @@ public class PKCS12KeyStoreSpi
             throw new IllegalArgumentException("'param' arg cannot be null");
         }
 
-        if (!(param instanceof PKCS12StoreParameter || param instanceof JDKPKCS12StoreParameter))
+        if (!(param instanceof PKCS12StoreParameter))
         {
             throw new IllegalArgumentException(
                 "No support for 'param' of type " + param.getClass().getName());
         }
 
-        PKCS12StoreParameter bcParam;
-
-        if (param instanceof PKCS12StoreParameter)
-        {
-            bcParam = (PKCS12StoreParameter)param;
-        }
-        else
-        {
-            bcParam = new PKCS12StoreParameter(((JDKPKCS12StoreParameter)param).getOutputStream(),
-                param.getProtectionParameter(), ((JDKPKCS12StoreParameter)param).isUseDEREncoding());
-        }
+        PKCS12StoreParameter bcParam = (PKCS12StoreParameter)param;
 
         char[] password;
         ProtectionParameter protParam = param.getProtectionParameter();

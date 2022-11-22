@@ -44,8 +44,6 @@ public class HMacTest
     static byte[] outputRipeMD128 = Hex.decode("fda5717fb7e20cf05d30bb286a44b05d");
     static byte[] outputRipeMD160 = Hex.decode("24cb4bd67d20fc1a5d2ed7732dcc39377f0a5668");
     static byte[] outputTiger = Hex.decode("1d7a658c75f8f004916e7b07e2a2e10aec7de2ae124d3647");
-    static byte[] outputOld384 = Hex.decode("0a046aaa0255e432912228f8ccda437c8a8363fb160afb0570ab5b1fd5ddc20eb1888b9ed4e5b6cb5bc034cd9ef70e40");
-    static byte[] outputOld512 = Hex.decode("9656975ee5de55e75f2976ecce9a04501060b9dc22a6eda2eaef638966280182477fe09f080b2bf564649cad42af8607a2bd8d02979df3a980f15e2326a0a22a");
 
     static byte[] outputKck224 = Hex.decode("b73d595a2ba9af815e9f2b4e53e78581ebd34a80b3bbaac4e702c4cc");
     static byte[] outputKck256 = Hex.decode("9663d10c73ee294054dc9faf95647cb99731d12210ff7075fb3d3395abfb9821");
@@ -273,8 +271,6 @@ public class HMacTest
         testHMac(GMObjectIdentifiers.hmac_sm3.getId(), 256, outputSM3);
 
         // test for compatibility with broken HMac.
-        testHMac("OldHMacSHA384", outputOld384);
-        testHMac("OldHMacSHA512", outputOld512);
 
         testExceptions();
 

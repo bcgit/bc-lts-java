@@ -32,7 +32,6 @@ import org.bouncycastle.jcajce.interfaces.BCX509Certificate;
 import org.bouncycastle.jcajce.util.BCJcaJceHelper;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
 import org.bouncycastle.jce.exception.ExtCertPathValidatorException;
-import org.bouncycastle.x509.ExtendedPKIXParameters;
 
 /**
  * CertPathValidatorSpi implementation for X.509 Certificate validation � la RFC
@@ -64,14 +63,6 @@ public class PKIXCertPathValidatorSpi
         if (params instanceof PKIXParameters)
         {
             PKIXExtendedParameters.Builder paramsPKIXBldr = new PKIXExtendedParameters.Builder((PKIXParameters)params);
-
-            if (params instanceof ExtendedPKIXParameters)
-            {
-                ExtendedPKIXParameters extPKIX = (ExtendedPKIXParameters)params;
-
-                paramsPKIXBldr.setUseDeltasEnabled(extPKIX.isUseDeltasEnabled());
-                paramsPKIXBldr.setValidityModel(extPKIX.getValidityModel());
-            }
 
             paramsPKIX = paramsPKIXBldr.build();
         }

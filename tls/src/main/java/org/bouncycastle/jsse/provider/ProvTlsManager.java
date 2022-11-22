@@ -31,7 +31,7 @@ interface ProvTlsManager
     void notifyHandshakeComplete(ProvSSLConnection connection);
 
     void notifyHandshakeSession(ProvSSLSessionContext sslSessionContext, SecurityParameters securityParameters,
-        JsseSecurityParameters jsseSecurityParameters, ProvSSLSession resumedSession);
+                                JsseSecurityParameters jsseSecurityParameters, ProvSSLSession resumedSession);
 
     String selectApplicationProtocol(List<String> protocols);
 }

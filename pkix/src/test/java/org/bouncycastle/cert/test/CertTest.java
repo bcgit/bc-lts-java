@@ -20,6 +20,7 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.security.Signature;
+import java.security.SignatureException;
 import java.security.cert.CRL;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
@@ -54,7 +55,6 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.asn1.bc.BCObjectIdentifiers;
 import org.bouncycastle.asn1.isara.IsaraObjectIdentifiers;
 import org.bouncycastle.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
@@ -101,7 +101,6 @@ import org.bouncycastle.jcajce.CompositePrivateKey;
 import org.bouncycastle.jcajce.CompositePublicKey;
 import org.bouncycastle.jcajce.spec.CompositeAlgorithmSpec;
 import org.bouncycastle.jce.X509KeyUsage;
-import org.bouncycastle.jce.X509Principal;
 import org.bouncycastle.jce.interfaces.ECPointEncoder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECNamedCurveGenParameterSpec;
@@ -118,11 +117,6 @@ import org.bouncycastle.operator.bc.BcRSAContentSignerBuilder;
 import org.bouncycastle.operator.bc.BcRSAContentVerifierProviderBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
-import org.bouncycastle.pqc.crypto.lms.LMOtsParameters;
-import org.bouncycastle.pqc.crypto.lms.LMSigParameters;
-import org.bouncycastle.pqc.jcajce.interfaces.XMSSPrivateKey;
-import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
-import org.bouncycastle.pqc.jcajce.spec.*;
 import org.bouncycastle.util.Encodable;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Base64;
@@ -1406,7 +1400,7 @@ public class CertTest
             X509Certificate cert = (X509Certificate)fact.generateCertificate(bIn);
 
             PublicKey k = cert.getPublicKey();
-            if (!cert.getIssuerDN().toString().equals("C=DE,O=DATEV eG,0.2.262.1.10.7.20=1+CN=CA DATEV D03 1:PN"))
+            if (!cert.getIssuerDN().toString().equals("OID.0.2.262.1.10.7.20=1 + CN=CA DATEV D03 1:PN, O=DATEV eG, C=DE"))
             {
                 fail(id + " failed - name test.");
             }
@@ -1450,7 +1444,6 @@ public class CertTest
         }
 
     }
-
 
     public void checkSelfSignedCertificate(
         int id,
@@ -2082,14 +2075,14 @@ public class CertTest
             fail("error setting generating cert - " + e);
         }
 
-        X509Principal pr = new X509Principal("O=\"The Bouncy Castle, The Legion of\",E=feedback-crypto@bouncycastle.org,ST=Victoria,L=Melbourne,C=AU");
+        X500Name pr = new X500Name("O=\"The Bouncy Castle, The Legion of\",E=feedback-crypto@bouncycastle.org,ST=Victoria,L=Melbourne,C=AU");
 
         if (!pr.toString().equals("O=The Bouncy Castle\\, The Legion of,E=feedback-crypto@bouncycastle.org,ST=Victoria,L=Melbourne,C=AU"))
         {
             fail("string based X509Principal test failed.");
         }
 
-        pr = new X509Principal("O=The Bouncy Castle\\, The Legion of,E=feedback-crypto@bouncycastle.org,ST=Victoria,L=Melbourne,C=AU");
+        pr = new X500Name("O=The Bouncy Castle\\, The Legion of,E=feedback-crypto@bouncycastle.org,ST=Victoria,L=Melbourne,C=AU");
 
         if (!pr.toString().equals("O=The Bouncy Castle\\, The Legion of,E=feedback-crypto@bouncycastle.org,ST=Victoria,L=Melbourne,C=AU"))
         {
@@ -2870,9 +2863,9 @@ public class CertTest
         PrivateKey ecPriv = ecKp.getPrivate();
         PublicKey ecPub = ecKp.getPublic();
 
-        KeyPairGenerator lmsKpg = KeyPairGenerator.getInstance("LMS", "BCPQC");
+        KeyPairGenerator lmsKpg = KeyPairGenerator.getInstance("RSA", "BC");
 
-        lmsKpg.initialize(new LMSKeyGenParameterSpec(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w1));
+        lmsKpg.initialize(2048);
 
         KeyPair lmsKp = lmsKpg.generateKeyPair();
 
@@ -2889,7 +2882,7 @@ public class CertTest
         //
         CompositeAlgorithmSpec compAlgSpec = new CompositeAlgorithmSpec.Builder()
             .add("SHA256withECDSA")
-            .add("LMS")
+            .add("SHA256withRSA")
             .build();
         CompositePublicKey compPub = new CompositePublicKey(ecPub, lmsPub);
         CompositePrivateKey compPrivKey = new CompositePrivateKey(ecPriv, lmsPriv);
@@ -3158,110 +3151,6 @@ public class CertTest
         }
     }
 
-    public void checkCreation6()
-        throws Exception
-    {
-        if (Security.getProvider("BCPQC") == null)
-        {
-            Security.addProvider(new BouncyCastlePQCProvider());
-        }
-
-        KeyPairGenerator kpGen = KeyPairGenerator.getInstance("SPHINCS256", "BCPQC");
-
-        kpGen.initialize(new SPHINCS256KeyGenParameterSpec(), new SecureRandom());
-
-        KeyPair kp = kpGen.generateKeyPair();
-
-        PrivateKey privKey = kp.getPrivate();
-        PublicKey pubKey = kp.getPublic();
-
-        //
-        // distinguished name table.
-        //
-        X500NameBuilder builder = createStdBuilder();
-
-        //
-        // create base certificate - version 3
-        //
-        ContentSigner sigGen = new JcaContentSignerBuilder("SHA512withSPHINCS256").setProvider("BCPQC").build(privKey);
-        X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(builder.build(), BigInteger.valueOf(1), new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), builder.build(), pubKey)
-            .addExtension(new ASN1ObjectIdentifier("2.5.29.15"), true,
-                new X509KeyUsage(X509KeyUsage.encipherOnly))
-            .addExtension(new ASN1ObjectIdentifier("2.5.29.37"), true,
-                new DERSequence(KeyPurposeId.anyExtendedKeyUsage))
-            .addExtension(new ASN1ObjectIdentifier("2.5.29.17"), true,
-                new GeneralNames(new GeneralName(GeneralName.rfc822Name, "test@test.test")));
-
-        X509Certificate baseCert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
-
-        isTrue("oid wrong", BCObjectIdentifiers.sphincs256_with_SHA512.getId().equals(baseCert.getSigAlgOID()));
-        isTrue("params wrong", null == baseCert.getSigAlgParams());
-
-        //
-        // copy certificate
-        //
-
-        certGen = new JcaX509v3CertificateBuilder(builder.build(), BigInteger.valueOf(1), new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), builder.build(), pubKey)
-            .copyAndAddExtension(new ASN1ObjectIdentifier("2.5.29.15"), true, baseCert)
-            .copyAndAddExtension(new ASN1ObjectIdentifier("2.5.29.37"), false, baseCert);
-
-        X509Certificate cert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
-
-        cert.checkValidity(new Date());
-
-        cert.verify(cert.getPublicKey());
-
-        // check encoded works
-        cert.getEncoded();
-
-        if (!areEqual(baseCert.getExtensionValue("2.5.29.15"), cert.getExtensionValue("2.5.29.15")))
-        {
-            fail("2.5.29.15 differs");
-        }
-
-        if (!areEqual(baseCert.getExtensionValue("2.5.29.37"), cert.getExtensionValue("2.5.29.37")))
-        {
-            fail("2.5.29.37 differs");
-        }
-
-        //
-        // exception test
-        //
-
-        try
-        {
-            certGen.copyAndAddExtension(new ASN1ObjectIdentifier("2.5.99.99"), true, new JcaX509CertificateHolder(baseCert));
-
-            fail("exception not thrown on dud extension copy");
-        }
-        catch (NullPointerException e)
-        {
-            // expected
-        }
-
-        // certificate with NewHope key
-        kpGen = KeyPairGenerator.getInstance("NH", "BCPQC");
-
-        kpGen.initialize(1024, new SecureRandom());
-
-        KeyPair nhKp = kpGen.generateKeyPair();
-
-        certGen = new JcaX509v3CertificateBuilder(builder.build(), BigInteger.valueOf(1), new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), builder.build(), nhKp.getPublic())
-            .copyAndAddExtension(new ASN1ObjectIdentifier("2.5.29.15"), true, baseCert)
-            .copyAndAddExtension(new ASN1ObjectIdentifier("2.5.29.37"), false, baseCert);
-
-        cert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
-
-        cert.checkValidity(new Date());
-
-        cert.verify(pubKey);
-
-        isTrue(nhKp.getPublic().equals(cert.getPublicKey()));
-
-        // check encoded works
-        cert.getEncoded();
-    }
-
     /*
      * we generate a self signed certificate for the sake of testing - ECGOST3410-2012
      */
@@ -3289,210 +3178,6 @@ public class CertTest
         // create the certificate - version 3
         //
         ContentSigner sigGen = new JcaContentSignerBuilder("GOST3411-2012-512WITHECGOST3410-2012-512").setProvider(BC).build(privKey);
-        X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(builder.build(), BigInteger.valueOf(1), new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), builder.build(), pubKey);
-
-        X509Certificate cert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
-
-        cert.checkValidity(new Date());
-
-        //
-        // check verifies in general
-        //
-        cert.verify(pubKey);
-
-        //
-        // check verifies with contained key
-        //
-        cert.verify(cert.getPublicKey());
-
-        ByteArrayInputStream bIn = new ByteArrayInputStream(cert.getEncoded());
-        CertificateFactory fact = CertificateFactory.getInstance("X.509", BC);
-
-        cert = (X509Certificate)fact.generateCertificate(bIn);
-
-        //System.out.println(cert);
-    }
-
-    /*
-     * we generate a self signed certificate for the sake of testing - XMSS
-     */
-    public void checkCreation8()
-        throws Exception
-    {
-        //
-        // set up the keys
-        //
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("XMSS", "BCPQC");
-
-        kpg.initialize(new XMSSParameterSpec(10, XMSSParameterSpec.SHA256), new SecureRandom());
-
-        KeyPair kp = kpg.generateKeyPair();
-
-        PrivateKey privKey = kp.getPrivate();
-        PublicKey pubKey = kp.getPublic();
-
-        //
-        // distinguished name table.
-        //
-        X500NameBuilder builder = createStdBuilder();
-
-        //
-        // create the certificate - version 3
-        //
-        ContentSigner sigGen = new JcaContentSignerBuilder("XMSS").setProvider("BCPQC").build(privKey);
-        X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(builder.build(), BigInteger.valueOf(((XMSSPrivateKey)privKey).getIndex()), new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), builder.build(), pubKey);
-
-        X509Certificate cert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
-
-        cert.checkValidity(new Date());
-
-        //
-        // check verifies in general
-        //
-        cert.verify(pubKey);
-
-        //
-        // check verifies with contained key
-        //
-        cert.verify(cert.getPublicKey());
-
-        ByteArrayInputStream bIn = new ByteArrayInputStream(cert.getEncoded());
-        CertificateFactory fact = CertificateFactory.getInstance("X.509", BC);
-
-        cert = (X509Certificate)fact.generateCertificate(bIn);
-
-        //System.out.println(cert);
-    }
-
-    /*
-     * we generate a self signed certificate for the sake of testing - XMSS^MT
-     */
-    public void checkCreation9()
-        throws Exception
-    {
-        //
-        // set up the keys
-        //
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("XMSSMT", "BCPQC");
-
-        kpg.initialize(new XMSSMTParameterSpec(20, 4, XMSSMTParameterSpec.SHAKE256), new SecureRandom());
-
-        KeyPair kp = kpg.generateKeyPair();
-
-        PrivateKey privKey = kp.getPrivate();
-        PublicKey pubKey = kp.getPublic();
-
-        //
-        // distinguished name table.
-        //
-        X500NameBuilder builder = createStdBuilder();
-
-        //
-        // create the certificate - version 3
-        //
-        ContentSigner sigGen = new JcaContentSignerBuilder("XMSSMT").setProvider("BCPQC").build(privKey);
-        X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(builder.build(), BigInteger.valueOf(1), new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), builder.build(), pubKey);
-
-        X509Certificate cert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
-
-        cert.checkValidity(new Date());
-
-        //
-        // check verifies in general
-        //
-        cert.verify(pubKey);
-
-        //
-        // check verifies with contained key
-        //
-        cert.verify(cert.getPublicKey());
-
-        ByteArrayInputStream bIn = new ByteArrayInputStream(cert.getEncoded());
-        CertificateFactory fact = CertificateFactory.getInstance("X.509", BC);
-
-        cert = (X509Certificate)fact.generateCertificate(bIn);
-
-        //System.out.println(cert);
-    }
-
-    /*
-     * we generate a self signed certificate for the sake of testing - LMS
-     */
-    public void checkCreation10()
-        throws Exception
-    {
-        //
-        // set up the keys
-        //
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("LMS", "BCPQC");
-
-        kpg.initialize(new LMSKeyGenParameterSpec(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w1));
-
-        KeyPair kp = kpg.generateKeyPair();
-
-        PrivateKey privKey = kp.getPrivate();
-        PublicKey pubKey = kp.getPublic();
-
-        //
-        // distinguished name table.
-        //
-        X500NameBuilder builder = createStdBuilder();
-
-        //
-        // create the certificate - version 3
-        //
-        ContentSigner sigGen = new JcaContentSignerBuilder("LMS").setProvider("BCPQC").build(privKey);
-        X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(builder.build(), BigInteger.valueOf(1), new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), builder.build(), pubKey);
-
-        X509Certificate cert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
-
-        cert.checkValidity(new Date());
-
-        //
-        // check verifies in general
-        //
-        cert.verify(pubKey);
-
-        //
-        // check verifies with contained key
-        //
-        cert.verify(cert.getPublicKey());
-
-        ByteArrayInputStream bIn = new ByteArrayInputStream(cert.getEncoded());
-        CertificateFactory fact = CertificateFactory.getInstance("X.509", BC);
-
-        cert = (X509Certificate)fact.generateCertificate(bIn);
-
-        //System.out.println(cert);
-    }
-
-    /*
-     * we generate a self signed certificate for the sake of testing - SPHINCSPlus
-     */
-    public void checkCreationSPHINCSPlus()
-        throws Exception
-    {
-        //
-        // set up the keys
-        //
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("SPHINCSPlus", "BCPQC");
-
-        kpg.initialize(SPHINCSPlusParameterSpec.sha2_256f, new SecureRandom());
-
-        KeyPair kp = kpg.generateKeyPair();
-
-        PrivateKey privKey = kp.getPrivate();
-        PublicKey pubKey = kp.getPublic();
-
-        //
-        // distinguished name table.
-        //
-        X500NameBuilder builder = createStdBuilder();
-
-        //
-        // create the certificate - version 3
-        //
-        ContentSigner sigGen = new JcaContentSignerBuilder(pubKey.getAlgorithm()).setProvider("BCPQC").build(privKey);
         X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(builder.build(), BigInteger.valueOf(1), new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), builder.build(), pubKey);
 
         X509Certificate cert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
@@ -3783,219 +3468,6 @@ public class CertTest
         doGenSelfSignedCert(privKey, pubKey, algs, oids);
     }
 
-    public void checkCreationPicnic()
-            throws Exception
-    {
-        if (Security.getProvider("BCPQC") == null)
-        {
-            Security.addProvider(new BouncyCastlePQCProvider());
-        }
-
-        KeyPairGenerator kpGen = KeyPairGenerator.getInstance("Picnic", "BCPQC");
-
-        kpGen.initialize(PicnicParameterSpec.picnic3l1, new SecureRandom());
-
-        KeyPair kp = kpGen.generateKeyPair();
-
-        PrivateKey privKey = kp.getPrivate();
-        PublicKey pubKey = kp.getPublic();
-
-        //
-        // distinguished name table.
-        //
-        X500NameBuilder builder = createStdBuilder();
-
-        //
-        // create base certificate - version 3
-        //
-        ContentSigner sigGen = new JcaContentSignerBuilder("PICNIC").setProvider("BCPQC").build(privKey);
-        X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(builder.build(), BigInteger.valueOf(1), new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), builder.build(), pubKey)
-                .addExtension(new ASN1ObjectIdentifier("2.5.29.15"), true,
-                        new X509KeyUsage(X509KeyUsage.encipherOnly))
-                .addExtension(new ASN1ObjectIdentifier("2.5.29.37"), true,
-                        new DERSequence(KeyPurposeId.anyExtendedKeyUsage))
-                .addExtension(new ASN1ObjectIdentifier("2.5.29.17"), true,
-                        new GeneralNames(new GeneralName(GeneralName.rfc822Name, "test@test.test")));
-
-        X509Certificate baseCert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
-
-        isTrue("oid wrong", BCObjectIdentifiers.picnic_signature.getId().equals(baseCert.getSigAlgOID()));
-        isTrue("params wrong", null == baseCert.getSigAlgParams());
-
-        //
-        // copy certificate
-        //
-
-        certGen = new JcaX509v3CertificateBuilder(builder.build(), BigInteger.valueOf(1), new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), builder.build(), pubKey)
-                .copyAndAddExtension(new ASN1ObjectIdentifier("2.5.29.15"), true, baseCert)
-                .copyAndAddExtension(new ASN1ObjectIdentifier("2.5.29.37"), false, baseCert);
-
-        X509Certificate cert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
-
-        cert.checkValidity(new Date());
-
-        cert.verify(cert.getPublicKey());
-
-        // check encoded works
-        cert.getEncoded();
-
-        if (!areEqual(baseCert.getExtensionValue("2.5.29.15"), cert.getExtensionValue("2.5.29.15")))
-        {
-            fail("2.5.29.15 differs");
-        }
-
-        if (!areEqual(baseCert.getExtensionValue("2.5.29.37"), cert.getExtensionValue("2.5.29.37")))
-        {
-            fail("2.5.29.37 differs");
-        }
-
-        //
-        // exception test
-        //
-
-        try
-        {
-            certGen.copyAndAddExtension(new ASN1ObjectIdentifier("2.5.99.99"), true, new JcaX509CertificateHolder(baseCert));
-
-            fail("exception not thrown on dud extension copy");
-        }
-        catch (NullPointerException e)
-        {
-            // expected
-        }
-
-        // certificate with NewHope key
-        kpGen = KeyPairGenerator.getInstance("NH", "BCPQC");
-
-        kpGen.initialize(1024, new SecureRandom());
-
-        KeyPair nhKp = kpGen.generateKeyPair();
-
-        certGen = new JcaX509v3CertificateBuilder(builder.build(), BigInteger.valueOf(1), new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), builder.build(), nhKp.getPublic())
-                .copyAndAddExtension(new ASN1ObjectIdentifier("2.5.29.15"), true, baseCert)
-                .copyAndAddExtension(new ASN1ObjectIdentifier("2.5.29.37"), false, baseCert);
-
-        cert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
-
-        cert.checkValidity(new Date());
-
-        cert.verify(pubKey);
-
-        isTrue(nhKp.getPublic().equals(cert.getPublicKey()));
-
-        // check encoded works
-        cert.getEncoded();
-    }
-
-
-    public void checkCreationFalcon()
-        throws Exception
-    {
-        if (Security.getProvider("BCPQC") == null)
-        {
-            Security.addProvider(new BouncyCastlePQCProvider());
-        }
-
-        KeyPairGenerator kpGen = KeyPairGenerator.getInstance("Falcon", "BCPQC");
-
-        kpGen.initialize(FalconParameterSpec.falcon_512, new SecureRandom());
-
-        KeyPair kp = kpGen.generateKeyPair();
-
-        PrivateKey privKey = kp.getPrivate();
-        PublicKey pubKey = kp.getPublic();
-
-        //
-        // distinguished name table.
-        //
-        X500NameBuilder builder = createStdBuilder();
-
-        //
-        // create base certificate - version 3
-        //
-        ContentSigner sigGen = new JcaContentSignerBuilder("Falcon-512").setProvider("BCPQC").build(privKey);
-        X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(
-            builder.build(), BigInteger.valueOf(1),
-            new Date(System.currentTimeMillis() - 50000),
-            new Date(System.currentTimeMillis() + SIX_MONTHS),
-            builder.build(), pubKey)
-            .addExtension(new ASN1ObjectIdentifier("2.5.29.15"), true,
-                new X509KeyUsage(X509KeyUsage.encipherOnly))
-            .addExtension(new ASN1ObjectIdentifier("2.5.29.37"), true,
-                new DERSequence(KeyPurposeId.anyExtendedKeyUsage))
-            .addExtension(new ASN1ObjectIdentifier("2.5.29.17"), true,
-                new GeneralNames(new GeneralName(GeneralName.rfc822Name, "test@test.test")));
-
-        X509Certificate baseCert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
-
-        isTrue("oid wrong", BCObjectIdentifiers.falcon_512.getId().equals(baseCert.getSigAlgOID()));
-        isTrue("params wrong", null == baseCert.getSigAlgParams());
-        
-        //
-        // copy certificate
-        //
-
-        certGen = new JcaX509v3CertificateBuilder(builder.build(), BigInteger.valueOf(1), new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), builder.build(), pubKey)
-            .copyAndAddExtension(new ASN1ObjectIdentifier("2.5.29.15"), true, baseCert)
-            .copyAndAddExtension(new ASN1ObjectIdentifier("2.5.29.37"), false, baseCert);
-
-        X509Certificate cert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
-
-        cert.checkValidity(new Date());
-
-        cert.verify(cert.getPublicKey());
-
-        // check encoded works
-        cert.getEncoded();
-
-        if (!areEqual(baseCert.getExtensionValue("2.5.29.15"), cert.getExtensionValue("2.5.29.15")))
-        {
-            fail("2.5.29.15 differs");
-        }
-
-        if (!areEqual(baseCert.getExtensionValue("2.5.29.37"), cert.getExtensionValue("2.5.29.37")))
-        {
-            fail("2.5.29.37 differs");
-        }
-
-        //
-        // exception test
-        //
-
-        try
-        {
-            certGen.copyAndAddExtension(new ASN1ObjectIdentifier("2.5.99.99"), true, new JcaX509CertificateHolder(baseCert));
-
-            fail("exception not thrown on dud extension copy");
-        }
-        catch (NullPointerException e)
-        {
-            // expected
-        }
-
-        // certificate with NewHope key
-        kpGen = KeyPairGenerator.getInstance("NH", "BCPQC");
-
-        kpGen.initialize(1024, new SecureRandom());
-
-        KeyPair nhKp = kpGen.generateKeyPair();
-
-        certGen = new JcaX509v3CertificateBuilder(builder.build(), BigInteger.valueOf(1), new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), builder.build(), nhKp.getPublic())
-            .copyAndAddExtension(new ASN1ObjectIdentifier("2.5.29.15"), true, baseCert)
-            .copyAndAddExtension(new ASN1ObjectIdentifier("2.5.29.37"), false, baseCert);
-
-        cert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
-
-        cert.checkValidity(new Date());
-
-        cert.verify(pubKey);
-
-        isTrue(nhKp.getPublic().equals(cert.getPublicKey()));
-
-        // check encoded works
-        cert.getEncoded();
-    }
-
     public void checkCreationComposite()
         throws Exception
     {
@@ -4011,9 +3483,9 @@ public class CertTest
         PrivateKey ecPriv = ecKp.getPrivate();
         PublicKey ecPub = ecKp.getPublic();
 
-        KeyPairGenerator lmsKpg = KeyPairGenerator.getInstance("LMS", "BCPQC");
+        KeyPairGenerator lmsKpg = KeyPairGenerator.getInstance("RSA", "BC");
 
-        lmsKpg.initialize(new LMSKeyGenParameterSpec(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w1));
+        lmsKpg.initialize(2048);
 
         KeyPair lmsKp = lmsKpg.generateKeyPair();
 
@@ -4032,7 +3504,7 @@ public class CertTest
         //
         CompositeAlgorithmSpec compAlgSpec = new CompositeAlgorithmSpec.Builder()
             .add("SHA256withECDSA")
-            .add("LMS")
+            .add("SHA256withRSA")
             .build();
         CompositePublicKey compPub = new CompositePublicKey(ecPub, lmsPub);
         CompositePrivateKey compPrivKey = new CompositePrivateKey(ecPriv, lmsPriv);
@@ -4103,11 +3575,11 @@ public class CertTest
 
         cert.verify(ecPub, "BC");      // ec key only
 
-        cert.verify(lmsPub, "BCPQC");     // lms key only
+        cert.verify(lmsPub, "BC");     // rsa key only
 
         cert.verify(ecPub, new BouncyCastleProvider());      // ec key only
 
-        cert.verify(lmsPub, new BouncyCastlePQCProvider());     // lms key only
+        cert.verify(lmsPub, new BouncyCastleProvider());     // rsa key only
 
         //
         // check verifies with contained key
@@ -4150,9 +3622,9 @@ public class CertTest
         PrivateKey ecPriv = ecKp.getPrivate();
         PublicKey ecPub = ecKp.getPublic();
 
-        KeyPairGenerator lmsKpg = KeyPairGenerator.getInstance("LMS", "BCPQC");
+        KeyPairGenerator lmsKpg = KeyPairGenerator.getInstance("RSA", "BC");
 
-        lmsKpg.initialize(new LMSKeyGenParameterSpec(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w1));
+        lmsKpg.initialize(2048);
 
         KeyPair lmsKp = lmsKpg.generateKeyPair();
 
@@ -4926,126 +4398,117 @@ public class CertTest
     public void performTest()
         throws Exception
     {
-        if (Security.getProvider("BCPQC") == null)
+        testDirect();
+        testIndirect();
+        testIndirect2();
+        testMalformedIndirect();
+
+        checkCertificate(1, cert1);
+        checkCertificate(2, cert2);
+        checkCertificate(3, cert3);
+        checkCertificate(4, cert4);
+        checkCertificate(5, cert5);
+        checkCertificate(6, oldEcdsa);
+        checkCertificate(7, cert7);
+
+        checkComparison(cert1);
+        checkComparison(cert2);
+
+        checkKeyUsage(8, keyUsage);
+        checkSelfSignedCertificate(9, uncompressedPtEC);
+        checkNameCertificate(10, nameCert);
+
+        checkSelfSignedCertificate(11, probSelfSignedCert);
+        checkSelfSignedCertificate(12, gostCA1);
+        checkSelfSignedCertificate(13, gostCA2);
+        checkSelfSignedCertificate(14, gost341094base);
+        checkSelfSignedCertificate(15, gost34102001base);
+        checkSelfSignedCertificate(16, gost341094A);
+        checkSelfSignedCertificate(17, gost341094B);
+        checkSelfSignedCertificate(18, gost34102001A);
+        checkSelfSignedCertificate(19, sha3Cert);
+        checkSelfSignedCertificateAndKey(20, gost_2012_cert, "ECGOST3410-2012-256", gost_2012_privateKey);
+        checkCRL(1, crl1);
+
+        System.setProperty("org.bouncycastle.x509.allow_non-der_tbscert", "true");
+
+        checkCertificate(9, x25519Cert,
+            KeyFactory.getInstance("EdDSA").generatePublic(new X509EncodedKeySpec(Base64.decode("MCowBQYDK2VwAyEAGb9ECWmEzf6FQbrBZ9w7lshQhqowtrbLDFw4rXAxZuE="))));
+
+        System.setProperty("org.bouncycastle.x509.allow_non-der_tbscert", "false");
+
+        try
         {
-            Security.addProvider(new BouncyCastlePQCProvider());
+            CertificateFactory fact = CertificateFactory.getInstance("X.509", "BC");
+
+            Certificate cert = fact.generateCertificate(new ByteArrayInputStream(x25519Cert));
+
+            cert.verify(KeyFactory.getInstance("EdDSA").generatePublic(new X509EncodedKeySpec(Base64.decode("MCowBQYDK2VwAyEAGb9ECWmEzf6FQbrBZ9w7lshQhqowtrbLDFw4rXAxZuE="))));
+
+            fail("no exception");
+        }
+        catch (SignatureException e)
+        {
+            isEquals("certificate does not verify with supplied key", e.getMessage());
         }
 
-//        testDirect();
-//        testIndirect();
-//        testIndirect2();
-//        testMalformedIndirect();
-//
-//        checkCertificate(1, cert1);
-//        checkCertificate(2, cert2);
-//        checkCertificate(3, cert3);
-//        checkCertificate(4, cert4);
-//        checkCertificate(5, cert5);
-//        checkCertificate(6, oldEcdsa);
-//        checkCertificate(7, cert7);
-//
-//        checkComparison(cert1);
-//        checkComparison(cert2);
-//
-//        checkKeyUsage(8, keyUsage);
-//        checkSelfSignedCertificate(9, uncompressedPtEC);
-//        checkNameCertificate(10, nameCert);
-//
-//        checkSelfSignedCertificate(11, probSelfSignedCert);
-//        checkSelfSignedCertificate(12, gostCA1);
-//        checkSelfSignedCertificate(13, gostCA2);
-//        checkSelfSignedCertificate(14, gost341094base);
-//        checkSelfSignedCertificate(15, gost34102001base);
-//        checkSelfSignedCertificate(16, gost341094A);
-//        checkSelfSignedCertificate(17, gost341094B);
-//        checkSelfSignedCertificate(18, gost34102001A);
-//        checkSelfSignedCertificate(19, sha3Cert);
-//        checkSelfSignedCertificateAndKey(20, gost_2012_cert, "ECGOST3410-2012-256", gost_2012_privateKey);
-//        checkCRL(1, crl1);
-//
-//        System.setProperty("org.bouncycastle.x509.allow_non-der_tbscert", "true");
-//
-//        checkCertificate(9, x25519Cert,
-//            KeyFactory.getInstance("EdDSA").generatePublic(new X509EncodedKeySpec(Base64.decode("MCowBQYDK2VwAyEAGb9ECWmEzf6FQbrBZ9w7lshQhqowtrbLDFw4rXAxZuE="))));
-//
-//        System.setProperty("org.bouncycastle.x509.allow_non-der_tbscert", "false");
-//
-//        try
-//        {
-//            CertificateFactory fact = CertificateFactory.getInstance("X.509", "BC");
-//
-//            Certificate cert = fact.generateCertificate(new ByteArrayInputStream(x25519Cert));
-//
-//            cert.verify(KeyFactory.getInstance("EdDSA").generatePublic(new X509EncodedKeySpec(Base64.decode("MCowBQYDK2VwAyEAGb9ECWmEzf6FQbrBZ9w7lshQhqowtrbLDFw4rXAxZuE="))));
-//
-//            fail("no exception");
-//        }
-//        catch (SignatureException e)
-//        {
-//            isEquals("certificate does not verify with supplied key", e.getMessage());
-//        }
-//
-//        checkSelfSignedCertificate(22, CertificateFactory.getInstance("X.509", BC).generateCertificate(this.getClass().getResourceAsStream("xmss3.pem")).getEncoded());
-//
-//        checkCreation1();
-//        checkCreation2();
-//        checkCreation3();
-//        checkCreation4();
-//        checkCreation5();
-//
+        //checkSelfSignedCertificate(22, CertificateFactory.getInstance("X.509", BC).generateCertificate(this.getClass().getResourceAsStream("xmss3.pem")).getEncoded());
+
+        checkCreation1();
+        checkCreation2();
+        checkCreation3();
+        checkCreation4();
+        checkCreation5();
+
 //        checkCreation6();
-//        checkCreation7();
+        checkCreation7();
 //        checkCreation8();
 //        checkCreation9();
 //        checkCreation10();
-//
-//        checkCreationEd448();
-//
-//        checkCreationSPHINCSPlus();
-//        checkCreationDSA();
-//        checkCreationECDSA();
-//        checkCreationRSA();
-//        checkCreationRSAPSS();
 
-        checkCreationFalcon();
-        checkCreationPicnic();
+        checkCreationEd448();
+
+        checkCreationDSA();
+        checkCreationECDSA();
+        checkCreationRSA();
+        checkCreationRSAPSS();
         
-//        checkSm3WithSm2Creation();
-//
-//        checkCreationComposite();
-//        checkCompositeCertificateVerify();
-//
-//        createECCert("SHA1withECDSA", X9ObjectIdentifiers.ecdsa_with_SHA1);
-//        createECCert("SHA224withECDSA", X9ObjectIdentifiers.ecdsa_with_SHA224);
-//        createECCert("SHA256withECDSA", X9ObjectIdentifiers.ecdsa_with_SHA256);
-//        createECCert("SHA384withECDSA", X9ObjectIdentifiers.ecdsa_with_SHA384);
-//        createECCert("SHA512withECDSA", X9ObjectIdentifiers.ecdsa_with_SHA512);
-//
-//        createPSSCert("SHA1withRSAandMGF1");
-//        createPSSCert("SHA224withRSAandMGF1");
-//        createPSSCert("SHA256withRSAandMGF1");
-//        createPSSCert("SHA384withRSAandMGF1");
-//
-//        checkCRLCreation1();
-//        checkCRLCreation2();
-//        checkCRLCreation3();
-//        checkCRLCreation4();
-//        checkCRLCreation5();
-//        checkCRLCompositeCreation();
-//
-//        pemTest();
-//        pkcs7Test();
-//        rfc4491Test();
-//
-//        testForgedSignature();
-//
-//        testNullDerNullCert();
-//
-//        checkCertificate(18, emptyDNCert);
-//
-//        zeroDataTest();
-//
-//        checkSerialisation();
+        checkSm3WithSm2Creation();
+
+        checkCreationComposite();
+        checkCompositeCertificateVerify();
+
+        createECCert("SHA1withECDSA", X9ObjectIdentifiers.ecdsa_with_SHA1);
+        createECCert("SHA224withECDSA", X9ObjectIdentifiers.ecdsa_with_SHA224);
+        createECCert("SHA256withECDSA", X9ObjectIdentifiers.ecdsa_with_SHA256);
+        createECCert("SHA384withECDSA", X9ObjectIdentifiers.ecdsa_with_SHA384);
+        createECCert("SHA512withECDSA", X9ObjectIdentifiers.ecdsa_with_SHA512);
+
+        createPSSCert("SHA1withRSAandMGF1");
+        createPSSCert("SHA224withRSAandMGF1");
+        createPSSCert("SHA256withRSAandMGF1");
+        createPSSCert("SHA384withRSAandMGF1");
+
+        checkCRLCreation1();
+        checkCRLCreation2();
+        checkCRLCreation3();
+        checkCRLCreation4();
+        checkCRLCreation5();
+        checkCRLCompositeCreation();
+
+        pemTest();
+        pkcs7Test();
+        rfc4491Test();
+
+        testForgedSignature();
+
+        testNullDerNullCert();
+
+        checkCertificate(18, emptyDNCert);
+
+        zeroDataTest();
+
+        checkSerialisation();
     }
 
     private Extensions generateExtensions(Vector oids, Vector values)

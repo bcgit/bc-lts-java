@@ -49,15 +49,6 @@ public class V1TBSCertificateGenerator
         this.signature = signature;
     }
 
-        /**
-     * @deprecated use X500Name method
-     */
-    public void setIssuer(
-        X509Name    issuer)
-    {
-        this.issuer = X500Name.getInstance(issuer.toASN1Primitive());
-    }
-
     public void setIssuer(
         X500Name issuer)
     {
@@ -86,15 +77,6 @@ public class V1TBSCertificateGenerator
         ASN1UTCTime endDate)
     {
         this.endDate = new Time(endDate);
-    }
-
-    /**
-     * @deprecated use X500Name method
-     */
-    public void setSubject(
-        X509Name    subject)
-    {
-        this.subject = X500Name.getInstance(subject.toASN1Primitive());
     }
 
     public void setSubject(

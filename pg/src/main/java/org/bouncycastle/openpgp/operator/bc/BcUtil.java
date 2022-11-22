@@ -33,6 +33,7 @@ import org.bouncycastle.openpgp.operator.PGPDataDecryptor;
 import org.bouncycastle.openpgp.operator.PGPDigestCalculator;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.BigIntegers;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Pack;
 import org.bouncycastle.util.io.Streams;
 
@@ -137,7 +138,7 @@ class BcUtil
                 }
                 catch (IOException e)
                 {
-                    throw new IllegalStateException("unable to open stream: " + e.getMessage(), e);
+                    throw Exceptions.illegalStateException("unable to open stream: " + e.getMessage(), e);
                 }
             }
 
@@ -166,11 +167,11 @@ class BcUtil
         switch (aeadAlgorithm)
         {
         case AEADAlgorithmTags.EAX:
-            return new EAXBlockCipher(new AESEngine());
+            return new EAXBlockCipher(AESEngine.newInstance());
         case AEADAlgorithmTags.OCB:
-            return new OCBBlockCipher(new AESEngine(), new AESEngine());
+            return new OCBBlockCipher(AESEngine.newInstance(), AESEngine.newInstance());
         case AEADAlgorithmTags.GCM:
-            return AESFactory.createGCM();
+            return new GCMBlockCipher(AESEngine.newInstance());
         default:
             throw new PGPException("unrecognised AEAD algorithm: " + aeadAlgorithm);
         }
@@ -460,7 +461,7 @@ class BcUtil
                 }
             }
         }
-        
+
         public void close()
             throws IOException
         {
@@ -490,7 +491,7 @@ class BcUtil
                 out.write(data, 0, len);
             }
             catch (InvalidCipherTextException e)
-            {                      e.printStackTrace();
+            {
                 throw new IOException("exception processing chunk " + chunkIndex + ": " + e.getMessage());
             }
 

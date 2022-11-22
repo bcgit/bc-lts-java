@@ -9,6 +9,8 @@ import java.util.Collections;
 import java.util.List;
 
 import junit.framework.TestCase;
+import junit.framework.TestSuite;
+import org.bouncycastle.PrintResults;
 import org.bouncycastle.util.io.pem.PemHeader;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
@@ -17,6 +19,20 @@ import org.bouncycastle.util.io.pem.PemWriter;
 public class AllTests
     extends TestCase
 {
+
+    public static void main(String[] args)
+    {
+        PrintResults.printResult(junit.textui.TestRunner.run(suite()));
+    }
+
+    public static TestSuite suite()
+    {
+        TestSuite ts = new TestSuite();
+        ts.addTestSuite(AllTests.class);
+        return ts;
+    }
+
+
     public void testPemLength()
         throws IOException
     {
@@ -47,7 +63,7 @@ public class AllTests
         throws IOException
     {
         PemReader rd = new PemReader(new StringReader("-----BEGIN \n"));
-        
+
         assertNull(rd.readPemObject());
     }
 

@@ -12,7 +12,6 @@ import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
 import org.bouncycastle.openpgp.operator.PGPDataDecryptor;
 import org.bouncycastle.openpgp.operator.PGPDataDecryptorFactory;
 import org.bouncycastle.openpgp.operator.PublicKeyDataDecryptorFactory;
-import org.bouncycastle.openpgp.operator.SessionKeyDataDecryptorFactory;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.io.TeeInputStream;
 
@@ -106,13 +105,6 @@ public class PGPPublicKeyEncryptedData
         throws PGPException
     {
         return getDataStream(dataDecryptorFactory, getSessionKey(dataDecryptorFactory));
-    }
-
-    public InputStream getDataStream(
-        SessionKeyDataDecryptorFactory dataDecryptorFactory)
-        throws PGPException
-    {
-        return getDataStream(dataDecryptorFactory, dataDecryptorFactory.getSessionKey());
     }
 
     /**

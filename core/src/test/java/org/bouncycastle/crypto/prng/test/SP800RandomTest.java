@@ -258,9 +258,9 @@ public class SP800RandomTest
 
         isEquals("CTR-DRBG-3KEY-TDES", rBuild.buildCTR(new DESedeEngine(), 168, Hex.decode("20212223242526"), false).getAlgorithm());
 
-        isEquals("CTR-DRBG-AES128", rBuild.buildCTR(new AESEngine(), 128, Hex.decode("20212223242526"), false).getAlgorithm());
-        isEquals("CTR-DRBG-AES192", rBuild.buildCTR(new AESEngine(), 192, Hex.decode("20212223242526"), false).getAlgorithm());
-        isEquals("CTR-DRBG-AES256", rBuild.buildCTR(new AESEngine(), 256, Hex.decode("20212223242526"), false).getAlgorithm());
+        isEquals("CTR-DRBG-AES128", rBuild.buildCTR(AESEngine.newInstance(), 128, Hex.decode("20212223242526"), false).getAlgorithm());
+        isEquals("CTR-DRBG-AES192", rBuild.buildCTR(AESEngine.newInstance(), 192, Hex.decode("20212223242526"), false).getAlgorithm());
+        isEquals("CTR-DRBG-AES256", rBuild.buildCTR(AESEngine.newInstance(), 256, Hex.decode("20212223242526"), false).getAlgorithm());
 
         isEquals("HASH-DRBG-SHA256", rBuild.buildHash(new SHA256Digest(), Hex.decode("20212223242526"), false).getAlgorithm());
         isEquals("HASH-DRBG-SHA384", rBuild.buildHash(new SHA384Digest(), Hex.decode("20212223242526"), false).getAlgorithm());
@@ -287,7 +287,7 @@ public class SP800RandomTest
     }
 
     // for HMAC/Hash
-    private class SHA1EntropyProvider
+    private static class SHA1EntropyProvider
         extends TestEntropySourceProvider
     {
         SHA1EntropyProvider()
@@ -301,7 +301,7 @@ public class SP800RandomTest
     }
 
     // for Dual EC
-    private class SHA256EntropyProvider
+    private static class SHA256EntropyProvider
         extends TestEntropySourceProvider
     {
         SHA256EntropyProvider()
@@ -313,7 +313,7 @@ public class SP800RandomTest
         }
     }
 
-    private class Bit232EntropyProvider
+    private static class Bit232EntropyProvider
         extends TestEntropySourceProvider
     {
         Bit232EntropyProvider()

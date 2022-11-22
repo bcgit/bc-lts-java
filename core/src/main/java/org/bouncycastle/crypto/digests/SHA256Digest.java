@@ -206,7 +206,7 @@ public class SHA256Digest
         int     g = H7;
         int     h = H8;
 
-        int t = 0;     
+        int t = 0;
         for(int i = 0; i < 8; i ++)
         {
             // t = 8 * i

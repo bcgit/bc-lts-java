@@ -7,9 +7,7 @@ import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1UTF8String;
-import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.asn1.DERUTF8String;
 
 /**
  * <a href="https://tools.ietf.org/html/rfc5544">RFC 5544</a>:
@@ -120,29 +118,9 @@ public class MetaData
         return hashProtected.isTrue();
     }
 
-    /**
-     * @deprecated Use {@link #getFileNameUTF8()} instead.
-     */
-    public DERUTF8String getFileName()
-    {
-        return null == fileName || fileName instanceof DERUTF8String
-            ?   (DERUTF8String)fileName
-            :   new DERUTF8String(fileName.getString());
-    }
-
     public ASN1UTF8String getFileNameUTF8()
     {
         return this.fileName;
-    }
-
-    /**
-     * @deprecated Use {@link #getMediaTypeIA5()} instead.
-     */
-    public DERIA5String getMediaType()
-    {
-        return null == mediaType || mediaType instanceof DERIA5String
-            ?   (DERIA5String)mediaType
-            :   new DERIA5String(mediaType.getString(), false);
     }
 
     public ASN1IA5String getMediaTypeIA5()

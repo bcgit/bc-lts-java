@@ -31,10 +31,6 @@ public class BasicConstraints
         {
             return (BasicConstraints)obj;
         }
-        if (obj instanceof X509Extension)
-        {
-            return getInstance(X509Extension.convertValueToObject((X509Extension)obj));
-        }
         if (obj != null)
         {
             return new BasicConstraints(ASN1Sequence.getInstance(obj));

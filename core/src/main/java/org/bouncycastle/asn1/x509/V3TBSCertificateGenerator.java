@@ -58,15 +58,6 @@ public class V3TBSCertificateGenerator
         this.signature = signature;
     }
 
-        /**
-     * @deprecated use X500Name method
-     */
-    public void setIssuer(
-        X509Name    issuer)
-    {
-        this.issuer = X500Name.getInstance(issuer);
-    }
-
     public void setIssuer(
         X500Name issuer)
     {
@@ -97,15 +88,6 @@ public class V3TBSCertificateGenerator
         this.endDate = endDate;
     }
 
-        /**
-     * @deprecated use X500Name method
-     */
-    public void setSubject(
-        X509Name    subject)
-    {
-        this.subject = X500Name.getInstance(subject.toASN1Primitive());
-    }
-
     public void setSubject(
         X500Name subject)
     {
@@ -128,16 +110,6 @@ public class V3TBSCertificateGenerator
         SubjectPublicKeyInfo    pubKeyInfo)
     {
         this.subjectPublicKeyInfo = pubKeyInfo;
-    }
-
-    /**
-     * @deprecated use method taking Extensions
-     * @param extensions
-     */
-    public void setExtensions(
-        X509Extensions    extensions)
-    {
-        setExtensions(Extensions.getInstance(extensions));
     }
 
     public void setExtensions(

@@ -7,6 +7,7 @@
 #include <cstring>
 #include <iostream>
 #include "AesEcb.h"
+#include "../common.h"
 
 
 
@@ -75,11 +76,13 @@ size_t intel::ecb::AesEcb128E::processBlocks(unsigned char *input,
         in += ECB_BLOCK_SIZE;
     }
 
-    return out - outStart;
+    return (size_t)(out - outStart);
 
 }
 
-
+void intel::ecb::AesEcb128E::init(unsigned char *key) {
+    init_128(roundKeys,key, true);
+}
 
 
 intel::ecb::AesEcb192E::AesEcb192E() : AesEcb() {}
@@ -137,8 +140,13 @@ size_t intel::ecb::AesEcb192E::processBlocks(unsigned char *input,
         in += ECB_BLOCK_SIZE;
     }
 
-    return out - outStart;
+    return (size_t)(out - outStart);
 
+}
+
+
+void intel::ecb::AesEcb192E::init(unsigned char *key) {
+    init_192(roundKeys,key, true);
 }
 
 
@@ -200,10 +208,13 @@ size_t intel::ecb::AesEcb256E::processBlocks(unsigned char *input,
         in += ECB_BLOCK_SIZE;
     }
 
-    return out - outStart;
+    return (size_t)(out - outStart);
 
 }
 
+void intel::ecb::AesEcb256E::init(unsigned char *key) {
+    init_256(roundKeys,key, true);
+}
 
 
 
@@ -260,10 +271,14 @@ size_t intel::ecb::AesEcb128D::processBlocks(unsigned char *input,
         in += ECB_BLOCK_SIZE;
     }
 
-    return out - outStart;
+    return (size_t)(out - outStart);
 
 }
 
+
+void intel::ecb::AesEcb128D::init(unsigned char *key) {
+    init_128(roundKeys,key, false);
+}
 
 
 
@@ -322,10 +337,13 @@ size_t intel::ecb::AesEcb192D::processBlocks(unsigned char *input,
         in += ECB_BLOCK_SIZE;
     }
 
-    return out - outStart;
+    return (size_t)(out - outStart);
 
 }
 
+void intel::ecb::AesEcb192D::init(unsigned char *key) {
+    init_192(roundKeys,key, false);
+}
 
 
 
@@ -384,6 +402,10 @@ size_t intel::ecb::AesEcb256D::processBlocks(unsigned char *input,
         in += ECB_BLOCK_SIZE;
     }
 
-    return out - outStart;
+    return (size_t)(out - outStart);
 
+}
+
+void intel::ecb::AesEcb256D::init(unsigned char *key) {
+    init_256(roundKeys,key, false);
 }

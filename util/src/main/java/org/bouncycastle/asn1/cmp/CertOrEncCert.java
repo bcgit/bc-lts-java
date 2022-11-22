@@ -4,6 +4,7 @@ import org.bouncycastle.asn1.ASN1Choice;
 import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1TaggedObject;
+import org.bouncycastle.asn1.BERTags;
 import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.crmf.EncryptedKey;
 import org.bouncycastle.asn1.crmf.EncryptedValue;
@@ -19,17 +20,17 @@ public class CertOrEncCert
     implements ASN1Choice
 {
     private CMPCertificate certificate;
-    private EncryptedKey encryptedKey;
+    private EncryptedKey encryptedCert;
 
     private CertOrEncCert(ASN1TaggedObject tagged)
     {
         if (tagged.getTagNo() == 0)
         {
-            certificate = CMPCertificate.getInstance(tagged.getObject());
+            certificate = CMPCertificate.getInstance(tagged.getExplicitBaseObject());
         }
         else if (tagged.getTagNo() == 1)
         {
-            encryptedKey = EncryptedKey.getInstance(tagged.getObject());
+            encryptedCert = EncryptedKey.getInstance(tagged.getExplicitBaseObject());
         }
         else
         {
@@ -54,17 +55,17 @@ public class CertOrEncCert
             throw new IllegalArgumentException("'encryptedCert' cannot be null");
         }
 
-        this.encryptedKey = new EncryptedKey(encryptedCert);
+        this.encryptedCert = new EncryptedKey(encryptedCert);
     }
 
-    public CertOrEncCert(EncryptedKey encryptedKey)
+    public CertOrEncCert(EncryptedKey encryptedCert)
     {
-        if (encryptedKey == null)
+        if (encryptedCert == null)
         {
-            throw new IllegalArgumentException("'encryptedKey' cannot be null");
+            throw new IllegalArgumentException("'encryptedCert' cannot be null");
         }
 
-        this.encryptedKey = encryptedKey;
+        this.encryptedCert = encryptedCert;
     }
 
     public static CertOrEncCert getInstance(Object o)
@@ -76,10 +77,15 @@ public class CertOrEncCert
 
         if (o instanceof ASN1TaggedObject)
         {
-            return new CertOrEncCert((ASN1TaggedObject)o);
+            return new CertOrEncCert(ASN1TaggedObject.getInstance(o, BERTags.CONTEXT_SPECIFIC));
         }
 
         return null;
+    }
+
+    public boolean hasEncryptedCertificate()
+    {
+        return encryptedCert != null;
     }
 
     public CMPCertificate getCertificate()
@@ -89,7 +95,7 @@ public class CertOrEncCert
 
     public EncryptedKey getEncryptedCert()
     {
-        return encryptedKey;
+        return encryptedCert;
     }
 
     /**
@@ -109,6 +115,6 @@ public class CertOrEncCert
             return new DERTaggedObject(true, 0, certificate);
         }
 
-        return new DERTaggedObject(true, 1, encryptedKey);
+        return new DERTaggedObject(true, 1, encryptedCert);
     }
 }

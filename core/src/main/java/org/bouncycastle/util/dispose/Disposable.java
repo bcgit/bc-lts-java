@@ -1,5 +1,7 @@
 package org.bouncycastle.util.dispose;
 
+import java.lang.ref.Reference;
+
 /**
  * Instances of this can be added to the CryptoServicesRegister reference queue
  * to ensure the dispose method is called before GC.
@@ -7,5 +9,7 @@ package org.bouncycastle.util.dispose;
  */
 public interface Disposable
 {
-    void dispose();
+
+    Runnable getDisposeAction();
+
 }

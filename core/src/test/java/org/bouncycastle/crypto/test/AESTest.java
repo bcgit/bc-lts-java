@@ -13,7 +13,6 @@ import org.bouncycastle.crypto.modes.OFBBlockCipher;
 import org.bouncycastle.crypto.modes.SICBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
-import org.bouncycastle.util.AESFactory;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
 
@@ -37,85 +36,85 @@ public class AESTest
 
     static SimpleTest[]  tests = 
             {
-                new BlockCipherVectorTest(0, new AESEngine(),
+                new BlockCipherVectorTest(0,  AESEngine.newInstance() ,
                         new KeyParameter(Hex.decode("80000000000000000000000000000000")),
                         "00000000000000000000000000000000", "0EDD33D3C621E546455BD8BA1418BEC8"),
-                new BlockCipherVectorTest(1, new AESEngine(),
+                new BlockCipherVectorTest(1, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("00000000000000000000000000000080")),
                         "00000000000000000000000000000000", "172AEAB3D507678ECAF455C12587ADB7"),
-                new BlockCipherMonteCarloTest(2, 10000, new AESEngine(),
+                new BlockCipherMonteCarloTest(2, 10000, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("00000000000000000000000000000000")),
                         "00000000000000000000000000000000", "C34C052CC0DA8D73451AFE5F03BE297F"),
-                new BlockCipherMonteCarloTest(3, 10000, new AESEngine(),
+                new BlockCipherMonteCarloTest(3, 10000, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917")),
                         "355F697E8B868B65B25A04E18D782AFA", "ACC863637868E3E068D2FD6E3508454A"),
-                new BlockCipherVectorTest(4, new AESEngine(),
+                new BlockCipherVectorTest(4, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("000000000000000000000000000000000000000000000000")),
                         "80000000000000000000000000000000", "6CD02513E8D4DC986B4AFE087A60BD0C"),
-                new BlockCipherMonteCarloTest(5, 10000, new AESEngine(),
+                new BlockCipherMonteCarloTest(5, 10000, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("AAFE47EE82411A2BF3F6752AE8D7831138F041560631B114")),
                         "F3F6752AE8D7831138F041560631B114", "77BA00ED5412DFF27C8ED91F3C376172"),
-                new BlockCipherVectorTest(6, new AESEngine(),
+                new BlockCipherVectorTest(6, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("0000000000000000000000000000000000000000000000000000000000000000")),
                         "80000000000000000000000000000000", "DDC6BF790C15760D8D9AEB6F9A75FD4E"),
-                new BlockCipherMonteCarloTest(7, 10000, new AESEngine(),
+                new BlockCipherMonteCarloTest(7, 10000, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("28E79E2AFC5F7745FCCABE2F6257C2EF4C4EDFB37324814ED4137C288711A386")),
                         "C737317FE0846F132B23C8C2A672CE22", "E58B82BFBA53C0040DC610C642121168"),
-                new BlockCipherVectorTest(8, new AESEngine(),
+                new BlockCipherVectorTest(8, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("80000000000000000000000000000000")),
                         "00000000000000000000000000000000", "0EDD33D3C621E546455BD8BA1418BEC8"),
-                new BlockCipherVectorTest(9, new AESEngine(),
+                new BlockCipherVectorTest(9, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("00000000000000000000000000000080")),
                         "00000000000000000000000000000000", "172AEAB3D507678ECAF455C12587ADB7"),
-                new BlockCipherMonteCarloTest(10, 10000, new AESEngine(),
+                new BlockCipherMonteCarloTest(10, 10000, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("00000000000000000000000000000000")),
                         "00000000000000000000000000000000", "C34C052CC0DA8D73451AFE5F03BE297F"),
-                new BlockCipherMonteCarloTest(11, 10000, new AESEngine(),
+                new BlockCipherMonteCarloTest(11, 10000, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917")),
                         "355F697E8B868B65B25A04E18D782AFA", "ACC863637868E3E068D2FD6E3508454A"),
-                new BlockCipherVectorTest(12, new AESEngine(),
+                new BlockCipherVectorTest(12, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("000000000000000000000000000000000000000000000000")),
                         "80000000000000000000000000000000", "6CD02513E8D4DC986B4AFE087A60BD0C"),
-                new BlockCipherMonteCarloTest(13, 10000, new AESEngine(),
+                new BlockCipherMonteCarloTest(13, 10000, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("AAFE47EE82411A2BF3F6752AE8D7831138F041560631B114")),
                         "F3F6752AE8D7831138F041560631B114", "77BA00ED5412DFF27C8ED91F3C376172"),
-                new BlockCipherVectorTest(14, new AESEngine(),
+                new BlockCipherVectorTest(14, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("0000000000000000000000000000000000000000000000000000000000000000")),
                         "80000000000000000000000000000000", "DDC6BF790C15760D8D9AEB6F9A75FD4E"),
-                new BlockCipherMonteCarloTest(15, 10000, new AESEngine(),
+                new BlockCipherMonteCarloTest(15, 10000, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("28E79E2AFC5F7745FCCABE2F6257C2EF4C4EDFB37324814ED4137C288711A386")),
                         "C737317FE0846F132B23C8C2A672CE22", "E58B82BFBA53C0040DC610C642121168"),
-                new BlockCipherVectorTest(16, new AESEngine(),
+                new BlockCipherVectorTest(16, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("80000000000000000000000000000000")),
                         "00000000000000000000000000000000", "0EDD33D3C621E546455BD8BA1418BEC8"),
-                new BlockCipherVectorTest(17, new AESEngine(),
+                new BlockCipherVectorTest(17, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("00000000000000000000000000000080")),
                         "00000000000000000000000000000000", "172AEAB3D507678ECAF455C12587ADB7"),
-                new BlockCipherMonteCarloTest(18, 10000, new AESEngine(),
+                new BlockCipherMonteCarloTest(18, 10000, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("00000000000000000000000000000000")),
                         "00000000000000000000000000000000", "C34C052CC0DA8D73451AFE5F03BE297F"),
-                new BlockCipherMonteCarloTest(19, 10000, new AESEngine(),
+                new BlockCipherMonteCarloTest(19, 10000, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917")),
                         "355F697E8B868B65B25A04E18D782AFA", "ACC863637868E3E068D2FD6E3508454A"),
-                new BlockCipherVectorTest(20, new AESEngine(),
+                new BlockCipherVectorTest(20, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("000000000000000000000000000000000000000000000000")),
                         "80000000000000000000000000000000", "6CD02513E8D4DC986B4AFE087A60BD0C"),
-                new BlockCipherMonteCarloTest(21, 10000, new AESEngine(),
+                new BlockCipherMonteCarloTest(21, 10000, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("AAFE47EE82411A2BF3F6752AE8D7831138F041560631B114")),
                         "F3F6752AE8D7831138F041560631B114", "77BA00ED5412DFF27C8ED91F3C376172"),
-                new BlockCipherVectorTest(22, new AESEngine(),
+                new BlockCipherVectorTest(22, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("0000000000000000000000000000000000000000000000000000000000000000")),
                         "80000000000000000000000000000000", "DDC6BF790C15760D8D9AEB6F9A75FD4E"),
-                new BlockCipherMonteCarloTest(23, 10000, new AESEngine(),
+                new BlockCipherMonteCarloTest(23, 10000, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("28E79E2AFC5F7745FCCABE2F6257C2EF4C4EDFB37324814ED4137C288711A386")),
                         "C737317FE0846F132B23C8C2A672CE22", "E58B82BFBA53C0040DC610C642121168")
             };
     
-    private BlockCipher _engine = new AESEngine();
+    private BlockCipher _engine =   AESEngine.newInstance();
 
     public AESTest()
     {
-        super(tests, new AESEngine(), new KeyParameter(new byte[16]));
+        super(tests, AESEngine.newInstance(), new KeyParameter(new byte[16]));
     }
 
     public String getName()
@@ -126,7 +125,7 @@ public class AESTest
     private void testNullSIC()
         throws InvalidCipherTextException
     {
-        BufferedBlockCipher b = new BufferedBlockCipher(new SICBlockCipher(new AESEngine()));
+        BufferedBlockCipher b = new BufferedBlockCipher(new SICBlockCipher(AESEngine.newInstance()));
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         b.init(true, new ParametersWithIV(kp, new byte[16]));
@@ -157,7 +156,7 @@ public class AESTest
     private void testNullCBC()
         throws InvalidCipherTextException
     {
-        BufferedBlockCipher b = new BufferedBlockCipher(AESFactory.createCBC());
+        BufferedBlockCipher b = new BufferedBlockCipher(CBCBlockCipher.newInstance(AESEngine.newInstance()));
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         b.init(true, new ParametersWithIV(kp, new byte[16]));
@@ -188,7 +187,7 @@ public class AESTest
     private void testNullOFB()
         throws InvalidCipherTextException
     {
-        BufferedBlockCipher b = new BufferedBlockCipher(new OFBBlockCipher(new AESEngine(), 128));
+        BufferedBlockCipher b = new BufferedBlockCipher(new OFBBlockCipher(AESEngine.newInstance(), 128));
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         b.init(true, new ParametersWithIV(kp, new byte[16]));
@@ -219,7 +218,7 @@ public class AESTest
     private void testNullCFB()
         throws InvalidCipherTextException
     {
-        BufferedBlockCipher b = new BufferedBlockCipher(new CFBBlockCipher(new AESEngine(), 128));
+        BufferedBlockCipher b = new BufferedBlockCipher(new CFBBlockCipher(AESEngine.newInstance(), 128));
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         b.init(true, new ParametersWithIV(kp, new byte[16]));
@@ -263,7 +262,7 @@ public class AESTest
     private void skipTest()
     {
         CipherParameters params = new ParametersWithIV(new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917")), Hex.decode("00000000000000000000000000000000"));
-        SICBlockCipher engine = new SICBlockCipher(new AESEngine());
+        SICBlockCipher engine = new SICBlockCipher(AESEngine.newInstance());
 
         engine.init(true, params);
 
@@ -392,7 +391,7 @@ public class AESTest
     private void ctrCounterTest()
     {
         CipherParameters params = new ParametersWithIV(new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917")), Hex.decode("000000000000000000000000000000"));
-        SICBlockCipher engine = new SICBlockCipher(new AESEngine());
+        SICBlockCipher engine = new SICBlockCipher(AESEngine.newInstance());
 
         engine.init(true, params);
 
@@ -425,7 +424,7 @@ public class AESTest
     private void ctrFragmentedTest()
         throws InvalidCipherTextException
     {
-        SICBlockCipher engine = new SICBlockCipher(new AESEngine());
+        SICBlockCipher engine = new SICBlockCipher(AESEngine.newInstance());
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         byte[] out = new byte[tData.length];

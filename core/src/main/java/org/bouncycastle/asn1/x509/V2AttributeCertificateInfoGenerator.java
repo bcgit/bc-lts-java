@@ -101,16 +101,6 @@ public class V2AttributeCertificateInfoGenerator
         this.issuerUniqueID = issuerUniqueID;
     }
 
-    /**
-     * @deprecated use method taking Extensions
-     * @param extensions
-     */
-    public void setExtensions(
-        X509Extensions    extensions)
-    {
-        this.extensions = Extensions.getInstance(extensions.toASN1Primitive());
-    }
-
     public void setExtensions(
         Extensions    extensions)
     {
