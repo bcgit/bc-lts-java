@@ -40,11 +40,13 @@ class NativeLoader
     private static boolean javaSupportOnly = true;
 
     private static boolean loadCalled = false;
+    private static String nativeBuildDate = null;
 
 
     /**
      * Returns true if an attempt to load the native components has completed,
      * regardless of the outcome.
+     *
      * @return true if a loading attempt has been completed regardless of the outcome.
      */
     public static boolean isLoadCalled()
@@ -118,6 +120,11 @@ class NativeLoader
         return nativeStatusMessage;
     }
 
+    static synchronized String getNativeBuildDate()
+    {
+        return nativeBuildDate;
+    }
+
     public static synchronized String getVariant()
     {
         return selectedVariant;
@@ -131,8 +138,7 @@ class NativeLoader
             InputStream in = NativeLoader.class.getResourceAsStream(path);
             value = Strings.fromByteArray(Streams.readAll(in));
             in.close();
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
             return null;
         }
@@ -185,7 +191,7 @@ class NativeLoader
 
 
     static File installLib(String name, String libPathSegment, String jarPath, File bcLibPath, Set<File> filesInInstallLocation)
-        throws Exception
+            throws Exception
     {
 
         //
@@ -218,8 +224,7 @@ class NativeLoader
 
             bootNative();
 
-        }
-        finally
+        } finally
         {
             loadCalled = true;
         }
@@ -253,8 +258,7 @@ class NativeLoader
         {
             platform = "darwin";
             ldPathEnvVar = "DYLIB_LIBRARY_PATH";
-        }
-        else if (os_.contains("linux"))
+        } else if (os_.contains("linux"))
         {
             platform = "linux";
             ldPathEnvVar = "LD_LIBRARY_PATH";
@@ -384,8 +388,7 @@ class NativeLoader
         if (forcedVariant != null)
         {
             selectedVariant = forcedVariant;
-        }
-        else
+        } else
         {
             try
             {
@@ -393,19 +396,18 @@ class NativeLoader
                 final File lib = installLib("bc-probe", probeLibInJarPath, jarDir, bcFipsLibsInstallLocation, filesInInstallLocation);
 
                 AccessController.doPrivileged(
-                    new PrivilegedAction<Object>()
-                    {
-                        @Override
-                        public Object run()
+                        new PrivilegedAction<Object>()
                         {
-                            System.load(lib.getAbsolutePath());
-                            return new Object();
+                            @Override
+                            public Object run()
+                            {
+                                System.load(lib.getAbsolutePath());
+                                return new Object();
+                            }
                         }
-                    }
                 );
 
-            }
-            catch (Exception ex)
+            } catch (Exception ex)
             {
                 nativeStatusMessage = "probe lib failed to load " + ex.getMessage();
                 nativeInstalled = false;
@@ -445,19 +447,18 @@ class NativeLoader
             }
 
             AccessController.doPrivileged(
-                new PrivilegedAction<Object>()
-                {
-                    @Override
-                    public Object run()
+                    new PrivilegedAction<Object>()
                     {
-                        System.load(lib.getAbsolutePath());
-                        return new Object();
+                        @Override
+                        public Object run()
+                        {
+                            System.load(lib.getAbsolutePath());
+                            return new Object();
+                        }
                     }
-                }
             );
 
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
             nativeStatusMessage = "native capabilities lib failed to load " + ex.getMessage();
             nativeInstalled = false;
@@ -474,6 +475,7 @@ class NativeLoader
         }
 
 
+        nativeBuildDate = NativeLibIdentity.getNativeBuiltTimeStamp();
         nativeLibsAvailableForSystem = true;
         nativeStatusMessage = "successfully loaded";
         nativeInstalled = true;
@@ -496,8 +498,7 @@ class NativeLoader
             if (comma)
             {
                 sb.append(",");
-            }
-            else
+            } else
             {
                 comma = true;
             }
@@ -526,15 +527,14 @@ class NativeLoader
             byte[] res = new byte[dig.getDigestSize()];
             dig.doFinal(res, 0);
             return res;
-        }
-        catch (IOException ex)
+        } catch (IOException ex)
         {
             throw new RuntimeException(ex.getMessage(), ex);
         }
     }
 
     private static File copyFromJar(String inJarPath, File dir, String targetName)
-        throws Exception
+            throws Exception
     {
         InputStream inputStream = NativeLoader.class.getResourceAsStream(inJarPath);
         if (inputStream == null)
