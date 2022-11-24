@@ -2448,7 +2448,7 @@ public class NativeLimitTests
                 try
                 {
                     processBytes(new byte[0], 0, -1, new byte[0], 0);
-                    fail("accepted negative block count ");
+                    fail("accepted negative len ");
                 }
                 catch (Exception ex)
                 {
