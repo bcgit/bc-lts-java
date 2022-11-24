@@ -4,54 +4,50 @@
 
 #include <cstring>
 #include "debug.h"
+#include "intel/cbc/AesCBCNarrow.h"
+#include "intel/cbc/AesCBCDecryptVaes.h"
 
-#include "debug.h"
-
-/*!
- * Helper function to convert bit size into byte size.
- *
- * \param[in] Size in bits
- *
- * \return size in bytes
- */
-static int bitSizeInBytes(int nBits) {
-    return (nBits + 7) >> 3;
-}
-
-/*!
- * Helper function to convert bit size into word size.
- *
- * \param[in] Size in bits
- *
- * \return size in words
- */
-
-static int bitSizeInWords(int nBits) {
-    return (nBits + 31) >> 5;
-}
-
-/*! Macro that prints status message depending on condition */
-#define PRINT_EXAMPLE_STATUS(function_name, description, success_condition)       \
-    printf("+--------------------------------------------------------------|\n"); \
-    printf(" Function: %s\n", function_name);                                     \
-    printf(" Description: %s\n", description);                                    \
-    if (success_condition) {                                                      \
-        printf(" Status: PASSED!\n");                                             \
-    } else {                                                                      \
-        printf(" Status: FAILED!\n");                                             \
-    }                                                                             \
-    printf("+--------------------------------------------------------------|\n");
-
-
-
+#include <wmmintrin.h>
 
 int main() {
 
-    int t = 1;
-    throwIfNot(t == 0, "Cats");
 
-    exit:
-    return 0;
+    auto initial = from_hex("0000000000000000000000000000000011111111111111111111111111111111");
+
+
+
+   // _mm256_permute2x128_si256()
+
+
+
+//    auto userKey = from_hex("000000000000000000000000000000FF000000000000000000000000000000FF");
+//    auto in = from_hex("010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+//    //  auto out = from_hex("6CD02513E8D4DC986B4AFE087A60BD0C");
+//    auto iv = from_hex("000000000000000000000000000000FF");
+//
+//
+//    unsigned char res[256];
+//    memset(res, 0, 256);
+//
+//
+//    auto cbcEnc = new intel::cbc::AesCBC128Enc();
+//
+//    cbcEnc->init(userKey, 16, iv, 16);
+//    cbcEnc->processBlock(in, 3, res);
+//
+//    print_bytes("enc", res, 48);
+//
+//    delete cbcEnc;
+//
+//    auto cbcDec = new intel::cbc::AesCBC128VaesDec();
+//
+//
+//    cbcDec->init( userKey, 16, iv, 16);
+//    cbcDec->processBlock(res, 3, res);
+//
+//    print_bytes("dec", res, 48);
+//
+//    delete (CBCLike *)cbcDec;
 
 
 }
