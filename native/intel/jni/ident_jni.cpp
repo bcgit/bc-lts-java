@@ -18,3 +18,9 @@ JNIEXPORT jstring JNICALL Java_org_bouncycastle_crypto_NativeLibIdentity_getLibI
     auto str = env->NewStringUTF(BC_VARIANT_PREFIX"-" BC_VARIANT);
     return str;
 }
+
+JNIEXPORT jstring JNICALL Java_org_bouncycastle_crypto_NativeLibIdentity_getBuiltTimeStamp
+        (JNIEnv *env, jclass) {
+    auto str = env->NewStringUTF(BUILD_TS"");
+    return str;
+}

@@ -6,13 +6,13 @@ import org.bouncycastle.crypto.prng.EntropySource;
 
 
 class NativeEntropySource
-    implements EntropySource, NativeService
+        implements EntropySource, NativeService
 {
 
     private final int size;
     private final int effectiveSize;
 
-    private final boolean useSeedSource;
+    private final boolean useNRBGSource;
 
     public NativeEntropySource(int sizeInBits)
     {
@@ -31,7 +31,7 @@ class NativeEntropySource
             throw new IllegalStateException("no hardware support for random");
         }
 
-        useSeedSource = CryptoServicesRegistrar.getNativeServices().hasFeature("SEED");
+        useNRBGSource = CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.NRBG);
 
         int mod = modulus();
         effectiveSize = ((size + mod - 1) / mod) * mod;
@@ -45,12 +45,12 @@ class NativeEntropySource
     public byte[] getEntropy()
     {
         byte[] buf = new byte[effectiveSize];
-        seedBuffer(buf, useSeedSource);
+        seedBuffer(buf, useNRBGSource);
 
         if (areAllZeroes(buf, 0, buf.length))
         {
             throw new IllegalStateException("entropy source returned an array of len "
-                + buf.length + " where all elements are 0");
+                    + buf.length + " where all elements are 0");
         }
 
         if (size != effectiveSize)
@@ -91,7 +91,7 @@ class NativeEntropySource
         {
             NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
 
-            return nativeServices.hasFeature(NativeServices.SEED) || nativeServices.hasFeature(NativeServices.RAND);
+            return nativeServices.hasAnyFeature(NativeServices.NRBG, NativeServices.DRBG);
         }
 
         return false;
