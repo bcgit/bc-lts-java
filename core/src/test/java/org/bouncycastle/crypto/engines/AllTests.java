@@ -1,14 +1,10 @@
 package org.bouncycastle.crypto.engines;
 
-import java.util.Enumeration;
-
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
-import junit.framework.TestFailure;
-import junit.framework.TestResult;
 import junit.framework.TestSuite;
-import org.bouncycastle.PrintResults;
+import org.bouncycastle.core.PrintResults;
 
 
 public class AllTests

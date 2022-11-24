@@ -14,7 +14,7 @@ import javax.crypto.spec.PSource;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.PrintResults;
+import org.bouncycastle.pkix.PrintResults;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DEROctetString;
