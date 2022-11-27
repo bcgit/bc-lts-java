@@ -1,6 +1,7 @@
 build
 gradlew
 gradlew.bat
+/.gradle/
 /buildSrc/build/
 /buildSrc/.gradle/
 /*/out/
@@ -10,8 +11,10 @@ gradlew.bat
 /.idea
 /.idea/.gitignore
 /core/src/main/resources/META-INF/DRIVERS
+/core/*.gen
 /*.iml
 /*/*.iml
 /pg/*.txt
 /pg/*.bpg
 /pg/*.bak
+/pg/*.asc
