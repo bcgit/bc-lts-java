@@ -115,5 +115,10 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSee
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA2
         (JNIEnv *, jclass) {
-    return JNI_FALSE;
+    cpuid_t info;
+    cpuid(&info, 7, 0);
+
+    return (info.ebx & (1 << 29)) != 0 ? JNI_TRUE : JNI_FALSE;
+
 }
+
