@@ -30,7 +30,7 @@ public class DualECDRBGTest
         return new DRBGTestVector[]
             {
                 new DRBGTestVector(
-                    new SHA256Digest(),
+                    SHA256Digest.newInstance(),
                     new SHA256EntropyProvider().get(128),
                     false,
                     "2021222324252627",
@@ -41,7 +41,7 @@ public class DualECDRBGTest
                             "9A0A11F2DFB88F7260559DD8DA6134EB2B34CC0415FA8FD0474DB6B85E1A08385F41B435DF81296B1B4EDF66E0107C0844E3D28A89B05046B89177F2"
                         }),
                 new DRBGTestVector(
-                    new SHA256Digest(),
+                    SHA256Digest.newInstance(),
                     new SHA256EntropyProvider().get(128),
                     false,
                     "2021222324252627",
@@ -54,7 +54,7 @@ public class DualECDRBGTest
                 .addAdditionalInput("606162636465666768696A6B6C6D6E6F")
                 .addAdditionalInput("A0A1A2A3A4A5A6A7A8A9AAABACADAEAF"),
                 new DRBGTestVector(
-                    new SHA256Digest(),
+                    SHA256Digest.newInstance(),
                     new SHA256EntropyProvider().get(128),
                     false,
                     "2021222324252627",
@@ -66,7 +66,7 @@ public class DualECDRBGTest
                         })
                 .setPersonalizationString("404142434445464748494A4B4C4D4E4F"),
                 new DRBGTestVector(
-                    new SHA256Digest(),
+                    SHA256Digest.newInstance(),
                     new SHA256EntropyProvider().get(128),
                     false,
                     "2021222324252627",
@@ -80,7 +80,7 @@ public class DualECDRBGTest
                 .addAdditionalInput("606162636465666768696A6B6C6D6E6F")
                 .addAdditionalInput("A0A1A2A3A4A5A6A7A8A9AAABACADAEAF"),
                 new DRBGTestVector(
-                    new SHA256Digest(),
+                    SHA256Digest.newInstance(),
                     new SHA256EntropyProvider().get(128),
                     true,
                     "2021222324252627",
@@ -91,7 +91,7 @@ public class DualECDRBGTest
                             "56ECA61C64F69C1C232E992623C71418BD0B96D783118FAAD94A09E3A9DB74D15E805BA7F14625995CA77612B2EF7A05863699ECBABF70D3D422C014"
                         }),
                 new DRBGTestVector(
-                    new SHA256Digest(),
+                    SHA256Digest.newInstance(),
                     new SHA256EntropyProvider().get(128),
                     true,
                     "2021222324252627",
@@ -261,7 +261,7 @@ public class DualECDRBGTest
                 // From https://csrc.nist.gov/groups/STM/cavp/documents/drbg/drbgtestvectors.zip
                 // modified to test partial block processing.
                 new DRBGTestVector(
-                    new SHA256Digest(),
+                    SHA256Digest.newInstance(),
                     new TestEntropySourceProvider(Hex.decode("a826f1cd3fa24b9e71c316e5bf2bafff"), false).get(128),
                     false,
                     "82bc3bf050614b34",
@@ -278,7 +278,7 @@ public class DualECDRBGTest
                             "591892f0e3a1"
                         }),
                 new DRBGTestVector(
-                    new SHA256Digest(),
+                    SHA256Digest.newInstance(),
                     new TestEntropySourceProvider(Hex.decode("a826f1cd3fa24b9e71c316e5bf2bafff"), false).get(128),
                     false,
                     "82bc3bf050614b34",
@@ -339,7 +339,7 @@ public class DualECDRBGTest
 
         try
         {
-            d = new DualECSP800DRBG(new SHA256Digest(), 256, new SHA256EntropyProvider().get(128), null, null);
+            d = new DualECSP800DRBG(SHA256Digest.newInstance(), 256, new SHA256EntropyProvider().get(128), null, null);
             fail("no exception thrown");
         }
         catch (IllegalArgumentException e)
@@ -352,7 +352,7 @@ public class DualECDRBGTest
 
         try
         {
-            d = new DualECSP800DRBG(new SHA256Digest(), 256, new SHA256EntropyProvider().get(1 << (13 - 1) + 1), null, null);
+            d = new DualECSP800DRBG(SHA256Digest.newInstance(), 256, new SHA256EntropyProvider().get(1 << (13 - 1) + 1), null, null);
             fail("no exception thrown");
         }
         catch (IllegalArgumentException e)

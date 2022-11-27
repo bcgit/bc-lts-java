@@ -139,7 +139,7 @@ public class DigestConstraintsTest
 
         try
         {
-            new SHA256Digest();
+            SHA256Digest.newInstance();
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
