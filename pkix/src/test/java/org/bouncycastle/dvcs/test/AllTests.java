@@ -9,7 +9,7 @@ import java.security.cert.X509Certificate;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.PrintResults;
+import org.bouncycastle.pkix.PrintResults;
 import org.bouncycastle.asn1.dvcs.CertEtcToken;
 import org.bouncycastle.asn1.dvcs.TargetEtcChain;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;

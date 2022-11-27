@@ -4,22 +4,22 @@ import junit.framework.TestCase;
 import org.bouncycastle.util.Arrays;
 
 public class NativeEntropyTests
-    extends TestCase
+        extends TestCase
 {
 
     /**
      * To properly validate an entropy source you need
      * to perform a statistical analysis of the output.
      * <p>
-     * This test does not do that, it here to check that it returns something.
+     * This test does not do that, it is here to check that it returns something.
      */
     public void testESBasic()
-        throws Exception
+            throws Exception
     {
 
         NativeLoader.loadDriver();
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.ENTROPY))
+        if (!CryptoServicesRegistrar.getNativeServices().hasAnyFeature(NativeServices.DRBG, NativeServices.NRBG))
         {
             System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getStatusMessage());
             return;
@@ -35,13 +35,13 @@ public class NativeEntropyTests
     }
 
     public void testESLimits()
-        throws Exception
+            throws Exception
     {
 
 
         NativeLoader.loadDriver();
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.ENTROPY))
+        if (!CryptoServicesRegistrar.getNativeServices().hasAnyFeature(NativeServices.DRBG, NativeServices.NRBG))
         {
             System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getStatusMessage());
             return;
@@ -51,14 +51,10 @@ public class NativeEntropyTests
         {
             NativeEntropySource nes = new NativeEntropySource(0);
             fail("size un bits less than zero");
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
             assertTrue(ex.getMessage().contains("bit size less than 1"));
         }
-
-
-
 
 
     }

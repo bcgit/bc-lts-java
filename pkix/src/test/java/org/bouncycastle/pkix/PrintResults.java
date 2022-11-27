@@ -1,4 +1,4 @@
-package org.bouncycastle;
+package org.bouncycastle.pkix;
 
 import java.util.Enumeration;
 
@@ -13,6 +13,7 @@ public class PrintResults
             Enumeration r = result.failures();
             while (r.hasMoreElements())
             {
+                // -DM System.out.println
                 System.out.println(r.nextElement());
             }
         }
@@ -22,12 +23,14 @@ public class PrintResults
             Enumeration r = result.errors();
             while (r.hasMoreElements())
             {
+                // -DM System.out.println
                 System.out.println(r.nextElement());
             }
         }
 
         if (!result.wasSuccessful())
         {
+            // -DM System.exit
             System.exit(1);
         }
     }

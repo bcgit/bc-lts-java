@@ -6,14 +6,13 @@ import java.util.Set;
 
 public class NativeServices
 {
-    public static final String SEED = "SEED";
-    public static final String RAND = "RAND";
+    public static final String NRBG = "NRBG";
+    public static final String DRBG = "DRBG";
     public static final String AES_ECB = "AES/ECB";
     public static final String AES_GCM = "AES/GCM";
     public static final String AES_CBC = "AES/CBC";
     public static final String AES_CFB = "AES/CFB";
 
-    public static final String ENTROPY = "ENTROPY";
     public static final String NONE = "NONE";
 
     private static Set<String> nativeFeatures = null;
@@ -33,6 +32,11 @@ public class NativeServices
         return NativeLoader.getVariant();
     }
 
+    public static String getBuildDate()
+    {
+        return NativeLoader.getNativeBuildDate();
+    }
+
     public synchronized boolean hasFeature(String feature)
     {
         if (nativeFeatures == null)
@@ -43,23 +47,37 @@ public class NativeServices
         return nativeFeatures.contains(feature);
     }
 
+    public synchronized boolean hasAnyFeature(String... features)
+    {
+        if (nativeFeatures == null)
+        {
+            nativeFeatures = getNativeFeatureSet();
+        }
+
+        boolean found = false;
+        for (String feature : features)
+        {
+            found |= nativeFeatures.contains(feature);
+        }
+
+        return found;
+    }
+
+
     static synchronized Set<String> getNativeFeatureSet()
     {
         HashSet<String> set = new HashSet<String>();
 
         if (NativeFeatures.hasHardwareSeed())
         {
-            set.add(SEED);
-        }
-        if (NativeFeatures.hasHardwareRand())
-        {
-            set.add(RAND);
+            set.add(NRBG);
         }
 
-        if (NativeFeatures.hasHardwareSeed() || NativeFeatures.hasHardwareRand())
+        if (NativeFeatures.hasHardwareRand())
         {
-            set.add(ENTROPY);
+            set.add(DRBG);
         }
+
 
         if (NativeFeatures.hasAESHardwareSupport())
         {

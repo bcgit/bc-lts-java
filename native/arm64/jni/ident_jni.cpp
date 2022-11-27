@@ -1,5 +1,5 @@
 
-#include "org_bouncycastle_util_NativeLibIdentity.h"
+#include "org_bouncycastle_crypto_NativeLibIdentity.h"
 #include "jni.h"
 
 #ifndef BC_VARIANT
@@ -7,11 +7,11 @@
 #endif
 
 /*
- * Class:     org_bouncycastle_crypto_fips_NativeLibIdentity
+ * Class:     org_bouncycastle_crypto_NativeLibIdentity
  * Method:    getLibIdent
  * Signature: ()Ljava/lang/String;
  */
-JNIEXPORT jstring JNICALL Java_org_bouncycastle_util_NativeLibIdentity_getLibIdent
+JNIEXPORT jstring JNICALL Java_org_bouncycastle_crypto_NativeLibIdentity_getLibIdent
         (JNIEnv *env, jclass) {
 
     // Owned by JVM

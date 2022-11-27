@@ -43,42 +43,66 @@ namespace intel {
 
         size_t CFB::processBytes(unsigned char *src, size_t len, unsigned char *dest) {
 
-
             unsigned char *end = src + len;
             unsigned char *destStart = dest;
 
-            for (auto ptr = src; ptr < end;) {
+            auto *fb = (unsigned char *) (&feedback);
 
-                if (byteCount == 0) {
-                    encryptBlock(feedback, feedback);
-                }
+            // TODO use separate instance of class that does either decryption or encryption
+            if (encryption) {
+                for (auto ptr = src; ptr < end;) {
 
-                if (byteCount >= 0 && end - ptr < CFB_BLOCK_SIZE) {
-                    *dest = ((unsigned char *) &feedback)[byteCount] ^ *ptr;
-                    ((unsigned char *) &feedback)[byteCount] = *dest;
-                    byteCount++;
-                    dest++;
-                    ptr++;
-                    if (byteCount == CFB_BLOCK_SIZE) {
-                        byteCount = 0;
+                    if (byteCount == 0) {
+                        encryptBlock(feedback, feedback);
                     }
-                } else {
-                    if (encryption) {
+
+                    if (byteCount >= 0 || end - ptr < CFB_BLOCK_SIZE) {
+                        *dest = fb[byteCount] ^ *ptr;
+                        fb[byteCount++] = *dest;
+                        dest++;
+                        ptr++;
+                        if (byteCount == CFB_BLOCK_SIZE) {
+                            byteCount = 0;
+                        }
+                    } else {
+
                         auto data = _mm_loadu_si128((__m128i *) ptr);
                         feedback = _mm_xor_si128(data, feedback);
                         _mm_storeu_si128((__m128i *) dest, feedback);
+
+                        dest += CFB_BLOCK_SIZE;
+                        ptr += CFB_BLOCK_SIZE;
+                    }
+                }
+            } else {
+                for (auto ptr = src; ptr < end;) {
+
+                    if (byteCount == 0) {
+                        encryptBlock(feedback, feedback);
+                    }
+
+                    if (byteCount >= 0 || end - ptr < CFB_BLOCK_SIZE) {
+
+                        *dest = *ptr ^ fb[byteCount];
+                        fb[byteCount++] = *ptr;
+                        dest++;
+                        ptr++;
+                        if (byteCount == CFB_BLOCK_SIZE) {
+                            byteCount = 0;
+                        }
                     } else {
+
                         auto data = _mm_loadu_si128((__m128i *) ptr);
                         feedback = _mm_xor_si128(data, feedback);
                         _mm_storeu_si128((__m128i *) dest, feedback);
                         feedback = data;
+                        dest += CFB_BLOCK_SIZE;
+                        ptr += CFB_BLOCK_SIZE;
                     }
-
-                    dest += CFB_BLOCK_SIZE;
-                    ptr += CFB_BLOCK_SIZE;
                 }
             }
-            return (size_t) (dest - destStart);
+
+            return dest - destStart;
         }
 
         jbyte CFB::processByte(unsigned char in) {
@@ -86,18 +110,23 @@ namespace intel {
             if (byteCount == 0) {
                 encryptBlock(feedback, feedback);
             }
-            unsigned char out = ((unsigned char *) &feedback)[byteCount] ^ in;
+
+            auto *fb = (unsigned char *) (&feedback);
+
+            unsigned char out;
 
             if (encryption) {
-                ((unsigned char *) &feedback)[byteCount] = out;
+                out = fb[byteCount] ^ in;
+                fb[byteCount++] = out;
             } else {
-                ((unsigned char *) &feedback)[byteCount] = in;
+                out = fb[byteCount] ^ in;
+                fb[byteCount++] = in;
             }
-            byteCount++;
+
             if (byteCount == CFB_BLOCK_SIZE) {
                 byteCount = 0;
             }
-            return (jbyte)out;
+            return out;
         }
 
     }
