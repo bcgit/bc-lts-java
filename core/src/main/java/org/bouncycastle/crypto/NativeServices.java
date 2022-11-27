@@ -12,6 +12,7 @@ public class NativeServices
     public static final String AES_GCM = "AES/GCM";
     public static final String AES_CBC = "AES/CBC";
     public static final String AES_CFB = "AES/CFB";
+    public static final String SHA2 = "SHA2";
 
     public static final String NONE = "NONE";
 
@@ -97,6 +98,11 @@ public class NativeServices
         if (NativeFeatures.hasCFBHardwareSupport())
         {
             set.add(AES_CFB);
+        }
+
+        if (NativeFeatures.hasHardwareSHA())
+        {
+            set.add(SHA2);
         }
 
         if (set.isEmpty())

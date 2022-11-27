@@ -30,6 +30,10 @@ public class SHA256Digest
     private int[]   X = new int[64];
     private int     xOff;
 
+
+
+
+
     /**
      * Standard constructor
      */
