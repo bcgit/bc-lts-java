@@ -65,7 +65,7 @@ class EnvelopedDataHelper
         {
             public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
             {
-                return new SHA256Digest();
+                return SHA256Digest.newInstance();
             }
         });
         table.put(PKCSObjectIdentifiers.id_hmacWithSHA384, new BcDigestProvider()

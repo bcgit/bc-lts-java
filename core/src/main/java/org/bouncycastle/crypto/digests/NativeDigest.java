@@ -1,10 +1,7 @@
 package org.bouncycastle.crypto.digests;
 
 
-import org.bouncycastle.crypto.CryptoServiceProperties;
-import org.bouncycastle.crypto.CryptoServicePurpose;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.ExtendedDigest;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.util.Memoable;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
@@ -15,9 +12,10 @@ public abstract class NativeDigest
 
     protected DigestRefWrapper nativeRef = null;
     protected final CryptoServicePurpose purpose;
+
     protected NativeDigest(CryptoServicePurpose purpose)
     {
-    this.purpose = purpose;
+        this.purpose = purpose;
     }
 
     protected native long makeNative(int i);
@@ -40,34 +38,41 @@ public abstract class NativeDigest
 
     protected native byte[] getState(long nativeRef);
 
+    private static native void fromEncoded(long reference, byte[] encoded);
+
 
     /**
      * SHA256 implementation.
      */
-    public static class SHA256Native
-            extends NativeDigest
+    static class SHA256Native
+            extends NativeDigest implements SavableDigest
     {
 
-        public SHA256Native(SHA256Native src)
+        SHA256Native(CryptoServicePurpose purpose)
         {
-            super(src.purpose);
-            nativeRef = new DigestRefWrapper(makeNative(1));
+            super(purpose);
+            CryptoServicesRegistrar.checkConstraints(cryptoServiceProperties());
+            reset();
+        }
 
+        SHA256Native(SHA256Native src)
+        {
+            this(src.purpose);
+            nativeRef = new DigestRefWrapper(makeNative(1));
             byte[] state = src.getState(src.nativeRef.getReference());
             setState(nativeRef.getReference(), state);
         }
 
-        public SHA256Native()
+        SHA256Native()
         {
-            super(CryptoServicePurpose.ANY);
+            this(CryptoServicePurpose.ANY);
             nativeRef = new DigestRefWrapper(makeNative(1));
         }
 
-
-        public SHA256Native(CryptoServicePurpose purpose) {
-            super(purpose);
-            CryptoServicesRegistrar.checkConstraints(cryptoServiceProperties());
-            reset();
+        SHA256Native(byte[] encoded)
+        {
+            this();
+            fromEncoded(nativeRef.getReference(), encoded);
         }
 
 
@@ -178,8 +183,6 @@ public abstract class NativeDigest
             return getState(nativeRef.getReference());
         }
     }
-
-
 
 
     private class Disposer

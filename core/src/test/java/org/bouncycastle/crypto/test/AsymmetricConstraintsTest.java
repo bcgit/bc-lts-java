@@ -219,12 +219,12 @@ public class AsymmetricConstraintsTest
             isEquals("service does not provide 112 bits of security only 80", e.getMessage());
         }
 
-        signer1024Test(pk, sk, new RSADigestSigner(new SHA256Digest()));
-        signer1024Test(pk, sk, new PSSSigner(new RSAEngine(), new SHA256Digest(), 20));
-        signer1024Test(pk, sk, new ISO9796d2PSSSigner(new RSAEngine(), new SHA256Digest(), 20));
-        signer1024Test(pk, sk, new ISO9796d2Signer(new RSAEngine(), new SHA256Digest()));
-        signer1024Test(pk, sk, new X931Signer(new RSAEngine(), new SHA256Digest()));
-        signer1024Test(pk, sk, new GenericSigner(new RSAEngine(), new SHA256Digest()));
+        signer1024Test(pk, sk, new RSADigestSigner(SHA256Digest.newInstance()));
+        signer1024Test(pk, sk, new PSSSigner(new RSAEngine(), SHA256Digest.newInstance(), 20));
+        signer1024Test(pk, sk, new ISO9796d2PSSSigner(new RSAEngine(), SHA256Digest.newInstance(), 20));
+        signer1024Test(pk, sk, new ISO9796d2Signer(new RSAEngine(), SHA256Digest.newInstance()));
+        signer1024Test(pk, sk, new X931Signer(new RSAEngine(), SHA256Digest.newInstance()));
+        signer1024Test(pk, sk, new GenericSigner(new RSAEngine(), SHA256Digest.newInstance()));
 
         // legacy usage allowed for decryption.
         rsaEngine.init(false, sk);
@@ -395,7 +395,7 @@ public class AsymmetricConstraintsTest
         ecAgreementTest(kp.getPublic(), kp.getPrivate(), new ECDHCStagedAgreement());
         ecAgreementTest(new ECDHUPublicParameters((ECPublicKeyParameters)kp.getPublic(), (ECPublicKeyParameters)kp.getPublic()), new ECDHUPrivateParameters((ECPrivateKeyParameters)kp.getPrivate(), (ECPrivateKeyParameters)kp.getPrivate()), new ECDHCUnifiedAgreement());
         ecAgreementTest(new MQVPublicParameters((ECPublicKeyParameters)kp.getPublic(), (ECPublicKeyParameters)kp.getPublic()), new MQVPrivateParameters((ECPrivateKeyParameters)kp.getPrivate(), (ECPrivateKeyParameters)kp.getPrivate()), new ECMQVBasicAgreement());
-        ecAgreementTest(kp.getPublic(), kp.getPrivate(), new ECVKOAgreement(new SHA256Digest()));
+        ecAgreementTest(kp.getPublic(), kp.getPrivate(), new ECVKOAgreement(SHA256Digest.newInstance()));
 
         try
         {

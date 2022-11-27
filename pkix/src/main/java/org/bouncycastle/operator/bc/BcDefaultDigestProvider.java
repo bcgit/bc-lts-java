@@ -63,7 +63,7 @@ public class BcDefaultDigestProvider
         {
             public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
             {
-                return new SHA256Digest();
+                return SHA256Digest.newInstance();
             }
         });
         table.put(NISTObjectIdentifiers.id_sha384, new BcDigestProvider()
