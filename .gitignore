@@ -12,4 +12,6 @@ gradlew.bat
 /core/src/main/resources/META-INF/DRIVERS
 /*.iml
 /*/*.iml
-
+/pg/*.txt
+/pg/*.bpg
+/pg/*.bak
