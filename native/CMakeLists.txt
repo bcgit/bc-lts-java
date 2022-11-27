@@ -24,6 +24,8 @@ set(NATIVE_INSTALL_ROOT ${CMAKE_SOURCE_DIR}/target)
 set(VARIANT_PREFIX "unknown")
 set(ASM_INCLUDE ${CMAKE_SOURCE_DIR}/intel/asm)
 
+string(TIMESTAMP BUILD_TS "%Y-%m-%dT%H:%M:%SZ")
+
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 
     if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
@@ -46,6 +48,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
 
 
 elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+
 
     if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 
@@ -140,7 +143,17 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64")
             $<$<COMPILE_LANGUAGE:C>: -mcpu=native+rng>
             )
     install(TARGETS "${LIB_NATIVE}" LIBRARY DESTINATION ${PLATFORM_TARGET}/components)
-    target_compile_definitions("${LIB_NATIVE}" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"arm64\")
+    target_compile_definitions("${LIB_NATIVE}" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"arm64\" BUILD_TS=\"${BUILD_TS}\" )
+
+    add_executable(tryit main_arm.cpp ${DEBUG_FUNC})
+    target_link_libraries(tryit "${LIB_NATIVE}")
+    # -mcpu=native+rng
+    target_compile_options("tryit" PRIVATE
+            $<$<COMPILE_LANGUAGE:CXX>: -mcpu=native+rng>
+            $<$<COMPILE_LANGUAGE:C>: -mcpu=native+rng>
+            )
+
+
 endif ()
 
 
@@ -249,7 +262,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             $<$<COMPILE_LANGUAGE:C>:-O3 -msse4.1 -msha -maes -mpclmul -mrdrnd -mrdseed ${OPTIONS}>
             )
     install(TARGETS "${LIB_NATIVE}-sse" LIBRARY DESTINATION ${PLATFORM_TARGET}/sse)
-    target_compile_definitions("${LIB_NATIVE}-sse" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"sse\")
+    target_compile_definitions("${LIB_NATIVE}-sse" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"sse\" BUILD_TS=\"${BUILD_TS}\")
 
 
     # specify the C++ standard
@@ -280,7 +293,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS}>
             )
     install(TARGETS "${LIB_NATIVE}-avx" LIBRARY DESTINATION ${PLATFORM_TARGET}/avx)
-    target_compile_definitions("${LIB_NATIVE}-avx" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"avx\")
+    target_compile_definitions("${LIB_NATIVE}-avx" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"avx\" BUILD_TS=\"${BUILD_TS}\")
 
 
     #
@@ -315,7 +328,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS}>
             )
     install(TARGETS "${LIB_NATIVE}-vaes" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaes)
-    target_compile_definitions("${LIB_NATIVE}-vaes" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"vaes\" BC_VAES)
+    target_compile_definitions("${LIB_NATIVE}-vaes" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"vaes\" BC_VAES BUILD_TS=\"${BUILD_TS}\")
 
 
 endif ()

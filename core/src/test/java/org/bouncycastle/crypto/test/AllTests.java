@@ -1,14 +1,10 @@
 package org.bouncycastle.crypto.test;
 
-import java.util.Enumeration;
-
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
-import junit.framework.TestFailure;
-import junit.framework.TestResult;
 import junit.framework.TestSuite;
-import org.bouncycastle.PrintResults;
+import org.bouncycastle.core.PrintResults;
 import org.bouncycastle.crypto.NativeEntropyTests;
 import org.bouncycastle.crypto.NativeFailsafeTest;
 

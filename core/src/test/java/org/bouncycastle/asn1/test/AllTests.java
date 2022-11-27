@@ -4,9 +4,8 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.PrintResults;
+import org.bouncycastle.core.PrintResults;
 import org.bouncycastle.util.test.SimpleTestResult;
-import org.bouncycastle.util.test.TestResult;
 
 public class AllTests
     extends TestCase

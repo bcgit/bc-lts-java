@@ -1,12 +1,10 @@
 package org.bouncycastle.test.est;
 
-import java.io.PrintWriter;
-
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.PrintResults;
+import org.bouncycastle.test.PrintResults;
 import org.bouncycastle.util.test.SimpleTestResult;
 
 public class AllTests

@@ -11,12 +11,24 @@ class NativeLibIdentity
         try
         {
             return getLibIdent();
-        }
-        catch (UnsatisfiedLinkError ule)
+        } catch (UnsatisfiedLinkError ule)
         {
             return ule.getMessage();
         }
     }
 
     private static native String getLibIdent();
+
+    static String getNativeBuiltTimeStamp()
+    {
+        try
+        {
+            return getBuiltTimeStamp();
+        } catch (UnsatisfiedLinkError ule)
+        {
+            return ule.getMessage();
+        }
+    }
+
+    private static native String getBuiltTimeStamp();
 }
