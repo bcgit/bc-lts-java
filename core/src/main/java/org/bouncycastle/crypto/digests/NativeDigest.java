@@ -69,10 +69,11 @@ public abstract class NativeDigest
             nativeRef = new DigestRefWrapper(makeNative(1));
         }
 
-        SHA256Native(byte[] encoded)
+        SHA256Native(byte[] encodedState)
         {
-            this();
-            fromEncoded(nativeRef.getReference(), encoded);
+
+            this(CryptoServicePurpose.values()[encodedState[encodedState.length - 1]]);
+            fromEncoded(nativeRef.getReference(), encodedState);
         }
 
 
