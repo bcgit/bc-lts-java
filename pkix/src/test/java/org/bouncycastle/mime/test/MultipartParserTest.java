@@ -437,7 +437,7 @@ public class MultipartParserTest
 
         for (int t = 0; t < results.size(); t++)
         {
-            TestCase.assertEquals("Part: " + t, expected[t], results.get(t));
+            TestCase.assertEquals("Part: " + t, expected[t], ((String)results.get(t)).replace("\r", ""));
         }
 
     }
