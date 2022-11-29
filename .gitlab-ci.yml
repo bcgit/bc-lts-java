@@ -26,7 +26,7 @@ test-code-sse:
     - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
     - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-sse -cp jars/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo"
-    - "gradle -Pskip.pqc.tests clean withNative prov:build util:build pg:build pkix:build tls:build mail:build testSSE  -x test"
+    - "gradle -Pskip.pqc.tests clean withNative core:build prov:build util:build pg:build pkix:build tls:build mail:build testSSE  -x test"
 
 
 test-code-avx:
@@ -42,7 +42,7 @@ test-code-avx:
     - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
     - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx -cp jars/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo"
-    - "gradle -Pskip.pqc.tests clean withNative prov:build util:build pg:build pkix:build tls:build mail:build testAVX  -x test"
+    - "gradle -Pskip.pqc.tests clean withNative core:build prov:build util:build pg:build pkix:build tls:build mail:build testAVX  -x test"
 
 test-code-vaes:
   stage: testVAES
@@ -57,4 +57,4 @@ test-code-vaes:
     - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
     - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-vaes -cp jars/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo"
-    - "gradle -Pskip.pqc.tests clean withNative prov:build util:build pg:build pkix:build tls:build mail:build testVAES  -x test"
+    - "gradle -Pskip.pqc.tests clean withNative core:build prov:build util:build pg:build pkix:build tls:build mail:build testVAES  -x test"
