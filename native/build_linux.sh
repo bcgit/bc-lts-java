@@ -52,27 +52,28 @@ make install
 depListFileInJavaResources="$installDir/deps.list";
 touch "$depListFileInJavaResources"
 
-# "vaes/libbc-fips-vaes"
-libs=("probe/libbc-probe" "sse/libbc-fips-sse" "avx/libbc-fips-avx");
-for name in "${libs[@]}"; do
-  installedLib="${installDir}/${name}.so"
-  installedLibName="$(basename -- $installedLib)"
+#
+## "vaes/libbc-fips-vaes"
+#libs=("probe/libbc-probe" "sse/libbc-fips-sse" "avx/libbc-fips-avx");
+#for name in "${libs[@]}"; do
+#  installedLib="${installDir}/${name}.so"
+#  installedLibName="$(basename -- $installedLib)"
 
-if test -f "$installedLib"; then
-
-ldd "$installedLib" | grep oneapi | awk '{print $3;}' | while read -r oneApiLib; do
-  cp $oneApiLib $installDir
-  echo "${installedLibName}:$(basename -- $oneApiLib)" >> $depListFileInJavaResources
-  done
-else
-  echo "Not found: $installedLibName"
-fi
-done
-
-
-
-sort $depListFileInJavaResources | uniq > "${installDir}/list"
-mv "${installDir}/list" $depListFileInJavaResources
+#if test -f "$installedLib"; then
+#
+#ldd "$installedLib" | grep oneapi | awk '{print $3;}' | while read -r oneApiLib; do
+#  cp $oneApiLib $installDir
+#  echo "${installedLibName}:$(basename -- $oneApiLib)" >> $depListFileInJavaResources
+#  done
+#else
+#  echo "Not found: $installedLibName"
+#fi
+#done
+#
+#
+##
+#sort $depListFileInJavaResources | uniq > "${installDir}/list"
+#mv "${installDir}/list" $depListFileInJavaResources
 
 
 
