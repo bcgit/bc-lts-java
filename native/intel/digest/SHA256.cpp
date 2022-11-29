@@ -83,7 +83,7 @@ namespace intel {
             //
             if (end - ptr > 0) {
                 size_t rem = BUF_SIZE_SHA256 - bufPtr;
-                size_t toCopy = end - ptr < rem ? end - ptr : rem;
+                size_t toCopy = end - ptr < rem ? (size_t) (end - ptr) : rem;
                 memcpy(buf + bufPtr, ptr, toCopy);
                 bufPtr += toCopy;
                 byteCount += toCopy;
@@ -142,8 +142,8 @@ namespace intel {
             s1 = _mm_shuffle_epi32(s1, 0x1B);    /* EFGH */
             s0 = _mm_alignr_epi8(tmp, s1, 8);    /* ABEF */
             s1 = _mm_blend_epi16(s1, tmp, 0xF0); /* CDGH */
-
         }
+
 
         int Sha256::getDigestSize() {
             return SHA256_SIZE;
@@ -321,20 +321,43 @@ namespace intel {
         }
 
         int Sha256::processLength(size_t length) {
-            buf[63] = (unsigned char)(length & 0xFF);
-            buf[62] = (unsigned char)((length >> 8) & 0xFF);
-            buf[61] = (unsigned char)((length >> 16) & 0xFF);
-            buf[60] = (unsigned char)((length >> 24) & 0xFF);
-            buf[59] = (unsigned char)((length >> 32) & 0xFF);
-            buf[58] = (unsigned char)((length >> 40) & 0xFF);
-            buf[57] = (unsigned char)((length >> 48) & 0xFF);
-            buf[56] = (unsigned char)((length >> 56) & 0xFF);
+            buf[63] = (unsigned char) (length & 0xFF);
+            buf[62] = (unsigned char) ((length >> 8) & 0xFF);
+            buf[61] = (unsigned char) ((length >> 16) & 0xFF);
+            buf[60] = (unsigned char) ((length >> 24) & 0xFF);
+            buf[59] = (unsigned char) ((length >> 32) & 0xFF);
+            buf[58] = (unsigned char) ((length >> 40) & 0xFF);
+            buf[57] = (unsigned char) ((length >> 48) & 0xFF);
+            buf[56] = (unsigned char) ((length >> 56) & 0xFF);
             return 8;
         }
 
-        void Sha256::encodeState(unsigned char *rawStateBuffer, size_t &length) {
 
-            length = sizeof(SHA256StateType);
+        void Sha256::restoreFullState(unsigned char *rawFullState, size_t rawFullStateLen) {
+            if (rawFullStateLen < sizeof(SHA256FullStateType)) {
+                throw std::runtime_error("raw full state len is less than size of SHA256FullStateType");
+            }
+
+            auto stateValues = (SHA256FullStateType *) rawFullState;
+            if (0x00020001 != stateValues->ident) {
+                throw std::runtime_error("unrecognized id");
+            }
+
+            byteCount = stateValues->byteCount;
+            bufPtr = stateValues->bufPtr;
+
+            if (bufPtr >= BUF_SIZE_SHA256) {
+                throw std::runtime_error("restored buf pointer exceeds buffer length");
+            }
+
+            memcpy(buf, stateValues->buf, BUF_SIZE_SHA256);
+            memcpy(state, stateValues->state, 32);
+            s0 = stateValues->s0;
+            s1 = stateValues->s1;
+        }
+
+        void Sha256::encodeFullState(unsigned char *rawStateBuffer, size_t &length) {
+            length = sizeof(SHA256FullStateType);
 
             if (rawStateBuffer == nullptr) {
                 //
@@ -343,32 +366,15 @@ namespace intel {
                 return;
             }
 
-            auto *stateValues = reinterpret_cast<SHA256StateType *>(rawStateBuffer);
-            stateValues->type = 1;
-            stateValues->bufPtr = bufPtr;
-            stateValues->byteCount = byteCount;
-            stateValues->s0 = s0;
-            stateValues->s1 = s1;
-            memcpy(stateValues->buf, buf, BUF_SIZE_SHA256);
+            auto fullState = (SHA256FullStateType *) rawStateBuffer;
+            fullState->ident = 0x00020001; // SHA-256 _ version 1
+            fullState->byteCount = byteCount;
+            fullState->bufPtr = bufPtr;
+            memcpy(fullState->buf, this->buf, BUF_SIZE_SHA256);
+            memcpy(fullState->state, this->state, 32);
+            fullState->s0 = s0;
+            fullState->s1 = s1;
         }
-
-        void Sha256::setState(unsigned char *rawState, size_t rawStateLen) {
-            if (*rawState != 1) {
-                throw std::runtime_error("encoded SHA256 state must start with 1");
-            }
-
-            if (rawStateLen != sizeof(SHA256StateType)) {
-                throw std::runtime_error("rawStateLen does not equal sizeof native stateType");
-            }
-
-            auto *stateValues = reinterpret_cast<SHA256StateType *>(rawState);
-            bufPtr = stateValues->bufPtr;
-            byteCount = stateValues->byteCount;
-            memcpy(buf, stateValues->buf, BUF_SIZE_SHA256);
-            s0 = stateValues->s0;
-            s1 = stateValues->s1;
-        }
-
 
 
     }

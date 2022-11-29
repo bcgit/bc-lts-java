@@ -20,12 +20,24 @@ namespace intel {
 
         typedef struct SHA256StateType {
             uint8_t type;
-            size_t bufPtr;
+            uint32_t bufPtr;
             uint8_t buf[BUF_SIZE_SHA256];
             __m128i s0;
             __m128i s1;
             uint64_t byteCount;
         } SHA256StateType;
+
+        typedef struct SHA256FullStateType {
+            uint32_t ident;
+            size_t bufPtr;
+            uint8_t buf[BUF_SIZE_SHA256];
+            uint64_t byteCount;
+            uint32_t state[8];
+            __m128i s0;
+            __m128i s1;
+        } SHA256FullStateType;
+
+
 
         class Sha256 : public Digest {
 
@@ -56,7 +68,7 @@ namespace intel {
         public:
             Sha256();
 
-            ~Sha256();
+            ~Sha256() override;
 
             void update(unsigned char b) override;
 
@@ -70,9 +82,11 @@ namespace intel {
 
             int getByteLength() override;
 
-            void setState(unsigned char *rawState, size_t rawStateLen) override;
+            void restoreFullState(unsigned char *rawState, size_t rawStateLen) override;
 
-            void encodeState(unsigned char *rawStateBuffer, size_t &length) override;
+            void encodeFullState(unsigned char *rawStateBuffer, size_t &length) override;
+
+
         };
 
     }

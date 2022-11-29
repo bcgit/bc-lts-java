@@ -5,11 +5,13 @@
 
 #include <exception>
 #include <jni.h>
+#include <stdexcept>
 #include "../digest/Digest.h"
 #include "../../jniutil/JavaByteArray.h"
 #include "../../jniutil/JavaEnvUtils.h"
 #include "../digest/SHA256.h"
 #include "org_bouncycastle_crypto_digests_NativeDigest.h"
+#include "../../jniutil/JavaByteArrayCritical.h"
 
 /*
  * Class:     org_bouncycastle_crypto_fips_NativeDigest
@@ -34,12 +36,12 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_makeNa
 }
 
 /*
- * Class:     org_bouncycastle_crypto_fips_NativeDigest
- * Method:    destroyNative
- * Signature: (IJ)V
+ * Class:     org_bouncycastle_crypto_digests_NativeDigest
+ * Method:    destroy
+ * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_destroy
-        (JNIEnv *, jobject, jlong ref) {
+        (JNIEnv *, jclass, jlong ref) {
 
     auto ptr = static_cast<intel::digest::Digest *>((void *) ref);
     delete ptr;
@@ -78,16 +80,6 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_update_
     auto ptr = static_cast<intel::digest::Digest *>((void *) ref);
 
     jniutil::JavaByteArray in(env, in_);
-    if (in.isNull()) {
-        jniutil::JavaEnvUtils::throwIllegalArgumentException(env, "input array is null");
-        return;
-    }
-
-    if (in.length() < inOff + len) {
-        jniutil::JavaEnvUtils::throwIllegalArgumentException(env, "input array less than offset + len");
-        return;
-    }
-
     ptr->update(in.uvalue(), inOff, len);
 }
 
@@ -100,17 +92,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_doFinal
         (JNIEnv *env, jobject, jlong ref, jbyteArray out_, jint start) {
     auto ptr = static_cast<intel::digest::Digest *>((void *) ref);
 
-    jniutil::JavaByteArray out(env, out_);
-    if (out.isNull()) {
-        jniutil::JavaEnvUtils::throwIllegalArgumentException(env, "output array is null");
-        return 0;
-    }
-
-    if (start + (ptr->getDigestSize()) > out.length()) {
-        jniutil::JavaEnvUtils::throwIllegalArgumentException(env, "output buffer too small for digest at start");
-        return 0;
-    }
-
+    jniutil::JavaByteArrayCritical out(env, out_);
     ptr->digest(out.uvalue(), start);
     return ptr->getDigestSize();
 }
@@ -137,55 +119,40 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_getByte
     return ptr->getByteLength();
 }
 
-
-
 /*
- * Class:     org_bouncycastle_crypto_fips_NativeDigest
- * Method:    setState
- * Signature: (J[B)V
+ * Class:     org_bouncycastle_crypto_digests_NativeDigest
+ * Method:    encodeFullState
+ * Signature: (J[BI)I
  */
-JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_setState
-        (JNIEnv *env, jobject, jlong ref, jbyteArray state_) {
-    auto ptr = static_cast<intel::digest::Digest *>((void *) ref);
-
-    jniutil::JavaByteArray state(env, state_);
-
-    if (state.isNull()) {
-        jniutil::JavaEnvUtils::throwIllegalArgumentException(env, "state data array was null");
-    };
-
-    try {
-        ptr->setState(state.uvalue(), state.length());
-    } catch (std::exception &e) {
-        jniutil::JavaEnvUtils::throwIllegalArgumentException(env, e.what());
-    }
-}
-
-/*
- * Class:     org_bouncycastle_crypto_fips_NativeDigest
- * Method:    getState
- * Signature: (J)[B
- */
-JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_fips_NativeDigest_getState
-        (JNIEnv *env, jobject, jlong ref) {
+JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_encodeFullState
+        (JNIEnv *env, jobject, jlong ref, jbyteArray dest, jint offset) {
 
     auto ptr = static_cast<intel::digest::Digest *>((void *) ref);
     size_t len = 0;
-
-//
-// Null buffer causes length to be set and then exits.
-//
-    ptr->encodeState(nullptr, len);
-
-
-//
-// This array will be returned and is owned by the JVM.
-//
-    jbyteArray arr = env->NewByteArray((jint) len);
-
-    jniutil::JavaByteArray destination(env, arr);
-    ptr->encodeState(destination.uvalue(), len);
-
-    return arr;
-
+    jniutil::JavaByteArray destination(env, dest);
+    if (destination.isNull()) {
+        ptr->encodeFullState(nullptr, len);
+    } else {
+        ptr->encodeFullState(destination.uvalue() + offset, len);
+    }
+    return (jint) len;
 }
+
+/*
+ * Class:     org_bouncycastle_crypto_digests_NativeDigest
+ * Method:    restoreFullState
+ * Signature: (J[BI)V
+ */
+JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_restoreFullState
+        (JNIEnv *env, jobject, jlong ref, jbyteArray src, jint offset) {
+
+    auto ptr = static_cast<intel::digest::Digest *>((void *) ref);
+    jniutil::JavaByteArray source(env, src);
+
+    try {
+        ptr->restoreFullState(source.uvalue() + offset, source.length());
+    } catch (const std::runtime_error &err) {
+        jniutil::JavaEnvUtils::throwIllegalArgumentException(env, err.what());
+    }
+}
+

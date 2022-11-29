@@ -20,3 +20,10 @@ core/src/main/resources/META-INF/DRIVERS
 /pg/*.bpg
 /pg/*.bak
 /pg/*.asc
+
+.DS_Store
+/KDFCTR.gen
+/KDFDblPipelineCounter.gen
+/KDFDblPipelineNoCounter.gen
+/KDFFeedbackCounter.gen
+/KDFFeedbackNoCounter.gen

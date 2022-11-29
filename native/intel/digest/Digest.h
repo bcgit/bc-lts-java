@@ -1,5 +1,5 @@
 //
-// Created by meganwoods on 11/25/22.
+//
 //
 
 #ifndef BCN_DIGEST_H
@@ -23,7 +23,7 @@ namespace intel {
         public:
 
 
-           virtual  ~Digest() = 0;
+            virtual  ~Digest() = 0;
 
             /**
              * Digest size in bytes.
@@ -65,26 +65,25 @@ namespace intel {
             virtual void reset() = 0;
 
             /**
-             * Set state from previously encoded state, digest specific.
-             * @param rawState The raw state
-             * @param rawStateLen Length of raw state.
+             * Sets the entire state of the digest as if state of the digest had been captured.
+             * @param rawState The encoded state.
+             * @param rawStateLen The length of the encoded state
              */
-            virtual void setState(unsigned char *rawState, size_t rawStateLen) = 0;
+            virtual void restoreFullState(unsigned char *rawState, size_t rawStateLen) = 0;
 
             /**
-             * Encodes the state into the raw buffer setting the length. If rawStateBuffer
-             * is null it sets the length and returns. Calls this with a null buffer to determine
-             * length of required array.
-             * @param rawStateBuffer The buffer to encode the state to.
+             * Encodes the full state of the digest.
+             * @param rawStateBuffer  The destination buffer or null to set length only.
              * @param length holds length upon return.
              */
-            virtual void encodeState(unsigned char *rawStateBuffer, size_t &length) = 0;
+            virtual void encodeFullState(unsigned char *rawStateBuffer, size_t &length) = 0;
+
 
         };
 
     }
 
-    }
+}
 
 
 #endif //BCN_DIGEST_H

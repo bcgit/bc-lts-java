@@ -28,7 +28,6 @@ public class SHA256Digest
     private int[] X = new int[64];
     private int xOff;
 
-
     public static SavableDigest newInstance()
     {
         if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.SHA2))
@@ -37,6 +36,7 @@ public class SHA256Digest
         }
         return new SHA256Digest();
     }
+
 
     public static SavableDigest newInstance(CryptoServicePurpose purpose)
     {
@@ -81,7 +81,7 @@ public class SHA256Digest
     /**
      * Standard constructor
      */
-    SHA256Digest()
+   public  SHA256Digest()
     {
         this(CryptoServicePurpose.ANY);
     }
@@ -104,7 +104,7 @@ public class SHA256Digest
      * message digest.
      *
      */
-    SHA256Digest(SHA256Digest t)
+    public SHA256Digest(SHA256Digest t)
     {
         super(t);
 
@@ -133,7 +133,7 @@ public class SHA256Digest
      *
      * @param encodedState the encoded state from the originating digest.
      */
-    SHA256Digest(byte[] encodedState)
+    public SHA256Digest(byte[] encodedState)
     {
         super(encodedState);
 
