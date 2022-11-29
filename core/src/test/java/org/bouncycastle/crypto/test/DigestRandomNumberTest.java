@@ -129,19 +129,19 @@ public class DigestRandomNumberTest
         throws Exception
     {
         doExpectedTest(new SHA1Digest(), 0, expected0SHA1, noCycle0SHA1);
-        doExpectedTest(new SHA256Digest(), 0, expected0SHA256, noCycle0SHA256);
+        doExpectedTest(SHA256Digest.newInstance(), 0, expected0SHA256, noCycle0SHA256);
 
         doExpectedTest(new SHA1Digest(), 100, expected100SHA1);
-        doExpectedTest(new SHA256Digest(), 100, expected100SHA256);
+        doExpectedTest(SHA256Digest.newInstance(), 100, expected100SHA256);
 
         doExpectedTest(new SHA1Digest(), ZERO_SEED, expected0SHA1);
-        doExpectedTest(new SHA256Digest(), ZERO_SEED, expected0SHA256);
+        doExpectedTest(SHA256Digest.newInstance(), ZERO_SEED, expected0SHA256);
 
         doExpectedTest(new SHA1Digest(), TEST_SEED, expectedTestSHA1);
-        doExpectedTest(new SHA256Digest(), TEST_SEED, expectedTestSHA256);
+        doExpectedTest(SHA256Digest.newInstance(), TEST_SEED, expectedTestSHA256);
 
         doCountTest(new SHA1Digest(), TEST_SEED, sha1Xors);
-        doCountTest(new SHA256Digest(), TEST_SEED, sha256Xors);
+        doCountTest(SHA256Digest.newInstance(), TEST_SEED, sha256Xors);
     }
 
     public static void main(

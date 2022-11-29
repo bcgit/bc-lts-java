@@ -518,7 +518,7 @@ class NativeLoader
         try
         {
             byte[] buf = new byte[65535];
-            SHA256Digest dig = new SHA256Digest();
+            SavableDigest dig = new SHA256Digest();
             int len;
             while ((len = in.read(buf)) >= 0)
             {

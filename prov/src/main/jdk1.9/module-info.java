@@ -1,13 +1,11 @@
-module org.bouncycastle.provider
+module org.bouncycastle.lts.prov
 {
     requires java.sql;
     requires java.naming;
 
-    provides java.security.Provider with org.bouncycastle.jce.provider.BouncyCastleProvider,org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
+    provides java.security.Provider with org.bouncycastle.jce.provider.BouncyCastleProvider;
 
     opens org.bouncycastle.jcajce.provider.asymmetric.edec to java.base;
-    opens org.bouncycastle.pqc.jcajce.provider.qtesla to java.base;
-    opens org.bouncycastle.pqc.jcajce.provider.lms to java.base;
 
     exports org.bouncycastle;
     exports org.bouncycastle.asn1;
@@ -67,8 +65,6 @@ module org.bouncycastle.provider
     exports org.bouncycastle.crypto.prng.drbg;
     exports org.bouncycastle.crypto.signers;
     exports org.bouncycastle.crypto.util;
-    exports org.bouncycastle.i18n;
-    exports org.bouncycastle.i18n.filter;
     exports org.bouncycastle.iana;
     exports org.bouncycastle.jcajce;
     exports org.bouncycastle.jcajce.io;
@@ -115,45 +111,9 @@ module org.bouncycastle.provider
     exports org.bouncycastle.math.ec.tools;
     exports org.bouncycastle.math.field;
     exports org.bouncycastle.math.raw;
-    exports org.bouncycastle.pqc.asn1;
-    exports org.bouncycastle.pqc.crypto;
-    exports org.bouncycastle.pqc.crypto.cmce;
-    exports org.bouncycastle.pqc.crypto.frodo;
-    exports org.bouncycastle.pqc.crypto.lms;
-    exports org.bouncycastle.pqc.legacy.crypto.mceliece;
-    exports org.bouncycastle.pqc.crypto.newhope;
-    exports org.bouncycastle.pqc.crypto.ntru;
-    exports org.bouncycastle.pqc.legacy.crypto.gmss;
-    exports org.bouncycastle.pqc.legacy.crypto.gmss.util;
-    exports org.bouncycastle.pqc.legacy.crypto.qtesla;
-    exports org.bouncycastle.pqc.legacy.crypto.rainbow;
-    exports org.bouncycastle.pqc.legacy.crypto.rainbow.util;
-    exports org.bouncycastle.pqc.crypto.saber;
-    exports org.bouncycastle.pqc.crypto.sphincs;
-    exports org.bouncycastle.pqc.crypto.sphincsplus;
-    exports org.bouncycastle.pqc.crypto.util;
-    exports org.bouncycastle.pqc.crypto.xmss;
-    exports org.bouncycastle.pqc.jcajce.interfaces;
-    exports org.bouncycastle.pqc.jcajce.provider;
-    exports org.bouncycastle.pqc.jcajce.provider.cmce;
-    exports org.bouncycastle.pqc.jcajce.provider.frodo;
-    exports org.bouncycastle.pqc.jcajce.provider.gmss;
-    exports org.bouncycastle.pqc.jcajce.provider.mceliece;
-    exports org.bouncycastle.pqc.jcajce.provider.newhope;
-    exports org.bouncycastle.pqc.jcajce.provider.rainbow;
-    exports org.bouncycastle.pqc.jcajce.provider.saber;
-    exports org.bouncycastle.pqc.jcajce.provider.sphincs;
-    exports org.bouncycastle.pqc.jcajce.provider.sphincsplus; 
-    exports org.bouncycastle.pqc.jcajce.provider.util;
-    exports org.bouncycastle.pqc.jcajce.provider.xmss;
-    exports org.bouncycastle.pqc.jcajce.spec;
-    exports org.bouncycastle.pqc.legacy.math.linearalgebra;
     exports org.bouncycastle.util;
     exports org.bouncycastle.util.encoders;
     exports org.bouncycastle.util.io;
     exports org.bouncycastle.util.io.pem;
     exports org.bouncycastle.util.test;
-    exports org.bouncycastle.x509;
-    exports org.bouncycastle.x509.extension;
-    exports org.bouncycastle.x509.util;
 }

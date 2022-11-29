@@ -1,6 +1,5 @@
 import static ExtraFunctions.*
 
-
 dependencies {
 
 }
@@ -17,11 +16,6 @@ test {
 
   filter {
     includeTestsMatching "AllTest*"
-
-    if (rootProject.hasProperty("skip.pqc.tests"))
-    {
-      exclude('**/pqc/**')
-    }
   }
 
 }

@@ -1,10 +1,10 @@
-module org.bouncycastle.tls
+module org.bouncycastle.lts.tls
 {
     provides java.security.Provider with org.bouncycastle.jsse.provider.BouncyCastleJsseProvider;
     
     requires java.logging;
-    requires org.bouncycastle.provider;
-    requires org.bouncycastle.util;
+    requires org.bouncycastle.lts.prov;
+    requires org.bouncycastle.lts.util;
 
     exports org.bouncycastle.jsse;
     exports org.bouncycastle.tls;
