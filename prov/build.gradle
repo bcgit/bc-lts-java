@@ -98,9 +98,6 @@ task sourcesJar(type: Jar) {
   into('META-INF/versions/15') {
     from sourceSets.java15.allSource
   }
-  into('native') {
-    from "${rootProject.projectDir}/native"
-  }
 }
 
 task fullJavaDoc(type: Javadoc) {
