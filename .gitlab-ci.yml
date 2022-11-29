@@ -36,7 +36,7 @@ test-code-avx:
     - "apply_overlay bc-fips-2-0-X-java ./"
     - "rm -rf /tmp/bcfipslibs"
     - "mkdir -p /tmp/bcfipslibs"
-    - . cienv.sh
+    - . cienv-11.sh
     - "gradle clean compileJava; \ cd native; \ ./build_linux.sh; \ cd .."
     - "gradle withNative build copyJars -x test"
     - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
@@ -51,7 +51,7 @@ test-code-vaes:
     - "apply_overlay bc-fips-2-0-X-java ./"
     - "rm -rf /tmp/bcfipslibs"
     - "mkdir -p /tmp/bcfipslibs"
-    - . cienv.sh
+    - . cienv-11.sh
     - "gradle clean compileJava; \ cd native; \ ./build_linux.sh; \ cd .."
     - "gradle withNative build copyJars -x test"
     - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
