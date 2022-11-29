@@ -558,6 +558,13 @@ public class NativeDigestTests extends TestCase
     @Test
     public void testMemoable() throws Exception
     {
+        if (!CryptoServicesRegistrar.getNativeServices().hasAnyFeature(NativeServices.SHA2))
+        {
+            System.out.println("Skipping testMemoable, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
+            return;
+        }
+
+
         // There are other tests for memoable, this is more of a sanity test
 
         NativeDigest.SHA256Native dig1 = new NativeDigest.SHA256Native();
