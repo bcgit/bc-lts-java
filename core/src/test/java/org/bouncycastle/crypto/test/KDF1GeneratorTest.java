@@ -46,9 +46,9 @@ public class KDF1GeneratorTest
     
     public void performTest()
     {
-        checkMask(1, new KDF1BytesGenerator(new ShortenedDigest(new SHA256Digest(), 20)), seed1, mask1);
+        checkMask(1, new KDF1BytesGenerator(new ShortenedDigest(SHA256Digest.newInstance(), 20)), seed1, mask1);
         checkMask(2, new KDF1BytesGenerator(new SHA1Digest()), seed2, mask2);
-        checkMask(3, new KDF1BytesGenerator(new ShortenedDigest(new SHA256Digest(), 20)), seed3, mask3);
+        checkMask(3, new KDF1BytesGenerator(new ShortenedDigest(SHA256Digest.newInstance(), 20)), seed3, mask3);
         
         try
         {

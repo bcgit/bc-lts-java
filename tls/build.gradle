@@ -1,24 +1,74 @@
-dependencies {
-  implementation project(':core')
-  implementation project(':prov')
-  implementation project(':util')
-  implementation project(':pkix')
-}
+import java.nio.file.CopyOption
+import java.nio.file.Files
+import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
+import static ExtraFunctions.*
 
-jar.archiveBaseName = "bctls-lts"
+jar.archiveBaseName = "bctls-lts$vm_range"
 
 sourceSets {
-  main {
-    java {
-      srcDirs = ['src/main/java', 'src/main/jdk1.5']
+    main {
+      java {
+        srcDirs = ['src/main/java', 'src/main/jdk1.5']
+      }
     }
+    java9 {
+        java {
+            srcDirs = ['src/main/jdk1.9']
+        }
+    }
+}
+
+dependencies {
+  implementation project(':prov')
+  implementation project(':util')
+
+  implementation files("$lts_prov")
+  implementation files("$lts_util")
+  testImplementation project(':pkix')
+
+
+  java9Implementation files("$lts_prov")
+  java9Implementation files("$lts_util")
+  java9Implementation files(sourceSets.main.output.classesDirs) {
+     builtBy compileJava
   }
+}
+
+compileJava {
+  javaCompiler = javaToolchains.compilerFor {
+    languageVersion = JavaLanguageVersion.of(8)
+  }
+}
+
+compileJava9Java {
+  javaCompiler = javaToolchains.compilerFor {
+    languageVersion = JavaLanguageVersion.of(9)
+  }
+  sourceCompatibility = 9
+  targetCompatibility = 9
+
+  options.compilerArgs += [
+                    '--module-path', "$lts_prov:$lts_util"
+  ]
+  options.sourcepath = files(['src/main/jdk1.5', 'src/main/java', 'src/main/jdk1.9'])
+}
+
+jar {
+  from sourceSets.main.output
+  into('META-INF/versions/9') {
+    from sourceSets.java9.output
+  }
+  manifest.attributes('Multi-Release': 'true')
 }
 
 task sourcesJar(type: Jar) {
   archiveBaseName = jar.archiveBaseName
   classifier = 'sources'
   from sourceSets.main.allSource
+  into('META-INF/versions/9') {
+    from sourceSets.java9.allSource
+  }
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {

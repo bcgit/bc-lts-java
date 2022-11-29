@@ -57,7 +57,7 @@ public class SM2SignerTest
     {
         doSignerTest(
             PARAMS_FP_DRAFT,
-            new SHA256Digest(),
+            SHA256Digest.newInstance(),
             "ALICE123@YAHOO.COM",
             "message digest",
             "128B2FA8BD433C6C068C8D803DFF79792A519A55171B1B650C23661D15897263",
@@ -87,7 +87,7 @@ public class SM2SignerTest
     {
         doSignerTest(
             "sm2p256v1",
-            new SHA256Digest(),
+            SHA256Digest.newInstance(),
             "sm2test@example.com",
             "hi chappy",
             "110E7973206F68C19EE5F7328C036F26911C8C73B4E4F36AE3291097F8984FFC",
@@ -117,7 +117,7 @@ public class SM2SignerTest
     {
         doSignerTest(
             "P-256",
-            new SHA256Digest(),
+            SHA256Digest.newInstance(),
             "sm2_p256_test@example.com",
             "no backdoors here",
             "110E7973206F68C19EE5F7328C036F26911C8C73B4E4F36AE3291097F8984FFC",

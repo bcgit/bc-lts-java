@@ -30,10 +30,10 @@ apply plugin: 'io.spring.nohttp'
 
 allprojects {
   apply plugin: 'java'
+  apply plugin: 'java-library'
   apply plugin: 'checkstyle'
   apply plugin: 'jacoco'
-
-
+  
   repositories {
     mavenCentral()
   }
@@ -47,6 +47,24 @@ allprojects {
 
 ext {
   bcTestDataHome = file('core/src/test/data').absolutePath
+
+  JavaVersion current = JavaVersion.current();
+  if (current.compareTo(JavaVersion.VERSION_1_8) <= 0)
+  {
+     vm_range = '6to8'
+     vm_source = 6
+     vm_target = 6
+  }
+  else
+  {
+     vm_range = '8on'
+     vm_source = 8
+     vm_target = 8
+  }
+
+  lts_prov = "${rootProject.projectDir}/prov/build/libs/bcprov-lts${vm_range}-${version}.jar"
+  lts_util = "${rootProject.projectDir}/util/build/libs/bcutil-lts${vm_range}-${version}.jar"
+  lts_pkix = "${rootProject.projectDir}/pkix/build/libs/bcpkix-lts${vm_range}-${version}.jar"
 }
 
 task printProperties {
@@ -85,26 +103,11 @@ task allTestUnisgnedJar(type: Jar) {
 
 allTestUnisgnedJar.dependsOn(compileTestJava);
 
-
 subprojects {
   apply plugin: 'eclipse'
 
-  JavaVersion current = JavaVersion.current();
-  if (current.compareTo(JavaVersion.VERSION_1_8) <= 0)
-  {
-    ext.vmrange = 'jdk15to18'
-    sourceCompatibility = 1.6
-    targetCompatibility = 1.6
-  }
-  else
-  {
-    ext.vmrange = 'jdk18on'
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-  }
-
-  version = '2.0.0-SNAPSHOT'
-
+  sourceCompatibility = "$vm_source"
+  targetCompatibility = "$vm_target"
 
   task('testVAES', type: Test) {
     systemProperty 'bc.test.data.home', bcTestDataHome
@@ -116,11 +119,6 @@ subprojects {
 
     filter {
       includeTestsMatching "AllTest*"
-
-      if (rootProject.hasProperty("skip.pqc.tests"))
-      {
-        exclude('**/pqc/**')
-      }
     }
 
 //  doFirst {

@@ -219,6 +219,14 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             intel/gcm/gcm.cpp
             intel/gcm/gcm.h)
 
+
+    set(DIGEST intel/digest/Digest.cpp
+            intel/digest/Digest.h
+            intel/digest/SHA256.cpp
+            intel/digest/SHA256.h
+            intel/jni/digest_jni.cpp
+            )
+
     #
     # INTEL
     #
@@ -251,6 +259,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${ECB}
             ${CFB}
             ${EXCEPTIONS}
+            ${DIGEST}
             )
     target_include_directories("${LIB_NATIVE}-sse" PUBLIC ${JNI_INCLUDES})
 
@@ -283,6 +292,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${ECB}
             ${CFB}
             ${EXCEPTIONS}
+            ${DIGEST}
             )
     target_include_directories("${LIB_NATIVE}-avx" PUBLIC ${JNI_INCLUDES})
 
@@ -316,6 +326,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${ECB}
             ${CFB}
             ${EXCEPTIONS}
+            ${DIGEST}
             )
     target_include_directories("${LIB_NATIVE}-vaes" PUBLIC ${JNI_INCLUDES})
 

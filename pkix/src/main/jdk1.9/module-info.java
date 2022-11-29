@@ -1,9 +1,9 @@
-module org.bouncycastle.pkix
+module org.bouncycastle.lts.pkix
 {
     requires java.logging;
     requires java.naming;
-    requires org.bouncycastle.provider;
-    requires transitive org.bouncycastle.util;
+    requires org.bouncycastle.lts.prov;
+    requires transitive org.bouncycastle.lts.util;
 
     exports org.bouncycastle.cert;
     exports org.bouncycastle.cmc;
