@@ -1,7 +1,7 @@
-module org.bouncycastle.mail
+module org.bouncycastle.lts.mail
 {
-    requires org.bouncycastle.provider;
-    requires transitive org.bouncycastle.pkix;
+    requires org.bouncycastle.lts.prov;
+    requires transitive org.bouncycastle.lts.pkix;
 
     exports org.bouncycastle.mail.smime;
     exports org.bouncycastle.mail.smime.examples;

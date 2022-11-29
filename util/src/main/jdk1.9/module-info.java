@@ -1,6 +1,6 @@
-module org.bouncycastle.util
+module org.bouncycastle.lts.util
 {
-    requires org.bouncycastle.provider;
+    requires org.bouncycastle.lts.prov;
 
     exports org.bouncycastle.asn1.bsi;
     exports org.bouncycastle.asn1.cmc;

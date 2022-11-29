@@ -1,6 +1,6 @@
-module org.bouncycastle.pg
+module org.bouncycastle.lts.pg
 {
-    requires org.bouncycastle.provider;
+    requires org.bouncycastle.lts.prov;
     requires java.logging;
 
     exports org.bouncycastle.bcpg;
