@@ -7,38 +7,36 @@ import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 public abstract class NativeDigest
-        implements ExtendedDigest, Memoable, EncodableDigest
+        implements ExtendedDigest, Memoable, EncodableDigest, NativeService
 {
 
     protected DigestRefWrapper nativeRef = null;
     protected final CryptoServicePurpose purpose;
 
-    protected NativeDigest(CryptoServicePurpose purpose)
+    NativeDigest(CryptoServicePurpose purpose)
     {
         this.purpose = purpose;
     }
 
-    protected native long makeNative(int i);
+    native long makeNative(int i);
 
-    protected native void destroy(long nativeRef);
+    static native void destroy(long nativeRef);
 
-    protected native int getDigestSize(long nativeRef);
+    native int getDigestSize(long nativeRef);
 
-    protected native void update(long nativeRef, byte in);
+    native void update(long nativeRef, byte in);
 
-    protected native void update(long nativeRef, byte[] in, int inOff, int len);
+    native void update(long nativeRef, byte[] in, int inOff, int len);
 
-    protected native int doFinal(long nativeRef, byte[] out, int outOff);
+    native int doFinal(long nativeRef, byte[] out, int outOff);
 
-    protected native void reset(long nativeRef);
+    native void reset(long nativeRef);
 
-    protected native int getByteLength(long nativeRef);
+    native int getByteLength(long nativeRef);
 
-    protected native void setState(long nativeRef, byte[] state);
+    native int encodeFullState(long nativeRef, byte[] buffer, int offset);
 
-    protected native byte[] getState(long nativeRef);
-
-    private static native void fromEncoded(long reference, byte[] encoded);
+    native void restoreFullState(long reference, byte[] encoded, int offset);
 
 
     /**
@@ -51,6 +49,7 @@ public abstract class NativeDigest
         SHA256Native(CryptoServicePurpose purpose)
         {
             super(purpose);
+            nativeRef = new DigestRefWrapper(makeNative(1));
             CryptoServicesRegistrar.checkConstraints(cryptoServiceProperties());
             reset();
         }
@@ -58,22 +57,19 @@ public abstract class NativeDigest
         SHA256Native(SHA256Native src)
         {
             this(src.purpose);
-            nativeRef = new DigestRefWrapper(makeNative(1));
-            byte[] state = src.getState(src.nativeRef.getReference());
-            setState(nativeRef.getReference(), state);
+            byte[] state = src.getEncodedState();
+            restoreFullState(nativeRef.getReference(), state, 0);
         }
 
         SHA256Native()
         {
             this(CryptoServicePurpose.ANY);
-            nativeRef = new DigestRefWrapper(makeNative(1));
         }
 
         SHA256Native(byte[] encodedState)
         {
-
             this(CryptoServicePurpose.values()[encodedState[encodedState.length - 1]]);
-            fromEncoded(nativeRef.getReference(), encodedState);
+            restoreFullState(nativeRef.getReference(), encodedState, 0);
         }
 
 
@@ -126,23 +122,28 @@ public abstract class NativeDigest
 
 
         @Override
-        public int doFinal(byte[] out, int outOff)
+        public int doFinal(byte[] output, int outOff)
         {
-            if (out == null)
+            if (output == null)
             {
-                throw new IllegalArgumentException("out is null");
+                throw new IllegalArgumentException("output is null");
             }
             if (outOff < 0)
             {
                 throw new IllegalArgumentException("outOff is negative");
             }
 
-            if (outOff > out.length)
+            if (outOff > output.length)
             {
-                throw new IllegalArgumentException("outOff exceeds out length");
+                throw new IllegalArgumentException("outOff exceeds output length");
             }
 
-            return doFinal(nativeRef.getReference(), out, outOff);
+            if (output.length < getDigestSize() + outOff)
+            {
+                throw new IllegalArgumentException("output at offset too small for digest result");
+            }
+
+            return doFinal(nativeRef.getReference(), output, outOff);
         }
 
 
@@ -170,7 +171,7 @@ public abstract class NativeDigest
         public void reset(Memoable other)
         {
             SHA256Native dig = (SHA256Native) other;
-            setState(nativeRef.getReference(), dig.getState(dig.nativeRef.getReference()));
+            restoreFullState(nativeRef.getReference(),dig.getEncodedState(),0);
         }
 
         protected CryptoServiceProperties cryptoServiceProperties()
@@ -181,12 +182,18 @@ public abstract class NativeDigest
         @Override
         public byte[] getEncodedState()
         {
-            return getState(nativeRef.getReference());
+            int l = encodeFullState(nativeRef.getReference(), null, 0);
+            byte[] state = new byte[l + 1];
+            state[state.length - 1] = (byte) purpose.ordinal();
+            encodeFullState(nativeRef.getReference(), state, 0);
+            return state;
         }
+
+
     }
 
 
-    private class Disposer
+    private static class Disposer
             extends NativeDisposer
     {
 
@@ -198,11 +205,11 @@ public abstract class NativeDigest
         @Override
         protected void dispose(long reference)
         {
-            destroy(reference);
+            NativeDigest.destroy(reference);
         }
     }
 
-    private class DigestRefWrapper
+    private static class DigestRefWrapper
             extends NativeReference
     {
 
@@ -214,6 +221,7 @@ public abstract class NativeDigest
         @Override
         public Runnable createAction()
         {
+
             return new Disposer(reference);
         }
     }
