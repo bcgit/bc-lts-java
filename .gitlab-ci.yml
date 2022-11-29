@@ -11,7 +11,7 @@ test-java-code:
   script:
     - "apply_overlay bc-java ./"
     - . cienv-11.sh
-    - "gradle cleangradle clean prov:build util:build pg:build pkix:build tls:build mail:build"
+    - "gradle clean prov:build util:build pg:build pkix:build tls:build mail:build"
 
 test-code-sse:
   stage: testSSE
