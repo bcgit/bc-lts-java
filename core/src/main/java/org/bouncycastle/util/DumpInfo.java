@@ -16,8 +16,11 @@ public class DumpInfo
         //-DM System.out.println
         System.out.println(CryptoServicesRegistrar.getInfo());
         System.out.println("Native Status: " + NativeServices.getStatusMessage());
-        System.out.println("Native Variant: " + NativeServices.getVariant());
-        System.out.println("Native Build Date: "+NativeServices.getBuildDate());
+        if (CryptoServicesRegistrar.hasNativeServices())
+        {
+            System.out.println("Native Variant: " + NativeServices.getVariant());
+            System.out.println("Native Build Date: " + NativeServices.getBuildDate());
+        }
         System.out.println("Native Features: " + NativeServices.getFeatureSet());
     }
 }
