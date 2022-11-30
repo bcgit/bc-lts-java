@@ -1,5 +1,7 @@
 import static ExtraFunctions.*
 
+jar.archiveBaseName = "bccore-lts$vm_range"
+
 dependencies {
 
 }
@@ -19,6 +21,35 @@ test {
   }
 
 }
+
+jar {
+  from sourceSets.main.output
+}
+
+task sourcesJar(type: Jar) {
+  archiveBaseName = jar.archiveBaseName
+  classifier = 'sources'
+  from sourceSets.main.allSource
+}
+
+javadoc {
+  title = "Bouncy Castle Library (LTS Edition) ${version} Low-Level API"
+  options.windowTitle = "Bouncy Castle Library (LTS Edition) ${version} Low-Level API"
+  options.overview = "overview.html"
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  archiveBaseName = jar.archiveBaseName
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+}
+
+artifacts {
+  archives jar
+  archives javadocJar
+  archives sourcesJar
+}
+
 //task('testVAES', type: Test) {
 //  systemProperty 'bc.test.data.home', bcTestDataHome
 //  maxHeapSize = "2048m"
