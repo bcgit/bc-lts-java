@@ -14,7 +14,7 @@ public class DumpInfo
         //-DM System.out.println
         //-DM System.out.println
         //-DM System.out.println
-        System.out.println("BouncyCastle Security Provider (LTS edition) v2.0.0b");
+        System.out.println("BouncyCastle Security Provider (LTS edition) v1.0.0b");  // TODO: need a version string somewhere
         System.out.println("Native Status: " + NativeServices.getStatusMessage());
         System.out.println("Native Variant: " + NativeServices.getVariant());
         System.out.println("Native Build Date: "+NativeServices.getBuildDate());
