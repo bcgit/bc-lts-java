@@ -1,5 +1,7 @@
 import static ExtraFunctions.*
 
+jar.archiveBaseName = "bccore-lts$vm_range"
+
 dependencies {
 
 }
@@ -20,6 +22,117 @@ test {
 
 }
 
+jar {
+  from sourceSets.main.output
+}
+
+task sourcesJar(type: Jar) {
+  archiveBaseName = jar.archiveBaseName
+  classifier = 'sources'
+  from sourceSets.main.allSource
+}
+
+javadoc {
+  title = "Bouncy Castle Library (LTS Edition) ${version} Low-Level API"
+  options.windowTitle = "Bouncy Castle Library (LTS Edition) ${version} Low-Level API"
+  options.overview = "overview.html"
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+  archiveBaseName = jar.archiveBaseName
+  classifier = 'javadoc'
+  from javadoc.destinationDir
+}
+
+artifacts {
+  archives jar
+  archives javadocJar
+  archives sourcesJar
+}
+
+//task('testVAES', type: Test) {
+//  systemProperty 'bc.test.data.home', bcTestDataHome
+//  maxHeapSize = "2048m"
+//  testLogging.showStandardStreams = true
+//  testLogging.showCauses = true
+//  testLogging.showExceptions = true
+//  testLogging.showStackTraces = true
+//
+//  filter {
+//    includeTestsMatching "AllTest*"
+//
+//    if (rootProject.hasProperty("skip.pqc.tests"))
+//    {
+//      exclude('**/pqc/**')
+//    }
+//  }
+//
+////  doFirst {
+////    removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
+////  }
+//
+//  jvmArgs propValsAsArgs(project, "testVAES", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
+//          propValsAsArgs(project, "testVAES", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
+//          propValsAsArgs(project, "testVAES", "x86_64", "failsafe_skip", "test.bcfips.ignore.native")
+//
+//  // jvmArgs '-Dtest.bcfips.ignore.native=sha', '-Dorg.bouncycastle.native.library_path=/tmp/bcfipslibs', '-Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx'
+//
+//}
+//
+//task('testAVX', type: Test) {
+//  systemProperty 'bc.test.data.home', bcTestDataHome
+//  maxHeapSize = "2048m"
+//  testLogging.showStandardStreams = true
+//  testLogging.showCauses = true
+//  testLogging.showExceptions = true
+//  testLogging.showStackTraces = true
+//
+//  filter {
+//    includeTestsMatching "AllTest*"
+//
+//    if (rootProject.hasProperty("skip.pqc.tests"))
+//    {
+//      exclude('**/pqc/**')
+//    }
+//  }
+//
+////  doFirst {
+////    removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
+////  }
+//
+//  jvmArgs propValsAsArgs(project, "testAVX", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
+//          propValsAsArgs(project, "testAVX", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
+//          propValsAsArgs(project, "testAVX", "x86_64", "failsafe_skip", "test.bcfips.ignore.native")
+//
+//  // jvmArgs '-Dtest.bcfips.ignore.native=sha', '-Dorg.bouncycastle.native.library_path=/tmp/bcfipslibs', '-Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx'
+//
+//}
+//
+//task('testSSE', type: Test) {
+//  systemProperty 'bc.test.data.home', bcTestDataHome
+//  maxHeapSize = "2048m"
+//  testLogging.showStandardStreams = true
+//  testLogging.showCauses = true
+//  testLogging.showExceptions = true
+//  testLogging.showStackTraces = true
+//
+//  filter {
+//    includeTestsMatching "AllTest*"
+//
+//    if (rootProject.hasProperty("skip.pqc.tests"))
+//    {
+//      exclude('**/pqc/**')
+//    }
+//  }
+//
+//  // doFirst {
+//  //   removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
+//  // }
+//  jvmArgs propValsAsArgs(project, "testSSE", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
+//          propValsAsArgs(project, "testSSE", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
+//          propValsAsArgs(project, "testSSE", "x86_64", "failsafe_skip", "test.bcfips.ignore.native");
+//}
+
 
 task cleanNativeVariants(type: Delete) {
     delete("$projectDir/src/main/resources/native/");
@@ -34,7 +147,7 @@ task withNative() {
         if (directoryExists("$rootDir/native/target/linux/x86_64/probe")) {
             copyDirContent("$rootDir/native/target/linux/x86_64/probe", "$projectDir/src/main/resources/native/linux/x86_64/probe")
         }
-        
+
         if (directoryExists("$rootDir/native/target/linux/x86_64/sse")) {
             copyDirContent("$rootDir/native/target/linux/x86_64/sse", "$projectDir/src/main/resources/native/linux/x86_64/sse")
         }
