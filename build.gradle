@@ -125,11 +125,14 @@ subprojects {
 //    removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
 //  }
 
-    jvmArgs propValsAsArgs(project, "testVAES", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
-            propValsAsArgs(project, "testVAES", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
-            propValsAsArgs(project, "testVAES", "x86_64", "failsafe_skip", "test.bcfips.ignore.native")
+//    jvmArgs propValsAsArgs(project, "testVAES", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
+//            propValsAsArgs(project, "testVAES", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
+//            propValsAsArgs(project, "testVAES", "x86_64", "failsafe_skip", "test.bcfips.ignore.native")
 
     // jvmArgs '-Dtest.bcfips.ignore.native=sha', '-Dorg.bouncycastle.native.library_path=/tmp/bcfipslibs', '-Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx'
+
+    jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-libs', '-Dorg.bouncycastle.native.cpu_variant=vaes'
+
 
   }
 
@@ -154,11 +157,11 @@ subprojects {
 //    removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
 //  }
 
-    jvmArgs propValsAsArgs(project, "testAVX", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
-            propValsAsArgs(project, "testAVX", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
-            propValsAsArgs(project, "testAVX", "x86_64", "failsafe_skip", "test.bcfips.ignore.native")
+//    jvmArgs propValsAsArgs(project, "testAVX", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
+//            propValsAsArgs(project, "testAVX", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
+//            propValsAsArgs(project, "testAVX", "x86_64", "failsafe_skip", "test.bcfips.ignore.native")
 
-    // jvmArgs '-Dtest.bcfips.ignore.native=sha', '-Dorg.bouncycastle.native.library_path=/tmp/bcfipslibs', '-Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx'
+     jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-libs', '-Dorg.bouncycastle.native.cpu_variant=avx'
 
   }
 
@@ -179,12 +182,9 @@ subprojects {
       }
     }
 
-    // doFirst {
-    //   removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
-    // }
-    jvmArgs propValsAsArgs(project, "testSSE", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
-            propValsAsArgs(project, "testSSE", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
-            propValsAsArgs(project, "testSSE", "x86_64", "failsafe_skip", "test.bcfips.ignore.native");
+    jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-libs', '-Dorg.bouncycastle.native.cpu_variant=sse'
+
+
   }
 
 
