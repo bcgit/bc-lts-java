@@ -11,7 +11,7 @@ test-java-code:
   script:
     - "apply_overlay bc-java ./"
     - . cienv-11.sh
-    - "gradle clean core:build prov:build util:build pg:build pkix:build tls:build mail:build"
+    - "./gradlew clean withNative prov:build util:build pg:build pkix:build tls:build mail:build"
 
 test-code-sse:
   stage: testSSE
@@ -21,12 +21,12 @@ test-code-sse:
     - "rm -rf /tmp/bcfipslibs"
     - "mkdir -p /tmp/bcfipslibs"
     - . cienv-11.sh
-    - "gradle clean compileJava; \ cd native; \ ./build_linux.sh; \ cd .."
-    - "gradle withNative build copyJars -x test"
+    - "./gradlew clean core:compileJava; \ cd native; \ ./build_linux.sh; \ cd .."
+    - "./gradlew clean withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
     - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
     - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-sse -cp jars/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo"
-    - "gradle -Pskip.pqc.tests clean withNative core:build prov:build util:build pg:build pkix:build tls:build mail:build testSSE  -x test"
+    - "./gradlew -Pskip.pqc.tests testSSE  -x test"
 
 
 test-code-avx:
