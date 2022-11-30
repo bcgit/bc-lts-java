@@ -37,22 +37,10 @@ class NativeLoader
 
     private static String selectedVariant = null;
 
-    private static boolean javaSupportOnly = true;
-
     private static boolean loadCalled = false;
     private static String nativeBuildDate = null;
 
 
-    /**
-     * Returns true if an attempt to load the native components has completed,
-     * regardless of the outcome.
-     *
-     * @return true if a loading attempt has been completed regardless of the outcome.
-     */
-    public static boolean isLoadCalled()
-    {
-        return loadCalled;
-    }
 
     /**
      * Hardware Aes ECB is supported.
@@ -79,21 +67,6 @@ class NativeLoader
         return NativeLoader.isNativeAvailable() && NativeFeatures.hasGCMHardwareSupport();
     }
 
-
-    static synchronized boolean isJavaSupportOnly()
-    {
-        return javaSupportOnly;
-    }
-
-    /**
-     * Native has been installed.
-     *
-     * @return true if the native lib has been installed.
-     */
-    static synchronized boolean isNativeInstalled()
-    {
-        return nativeInstalled;
-    }
 
     /**
      * Native is available.
@@ -146,49 +119,6 @@ class NativeLoader
     }
 
 
-    static Map<String, String> mapVariants(String variantFile)
-    {
-
-        HashMap<String, String> validPaths = new HashMap<String, String>();
-
-        // <path>:<variant>,
-        // eg: java:/; /native/linux/x86_64/:avx,sse,vaes
-        // paths represent paths int the jar not the host system.
-        String raw = getFile(variantFile);
-        if (raw != null)
-        {
-            for (String part : raw.split("\n"))
-            {
-                part = part.trim();
-                String[] kv = part.split(":"); // TODO set above in preparation for windows
-                validPaths.put(kv[0], kv[1]);
-            }
-        }
-
-        return validPaths;
-    }
-
-
-    static List<String> loadVariantsDeps(String depFile, String libName)
-    {
-        String data = getFile(depFile);
-        if (data == null)
-        {
-            return Collections.emptyList();
-        }
-        ArrayList<String> out = new ArrayList<String>();
-        for (String line : data.split("\n"))
-        {
-            line = line.trim();
-            String[] parts = line.split(":");
-            if (parts[0].trim().equals(libName))
-            {
-                out.add(parts[1].trim());
-            }
-        }
-        return Collections.unmodifiableList(out);
-    }
-
 
     static File installLib(String name, String libPathSegment, String jarPath, File bcLibPath, Set<File> filesInInstallLocation)
             throws Exception
@@ -199,12 +129,6 @@ class NativeLoader
         //
 
         String libLocalName = System.mapLibraryName(name);
-
-        List<String> deps = loadVariantsDeps(jarPath + "/deps.list", libLocalName);
-        for (String dep : deps)
-        {
-            filesInInstallLocation.remove(copyFromJar(jarPath + "/" + dep, bcLibPath, dep));
-        }
         File libToLoad = copyFromJar(libPathSegment + "/" + libLocalName, bcLibPath, libLocalName);
 
         filesInInstallLocation.remove(libToLoad);
@@ -235,14 +159,13 @@ class NativeLoader
     {
 
         String forcedVariant = Properties.getPropertyValue(BC_LIB_CPU_VARIANT);
-        Map<String, String> variantPaths = mapVariants("/META-INF/DRIVERS");
+
 
         // No variants defined at all, or a
         // single variant defined that is java only.
         //
-        if ("java".equals(forcedVariant) || variantPaths.isEmpty() || (variantPaths.size() == 1 && variantPaths.containsKey("java")))
+        if ("java".equals(forcedVariant))
         {
-            javaSupportOnly = true;
             nativeInstalled = false;
             nativeStatusMessage = "java support only";
             return;
@@ -375,15 +298,7 @@ class NativeLoader
         // It needs to exist regardless of any forced variant, if it does not exist
         // any forced variant is not going to function anyway.
         //
-        String probeLibVariantName = String.format("%s-%s-probe", platform, arch);
-        String probeLibInJarPath = variantPaths.get(probeLibVariantName);
-        if (probeLibInJarPath == null)
-        {
-            // Exit because we could not find an appropriate variant
-            nativeStatusMessage = "no probe found for " + probeLibVariantName;
-            nativeInstalled = false;
-            return;
-        }
+        String probeLibInJarPath =  String.format("/native/%s/%s/probe",platform,arch);
 
         if (forcedVariant != null)
         {
@@ -418,7 +333,8 @@ class NativeLoader
         }
 
 
-        String variantPathInJar = variantPaths.get(selectedVariant);
+
+        String variantPathInJar = String.format("/native/%s/%s/%s",platform,arch,selectedVariant);//  variantPaths.get(selectedVariant);
         if (variantPathInJar == null)
         {
             nativeStatusMessage = String.format("variant %s is not available for installation", selectedVariant);
@@ -432,8 +348,8 @@ class NativeLoader
             // Derive the suffix it is the last part of the variant name
             // eg: linux-x86_64-sse has a suffix of "sse"
             //
-            String suffix = selectedVariant.substring(selectedVariant.lastIndexOf('-'));
-            final File lib = installLib("bc-components" + suffix, variantPathInJar, jarDir, bcFipsLibsInstallLocation, filesInInstallLocation);
+
+            final File lib = installLib("bc-components-" + selectedVariant, variantPathInJar, jarDir, bcFipsLibsInstallLocation, filesInInstallLocation);
 
 
             //
@@ -465,9 +381,9 @@ class NativeLoader
             return;
         }
 
-        String foo = NativeLibIdentity.getLibraryIdent();
+        String reportedVariantName = NativeLibIdentity.getLibraryIdent();
 
-        if (!selectedVariant.equals(foo))
+        if (!selectedVariant.equals(reportedVariantName))
         {
             nativeStatusMessage = String.format("loaded native library variant is %s but the requested library variant is %s", NativeLibIdentity.getLibraryIdent(), selectedVariant);
             nativeInstalled = false;
@@ -479,8 +395,6 @@ class NativeLoader
         nativeLibsAvailableForSystem = true;
         nativeStatusMessage = "successfully loaded";
         nativeInstalled = true;
-        javaSupportOnly = false;
-
     }
 
 
@@ -506,11 +420,6 @@ class NativeLoader
         }
 
         return sb.toString();
-    }
-
-    public static boolean isNativeLibsAvailableForSystem()
-    {
-        return nativeLibsAvailableForSystem;
     }
 
     private static byte[] takeSHA256Digest(InputStream in)

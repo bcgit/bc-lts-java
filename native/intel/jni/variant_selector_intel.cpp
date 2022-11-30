@@ -55,10 +55,10 @@ JNIEXPORT jstring JNICALL Java_org_bouncycastle_crypto_VariantSelector_getBestVa
     // Strings owned by JVM
     //
     if (vaes) {
-        return env->NewStringUTF(BC_VARIANT_PREFIX"-vaes");
+        return env->NewStringUTF("vaes");
     } else if (avx) {
-        return env->NewStringUTF(BC_VARIANT_PREFIX"-avx");
+        return env->NewStringUTF("avx");
     }
-    return env->NewStringUTF(BC_VARIANT_PREFIX"-sse");
+    return env->NewStringUTF("sse");
 
 }
