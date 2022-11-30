@@ -7,18 +7,17 @@ dependencies {
 }
 
 test {
-  testLogging.showStandardStreams = true
-  testLogging.showCauses = true
-  testLogging.showExceptions = true
-  testLogging.showStackTraces = true
+    testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
 
-  jvmArgs propValsAsArgs(project, test.name, "variant", "org.bouncycastle.native.cpu_variant"),
-          propValsAsArgs(project, test.name, "failsafe_skip", "test.bcfips.ignore.native");
-//  jvmArgs '-Dtest.bcfips.ignore.native=sha,gcm,cbc,ecb,rand,seed', '-Dorg.bouncycastle.native.cpu_variant=java'
 
-  filter {
-    includeTestsMatching "AllTest*"
-  }
+   jvmArgs '-Dtest.bcfips.ignore.native=sha,gcm,cbc,ecb,rand,seed', '-Dorg.bouncycastle.native.cpu_variant=java'
+
+    filter {
+        includeTestsMatching "AllTest*"
+    }
 
 }
 
@@ -50,242 +49,35 @@ artifacts {
   archives sourcesJar
 }
 
-//task('testVAES', type: Test) {
-//  systemProperty 'bc.test.data.home', bcTestDataHome
-//  maxHeapSize = "2048m"
-//  testLogging.showStandardStreams = true
-//  testLogging.showCauses = true
-//  testLogging.showExceptions = true
-//  testLogging.showStackTraces = true
-//
-//  filter {
-//    includeTestsMatching "AllTest*"
-//
-//    if (rootProject.hasProperty("skip.pqc.tests"))
-//    {
-//      exclude('**/pqc/**')
-//    }
-//  }
-//
-////  doFirst {
-////    removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
-////  }
-//
-//  jvmArgs propValsAsArgs(project, "testVAES", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
-//          propValsAsArgs(project, "testVAES", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
-//          propValsAsArgs(project, "testVAES", "x86_64", "failsafe_skip", "test.bcfips.ignore.native")
-//
-//  // jvmArgs '-Dtest.bcfips.ignore.native=sha', '-Dorg.bouncycastle.native.library_path=/tmp/bcfipslibs', '-Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx'
-//
-//}
-//
-//task('testAVX', type: Test) {
-//  systemProperty 'bc.test.data.home', bcTestDataHome
-//  maxHeapSize = "2048m"
-//  testLogging.showStandardStreams = true
-//  testLogging.showCauses = true
-//  testLogging.showExceptions = true
-//  testLogging.showStackTraces = true
-//
-//  filter {
-//    includeTestsMatching "AllTest*"
-//
-//    if (rootProject.hasProperty("skip.pqc.tests"))
-//    {
-//      exclude('**/pqc/**')
-//    }
-//  }
-//
-////  doFirst {
-////    removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
-////  }
-//
-//  jvmArgs propValsAsArgs(project, "testAVX", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
-//          propValsAsArgs(project, "testAVX", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
-//          propValsAsArgs(project, "testAVX", "x86_64", "failsafe_skip", "test.bcfips.ignore.native")
-//
-//  // jvmArgs '-Dtest.bcfips.ignore.native=sha', '-Dorg.bouncycastle.native.library_path=/tmp/bcfipslibs', '-Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx'
-//
-//}
-//
-//task('testSSE', type: Test) {
-//  systemProperty 'bc.test.data.home', bcTestDataHome
-//  maxHeapSize = "2048m"
-//  testLogging.showStandardStreams = true
-//  testLogging.showCauses = true
-//  testLogging.showExceptions = true
-//  testLogging.showStackTraces = true
-//
-//  filter {
-//    includeTestsMatching "AllTest*"
-//
-//    if (rootProject.hasProperty("skip.pqc.tests"))
-//    {
-//      exclude('**/pqc/**')
-//    }
-//  }
-//
-//  // doFirst {
-//  //   removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
-//  // }
-//  jvmArgs propValsAsArgs(project, "testSSE", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
-//          propValsAsArgs(project, "testSSE", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
-//          propValsAsArgs(project, "testSSE", "x86_64", "failsafe_skip", "test.bcfips.ignore.native");
-//}
 
-
-task cleanFipsVariations(type: Delete) {
-  delete("$projectDir/src/main/resources/native/");
-  delete("$projectDir/src/main/resources/META-INF/DRIVERS");
+task cleanNativeVariants(type: Delete) {
+    delete("$projectDir/src/main/resources/native/");
+    delete("$projectDir/src/main/resources/META-INF/DRIVERS");
 }
 
-tasks.clean.dependsOn(cleanFipsVariations);
 
 
-  task variantFile() {
+task withNative() {
     doLast {
 
-      StringBuilder builder = new StringBuilder();
-      builder.append("java:/");
-
-      String moduleType = findProperty("fips-module");
-      if (moduleType != null && moduleType.trim().equals("hybrid"))
-      {
-
-        boolean linux = false;
-        ifTrue(project, "native.intel.linux.x86_64.sse", {
-          builder.append("\nlinux-x86_64-sse:/native/linux/x86_64/sse");
-          linux = true;
-        })
-
-        ifTrue(project, "native.intel.linux.x86_64.avx", {
-          builder.append("\nlinux-x86_64-avx:/native/linux/x86_64/avx");
-          linux = true;
-        })
-
-        ifTrue(project, "native.intel.linux.x86_64.vaes", {
-          builder.append("\nlinux-x86_64-vaes:/native/linux/x86_64/vaes");
-          linux = true;
-        })
-
-
-        if (linux)
-        {
-          builder.append("\nlinux-x86_64-probe:/native/linux/x86_64/probe");
+        if (directoryExists("$rootDir/native/target/linux/x86_64/probe")) {
+            copyDirContent("$rootDir/native/target/linux/x86_64/probe", "$projectDir/src/main/resources/native/linux/x86_64/probe")
         }
 
-        boolean darwin = false;
-
-        ifTrue(project, "native.intel.darwin.x86_64.sse", {
-          builder.append("\ndarwin-x86_64-sse:/native/darwin/x86_64/sse");
-          darwin = true;
-        })
-
-        ifTrue(project, "native.intel.darwin.x86_64.avx", {
-          builder.append("\ndarwin-x86_64-avx:/native/darwin/x86_64/avx");
-          darwin = true;
-        })
-
-
-        ifTrue(project, "native.intel.darwin.x86_64.vaes", {
-          builder.append("\ndarwin-x86_64-vaes:/native/darwin/x86_64/vaes");
-          darwin = true;
-        })
-
-
-        if (darwin)
-        {
-          builder.append("\ndarwin-x86_64-probe:/native/darwin/x86_64/probe");
+        if (directoryExists("$rootDir/native/target/linux/x86_64/sse")) {
+            copyDirContent("$rootDir/native/target/linux/x86_64/sse", "$projectDir/src/main/resources/native/linux/x86_64/sse")
         }
 
-      }
+        if (directoryExists("$rootDir/native/target/linux/x86_64/avx")) {
+            copyDirContent("$rootDir/native/target/linux/x86_64/avx", "$projectDir/src/main/resources/native/linux/x86_64/avx")
+        }
 
-      File dir = new File(projectDir, "/src/main/resources/META-INF/");
-      dir.mkdirs();
-      new File(dir, "DRIVERS").text = builder.toString();
+        if (directoryExists("$rootDir/native/target/linux/x86_64/vaes")) {
+            copyDirContent("$rootDir/native/target/linux/x86_64/vaes", "$projectDir/src/main/resources/native/linux/x86_64/vaes")
+        }
+
     }
-  }
-
-  tasks.compileJava.dependsOn(variantFile);
-
-  task withNative() {
-    doLast {
-
-      StringBuilder builder = new StringBuilder();
-      builder.append("java:/");
-
-      String moduleType = findProperty("fips-module");
-      if (moduleType != null && moduleType.trim().equals("hybrid"))
-      {
-
-        List<String> deps = new ArrayList<>();
-        boolean linux = false;
-        ifTrue(project, "native.intel.linux.x86_64.sse", {
-          builder.append("\nlinux-x86_64-sse:/native/linux/x86_64/sse");
-          copyDirContent("$rootDir/native/target/linux/x86_64/sse", "$projectDir/src/main/resources/native/linux/x86_64/sse")
-          scanAndAddFilename(deps, "$projectDir/src/main/resources/native/linux/x86_64/sse", ".so");
-          linux = true;
-        })
-
-        ifTrue(project, "native.intel.linux.x86_64.avx",
-                {
-                  builder.append("\nlinux-x86_64-avx:/native/linux/x86_64/avx");
-                  copyDirContent("$rootDir/native/target/linux/x86_64/avx", "$projectDir/src/main/resources/native/linux/x86_64/avx")
-                  scanAndAddFilename(deps, "$projectDir/src/main/resources/native/linux/x86_64/avx", ".so");
-                  linux = true;
-                });
-
-        ifTrue(project, "native.intel.linux.x86_64.vaes",
-                {
-                  builder.append("\nlinux-x86_64-vaes:/native/linux/x86_64/vaes");
-                  copyDirContent("$rootDir/native/target/linux/x86_64/vaes", "$projectDir/src/main/resources/native/linux/x86_64/vaes")
-                  scanAndAddFilename(deps, "$projectDir/src/main/resources/native/linux/x86_64/vaes", ".so");
-                  linux = true;
-                });
-
-        if (linux)
-        {
-          builder.append("\nlinux-x86_64-probe:/native/linux/x86_64/probe");
-          copyDirContent("$rootDir/native/target/linux/x86_64/probe", "$projectDir/src/main/resources/native/linux/x86_64/probe")
-          scanAndAddFilename(deps, "$projectDir/src/main/resources/native/linux/x86_64/probe", ".so");
-          installDeps(deps, "$rootDir/native/target/linux/x86_64/", "$projectDir/src/main/resources/native/linux/x86_64/")
-          deps.clear();
-        }
-
-        boolean darwin = false;
-        ifTrue(project, "native.intel.darwin.x86_64.sse",
-                {
-                  darwin = true;
-                  builder.append("\ndarwin-x86_64-sse:/native/darwin/x86_64/sse");
-                  copyDirContent("$rootDir/native/target/darwin/x86_64/sse", "$projectDir/src/main/resources/native/darwin/x86_64/sse")
-                });
-
-        ifTrue(project, "native.intel.darwin.x86_64.avx",
-                {
-                  darwin = true;
-                  builder.append("\ndarwin-x86_64-avx:/native/darwin/x86_64/avx");
-                  copyDirContent("$rootDir/native/target/darwin/x86_64/avx", "$projectDir/src/main/resources/native/darwin/x86_64/avx")
-                });
-
-        if ("true".equals(findProperty("native.intel.darwin.x86_64.vaes")))
-        {
-          darwin = true;
-          copyDirContent("$rootDir/native/target/darwin/x86_64/vaes", "$projectDir/src/main/resources/native/darwin/x86_64/vaes")
-        }
-
-        if (darwin)
-        {
-          builder.append("\ndarwin-x86_64-probe:/native/darwin/x86_64/probe");
-          copyDirContent("$rootDir/native/target/darwin/x86_64/probe", "$projectDir/src/main/resources/native/darwin/x86_64/probe")
-        }
-
-      }
-
-      File dir = new File(projectDir, "/src/main/resources/META-INF/");
-      dir.mkdirs();
-      new File(dir, "DRIVERS").text = builder.toString();
-    }
-  }
+}
 
 
 

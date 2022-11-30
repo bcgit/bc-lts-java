@@ -21,7 +21,7 @@ test-code-sse:
     - "mkdir -p /tmp/bcfipslibs"
     - . cienv-11.sh
     - "./gradlew clean core:compileJava; \ cd native; \ ./build_linux.sh; \ cd .."
-    - "./gradlew clean withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
+    - "./gradlew clean cleanNativeVariants withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
     - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
     - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-sse -cp jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo"
@@ -36,7 +36,7 @@ test-code-avx:
     - "mkdir -p /tmp/bcfipslibs"
     - . cienv-11.sh
     - "./gradlew clean core:compileJava; \ cd native; \ ./build_linux.sh; \ cd .."
-    - "./gradlew clean withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
+    - "./gradlew clean cleanNativeVariants withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
     - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
     - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx -cp jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo"
@@ -50,7 +50,7 @@ test-code-vaes:
     - "mkdir -p /tmp/bcfipslibs"
     - . cienv-11.sh
     - "./gradlew clean core:compileJava; \ cd native; \ ./build_linux.sh; \ cd .."
-    - "./gradlew clean withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
+    - "./gradlew clean cleanNativeVariants withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
     - "tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
     - "java -Dorg.bouncycastle.native.cpu_variant=linux-x86_64-vaes -cp jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo"

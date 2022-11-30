@@ -15,7 +15,7 @@ JNIEXPORT jstring JNICALL Java_org_bouncycastle_crypto_NativeLibIdentity_getLibI
         (JNIEnv *env, jclass) {
 
     // Owned by JVM
-    auto str = env->NewStringUTF(BC_VARIANT_PREFIX"-" BC_VARIANT);
+    auto str = env->NewStringUTF(BC_VARIANT);
     return str;
 }
 
