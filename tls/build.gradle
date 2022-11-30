@@ -71,6 +71,12 @@ task sourcesJar(type: Jar) {
   }
 }
 
+javadoc {
+  title = "Bouncy Castle Library (LTS Edition) ${version} TLS API"
+  options.windowTitle = "Bouncy Castle Library (LTS Edition) ${version} TLS API"
+  options.overview = "overview.html"
+}
+
 task javadocJar(type: Jar, dependsOn: javadoc) {
   archiveBaseName = jar.archiveBaseName
   classifier = 'javadoc'

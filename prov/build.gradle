@@ -101,6 +101,9 @@ task sourcesJar(type: Jar) {
 }
 
 task fullJavaDoc(type: Javadoc) {
+  title = "Bouncy Castle Library (LTS Edition) ${version} Provider API"
+  options.windowTitle = "Bouncy Castle Library (LTS Edition) ${version} Provider API"
+  options.overview = "overview.html"
   source = files([sourceSets.main.allJava, project(":core").sourceSets.main.allJava])
 }
 
