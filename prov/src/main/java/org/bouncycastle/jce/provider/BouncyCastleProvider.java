@@ -54,7 +54,7 @@ public final class BouncyCastleProvider extends Provider
 {
     private static final Logger LOG = Logger.getLogger(BouncyCastleProvider.class.getName());
 
-    private static String info = "BouncyCastle Security Provider (LTS edition) v1.0.0b";
+    private static String info = CryptoServicesRegistrar.getInfo().replace("APIs", "Security Provider");
 
     public static final String PROVIDER_NAME = "BC";
 
