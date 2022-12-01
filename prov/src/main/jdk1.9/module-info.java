@@ -46,11 +46,13 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.crypto.agreement.kdf;
     exports org.bouncycastle.crypto.agreement.srp;
     exports org.bouncycastle.crypto.commitments;
+    exports org.bouncycastle.crypto.constraints;
     exports org.bouncycastle.crypto.digests;
     exports org.bouncycastle.crypto.ec;
     exports org.bouncycastle.crypto.encodings;
     exports org.bouncycastle.crypto.engines;
     exports org.bouncycastle.crypto.examples;
+    exports org.bouncycastle.crypto.fpe;
     exports org.bouncycastle.crypto.generators;
     exports org.bouncycastle.crypto.io;
     exports org.bouncycastle.crypto.kems;
@@ -75,6 +77,7 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.jcajce.provider.asymmetric.ec;
     exports org.bouncycastle.jcajce.provider.asymmetric.ecgost;
     exports org.bouncycastle.jcajce.provider.asymmetric.ecgost12;
+    exports org.bouncycastle.jcajce.provider.asymmetric.edec;
     exports org.bouncycastle.jcajce.provider.asymmetric.elgamal;
     exports org.bouncycastle.jcajce.provider.asymmetric.gost;
     exports org.bouncycastle.jcajce.provider.asymmetric.ies;
@@ -116,4 +119,5 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.util.io;
     exports org.bouncycastle.util.io.pem;
     exports org.bouncycastle.util.test;
+
 }

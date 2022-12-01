@@ -1,4 +1,4 @@
-package org.bouncycastle.pg;
+package org.bouncycastle.test.mail;
 
 import java.util.Enumeration;
 

@@ -73,6 +73,27 @@ task printProperties {
   }
 }
 
+/**
+ * Used for module tests, excludes tests that share a package with test subject.
+ **/
+task modTestJar(type: Jar) {
+  from(project(":core").sourceSets.test.output)
+  exclude("org/bouncycastle/crypto/engines/*")
+  exclude("org/bouncycastle/crypto/NativeEntropyTests.*")
+  exclude("org/bouncycastle/crypto/NativeFailsafeTest.*")
+  exclude("org/bouncycastle/mail/smime/test/SignedMailValidatorTest.*")
+  from(project(":mail").sourceSets.test.output)
+  from(project(":pkix").sourceSets.test.output)
+  from(project(":prov").sourceSets.test.output)
+  from(project(":tls").sourceSets.test.output)
+  from(project(":util").sourceSets.test.output)
+  from(project(":test").sourceSets.test.output)
+  classifier("tests")
+}
+
+/*
+* Use for running all tests on signed jars.
+*/
 task allTestJar(type: Jar) {
   from(project(":core").sourceSets.test.output)
   exclude("org/bouncycastle/crypto/engines/*")
@@ -90,6 +111,9 @@ task allTestJar(type: Jar) {
 allTestJar.dependsOn(compileTestJava);
 
 
+/*
+* Use for running all tests on signed jars.
+*/
 task allTestUnisgnedJar(type: Jar) {
   from(project(":core").sourceSets.test.output)
   from(project(":mail").sourceSets.test.output)

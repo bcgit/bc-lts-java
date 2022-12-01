@@ -53,6 +53,8 @@ module org.bouncycastle.lts.pkix
     exports org.bouncycastle.pkcs.bc;
     exports org.bouncycastle.pkcs.jcajce;
     exports org.bouncycastle.pkix.jcajce;
+    exports org.bouncycastle.pkix.util;
+    exports org.bouncycastle.pkix.util.filter;
     exports org.bouncycastle.tsp.cms;
     exports org.bouncycastle.tsp.ers;
 }

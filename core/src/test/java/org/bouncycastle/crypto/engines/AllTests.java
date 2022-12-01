@@ -4,7 +4,7 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.core.PrintResults;
+import org.bouncycastle.test.core.PrintResults;
 import org.bouncycastle.crypto.NativeEntropyTests;
 import org.bouncycastle.crypto.NativeFailsafeTest;
 

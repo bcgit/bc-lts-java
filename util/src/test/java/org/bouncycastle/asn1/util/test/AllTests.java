@@ -5,7 +5,7 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 
-import org.bouncycastle.util.PrintResults;
+import org.bouncycastle.test.util.PrintResults;
 import org.bouncycastle.asn1.cms.test.*;
 import org.bouncycastle.asn1.misc.test.*;
 import org.bouncycastle.util.test.SimpleTestResult;

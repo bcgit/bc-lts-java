@@ -1,4 +1,4 @@
-package org.bouncycastle.tls;
+package org.bouncycastle.test.tls;
 
 import java.util.Enumeration;
 

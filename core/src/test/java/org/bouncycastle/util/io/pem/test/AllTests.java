@@ -10,7 +10,7 @@ import java.util.List;
 
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.core.PrintResults;
+import org.bouncycastle.test.core.PrintResults;
 import org.bouncycastle.util.io.pem.PemHeader;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;

@@ -6,7 +6,7 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.pkix.PrintResults;
+import org.bouncycastle.test.pkix.PrintResults;
 
 public class AllTests
     extends TestCase
