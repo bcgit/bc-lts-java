@@ -7,7 +7,7 @@ The LTS provide jar ships with native libraries that support the use of CPU feat
 transformations and entropy generation.
 
 At present, we only provide support for Intel CPUs with AES in CBC, CFB, ECB and GCM modes along with
-entropy generation with SEED or RAND depending on CPU features. 
+entropy generation with NRBG (RDSEED) or DRBG (RDRAND) depending on CPU features. 
 
 The intel feature set is divided into three CPU families: 
 SSE - Original AES-NI, SSE2 machines.
@@ -37,10 +37,11 @@ mkdir /tmp/bc-libs
 
 # Which should return something like on a modern intel CPU
 
-BouncyCastle Security Provider (LTS edition) v2.0.0b
+BouncyCastle APIs (LTS edition) v1.0.0b
 Native Status: successfully loaded
 Native Variant: vaes
-Native Features: [RAND, AES/CFB, SEED, AES/GCM, ENTROPY, AES/ECB, AES/CBC]
+Native Build Date: 2022-11-30T03:19:26Z
+Native Features: [SHA2, DRBG, AES/CFB, AES/GCM, NRBG, AES/ECB, AES/CBC]
 
 ```
 
