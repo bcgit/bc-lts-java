@@ -47,4 +47,16 @@ do
   -Dbc.test.data.home=core/src/test/data \
   "$i"
 
+if [[ $? != 0 ]]; then
+            echo ""
+            echo "--------------------------------!!!"
+            echo "$i failed"
+            exit 1;
+    fi
+
+    echo "-------------------------------------"
+    echo ""
+
+
+
 done
