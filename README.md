@@ -20,8 +20,7 @@ At present only 64 bit Linux (GCC) and OSX are supported.
 
 There are some differences when using the provider with native support.
 
-In order to load the native libraries the provider must install those libraries into a directory on the host system that
-is on the library loading path (ie LD_LIBRARY_PATH or DYLIB_LIBRARY_PATH for OSX ) for the JVM that is invoking it.
+You will need to create a directory for the provider to install the native libraries. The directory name needs to include the string "bc-libs" as it used by the jar on startup to work out where to install the native libraries.
 
 The following example is for Linux, for OSX swap LD_LIBRARY_PATH with DYLIB_LIBRARY_PATH in all cases.
 
@@ -35,7 +34,7 @@ mkdir /tmp/bc-libs
  
 (export LD_LIBRARY_PATH=/tmp/bc-libs; java -cp jars/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo)
 
-# Which should return something like on a modern intel CPU
+# Which should return something like the following on a modern intel CPU
 
 BouncyCastle APIs (LTS edition) v1.0.0b
 Native Status: successfully loaded
