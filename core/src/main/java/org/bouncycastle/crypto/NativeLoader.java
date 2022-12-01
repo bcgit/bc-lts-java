@@ -28,7 +28,7 @@ class NativeLoader
     public static final String BC_LIB_SENTINEL = "org.bouncycastle.native.sentinel";
     public static final String BC_LIB_CPU_VARIANT = "org.bouncycastle.native.cpu_variant";
 
-    private static final String DEFAULT_SENTINEL_VALUE = "bc-libs";
+    private static final String DEFAULT_SENTINEL_VALUE = "bc-jni-libs";
 
     private static boolean nativeLibsAvailableForSystem = false;
     private static boolean nativeInstalled = false;
@@ -241,6 +241,26 @@ class NativeLoader
                 break;
             }
         }
+
+        //
+        // Look for old default value if none found
+        // TODO Remove before first release.
+        //
+        if (bcFipsLibPath == null && Properties.getPropertyValue(BC_LIB_SENTINEL) == null) {
+
+            for (String part : ldPathValue.split(":"))
+            {
+                part = part.trim();
+                if (part.contains("bc-libs"))
+                {
+                    bcFipsLibPath = part;
+                    break;
+                }
+            }
+        }
+
+
+
 
         // lib path part with sentinel value in it was not found so exit.
         if (bcFipsLibPath == null)
