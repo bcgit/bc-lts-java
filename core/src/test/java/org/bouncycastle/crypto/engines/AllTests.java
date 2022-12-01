@@ -5,6 +5,8 @@ import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.bouncycastle.core.PrintResults;
+import org.bouncycastle.crypto.NativeEntropyTests;
+import org.bouncycastle.crypto.NativeFailsafeTest;
 
 
 public class AllTests
@@ -23,7 +25,8 @@ public class AllTests
         suite.addTestSuite(AesECBConcordanceTest.class);
         suite.addTestSuite(AesGCMConcordanceTest.class);
         suite.addTestSuite(NativeLimitTests.class);
-
+        suite.addTestSuite(NativeEntropyTests.class);
+        suite.addTestSuite(NativeFailsafeTest.class);
         return new BCTestSetup(suite);
     }
 
