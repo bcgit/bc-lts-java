@@ -1,6 +1,7 @@
 module org.bouncycastle.lts.mail
 {
     requires org.bouncycastle.lts.prov;
+    requires java.datatransfer;
     requires transitive org.bouncycastle.lts.pkix;
 
     exports org.bouncycastle.mail.smime;

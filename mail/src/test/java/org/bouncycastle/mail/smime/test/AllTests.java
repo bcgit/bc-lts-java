@@ -6,7 +6,7 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.mail.PrintResults;
+import org.bouncycastle.test.mail.PrintResults;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class AllTests
@@ -24,7 +24,14 @@ public class AllTests
         TestSuite suite= new TestSuite("SMIME tests");
 
         suite.addTestSuite(NewSMIMESignedTest.class);
-        suite.addTestSuite(SignedMailValidatorTest.class);
+        try
+        {
+            suite.addTestSuite(SignedMailValidatorTest.class);
+        } catch (NoClassDefFoundError ignored) {
+            // Can be excluded from some jar related tests where the module
+            // System prevents loading of test resources in the same package
+            // TODO probably move resources.
+        }
         suite.addTestSuite(NewSMIMEEnvelopedTest.class);
         suite.addTestSuite(SMIMECompressedTest.class);
         suite.addTestSuite(SMIMEMiscTest.class);

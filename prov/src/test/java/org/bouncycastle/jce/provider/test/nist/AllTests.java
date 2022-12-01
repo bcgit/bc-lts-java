@@ -6,7 +6,7 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.prov.PrintResults;
+import org.bouncycastle.test.prov.PrintResults;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class AllTests
