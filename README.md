@@ -32,7 +32,7 @@ mkdir /tmp/bc-libs
 
 # Invoke dump info, the sub shell is used to avoid poluting LD_LIBRARY_PATH
  
-(export LD_LIBRARY_PATH=/tmp/bc-libs; java -cp jars/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo)
+(export LD_LIBRARY_PATH=/tmp/bc-libs; java -cp jars/bc-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo)
 
 # Which should return something like the following on a modern intel CPU
 
