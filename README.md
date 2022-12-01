@@ -39,7 +39,7 @@ mkdir /tmp/bc-libs
 
 BouncyCastle Security Provider (LTS edition) v2.0.0b
 Native Status: successfully loaded
-Native Variant: linux-x86_64-vaes
+Native Variant: vaes
 Native Features: [RAND, AES/CFB, SEED, AES/GCM, ENTROPY, AES/ECB, AES/CBC]
 
 ```
@@ -98,7 +98,7 @@ For example, adding fish.txt to the /tmp/bc-libs directory
 ```
 BouncyCastle Security Provider (LTS edition) v2.0.0b
 Native Status: unexpected files in /tmp/bc-libs: /tmp/bc-libs/fish.txt
-Native Variant: darwin-x86_64-avx
+Native Variant: avx
 Native Features: [NONE]
 ```
 
