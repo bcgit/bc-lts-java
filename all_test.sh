@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+version="1.0.0-SNAPSHOT"
+
 rm -rf mtest
 mkdir mtest
 
@@ -9,10 +11,16 @@ tj=( $artifactsHome/*tests.jar )
 
 testJar="${tj[0]}";
 
-cp jars/* mtest/
 
-rm mtest/*-javadoc.jar
-rm mtest/*-sources.jar
+prefixes=("bcprov-lts8on" "bcpkix-lts8on" "bctls-lts8on" "bcutil-lts8on" "bcpg-lts8on" "bcmail-lts8on")
+
+for str in "${prefixes[@]}"; do
+  src="jars/${str}-${version}.jar"
+  echo $src
+  cp "${src}" mtest/
+done
+
+
 
 a=(`$JAVA_HOME/bin/jar -tf "$testJar" | grep -E "AllTests\.class" | sed -e 's!.class!!' | sed -e 's|/|.|g'`);
 
