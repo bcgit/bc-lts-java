@@ -48,6 +48,7 @@ compileJava {
 }
 
 task copyTask(type: Copy) {
+   duplicatesStrategy = 'include'
    from '../mail/src/main/java'
    from 'src/main/java'
    into 'build/src/main/java'
@@ -78,6 +79,7 @@ jar {
 }
 
 task sourcesJar(type: Jar) {
+  duplicatesStrategy = 'include'
   archiveBaseName = jar.archiveBaseName
   classifier = 'sources'
   from sourceSets.main.allSource
