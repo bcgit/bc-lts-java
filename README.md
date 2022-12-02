@@ -7,7 +7,7 @@ The LTS provide jar ships with native libraries that support the use of CPU feat
 transformations and entropy generation.
 
 At present, we only provide support for Intel CPUs with AES in CBC, CFB, ECB and GCM modes along with
-entropy generation with SEED or RAND depending on CPU features. 
+entropy generation with NRBG (RDSEED) or DRBG (RDRAND) depending on CPU features. 
 
 The intel feature set is divided into three CPU families: 
 SSE - Original AES-NI, SSE2 machines.
@@ -20,8 +20,7 @@ At present only 64 bit Linux (GCC) and OSX are supported.
 
 There are some differences when using the provider with native support.
 
-In order to load the native libraries the provider must install those libraries into a directory on the host system that
-is on the library loading path (ie LD_LIBRARY_PATH or DYLIB_LIBRARY_PATH for OSX ) for the JVM that is invoking it.
+You will need to create a directory for the provider to install the native libraries. The directory name needs to include the string "bc-libs" as it used by the jar on startup to work out where to install the native libraries.
 
 The following example is for Linux, for OSX swap LD_LIBRARY_PATH with DYLIB_LIBRARY_PATH in all cases.
 
@@ -33,7 +32,7 @@ mkdir /tmp/bc-jni-libs
 
 # Invoke dump info, the sub shell is used to avoid poluting LD_LIBRARY_PATH
  
-(export LD_LIBRARY_PATH=/tmp/bc-jni-libs; java -cp jars/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo)
+(export LD_LIBRARY_PATH=/tmp/bc-libs; java -cp jars/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo)
 
 # Which should return something like on a modern intel CPU
 
@@ -44,10 +43,10 @@ Native Features: [RAND, AES/CFB, SEED, AES/GCM, ENTROPY, AES/ECB, AES/CBC]
 
 ```
 
-## Finding library installation directory bc-jni-libs
+## Finding library installation directory bc-libs
 
 The module will take the value of the (LD_LIBRARY_PATH or the OS's equivalent) and break into substrings using a colon,
-each substring will be examined for containment of a sentinel ("bc-jni-libs") string. If this string is found then the 
+each substring will be examined for containment of a sentinel ("bc-libs") string. If this string is found then the 
 module will select that path segment as the library installation location.
 
 The sentinel value can be changed using passing a parameter at start up eg ```-Dorg.bouncycastle.native.sentinel=new_value```
@@ -56,13 +55,13 @@ or it can be set in the security policy.
 If the sentinel is not found then it will exit and start as a java module with a native status message of:
 ```failed because <sentinal> was not found in env val <LIB ENV VAR value>```
 
-For example with "bc-fish" instead of "bc-jni-libs"
+For example with "bc-fish" instead of "bc-libs"
 
 ```
 (export LD_LIBRARY_PATH=/tmp/bc-fish; java -cp jars/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo)
 
 BouncyCastle Security Provider (LTS edition) v2.0.0b
-Native Status: failed because bc-jni-libs was not found in env val /tmp/bc-fish
+Native Status: failed because bc-libs was not found in env val /tmp/bc-fish
 Native Variant: null
 Native Features: [NONE]
 
@@ -72,12 +71,12 @@ Native Features: [NONE]
 If you are running multiple instances on the one host, we strongly suggest that you supply each instance its own
 place to install the native libraries.
 
-As discussed earlier in [Finding library installation directory bc-jni-libs](#finding-library-installation-directory-bc-jni-libs)
+As discussed earlier in [Finding library installation directory bc-libs](#finding-library-installation-directory-bc-libs)
 the provider will examine the parts of hosts library loading path variable looking for a sentinel string. You can 
 leverage this with a temporary directory for example:
 
 ```
-tmpLibDir=$(mktemp -d -t bc-jni-libs-XXXXXXXXXX)
+tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:tmpLibDir
 java -cp <path to>/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo
 ```
@@ -93,11 +92,11 @@ and will refuse to load the native libraries if:
 1. It finds files it does not recognise.
 2. The files it does find do not match the checksum of the file that is going to be installed.
 
-For example, adding fish.txt to the /tmp/bc-jni-libs directory
+For example, adding fish.txt to the /tmp/bc-libs directory
 
 ```
 BouncyCastle Security Provider (LTS edition) v2.0.0b
-Native Status: unexpected files in /tmp/bc-jni-libs: /tmp/bc-jni-libs/fish.txt
+Native Status: unexpected files in /tmp/bc-libs: /tmp/bc-libs/fish.txt
 Native Variant: avx
 Native Features: [NONE]
 ```
