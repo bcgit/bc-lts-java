@@ -7,22 +7,22 @@ The LTS provide jar ships with native libraries that support the use of CPU feat
 transformations and entropy generation.
 
 At present, we only provide support for Intel CPUs with AES in CBC, CFB, ECB and GCM modes along with
-entropy generation with NRBG (RDSEED) or DRBG (RDRAND) depending on CPU features. 
+entropy generation with NRBG (RDSEED) or DRBG (RDRAND) depending on CPU features.
 
-The intel feature set is divided into three CPU families: 
+The intel feature set is divided into three CPU families:
 SSE - Original AES-NI, SSE2 machines.
 AVX - Machines with AES-NI, AVX support.
 VAES - Machines that support VAES, (256 bit) AES instructions.
 
-At present only 64 bit Linux (GCC) and OSX are supported.
+At present only 64 bit Linux (GCC).
 
 # Using the provider with native support
 
 There are some differences when using the provider with native support.
 
-You will need to create a directory for the provider to install the native libraries. The directory name needs to include the string "bc-libs" as it used by the jar on startup to work out where to install the native libraries.
+You will need to create a directory for the provider to install the native libraries. The directory name needs to include the string "bc-jni-libs" as it used by the jar on startup to work out where to install the native libraries.
 
-The following example is for Linux, for OSX swap LD_LIBRARY_PATH with DYLIB_LIBRARY_PATH in all cases.
+The following example is for Linux.
 
 ```
 # Create a directory for the provider to install the native libraries in
@@ -32,21 +32,22 @@ mkdir /tmp/bc-jni-libs
 
 # Invoke dump info, the sub shell is used to avoid poluting LD_LIBRARY_PATH
  
-(export LD_LIBRARY_PATH=/tmp/bc-libs; java -cp jars/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo)
+(export LD_LIBRARY_PATH=/tmp/bc-jni-libs; java -cp jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo)
 
-# Which should return something like on a modern intel CPU
+# Which should return something like the following on a modern intel CPU
 
-BouncyCastle Security Provider (LTS edition) v2.0.0b
+BouncyCastle APIs (LTS edition) v1.0.0b
 Native Status: successfully loaded
 Native Variant: vaes
-Native Features: [RAND, AES/CFB, SEED, AES/GCM, ENTROPY, AES/ECB, AES/CBC]
+Native Build Date: 2022-11-30T03:19:26Z
+Native Features: [SHA2, DRBG, AES/CFB, AES/GCM, NRBG, AES/ECB, AES/CBC]
 
 ```
 
-## Finding library installation directory bc-libs
+## Finding library installation directory bc-jni-libs
 
 The module will take the value of the (LD_LIBRARY_PATH or the OS's equivalent) and break into substrings using a colon,
-each substring will be examined for containment of a sentinel ("bc-libs") string. If this string is found then the 
+each substring will be examined for containment of a sentinel ("bc-jni-libs") string. If this string is found then the
 module will select that path segment as the library installation location.
 
 The sentinel value can be changed using passing a parameter at start up eg ```-Dorg.bouncycastle.native.sentinel=new_value```
@@ -55,13 +56,13 @@ or it can be set in the security policy.
 If the sentinel is not found then it will exit and start as a java module with a native status message of:
 ```failed because <sentinal> was not found in env val <LIB ENV VAR value>```
 
-For example with "bc-fish" instead of "bc-libs"
+For example with "bc-fish" instead of "bc-jni-libs"
 
 ```
-(export LD_LIBRARY_PATH=/tmp/bc-fish; java -cp jars/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo)
+(export LD_LIBRARY_PATH=/tmp/bc-fish; java -cp jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo)
 
-BouncyCastle Security Provider (LTS edition) v2.0.0b
-Native Status: failed because bc-libs was not found in env val /tmp/bc-fish
+BouncyCastle APIs (LTS edition) v1.0.0b
+Native Status: failed because bc-jni-libs was not found in env val /tmp/bc-fish
 Native Variant: null
 Native Features: [NONE]
 
@@ -71,14 +72,14 @@ Native Features: [NONE]
 If you are running multiple instances on the one host, we strongly suggest that you supply each instance its own
 place to install the native libraries.
 
-As discussed earlier in [Finding library installation directory bc-libs](#finding-library-installation-directory-bc-libs)
-the provider will examine the parts of hosts library loading path variable looking for a sentinel string. You can 
+As discussed earlier in [Finding library installation directory bc-jni-libs](#finding-library-installation-directory-bc-jni-libs)
+the provider will examine the parts of hosts library loading path variable looking for a sentinel string. You can
 leverage this with a temporary directory for example:
 
 ```
-tmpLibDir=$(mktemp -d -t bc-libs-XXXXXXXXXX)
+tmpLibDir=$(mktemp -d -t bc-jni-libs-XXXXXXXXXX)
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:tmpLibDir
-java -cp <path to>/bc-lts-2.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo
+java -cp <path to>/bcprov-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo
 ```
 
 ## Cleaning up afterwards
@@ -92,11 +93,11 @@ and will refuse to load the native libraries if:
 1. It finds files it does not recognise.
 2. The files it does find do not match the checksum of the file that is going to be installed.
 
-For example, adding fish.txt to the /tmp/bc-libs directory
+For example, adding fish.txt to the /tmp/bc-jni-libs directory
 
 ```
-BouncyCastle Security Provider (LTS edition) v2.0.0b
-Native Status: unexpected files in /tmp/bc-libs: /tmp/bc-libs/fish.txt
+BouncyCastle APIs (LTS edition) v1.0.0b
+Native Status: unexpected files in /tmp/bc-jni-libs: /tmp/bc-jni-libs/fish.txt
 Native Variant: avx
 Native Features: [NONE]
 ```
@@ -115,7 +116,7 @@ The Legion also gratefully acknowledges the contributions made to this package b
 
 The package is organised so that it contains a light-weight API suitable for use in any environment (including the newly released J2ME) with the additional infrastructure to conform the algorithms to the JCE framework.
 
-Except where otherwise stated, this software is distributed under a license based on the MIT X Consortium license. To view the license, [see here](https://www.bouncycastle.org/licence.html). The OpenPGP library also includes a modified BZIP2 library which is licensed under the [Apache Software License, Version 2.0](https://www.apache.org/licenses/). 
+Except where otherwise stated, this software is distributed under a license based on the MIT X Consortium license. To view the license, [see here](https://www.bouncycastle.org/licence.html). The OpenPGP library also includes a modified BZIP2 library which is licensed under the [Apache Software License, Version 2.0](https://www.apache.org/licenses/).
 
 **Note**: this source tree is not the FIPS version of the APIs - if you are interested in our FIPS version please contact us directly at  [office@bouncycastle.org](mailto:office@bouncycastle.org).
 
