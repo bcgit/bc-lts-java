@@ -1,36 +1,35 @@
 //
-// Created on 18/5/2022.
+// Created on 12/7/22.
 //
 
-#ifndef CORENATIVE_AESECB_H
-#define CORENATIVE_AESECB_H
-
+#ifndef BCN_AESECBW256_H
+#define BCN_AESECBW256_H
 
 #include <cstdint>
-#include <wmmintrin.h>
+#include <immintrin.h>
 #include <jni_md.h>
 #include "ecb.h"
 
+/**
+        * AES ECB with the original AES-NI instructions no AVX.
+        */
 namespace intel {
-
     namespace ecb {
 
-        /**
-         * AES ECB with the original AES-NI instructions no AVX.
-         */
-        class AesEcb : public ECB {
+        class AesEcb256W : public ECB {
         protected:
-            __m128i *roundKeys;
-        public:
-            AesEcb();
+            __m256i *roundKeys256;
 
-            ~AesEcb() override;
+        public:
+            AesEcb256W();
+
+            ~AesEcb256W() override;
 
             uint32_t getMultiBlockSize() override;
 
             void reset() override;
 
-            virtual void init(unsigned char *key) override =0;
+            virtual void init(unsigned char *key) override = 0;
 
             virtual size_t processBlocks(
                     unsigned char *input,
@@ -42,11 +41,12 @@ namespace intel {
         };
 
 
-        class AesEcb128E : public AesEcb {
-        public:
-            AesEcb128E();
+        class AesEcb256W128E : public AesEcb256W {
 
-            ~AesEcb128E() override;
+        public:
+            AesEcb256W128E();
+
+            ~AesEcb256W128E() override;
 
             void init(unsigned char *key) override;
 
@@ -59,11 +59,11 @@ namespace intel {
                     size_t out_start) override;
         };
 
-        class AesEcb128D : public AesEcb {
+        class AesEcb256W128D : public AesEcb256W {
         public:
-            AesEcb128D();
+            AesEcb256W128D();
 
-            ~AesEcb128D() override;
+            ~AesEcb256W128D() override;
 
             void init(unsigned char *key) override;
 
@@ -76,11 +76,11 @@ namespace intel {
                     size_t out_start) override;
         };
 
-        class AesEcb192E : public AesEcb {
+        class AesEcb256W192E : public AesEcb256W {
         public:
-            AesEcb192E();
+            AesEcb256W192E();
 
-            ~AesEcb192E() override;
+            ~AesEcb256W192E() override;
 
             void init(unsigned char *key) override;
 
@@ -92,47 +92,12 @@ namespace intel {
                     unsigned char *output,
                     size_t out_start) override;
         };
-        class AesEcb192D : public AesEcb {
+        class AesEcb256W192D : public AesEcb256W {
 
         public:
-            AesEcb192D();
+            AesEcb256W192D();
 
-            ~AesEcb192D() override;
-
-            void init(unsigned char *key) override;
-
-            size_t processBlocks(
-                    unsigned char *input,
-                    size_t in_start,
-                    size_t in_len,
-                    uint32_t blocks,
-                    unsigned char *output,
-                    size_t out_start) override;
-        };
-
-
-        class AesEcb256E : public AesEcb {
-        public:
-            AesEcb256E();
-
-            ~AesEcb256E() override;
-
-            void init(unsigned char *key) override;
-
-            size_t processBlocks(
-                    unsigned char *input,
-                    size_t in_start,
-                    size_t in_len,
-                    uint32_t blocks,
-                    unsigned char *output,
-                    size_t out_start) override;
-        };
-        class AesEcb256D : public AesEcb {
-
-        public:
-            AesEcb256D();
-
-            ~AesEcb256D() override;
+            ~AesEcb256W192D() override;
 
             void init(unsigned char *key) override;
 
@@ -145,8 +110,43 @@ namespace intel {
                     size_t out_start) override;
         };
 
-    };
+
+        class AesEcb256W256E : public AesEcb256W {
+        public:
+            AesEcb256W256E();
+
+            ~AesEcb256W256E() override;
+
+            void init(unsigned char *key) override;
+
+            size_t processBlocks(
+                    unsigned char *input,
+                    size_t in_start,
+                    size_t in_len,
+                    uint32_t blocks,
+                    unsigned char *output,
+                    size_t out_start) override;
+        };
+        class AesEcb256W256D : public AesEcb256W {
+
+        public:
+            AesEcb256W256D();
+
+            ~AesEcb256W256D() override;
+
+            void init(unsigned char *key) override;
+
+            size_t processBlocks(
+                    unsigned char *input,
+                    size_t in_start,
+                    size_t in_len,
+                    uint32_t blocks,
+                    unsigned char *output,
+                    size_t out_start) override;
+        };
+
+    }
 }
 
 
-#endif //CORENATIVE_AESECB_H
+#endif //BCN_AESECBW256_H

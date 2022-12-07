@@ -2,10 +2,8 @@
 // Created  on 18/5/2022.
 //
 
-#include <stdexcept>
 #include <wmmintrin.h>
 #include <cstring>
-#include <iostream>
 #include "AesEcb.h"
 #include "../common.h"
 
@@ -17,6 +15,20 @@
  */
 uint32_t intel::ecb::AesEcb::getMultiBlockSize() {
     return ECB_BLOCK_SIZE;
+}
+
+
+intel::ecb::AesEcb::AesEcb() {
+    roundKeys = new __m128i[15];
+}
+
+intel::ecb::AesEcb::~AesEcb() {
+    memset(roundKeys,0, 15 * sizeof(__m128i));
+    delete[] roundKeys;
+}
+
+void intel::ecb::AesEcb::reset() {
+
 }
 
 

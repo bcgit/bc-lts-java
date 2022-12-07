@@ -76,6 +76,10 @@ task withNative() {
             copyDirContent("$rootDir/native/target/linux/x86_64/vaes", "$projectDir/src/main/resources/native/linux/x86_64/vaes")
         }
 
+        if (directoryExists("$rootDir/native/target/linux/x86_64/vaesf")) {
+            copyDirContent("$rootDir/native/target/linux/x86_64/vaesf", "$projectDir/src/main/resources/native/linux/x86_64/vaesf")
+        }
+
     }
 }
 
