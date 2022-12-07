@@ -206,6 +206,22 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             intel/jni/ecb_jni.cpp
             )
 
+    set (ECB_VAES
+            intel/ecb/AesEcb256W.h
+            intel/ecb/AesEcb256W.cpp
+            intel/ecb/ecb.cpp
+            intel/ecb/ecb.h
+            intel/jni/ecb_jni_vaes.cpp
+            )
+
+    set (ECB_VAES_512f
+            intel/ecb/AesEcb512W.h
+            intel/ecb/AesEcb512W.cpp
+            intel/ecb/ecb.cpp
+            intel/ecb/ecb.h
+            intel/jni/ecb_jni_vaesf.cpp
+            )
+
     set(GCM intel/jni/gcm_jni.cpp
             intel/gcm/AesGcm128wide.cpp
             intel/gcm/AesGcm128wide.h
@@ -323,7 +339,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 
             ${GCM_VAES}
             ${CBC_VAES}
-            ${ECB}
+            ${ECB_VAES}
             ${CFB}
             ${EXCEPTIONS}
             ${DIGEST}
@@ -340,6 +356,44 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             )
     install(TARGETS "${LIB_NATIVE}-vaes" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaes)
     target_compile_definitions("${LIB_NATIVE}-vaes" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"vaes\" BC_VAES BUILD_TS=\"${BUILD_TS}\")
+
+
+
+    #
+    # VAES VERSION
+    #
+    add_library("${LIB_NATIVE}-vaesf" SHARED
+
+            ${MACRO}
+            ${COMMON}
+
+            ${RAND_HEADERS}
+            ${RAND_IMPL}
+
+            ${JVM_UTIL_HEADERS}
+            ${JVM_UTIL_IMPL}
+            ${IDENT_IMPL}
+
+            ${GCM_VAES}
+            ${CBC_VAES}
+            ${ECB_VAES_512f}
+            ${CFB}
+            ${EXCEPTIONS}
+            ${DIGEST}
+            )
+    target_include_directories("${LIB_NATIVE}-vaesf" PUBLIC ${JNI_INCLUDES})
+
+
+    #
+    #-mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS}
+    #Intel
+    target_compile_options("${LIB_NATIVE}-vaesf" PRIVATE
+            $<$<COMPILE_LANGUAGE:CXX>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f ${OPTIONS} >
+            $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f ${OPTIONS}>
+            )
+    install(TARGETS "${LIB_NATIVE}-vaesf" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaesf)
+    target_compile_definitions("${LIB_NATIVE}-vaesf" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"vaesf\" BC_VAES BUILD_TS=\"${BUILD_TS}\")
+
 
 
 endif ()

@@ -133,6 +133,23 @@ subprojects {
   sourceCompatibility = "$vm_source"
   targetCompatibility = "$vm_target"
 
+  task('testVAESF', type: Test) {
+    systemProperty 'bc.test.data.home', bcTestDataHome
+    maxHeapSize = "2048m"
+    testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
+
+    filter {
+      includeTestsMatching "AllTest*"
+    }
+    jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=vaesf'
+
+  }
+
+
+
   task('testVAES', type: Test) {
     systemProperty 'bc.test.data.home', bcTestDataHome
     maxHeapSize = "2048m"
@@ -144,18 +161,7 @@ subprojects {
     filter {
       includeTestsMatching "AllTest*"
     }
-
-//  doFirst {
-//    removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
-//  }
-
-//    jvmArgs propValsAsArgs(project, "testVAES", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
-//            propValsAsArgs(project, "testVAES", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
-//            propValsAsArgs(project, "testVAES", "x86_64", "failsafe_skip", "test.bcfips.ignore.native")
-
-    // jvmArgs '-Dtest.bcfips.ignore.native=sha', '-Dorg.bouncycastle.native.library_path=/tmp/bcfipslibs', '-Dorg.bouncycastle.native.cpu_variant=linux-x86_64-avx'
-
-    jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-libs', '-Dorg.bouncycastle.native.cpu_variant=vaes'
+    jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=vaes'
 
 
   }
@@ -185,7 +191,7 @@ subprojects {
 //            propValsAsArgs(project, "testAVX", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
 //            propValsAsArgs(project, "testAVX", "x86_64", "failsafe_skip", "test.bcfips.ignore.native")
 
-     jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-libs', '-Dorg.bouncycastle.native.cpu_variant=avx'
+     jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=avx'
 
   }
 
@@ -206,7 +212,7 @@ subprojects {
       }
     }
 
-    jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-libs', '-Dorg.bouncycastle.native.cpu_variant=sse'
+    jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=sse'
 
 
   }

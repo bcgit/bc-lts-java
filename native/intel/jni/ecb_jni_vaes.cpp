@@ -4,7 +4,7 @@
 #include "org_bouncycastle_crypto_engines_AESNativeEngine.h"
 #include "../ecb/ecb.h"
 #include "../../jniutil/JavaByteArray.h"
-#include "../ecb/AesEcb.h"
+#include "../ecb/AesEcb256W.h"
 #include "../../jniutil/JavaByteArrayCritical.h"
 #include "../../macro.h"
 
@@ -44,7 +44,8 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_proc
     jniutil::JavaByteArrayCritical in(env, _in);
 
     auto instance = static_cast<intel::ecb::ECB *>((void *) ref);
-    return (jint) instance->processBlocks(in.uvalue(), (size_t)inOffset, in.length(),(uint32_t) blocks, out.uvalue(), (size_t)outOffset);
+    return (jint) instance->processBlocks(in.uvalue(), (size_t) inOffset, in.length(), (uint32_t) blocks, out.uvalue(),
+                                          (size_t) outOffset);
 
 }
 
@@ -80,23 +81,23 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_mak
     switch (keyLen) {
         case 16:
             if (encryption) {
-                instance = new intel::ecb::AesEcb128E();
+                instance = new intel::ecb::AesEcb256W128E();
             } else {
-                instance = new intel::ecb::AesEcb128D();
+                instance = new intel::ecb::AesEcb256W128D();
             }
             break;
         case 24:
             if (encryption) {
-                instance = new intel::ecb::AesEcb192E();
+                instance = new intel::ecb::AesEcb256W192E();
             } else {
-                instance = new intel::ecb::AesEcb192D();
+                instance = new intel::ecb::AesEcb256W192D();
             }
             break;
         case 32:
             if (encryption) {
-                instance = new intel::ecb::AesEcb256E();
+                instance = new intel::ecb::AesEcb256W256E();
             } else {
-                instance = new intel::ecb::AesEcb256D();
+                instance = new intel::ecb::AesEcb256W256D();
             }
             break;
         default:
@@ -117,7 +118,6 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_mak
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_dispose
         (JNIEnv *, jclass, jlong ref) {
-
     auto instance = static_cast<intel::ecb::ECB *>((void *) ref);
     delete instance;
 }

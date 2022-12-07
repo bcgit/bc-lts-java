@@ -9,13 +9,10 @@
 #include <cstdint>
 #include <emmintrin.h>
 
-#define ECB_TYPE_AES 0
-#define ECB_TYPE_AES_AVX 1
-#define ECB_TYPE_VAES 2
-#define ECB_TYPE_VAES_AVX512VL 3
-#define ECB_TYPE_VAES_AVX512VF 4
 
 #define ECB_BLOCK_SIZE 16
+#define ECB_BLOCK_SIZE_2 32
+#define ECB_BLOCK_SIZE_4 64
 
 namespace intel {
     namespace ecb {
@@ -24,13 +21,12 @@ namespace intel {
  * Interface for all ECB variants.
  */
         class ECB {
-        protected:
-            __m128i *roundKeys;
+
         public:
 
             ECB();
 
-            virtual ~ECB();
+            virtual ~ECB() = 0;
 
             virtual uint32_t getMultiBlockSize() = 0;
 

@@ -40,21 +40,15 @@ JNIEXPORT jstring JNICALL Java_org_bouncycastle_crypto_VariantSelector_getBestVa
     //
     cpuid(&info, 7, 0);
     bool vaes = ((info.ecx >> 9) & 1) != 0; // vaes
-    //  bool avx512f = ((info.ebx >> 16) & 1) != 0;
-    // bool avx512vl = ((info.ebx >> 31) & 1) != 0;
-    // bool avx2 = ((info.ebx >> 5) & 1) != 0; // avx2
-
-    /*
-     * if (vaes) {
-        return env->NewStringUTF(BC_VARIANT_PREFIX"-vaes");
-    }
-     */
+    bool avx512f = ((info.ebx >> 16) & 1) != 0;
 
 
     //
     // Strings owned by JVM
     //
-    if (vaes) {
+    if (vaes && avx512f) {
+        return env->NewStringUTF("vaesf");
+    } else if (vaes) {
         return env->NewStringUTF("vaes");
     } else if (avx) {
         return env->NewStringUTF("avx");
