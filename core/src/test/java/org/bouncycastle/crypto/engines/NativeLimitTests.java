@@ -13,7 +13,6 @@ public class NativeLimitTests
     extends TestCase
 {
 
-
     @Test
     public void testCBCInit()
         throws Exception
@@ -21,6 +20,11 @@ public class NativeLimitTests
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("cbc"))
+            {
+                fail("no native cbc and no skip set for it");
+                return;
+            }
             System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -140,6 +144,11 @@ public class NativeLimitTests
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("cbc"))
+            {
+                fail("no native cbc and no skip set for it");
+                return;
+            }
             System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -284,6 +293,11 @@ public class NativeLimitTests
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("cbc"))
+            {
+                fail("no native cbc and no skip set for it");
+                return;
+            }
             System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -494,6 +508,11 @@ public class NativeLimitTests
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/ECB"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("ecb"))
+            {
+                fail("no native ecb and no skip set for it");
+                return;
+            }
             System.out.println("Skipping ECB Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -552,6 +571,11 @@ public class NativeLimitTests
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/ECB"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("ecb"))
+            {
+                fail("no native ecb and no skip set for it");
+                return;
+            }
             System.out.println("Skipping ECB Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -732,6 +756,11 @@ public class NativeLimitTests
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/ECB"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("ecb"))
+            {
+                fail("no native ecb and no skip set for it");
+                return;
+            }
             System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -990,6 +1019,11 @@ public class NativeLimitTests
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            {
+                fail("no native gcm and no skip set for it");
+                return;
+            }
             System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -1154,6 +1188,11 @@ public class NativeLimitTests
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            {
+                fail("no native gcm and no skip set for it");
+                return;
+            }
             System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -1337,6 +1376,11 @@ public class NativeLimitTests
     {
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            {
+                fail("no native gcm and no skip set for it");
+                return;
+            }
             System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -1417,6 +1461,11 @@ public class NativeLimitTests
     {
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            {
+                fail("no native gcm and no skip set for it");
+                return;
+            }
             System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -1492,6 +1541,11 @@ public class NativeLimitTests
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            {
+                fail("no native gcm and no skip set for it");
+                return;
+            }
             System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -1586,6 +1640,11 @@ public class NativeLimitTests
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            {
+                fail("no native gcm and no skip set for it");
+                return;
+            }
             System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -1731,6 +1790,11 @@ public class NativeLimitTests
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            {
+                fail("no native gcm and no skip set for it");
+                return;
+            }
             System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -2064,6 +2128,11 @@ public class NativeLimitTests
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("cfb"))
+            {
+                fail("no native cfb and no skip set for it");
+                return;
+            }
             System.out.println("Skipping CFB Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -2265,6 +2334,11 @@ public class NativeLimitTests
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("cfb"))
+            {
+                fail("no native cfb and no skip set for it");
+                return;
+            }
             System.out.println("Skipping CFB Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -2407,6 +2481,11 @@ public class NativeLimitTests
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("cfb"))
+            {
+                fail("no native cfb and no skip set for it");
+                return;
+            }
             System.out.println("Skipping CFB Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -2561,8 +2640,13 @@ public class NativeLimitTests
         throws Exception
     {
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC"))
+        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("cfb"))
+            {
+                fail("no native cfb and no skip set for it");
+                return;
+            }
             System.out.println("Skipping CFB Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }

@@ -6,7 +6,12 @@
 #include <cstdint>
 #include <emmintrin.h>
 
+#define CBC_BLOCK_SIZE 16
+#define CBC_BLOCK_SIZE_2 32
+#define CBC_BLOCK_SIZE_4 64
+
 namespace intel {
+
 
     namespace  cbc {
         class CBCLike {

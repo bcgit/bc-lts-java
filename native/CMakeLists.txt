@@ -182,13 +182,27 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             intel/cbc/CBC128wide.cpp
             intel/cbc/CBC128wide.h
             intel/cbc/AesCBCEncrypt.cpp
-            intel/cbc/AesCBCDecryptVaes.h
-            intel/cbc/AesCBCDecryptVaes.cpp
             intel/cbc/CBC256wide.h
             intel/cbc/CBC256wide.cpp
+            intel/cbc/AesCBCDecryptVaes.h
             intel/cbc/AesCBCDecryptVaes.cpp
             intel/jni/cbc_jni_vaes.cpp
             )
+
+    set(CBC_VAES_512f
+            intel/cbc/CBCLike.h
+            intel/cbc/CBCLike.cpp
+            intel/cbc/CBC128wide.cpp
+            intel/cbc/CBC128wide.h
+            intel/cbc/AesCBCEncrypt.cpp
+            intel/cbc/AesCBCDecryptVaesF.h
+            intel/cbc/AesCBCDecryptVaesF.cpp
+            intel/cbc/CBC512wide.cpp
+            intel/cbc/CBC512wide.h
+            intel/jni/cbc_jni_vaes_f.cpp
+            )
+
+
 
     set(CFB intel/cfb/AesCFB.h
             intel/cfb/AesCFB128Impl.cpp
@@ -375,11 +389,14 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${IDENT_IMPL}
 
             ${GCM_VAES}
-            ${CBC_VAES}
+            ${CBC_VAES_512f}
             ${ECB_VAES_512f}
             ${CFB}
             ${EXCEPTIONS}
             ${DIGEST}
+
+            debug.h
+            debug.cpp
             )
     target_include_directories("${LIB_NATIVE}-vaesf" PUBLIC ${JNI_INCLUDES})
 
@@ -389,7 +406,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     #Intel
     target_compile_options("${LIB_NATIVE}-vaesf" PRIVATE
             $<$<COMPILE_LANGUAGE:CXX>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f ${OPTIONS} >
-            $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f ${OPTIONS}>
+            $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f  ${OPTIONS}>
             )
     install(TARGETS "${LIB_NATIVE}-vaesf" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaesf)
     target_compile_definitions("${LIB_NATIVE}-vaesf" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"vaesf\" BC_VAES BUILD_TS=\"${BUILD_TS}\")
@@ -407,8 +424,9 @@ endif ()
 
 ## Uncomment to enable test project
 #add_executable(tryit main.cpp debug.h debug.cpp)
-#target_link_libraries(tryit "${LIB_NATIVE}-vaes")
-#target_compile_options("tryit" PRIVATE $<$<COMPILE_LANGUAGE:CXX>: -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt> $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2>)
+#target_link_libraries(tryit "${LIB_NATIVE}-vaesf")
+#target_compile_options("tryit" PRIVATE $<$<COMPILE_LANGUAGE:CXX>: -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mavx512f >
+#        $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f>)
 #target_compile_definitions("tryit" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"vaes\" ${ASM_DEFINES} _ARCH_EM64T _L9)
 
 ###

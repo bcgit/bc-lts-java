@@ -28,18 +28,24 @@ public class AesCBCConcordanceTest
     public void testCBCConcordance()
         throws Exception
     {
-
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("cbc"))
+            {
+                fail("no native cbc and no skip set for it");
+                return;
+            }
             System.out.println("Skipping CBC native concordance test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
+
 
 
         SecureRandom secureRandom = new SecureRandom();
 
         for (int keySize : new int[]{16, 24, 32})
         {
+
 
             for (int t = 0; t < 10000; t++)
             {
@@ -84,7 +90,7 @@ public class AesCBCConcordanceTest
                 len = nativeEngine.processBlocks(nativeCT, 0, blocks, nativePT, 0);
                 TestCase.assertEquals(len, msg.length);
 
-                TestCase.assertTrue("native PT matches java PT", Arrays.areEqual(javaPT, nativePT));
+                TestCase.assertTrue("native PT matches java PT "+keySize+" "+msg.length, Arrays.areEqual(javaPT, nativePT));
                 TestCase.assertTrue("PT matches original message", Arrays.areEqual(javaPT, msg));
 
                 //

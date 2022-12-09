@@ -10,7 +10,7 @@
 #include <cstdint>
 #include "CBCLike.h"
 
-#define CBC_BLOCK_SIZE 16
+
 
 namespace intel {
     namespace cbc {

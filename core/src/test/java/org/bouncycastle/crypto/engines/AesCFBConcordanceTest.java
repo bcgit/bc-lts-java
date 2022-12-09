@@ -31,7 +31,13 @@ public class AesCFBConcordanceTest
     public void testCFBByteByByte() throws Exception {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB")) {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("cfb"))
+            {
+                fail("no native cfb and no skip set for it");
+                return;
+            }
             System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.getNativeStatus());
+
             return;
         }
 
@@ -122,6 +128,13 @@ public class AesCFBConcordanceTest
     public void testCFBOffsetByte() throws Exception {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB")) {
+
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("cfb"))
+            {
+                fail("no native cfb and no skip set for it");
+                return;
+            }
+
             System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
