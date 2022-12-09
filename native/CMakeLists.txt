@@ -394,9 +394,6 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${CFB}
             ${EXCEPTIONS}
             ${DIGEST}
-
-            debug.h
-            debug.cpp
             )
     target_include_directories("${LIB_NATIVE}-vaesf" PUBLIC ${JNI_INCLUDES})
 
