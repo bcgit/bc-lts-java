@@ -20,6 +20,11 @@ public class NativeDigestTests extends TestCase
 
         if (!CryptoServicesRegistrar.getNativeServices().hasAnyFeature(NativeServices.SHA2))
         {
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            {
+                fail("no native sha and no skip set for it");
+                return;
+            }
             System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
@@ -37,7 +42,12 @@ public class NativeDigestTests extends TestCase
     {
         if (!CryptoServicesRegistrar.getNativeServices().hasAnyFeature(NativeServices.SHA2))
         {
-            System.out.println("Skipping testSHA256FullStateEncoding, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            {
+                fail("no native sha and no skip set for it");
+                return;
+            }
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
 
@@ -78,7 +88,12 @@ public class NativeDigestTests extends TestCase
     {
         if (!CryptoServicesRegistrar.getNativeServices().hasAnyFeature(NativeServices.SHA2))
         {
-            System.out.println("Skipping testSHA256ByteByByte, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            {
+                fail("no native sha and no skip set for it");
+                return;
+            }
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
 
@@ -117,7 +132,12 @@ public class NativeDigestTests extends TestCase
     {
         if (!CryptoServicesRegistrar.getNativeServices().hasAnyFeature(NativeServices.SHA2))
         {
-            System.out.println("Skipping testSHA256FullStateEncoding, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            {
+                fail("no native sha and no skip set for it");
+                return;
+            }
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
 
@@ -158,7 +178,12 @@ public class NativeDigestTests extends TestCase
 
         if (!CryptoServicesRegistrar.getNativeServices().hasAnyFeature(NativeServices.SHA2))
         {
-            System.out.println("Skipping update input validation, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            {
+                fail("no native sha and no skip set for it");
+                return;
+            }
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
 
@@ -271,7 +296,12 @@ public class NativeDigestTests extends TestCase
     {
         if (!CryptoServicesRegistrar.getNativeServices().hasAnyFeature(NativeServices.SHA2))
         {
-            System.out.println("Skipping doFinal input validation, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            {
+                fail("no native sha and no skip set for it");
+                return;
+            }
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
 
@@ -359,7 +389,12 @@ public class NativeDigestTests extends TestCase
     {
         if (!CryptoServicesRegistrar.getNativeServices().hasAnyFeature(NativeServices.SHA2))
         {
-            System.out.println("Skipping doFinal input validation, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            {
+                fail("no native sha and no skip set for it");
+                return;
+            }
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
 
@@ -459,7 +494,12 @@ public class NativeDigestTests extends TestCase
     {
         if (!CryptoServicesRegistrar.getNativeServices().hasAnyFeature(NativeServices.SHA2))
         {
-            System.out.println("Skipping doFinal input validation, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            {
+                fail("no native sha and no skip set for it");
+                return;
+            }
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
 
@@ -560,10 +600,14 @@ public class NativeDigestTests extends TestCase
     {
         if (!CryptoServicesRegistrar.getNativeServices().hasAnyFeature(NativeServices.SHA2))
         {
-            System.out.println("Skipping testMemoable, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            {
+                fail("no native sha and no skip set for it");
+                return;
+            }
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
-
 
         // There are other tests for memoable, this is more of a sanity test
 

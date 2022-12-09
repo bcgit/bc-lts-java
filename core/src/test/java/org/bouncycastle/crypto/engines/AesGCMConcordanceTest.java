@@ -29,6 +29,11 @@ public class AesGCMConcordanceTest
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            {
+                fail("no native gcm and no skip set for it");
+                return;
+            }
             System.out.println("Skipping GCM native concordance test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
