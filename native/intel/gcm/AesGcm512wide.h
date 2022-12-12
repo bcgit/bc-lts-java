@@ -6,9 +6,7 @@
 #define CORENATIVE_AESGCM_H
 
 #ifdef __linux__
-
 #include <stdint.h>
-
 #else
 
 #include <cstdint>
@@ -25,8 +23,6 @@ namespace intel {
 
 #define BLOCK_SIZE 16
 #define FOUR_BLOCKS 64
-
-        static __m256i INC4 = _mm256_set_epi32(0, 4, 0, 0, 0, 4, 0, 0);
 
         void gfmul(__m128i a, __m128i b, __m128i *res);
 
@@ -62,17 +58,14 @@ namespace intel {
         };
 
 
-        class AesGcm256wide : public GCM {
+        class AesGcm512wide : public GCM {
         public:
         private:
 
             static __m128i BSWAP_EPI64;
-            static __m256i BSWAP_EPI64_256;
             static __m128i BSWAP_MASK;
 
-
-
-            __m512i *roundKeys512;
+            __m256i *roundKeys512;
             __m256i *roundKeys256;
             __m128i *roundKeys128;
 
@@ -94,9 +87,6 @@ namespace intel {
             uint32_t rounds;
 
             __m128i ctr1;
-            __m256i ctr12;
-            __m256i ctr34;
-
 
             // AD
 
@@ -127,9 +117,9 @@ namespace intel {
             void initCipher();
 
         public:
-            AesGcm256wide();
+            AesGcm512wide();
 
-            ~AesGcm256wide() override;
+            ~AesGcm512wide() override;
 
             void reset(bool keepMac) override;
 
