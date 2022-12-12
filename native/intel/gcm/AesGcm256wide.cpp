@@ -8,14 +8,15 @@
 #include "AesGcm256wide.h"
 #include "../../exceptions/CipherTextException.h"
 #include "../../exceptions/OutputLengthException.h"
-#include "../../macro.h"
+#include <immintrin.h>
 #include <iostream>
-#include <wmmintrin.h>
-#include <emmintrin.h>
-#include <smmintrin.h>
-
+#include "../common.h"
 
 __m128i intel::gcm::AesGcm256wide::BSWAP_EPI64 = _mm_set_epi8(8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7);
+__m256i intel::gcm::AesGcm256wide::BSWAP_EPI64_256 = _mm256_set_epi8(8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6,
+                                                                     7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5,
+                                                                     6, 7);
+
 __m128i intel::gcm::AesGcm256wide::BSWAP_MASK = _mm_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
 
 #define BLOCKS_REMAINING_INIT ((1L << 32) - 2L)
@@ -38,221 +39,6 @@ bool areEqualCT(const unsigned char *left, const unsigned char *right, size_t le
 
     return nonEqual == 0;
 
-}
-
-__m128i AES_128_ASSIST(__m128i temp1, __m128i temp2) {
-    __m128i temp3;
-    temp2 = _mm_shuffle_epi32 (temp2, 0xff);
-    temp3 = _mm_slli_si128 (temp1, 0x4);
-    temp1 = _mm_xor_si128(temp1, temp3);
-    temp3 = _mm_slli_si128 (temp3, 0x4);
-    temp1 = _mm_xor_si128(temp1, temp3);
-    temp3 = _mm_slli_si128 (temp3, 0x4);
-    temp1 = _mm_xor_si128(temp1, temp3);
-    temp1 = _mm_xor_si128(temp1, temp2);
-
-    memset(&temp2, 0, sizeof(__m128i));
-    memset(&temp3, 0, sizeof(__m128i));
-    return temp1;
-}
-
-inline void KEY_192_ASSIST(__m128i *temp1, __m128i *temp2, __m128i *temp3) {
-    __m128i temp4;
-    *temp2 = _mm_shuffle_epi32 (*temp2, 0x55);
-    temp4 = _mm_slli_si128 (*temp1, 0x4);
-    *temp1 = _mm_xor_si128(*temp1, temp4);
-    temp4 = _mm_slli_si128 (temp4, 0x4);
-    *temp1 = _mm_xor_si128(*temp1, temp4);
-    temp4 = _mm_slli_si128 (temp4, 0x4);
-    *temp1 = _mm_xor_si128(*temp1, temp4);
-    *temp1 = _mm_xor_si128(*temp1, *temp2);
-    *temp2 = _mm_shuffle_epi32(*temp1, 0xff);
-    temp4 = _mm_slli_si128 (*temp3, 0x4);
-    *temp3 = _mm_xor_si128(*temp3, temp4);
-    *temp3 = _mm_xor_si128(*temp3, *temp2);
-}
-
-inline void KEY_256_ASSIST_1(__m128i *temp1, __m128i *temp2) {
-    __m128i temp4;
-    *temp2 = _mm_shuffle_epi32(*temp2, 0xff);
-    temp4 = _mm_slli_si128 (*temp1, 0x4);
-    *temp1 = _mm_xor_si128(*temp1, temp4);
-    temp4 = _mm_slli_si128 (temp4, 0x4);
-    *temp1 = _mm_xor_si128(*temp1, temp4);
-    temp4 = _mm_slli_si128 (temp4, 0x4);
-    *temp1 = _mm_xor_si128(*temp1, temp4);
-    *temp1 = _mm_xor_si128(*temp1, *temp2);
-}
-
-inline void KEY_256_ASSIST_2(__m128i *temp1, __m128i *temp3) {
-    __m128i temp2, temp4;
-    temp4 = _mm_aeskeygenassist_si128 (*temp1, 0x0);
-    temp2 = _mm_shuffle_epi32(temp4, 0xaa);
-    temp4 = _mm_slli_si128 (*temp3, 0x4);
-    *temp3 = _mm_xor_si128(*temp3, temp4);
-    temp4 = _mm_slli_si128 (temp4, 0x4);
-    *temp3 = _mm_xor_si128(*temp3, temp4);
-    temp4 = _mm_slli_si128 (temp4, 0x4);
-    *temp3 = _mm_xor_si128(*temp3, temp4);
-    *temp3 = _mm_xor_si128(*temp3, temp2);
-}
-
-inline void init_256(__m128i *rk, unsigned char *uk, bool enc) {
-    __m128i temp1, temp2, temp3;
-
-    temp1 = _mm_loadu_si128((__m128i *) uk);
-    temp3 = _mm_loadu_si128((__m128i *) (uk + 16));
-    rk[0] = temp1;
-    rk[1] = temp3;
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x01);
-    KEY_256_ASSIST_1(&temp1, &temp2);
-    rk[2] = temp1;
-    KEY_256_ASSIST_2(&temp1, &temp3);
-    rk[3] = temp3;
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x02);
-    KEY_256_ASSIST_1(&temp1, &temp2);
-    rk[4] = temp1;
-    KEY_256_ASSIST_2(&temp1, &temp3);
-    rk[5] = temp3;
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x04);
-    KEY_256_ASSIST_1(&temp1, &temp2);
-    rk[6] = temp1;
-    KEY_256_ASSIST_2(&temp1, &temp3);
-    rk[7] = temp3;
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x08);
-    KEY_256_ASSIST_1(&temp1, &temp2);
-    rk[8] = temp1;
-    KEY_256_ASSIST_2(&temp1, &temp3);
-    rk[9] = temp3;
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x10);
-    KEY_256_ASSIST_1(&temp1, &temp2);
-    rk[10] = temp1;
-    KEY_256_ASSIST_2(&temp1, &temp3);
-    rk[11] = temp3;
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x20);
-    KEY_256_ASSIST_1(&temp1, &temp2);
-    rk[12] = temp1;
-    KEY_256_ASSIST_2(&temp1, &temp3);
-    rk[13] = temp3;
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x40);
-    KEY_256_ASSIST_1(&temp1, &temp2);
-    rk[14] = temp1;
-
-    memset(&temp1, 0, sizeof(__m128i));
-    memset(&temp2, 0, sizeof(__m128i));
-    memset(&temp3, 0, sizeof(__m128i));
-}
-
-inline void init_192(__m128i *rk, unsigned char *uk, bool enc) {
-    __m128i temp1, temp2, temp3, temp4;
-
-    temp1 = _mm_loadu_si128((__m128i *) uk);
-    temp3 = _mm_loadu_si128((__m128i *) (uk + 16));
-    rk[0] = temp1;
-    rk[1] = temp3;
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x1);
-    KEY_192_ASSIST(&temp1, &temp2, &temp3);
-
-
-    rk[1] = (__m128i) _mm_shuffle_pd((__m128d) rk[1],
-                                     (__m128d) temp1, 0);
-    rk[2] = (__m128i) _mm_shuffle_pd((__m128d) temp1, (__m128d) temp3, 1);
-
-
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x2);
-    KEY_192_ASSIST(&temp1, &temp2, &temp3);
-    rk[3] = temp1;
-    rk[4] = temp3;
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x4);
-    KEY_192_ASSIST(&temp1, &temp2, &temp3);
-
-    rk[4] = (__m128i) _mm_shuffle_pd((__m128d) rk[4],
-                                     (__m128d) temp1, 0);
-    rk[5] = (__m128i) _mm_shuffle_pd((__m128d) temp1, (__m128d) temp3, 1);
-
-
-    rk[4] = _mm_castpd_si128(_mm_shuffle_pd(_mm_castsi128_pd(rk[4]),
-                                            _mm_castsi128_pd(temp1), 0));
-    rk[5] = _mm_castpd_si128(_mm_shuffle_pd(_mm_castsi128_pd(temp1), _mm_castsi128_pd(temp3), 1));
-
-
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x8);
-    KEY_192_ASSIST(&temp1, &temp2, &temp3);
-    rk[6] = temp1;
-    rk[7] = temp3;
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x10);
-    KEY_192_ASSIST(&temp1, &temp2, &temp3);
-
-
-    rk[7] = (__m128i) _mm_shuffle_pd((__m128d) rk[7],
-                                     (__m128d) temp1, 0);
-    rk[8] = (__m128i) _mm_shuffle_pd((__m128d) temp1, (__m128d) temp3, 1);
-
-
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x20);
-    KEY_192_ASSIST(&temp1, &temp2, &temp3);
-    rk[9] = temp1;
-    rk[10] = temp3;
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x40);
-    KEY_192_ASSIST(&temp1, &temp2, &temp3);
-
-
-    rk[10] = (__m128i) _mm_shuffle_pd((__m128d) rk[10],
-                                      (__m128d) temp1, 0);
-    rk[11] = (__m128i) _mm_shuffle_pd((__m128d) temp1, (__m128d) temp3, 1);
-
-
-    temp2 = _mm_aeskeygenassist_si128 (temp3, 0x80);
-    KEY_192_ASSIST(&temp1, &temp2, &temp3);
-    rk[12] = temp1;
-
-
-    memset(&temp1, 0, sizeof(__m128i));
-    memset(&temp2, 0, sizeof(__m128i));
-    memset(&temp3, 0, sizeof(__m128i));
-    memset(&temp4, 0, sizeof(__m128i));
-}
-
-inline void init_128(__m128i *rk, unsigned char *uk, bool enc) {
-    __m128i temp1;
-    __m128i temp2;
-
-    temp1 = _mm_loadu_si128((__m128i *) uk);
-    rk[0] = temp1;
-    temp2 = _mm_aeskeygenassist_si128 (temp1, 0x1);
-    temp1 = AES_128_ASSIST(temp1, temp2);
-    rk[1] = temp1;
-    temp2 = _mm_aeskeygenassist_si128 (temp1, 0x2);
-    temp1 = AES_128_ASSIST(temp1, temp2);
-    rk[2] = temp1;
-    temp2 = _mm_aeskeygenassist_si128 (temp1, 0x4);
-    temp1 = AES_128_ASSIST(temp1, temp2);
-    rk[3] = temp1;
-    temp2 = _mm_aeskeygenassist_si128 (temp1, 0x8);
-    temp1 = AES_128_ASSIST(temp1, temp2);
-    rk[4] = temp1;
-    temp2 = _mm_aeskeygenassist_si128 (temp1, 0x10);
-    temp1 = AES_128_ASSIST(temp1, temp2);
-    rk[5] = temp1;
-    temp2 = _mm_aeskeygenassist_si128 (temp1, 0x20);
-    temp1 = AES_128_ASSIST(temp1, temp2);
-    rk[6] = temp1;
-    temp2 = _mm_aeskeygenassist_si128 (temp1, 0x40);
-    temp1 = AES_128_ASSIST(temp1, temp2);
-    rk[7] = temp1;
-    temp2 = _mm_aeskeygenassist_si128 (temp1, 0x80);
-    temp1 = AES_128_ASSIST(temp1, temp2);
-    rk[8] = temp1;
-    temp2 = _mm_aeskeygenassist_si128 (temp1, 0x1b);
-    temp1 = AES_128_ASSIST(temp1, temp2);
-    rk[9] = temp1;
-    temp2 = _mm_aeskeygenassist_si128 (temp1, 0x36);
-    temp1 = AES_128_ASSIST(temp1, temp2);
-    rk[10] = temp1;
-
-
-    memset(&temp1, 0, sizeof(__m128i));
-    memset(&temp2, 0, sizeof(__m128i));
 }
 
 
@@ -419,11 +205,6 @@ void intel::gcm::AesGcm256wide::init(bool encryption, unsigned char *key, size_t
     }
 
 
-//    //
-//    // Set up key schedule.
-//    //
-//    intel::aes::init(rounds, true, this->roundKeys, key);
-
     S_at = _mm_setzero_si128();
     S_atPre = _mm_setzero_si128();
 
@@ -439,35 +220,15 @@ void intel::gcm::AesGcm256wide::init(bool encryption, unsigned char *key, size_t
         Y = _mm_insert_epi32(Y, 0x1000000, 3);
 
         __m256i zulu = _mm256_set_m128i(X, Y);
-
         zulu = _mm256_xor_si256(zulu, roundKeys256[0]);
 
-        //tmp1 = _mm_xor_si128(X, roundKeys[0]);
-        // tmp2 = _mm_xor_si128(Y, roundKeys[0]);
-
-
-
         for (int j = 1; j < rounds - 1; j += 2) {
-
             zulu = _mm256_aesenc_epi128(zulu, roundKeys256[j]);
             zulu = _mm256_aesenc_epi128(zulu, roundKeys256[j + 1]);
-
-//            tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j]);
-//            tmp2 = _mm_aesenc_si128(tmp2, roundKeys[j]);
-//            tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j + 1]);
-//            tmp2 = _mm_aesenc_si128(tmp2, roundKeys[j + 1]);
         }
 
         zulu = _mm256_aesenc_epi128(zulu, roundKeys256[rounds - 1]);
 
-
-//        tmp1 = _mm_aesenc_si128(tmp1, roundKeys[rounds - 1]);
-//        tmp2 = _mm_aesenc_si128(tmp2, roundKeys[rounds - 1]);
-
-
-
-//        H =    _mm_aesenclast_si128(tmp1, roundKeys[rounds]);
-//        T = _mm_aesenclast_si128(tmp2, roundKeys[rounds]);
 
         zulu = _mm256_aesenclast_epi128(zulu, roundKeys256[rounds]);
 
@@ -539,6 +300,10 @@ void intel::gcm::AesGcm256wide::init(bool encryption, unsigned char *key, size_t
     //
     ctr1 = _mm_shuffle_epi8(Y, BSWAP_EPI64);
 
+    ctr12 = _mm256_set_m128i(_mm_add_epi32(ctr1, _mm_set_epi32(0, 2, 0, 0)), _mm_add_epi32(ctr1, _mm_set_epi32(0, 1, 0, 0)));
+    ctr34 = _mm256_set_m128i(
+            _mm_add_epi32(ctr1, _mm_set_epi32(0, 4, 0, 0)),
+            _mm_add_epi32(ctr1, _mm_set_epi32(0, 3, 0, 0)));
 }
 
 size_t intel::gcm::AesGcm256wide::getMacLen() {
@@ -914,66 +679,146 @@ void intel::gcm::AesGcm256wide::processFourBlocks(unsigned char *in, unsigned ch
         throw std::runtime_error("out is null, output generated when no output was expected by caller");
     }
 
+    auto out256 = (__m256i *) out;
+    auto in256 = (__m256i *) in;
+
     blocksRemaining -= 4;
     if (blocksRemaining < 0) {
         throw std::runtime_error("attempt to process too many blocks in GCM");
     }
-    ctr1 = _mm_add_epi32(ctr1, ONE);
-    __m128i ctr2 = _mm_add_epi32(ctr1, ONE);
-    __m128i ctr3 = _mm_add_epi32(ctr2, ONE);
-    __m128i ctr4 = _mm_add_epi32(ctr3, ONE);
 
-    __m128i tmp1 = _mm_shuffle_epi8(ctr1, BSWAP_EPI64);
-    __m128i tmp2 = _mm_shuffle_epi8(ctr2, BSWAP_EPI64);
-    __m128i tmp3 = _mm_shuffle_epi8(ctr3, BSWAP_EPI64);
-    __m128i tmp4 = _mm_shuffle_epi8(ctr4, BSWAP_EPI64);
+    //ctr1 = _mm_add_epi32(ctr1, ONE);
 
 
-    __m256i inw1 = _mm256_loadu_si256(((__m256i *) in));
-    in += BLOCK_SIZE * 2;
+//    __m128i ctr0 = _mm256_extracti128_si256(ctr12, 0);
+//    __m128i ctr2 = _mm256_extracti128_si256(ctr12, 1);// _mm_add_epi32(ctr1, ONE);//
+//    __m128i ctr3 = _mm256_extracti128_si256(ctr34, 0);//_mm_add_epi32(ctr2, ONE);
+//    __m128i ctr4 = _mm256_extracti128_si256(ctr34, 1);// _mm_add_epi32(ctr3, ONE); //
 
-    __m256i inw2 = _mm256_loadu_si256(((__m256i *) in));
-    in += BLOCK_SIZE * 2;
+    __m256i tmp12s = _mm256_shuffle_epi8(ctr12, BSWAP_EPI64_256);
+    __m256i tmp34s = _mm256_shuffle_epi8(ctr34, BSWAP_EPI64_256);
 
 
-    __m256i tmp12 = _mm256_xor_si256(_mm256_set_m128i(tmp2, tmp1), roundKeys256[0]);
-    __m256i tmp34 = _mm256_xor_si256(_mm256_set_m128i(tmp4, tmp3), roundKeys256[0]);
+    ctr12 = _mm256_add_epi32(ctr12, INC4);
+    ctr34 = _mm256_add_epi32(ctr34, INC4);
 
-// TODO expand
-    for (int j = 1; j < rounds - 1; j += 2) {
 
-        tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[j]);
-        tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[j]);
 
-        tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[j + 1]);
-        tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[j + 1]);
+//    __m128i tmp1 = _mm_shuffle_epi8(ctr0, BSWAP_EPI64);
+//    __m128i tmp2 = _mm_shuffle_epi8(ctr2, BSWAP_EPI64);
+//    __m128i tmp3 = _mm_shuffle_epi8(ctr3, BSWAP_EPI64);
+//    __m128i tmp4 = _mm_shuffle_epi8(ctr4, BSWAP_EPI64);
 
+    __m256i inw1 = _mm256_loadu_si256(in256++);
+    __m256i inw2 = _mm256_loadu_si256(in256++);
+
+    __m256i tmp12 = _mm256_xor_si256(tmp12s, roundKeys256[0]);
+    __m256i tmp34 = _mm256_xor_si256(tmp34s, roundKeys256[0]);
+
+
+    switch (rounds) {
+        case 10:
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[1]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[1]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[2]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[2]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[3]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[3]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[4]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[4]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[5]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[5]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[6]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[6]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[7]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[7]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[8]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[8]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[9]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[9]);
+            tmp12 = _mm256_aesenclast_epi128(tmp12, roundKeys256[10]);
+            tmp34 = _mm256_aesenclast_epi128(tmp34, roundKeys256[10]);
+            break;
+
+        case 12:
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[1]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[1]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[2]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[2]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[3]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[3]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[4]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[4]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[5]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[5]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[6]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[6]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[7]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[7]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[8]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[8]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[9]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[9]);
+
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[10]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[10]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[11]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[11]);
+
+            tmp12 = _mm256_aesenclast_epi128(tmp12, roundKeys256[12]);
+            tmp34 = _mm256_aesenclast_epi128(tmp34, roundKeys256[12]);
+            break;
+
+        case 14:
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[1]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[1]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[2]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[2]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[3]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[3]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[4]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[4]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[5]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[5]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[6]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[6]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[7]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[7]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[8]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[8]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[9]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[9]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[10]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[10]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[11]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[11]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[12]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[12]);
+            tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[13]);
+            tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[13]);
+            tmp12 = _mm256_aesenclast_epi128(tmp12, roundKeys256[14]);
+            tmp34 = _mm256_aesenclast_epi128(tmp34, roundKeys256[14]);
+            break;
+
+        default:
+            throw std::runtime_error("invalid rounds at lowest level of api");
+            break;
     }
 
-    tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[rounds - 1]);
-    tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[rounds - 1]);
+
+    tmp12 = _mm256_xor_si256(tmp12, inw1);
+    tmp34 = _mm256_xor_si256(tmp34, inw2);
 
 
-    tmp12 = _mm256_aesenclast_epi128(tmp12, roundKeys256[rounds]);
-    tmp34 = _mm256_aesenclast_epi128(tmp34, roundKeys256[rounds]);
-
-
-    tmp12 = _mm256_xor_si256(tmp12, inw1); //  _mm256_set_m128i(in2, in1));
-    tmp34 = _mm256_xor_si256(tmp34, inw2);// _mm256_set_m128i(in4, in3));
-
-
-
-    _mm256_storeu_si256((__m256i *) out, tmp12);
-    out += BLOCK_SIZE * 2;
-    _mm256_storeu_si256((__m256i *) out, tmp34);
-    out += BLOCK_SIZE * 2;
+    _mm256_storeu_si256(out256++, tmp12);
+    _mm256_storeu_si256(out256++, tmp34);
 
 
     if (encryption) {
-        tmp1 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp12, 0), BSWAP_MASK);
-        tmp2 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp12, 1), BSWAP_MASK);
-        tmp3 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp34, 0), BSWAP_MASK);
-        tmp4 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp34, 1), BSWAP_MASK);
+        __m128i tmp1 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp12, 0), BSWAP_MASK);
+        __m128i tmp2 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp12, 1), BSWAP_MASK);
+        __m128i tmp3 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp34, 0), BSWAP_MASK);
+        __m128i tmp4 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp34, 1), BSWAP_MASK);
         X = _mm_xor_si128(X, tmp1);
         gfmul(X, H, &X);
         X = _mm_xor_si128(X, tmp2);
@@ -993,7 +838,7 @@ void intel::gcm::AesGcm256wide::processFourBlocks(unsigned char *in, unsigned ch
         gfmul(X, H, &X);
     }
 
-    ctr1 = ctr4;
+    ctr1 = _mm_add_epi32(ctr1, _mm_set_epi32(0, 4, 0, 0));
 }
 
 
