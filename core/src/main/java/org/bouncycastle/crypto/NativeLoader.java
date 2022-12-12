@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarException;
+import java.util.logging.Logger;
 
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.util.Arrays;
@@ -25,10 +26,9 @@ import org.bouncycastle.util.io.Streams;
 
 class NativeLoader
 {
-    public static final String BC_LIB_SENTINEL = "org.bouncycastle.native.sentinel";
+    private static final Logger LOG = Logger.getLogger(NativeLoader.class.getName());
     public static final String BC_LIB_CPU_VARIANT = "org.bouncycastle.native.cpu_variant";
 
-    private static final String DEFAULT_SENTINEL_VALUE = "bc-jni-libs";
 
     private static boolean nativeLibsAvailableForSystem = false;
     private static boolean nativeInstalled = false;
@@ -39,7 +39,6 @@ class NativeLoader
 
     private static boolean loadCalled = false;
     private static String nativeBuildDate = null;
-
 
 
     /**
@@ -117,7 +116,6 @@ class NativeLoader
         }
         return value;
     }
-
 
 
     static File installLib(String name, String libPathSegment, String jarPath, File bcLibPath, Set<File> filesInInstallLocation)
@@ -207,88 +205,75 @@ class NativeLoader
         }
 
 
-        //
-        // Try to find a value for the platforms ld search path environment variable.
-        //
-        String ldPathValue = System.getenv(ldPathEnvVar);
-        if (ldPathValue == null)
+        File bcFipsLibPath;
+        try
         {
-            nativeStatusMessage = String.format("%s is unset", ldPathEnvVar);
-            return;
-        }
 
-        //
-        // Sentinel can be configured look that up or default to "bc-fips-libs"
-        //
-        String sentinelPart = Properties.getPropertyValue(BC_LIB_SENTINEL);
-        if (sentinelPart == null)
-        {
-            sentinelPart = DEFAULT_SENTINEL_VALUE;
-        }
+            //
+            // Create a temporary file.
+            //
+            File tf = File.createTempFile("bc-jni", "");
 
-
-        //
-        // Examine LD path val look for sentinel path part
-        //
-        // Assume unix:
-        String bcFipsLibPath = null;
-        for (String part : ldPathValue.split(":"))
-        {
-            part = part.trim();
-            if (part.contains(sentinelPart))
+            //
+            // Create a directory using that file as a stem
+            //
+            final File tmpDir = new File(tf.getParent(), tf.getName() + "-libs");
+            if (!tmpDir.mkdirs())
             {
-                bcFipsLibPath = part;
-                break;
+                nativeInstalled = false;
+                nativeStatusMessage = "unable to create temp directory for jni libs: " + tmpDir;
+                return;
             }
-        }
 
-        //
-        // Look for old default value if none found
-        // TODO Remove before first release.
-        //
-        if (bcFipsLibPath == null && Properties.getPropertyValue(BC_LIB_SENTINEL) == null) {
-
-            for (String part : ldPathValue.split(":"))
+            //
+            // Delete original file.
+            //
+            if (!tf.delete())
             {
-                part = part.trim();
-                if (part.contains("bc-libs"))
+                nativeInstalled = false;
+                nativeStatusMessage = "unable to delete initial temporary file: " + tf;
+                return;
+            }
+
+            //
+            // Shutdown hook clean up installed libraries.
+            //
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
+            {
+                @Override
+                public void run()
                 {
-                    bcFipsLibPath = part;
-                    break;
+                    if (!tmpDir.exists())
+                    {
+                        return;
+                    }
+                    boolean isDeleted = true;
+                    if (tmpDir.isDirectory())
+                    {
+                        for (File f : tmpDir.listFiles())
+                        {
+                            isDeleted &= f.delete();
+                        }
+                    }
+
+                    isDeleted &= tmpDir.delete();
+
+                    if (!isDeleted)
+                    {
+                        LOG.warning(" failed to delete: " + tmpDir.getAbsolutePath());
+                    } else
+                    {
+                        LOG.warning("cleaned up: " + tmpDir.getAbsolutePath());
+                    }
                 }
-            }
-        }
+            }));
 
+            bcFipsLibPath = tmpDir.getCanonicalFile();
 
-
-
-        // lib path part with sentinel value in it was not found so exit.
-        if (bcFipsLibPath == null)
+        } catch (Exception ex)
         {
             nativeInstalled = false;
-            nativeStatusMessage = "failed because " + sentinelPart + " was not found in env val " + ldPathValue;
-            return;
-        }
-
-        //
-        // Check the location exists
-        //
-        File bcFipsLibsInstallLocation = new File(bcFipsLibPath);
-        if (!bcFipsLibsInstallLocation.exists())
-        {
-            nativeInstalled = false;
-            nativeStatusMessage = "failed because " + bcFipsLibPath + " does not exist";
-            return;
-        }
-
-
-        //
-        // Check it is not a directory.
-        //
-        if (!bcFipsLibsInstallLocation.isDirectory())
-        {
-            nativeInstalled = false;
-            nativeStatusMessage = "failed because " + bcFipsLibPath + " is not a directory";
+            nativeStatusMessage = "failed because it was not able to create a temporary file in 'java.io.tmpdir' " + ex.getMessage();
             return;
         }
 
@@ -301,7 +286,7 @@ class NativeLoader
         //
         Set<File> filesInInstallLocation = new HashSet<File>();
 
-        for (File f : bcFipsLibsInstallLocation.listFiles())
+        for (File f : bcFipsLibPath.listFiles())
         {
             filesInInstallLocation.add(f);
         }
@@ -318,7 +303,7 @@ class NativeLoader
         // It needs to exist regardless of any forced variant, if it does not exist
         // any forced variant is not going to function anyway.
         //
-        String probeLibInJarPath =  String.format("/native/%s/%s/probe",platform,arch);
+        String probeLibInJarPath = String.format("/native/%s/%s/probe", platform, arch);
 
         if (forcedVariant != null)
         {
@@ -328,7 +313,7 @@ class NativeLoader
             try
             {
                 // Install probe lib
-                final File lib = installLib("bc-probe", probeLibInJarPath, jarDir, bcFipsLibsInstallLocation, filesInInstallLocation);
+                final File lib = installLib("bc-probe", probeLibInJarPath, jarDir, bcFipsLibPath, filesInInstallLocation);
 
                 AccessController.doPrivileged(
                         new PrivilegedAction<Object>()
@@ -353,8 +338,7 @@ class NativeLoader
         }
 
 
-
-        String variantPathInJar = String.format("/native/%s/%s/%s",platform,arch,selectedVariant);//  variantPaths.get(selectedVariant);
+        String variantPathInJar = String.format("/native/%s/%s/%s", platform, arch, selectedVariant);//  variantPaths.get(selectedVariant);
         if (variantPathInJar == null)
         {
             nativeStatusMessage = String.format("variant %s is not available for installation", selectedVariant);
@@ -369,7 +353,7 @@ class NativeLoader
             // eg: linux-x86_64-sse has a suffix of "sse"
             //
 
-            final File lib = installLib("bc-components-" + selectedVariant, variantPathInJar, jarDir, bcFipsLibsInstallLocation, filesInInstallLocation);
+            final File lib = installLib("bc-components-" + selectedVariant, variantPathInJar, jarDir, bcFipsLibPath, filesInInstallLocation);
 
 
             //
@@ -377,7 +361,7 @@ class NativeLoader
             //
             if (!filesInInstallLocation.isEmpty())
             {
-                nativeStatusMessage = String.format("unexpected files in %s: %s", bcFipsLibsInstallLocation.toString(), collectionToString(filesInInstallLocation));
+                nativeStatusMessage = String.format("unexpected files in %s: %s", bcFipsLibPath.toString(), collectionToString(filesInInstallLocation));
                 nativeInstalled = false;
                 return;
             }
