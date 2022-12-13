@@ -348,11 +348,7 @@ class NativeLoader
 
         try
         {
-            //
-            // Derive the suffix it is the last part of the variant name
-            // eg: linux-x86_64-sse has a suffix of "sse"
-            //
-
+            
             final File lib = installLib("bc-components-" + selectedVariant, variantPathInJar, jarDir, bcFipsLibPath, filesInInstallLocation);
 
 

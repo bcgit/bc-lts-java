@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.security.SecureRandom;
 
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.CBCModeCipher;
@@ -70,7 +71,7 @@ public class GCMBench
 
         int blockSize = 8;
         int maxBlocks = 2000;
-        int repeats = 500;
+        int repeats = 1000;
         int step = 10;
         String output = "cbc.csv";
 
@@ -95,6 +96,9 @@ public class GCMBench
             {
                 t++;
                 output = asString(args, t, "-output");
+            } else if ("-variant".equals(args[t])) {
+                t++;
+                System.setProperty("org.bouncycastle.native.cpu_variant",asString(args, t, "-variant"));
             }
         }
 
@@ -102,8 +106,8 @@ public class GCMBench
         GCMModeCipher gcmEnc = GCMBlockCipher.newInstance(AESEngine.newInstance());
         GCMModeCipher gcmDec = GCMBlockCipher.newInstance(AESEngine.newInstance());
 
-//        CBCModeCipher cbcEnc = CBCBlockCipher.newInstance(AESEngine.newInstance());
-//        CBCModeCipher cbcDec = CBCBlockCipher.newInstance(AESEngine.newInstance());
+
+        System.out.println("Variant: "+NativeServices.getVariant());
 
         SecureRandom secureRandom = new SecureRandom();
 
