@@ -133,11 +133,11 @@ class AESNativeCFB
             throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
         }
 
-
-        referenceWrapper = new CFBRefWrapper(makeNative(key.length));
-        init(referenceWrapper.getReference(), encrypting, key, iv);
+        referenceWrapper = new CFBRefWrapper(makeNative(encrypting,key.length));
+        init(referenceWrapper.getReference(), key, iv);
 
     }
+
 
 
     @Override
@@ -299,9 +299,9 @@ class AESNativeCFB
     private static native int processBytes(long ref, byte[] in, int inOff, int len, byte[] out, int outOff)
         throws DataLengthException;
 
-    private static native long makeNative(int keyLen);
+    private static native long makeNative(boolean encrypting,int keyLen);
 
-    private native void init(long nativeRef, boolean encrypting, byte[] key, byte[] iv);
+    private native void init(long nativeRef, byte[] key, byte[] iv);
 
     private static native void dispose(long ref);
 
