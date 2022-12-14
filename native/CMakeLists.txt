@@ -143,7 +143,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64")
             $<$<COMPILE_LANGUAGE:C>: -mcpu=native+rng>
             )
     install(TARGETS "${LIB_NATIVE}" LIBRARY DESTINATION ${PLATFORM_TARGET}/components)
-    target_compile_definitions("${LIB_NATIVE}" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"arm64\" BUILD_TS=\"${BUILD_TS}\" )
+    target_compile_definitions("${LIB_NATIVE}" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"arm64\" BUILD_TS=\"${BUILD_TS}\")
 
     add_executable(tryit main_arm.cpp ${DEBUG_FUNC})
     target_link_libraries(tryit "${LIB_NATIVE}")
@@ -203,13 +203,13 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             )
 
 
-
-    set(CFB intel/cfb/AesCFB.h
-            intel/cfb/AesCFB128Impl.cpp
-            intel/cfb/AesCFB192Impl.cpp
-            intel/cfb/AesCFB256Impl.cpp
-            intel/cfb/cfb.cpp
-            intel/cfb/cfb.h
+    set(CFB intel/cfb/CFBLike.h
+            intel/cfb/CFBLike.cpp
+            intel/cfb/AesCFB128Wide.h
+            intel/cfb/AesCFBEncrypt.cpp
+            intel/cfb/AesCFBDecrypt.cpp
+            intel/cfb/CFB128Wide.cpp
+            intel/cfb/CFB128Wide.h
             intel/jni/cfb_jni.cpp
             )
 
@@ -220,7 +220,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             intel/jni/ecb_jni.cpp
             )
 
-    set (ECB_VAES
+    set(ECB_VAES
             intel/ecb/AesEcb256W.h
             intel/ecb/AesEcb256W.cpp
             intel/ecb/ecb.cpp
@@ -228,7 +228,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             intel/jni/ecb_jni_vaes.cpp
             )
 
-    set (ECB_VAES_512f
+    set(ECB_VAES_512f
             intel/ecb/AesEcb512W.h
             intel/ecb/AesEcb512W.cpp
             intel/ecb/ecb.cpp
@@ -372,7 +372,6 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     target_compile_definitions("${LIB_NATIVE}-vaes" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VAES BC_VARIANT=\"vaes\" BC_VAES BUILD_TS=\"${BUILD_TS}\")
 
 
-
     #
     # VAES VERSION
     #
@@ -403,11 +402,10 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     #Intel
     target_compile_options("${LIB_NATIVE}-vaesf" PRIVATE
             $<$<COMPILE_LANGUAGE:CXX>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f ${OPTIONS} >
-            $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f  ${OPTIONS}>
+            $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f ${OPTIONS}>
             )
     install(TARGETS "${LIB_NATIVE}-vaesf" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaesf)
     target_compile_definitions("${LIB_NATIVE}-vaesf" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VAESF BC_VARIANT=\"vaesf\" BC_VAES BUILD_TS=\"${BUILD_TS}\")
-
 
 
 endif ()
@@ -422,8 +420,8 @@ endif ()
 ## Uncomment to enable test project
 #add_executable(tryit main.cpp debug.h debug.cpp)
 #target_link_libraries(tryit "${LIB_NATIVE}-vaesf")
-#target_compile_options("tryit" PRIVATE $<$<COMPILE_LANGUAGE:CXX>: -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mavx512f >
-#        $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f>)
+#target_compile_options("tryit" PRIVATE $<$<COMPILE_LANGUAGE:CXX>: -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mavx512f -mgfni>
+#        $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f -mgfni>)
 #target_compile_definitions("tryit" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"vaes\" ${ASM_DEFINES} _ARCH_EM64T _L9)
 
 ###
