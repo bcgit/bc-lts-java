@@ -26,6 +26,8 @@ namespace intel {
 
         AesCFB128Dec::~AesCFB128Dec() = default;
 
+
+
         void AesCFB128Dec::encryptBlock(__m128i in, __m128i &out) {
 
             auto tmp = in;
@@ -72,7 +74,7 @@ namespace intel {
                     encryptBlock(feedback, feedback);
                 }
 
-                if (byteCount >= 0 || end - ptr < CFB_BLOCK_SIZE) {
+                if (byteCount > 0 || end - ptr < CFB_BLOCK_SIZE) {
 
                     *dest = *ptr ^ fb[byteCount];
                     fb[byteCount++] = *ptr;

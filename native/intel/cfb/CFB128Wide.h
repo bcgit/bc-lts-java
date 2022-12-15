@@ -25,9 +25,6 @@ namespace intel {
             virtual void encryptBlock(__m128i in, __m128i &out) = 0;
 
 
-            size_t processBytesDec(unsigned char *src, size_t len, unsigned char *dest);
-
-            unsigned char processByteDec(unsigned char in);
 
         public:
 
@@ -35,8 +32,7 @@ namespace intel {
 
             ~CFB128Wide() override;
 
-            void
-            init(unsigned char *key, unsigned long keylen, unsigned char *iv, unsigned long ivlen) override;
+            void init(unsigned char *key, unsigned long keylen, unsigned char *iv, unsigned long ivlen) override;
 
             void reset();
 

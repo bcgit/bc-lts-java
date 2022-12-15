@@ -5,8 +5,9 @@
 #include "../../jniutil/JavaByteArray.h"
 #include "../../jniutil/JavaEnvUtils.h"
 #include "../../jniutil/JavaByteArrayCritical.h"
+#include "../../macro.h"
 #include <exception>
-
+#include <cassert>
 
 
 //

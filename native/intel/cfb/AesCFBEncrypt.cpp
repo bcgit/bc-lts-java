@@ -4,11 +4,10 @@
 
 #include <emmintrin.h>
 #include <wmmintrin.h>
-#include <stdexcept>
 #include <cstring>
-#include <iostream>
 #include "AesCFB128Wide.h"
 #include "CFB128Wide.h"
+
 
 
 namespace intel {
@@ -73,7 +72,7 @@ namespace intel {
                     encryptBlock(feedback, feedback);
                 }
 
-                if (byteCount >= 0 || end - ptr < CFB_BLOCK_SIZE) {
+                if (byteCount > 0 || end - ptr < CFB_BLOCK_SIZE) {
                     *dest = fb[byteCount] ^ *ptr;
                     fb[byteCount++] = *dest;
                     dest++;

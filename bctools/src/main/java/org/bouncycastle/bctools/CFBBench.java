@@ -1,23 +1,19 @@
 package org.bouncycastle.bctools;
 
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.security.SecureRandom;
-
-import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.modes.CBCBlockCipher;
-import org.bouncycastle.crypto.modes.CBCModeCipher;
-import org.bouncycastle.crypto.modes.GCMBlockCipher;
-import org.bouncycastle.crypto.modes.GCMModeCipher;
+import org.bouncycastle.crypto.modes.CFBBlockCipher;
+import org.bouncycastle.crypto.modes.CFBModeCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 
-public class GCMBench
-{
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.security.SecureRandom;
 
+public class CFBBench
+{
 
     private static int asInt(String[] args, int index, String name)
     {
@@ -32,8 +28,7 @@ public class GCMBench
         try
         {
             i = Integer.parseInt(args[index].trim());
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
             //-DM System.out.println
             System.out.println("count not parse " + name);
@@ -67,14 +62,14 @@ public class GCMBench
 
 
     public static void main(String[] args)
-        throws Exception
+            throws Exception
     {
 
         int blockSize = 8;
-        int maxBlocks = 2000;
+        int maxBlocks = 1000;
         int repeats = 1000;
         int step = 10;
-        String output = "cbc.csv";
+        String output = "cfb.csv";
 
         for (int t = 0; t < args.length; t++)
         {
@@ -82,33 +77,24 @@ public class GCMBench
             {
                 t++;
                 blockSize = asInt(args, t, "-blockSize");
-            }
-            else if ("-maxBlocks".equals(args[t]))
+            } else if ("-maxBlocks".equals(args[t]))
             {
                 t++;
                 maxBlocks = asInt(args, t, "-maxBlocks");
-            }
-            else if ("-repeats".equals(args[t]))
+            } else if ("-repeats".equals(args[t]))
             {
                 t++;
                 repeats = asInt(args, t, "-repeats");
-            }
-            else if ("-output".equals(args[t]))
+            } else if ("-output".equals(args[t]))
             {
                 t++;
                 output = asString(args, t, "-output");
-            } else if ("-variant".equals(args[t])) {
-                t++;
-                System.setProperty("org.bouncycastle.native.cpu_variant",asString(args, t, "-variant"));
             }
         }
 
 
-        GCMModeCipher gcmEnc = GCMBlockCipher.newInstance(AESEngine.newInstance());
-        GCMModeCipher gcmDec = GCMBlockCipher.newInstance(AESEngine.newInstance());
-
-
-        System.out.println("Variant: "+NativeServices.getVariant());
+        CFBModeCipher cfbEnc = CFBBlockCipher.newInstance(AESEngine.newInstance(), 128);
+        CFBModeCipher cfbDec = CFBBlockCipher.newInstance(AESEngine.newInstance(), 128);
 
         SecureRandom secureRandom = new SecureRandom();
 
@@ -120,7 +106,7 @@ public class GCMBench
         for (int ks : new int[]{16, 24, 32})
         {
             byte[] key = new byte[ks];
-            byte[] iv = new byte[12];
+            byte[] iv = new byte[16];
             for (int a = 1; a < maxBlocks; a += (a < 10) ? 1 : 16)
             {
                 double sumEnc = 0;
@@ -133,36 +119,26 @@ public class GCMBench
 
                 byte[] msg = new byte[blockSize * a];
                 secureRandom.nextBytes(msg);
+                secureRandom.nextBytes(key);
+                secureRandom.nextBytes(iv);
 
+                ParametersWithIV piv = new ParametersWithIV(new KeyParameter(key), iv);
 
-                byte[] cipherText = new byte[msg.length+16];
+                cfbEnc.init(true, piv);
+                cfbDec.init(false, piv);
+
+                byte[] cipherText = new byte[msg.length];
                 byte[] finalResult = new byte[msg.length];
-
-
 
                 for (int b = 0; b < repeats; b++)
                 {
-
-                    secureRandom.nextBytes(key);
-                    secureRandom.nextBytes(iv);
-
-                    ParametersWithIV piv = new ParametersWithIV(new KeyParameter(key), iv);
-
-                    gcmEnc.init(true, piv);
-                    gcmDec.init(false, piv);
-
-
-
                     ts = System.nanoTime();
-                    int l = gcmEnc.processBytes(msg, 0, msg.length, cipherText, 0);
-                    gcmEnc.doFinal(cipherText,l);
+                    cfbEnc.processBytes(msg, 0, msg.length, cipherText, 0);
                     te = System.nanoTime();
                     sumEnc += te - ts;
 
                     ts = System.nanoTime();
-
-                    l = gcmDec.processBytes(cipherText, 0, cipherText.length, finalResult, 0);
-                    gcmDec.doFinal(finalResult,l);
+                    cfbDec.processBytes(cipherText, 0, msg.length, finalResult, 0);
                     te = System.nanoTime();
                     sumDec += te - ts;
 
@@ -189,7 +165,7 @@ public class GCMBench
                         System.out.println("Final Result: " + Hex.toHexString(finalResult));
 
                         // -DM System.out.println
-                        System.out.println("CBC did not round trip");
+                        System.out.println("CFB did not round trip");
                         //-DM System.exit
                         System.exit(1);
                     }
@@ -198,13 +174,14 @@ public class GCMBench
                 double encAvgNano = sumEnc / count;
                 double decAvgNano = sumDec / count;
 
-                double bytesPerSecondEnc = (((double)msg.length) / encAvgNano) * 1000000000.0;
-                double bytesPerSecondDec = (((double)msg.length) / decAvgNano) * 1000000000.0;
+                double bytesPerSecondEnc = (((double) msg.length) / encAvgNano) * 1000000000.0;
+                double bytesPerSecondDec = (((double) msg.length) / decAvgNano) * 1000000000.0;
+
 
                 // -DM printf
-                pw.printf("%d\ttrue\t%d\t%.2f\n",ks, msg.length, bytesPerSecondEnc);
+                pw.printf("%d\ttrue\t%d\t%.2f\n", ks, msg.length, bytesPerSecondEnc);
                 // -DM printf
-                pw.printf("%d\tfalse\t%d\t%.2f\n",ks,  msg.length, bytesPerSecondDec);
+                pw.printf("%d\tfalse\t%d\t%.2f\n", ks, msg.length, bytesPerSecondDec);
 
 
             }

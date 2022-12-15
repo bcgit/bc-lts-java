@@ -13,7 +13,7 @@ test {
     testLogging.showStackTraces = true
 
 
-   jvmArgs '-Dtest.bcfips.ignore.native=sha,gcm,cbc,ecb,rand,seed', '-Dorg.bouncycastle.native.cpu_variant=java'
+   jvmArgs '-Dtest.bcfips.ignore.native=sha,gcm,cbc,ecb,rand,seed,cfb', '-Dorg.bouncycastle.native.cpu_variant=java'
 
     filter {
         includeTestsMatching "AllTest*"

@@ -295,9 +295,7 @@ void intel::gcm::AesGcm256wide::init(bool encryption, unsigned char *key, size_t
 
     last_block = _mm_setzero_si128();
 
-    //
-    // Counter is pre incremented in processBlock and processFourBlocks
-    //
+
     ctr1 = _mm_shuffle_epi8(Y, BSWAP_EPI64);
 
     ctr12 = _mm256_set_m128i(
@@ -696,7 +694,7 @@ void intel::gcm::AesGcm256wide::processFourBlocks(unsigned char *in, unsigned ch
     // ctr1 is used during doFinal, we need that 128b value before
     // incrementing.
     //
-    ctr1 = _mm256_extracti128_si256(ctr34,1); //   _mm_add_epi32(ctr1, _mm_set_epi32(0, 4, 0, 0));
+    ctr1 = _mm256_extracti128_si256(ctr34, 1); //   _mm_add_epi32(ctr1, _mm_set_epi32(0, 4, 0, 0));
 
     //
     // Post increment
@@ -712,6 +710,20 @@ void intel::gcm::AesGcm256wide::processFourBlocks(unsigned char *in, unsigned ch
     __m256i tmp34 = _mm256_xor_si256(tmp34s, roundKeys256[0]);
 
 
+    for (int t = 1; t < rounds - 1; t += 2) {
+        tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[t]);
+        tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[t]);
+        tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[t + 1]);
+        tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[t + 1]);
+    }
+
+    tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[rounds - 1]);
+    tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[rounds - 1]);
+
+    tmp12 = _mm256_aesenclast_epi128(tmp12, roundKeys256[rounds]);
+    tmp34 = _mm256_aesenclast_epi128(tmp34, roundKeys256[rounds]);
+
+    /*
     switch (rounds) {
         case 10:
             tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[1]);
@@ -755,12 +767,10 @@ void intel::gcm::AesGcm256wide::processFourBlocks(unsigned char *in, unsigned ch
             tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[8]);
             tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[9]);
             tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[9]);
-
             tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[10]);
             tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[10]);
             tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[11]);
             tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[11]);
-
             tmp12 = _mm256_aesenclast_epi128(tmp12, roundKeys256[12]);
             tmp34 = _mm256_aesenclast_epi128(tmp34, roundKeys256[12]);
             break;
@@ -800,6 +810,7 @@ void intel::gcm::AesGcm256wide::processFourBlocks(unsigned char *in, unsigned ch
             throw std::runtime_error("invalid rounds at lowest level of api");
             break;
     }
+     */
 
 
     tmp12 = _mm256_xor_si256(tmp12, inw1);
