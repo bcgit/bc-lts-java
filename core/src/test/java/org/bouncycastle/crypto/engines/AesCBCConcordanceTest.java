@@ -6,6 +6,7 @@ import junit.framework.TestCase;
 
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.MultiBlockCipher;
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -39,6 +40,7 @@ public class AesCBCConcordanceTest
             return;
         }
 
+        System.out.println(NativeServices.getVariant() + " " + NativeServices.getBuildDate());
 
 
         SecureRandom secureRandom = new SecureRandom();

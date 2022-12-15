@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -38,6 +39,7 @@ public class AesGCMConcordanceTest
             return;
         }
 
+        System.out.println(NativeServices.getVariant() + " " + NativeServices.getBuildDate());
 
         SecureRandom secureRandom = new SecureRandom();
 

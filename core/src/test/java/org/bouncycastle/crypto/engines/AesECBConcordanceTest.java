@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.Arrays;
 import org.junit.Test;
@@ -35,7 +36,7 @@ public class AesECBConcordanceTest
             return;
         }
 
-
+        System.out.println(NativeServices.getVariant() + " " + NativeServices.getBuildDate());
 
         SecureRandom secureRandom = new SecureRandom();
 

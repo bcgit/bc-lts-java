@@ -213,6 +213,19 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             intel/jni/cfb_jni.cpp
             )
 
+    set(CFB_VAES intel/cfb/CFBLike.h
+            intel/cfb/CFBLike.cpp
+            intel/cfb/AesCFB256Wide.h
+            intel/cfb/AesCFBEncrypt.cpp
+            intel/cfb/AesCFBDecrypt.cpp
+            intel/cfb/AesCFBDecryptVAES.cpp
+            intel/cfb/CFB256Wide.cpp
+            intel/cfb/CFB256Wide.h
+            intel/cfb/CFB128Wide.h
+            intel/cfb/CFB128Wide.cpp
+            intel/jni/cfb_jni_vaes.cpp
+            )
+
     set(ECB intel/ecb/AesEcb.cpp
             intel/ecb/AesEcb.h
             intel/ecb/ecb.cpp
@@ -354,7 +367,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${GCM_VAES}
             ${CBC_VAES}
             ${ECB_VAES}
-            ${CFB}
+            ${CFB_VAES}
             ${EXCEPTIONS}
             ${DIGEST}
             )
@@ -390,7 +403,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${GCM_VAES}
             ${CBC_VAES_512f}
             ${ECB_VAES_512f}
-            ${CFB}
+            ${CFB_VAES}
             ${EXCEPTIONS}
             ${DIGEST}
             )
