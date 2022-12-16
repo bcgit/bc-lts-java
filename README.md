@@ -25,14 +25,12 @@ You will need to create a directory for the provider to install the native libra
 The following example is for Linux.
 
 ```
-# Create a directory for the provider to install the native libraries in
-# the name bc-jni-libs is important, this will be explained later.
 
-mkdir /tmp/bc-jni-libs
+
 
 # Invoke dump info, the sub shell is used to avoid poluting LD_LIBRARY_PATH
  
-(export LD_LIBRARY_PATH=/tmp/bc-jni-libs; java -cp jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo)
+java -cp jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo
 
 # Which should return something like the following on a modern intel CPU
 

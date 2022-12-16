@@ -50,12 +50,12 @@ class AESNativeCBC
             // if null it's an IV changed only.
             if (ivParam.getParameters() != null)
             {
-                init(ivParam.getParameters());
+                init((KeyParameter) ivParam.getParameters());
                 // cipher.init(encrypting, ivParam.getParameters());
             }
             else
             {
-                // The key parameter was null which inidicates that they
+                // The key parameter was null which indicates that the
                 // IV is being changed.
 
                 if (oldEncrypting != encrypting)
@@ -81,7 +81,7 @@ class AESNativeCBC
             // if it's null, key is to be reused.
             if (params != null)
             {
-                init(params);
+                init((KeyParameter) params);
                 // cipher.init(encrypting, params);
             }
             else
@@ -105,7 +105,7 @@ class AESNativeCBC
 
     }
 
-    private void init(CipherParameters parameters)
+    private void init(KeyParameter parameters)
     {
 
         byte[] key = null;
@@ -113,14 +113,6 @@ class AESNativeCBC
         if (parameters instanceof KeyParameter)
         {
             key = ((KeyParameter)parameters).getKey();
-        }
-        else if (parameters instanceof ParametersWithIV)
-        {
-            init(((ParametersWithIV)parameters).getParameters());
-        }
-        else
-        {
-            throw new IllegalStateException("must be KeyParameter or ParametersWithIV");
         }
 
         switch (key.length)

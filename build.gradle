@@ -183,14 +183,6 @@ subprojects {
       }
     }
 
-//  doFirst {
-//    removeTempFileNix(propValOrFail(project, "testAVX", "x86_64", "library_path"))
-//  }
-
-//    jvmArgs propValsAsArgs(project, "testAVX", "x86_64", "variant", "org.bouncycastle.native.cpu_variant"),
-//            propValsAsArgs(project, "testAVX", "x86_64", "sentinel", "org.bouncycastle.native.sentinel"),
-//            propValsAsArgs(project, "testAVX", "x86_64", "failsafe_skip", "test.bcfips.ignore.native")
-
      jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=avx'
 
   }

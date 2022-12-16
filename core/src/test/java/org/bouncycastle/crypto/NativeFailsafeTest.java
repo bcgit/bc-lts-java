@@ -7,10 +7,30 @@ import org.junit.Test;
 import static junit.framework.TestCase.fail;
 
 public class NativeFailsafeTest
-    extends TestCase
+        extends TestCase
 {
 
     public static final String NATIVE_FAILSAFE_TEST = "test.bcfips.ignore.native";
+
+
+    /**
+     * Test requested variant is loaded if a specific variant is requested.
+     */
+    @Test
+    public void testExpectedVariant()
+    {
+        String requestedVariant = System.getProperty("org.bouncycastle.native.cpu_variant");
+        if (requestedVariant != null)
+        {
+
+            CryptoServicesRegistrar.getNativeStatus();
+            assertTrue("expected variant of " + requestedVariant + " got " + NativeServices.getVariant(), NativeServices.getVariant().equals(requestedVariant));
+
+        } else
+        {
+            System.out.println("No expected variant supplied.");
+        }
+    }
 
     @Test
     public void testECB()
