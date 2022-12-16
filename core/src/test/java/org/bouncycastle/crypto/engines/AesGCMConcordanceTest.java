@@ -52,7 +52,7 @@ public class AesGCMConcordanceTest
                 GCMBlockCipher javaEngine = new GCMBlockCipher(new AESEngine());
                 GCMModeCipher nativeEngine = new AESNativeGCM();
 
-                int bytes = secureRandom.nextInt(65535) + 1;
+                int bytes = secureRandom.nextInt(1024) + 1;
                 byte[] msg = new byte[bytes];
                 byte[] key = new byte[keySize];
                 secureRandom.nextBytes(key);
