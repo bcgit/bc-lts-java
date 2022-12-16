@@ -18,7 +18,66 @@ import org.bouncycastle.util.encoders.Hex;
 public class GCMBench
 {
 
-
+//    public static void main(String[] args)
+//    {
+//        System.setProperty("org.bouncycastle.native.cpu_variant","vaes");
+//
+//        GCMModeCipher gcmEnc = GCMBlockCipher.newInstance(AESEngine.newInstance());
+//        gcmEnc.init(true,new ParametersWithIV(new KeyParameter(new byte[16]),new byte[16]));
+//
+//
+//        System.out.println(NativeServices.getVariant());
+//
+//        int n = 16384;
+//        byte[] msg;
+//
+//        if (NativeServices.getVariant().contains("avx")) {
+//            msg = new byte[n];
+//        } else {
+//            msg = new byte[n*2];
+//        }
+//
+//
+//        SecureRandom rand = new SecureRandom(msg);
+//        rand.nextBytes(msg);
+//
+//        byte[] out = new byte[128];
+//        long ts;
+//        long te;
+//        double acc = 0;
+//        int repeats = 10000;
+//        double count = 0;
+//        double min = Double.MAX_VALUE;
+//        double max = Double.MIN_VALUE;
+//        for (int t =0; t<10000; t++) {
+//            gcmEnc.processBytes(msg, 0, msg.length, msg, 0);
+//        }
+//
+//
+//
+//        for (int t = 0; t < repeats; t++)
+//        {
+//            ts = System.nanoTime();
+//            gcmEnc.processBytes(msg, 0, msg.length, msg, 0);
+//            te = System.nanoTime();
+//            count++;
+//            double delta = ((double) te) - ((double) ts);
+//            acc += delta;
+//
+//            if (delta>max) {
+//                max = delta;
+//            }
+//            if ( delta<min) {
+//                min = delta;
+//            }
+//
+//        }
+//
+//        System.out.println("Avg (ns):"+ ( acc / count));
+//        System.out.println("Min (ns):"+ min);
+//        System.out.println("Max (ns):"+ max);
+//
+//    }
 
 
     public static void main(String[] args)
@@ -112,15 +171,15 @@ public class GCMBench
 
                     ts = System.nanoTime();
                     int l = gcmEnc.processBytes(msg, 0, msg.length, cipherText, 0);
-                    gcmEnc.doFinal(cipherText,l);
                     te = System.nanoTime();
+                    gcmEnc.doFinal(cipherText,l);
                     sumEnc += te - ts;
 
                     ts = System.nanoTime();
 
                     l = gcmDec.processBytes(cipherText, 0, cipherText.length, finalResult, 0);
-                    gcmDec.doFinal(finalResult,l);
                     te = System.nanoTime();
+                    gcmDec.doFinal(finalResult,l);
                     sumDec += te - ts;
 
                     count++;
@@ -164,6 +223,8 @@ public class GCMBench
                 pw.printf("%d\tfalse\t%d\t%.2f\n",ks,  msg.length, bytesPerSecondDec);
 
 
+
+
             }
         }
         pw.flush();
@@ -183,8 +244,7 @@ public class GCMBench
         try
         {
             i = Integer.parseInt(args[index].trim());
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
             //-DM System.out.println
             System.out.println("count not parse " + name);

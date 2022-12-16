@@ -76,50 +76,80 @@ namespace intel {
             unsigned char *destStart = dest;
             auto *fb = (unsigned char *) (&feedback);
 
+            auto *ptr = src;
 
-            for (auto ptr = src; ptr < end;) {
-
-                size_t remaining = (size_t)(end - ptr);
-
-                if (byteCount > 0 || remaining < CFB_BLOCK_SIZE) {
-                    if (byteCount == 0) {
-                        encryptBlock128(feedback, feedback);
-                    }
-
-                    *dest =  *ptr ^ fb[byteCount];
-                    fb[byteCount++] = *ptr;
-                    dest++;
-                    ptr++;
-                    if (byteCount == CFB_BLOCK_SIZE) {
-                        byteCount = 0;
-                    }
-                } else if (remaining > CFB_BLOCK_SIZE_2) {
-
-                    //
-                    // Create the first feedback block which is the old feedback and the first block of cipher text.
-                    //
-                    __m256i cipherText = _mm256_loadu_si256((__m256i *) ptr);
-                    __m256i wideFeedback = _mm256_set_m128i(_mm256_extracti128_si256(cipherText, 0), feedback);
-                    encryptBlock256(wideFeedback, wideFeedback);
-                    __m256i d = _mm256_xor_si256(cipherText, wideFeedback);
-                    _mm256_storeu_si256((__m256i *) dest, d);
-                    ptr += CFB_BLOCK_SIZE_2;
-                    dest += CFB_BLOCK_SIZE_2;
-                    feedback = _mm256_extracti128_si256(cipherText, 1);
-                } else {
+            //
+            // Deal with partial blocks, we need to round it back up to a full block, if possible.
+            // There may have been a call to processByte at any time before passing in a byte array.
+            //
+            while(byteCount>0) {
+                if (byteCount == 0) {
                     encryptBlock128(feedback, feedback);
-                    auto data = _mm_loadu_si128((__m128i *) ptr);
-                    feedback = _mm_xor_si128(data, feedback);
-                    _mm_storeu_si128((__m128i *) dest, feedback);
-                    feedback = data;
-                    dest += CFB_BLOCK_SIZE;
-                    ptr += CFB_BLOCK_SIZE;
                 }
 
-
+                *dest = *ptr ^ fb[byteCount];
+                fb[byteCount++] = *ptr;
+                dest++;
+                ptr++;
+                len--;
+                if (byteCount == CFB_BLOCK_SIZE) {
+                    byteCount = 0;
+                }
             }
 
+            //
+            // Process 256b double blocks
+            //
+            while(len > CFB_BLOCK_SIZE_2) {
+                __m256i cipherText = _mm256_loadu_si256((__m256i *) ptr);
+                //
+                // Create the first feedback block which is the old feedback and the first block of cipher text.
+                //
+                __m256i wideFeedback = _mm256_set_m128i(_mm256_extracti128_si256(cipherText, 0), feedback);
+                encryptBlock256(wideFeedback, wideFeedback);
+                __m256i d = _mm256_xor_si256(cipherText, wideFeedback);
+                _mm256_storeu_si256((__m256i *) dest, d);
+                ptr += CFB_BLOCK_SIZE_2;
+                dest += CFB_BLOCK_SIZE_2;
+                feedback = _mm256_extracti128_si256(cipherText, 1);
+                len -= CFB_BLOCK_SIZE_2;
+            }
 
+            //
+            // Process remaining whole blocks
+            //
+            while(len > CFB_BLOCK_SIZE) {
+                //
+                // 128 bit blocks
+                //
+                encryptBlock128(feedback, feedback);
+                auto data = _mm_loadu_si128((__m128i *) ptr);
+                feedback = _mm_xor_si128(data, feedback);
+                _mm_storeu_si128((__m128i *) dest, feedback);
+                feedback = data;
+                dest += CFB_BLOCK_SIZE;
+                ptr += CFB_BLOCK_SIZE;
+                len -= CFB_BLOCK_SIZE;
+            }
+
+            //
+            // Deal with remaining unprocessed bytes.
+            //
+            while(len >0) {
+                if (byteCount == 0) {
+                    encryptBlock128(feedback, feedback);
+                }
+
+                *dest = *ptr ^ fb[byteCount];
+                fb[byteCount++] = *ptr;
+                dest++;
+                ptr++;
+                len--;
+                if (byteCount == CFB_BLOCK_SIZE) {
+                    byteCount = 0;
+                }
+            }
+            
             return (size_t) (dest - destStart);
         }
 

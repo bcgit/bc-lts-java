@@ -386,7 +386,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 
 
     #
-    # VAES VERSION
+    # VAES with AVX512F VERSION
     #
     add_library("${LIB_NATIVE}-vaesf" SHARED
 
