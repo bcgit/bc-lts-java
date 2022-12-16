@@ -178,6 +178,7 @@ public class CFBBench
                 double bytesPerSecondDec = (((double) msg.length) / decAvgNano) * 1000000000.0;
 
 
+
                 // -DM printf
                 pw.printf("%d\ttrue\t%d\t%.2f\n", ks, msg.length, bytesPerSecondEnc);
                 // -DM printf

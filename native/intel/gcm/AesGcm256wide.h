@@ -24,9 +24,10 @@ namespace intel {
     namespace gcm {
 
 #define BLOCK_SIZE 16
-#define FOUR_BLOCKS 64
+#define EIGHT_BLOCKS 128
 
-        static __m256i INC4 = _mm256_set_epi32(0, 4, 0, 0, 0, 4, 0, 0);
+
+        static __m256i INC8 = _mm256_set_epi32(0, 8, 0, 0, 0, 8, 0, 0);
 
         void gfmul(__m128i a, __m128i b, __m128i *res);
 
@@ -71,7 +72,6 @@ namespace intel {
             static __m128i BSWAP_MASK;
 
 
-
             __m512i *roundKeys512;
             __m256i *roundKeys256;
             __m128i *roundKeys128;
@@ -96,6 +96,8 @@ namespace intel {
             __m128i ctr1;
             __m256i ctr12;
             __m256i ctr34;
+            __m256i ctr56;
+            __m256i ctr78;
 
 
             // AD
@@ -114,6 +116,7 @@ namespace intel {
             __m128i initialY;
             __m128i initialT;
             __m128i initialH;
+
 
             Exponentiator *exp;
 

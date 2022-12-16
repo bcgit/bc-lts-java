@@ -9,7 +9,6 @@
 #include "../../exceptions/CipherTextException.h"
 #include "../../exceptions/OutputLengthException.h"
 #include <immintrin.h>
-#include <iostream>
 #include "../common.h"
 
 __m128i intel::gcm::AesGcm256wide::BSWAP_EPI64 = _mm_set_epi8(8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7);
@@ -174,7 +173,7 @@ void intel::gcm::AesGcm256wide::init(bool encryption, unsigned char *key, size_t
         bufBlockPtr = 0;
     }
 
-    bufBlockLen = encryption ? FOUR_BLOCKS : (FOUR_BLOCKS + macSizeBytes);
+    bufBlockLen = encryption ? EIGHT_BLOCKS : (EIGHT_BLOCKS + macSizeBytes);
     bufBlock = new unsigned char[bufBlockLen];
     memset(bufBlock, 0, bufBlockLen);
     bufBlockPtr = 0;
@@ -216,7 +215,8 @@ void intel::gcm::AesGcm256wide::init(bool encryption, unsigned char *key, size_t
     __m128i tmp1, tmp2, tmp3, tmp4;
     __m256i zulu1, zulu2;
     if (nonceLen == 12) {
-        Y = _mm_loadu_si128((__m128i *) nonce);
+        Y = _mm_loadu_si128((__m128i * )
+        nonce);
         Y = _mm_insert_epi32(Y, 0x1000000, 3);
 
         __m256i zulu = _mm256_set_m128i(X, Y);
@@ -249,7 +249,8 @@ void intel::gcm::AesGcm256wide::init(bool encryption, unsigned char *key, size_t
         Y = _mm_xor_si128(Y, Y); // ?
         int i;
         for (i = 0; i < nonceLen / 16; i++) {
-            tmp1 = _mm_loadu_si128(&((__m128i *) nonce)[i]);
+            tmp1 = _mm_loadu_si128(&((__m128i * )
+            nonce)[i]);
             tmp1 = _mm_shuffle_epi8(tmp1, BSWAP_MASK);
             Y = _mm_xor_si128(Y, tmp1);
             gfmul(Y, H, &Y);
@@ -304,6 +305,14 @@ void intel::gcm::AesGcm256wide::init(bool encryption, unsigned char *key, size_t
     ctr34 = _mm256_set_m128i(
             _mm_add_epi32(ctr1, _mm_set_epi32(0, 4, 0, 0)),
             _mm_add_epi32(ctr1, _mm_set_epi32(0, 3, 0, 0)));
+
+    ctr56 = _mm256_set_m128i(
+            _mm_add_epi32(ctr1, _mm_set_epi32(0, 6, 0, 0)),
+            _mm_add_epi32(ctr1, _mm_set_epi32(0, 5, 0, 0)));
+
+    ctr78 = _mm256_set_m128i(
+            _mm_add_epi32(ctr1, _mm_set_epi32(0, 8, 0, 0)),
+            _mm_add_epi32(ctr1, _mm_set_epi32(0, 7, 0, 0)));
 }
 
 size_t intel::gcm::AesGcm256wide::getMacLen() {
@@ -331,7 +340,7 @@ size_t intel::gcm::AesGcm256wide::getUpdateOutputSize(size_t len) {
         }
         totalData -= macBlockLen;
     }
-    return totalData - totalData % FOUR_BLOCKS;
+    return totalData - totalData % EIGHT_BLOCKS;
 }
 
 void intel::gcm::AesGcm256wide::processAADByte(unsigned char in) {
@@ -365,7 +374,8 @@ void intel::gcm::AesGcm256wide::processAADBytes(unsigned char *in, size_t inOff,
             //
             // _gcm_processAadBlock((__m128i *) pos,&S_at,&H);
 
-            last_aad_block = _mm_loadu_si128((__m128i *) pos);
+            last_aad_block = _mm_loadu_si128((__m128i * )
+            pos);
             last_aad_block = _mm_shuffle_epi8(last_aad_block, BSWAP_MASK);
             S_at = _mm_xor_si128(S_at, last_aad_block);
             gfmul(S_at, H, &S_at);
@@ -513,7 +523,7 @@ size_t intel::gcm::AesGcm256wide::doFinal(unsigned char *output, size_t outOff, 
             tmp1 = _mm_aesenc_si128(tmp1, roundKeys128[rounds - 1]);
             tmp1 = _mm_aesenclast_si128(tmp1, roundKeys128[rounds]);
 
-            __m128i in1 = _mm_loadu_si128((__m128i *) &bufBlock[t]);
+            __m128i in1 = _mm_loadu_si128((__m128i * ) & bufBlock[t]);
 
             tmp1 = _mm_xor_si128(tmp1, in1);
             last_block = tmp1;
@@ -582,7 +592,8 @@ size_t intel::gcm::AesGcm256wide::doFinal(unsigned char *output, size_t outOff, 
     gfmul(X, H, &X);
     X = _mm_shuffle_epi8(X, BSWAP_MASK);
     T = _mm_xor_si128(X, T);
-    _mm_storeu_si128((__m128i *) tmpTag, T);
+    _mm_storeu_si128((__m128i * )
+    tmpTag, T);
 
     // Copy into mac block
     memcpy(macBlock, tmpTag, macBlockLen);
@@ -600,6 +611,7 @@ size_t intel::gcm::AesGcm256wide::doFinal(unsigned char *output, size_t outOff, 
     }
 
     reset(true);
+
     return (size_t) (outPtr - start);
 }
 
@@ -615,15 +627,15 @@ intel::gcm::AesGcm256wide::processBuffer(unsigned char *in, size_t inlen, unsign
     totalBytes += toCopy;
 
     if (bufBlockPtr == bufBlockLen) {
-        if (outputLen < FOUR_BLOCKS) {
+        if (outputLen < EIGHT_BLOCKS) {
             throw exceptions::OutputLengthException("output len too short");
         }
         processFourBlocks(bufBlock, out);
         if (!encryption) {
-            memcpy(bufBlock, bufBlock + FOUR_BLOCKS, macBlockLen);
+            memcpy(bufBlock, bufBlock + EIGHT_BLOCKS, macBlockLen);
         }
-        bufBlockPtr -= FOUR_BLOCKS;
-        written = FOUR_BLOCKS;
+        bufBlockPtr -= EIGHT_BLOCKS;
+        written = EIGHT_BLOCKS;
     } else {
         written = 0;
     }
@@ -654,9 +666,11 @@ void intel::gcm::AesGcm256wide::processBlock(unsigned char *in, unsigned char *o
     }
     tmp1 = _mm_aesenc_si128(tmp1, roundKeys128[rounds - 1]);
     tmp1 = _mm_aesenclast_si128(tmp1, roundKeys128[rounds]);
-    __m128i in1 = _mm_loadu_si128((__m128i *) in);
+    __m128i
+    in1 = _mm_loadu_si128((__m128i * )
+    in);
     tmp1 = _mm_xor_si128(tmp1, in1);
-    _mm_storeu_si128((__m128i *) (out), tmp1);
+    _mm_storeu_si128((__m128i * )(out), tmp1);
     tmp1 = _mm_shuffle_epi8(tmp1, BSWAP_MASK);
 
     if (encryption) {
@@ -670,6 +684,141 @@ void intel::gcm::AesGcm256wide::processBlock(unsigned char *in, unsigned char *o
 }
 
 void intel::gcm::AesGcm256wide::processFourBlocks(unsigned char *in, unsigned char *out) {
+
+
+    if (out == nullptr) {
+        //
+        // Java api my supply a null output array if it expects no output, however
+        // if output does occur then we need to catch that here.
+        //
+        throw std::runtime_error("out is null, output generated when no output was expected by caller");
+    }
+
+    auto out256 = (__m256i *) out;
+    auto in256 = (__m256i *) in;
+
+    blocksRemaining -= 8;
+    if (blocksRemaining < 0) {
+        throw std::runtime_error("attempt to process too many blocks in GCM");
+    }
+
+    __m256i tmp12s = _mm256_shuffle_epi8(ctr12, BSWAP_EPI64_256);
+    __m256i tmp34s = _mm256_shuffle_epi8(ctr34, BSWAP_EPI64_256);
+    __m256i tmp56s = _mm256_shuffle_epi8(ctr56, BSWAP_EPI64_256);
+    __m256i tmp78s = _mm256_shuffle_epi8(ctr78, BSWAP_EPI64_256);
+
+
+    //
+    // ctr1 is used during doFinal, we need that 128b value before
+    // incrementing.
+    //
+    ctr1 = _mm256_extracti128_si256(ctr78, 1); //   _mm_add_epi32(ctr1, _mm_set_epi32(0, 4, 0, 0));
+
+    //
+    // Post increment
+    //
+    ctr12 = _mm256_add_epi32(ctr12, INC8);
+    ctr34 = _mm256_add_epi32(ctr34, INC8);
+    ctr56 = _mm256_add_epi32(ctr56, INC8);
+    ctr78 = _mm256_add_epi32(ctr78, INC8);
+
+    __m256i inw1 = _mm256_loadu_si256(in256++);
+    __m256i inw2 = _mm256_loadu_si256(in256++);
+    __m256i inw3 = _mm256_loadu_si256(in256++);
+    __m256i inw4 = _mm256_loadu_si256(in256++);
+
+    __m256i tmp12 = _mm256_xor_si256(tmp12s, roundKeys256[0]);
+    __m256i tmp34 = _mm256_xor_si256(tmp34s, roundKeys256[0]);
+    __m256i tmp56 = _mm256_xor_si256(tmp56s, roundKeys256[0]);
+    __m256i tmp78 = _mm256_xor_si256(tmp78s, roundKeys256[0]);
+
+
+    for (int j = 1; j < rounds - 1; j += 2) {
+        tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[j]);
+        tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[j]);
+        tmp56 = _mm256_aesenc_epi128(tmp56, roundKeys256[j]);
+        tmp78 = _mm256_aesenc_epi128(tmp78, roundKeys256[j]);
+
+        tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[j + 1]);
+        tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[j + 1]);
+        tmp56 = _mm256_aesenc_epi128(tmp56, roundKeys256[j + 1]);
+        tmp78 = _mm256_aesenc_epi128(tmp78, roundKeys256[j + 1]);
+    }
+
+
+    tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[rounds - 1]);
+    tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[rounds - 1]);
+    tmp56 = _mm256_aesenc_epi128(tmp56, roundKeys256[rounds - 1]);
+    tmp78 = _mm256_aesenc_epi128(tmp78, roundKeys256[rounds - 1]);
+
+    tmp12 = _mm256_aesenclast_epi128(tmp12, roundKeys256[rounds]);
+    tmp34 = _mm256_aesenclast_epi128(tmp34, roundKeys256[rounds]);
+    tmp56 = _mm256_aesenclast_epi128(tmp56, roundKeys256[rounds]);
+    tmp78 = _mm256_aesenclast_epi128(tmp78, roundKeys256[rounds]);
+
+
+    tmp12 = _mm256_xor_si256(tmp12, inw1);
+    tmp34 = _mm256_xor_si256(tmp34, inw2);
+    tmp56 = _mm256_xor_si256(tmp56, inw3);
+    tmp78 = _mm256_xor_si256(tmp78, inw4);
+
+    _mm256_storeu_si256(out256++, tmp12);
+    _mm256_storeu_si256(out256++, tmp34);
+    _mm256_storeu_si256(out256++, tmp56);
+    _mm256_storeu_si256(out256++, tmp78);
+
+    if (encryption) {
+        __m128i tmp1 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp12, 0), BSWAP_MASK);
+        __m128i tmp2 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp12, 1), BSWAP_MASK);
+        __m128i tmp3 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp34, 0), BSWAP_MASK);
+        __m128i tmp4 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp34, 1), BSWAP_MASK);
+        __m128i tmp5 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp56, 0), BSWAP_MASK);
+        __m128i tmp6 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp56, 1), BSWAP_MASK);
+        __m128i tmp7 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp78, 0), BSWAP_MASK);
+        __m128i tmp8 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp78, 1), BSWAP_MASK);
+
+        X = _mm_xor_si128(X, tmp1);
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, tmp2);
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, tmp3);
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, tmp4);
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, tmp5);
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, tmp6);
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, tmp7);
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, tmp8);
+        gfmul(X, H, &X);
+    } else {
+        X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw1, 0), BSWAP_MASK));
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw1, 1), BSWAP_MASK));
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw2, 0), BSWAP_MASK));
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw2, 1), BSWAP_MASK));
+        gfmul(X, H, &X);
+
+        X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw3, 0), BSWAP_MASK));
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw3, 1), BSWAP_MASK));
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw4, 0), BSWAP_MASK));
+        gfmul(X, H, &X);
+        X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw4, 1), BSWAP_MASK));
+        gfmul(X, H, &X);
+    }
+
+
+}
+
+
+/*
+ * void intel::gcm::AesGcm256wide::processFourBlocks(unsigned char *in, unsigned char *out) {
 
     if (out == nullptr) {
         //
@@ -710,11 +859,16 @@ void intel::gcm::AesGcm256wide::processFourBlocks(unsigned char *in, unsigned ch
     __m256i tmp34 = _mm256_xor_si256(tmp34s, roundKeys256[0]);
 
 
-    for (int t = 1; t < rounds - 1; t += 2) {
+    for (int t = 1; t < rounds - 1; t += 4) {
         tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[t]);
         tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[t]);
         tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[t + 1]);
         tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[t + 1]);
+
+        tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[t+2]);
+        tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[t+2]);
+        tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[t + 3]);
+        tmp34 = _mm256_aesenc_epi128(tmp34, roundKeys256[t + 3]);
     }
 
     tmp12 = _mm256_aesenc_epi128(tmp12, roundKeys256[rounds - 1]);
@@ -810,42 +964,43 @@ void intel::gcm::AesGcm256wide::processFourBlocks(unsigned char *in, unsigned ch
             throw std::runtime_error("invalid rounds at lowest level of api");
             break;
     }
-     */
 
 
-    tmp12 = _mm256_xor_si256(tmp12, inw1);
-    tmp34 = _mm256_xor_si256(tmp34, inw2);
 
-    _mm256_storeu_si256(out256++, tmp12);
-    _mm256_storeu_si256(out256++, tmp34);
+tmp12 = _mm256_xor_si256(tmp12, inw1);
+tmp34 = _mm256_xor_si256(tmp34, inw2);
+
+_mm256_storeu_si256(out256++, tmp12);
+_mm256_storeu_si256(out256++, tmp34);
 
 
-    if (encryption) {
-        __m128i tmp1 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp12, 0), BSWAP_MASK);
-        __m128i tmp2 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp12, 1), BSWAP_MASK);
-        __m128i tmp3 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp34, 0), BSWAP_MASK);
-        __m128i tmp4 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp34, 1), BSWAP_MASK);
-        X = _mm_xor_si128(X, tmp1);
-        gfmul(X, H, &X);
-        X = _mm_xor_si128(X, tmp2);
-        gfmul(X, H, &X);
-        X = _mm_xor_si128(X, tmp3);
-        gfmul(X, H, &X);
-        X = _mm_xor_si128(X, tmp4);
-        gfmul(X, H, &X);
-    } else {
-        X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw1, 0), BSWAP_MASK));
-        gfmul(X, H, &X);
-        X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw1, 1), BSWAP_MASK));
-        gfmul(X, H, &X);
-        X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw2, 0), BSWAP_MASK));
-        gfmul(X, H, &X);
-        X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw2, 1), BSWAP_MASK));
-        gfmul(X, H, &X);
-    }
+if (encryption) {
+__m128i tmp1 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp12, 0), BSWAP_MASK);
+__m128i tmp2 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp12, 1), BSWAP_MASK);
+__m128i tmp3 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp34, 0), BSWAP_MASK);
+__m128i tmp4 = _mm_shuffle_epi8(_mm256_extracti128_si256(tmp34, 1), BSWAP_MASK);
+X = _mm_xor_si128(X, tmp1);
+gfmul(X, H, &X);
+X = _mm_xor_si128(X, tmp2);
+gfmul(X, H, &X);
+X = _mm_xor_si128(X, tmp3);
+gfmul(X, H, &X);
+X = _mm_xor_si128(X, tmp4);
+gfmul(X, H, &X);
+} else {
+X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw1, 0), BSWAP_MASK));
+gfmul(X, H, &X);
+X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw1, 1), BSWAP_MASK));
+gfmul(X, H, &X);
+X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw2, 0), BSWAP_MASK));
+gfmul(X, H, &X);
+X = _mm_xor_si128(X, _mm_shuffle_epi8(_mm256_extracti128_si256(inw2, 1), BSWAP_MASK));
+gfmul(X, H, &X);
+}
 
 
 }
+ */
 
 
 void intel::gcm::AesGcm256wide::initCipher() {
@@ -882,6 +1037,7 @@ void intel::gcm::AesGcm256wide::setBlocksRemainingDown(int64_t down) {
 }
 
 
+
 void intel::gcm::gfmul(__m128i a, __m128i b, __m128i *res) {
     __m128i tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
 
@@ -909,6 +1065,7 @@ void intel::gcm::gfmul(__m128i a, __m128i b, __m128i *res) {
     tmp5 = _mm_or_si128(tmp5, tmp7);
     tmp5 = _mm_or_si128(tmp5, tmp8);
 
+    //
     tmp6 = _mm_slli_epi32(tmp2, 31);
     tmp7 = _mm_slli_epi32(tmp2, 30);
     tmp8 = _mm_slli_epi32(tmp2, 25);
