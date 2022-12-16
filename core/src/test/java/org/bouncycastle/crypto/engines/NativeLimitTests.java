@@ -2,6 +2,7 @@ package org.bouncycastle.crypto.engines;
 
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -10,17 +11,17 @@ import org.bouncycastle.util.Arrays;
 import org.junit.Test;
 
 public class NativeLimitTests
-    extends TestCase
+        extends TestCase
 {
 
     @Test
     public void testCBCInit()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("cbc"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
             {
                 fail("no native cbc and no skip set for it");
                 return;
@@ -28,6 +29,8 @@ public class NativeLimitTests
             System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.getNativeStatus());
             return;
         }
+
+
 
         new AESNativeCBC()
         {
@@ -47,8 +50,7 @@ public class NativeLimitTests
                     };
                     init(true, piv);
                     fail("accepted null iv");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -70,8 +72,7 @@ public class NativeLimitTests
                     }, new byte[16]);
                     init(true, piv);
                     fail("accepted null key");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -85,8 +86,7 @@ public class NativeLimitTests
                     ParametersWithIV piv = new ParametersWithIV(new KeyParameter(new byte[16]), new byte[0]);
                     init(true, piv);
                     fail("accepted invalid iv size");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("same length as block size"));
                 }
@@ -99,8 +99,7 @@ public class NativeLimitTests
                     ParametersWithIV piv = new ParametersWithIV(new KeyParameter(new byte[15]), new byte[16]);
                     init(true, piv);
                     fail("accepted invalid key size");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("key must be only"));
                 }
@@ -125,8 +124,7 @@ public class NativeLimitTests
                 {
                     init(true, null);
                     fail("change state without key");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("cannot change encrypting state"));
                 }
@@ -135,16 +133,65 @@ public class NativeLimitTests
             }
 
         };
+
+        new AESNativeCBC(){
+            {
+                // Force a change in encryption state without supplying a key
+
+                ParametersWithIV piv = new ParametersWithIV(null, new byte[16]);
+               try
+               {
+                   init(true, piv);
+                   fail("cannot for state change to encrypting without supplying a new key");
+               } catch (Exception ex) {
+                   assertTrue(ex.getMessage().contains("without providing key"));
+               }
+            }
+        };
+
+        new AESNativeCBC(){
+            {
+                // Try to reuse old key by setting the iv only when a key has
+                // not previously been set.
+
+                ParametersWithIV piv = new ParametersWithIV(null, new byte[16]);
+                try
+                {
+                    init(false, piv);
+                    fail("changed IV without previously setting a key");
+                } catch (Exception ex) {
+                    assertTrue(ex.getMessage().contains("not previously initialized with a key"));
+                }
+            }
+        };
+
+        new AESNativeCBC(){
+            {
+                // Try to reuse old key by setting the iv only when a key has
+                // not previously been set.
+
+                ParametersWithIV piv = null;
+                try
+                {
+                    init(false, piv);
+                    fail("changed IV without previously setting a key");
+                } catch (Exception ex) {
+                    assertTrue(ex.getMessage().contains("not previously initialized with a key"));
+                }
+            }
+        };
+
+
     }
 
     @Test
     public void testCBCProcessBlock()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("cbc"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
             {
                 fail("no native cbc and no skip set for it");
                 return;
@@ -164,8 +211,7 @@ public class NativeLimitTests
                 {
                     processBlock(null, 0, new byte[16], 0);
                     fail("accepted null input array");
-                }
-                catch (Throwable ex)
+                } catch (Throwable ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -177,8 +223,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 0, null, 0);
                     fail("accepted null output array");
-                }
-                catch (Throwable ex)
+                } catch (Throwable ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -191,8 +236,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[0], -1, new byte[0], 0);
                     fail("accepted negative in offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("inOff is negative"));
                 }
@@ -205,8 +249,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[0], 0, new byte[0], -1);
                     fail("accepted negative out offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("outOff is negative"));
                 }
@@ -219,8 +262,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[15], 0, new byte[0], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -233,8 +275,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 1, new byte[0], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -247,8 +288,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 0, new byte[15], 0);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -261,8 +301,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 0, new byte[16], 1);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -275,8 +314,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 0, new byte[16], 0);
                     fail("not initialized");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("not initialized"));
                 }
@@ -288,12 +326,12 @@ public class NativeLimitTests
 
     @Test
     public void testCBCProcessBlocks()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("cbc"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
             {
                 fail("no native cbc and no skip set for it");
                 return;
@@ -313,8 +351,7 @@ public class NativeLimitTests
                 {
                     processBlocks(null, 0, 1, new byte[16], 0);
                     fail("accepted null input array");
-                }
-                catch (Throwable ex)
+                } catch (Throwable ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -327,8 +364,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 0, 1, null, 0);
                     fail("accepted null output array");
-                }
-                catch (Throwable ex)
+                } catch (Throwable ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -340,8 +376,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[0], -1, 1, new byte[0], 0);
                     fail("accepted negative in offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("inOff is negative"));
                 }
@@ -353,8 +388,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[0], 0, -1, new byte[0], 0);
                     fail("accepted negative block count ");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("blockCount is negative"));
                 }
@@ -366,8 +400,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[0], 0, 1, new byte[0], -1);
                     fail("accepted negative out offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("outOff is negative"));
                 }
@@ -380,8 +413,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[15], 0, 1, new byte[0], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -395,8 +427,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 1, 1, new byte[0], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -408,8 +439,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[31], 0, 2, new byte[32], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -421,8 +451,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[32], 1, 2, new byte[32], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -435,8 +464,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 0, 1, new byte[15], 0);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -449,8 +477,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 0, 1, new byte[16], 1);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -462,8 +489,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[32], 0, 2, new byte[31], 0);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -476,8 +502,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[32], 0, 2, new byte[32], 1);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -490,8 +515,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 0, 1, new byte[16], 0);
                     fail("not initialized");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("not initialized"));
                 }
@@ -503,12 +527,12 @@ public class NativeLimitTests
 
     @Test
     public void testECBInit()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/ECB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("ecb"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ecb"))
             {
                 fail("no native ecb and no skip set for it");
                 return;
@@ -535,8 +559,7 @@ public class NativeLimitTests
                     };
                     init(true, piv);
                     fail("accepted null key");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -554,10 +577,28 @@ public class NativeLimitTests
                     KeyParameter piv = new KeyParameter(new byte[15]);
                     init(true, piv);
                     fail("accepted invalid key size");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("key must be"));
+                }
+            }
+
+        };
+
+        new AESNativeEngine()
+        {
+            {
+                //
+                // Pass invalid key size
+                //
+                try
+                {
+                    ParametersWithIV piv = new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]);                    init(true, piv);
+                    init(true,piv);
+                    fail("accepted incorrect key parameter class");
+                } catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("invalid parameter passed"));
                 }
             }
 
@@ -566,12 +607,12 @@ public class NativeLimitTests
 
 
     public void testECBProcessBlock()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/ECB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("ecb"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ecb"))
             {
                 fail("no native ecb and no skip set for it");
                 return;
@@ -591,8 +632,7 @@ public class NativeLimitTests
                 {
                     processBlock(null, 0, new byte[16], 0);
                     fail("accepted null input array");
-                }
-                catch (Throwable ex)
+                } catch (Throwable ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -609,8 +649,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 0, null, 0);
                     fail("accepted null output array");
-                }
-                catch (Throwable ex)
+                } catch (Throwable ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -627,8 +666,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[0], -1, new byte[0], 0);
                     fail("accepted negative in offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("inOff is negative"));
                 }
@@ -646,8 +684,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[0], 0, new byte[0], -1);
                     fail("accepted negative out offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("outOff is negative"));
                 }
@@ -665,8 +702,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[15], 0, new byte[0], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -683,8 +719,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 1, new byte[0], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -701,8 +736,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 0, new byte[15], 0);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -719,8 +753,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 0, new byte[16], 1);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -738,8 +771,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 0, new byte[16], 0);
                     fail("not initialized");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("not initialized"));
                 }
@@ -751,12 +783,12 @@ public class NativeLimitTests
 
     @Test
     public void testECBProcessBlocks()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/ECB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("ecb"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ecb"))
             {
                 fail("no native ecb and no skip set for it");
                 return;
@@ -776,8 +808,7 @@ public class NativeLimitTests
                 {
                     processBlocks(null, 0, 1, new byte[16], 0);
                     fail("accepted null input array");
-                }
-                catch (Throwable ex)
+                } catch (Throwable ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -794,8 +825,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 0, 1, null, 0);
                     fail("accepted null output array");
-                }
-                catch (Throwable ex)
+                } catch (Throwable ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -811,8 +841,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[0], -1, 1, new byte[0], 0);
                     fail("accepted negative in offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("inOff is negative"));
                 }
@@ -828,8 +857,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[0], 0, -1, new byte[0], 0);
                     fail("accepted negative block count ");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("blockCount is negative"));
                 }
@@ -845,8 +873,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[0], 0, 1, new byte[0], -1);
                     fail("accepted negative out offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("outOff is negative"));
                 }
@@ -863,8 +890,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[15], 0, 1, new byte[0], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -882,8 +908,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 1, 1, new byte[0], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -899,8 +924,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[31], 0, 2, new byte[32], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -916,8 +940,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[32], 1, 2, new byte[32], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -934,8 +957,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 0, 1, new byte[15], 0);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -952,8 +974,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 0, 1, new byte[16], 1);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -969,8 +990,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[32], 0, 2, new byte[31], 0);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -987,8 +1007,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[32], 0, 2, new byte[32], 1);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -1001,8 +1020,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 0, 1, new byte[16], 0);
                     fail("not initialized");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("not initialized"));
                 }
@@ -1014,12 +1032,12 @@ public class NativeLimitTests
 
     @Test
     public void testGCMInitParamWithIV()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
             {
                 fail("no native gcm and no skip set for it");
                 return;
@@ -1046,8 +1064,7 @@ public class NativeLimitTests
                     };
                     init(true, piv);
                     fail("accepted null iv");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("IV must be at least 1 byte"));
                 }
@@ -1071,8 +1088,7 @@ public class NativeLimitTests
                     }, new byte[1]);
                     init(true, piv);
                     fail("accepted null key");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -1090,8 +1106,7 @@ public class NativeLimitTests
                     ParametersWithIV piv = new ParametersWithIV(new KeyParameter(new byte[16]), new byte[0]);
                     init(true, piv);
                     fail("accepted invalid iv size");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("IV must be at least 1 byte"));
                 }
@@ -1108,8 +1123,7 @@ public class NativeLimitTests
                     ParametersWithIV piv = new ParametersWithIV(new KeyParameter(new byte[15]), new byte[16]);
                     init(true, piv);
                     fail("accepted invalid key size");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("key must be only"));
                 }
@@ -1123,8 +1137,7 @@ public class NativeLimitTests
                 {
                     init(true, new KeyParameter(new byte[16]));
                     fail("accepted invalid parameters");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("invalid parameters"));
                 }
@@ -1138,8 +1151,7 @@ public class NativeLimitTests
                 {
                     init(true, null);
                     fail("accepted invalid parameters");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("invalid parameters"));
                 }
@@ -1159,8 +1171,7 @@ public class NativeLimitTests
                 {
                     init(true, new ParametersWithIV(null, new byte[16]));
                     fail("nonce reuse encryption");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("cannot reuse nonce for GCM encryption"));
                 }
@@ -1169,8 +1180,7 @@ public class NativeLimitTests
                 {
                     init(true, piv);
                     fail("nonce reuse encryption");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("cannot reuse nonce for GCM encryption"));
                 }
@@ -1183,12 +1193,12 @@ public class NativeLimitTests
 
     @Test
     public void testGCMInitAEADParams()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
             {
                 fail("no native gcm and no skip set for it");
                 return;
@@ -1216,8 +1226,7 @@ public class NativeLimitTests
                     };
                     init(true, piv);
                     fail("accepted null iv");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("IV must be at least 1 byte"));
                 }
@@ -1238,8 +1247,7 @@ public class NativeLimitTests
                     }, 128, new byte[1]);
                     init(true, piv);
                     fail("accepted null key");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -1261,8 +1269,7 @@ public class NativeLimitTests
                     AEADParameters piv = new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[0]);
                     init(true, piv);
                     fail("accepted invalid iv size");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("IV must be at least 1 byte"));
                 }
@@ -1275,8 +1282,7 @@ public class NativeLimitTests
                     AEADParameters piv = new AEADParameters(new KeyParameter(new byte[15]), 128, new byte[16]);
                     init(true, piv);
                     fail("accepted invalid key size");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("key must be only"));
                 }
@@ -1286,8 +1292,7 @@ public class NativeLimitTests
                 {
                     init(true, new KeyParameter(new byte[16]));
                     fail("accepted invalid parameters");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("invalid parameters"));
                 }
@@ -1297,8 +1302,7 @@ public class NativeLimitTests
                 {
                     init(true, null);
                     fail("accepted invalid parameters");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("invalid parameters"));
                 }
@@ -1314,8 +1318,7 @@ public class NativeLimitTests
                 {
                     init(true, new AEADParameters(null, 128, new byte[16]));
                     fail("nonce reuse encryption");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("cannot reuse nonce for GCM encryption"));
                 }
@@ -1324,8 +1327,7 @@ public class NativeLimitTests
                 {
                     init(true, piv);
                     fail("nonce reuse encryption");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("cannot reuse nonce for GCM encryption"));
                 }
@@ -1338,8 +1340,7 @@ public class NativeLimitTests
                 {
                     init(true, new AEADParameters(null, 127, new byte[16]));
                     fail("invalid mac size");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("invalid value for MAC size"));
                 }
@@ -1348,8 +1349,7 @@ public class NativeLimitTests
                 {
                     init(true, new AEADParameters(null, 16, new byte[16]));
                     fail("invalid mac size");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("invalid value for MAC size"));
                 }
@@ -1358,8 +1358,7 @@ public class NativeLimitTests
                 {
                     init(true, new AEADParameters(null, 129, new byte[16]));
                     fail("invalid mac size");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("invalid value for MAC size"));
                 }
@@ -1372,11 +1371,11 @@ public class NativeLimitTests
 
     @Test
     public void testGCMAADBytes()
-        throws Exception
+            throws Exception
     {
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
             {
                 fail("no native gcm and no skip set for it");
                 return;
@@ -1393,8 +1392,7 @@ public class NativeLimitTests
                 {
                     processAADBytes(null, 0, 0);
                     fail("null aad array");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -1404,8 +1402,7 @@ public class NativeLimitTests
                 {
                     processAADBytes(new byte[0], -1, 0);
                     fail("negative aad offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("inOff is negative"));
                 }
@@ -1415,8 +1412,7 @@ public class NativeLimitTests
                 {
                     processAADBytes(new byte[0], 0, -1);
                     fail("negative aad len");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("len is negative"));
                 }
@@ -1425,8 +1421,7 @@ public class NativeLimitTests
                 {
                     processAADBytes(new byte[10], 1, 10);
                     fail("len + offset too long");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("inOff + len past end o"));
                 }
@@ -1435,8 +1430,7 @@ public class NativeLimitTests
                 {
                     processAADBytes(new byte[10], 0, 11);
                     fail("len too long");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("inOff + len past end o"));
                 }
@@ -1445,8 +1439,7 @@ public class NativeLimitTests
                 {
                     processAADBytes(new byte[10], 0, 10);
                     fail("negative aad len");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("GCM is uninitialized"));
                 }
@@ -1457,11 +1450,11 @@ public class NativeLimitTests
 
     @Test
     public void testGCMProcessByte()
-        throws Exception
+            throws Exception
     {
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
             {
                 fail("no native gcm and no skip set for it");
                 return;
@@ -1474,14 +1467,13 @@ public class NativeLimitTests
         {
             {
 
-                byte b = (byte)1;
+                byte b = (byte) 1;
                 // Null out array
                 try
                 {
                     processByte(b, null, 0);
                     fail("null out array");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -1491,8 +1483,7 @@ public class NativeLimitTests
                 {
                     processByte(b, new byte[0], -1);
                     fail("negative out offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("outOff is negative"));
                 }
@@ -1502,8 +1493,7 @@ public class NativeLimitTests
                 {
                     processByte(b, new byte[0], 1);
                     fail("offset past end of array");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("offset past end"));
                 }
@@ -1512,8 +1502,7 @@ public class NativeLimitTests
                 {
                     processByte(b, null, 20);
                     fail("null array positive offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -1523,8 +1512,7 @@ public class NativeLimitTests
                 {
                     processByte(b, new byte[10], 10);
                     fail("not initialized");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("uninitialized"));
                 }
@@ -1536,12 +1524,12 @@ public class NativeLimitTests
 
     @Test
     public void testGCMProcessBytes()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
             {
                 fail("no native gcm and no skip set for it");
                 return;
@@ -1561,8 +1549,7 @@ public class NativeLimitTests
                 {
                     processBytes(null, 0, 1, new byte[16], 0);
                     fail("accepted null input array");
-                }
-                catch (Throwable ex)
+                } catch (Throwable ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -1575,8 +1562,7 @@ public class NativeLimitTests
                 {
                     processBytes(new byte[0], -1, 1, new byte[0], 0);
                     fail("accepted negative in offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("inOff is negative"));
                 }
@@ -1588,8 +1574,7 @@ public class NativeLimitTests
                 {
                     processBytes(new byte[0], 0, -1, new byte[0], 0);
                     fail("accepted negative block count ");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("len is negative"));
                 }
@@ -1601,11 +1586,24 @@ public class NativeLimitTests
                 {
                     processBytes(new byte[0], 0, 1, new byte[0], -1);
                     fail("accepted negative out offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("outOff is negative"));
                 }
+
+
+                //
+                // input not long enough for offset
+                //
+                try
+                {
+                    processBytes(new byte[16], 1, 16, new byte[0], 0);
+                    fail("offset puts input end past end of input array");
+                } catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("inOff + len is past end of input"));
+                }
+
 
                 //
                 // Valid inputs but not initialised.
@@ -1614,8 +1612,7 @@ public class NativeLimitTests
                 {
                     processBytes(new byte[16], 0, 1, new byte[16], 0);
                     fail("not initialized");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("uninitialized"));
                 }
@@ -1635,12 +1632,12 @@ public class NativeLimitTests
      */
     @Test
     public void testGCMOutputVariations()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
             {
                 fail("no native gcm and no skip set for it");
                 return;
@@ -1685,14 +1682,21 @@ public class NativeLimitTests
 
             AESNativeGCM nativeGCM = new AESNativeGCM();
             nativeGCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
-            byte[] in = new byte[65];
+            byte[] in;
+            if (NativeServices.getVariant().contains("vaes"))
+            {
+                in = new byte[129];
+            } else
+            {
+                in = new byte[65];
+            }
+
+
             byte[] out = new byte[0];
 
-            // Passes because 32 bytes will not trigger any output.
             nativeGCM.processBytes(in, 0, in.length, out, 0);
             fail("zero len but output");
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
             assertTrue(ex.getMessage().contains("output len too short"));
         }
@@ -1702,28 +1706,40 @@ public class NativeLimitTests
 
             AESNativeGCM nativeGCM = new AESNativeGCM();
             nativeGCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
-            byte[] in = new byte[65];
+            byte[] in;
+            if (NativeServices.getVariant().contains("vaes"))
+            {
+                in = new byte[129];
+            } else
+            {
+                in = new byte[65];
+            }
 
             nativeGCM.processBytes(in, 0, in.length, null, 20);
             fail("zero len but output offset");
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
             assertTrue(ex.getMessage().contains("offset past end of output array"));
         }
 
 
         try
-        { // zero len output, positive offset
+        {
 
             AESNativeGCM nativeGCM = new AESNativeGCM();
             nativeGCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
-            byte[] in = new byte[65];
+            byte[] in;
+            if (NativeServices.getVariant().contains("vaes"))
+            {
+                in = new byte[129];
+            } else
+            {
+                in = new byte[65];
+            }
 
             nativeGCM.processBytes(in, 0, in.length, new byte[0], 20);
             fail("zero len but output");
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
             assertTrue(ex.getMessage().contains("offset past end of output array"));
         }
@@ -1734,14 +1750,20 @@ public class NativeLimitTests
 
             AESNativeGCM nativeGCM = new AESNativeGCM();
             nativeGCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
-            byte[] in = new byte[65];
+            byte[] in;
+            if (NativeServices.getVariant().contains("vaes"))
+            {
+                in = new byte[129];
+            } else
+            {
+                in = new byte[65];
+            }
             byte[] out = null;
 
             // Passes because 32 bytes will not trigger any output.
             nativeGCM.processBytes(in, 0, in.length, out, 0);
             fail("null output");
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
             assertTrue(ex.getMessage().contains("output len too short"));
         }
@@ -1751,14 +1773,20 @@ public class NativeLimitTests
 
             AESNativeGCM nativeGCM = new AESNativeGCM();
             nativeGCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
-            byte[] in = new byte[65];
+            byte[] in;
+            if (NativeServices.getVariant().contains("vaes"))
+            {
+                in = new byte[129];
+            } else
+            {
+                in = new byte[65];
+            }
             byte[] out = new byte[65];
 
             // Passes because 32 bytes will not trigger any output.
             nativeGCM.processBytes(in, 0, in.length, out, 65);
             fail("not enough output");
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
             assertTrue(ex.getMessage().contains("output len too short"));
         }
@@ -1768,14 +1796,20 @@ public class NativeLimitTests
 
             AESNativeGCM nativeGCM = new AESNativeGCM();
             nativeGCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
-            byte[] in = new byte[65];
+            byte[] in;
+            if (NativeServices.getVariant().contains("vaes"))
+            {
+                in = new byte[129];
+            } else
+            {
+                in = new byte[65];
+            }
             byte[] out = new byte[65];
 
             // Passes because 32 bytes will not trigger any output.
             nativeGCM.processBytes(in, 0, in.length, out, 32);
             fail("not enough output");
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
             assertTrue(ex.getMessage().contains("output len too short"));
         }
@@ -1785,12 +1819,12 @@ public class NativeLimitTests
 
     @Test
     public void testGCMDoFinal()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
             {
                 fail("no native gcm and no skip set for it");
                 return;
@@ -1806,8 +1840,7 @@ public class NativeLimitTests
                 {
                     doFinal(null, 0);
                     fail("negative output offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -1822,8 +1855,7 @@ public class NativeLimitTests
                 {
                     doFinal(new byte[16], -1);
                     fail("negative output offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     ex.getMessage().contains("is negative");
                 }
@@ -1837,8 +1869,7 @@ public class NativeLimitTests
                 {
                     doFinal(new byte[16], 17);
                     fail("offset past end of buffer");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     ex.getMessage().contains("offset past end of buffer");
                 }
@@ -1853,8 +1884,7 @@ public class NativeLimitTests
                 {
                     doFinal(new byte[16], 0);
                     fail("not initialized");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     ex.getMessage().contains("needs to be initialised");
                 }
@@ -1869,16 +1899,14 @@ public class NativeLimitTests
                     try
                     {
                         init(true, null);
-                    }
-                    catch (Exception ignored)
+                    } catch (Exception ignored)
                     {
                     }
                     ;
 
                     doFinal(new byte[16], 0);
                     fail("cannot be reused");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     ex.getMessage().contains("cannot be reused");
                 }
@@ -1898,8 +1926,7 @@ public class NativeLimitTests
                     int l = processBytes(in, 0, in.length, out, 0);
                     doFinal(out, l);
                     fail("expected too small for encrypt");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too small"));
                 }
@@ -1914,13 +1941,12 @@ public class NativeLimitTests
                 { // One byte too short for final with message 128b mac
                     init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
                     byte[] in = new byte[16];
-                    byte[] out = new byte[16+15];
+                    byte[] out = new byte[16 + 15];
 
                     int l = processBytes(in, 0, in.length, out, 0);
                     doFinal(out, l);
                     fail("expected too small for encrypt");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too small"));
                 }
@@ -1935,13 +1961,12 @@ public class NativeLimitTests
                 { // One byte too short for final with message
                     init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
                     byte[] in = new byte[32];
-                    byte[] out = new byte[32+15];
+                    byte[] out = new byte[32 + 15];
 
                     int l = processBytes(in, 0, in.length, out, 0);
                     doFinal(out, l);
                     fail("expected too small for encrypt");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too small"));
                 }
@@ -1956,13 +1981,12 @@ public class NativeLimitTests
                 { // One byte too short for final with message
                     init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
                     byte[] in = new byte[48];
-                    byte[] out = new byte[48+15];
+                    byte[] out = new byte[48 + 15];
 
                     int l = processBytes(in, 0, in.length, out, 0);
                     doFinal(out, l);
                     fail("expected too small for encrypt");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too small"));
                 }
@@ -1976,13 +2000,12 @@ public class NativeLimitTests
                 { // One byte too short for final with message
                     init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
                     byte[] in = new byte[64];
-                    byte[] out = new byte[64+15];
+                    byte[] out = new byte[64 + 15];
 
                     int l = processBytes(in, 0, in.length, out, 0);
                     doFinal(out, l);
                     fail("expected too small for encrypt");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too small"));
                 }
@@ -1996,19 +2019,17 @@ public class NativeLimitTests
                 { // One byte too short for final with message
                     init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
                     byte[] in = new byte[96];
-                    byte[] out = new byte[96+15];
+                    byte[] out = new byte[96 + 15];
 
                     int l = processBytes(in, 0, in.length, out, 0);
                     doFinal(out, l);
                     fail("expected too small for encrypt");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too small"));
                 }
             }
         };
-
 
 
         new AESNativeGCM()
@@ -2017,14 +2038,13 @@ public class NativeLimitTests
                 try
                 { // One byte too short for final with message 128b mac
                     init(false, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
-                    byte[] in = new byte[16+16];
+                    byte[] in = new byte[16 + 16];
                     byte[] out = new byte[15]; // Too small output by one.
 
                     int l = processBytes(in, 0, in.length, out, 0);
                     doFinal(out, l);
                     fail("expected too small for encrypt");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too small"));
                 }
@@ -2037,14 +2057,13 @@ public class NativeLimitTests
                 try
                 { // One byte too short for final with message 128b mac
                     init(false, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
-                    byte[] in = new byte[33+16];
+                    byte[] in = new byte[33 + 16];
                     byte[] out = new byte[32]; // Too small output by one.
 
                     int l = processBytes(in, 0, in.length, out, 0);
                     doFinal(out, l);
                     fail("expected too small for encrypt");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too small"));
                 }
@@ -2058,14 +2077,13 @@ public class NativeLimitTests
                 try
                 { // One byte too short for final with message 128b mac
                     init(false, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
-                    byte[] in = new byte[49+16];
+                    byte[] in = new byte[49 + 16];
                     byte[] out = new byte[48]; // Too small output by one.
 
                     int l = processBytes(in, 0, in.length, out, 0);
                     doFinal(out, l);
                     fail("expected too small for encrypt");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too small"));
                 }
@@ -2079,14 +2097,13 @@ public class NativeLimitTests
                 try
                 { // One byte too short for final with message 128b mac
                     init(false, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
-                    byte[] in = new byte[65+16];
+                    byte[] in = new byte[65 + 16];
                     byte[] out = new byte[64]; // Too small output by one.
 
                     int l = processBytes(in, 0, in.length, out, 0);
                     doFinal(out, l);
                     fail("expected too small for encrypt");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too small"));
                 }
@@ -2099,23 +2116,18 @@ public class NativeLimitTests
                 try
                 { // One byte too short for final with message 128b mac
                     init(false, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
-                    byte[] in = new byte[96+16];
+                    byte[] in = new byte[96 + 16];
                     byte[] out = new byte[95]; // Too small output by one.
 
                     int l = processBytes(in, 0, in.length, out, 0);
                     doFinal(out, l);
                     fail("expected too small for encrypt");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too small"));
                 }
             }
         };
-
-
-
-
 
 
     }
@@ -2123,12 +2135,12 @@ public class NativeLimitTests
 
     @Test
     public void testCFBInit()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("cfb"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cfb"))
             {
                 fail("no native cfb and no skip set for it");
                 return;
@@ -2140,8 +2152,7 @@ public class NativeLimitTests
         try
         { // Test incorrect feedback block size.
             new AESNativeCFB(127);
-        }
-        catch (Exception ex)
+        } catch (Exception ex)
         {
             assertTrue(ex.getMessage().contains("can only be 128"));
         }
@@ -2167,8 +2178,7 @@ public class NativeLimitTests
                 {
                     init(false, new KeyParameter(new byte[16]));
                     fail("accepted null iv");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("iv is null"));
                 }
@@ -2194,8 +2204,7 @@ public class NativeLimitTests
                     };
                     init(true, piv);
                     fail("accepted null iv");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -2222,8 +2231,7 @@ public class NativeLimitTests
                     }, new byte[16]);
                     init(true, piv);
                     fail("accepted null key");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("cannot change encrypting state without providing key"));
                 }
@@ -2243,8 +2251,7 @@ public class NativeLimitTests
                     ParametersWithIV piv = new ParametersWithIV(new KeyParameter(new byte[16]), new byte[0]);
                     init(true, piv);
                     fail("accepted invalid iv size");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("between one and block size length"));
                 }
@@ -2263,8 +2270,7 @@ public class NativeLimitTests
                     ParametersWithIV piv = new ParametersWithIV(new KeyParameter(new byte[16]), new byte[17]);
                     init(true, piv);
                     fail("accepted invalid iv size");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("between one and block size length"));
                 }
@@ -2284,8 +2290,7 @@ public class NativeLimitTests
                     ParametersWithIV piv = new ParametersWithIV(new KeyParameter(new byte[15]), new byte[16]);
                     init(true, piv);
                     fail("accepted invalid key size");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("key must be only"));
                 }
@@ -2315,8 +2320,7 @@ public class NativeLimitTests
                 {
                     init(true, null);
                     fail("change state without key");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("cannot change encrypting state"));
                 }
@@ -2329,12 +2333,12 @@ public class NativeLimitTests
 
     @Test
     public void testCFBProcessBlock()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("cfb"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cfb"))
             {
                 fail("no native cfb and no skip set for it");
                 return;
@@ -2354,8 +2358,7 @@ public class NativeLimitTests
                 {
                     processBlock(null, 0, new byte[16], 0);
                     fail("accepted null input array");
-                }
-                catch (Throwable ex)
+                } catch (Throwable ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -2367,8 +2370,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 0, null, 0);
                     fail("accepted null output array");
-                }
-                catch (Throwable ex)
+                } catch (Throwable ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -2381,8 +2383,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[0], -1, new byte[0], 0);
                     fail("accepted negative in offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("inOff is negative"));
                 }
@@ -2395,8 +2396,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[0], 0, new byte[0], -1);
                     fail("accepted negative out offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("outOff is negative"));
                 }
@@ -2409,8 +2409,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[15], 0, new byte[0], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -2423,8 +2422,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 1, new byte[0], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -2437,8 +2435,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 0, new byte[15], 0);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -2451,8 +2448,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 0, new byte[16], 1);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -2464,8 +2460,7 @@ public class NativeLimitTests
                 {
                     processBlock(new byte[16], 0, new byte[16], 0);
                     fail("not initialized");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("not initialized"));
                 }
@@ -2476,12 +2471,12 @@ public class NativeLimitTests
 
     @Test
     public void testCFBProcessBytes()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("cfb"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cfb"))
             {
                 fail("no native cfb and no skip set for it");
                 return;
@@ -2501,8 +2496,7 @@ public class NativeLimitTests
                 {
                     processBytes(null, 0, 1, new byte[16], 0);
                     fail("accepted null input array");
-                }
-                catch (Throwable ex)
+                } catch (Throwable ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -2515,8 +2509,7 @@ public class NativeLimitTests
                 {
                     processBytes(new byte[0], -1, 1, new byte[0], 0);
                     fail("accepted negative in offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("inOff is negative"));
                 }
@@ -2528,8 +2521,7 @@ public class NativeLimitTests
                 {
                     processBytes(new byte[0], 0, -1, new byte[0], 0);
                     fail("accepted negative len ");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("len is negative"));
                 }
@@ -2541,8 +2533,7 @@ public class NativeLimitTests
                 {
                     processBytes(new byte[0], 0, 1, new byte[0], -1);
                     fail("accepted negative out offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("outOff is negative"));
                 }
@@ -2554,8 +2545,7 @@ public class NativeLimitTests
                 {
                     processBytes(new byte[16], 0, 1, new byte[16], 0);
                     fail("not initialized");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("not initialized"));
                 }
@@ -2569,8 +2559,7 @@ public class NativeLimitTests
                 {
                     processBytes(new byte[16], 1, 16, new byte[16], 0);
                     fail("input past end");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too small"));
                 }
@@ -2584,8 +2573,7 @@ public class NativeLimitTests
                 {
                     processBytes(new byte[16], 0, 16, new byte[16], 1);
                     fail("output past end");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too small"));
                 }
@@ -2637,12 +2625,12 @@ public class NativeLimitTests
 
     @Test
     public void testCFBProcessBlocks()
-        throws Exception
+            throws Exception
     {
 
         if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("cfb"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cfb"))
             {
                 fail("no native cfb and no skip set for it");
                 return;
@@ -2662,8 +2650,7 @@ public class NativeLimitTests
                 {
                     processBlocks(null, 0, 1, new byte[16], 0);
                     fail("accepted null input array");
-                }
-                catch (Throwable ex)
+                } catch (Throwable ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -2682,8 +2669,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 0, 1, null, 0);
                     fail("accepted null output array");
-                }
-                catch (Throwable ex)
+                } catch (Throwable ex)
                 {
                     assertTrue(ex instanceof NullPointerException);
                 }
@@ -2700,8 +2686,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[0], -1, 1, new byte[0], 0);
                     fail("accepted negative in offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("inOff is negative"));
                 }
@@ -2719,8 +2704,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[0], 0, -1, new byte[0], 0);
                     fail("accepted negative block count ");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("blockCount is negative"));
                 }
@@ -2737,8 +2721,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[0], 0, 1, new byte[0], -1);
                     fail("accepted negative out offset");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("outOff is negative"));
                 }
@@ -2756,8 +2739,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[15], 0, 1, new byte[0], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -2776,8 +2758,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 1, 1, new byte[0], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -2794,8 +2775,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[31], 0, 2, new byte[32], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -2812,8 +2792,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[32], 1, 2, new byte[32], 0);
                     fail("accepted invalid input");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("input buffer too short"));
                 }
@@ -2831,8 +2810,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 0, 1, new byte[15], 0);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -2850,8 +2828,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 0, 1, new byte[16], 1);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -2868,8 +2845,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[32], 0, 2, new byte[31], 0);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -2887,8 +2863,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[32], 0, 2, new byte[32], 1);
                     fail("accepted invalid output");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("output buffer too short"));
                 }
@@ -2906,8 +2881,7 @@ public class NativeLimitTests
                 {
                     processBlocks(new byte[16], 0, 1, new byte[16], 0);
                     fail("not initialized");
-                }
-                catch (Exception ex)
+                } catch (Exception ex)
                 {
                     assertTrue(ex.getMessage().contains("not initialized"));
                 }

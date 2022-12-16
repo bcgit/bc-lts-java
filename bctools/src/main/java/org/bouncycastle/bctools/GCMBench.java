@@ -19,51 +19,6 @@ public class GCMBench
 {
 
 
-    private static int asInt(String[] args, int index, String name)
-    {
-        int i = 0;
-        if (index >= args.length)
-        {
-            //-DM System.out.println
-            System.out.println(name + " is not defined.");
-            //-DM System.exit
-            System.exit(1);
-        }
-        try
-        {
-            i = Integer.parseInt(args[index].trim());
-        }
-        catch (Exception ex)
-        {
-            //-DM System.out.println
-            System.out.println("count not parse " + name);
-            //-DM System.exit
-            System.exit(1);
-        }
-        return i;
-    }
-
-    private static String asString(String[] args, int index, String name)
-    {
-        String s = "";
-        if (index >= args.length)
-        {
-            //-DM System.out.println
-            System.out.println(name + " is not defined.");
-            //-DM System.exit
-            System.exit(1);
-        }
-
-        s = args[index].trim();
-        if (s.isEmpty())
-        {
-            //-DM System.out.println
-            System.out.println("is empty " + name);
-            //-DM System.exit
-            System.exit(1);
-        }
-        return s;
-    }
 
 
     public static void main(String[] args)
@@ -71,7 +26,7 @@ public class GCMBench
     {
 
         int blockSize = 8;
-        int maxBlocks = 2000;
+        int maxBlocks = 4200;
         int repeats = 1000;
         int step = 10;
         String output = "cbc.csv";
@@ -108,7 +63,7 @@ public class GCMBench
         GCMModeCipher gcmDec = GCMBlockCipher.newInstance(AESEngine.newInstance());
 
 
-        System.out.println("Variant: "+NativeServices.getVariant());
+        System.out.println(NativeServices.getVariant()+" "+ NativeServices.getBuildDate() +" "+NativeServices.getStatusMessage());
 
         SecureRandom secureRandom = new SecureRandom();
 
@@ -122,7 +77,7 @@ public class GCMBench
         {
             byte[] key = new byte[ks];
             byte[] iv = new byte[12];
-            for (int a = 1; a < maxBlocks; a += (a < 10) ? 1 : 16)
+            for (int a = 1; a <= maxBlocks; a += (a < 10) ? 1 : 16)
             {
                 double sumEnc = 0;
                 double sumDec = 0;
@@ -214,4 +169,51 @@ public class GCMBench
         pw.flush();
         pw.close();
     }
+
+    private static int asInt(String[] args, int index, String name)
+    {
+        int i = 0;
+        if (index >= args.length)
+        {
+            //-DM System.out.println
+            System.out.println(name + " is not defined.");
+            //-DM System.exit
+            System.exit(1);
+        }
+        try
+        {
+            i = Integer.parseInt(args[index].trim());
+        }
+        catch (Exception ex)
+        {
+            //-DM System.out.println
+            System.out.println("count not parse " + name);
+            //-DM System.exit
+            System.exit(1);
+        }
+        return i;
+    }
+
+    private static String asString(String[] args, int index, String name)
+    {
+        String s = "";
+        if (index >= args.length)
+        {
+            //-DM System.out.println
+            System.out.println(name + " is not defined.");
+            //-DM System.exit
+            System.exit(1);
+        }
+
+        s = args[index].trim();
+        if (s.isEmpty())
+        {
+            //-DM System.out.println
+            System.out.println("is empty " + name);
+            //-DM System.exit
+            System.exit(1);
+        }
+        return s;
+    }
+
 }

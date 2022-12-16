@@ -1,5 +1,6 @@
 package org.bouncycastle.bctools;
 
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
 import org.bouncycastle.crypto.modes.CFBModeCipher;
@@ -8,6 +9,7 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 
+import javax.print.attribute.standard.MediaSize;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.security.SecureRandom;
@@ -66,7 +68,7 @@ public class CFBBench
     {
 
         int blockSize = 8;
-        int maxBlocks = 1000;
+        int maxBlocks = 4096;
         int repeats = 1000;
         int step = 10;
         String output = "cfb.csv";
@@ -89,12 +91,18 @@ public class CFBBench
             {
                 t++;
                 output = asString(args, t, "-output");
+            } else if ("-variant".equals(args[t])) {
+                t++;
+                System.setProperty("org.bouncycastle.native.cpu_variant",asString(args, t, "-variant"));
             }
-        }
 
+
+        }
 
         CFBModeCipher cfbEnc = CFBBlockCipher.newInstance(AESEngine.newInstance(), 128);
         CFBModeCipher cfbDec = CFBBlockCipher.newInstance(AESEngine.newInstance(), 128);
+
+        System.out.println(NativeServices.getVariant()+" "+ NativeServices.getBuildDate() +" "+NativeServices.getStatusMessage());
 
         SecureRandom secureRandom = new SecureRandom();
 
@@ -107,7 +115,7 @@ public class CFBBench
         {
             byte[] key = new byte[ks];
             byte[] iv = new byte[16];
-            for (int a = 1; a < maxBlocks; a += (a < 10) ? 1 : 16)
+            for (int a = 1; a < maxBlocks; a += (a < 10) ? 1 : 32)
             {
                 double sumEnc = 0;
                 double sumDec = 0;

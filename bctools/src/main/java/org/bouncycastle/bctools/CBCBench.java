@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.security.SecureRandom;
 
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.CBCModeCipher;
@@ -66,8 +67,8 @@ public class CBCBench
         throws Exception
     {
 
-        int blockSize = 16;
-        int maxBlocks = 1000;
+        int blockSize = 8;
+        int maxBlocks = 4096;
         int repeats = 500;
         int step = 10;
         String output = "cbc.csv";
@@ -93,12 +94,17 @@ public class CBCBench
             {
                 t++;
                 output = asString(args, t, "-output");
+            } else if ("-variant".equals(args[t])) {
+                t++;
+                System.setProperty("org.bouncycastle.native.cpu_variant",asString(args, t, "-variant"));
             }
         }
 
 
         CBCModeCipher cbcEnc = CBCBlockCipher.newInstance(AESEngine.newInstance());
         CBCModeCipher cbcDec = CBCBlockCipher.newInstance(AESEngine.newInstance());
+
+        System.out.println(NativeServices.getVariant()+" "+ NativeServices.getBuildDate() +" "+NativeServices.getStatusMessage());
 
         SecureRandom secureRandom = new SecureRandom();
 
@@ -111,7 +117,7 @@ public class CBCBench
         {
             byte[] key = new byte[ks];
             byte[] iv = new byte[16];
-            for (int a = 1; a < maxBlocks; a += (a < 10) ? 1 : 16)
+            for (int a = 1; a <= maxBlocks; a += (a < 10) ? 1 : 32)
             {
                 double sumEnc = 0;
                 double sumDec = 0;
