@@ -112,12 +112,13 @@ public class GCMBench
 
         SecureRandom secureRandom = new SecureRandom();
 
+
         FileWriter fw = new FileWriter(output);
         PrintWriter pw = new PrintWriter(fw);
 
         pw.println("Keysize\tEncryption\tLength\tBPS");
 
-        for (int ks : new int[]{16, 24, 32})
+        for (int ks : new int[]{16,24,32}) //, 24, 32})
         {
             byte[] key = new byte[ks];
             byte[] iv = new byte[12];
@@ -126,6 +127,7 @@ public class GCMBench
                 double sumEnc = 0;
                 double sumDec = 0;
                 double count = 0;
+
 
 
                 long ts = 0;
