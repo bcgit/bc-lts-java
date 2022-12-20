@@ -10,6 +10,7 @@
 #define CFB_BLOCK_SIZE 16
 #define CFB_BLOCK_SIZE_2 32
 
+
 namespace intel {
 
     namespace cfb {
