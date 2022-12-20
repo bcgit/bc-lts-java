@@ -30,7 +30,7 @@ namespace intel {
         static __m256i INC8 = _mm256_set_epi32(0, 8, 0, 0, 0, 8, 0, 0);
 
         void gfmul(__m128i a, __m128i b, __m128i *res);
-
+        __m128i gfmulRet(__m128i a, __m128i b);
 
         /**
          * This wrapper exists to deal with an issue with GCC where it will
@@ -70,6 +70,7 @@ namespace intel {
             static __m128i BSWAP_EPI64;
             static __m256i BSWAP_EPI64_256;
             static __m128i BSWAP_MASK;
+            static __m256i BSWAP_MASK_256;
 
 
             __m512i *roundKeys512;
@@ -138,7 +139,7 @@ namespace intel {
 
             void init(bool encryption, unsigned char *key, size_t keyLen, unsigned char *nonce, size_t nonceLen,
                       unsigned char *initialText,
-                      size_t initialTextLen, size_t macSizeBytes) override;
+                      size_t initialTextLen, size_t macSizeBits) override;
 
 
             void processAADBytes(unsigned char *in, size_t inOff, size_t len) override;

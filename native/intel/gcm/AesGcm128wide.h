@@ -25,7 +25,7 @@ namespace intel {
 #define FOUR_BLOCKS 64
 
         void gfmul(__m128i a, __m128i b, __m128i *res);
-
+        __m128i gfmulRet(__m128i a, __m128i b, __m128i *res);
 
         /**
          * This wrapper exists to deal with an issue with GCC where it will

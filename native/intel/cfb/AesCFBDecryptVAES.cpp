@@ -82,7 +82,7 @@ namespace intel {
             // Deal with partial blocks, we need to round it back up to a full block, if possible.
             // There may have been a call to processByte at any time before passing in a byte array.
             //
-            while(byteCount>0) {
+            while (byteCount > 0) {
                 if (byteCount == 0) {
                     encryptBlock128(feedback, feedback);
                 }
@@ -99,26 +99,26 @@ namespace intel {
 
             //
             // Process 256b double blocks
-            //
-            while(len > CFB_BLOCK_SIZE_2) {
-                __m256i cipherText = _mm256_loadu_si256((__m256i *) ptr);
+            // TODO expand to eight blocks, to better utilise CPU.
+            while (len > CFB_BLOCK_SIZE_2) {
+                __m256i cipherText1 = _mm256_loadu_si256((__m256i *) ptr);
                 //
                 // Create the first feedback block which is the old feedback and the first block of cipher text.
                 //
-                __m256i wideFeedback = _mm256_set_m128i(_mm256_extracti128_si256(cipherText, 0), feedback);
+                __m256i wideFeedback = _mm256_set_m128i(_mm256_extracti128_si256(cipherText1, 0), feedback);
                 encryptBlock256(wideFeedback, wideFeedback);
-                __m256i d = _mm256_xor_si256(cipherText, wideFeedback);
+                __m256i d = _mm256_xor_si256(cipherText1, wideFeedback);
                 _mm256_storeu_si256((__m256i *) dest, d);
                 ptr += CFB_BLOCK_SIZE_2;
                 dest += CFB_BLOCK_SIZE_2;
-                feedback = _mm256_extracti128_si256(cipherText, 1);
+                feedback = _mm256_extracti128_si256(cipherText1, 1);
                 len -= CFB_BLOCK_SIZE_2;
             }
 
             //
             // Process remaining whole blocks
             //
-            while(len > CFB_BLOCK_SIZE) {
+            while (len > CFB_BLOCK_SIZE) {
                 //
                 // 128 bit blocks
                 //
@@ -135,7 +135,7 @@ namespace intel {
             //
             // Deal with remaining unprocessed bytes.
             //
-            while(len >0) {
+            while (len > 0) {
                 if (byteCount == 0) {
                     encryptBlock128(feedback, feedback);
                 }
@@ -149,7 +149,7 @@ namespace intel {
                     byteCount = 0;
                 }
             }
-            
+
             return (size_t) (dest - destStart);
         }
 
