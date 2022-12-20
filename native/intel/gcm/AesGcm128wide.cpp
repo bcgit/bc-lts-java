@@ -110,7 +110,7 @@ void intel::gcm::AesGcm128wide::reset(bool keepMac) {
 void intel::gcm::AesGcm128wide::init(bool encryption, unsigned char *key, size_t keyLen, unsigned char *nonce,
                                      size_t nonceLen,
                                      unsigned char *initialText,
-                                     size_t initialTextLen, size_t macSizeBytes) {
+                                     size_t initialTextLen, size_t macSizeBits) {
 
 
     this->encryption = encryption;
@@ -155,7 +155,7 @@ void intel::gcm::AesGcm128wide::init(bool encryption, unsigned char *key, size_t
     //
     // Setup new mac block
     //
-    this->macBlockLen = macSizeBytes;
+    this->macBlockLen = macSizeBits/8;
     macBlock = new unsigned char[macBlockLen];
     memset(macBlock, 0, macBlockLen);
 
@@ -166,7 +166,7 @@ void intel::gcm::AesGcm128wide::init(bool encryption, unsigned char *key, size_t
         bufBlockPtr = 0;
     }
 
-    bufBlockLen = encryption ? FOUR_BLOCKS : (FOUR_BLOCKS + macSizeBytes);
+    bufBlockLen = encryption ? FOUR_BLOCKS : (FOUR_BLOCKS + macBlockLen);
     bufBlock = new unsigned char[bufBlockLen];
     memset(bufBlock, 0, bufBlockLen);
     bufBlockPtr = 0;

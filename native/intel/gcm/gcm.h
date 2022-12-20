@@ -28,7 +28,7 @@ namespace intel::gcm {
 
         virtual void init(bool encryption, unsigned char *key, size_t keyLen, unsigned char *nonce, size_t nonceLen,
                           unsigned char *initialText,
-                          size_t initialTextLen, size_t macSizeBytes) = 0;
+                          size_t initialTextLen, size_t macSizeBits) = 0;
 
 
         virtual void processAADBytes(unsigned char *in, size_t inOff, size_t len) = 0;

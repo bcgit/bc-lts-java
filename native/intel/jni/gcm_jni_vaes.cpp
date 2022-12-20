@@ -52,7 +52,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_initNat
                    nonce.length(),
                    aad.uvalue(),
                    aad.length(),
-                   (size_t) macSizeInBits >> 3);
+                   (size_t) macSizeInBits);
 }
 
 /*
