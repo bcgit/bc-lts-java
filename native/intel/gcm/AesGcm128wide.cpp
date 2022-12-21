@@ -289,6 +289,7 @@ void intel::gcm::AesGcm128wide::init(bool encryption, unsigned char *key, size_t
     //
     ctr1 = _mm_shuffle_epi8(Y, BSWAP_EPI64);
 
+    blocksRemaining = BLOCKS_REMAINING_INIT;
 }
 
 size_t intel::gcm::AesGcm128wide::getMacLen() {

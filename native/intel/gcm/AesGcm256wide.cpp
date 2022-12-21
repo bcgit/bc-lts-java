@@ -113,8 +113,22 @@ void intel::gcm::AesGcm256wide::reset(bool keepMac) {
     last_block = _mm_setzero_si128();
     ctr1 = _mm_shuffle_epi8(Y, BSWAP_EPI64);
 
-    blocksRemaining = BLOCKS_REMAINING_INIT; // page 8, len(P) <= 2^39 - 256, one block taken by tag, but doFinal on J0.
+    ctr12 = _mm256_set_m128i(
+            _mm_add_epi32(ctr1, _mm_set_epi32(0, 2, 0, 0)),
+            _mm_add_epi32(ctr1, _mm_set_epi32(0, 1, 0, 0)));
+    ctr34 = _mm256_set_m128i(
+            _mm_add_epi32(ctr1, _mm_set_epi32(0, 4, 0, 0)),
+            _mm_add_epi32(ctr1, _mm_set_epi32(0, 3, 0, 0)));
 
+    ctr56 = _mm256_set_m128i(
+            _mm_add_epi32(ctr1, _mm_set_epi32(0, 6, 0, 0)),
+            _mm_add_epi32(ctr1, _mm_set_epi32(0, 5, 0, 0)));
+
+    ctr78 = _mm256_set_m128i(
+            _mm_add_epi32(ctr1, _mm_set_epi32(0, 8, 0, 0)),
+            _mm_add_epi32(ctr1, _mm_set_epi32(0, 7, 0, 0)));
+
+    blocksRemaining = BLOCKS_REMAINING_INIT; // page 8, len(P) <= 2^39 - 256, one block taken by tag, but doFinal on J0.
 }
 
 
@@ -319,6 +333,8 @@ void intel::gcm::AesGcm256wide::init(bool encryption, unsigned char *key, size_t
     ctr78 = _mm256_set_m128i(
             _mm_add_epi32(ctr1, _mm_set_epi32(0, 8, 0, 0)),
             _mm_add_epi32(ctr1, _mm_set_epi32(0, 7, 0, 0)));
+
+    blocksRemaining = BLOCKS_REMAINING_INIT; // page 8, len(P) <= 2^39 - 256, one block taken by tag, but doFinal on J0.
 }
 
 size_t intel::gcm::AesGcm256wide::getMacLen() {
