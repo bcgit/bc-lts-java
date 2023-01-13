@@ -15,27 +15,24 @@ namespace jniutil {
         char *val;
         size_t len;
         JNIEnv *env;
-        bool wasCopy;
         bool wasNull;
         jbyteArray array;
-        bool reverse;
+
 
     public:
         JavaByteArray(const JavaByteArray &) = delete;
 
         JavaByteArray(JNIEnv *env, jbyteArray array);
 
-        JavaByteArray(JNIEnv *env, jbyteArray array, bool reverse);
-
         ~JavaByteArray();
 
-        char *value();
+        [[maybe_unused]] char *value();
 
         unsigned char *uvalue();
 
-        size_t length();
+        [[nodiscard]] size_t length() const;
 
-        bool isNull();
+        [[nodiscard]] bool isNull() const;
 
     };
 }

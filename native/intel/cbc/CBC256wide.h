@@ -18,6 +18,8 @@ namespace intel {
 
 
         class CBC256wide: protected CBCLike {
+        private:
+            CBC256wide & operator=(CBC256wide const&);
 
         protected:
             __m128i feedback;
@@ -30,7 +32,7 @@ namespace intel {
 
         public:
 
-
+            CBC256wide(const CBC256wide &) = delete;
 
             CBC256wide();
 

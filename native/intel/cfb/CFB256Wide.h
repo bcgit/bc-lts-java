@@ -16,6 +16,9 @@ namespace intel {
     namespace cfb {
 
         class CFB256Wide : public CFBLike {
+        private:
+            CFB256Wide & operator=(CFB256Wide const&);
+
         protected:
             __m256i *roundKeys256;
             __m128i *roundKeys128;
@@ -30,7 +33,7 @@ namespace intel {
 
 
         public:
-
+            CFB256Wide(const CFB256Wide &) = delete;
             CFB256Wide();
 
             ~CFB256Wide() override;
@@ -38,7 +41,7 @@ namespace intel {
             void
             init(unsigned char *key, unsigned long keylen, unsigned char *iv, unsigned long ivlen) override;
 
-            void reset();
+            void reset() override;
 
             virtual size_t processBytes(unsigned char *src, size_t len, unsigned char *dest) override = 0;
 

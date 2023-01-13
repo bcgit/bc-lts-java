@@ -18,15 +18,6 @@
 namespace intel {
     namespace digest {
 
-        typedef struct SHA256StateType {
-            uint8_t type;
-            uint32_t bufPtr;
-            uint8_t buf[BUF_SIZE_SHA256];
-            __m128i s0;
-            __m128i s1;
-            uint64_t byteCount;
-        } SHA256StateType;
-
         typedef struct SHA256FullStateType {
             uint32_t ident;
             size_t bufPtr;
@@ -38,12 +29,13 @@ namespace intel {
         } SHA256FullStateType;
 
 
-
         class Sha256 : public Digest {
 
         private:
+            Sha256 &operator=(Sha256 const &);
+
             size_t bufPtr;
-            unsigned char buf[BUF_SIZE_SHA256];
+            unsigned char *buf;
             __m128i s0, s1;
             uint32_t state[8];
             const __m128i mask = _mm_set_epi64x(0x0c0d0e0f08090a0bULL, 0x0405060700010203ULL);
@@ -62,10 +54,14 @@ namespace intel {
                     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
             };
 
+            void _reset();
+
         protected:
             int processLength(size_t length) override;
 
         public:
+            Sha256(const Sha256 &i) = delete;
+
             Sha256();
 
             ~Sha256() override;

@@ -1,9 +1,19 @@
 cmake_minimum_required(VERSION 3.16)
 
-set(JNI_INCLUDE $ENV{JAVA_HOME}/include)
-set(FIPS_JAVA_ROOT ${CMAKE_SOURCE_DIR}/../core)
+FILE(TO_CMAKE_PATH "$ENV{JAVA_HOME}/include" JNI_INCLUDE)
+
+#set(JNI_INCLUDE FILE(TO_CMAKE_PATH /include)
+
+FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/../core" FIPS_JAVA_ROOT)
 
 message("JNI Include directory:  ${JNI_INCLUDE}")
+message("FIPS_JAVA_ROOT  ${FIPS_JAVA_ROOT}")
+
+option(LOG_LIFECYCLE "log lifecycle to std out" OFF)
+
+if(${LOG_LIFECYCLE})
+    set(LLCYCLE "LLCYCLE")
+endif()
 
 # We also need to include the machine dependent libraries.
 set(JNI_INCLUDE_PLATFORM "")
@@ -143,7 +153,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64")
             $<$<COMPILE_LANGUAGE:C>: -mcpu=native+rng>
             )
     install(TARGETS "${LIB_NATIVE}" LIBRARY DESTINATION ${PLATFORM_TARGET}/components)
-    target_compile_definitions("${LIB_NATIVE}" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"arm64\" BUILD_TS=\"${BUILD_TS}\")
+    target_compile_definitions("${LIB_NATIVE}" PUBLIC LOG_LIFECYCLE_=\"${LOG_LIFECYCLE}\" BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VARIANT=\"arm64\" BUILD_TS=\"${BUILD_TS}\")
 
     add_executable(tryit main_arm.cpp ${DEBUG_FUNC})
     target_link_libraries(tryit "${LIB_NATIVE}")
@@ -164,7 +174,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     set(RAND_IMPL intel/rand/Rand.cpp intel/jni/native_entropy_source_jni.cpp)
     set(IDENT_IMPL intel/jni/ident_jni.cpp intel/jni/native_features.cpp)
     set(MACRO macro.h)
-    set(COMMON intel/common.cpp intel/common.h)
+    set(COMMON intel/common.cpp intel/common.h intel/log.h)
 
     set(CBC
             intel/cbc/CBCLike.h
@@ -281,7 +291,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 
     target_include_directories(${LIB_PROBE} PUBLIC ${JNI_INCLUDES})
     target_compile_options(${LIB_PROBE} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:-O3 -msse4.1 ${OPTIONS}>)
-    target_compile_definitions(${LIB_PROBE} PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\")
+    target_compile_definitions(${LIB_PROBE} PUBLIC ${LLCYCLE} BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\")
     install(TARGETS "${LIB_PROBE}" LIBRARY DESTINATION ${PLATFORM_TARGET}/probe)
 
 
@@ -314,8 +324,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             $<$<COMPILE_LANGUAGE:C>:-O3 -msse4.1 -msha -maes -mpclmul -mrdrnd -mrdseed ${OPTIONS}>
             )
     install(TARGETS "${LIB_NATIVE}-sse" LIBRARY DESTINATION ${PLATFORM_TARGET}/sse)
-    target_compile_definitions("${LIB_NATIVE}-sse" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_SSE BC_VARIANT=\"sse\" BUILD_TS=\"${BUILD_TS}\")
-
+    target_compile_definitions("${LIB_NATIVE}-sse" PUBLIC ${LLCYCLE} BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_SSE BC_VARIANT=\"sse\" BUILD_TS=\"${BUILD_TS}\")
 
     # specify the C++ standard
     add_library("${LIB_NATIVE}-avx" SHARED
@@ -346,8 +355,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS}>
             )
     install(TARGETS "${LIB_NATIVE}-avx" LIBRARY DESTINATION ${PLATFORM_TARGET}/avx)
-    target_compile_definitions("${LIB_NATIVE}-avx" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_AVX BC_VARIANT=\"avx\" BUILD_TS=\"${BUILD_TS}\")
-
+    target_compile_definitions("${LIB_NATIVE}-avx" PUBLIC ${LLCYCLE} BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_AVX BC_VARIANT=\"avx\" BUILD_TS=\"${BUILD_TS}\")
 
     #
     # VAES VERSION
@@ -382,8 +390,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS}>
             )
     install(TARGETS "${LIB_NATIVE}-vaes" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaes)
-    target_compile_definitions("${LIB_NATIVE}-vaes" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VAES BC_VARIANT=\"vaes\" BC_VAES BUILD_TS=\"${BUILD_TS}\")
-
+    target_compile_definitions("${LIB_NATIVE}-vaes" PUBLIC ${LLCYCLE} BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VAES BC_VARIANT=\"vaes\" BC_VAES BUILD_TS=\"${BUILD_TS}\")
 
     #
     # VAES with AVX512F VERSION
@@ -418,8 +425,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f ${OPTIONS}>
             )
     install(TARGETS "${LIB_NATIVE}-vaesf" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaesf)
-    target_compile_definitions("${LIB_NATIVE}-vaesf" PUBLIC BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VAESF BC_VARIANT=\"vaesf\" BC_VAES BUILD_TS=\"${BUILD_TS}\")
-
+    target_compile_definitions("${LIB_NATIVE}-vaesf" PUBLIC ${LLCYCLE} BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VAESF BC_VARIANT=\"vaesf\" BC_VAES BUILD_TS=\"${BUILD_TS}\")
 
 endif ()
 

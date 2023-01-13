@@ -29,8 +29,7 @@ namespace intel {
 
         static __m256i INC8 = _mm256_set_epi32(0, 8, 0, 0, 0, 8, 0, 0);
 
-        void gfmul(__m128i a, __m128i b, __m128i *res);
-        __m128i gfmulRet(__m128i a, __m128i b);
+
 
         /**
          * This wrapper exists to deal with an issue with GCC where it will
@@ -48,8 +47,10 @@ namespace intel {
         class Exponentiator {
         private:
             std::vector<_m128i_wrapper> *lookupPow2;
+            Exponentiator & operator=(Exponentiator const&);
 
         public:
+            Exponentiator(const Exponentiator &) = delete;
             Exponentiator();
 
             ~Exponentiator();
@@ -65,6 +66,7 @@ namespace intel {
 
         class AesGcm256wide : public GCM {
         public:
+          static void gfmul(__m128i a, __m128i b, __m128i *res);
         private:
 
             static __m128i BSWAP_EPI64;
@@ -73,7 +75,6 @@ namespace intel {
             static __m256i BSWAP_MASK_256;
 
 
-            __m512i *roundKeys512;
             __m256i *roundKeys256;
             __m128i *roundKeys128;
 
@@ -126,18 +127,24 @@ namespace intel {
 
             void processBlock(unsigned char *in, unsigned char *out, size_t outputLen);
 
-            void processFourBlocks(unsigned char *in, unsigned char *out);
+            void processEightBlocks(unsigned char *in, unsigned char *out);
 
             void initCipher();
 
+
+            static __m128i xorGfmul2(__m128i a, __m128i b, __m256i val);
+
+            AesGcm256wide & operator=(AesGcm256wide const&);
+
         public:
+            AesGcm256wide(const AesGcm256wide &) = delete;
             AesGcm256wide();
 
             ~AesGcm256wide() override;
 
             void reset(bool keepMac) override;
 
-            void init(bool encryption, unsigned char *key, size_t keyLen, unsigned char *nonce, size_t nonceLen,
+            void init(bool encryption_, unsigned char *key, size_t keyLen, unsigned char *nonce, size_t nonceLen,
                       unsigned char *initialText,
                       size_t initialTextLen, size_t macSizeBits) override;
 

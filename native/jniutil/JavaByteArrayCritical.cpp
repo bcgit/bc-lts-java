@@ -18,7 +18,6 @@ namespace jniutil {
             val = nullptr;
             wasCopy = false;
             wasNull = true;
-            reverse = false;
             return;
         }
 
@@ -29,41 +28,6 @@ namespace jniutil {
         val = reinterpret_cast<char *>( env->GetPrimitiveArrayCritical(array, &isCopy));
         wasCopy = isCopy != 0;
         wasNull = false;
-        reverse = false;
-    }
-
-    JavaByteArrayCritical::JavaByteArrayCritical(JNIEnv *env, jbyteArray array, bool reverse) {
-        if (array == nullptr) {
-            this->env = env;
-            this->array = array;
-            len = 0;
-            val = nullptr;
-            wasCopy = false;
-            wasNull = true;
-            reverse = false;
-            return;
-        }
-
-        jboolean isCopy = false;
-        this->env = env;
-        this->array = array;
-        len = (size_t)env->GetArrayLength(array);
-        val = reinterpret_cast<char *>( env->GetPrimitiveArrayCritical(array, &isCopy));
-        wasCopy = isCopy != 0;
-        wasNull = false;
-        reverse = reverse;
-
-        if (reverse) {
-            // TODO Optimise
-            char *right = val + len - 1;
-            char *left = val;
-            while (left < right) {
-                std::swap(*left, *right);
-                left++;
-                right--;
-            }
-
-        }
 
     }
 
@@ -74,19 +38,6 @@ namespace jniutil {
             return;
         }
 
-        if (reverse) {
-            // TODO Optimise
-            char *right = val + len - 1;
-            char *left = val;
-            while (left < right) {
-                std::swap(*left, *right);
-                left++;
-                right--;
-            }
-
-        }
-
-
         this->env->ReleasePrimitiveArrayCritical(array, reinterpret_cast<jbyte *>(val), 0);
     }
 
@@ -94,11 +45,11 @@ namespace jniutil {
         return val;
     }
 
-    size_t JavaByteArrayCritical::length() {
+    size_t JavaByteArrayCritical::length() const {
         return len;
     }
 
-    bool JavaByteArrayCritical::isNull() {
+    bool JavaByteArrayCritical::isNull() const {
         return wasNull;
     }
 

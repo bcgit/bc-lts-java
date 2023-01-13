@@ -92,7 +92,7 @@ namespace intel {
             }
 
 
-            return dest - destStart;
+            return (size_t)(dest - destStart);
         }
 
 

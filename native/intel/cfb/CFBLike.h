@@ -19,6 +19,8 @@ namespace intel {
 
         public:
 
+            CFBLike() = default;
+
             virtual ~CFBLike() = 0;
 
             virtual void

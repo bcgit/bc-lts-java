@@ -20,12 +20,16 @@ namespace intel {
                 4, 5, 6, 7,
                 0, 1, 2, 3);
 
-        Sha256::Sha256() {
-            reset();
+        Sha256::Sha256() { // NOLINT(cppcoreguidelines-pro-type-member-init) done in _reset
+            buf = new unsigned char[BUF_SIZE_SHA256];
+            memset(buf, 0, BUF_SIZE_SHA256);
+            _reset();
         }
 
         Sha256::~Sha256() {
             memset(buf, 0, BUF_SIZE_SHA256);
+            delete[] buf;
+
             _mm_store_si128(&s0, _mm_setzero_si128());
             _mm_store_si128(&s1, _mm_setzero_si128());
             memset(state, 0, 8 * sizeof(uint32_t));
@@ -121,27 +125,7 @@ namespace intel {
         }
 
         void Sha256::reset() {
-            memset(buf, 0, BUF_SIZE_SHA256);
-            bufPtr = 0;
-            byteCount = 0;
-
-            state[0] = 0x6a09e667;
-            state[1] = 0xbb67ae85;
-            state[2] = 0x3c6ef372;
-            state[3] = 0xa54ff53a;
-            state[4] = 0x510e527f;
-            state[5] = 0x9b05688c;
-            state[6] = 0x1f83d9ab;
-            state[7] = 0x5be0cd19;
-
-
-            __m128i tmp = _mm_loadu_si128((const __m128i *) &state[0]);
-            s1 = _mm_loadu_si128((const __m128i *) &state[4]);
-
-            tmp = _mm_shuffle_epi32(tmp, 0xB1);          /* CDAB */
-            s1 = _mm_shuffle_epi32(s1, 0x1B);    /* EFGH */
-            s0 = _mm_alignr_epi8(tmp, s1, 8);    /* ABEF */
-            s1 = _mm_blend_epi16(s1, tmp, 0xF0); /* CDGH */
+            _reset();
         }
 
 
@@ -172,7 +156,8 @@ namespace intel {
 
             msg = _mm_loadu_si128((const __m128i *) (block));
             msgTmp0 = _mm_shuffle_epi8(msg, mask);
-            msg = _mm_add_epi32(msgTmp0, _mm_set_epi64x(0xE9B5DBA5B5C0FBCFULL, 0x71374491428A2F98ULL));
+//            msg = _mm_add_epi32(msgTmp0, _mm_set_epi64x(0xE9B5DBA5B5C0FBCFULL, 0x71374491428A2F98ULL));
+            msg = _mm_add_epi32(msgTmp0, _mm_set_epi64x(-1606136187322303537, 8158064640682241944));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             msg = _mm_shuffle_epi32(msg, 0x0E);
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
@@ -182,7 +167,7 @@ namespace intel {
 
             msg1 = _mm_loadu_si128((const __m128i *) (block));
             msg1 = _mm_shuffle_epi8(msg1, mask);
-            msg = _mm_add_epi32(msg1, _mm_set_epi64x(0xAB1C5ED5923F82A4ULL, 0x59F111F13956C25BULL));
+            msg = _mm_add_epi32(msg1, _mm_set_epi64x(-6116909922501295452, 6480981066509632091));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             msg = _mm_shuffle_epi32(msg, 0x0E);
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
@@ -193,7 +178,7 @@ namespace intel {
 
             msg2 = _mm_loadu_si128((const __m128i *) (block));
             msg2 = _mm_shuffle_epi8(msg2, mask);
-            msg = _mm_add_epi32(msg2, _mm_set_epi64x(0x550C7DC3243185BEULL, 0x12835B01D807AA98ULL));
+            msg = _mm_add_epi32(msg2, _mm_set_epi64x(6128411470023722430, 1334009978109274776));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             msg = _mm_shuffle_epi32(msg, 0x0E);
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
@@ -204,7 +189,7 @@ namespace intel {
 
             msg3 = _mm_loadu_si128((const __m128i *) (block));
             msg3 = _mm_shuffle_epi8(msg3, mask);
-            msg = _mm_add_epi32(msg3, _mm_set_epi64x(0xC19BF1749BDC06A7ULL, 0x80DEB1FE72BE5D74ULL));
+            msg = _mm_add_epi32(msg3, _mm_set_epi64x(-4495734319865919833, -9160688885620122252));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             tmp = _mm_alignr_epi8(msg3, msg2, 4);
             msgTmp0 = _mm_add_epi32(msgTmp0, tmp);
@@ -213,7 +198,7 @@ namespace intel {
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
             msg2 = _mm_sha256msg1_epu32(msg2, msg3);
 
-            msg = _mm_add_epi32(msgTmp0, _mm_set_epi64x(0x240CA1CC0FC19DC6ULL, 0xEFBE4786E49B69C1ULL));
+            msg = _mm_add_epi32(msgTmp0, _mm_set_epi64x(0x240CA1CC0FC19DC6ULL, -1171420208383170111));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             tmp = _mm_alignr_epi8(msgTmp0, msg3, 4);
             msg1 = _mm_add_epi32(msg1, tmp);
@@ -222,7 +207,7 @@ namespace intel {
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
             msg3 = _mm_sha256msg1_epu32(msg3, msgTmp0);
 
-            msg = _mm_add_epi32(msg1, _mm_set_epi64x(0x76F988DA5CB0A9DCULL, 0x4A7484AA2DE92C6FULL));
+            msg = _mm_add_epi32(msg1, _mm_set_epi64x(0x76F988DA5CB0A9DCULL, 5365058922554666095));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             tmp = _mm_alignr_epi8(msg1, msgTmp0, 4);
             msg2 = _mm_add_epi32(msg2, tmp);
@@ -231,7 +216,7 @@ namespace intel {
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
             msgTmp0 = _mm_sha256msg1_epu32(msgTmp0, msg1);
 
-            msg = _mm_add_epi32(msg2, _mm_set_epi64x(0xBF597FC7B00327C8ULL, 0xA831C66D983E5152ULL));
+            msg = _mm_add_epi32(msg2, _mm_set_epi64x(-4658551843909851192, -6327057827470880430));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             tmp = _mm_alignr_epi8(msg2, msg1, 4);
             msg3 = _mm_add_epi32(msg3, tmp);
@@ -240,7 +225,7 @@ namespace intel {
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
             msg1 = _mm_sha256msg1_epu32(msg1, msg2);
 
-            msg = _mm_add_epi32(msg3, _mm_set_epi64x(0x1429296706CA6351ULL, 0xD5A79147C6E00BF3ULL));
+            msg = _mm_add_epi32(msg3, _mm_set_epi64x(0x1429296706CA6351ULL, -3051310485054944269));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             tmp = _mm_alignr_epi8(msg3, msg2, 4);
             msgTmp0 = _mm_add_epi32(msgTmp0, tmp);
@@ -249,7 +234,7 @@ namespace intel {
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
             msg2 = _mm_sha256msg1_epu32(msg2, msg3);
 
-            msg = _mm_add_epi32(msgTmp0, _mm_set_epi64x(0x53380D134D2C6DFCULL, 0x2E1B213827B70A85ULL));
+            msg = _mm_add_epi32(msgTmp0, _mm_set_epi64x(0x53380D134D2C6DFCULL, 3322285675184065157));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             tmp = _mm_alignr_epi8(msgTmp0, msg3, 4);
             msg1 = _mm_add_epi32(msg1, tmp);
@@ -258,7 +243,7 @@ namespace intel {
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
             msg3 = _mm_sha256msg1_epu32(msg3, msgTmp0);
 
-            msg = _mm_add_epi32(msg1, _mm_set_epi64x(0x92722C8581C2C92EULL, 0x766A0ABB650A7354ULL));
+            msg = _mm_add_epi32(msg1, _mm_set_epi64x(-7894198244907759314, 8532644243977171796));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             tmp = _mm_alignr_epi8(msg1, msgTmp0, 4);
             msg2 = _mm_add_epi32(msg2, tmp);
@@ -267,7 +252,7 @@ namespace intel {
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
             msgTmp0 = _mm_sha256msg1_epu32(msgTmp0, msg1);
 
-            msg = _mm_add_epi32(msg2, _mm_set_epi64x(0xC76C51A3C24B8B70ULL, 0xA81A664BA2BFE8A1ULL));
+            msg = _mm_add_epi32(msg2, _mm_set_epi64x(-4076793798895891600, -6333637450904115039));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             tmp = _mm_alignr_epi8(msg2, msg1, 4);
             msg3 = _mm_add_epi32(msg3, tmp);
@@ -276,7 +261,7 @@ namespace intel {
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
             msg1 = _mm_sha256msg1_epu32(msg1, msg2);
 
-            msg = _mm_add_epi32(msg3, _mm_set_epi64x(0x106AA070F40E3585ULL, 0xD6990624D192E819ULL));
+            msg = _mm_add_epi32(msg3, _mm_set_epi64x(0x106AA070F40E3585ULL, -2983346522951587815));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             tmp = _mm_alignr_epi8(msg3, msg2, 4);
             msgTmp0 = _mm_add_epi32(msgTmp0, tmp);
@@ -285,7 +270,7 @@ namespace intel {
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
             msg2 = _mm_sha256msg1_epu32(msg2, msg3);
 
-            msg = _mm_add_epi32(msgTmp0, _mm_set_epi64x(0x34B0BCB52748774CULL, 0x1E376C0819A4C116ULL));
+            msg = _mm_add_epi32(msgTmp0, _mm_set_epi64x(0x34B0BCB52748774CULL, 2177327726902690070));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             tmp = _mm_alignr_epi8(msgTmp0, msg3, 4);
             msg1 = _mm_add_epi32(msg1, tmp);
@@ -294,7 +279,7 @@ namespace intel {
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
             msg3 = _mm_sha256msg1_epu32(msg3, msgTmp0);
 
-            msg = _mm_add_epi32(msg1, _mm_set_epi64x(0x682E6FF35B9CCA4FULL, 0x4ED8AA4A391C0CB3ULL));
+            msg = _mm_add_epi32(msg1, _mm_set_epi64x(7507060719877933647, 5681478165690322099));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             tmp = _mm_alignr_epi8(msg1, msgTmp0, 4);
             msg2 = _mm_add_epi32(msg2, tmp);
@@ -302,7 +287,7 @@ namespace intel {
             msg = _mm_shuffle_epi32(msg, 0x0E);
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
 
-            msg = _mm_add_epi32(msg2, _mm_set_epi64x(0x8CC7020884C87814ULL, 0x78A5636F748F82EEULL));
+            msg = _mm_add_epi32(msg2, _mm_set_epi64x(-8302665152423495660, 8693463986056692462));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             tmp = _mm_alignr_epi8(msg2, msg1, 4);
             msg3 = _mm_add_epi32(msg3, tmp);
@@ -310,7 +295,7 @@ namespace intel {
             msg = _mm_shuffle_epi32(msg, 0x0E);
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
 
-            msg = _mm_add_epi32(msg3, _mm_set_epi64x(0xC67178F2BEF9A3F7ULL, 0xA4506CEB90BEFFFAULL));
+            msg = _mm_add_epi32(msg3, _mm_set_epi64x(-4147400797850065929, -6606660894350966790));
             s1 = _mm_sha256rnds2_epu32(s1, s0, msg);
             msg = _mm_shuffle_epi32(msg, 0x0E);
             s0 = _mm_sha256rnds2_epu32(s0, s1, msg);
@@ -374,6 +359,30 @@ namespace intel {
             memcpy(fullState->state, this->state, 32);
             fullState->s0 = s0;
             fullState->s1 = s1;
+        }
+
+        void Sha256::_reset() {
+            memset(buf, 0, BUF_SIZE_SHA256);
+            bufPtr = 0;
+            byteCount = 0;
+
+            state[0] = 0x6a09e667;
+            state[1] = 0xbb67ae85;
+            state[2] = 0x3c6ef372;
+            state[3] = 0xa54ff53a;
+            state[4] = 0x510e527f;
+            state[5] = 0x9b05688c;
+            state[6] = 0x1f83d9ab;
+            state[7] = 0x5be0cd19;
+
+
+            __m128i tmp = _mm_loadu_si128((const __m128i *) &state[0]);
+            s1 = _mm_loadu_si128((const __m128i *) &state[4]);
+
+            tmp = _mm_shuffle_epi32(tmp, 0xB1);          /* CDAB */
+            s1 = _mm_shuffle_epi32(s1, 0x1B);    /* EFGH */
+            s0 = _mm_alignr_epi8(tmp, s1, 8);    /* ABEF */
+            s1 = _mm_blend_epi16(s1, tmp, 0xF0); /* CDGH */
         }
 
 
