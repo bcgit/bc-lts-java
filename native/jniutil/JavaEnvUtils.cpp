@@ -3,6 +3,7 @@
 //
 
 #include <cassert>
+#include <iostream>
 #include "JavaEnvUtils.h"
 
 namespace jniutil {
@@ -12,7 +13,7 @@ namespace jniutil {
         env->ThrowNew(exClass, message);
     }
 
-    bool JavaEnvUtils::exceptionThrown(JNIEnv *env) {
+    [[maybe_unused]] [[maybe_unused]]bool JavaEnvUtils::exceptionThrown(JNIEnv *env) {
         auto thrown = env->ExceptionCheck();
         return thrown == JNI_TRUE;
     }

@@ -95,7 +95,7 @@ namespace intel {
             }
 
 
-            return dest - destStart;
+            return (size_t)(dest - destStart);
         }
 
         void AesCFB192Dec::encryptBlock(__m128i in, __m128i &out) {

@@ -13,7 +13,7 @@ namespace jniutil {
     public:
         static void throwIllegalArgumentException(JNIEnv *env, const char *message);
 
-        static bool exceptionThrown(JNIEnv *env);
+        [[maybe_unused]] static bool exceptionThrown(JNIEnv *env);
 
         static void throwException(JNIEnv *pEnv, const char *classname, const char *msg);
 

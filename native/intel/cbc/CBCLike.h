@@ -13,12 +13,14 @@
 namespace intel {
 
 
-    namespace  cbc {
+    namespace cbc {
         class CBCLike {
         protected:
 
 
         public:
+
+            CBCLike() = default;
 
             virtual ~CBCLike() = 0;
 

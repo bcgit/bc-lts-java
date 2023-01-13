@@ -17,10 +17,15 @@ namespace intel {
     namespace ecb {
 
         class AesEcb512W : public ECB {
+
+        private:
+            AesEcb512W & operator=(AesEcb512W const&);
+
         protected:
             __m512i *roundKeys512;
 
         public:
+            AesEcb512W(const AesEcb512W &i) = delete;
             AesEcb512W();
 
             ~AesEcb512W() override;
@@ -29,9 +34,9 @@ namespace intel {
 
             void reset() override;
 
-            virtual void init(unsigned char *key) override = 0;
+            void init(unsigned char *key) override = 0;
 
-            virtual size_t processBlocks(
+            size_t processBlocks(
                     unsigned char *input,
                     size_t in_start,
                     size_t in_len,

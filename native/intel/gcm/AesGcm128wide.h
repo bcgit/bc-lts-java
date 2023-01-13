@@ -24,8 +24,6 @@ namespace intel {
 #define BLOCK_SIZE 16
 #define FOUR_BLOCKS 64
 
-        void gfmul(__m128i a, __m128i b, __m128i *res);
-        __m128i gfmulRet(__m128i a, __m128i b, __m128i *res);
 
         /**
          * This wrapper exists to deal with an issue with GCC where it will
@@ -43,8 +41,11 @@ namespace intel {
         class Exponentiator {
         private:
             std::vector<_m128i_wrapper> *lookupPow2;
+            Exponentiator & operator=(Exponentiator const&);
 
         public:
+            Exponentiator(const Exponentiator &) = delete;
+
             Exponentiator();
 
             ~Exponentiator();
@@ -114,7 +115,12 @@ namespace intel {
 
             void initCipher();
 
+
+            AesGcm128wide & operator=(AesGcm128wide const&);
+
         public:
+            AesGcm128wide(const AesGcm128wide &) = delete;
+
             AesGcm128wide();
 
             ~AesGcm128wide() override;
@@ -148,6 +154,7 @@ namespace intel {
 
             void setBlocksRemainingDown(int64_t down) override;
 
+            static void gfmul(__m128i a, __m128i b, __m128i *res);
         };
 
 

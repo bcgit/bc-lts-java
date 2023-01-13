@@ -58,4 +58,4 @@ namespace intel {
     }
 }
 
-#endif //BCFIPS_0_0_AESCBC_H
+#endif //BCFIPS_0_0_AesCBCDecryptVaes_H

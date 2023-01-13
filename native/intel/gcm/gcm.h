@@ -21,7 +21,6 @@ namespace intel::gcm {
     public:
 
         GCM();
-
         virtual ~GCM();
 
         virtual void reset(bool keepMac) = 0;
