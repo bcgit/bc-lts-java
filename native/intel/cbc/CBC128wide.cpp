@@ -7,7 +7,7 @@
 #include "../../macro.h"
 #include <cstring>
 #include <iostream>
-#include <wmmintrin.h>
+#include <immintrin.h>
 
 
 namespace intel {

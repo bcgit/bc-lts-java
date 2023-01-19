@@ -6,8 +6,6 @@
 #define BCFIPS_0_0_CBC256wide_H
 
 
-#include <emmintrin.h>
-#include <wmmintrin.h>
 #include <jni_md.h>
 #include <immintrin.h>
 #include "CBC128wide.h"

@@ -3,12 +3,10 @@
 //
 
 
+#include <immintrin.h>
 #include "CBC512wide.h"
-#include "../../macro.h"
 #include <cstring>
 #include <iostream>
-#include <emmintrin.h>
-#include <wmmintrin.h>
 #include "../common.h"
 
 
