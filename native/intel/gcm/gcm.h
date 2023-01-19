@@ -5,7 +5,7 @@
 #ifndef BC_FIPS_GCM_H
 #define BC_FIPS_GCM_H
 
-#include "immintrin.h"
+#include <immintrin.h>
 
 #include <cstdint>
 

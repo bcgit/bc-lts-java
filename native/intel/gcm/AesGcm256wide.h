@@ -15,7 +15,7 @@
 
 #endif
 
-#include <wmmintrin.h>
+#include <immintrin.h>
 #include <vector>
 #include "gcm.h"
 

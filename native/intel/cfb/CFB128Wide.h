@@ -1,9 +1,9 @@
 #ifndef BCN_CFB128WIDE_H
 #define BCN_CFB128WIDE_H
 
+#include <immintrin.h>
 #include <cstddef>
 #include <cstdint>
-#include <emmintrin.h>
 #include <jni_md.h>
 #include "CFBLike.h"
 

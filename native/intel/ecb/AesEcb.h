@@ -6,8 +6,8 @@
 #define CORENATIVE_AESECB_H
 
 
+#include <immintrin.h>
 #include <cstdint>
-#include <wmmintrin.h>
 #include <jni_md.h>
 #include "ecb.h"
 

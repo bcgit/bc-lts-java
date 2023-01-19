@@ -2,7 +2,7 @@
 // Created  on 18/5/2022.
 //
 
-#include <wmmintrin.h>
+#include <immintrin.h>
 #include <cstring>
 #include <iostream>
 #include "AesEcb512W.h"
