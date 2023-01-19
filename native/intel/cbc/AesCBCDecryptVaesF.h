@@ -6,8 +6,7 @@
 #define BCFIPS_0_0_AesCBCDecryptVaesF_H
 
 
-#include <emmintrin.h>
-#include <wmmintrin.h>
+#include <immintrin.h>
 #include <jni_md.h>
 #include "CBC512wide.h"
 

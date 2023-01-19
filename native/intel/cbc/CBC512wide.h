@@ -6,10 +6,8 @@
 #define BCFIPS_0_0_CBC512wide_H
 
 
-#include <emmintrin.h>
-#include <wmmintrin.h>
-#include <jni_md.h>
 #include <immintrin.h>
+#include <jni_md.h>
 #include "CBCLike.h"
 
 

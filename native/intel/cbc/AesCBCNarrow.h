@@ -6,8 +6,7 @@
 #define BCFIPS_0_0_AESCBC_H
 
 
-#include <emmintrin.h>
-#include <wmmintrin.h>
+#include <immintrin.h>
 #include <jni_md.h>
 #include "CBC128wide.h"
 

@@ -2,9 +2,9 @@
 #ifndef BCN_CBCLIKE_H
 #define BCN_CBCLIKE_H
 
+#include <immintrin.h>
 #include <cstddef>
 #include <cstdint>
-#include <emmintrin.h>
 
 #define CBC_BLOCK_SIZE 16
 #define CBC_BLOCK_SIZE_2 32
