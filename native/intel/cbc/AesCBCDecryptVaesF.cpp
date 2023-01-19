@@ -2,12 +2,9 @@
 // Created  on 7/6/2022.
 //
 
-#include <emmintrin.h>
-#include <wmmintrin.h>
-#include <cstring>
 #include <immintrin.h>
-#include <avxintrin.h>
-#include <avx2intrin.h>
+#include <cstring>
+
 #include "AesCBCDecryptVaesF.h"
 
 namespace intel {

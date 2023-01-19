@@ -2,13 +2,13 @@
 // Created  on 18/5/2022.
 //
 
+#include <immintrin.h>
 #include <cstring>
 #include <stdexcept>
 #include "gcm.h"
 #include "AesGcm128wide.h"
 #include "../../exceptions/CipherTextException.h"
 #include "../../exceptions/OutputLengthException.h"
-#include <emmintrin.h>
 #include "../common.h"
 #include "../log.h"
 

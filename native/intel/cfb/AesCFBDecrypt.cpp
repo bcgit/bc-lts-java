@@ -2,11 +2,8 @@
 // Created  on 7/6/2022.
 //
 
-#include <emmintrin.h>
-#include <wmmintrin.h>
-#include <stdexcept>
+#include <immintrin.h>
 #include <cstring>
-#include <iostream>
 #include "AesCFB128Wide.h"
 #include "CFB128Wide.h"
 

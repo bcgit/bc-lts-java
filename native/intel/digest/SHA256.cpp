@@ -3,11 +3,8 @@
 
 #include "SHA256.h"
 #include <immintrin.h>
-#include <emmintrin.h>
 #include <cstring>
 #include <cstdint>
-#include <tmmintrin.h>
-#include <smmintrin.h>
 #include <stdexcept>
 
 

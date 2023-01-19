@@ -2,7 +2,6 @@
 #include "CFB256Wide.h"
 #include <cstring>
 #include <iostream>
-#include <jni_md.h>
 #include "../common.h"
 
 namespace intel {
