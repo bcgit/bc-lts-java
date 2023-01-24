@@ -2,11 +2,8 @@
 // Created  on 7/6/2022.
 //
 
-#include <emmintrin.h>
-#include <wmmintrin.h>
-#include <stdexcept>
+#include <immintrin.h>
 #include <cstring>
-#include <iostream>
 #include "AesCFB128Wide.h"
 #include "CFB128Wide.h"
 
@@ -95,7 +92,7 @@ namespace intel {
             }
 
 
-            return dest - destStart;
+            return (size_t)(dest - destStart);
         }
 
         void AesCFB192Dec::encryptBlock(__m128i in, __m128i &out) {

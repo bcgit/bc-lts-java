@@ -2,7 +2,7 @@
 // Created  on 18/5/2022.
 //
 
-#include <wmmintrin.h>
+#include <immintrin.h>
 #include <cstring>
 #include <iostream>
 #include "AesEcb512W.h"
@@ -431,7 +431,7 @@ size_t intel::ecb::AesEcb512W256E::processBlocks(unsigned char *input,
 }
 
 void intel::ecb::AesEcb512W256E::init(unsigned char *key) {
-    __m128i *rk = new __m128i[15];
+    auto *rk = new __m128i[15];
     memset(rk, 0, sizeof(__m128i) * 15);
     init_256(rk, key, true);
 
@@ -562,7 +562,7 @@ size_t intel::ecb::AesEcb512W128D::processBlocks(unsigned char *input,
 
 
 void intel::ecb::AesEcb512W128D::init(unsigned char *key) {
-    __m128i *rk = new __m128i[15];
+    auto *rk = new __m128i[15];
     memset(rk, 0, sizeof(__m128i) * 15);
     init_128(rk, key, false);
 

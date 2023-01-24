@@ -2,8 +2,7 @@
 // Created  on 7/6/2022.
 //
 
-#include <emmintrin.h>
-#include <wmmintrin.h>
+#include <immintrin.h>
 #include <cstring>
 #include "AesCFB128Wide.h"
 #include "CFB128Wide.h"
@@ -92,7 +91,7 @@ namespace intel {
             }
 
 
-            return dest - destStart;
+            return (size_t)(dest - destStart);
         }
 
 

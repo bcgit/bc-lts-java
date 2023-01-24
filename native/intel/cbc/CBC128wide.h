@@ -17,6 +17,9 @@ namespace intel {
 
         class CBC128wide: protected CBCLike {
 
+        private:
+            CBC128wide & operator=(CBC128wide const&);
+
         protected:
             __m128i feedback;
             __m128i initialFeedback;
@@ -28,19 +31,19 @@ namespace intel {
 
         public:
 
-
+            CBC128wide(CBC128wide const &c) = delete;
 
             CBC128wide();
 
             ~CBC128wide() override;
 
-            virtual void init(unsigned char *key, unsigned long keylen, unsigned char *iv, unsigned long ivlen) override;
+            void init(unsigned char *key, unsigned long keylen, unsigned char *iv, unsigned long ivlen) override;
 
             void reset() override;
 
             uint32_t getMultiBlockSize() override;
 
-            virtual size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override =0;
+            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override =0;
 
 
         };

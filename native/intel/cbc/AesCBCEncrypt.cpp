@@ -4,9 +4,7 @@
 //
 
 
-#include <stdexcept>
 #include <cstring>
-#include <iostream>
 #include "AesCBCNarrow.h"
 #include "CBC128wide.h"
 

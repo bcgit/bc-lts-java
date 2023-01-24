@@ -6,8 +6,8 @@
 #define CORENATIVE_AESECB_H
 
 
+#include <immintrin.h>
 #include <cstdint>
-#include <wmmintrin.h>
 #include <jni_md.h>
 #include "ecb.h"
 
@@ -19,9 +19,15 @@ namespace intel {
          * AES ECB with the original AES-NI instructions no AVX.
          */
         class AesEcb : public ECB {
+        private:
+            AesEcb &operator=(AesEcb const &);
+
         protected:
             __m128i *roundKeys;
         public:
+
+            AesEcb(const AesEcb &) = delete;
+
             AesEcb();
 
             ~AesEcb() override;
@@ -30,9 +36,9 @@ namespace intel {
 
             void reset() override;
 
-            virtual void init(unsigned char *key) override =0;
+            void init(unsigned char *key) override = 0;
 
-            virtual size_t processBlocks(
+            size_t processBlocks(
                     unsigned char *input,
                     size_t in_start,
                     size_t in_len,
@@ -92,6 +98,7 @@ namespace intel {
                     unsigned char *output,
                     size_t out_start) override;
         };
+
         class AesEcb192D : public AesEcb {
 
         public:
@@ -127,6 +134,7 @@ namespace intel {
                     unsigned char *output,
                     size_t out_start) override;
         };
+
         class AesEcb256D : public AesEcb {
 
         public:
@@ -145,7 +153,7 @@ namespace intel {
                     size_t out_start) override;
         };
 
-    };
+    }
 }
 
 

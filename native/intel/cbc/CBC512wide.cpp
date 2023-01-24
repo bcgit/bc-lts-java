@@ -3,12 +3,10 @@
 //
 
 
+#include <immintrin.h>
 #include "CBC512wide.h"
-#include "../../macro.h"
 #include <cstring>
 #include <iostream>
-#include <emmintrin.h>
-#include <wmmintrin.h>
 #include "../common.h"
 
 
@@ -21,7 +19,6 @@ namespace intel {
             initialFeedback = _mm_setzero_si128();
             roundKeys = new __m512i[15];
             memset(roundKeys, 0, 15 * sizeof(__m512i));
-            encrypting = false;
             feedbackCtrl = _mm512_set_epi64(5, 4, 3, 2, 1, 0, 9, 8);
 
         }

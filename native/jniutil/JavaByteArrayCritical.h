@@ -18,14 +18,12 @@ namespace jniutil {
         bool wasCopy;
         bool wasNull;
         jbyteArray array;
-        bool reverse;
+
 
     public:
         JavaByteArrayCritical(const JavaByteArrayCritical &) = delete;
 
         JavaByteArrayCritical(JNIEnv *env, jbyteArray array);
-
-        JavaByteArrayCritical(JNIEnv *env, jbyteArray array, bool reverse);
 
         ~JavaByteArrayCritical();
 
@@ -33,9 +31,9 @@ namespace jniutil {
 
         unsigned char *uvalue();
 
-        size_t length();
+        [[nodiscard]] size_t length() const;
 
-        bool isNull();
+        [[nodiscard]] bool isNull() const;
 
         void disposeNow();
 

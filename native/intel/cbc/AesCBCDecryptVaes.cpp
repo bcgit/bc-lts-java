@@ -2,14 +2,9 @@
 // Created  on 7/6/2022.
 //
 
-#include <emmintrin.h>
-#include <wmmintrin.h>
+#include <immintrin.h>
 #include <smmintrin.h>
 #include <cstring>
-#include <iostream>
-#include <immintrin.h>
-#include <avxintrin.h>
-#include <avx2intrin.h>
 #include "AesCBCDecryptVaes.h"
 
 

@@ -7,7 +7,7 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <emmintrin.h>
+#include <immintrin.h>
 
 
 #define ECB_BLOCK_SIZE 16

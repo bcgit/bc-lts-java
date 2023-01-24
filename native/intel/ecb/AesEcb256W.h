@@ -17,10 +17,14 @@ namespace intel {
     namespace ecb {
 
         class AesEcb256W : public ECB {
+
+        private:
+            AesEcb256W & operator=(AesEcb256W const&);
         protected:
             __m256i *roundKeys256;
 
         public:
+            AesEcb256W(const AesEcb256W &i) = delete;
             AesEcb256W();
 
             ~AesEcb256W() override;
