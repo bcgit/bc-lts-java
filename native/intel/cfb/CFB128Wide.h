@@ -1,9 +1,9 @@
 #ifndef BCN_CFB128WIDE_H
 #define BCN_CFB128WIDE_H
 
+#include <immintrin.h>
 #include <cstddef>
 #include <cstdint>
-#include <emmintrin.h>
 #include <jni_md.h>
 #include "CFBLike.h"
 
@@ -14,6 +14,9 @@ namespace intel {
     namespace cfb {
 
         class CFB128Wide : public CFBLike {
+        private:
+            CFB128Wide & operator=(CFB128Wide const&);
+
         protected:
             __m128i *roundKeys;
             __m128i feedback;
@@ -28,17 +31,19 @@ namespace intel {
 
         public:
 
+            CFB128Wide(const CFB128Wide &) = delete;
+
             CFB128Wide();
 
             ~CFB128Wide() override;
 
             void init(unsigned char *key, unsigned long keylen, unsigned char *iv, unsigned long ivlen) override;
 
-            void reset();
+            void reset() override;
 
-            virtual size_t processBytes(unsigned char *src, size_t len, unsigned char *dest) override = 0;
+            size_t processBytes(unsigned char *src, size_t len, unsigned char *dest) override = 0;
 
-            virtual unsigned char processByte(unsigned char in) override = 0;
+            unsigned char processByte(unsigned char in) override = 0;
 
 
         };

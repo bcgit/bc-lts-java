@@ -3,7 +3,6 @@
 //
 
 #include <immintrin.h>
-
 #include <cstring>
 #include "AesCFB256Wide.h"
 #include "CFB256Wide.h"

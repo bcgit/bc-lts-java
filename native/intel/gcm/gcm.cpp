@@ -3,14 +3,10 @@
 //
 
 #include "gcm.h"
-#include "AesGcm128wide.h"
 
 namespace intel::gcm {
 
-    GCM::GCM() {
-
-    };
-
+    GCM::GCM() = default;
     GCM::~GCM() = default;
 
 }

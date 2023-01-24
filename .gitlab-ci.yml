@@ -3,6 +3,7 @@ stages:
   - testSSE
   - testAVX
   - testVAES
+  - testVAESF
 
 
 
@@ -55,3 +56,17 @@ test-code-vaes:
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
     - "java -Dorg.bouncycastle.native.cpu_variant=vaes -cp jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo"
     - "./gradlew -Pskip.pqc.tests testVAES  -x test"
+
+test-code-vaesf:
+  stage: testVAESF
+  script:
+    - "apply_overlay bc-java ./"
+    - "rm -rf /tmp/bcfipslibs"
+    - "mkdir -p /tmp/bcfipslibs"
+    - . cienv-11.sh
+    - "./gradlew clean core:compileJava; \ cd native; \ ./build_linux.sh; \ cd .."
+    - "./gradlew clean cleanNativeVariants withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
+    - "tmpLibDir=$(mktemp -d -t bc-jni-libs-XXXXXXXXXX)"
+    - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
+    - "java -Dorg.bouncycastle.native.cpu_variant=vaesf -cp jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo"
+    - "./gradlew -Pskip.pqc.tests testVAESF  -x test"

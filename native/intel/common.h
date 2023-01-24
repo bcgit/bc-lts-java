@@ -13,5 +13,4 @@ void init_192(__m128i *rk, unsigned char *uk, bool enc);
 void init_128(__m128i *rk, unsigned char *uk, bool enc);
 
 
-
 #endif //BCN_COMMON_H

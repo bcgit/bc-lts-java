@@ -5,7 +5,7 @@
 #ifndef BC_FIPS_GCM_H
 #define BC_FIPS_GCM_H
 
-#include "immintrin.h"
+#include <immintrin.h>
 
 #include <cstdint>
 
@@ -21,7 +21,6 @@ namespace intel::gcm {
     public:
 
         GCM();
-
         virtual ~GCM();
 
         virtual void reset(bool keepMac) = 0;

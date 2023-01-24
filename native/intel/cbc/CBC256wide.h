@@ -6,8 +6,6 @@
 #define BCFIPS_0_0_CBC256wide_H
 
 
-#include <emmintrin.h>
-#include <wmmintrin.h>
 #include <jni_md.h>
 #include <immintrin.h>
 #include "CBC128wide.h"
@@ -18,6 +16,8 @@ namespace intel {
 
 
         class CBC256wide: protected CBCLike {
+        private:
+            CBC256wide & operator=(CBC256wide const&);
 
         protected:
             __m128i feedback;
@@ -30,7 +30,7 @@ namespace intel {
 
         public:
 
-
+            CBC256wide(const CBC256wide &) = delete;
 
             CBC256wide();
 
