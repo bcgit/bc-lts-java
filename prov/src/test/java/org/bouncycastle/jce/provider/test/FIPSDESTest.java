@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.Key;
 import java.security.KeyException;
-import java.security.SecureRandom;
 import java.security.Security;
 
 import javax.crypto.Cipher;
@@ -21,7 +20,6 @@ import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTestResult;
 import org.bouncycastle.util.test.Test;
 import org.bouncycastle.util.test.TestResult;
-import org.junit.Before;
 
 /**
  * basic FIPS test class for a block cipher, just to make sure ECB/CBC/OFB/CFB are behaving
