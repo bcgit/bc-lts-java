@@ -812,4 +812,11 @@ class CertPathValidatorUtilities
                     "Exception reading IssuingDistributionPoint: " + e);
         }
     }
+
+    protected static Date getValidityDate(PKIXParameters paramsPKIX, Date currentDate)
+    {
+        Date validityDate = paramsPKIX.getDate();
+
+        return null == validityDate ? currentDate : validityDate;
+    }
 }
