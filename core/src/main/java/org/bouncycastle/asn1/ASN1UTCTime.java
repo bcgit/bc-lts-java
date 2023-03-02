@@ -176,7 +176,7 @@ public class ASN1UTCTime
     {
         SimpleDateFormat dateF = new SimpleDateFormat("yyMMddHHmmssz", LocaleUtil.EN_Locale);
 
-        return LocaleUtil.epochAdjust(dateF.parse(getTime()));
+        return dateF.parse(getTime());
     }
 
     /**
@@ -192,7 +192,7 @@ public class ASN1UTCTime
         SimpleDateFormat dateF = new SimpleDateFormat("yyyyMMddHHmmssz", LocaleUtil.EN_Locale);
 
         dateF.setTimeZone(new SimpleTimeZone(0,"Z"));
-        
+
         return dateF.parse(getAdjustedTime());
     }
 
