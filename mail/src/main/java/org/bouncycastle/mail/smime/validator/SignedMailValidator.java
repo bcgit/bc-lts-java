@@ -883,7 +883,7 @@ public class SignedMailValidator
             this.review = review;
             this.errors = errors;
             this.notifications = notifications;
-            signVerified = verified;
+            this.signVerified = verified;
             this.userProvidedCerts = userProvidedCerts;
         }
 
@@ -909,7 +909,7 @@ public class SignedMailValidator
 
         /**
          * @return the PKIXCertPathReviewer for the CertPath of this signature
-         * or null if an Exception occured.
+         * or null if an Exception occurred.
          */
         public PKIXCertPathReviewer getCertPathReview()
         {
@@ -918,7 +918,7 @@ public class SignedMailValidator
 
         /**
          * @return the CertPath for this signature
-         * or null if an Exception occured.
+         * or null if an Exception occurred.
          */
         public CertPath getCertPath()
         {
@@ -952,8 +952,7 @@ public class SignedMailValidator
         {
             if (review != null)
             {
-                return signVerified && review.isValidCertPath()
-                    && errors.isEmpty();
+                return signVerified && review.isValidCertPath() && errors.isEmpty();
             }
             else
             {
