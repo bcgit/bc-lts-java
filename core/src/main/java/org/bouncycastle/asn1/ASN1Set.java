@@ -166,12 +166,13 @@ public abstract class ASN1Set
     }
 
     protected final ASN1Encodable[] elements;
-    protected final boolean isSorted;
+
+    protected ASN1Encodable[] sortedElements;
 
     protected ASN1Set()
     {
         this.elements = ASN1EncodableVector.EMPTY_ELEMENTS;
-        this.isSorted = true;
+        this.sortedElements = elements;
     }
 
     /**
@@ -186,7 +187,7 @@ public abstract class ASN1Set
         }
 
         this.elements = new ASN1Encodable[]{ element };
-        this.isSorted = true;
+        this.sortedElements = elements;
     }
 
     /**
@@ -213,7 +214,7 @@ public abstract class ASN1Set
         }
 
         this.elements = tmp;
-        this.isSorted = doSort || tmp.length < 2;
+        this.sortedElements = (doSort || tmp.length < 2) ? elements : null;
     }
 
     /**
@@ -235,13 +236,19 @@ public abstract class ASN1Set
         }
 
         this.elements = tmp;
-        this.isSorted = doSort || tmp.length < 2;
+        this.sortedElements = (doSort || tmp.length < 2) ? elements : null;
     }
 
     ASN1Set(boolean isSorted, ASN1Encodable[] elements)
     {
         this.elements = elements;
-        this.isSorted = isSorted || elements.length < 2;
+        this.sortedElements = (isSorted || elements.length < 2) ? elements : null;
+    }
+
+    ASN1Set(ASN1Encodable[] elements, ASN1Encodable[] sortedElements)
+    {
+        this.elements = elements;
+        this.sortedElements = sortedElements;
     }
 
     public Enumeration getObjects()
@@ -353,18 +360,13 @@ public abstract class ASN1Set
      */
     ASN1Primitive toDERObject()
     {
-        ASN1Encodable[] tmp;
-        if (isSorted)
+        if (sortedElements == null)
         {
-            tmp = elements;
-        }
-        else
-        {
-            tmp = (ASN1Encodable[])elements.clone();
-            sort(tmp);
+            sortedElements = (ASN1Encodable[])elements.clone();
+            sort(sortedElements);
         }
 
-        return new DERSet(true, tmp);
+        return new DERSet(true, sortedElements);
     }
 
     /**
@@ -373,7 +375,7 @@ public abstract class ASN1Set
      */
     ASN1Primitive toDLObject()
     {
-        return new DLSet(isSorted, elements);
+        return new DLSet(elements, sortedElements);
     }
 
     boolean asn1Equals(ASN1Primitive other)
@@ -472,8 +474,8 @@ public abstract class ASN1Set
          * primitive form accordingly. Failing to ignore the CONSTRUCTED bit could therefore lead to
          * ordering inversions.
          */
-        int a0 = a[0] & ~BERTags.CONSTRUCTED & 0xFF;
-        int b0 = b[0] & ~BERTags.CONSTRUCTED & 0xFF;
+        int a0 = a[0] & (~BERTags.CONSTRUCTED & 0xff);
+        int b0 = b[0] & (~BERTags.CONSTRUCTED & 0xff);
         if (a0 != b0)
         {
             return a0 < b0;
