@@ -85,7 +85,7 @@ public class BEROctetString
      */
     public BEROctetString(byte[] string, int segmentLimit)
     {
-        this(string, null, segmentLimit);
+        this(string, new ASN1OctetString[] { new DEROctetString(string) }, segmentLimit);
     }
 
     /**
