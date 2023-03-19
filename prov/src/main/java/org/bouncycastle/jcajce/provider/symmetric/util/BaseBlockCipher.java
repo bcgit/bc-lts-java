@@ -31,6 +31,7 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.engines.DSTU7624Engine;
 import org.bouncycastle.crypto.fpe.FPEEngine;
@@ -58,7 +59,9 @@ import org.bouncycastle.crypto.modes.SICBlockCipher;
 import org.bouncycastle.crypto.paddings.BlockCipherPadding;
 import org.bouncycastle.crypto.paddings.ISO10126d2Padding;
 import org.bouncycastle.crypto.paddings.ISO7816d4Padding;
+import org.bouncycastle.crypto.paddings.PKCS7Padding;
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
+import org.bouncycastle.crypto.paddings.PaddedBufferedMultiBlockCipher;
 import org.bouncycastle.crypto.paddings.TBCPadding;
 import org.bouncycastle.crypto.paddings.X923Padding;
 import org.bouncycastle.crypto.paddings.ZeroBytePadding;
@@ -1277,12 +1280,19 @@ public class BaseBlockCipher
 
         BufferedGenericBlockCipher(org.bouncycastle.crypto.BlockCipher cipher)
         {
-            this.cipher = new PaddedBufferedBlockCipher(cipher);
+           this(cipher, new PKCS7Padding());
         }
 
         BufferedGenericBlockCipher(org.bouncycastle.crypto.BlockCipher cipher, BlockCipherPadding padding)
         {
-            this.cipher = new PaddedBufferedBlockCipher(cipher, padding);
+            if (cipher instanceof MultiBlockCipher)
+            {
+                this.cipher = new PaddedBufferedMultiBlockCipher((MultiBlockCipher)cipher, padding);
+            }
+            else
+            {
+                this.cipher = new PaddedBufferedBlockCipher(cipher, padding);
+            }
         }
 
         public void init(boolean forEncryption, CipherParameters params)
