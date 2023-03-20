@@ -10,6 +10,7 @@ import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.BufferedBlockCipher;
+import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.PBEParametersGenerator;
 import org.bouncycastle.crypto.digests.SHA1Digest;
 import org.bouncycastle.crypto.engines.AESEngine;
@@ -219,7 +220,7 @@ class PEMUtilities
             BufferedBlockCipher c;
             if (padding == null)
             {
-                c = new BufferedBlockCipher(engine);
+                c = new DefaultBufferedBlockCipher(engine);
             }
             else
             {

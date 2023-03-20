@@ -13,6 +13,7 @@ import org.bouncycastle.bcpg.PacketTags;
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.BufferedBlockCipher;
+import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.ec.CustomNamedCurves;
 import org.bouncycastle.crypto.engines.AESEngine;
@@ -45,11 +46,11 @@ class BcUtil
 
         if (withIntegrityPacket)
         {
-            c = new BufferedBlockCipher(new CFBBlockCipher(engine, engine.getBlockSize() * 8));
+            c = new DefaultBufferedBlockCipher(new CFBBlockCipher(engine, engine.getBlockSize() * 8));
         }
         else
         {
-            c = new BufferedBlockCipher(new OpenPGPCFBBlockCipher(engine));
+            c = new DefaultBufferedBlockCipher(new OpenPGPCFBBlockCipher(engine));
         }
 
         KeyParameter keyParameter = new KeyParameter(key);
@@ -91,7 +92,7 @@ class BcUtil
 
     public static BufferedBlockCipher createSymmetricKeyWrapper(boolean forEncryption, BlockCipher engine, byte[] key, byte[] iv)
     {
-        BufferedBlockCipher c = new BufferedBlockCipher(new CFBBlockCipher(engine, engine.getBlockSize() * 8));
+        BufferedBlockCipher c = new DefaultBufferedBlockCipher(new CFBBlockCipher(engine, engine.getBlockSize() * 8));
 
         c.init(forEncryption, new ParametersWithIV(new KeyParameter(key), iv));
 

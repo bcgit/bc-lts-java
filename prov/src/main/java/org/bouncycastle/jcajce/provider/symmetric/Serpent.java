@@ -4,6 +4,7 @@ import org.bouncycastle.asn1.gnu.GNUObjectIdentifiers;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CipherKeyGenerator;
+import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.engines.SerpentEngine;
 import org.bouncycastle.crypto.engines.TnepresEngine;
 import org.bouncycastle.crypto.generators.Poly1305KeyGenerator;
@@ -69,7 +70,7 @@ public final class Serpent
     {
         public CFB()
         {
-            super(new BufferedBlockCipher(new CFBBlockCipher(new SerpentEngine(), 128)), 128);
+            super(new DefaultBufferedBlockCipher(new CFBBlockCipher(new SerpentEngine(), 128)), 128);
         }
     }
 
@@ -78,7 +79,7 @@ public final class Serpent
     {
         public OFB()
         {
-            super(new BufferedBlockCipher(new OFBBlockCipher(new SerpentEngine(), 128)), 128);
+            super(new DefaultBufferedBlockCipher(new OFBBlockCipher(new SerpentEngine(), 128)), 128);
         }
     }
 

@@ -5,6 +5,7 @@ import java.security.SecureRandom;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.DefaultBufferedMultiBlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
@@ -125,7 +126,7 @@ public class AESTest
     private void testNullSIC()
         throws InvalidCipherTextException
     {
-        BufferedBlockCipher b = new BufferedBlockCipher(new SICBlockCipher(AESEngine.newInstance()));
+        BufferedBlockCipher b = new DefaultBufferedMultiBlockCipher(new SICBlockCipher(AESEngine.newInstance()));
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         b.init(true, new ParametersWithIV(kp, new byte[16]));
@@ -156,7 +157,7 @@ public class AESTest
     private void testNullCBC()
         throws InvalidCipherTextException
     {
-        BufferedBlockCipher b = new BufferedBlockCipher(CBCBlockCipher.newInstance(AESEngine.newInstance()));
+        BufferedBlockCipher b = new DefaultBufferedMultiBlockCipher(CBCBlockCipher.newInstance(AESEngine.newInstance()));
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         b.init(true, new ParametersWithIV(kp, new byte[16]));
@@ -187,7 +188,7 @@ public class AESTest
     private void testNullOFB()
         throws InvalidCipherTextException
     {
-        BufferedBlockCipher b = new BufferedBlockCipher(new OFBBlockCipher(AESEngine.newInstance(), 128));
+        BufferedBlockCipher b = new DefaultBufferedMultiBlockCipher(new OFBBlockCipher(AESEngine.newInstance(), 128));
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         b.init(true, new ParametersWithIV(kp, new byte[16]));
@@ -218,7 +219,7 @@ public class AESTest
     private void testNullCFB()
         throws InvalidCipherTextException
     {
-        BufferedBlockCipher b = new BufferedBlockCipher(new CFBBlockCipher(AESEngine.newInstance(), 128));
+        BufferedBlockCipher b = new DefaultBufferedMultiBlockCipher(new CFBBlockCipher(AESEngine.newInstance(), 128));
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         b.init(true, new ParametersWithIV(kp, new byte[16]));
