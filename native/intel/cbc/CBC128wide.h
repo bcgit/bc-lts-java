@@ -27,8 +27,6 @@ namespace intel {
             bool encrypting;
 
 
-            void initKey(unsigned char *key, size_t len);
-
         public:
 
             CBC128wide(CBC128wide const &c) = delete;
@@ -43,7 +41,7 @@ namespace intel {
 
             uint32_t getMultiBlockSize() override;
 
-            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override =0;
+            size_t processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) override =0;
 
 
         };

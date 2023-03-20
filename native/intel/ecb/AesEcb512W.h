@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <immintrin.h>
 #include <jni_md.h>
-#include "ecb.h"
+#include "AesEcb.h"
 
 /**
         * AES ECB with the original AES-NI instructions no AVX.
@@ -18,14 +18,16 @@ namespace intel {
 
         class AesEcb512W : public ECB {
 
-        private:
-            AesEcb512W & operator=(AesEcb512W const&);
-
         protected:
-            __m512i *roundKeys512;
+            __m128i *roundKeys;
+
+        private:
+            AesEcb512W &operator=(AesEcb512W const &);
+
 
         public:
             AesEcb512W(const AesEcb512W &i) = delete;
+
             AesEcb512W();
 
             ~AesEcb512W() override;
@@ -34,7 +36,7 @@ namespace intel {
 
             void reset() override;
 
-            void init(unsigned char *key) override = 0;
+            virtual void init(unsigned char *key) override =0;
 
             size_t processBlocks(
                     unsigned char *input,
@@ -97,6 +99,7 @@ namespace intel {
                     unsigned char *output,
                     size_t out_start) override;
         };
+
         class AesEcb512W192D : public AesEcb512W {
 
         public:
@@ -132,6 +135,7 @@ namespace intel {
                     unsigned char *output,
                     size_t out_start) override;
         };
+
         class AesEcb512W256D : public AesEcb512W {
 
         public:

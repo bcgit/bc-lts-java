@@ -8,7 +8,7 @@
 
 #include <cwchar>
 #include <cstdint>
-#include <emmintrin.h>
+#include <immintrin.h>
 
 #include "Digest.h"
 

@@ -2,18 +2,16 @@
 // Created  on 18/5/2022.
 //
 
-#include <immintrin.h>
 #include <cstring>
 #include <stdexcept>
 #include "gcm.h"
 #include "AesGcm128wide.h"
 #include "../../exceptions/CipherTextException.h"
 #include "../../exceptions/OutputLengthException.h"
+#include <immintrin.h>
 #include "../common.h"
-#include "../log.h"
+#include "ghash_128b.h"
 
-__m128i intel::gcm::AesGcm128wide::BSWAP_EPI64 = _mm_set_epi8(8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7);
-__m128i intel::gcm::AesGcm128wide::BSWAP_MASK = _mm_set_epi8(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15);
 
 #define BLOCKS_REMAINING_INIT ((1L << 32) - 2L)
 
@@ -38,9 +36,10 @@ bool areEqualCT(const unsigned char *left, const unsigned char *right, size_t le
 }
 
 
-intel::gcm::AesGcm128wide::AesGcm128wide() : GCM() {
+intel::gcm::AesGcm128wideEncrypt::AesGcm128wideEncrypt() : GCM() {
+    hashKeys = new __m128i[HashKey_Len];
     roundKeys = new __m128i[15];
-    rounds = 0;
+    max_rounds = 0;
     encryption = false;
     macBlock = nullptr;
     macBlockLen = 0;
@@ -63,21 +62,21 @@ intel::gcm::AesGcm128wide::AesGcm128wide() : GCM() {
     initialX = _mm_setzero_si128();
     initialT = _mm_setzero_si128();
     initialY = _mm_setzero_si128();
-
-    LNEW(__func__,this)
 }
 
-intel::gcm::AesGcm128wide::~AesGcm128wide() {
+intel::gcm::AesGcm128wideEncrypt::~AesGcm128wideEncrypt() {
+    memset(hashKeys, 0, sizeof(__m128i) * HashKey_Len);
+    delete[] hashKeys;
     memset(roundKeys, 0, sizeof(__m128i) * 15);
     delete[] roundKeys;
-    rounds = 0;
+    max_rounds = 0;
     if (macBlock != nullptr) {
-        memset(macBlock,0,macBlockLen);
+        memset(macBlock, 0, macBlockLen);
     }
     delete[] macBlock;
 
     if (initAD != nullptr) {
-        memset(initAD,0,initADLen);
+        memset(initAD, 0, initADLen);
     }
     delete[] initAD;
 
@@ -86,23 +85,21 @@ intel::gcm::AesGcm128wide::~AesGcm128wide() {
     }
     delete[] bufBlock;
 
-    memset(&T,0, sizeof(__m128i));
-    memset(&H,0, sizeof(__m128i));
-    memset(&Y,0, sizeof(__m128i));
-    memset(&X,0, sizeof(__m128i));
-    memset(&ctr1,0, sizeof(__m128i));
-    memset(&initialT,0, sizeof(__m128i));
-    memset(&initialH,0, sizeof(__m128i));
-    memset(&initialY,0, sizeof(__m128i));
-    memset(&initialX,0, sizeof(__m128i));
+    memset(&T, 0, sizeof(__m128i));
+    memset(&H, 0, sizeof(__m128i));
+    memset(&Y, 0, sizeof(__m128i));
+    memset(&X, 0, sizeof(__m128i));
+    memset(&ctr1, 0, sizeof(__m128i));
+    memset(&initialT, 0, sizeof(__m128i));
+    memset(&initialH, 0, sizeof(__m128i));
+    memset(&initialY, 0, sizeof(__m128i));
+    memset(&initialX, 0, sizeof(__m128i));
 
     delete exp;
 
-    LDELETE(__func__,this)
-
 }
 
-void intel::gcm::AesGcm128wide::reset(bool keepMac) {
+void intel::gcm::AesGcm128wideEncrypt::reset(bool keepMac) {
 
     atLength = 0;
     totalBytes = 0;
@@ -138,10 +135,10 @@ void intel::gcm::AesGcm128wide::reset(bool keepMac) {
 }
 
 
-void intel::gcm::AesGcm128wide::init(bool encryption_, unsigned char *key, size_t keyLen, unsigned char *nonce,
-                                     size_t nonceLen,
-                                     unsigned char *initialText,
-                                     size_t initialTextLen, size_t macSizeBits) {
+void intel::gcm::AesGcm128wideEncrypt::init(bool encryption_, unsigned char *key, size_t keyLen, unsigned char *nonce,
+                                            size_t nonceLen,
+                                            unsigned char *initialText,
+                                            size_t initialTextLen, size_t macSizeBits) {
 
 
     this->encryption = encryption_;
@@ -186,7 +183,7 @@ void intel::gcm::AesGcm128wide::init(bool encryption_, unsigned char *key, size_
     //
     // Setup new mac block
     //
-    this->macBlockLen = macSizeBits/8;
+    this->macBlockLen = macSizeBits / 8;
     macBlock = new unsigned char[macBlockLen];
     memset(macBlock, 0, macBlockLen);
 
@@ -205,17 +202,17 @@ void intel::gcm::AesGcm128wide::init(bool encryption_, unsigned char *key, size_
 
     switch (keyLen) {
         case 16:
-            rounds = 10;
+            max_rounds = 10;
             init_128(this->roundKeys, key, true);
             break;
 
         case 24:
-            rounds = 12;
+            max_rounds = 12;
             init_192(this->roundKeys, key, true);
             break;
 
         case 32:
-            rounds = 14;
+            max_rounds = 14;
             init_256(this->roundKeys, key, true);
             break;
 
@@ -244,27 +241,27 @@ void intel::gcm::AesGcm128wide::init(bool encryption_, unsigned char *key, size_
 
         tmp1 = _mm_xor_si128(X, roundKeys[0]);
         tmp2 = _mm_xor_si128(Y, roundKeys[0]);
-        for (int j = 1; j < rounds - 1; j += 2) {
+        for (int j = 1; j < max_rounds - 1; j += 2) {
             tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j]);
             tmp2 = _mm_aesenc_si128(tmp2, roundKeys[j]);
             tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j + 1]);
             tmp2 = _mm_aesenc_si128(tmp2, roundKeys[j + 1]);
         }
 
-        tmp1 = _mm_aesenc_si128(tmp1, roundKeys[rounds - 1]);
-        tmp2 = _mm_aesenc_si128(tmp2, roundKeys[rounds - 1]);
+        tmp1 = _mm_aesenc_si128(tmp1, roundKeys[max_rounds - 1]);
+        tmp2 = _mm_aesenc_si128(tmp2, roundKeys[max_rounds - 1]);
 
-        H = _mm_aesenclast_si128(tmp1, roundKeys[rounds]);
-        T = _mm_aesenclast_si128(tmp2, roundKeys[rounds]);
+        H = _mm_aesenclast_si128(tmp1, roundKeys[max_rounds]);
+        T = _mm_aesenclast_si128(tmp2, roundKeys[max_rounds]);
         H = _mm_shuffle_epi8(H, BSWAP_MASK);
 
     } else {
         tmp1 = _mm_xor_si128(X, roundKeys[0]);
         int j;
-        for (j = 1; j < rounds; j++) {
+        for (j = 1; j < max_rounds; j++) {
             tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j]);
         }
-        H = _mm_aesenclast_si128(tmp1, roundKeys[rounds]);
+        H = _mm_aesenclast_si128(tmp1, roundKeys[max_rounds]);
         H = _mm_shuffle_epi8(H, BSWAP_MASK);
         Y = _mm_xor_si128(Y, Y); // ?
         int i;
@@ -283,7 +280,7 @@ void intel::gcm::AesGcm128wide::init(bool encryption_, unsigned char *key, size_
             Y = _mm_xor_si128(Y, tmp1);
             gfmul(Y, H, &Y);
         }
-        tmp1 = _mm_insert_epi64(tmp1, (long long)nonceLen * 8, 0);
+        tmp1 = _mm_insert_epi64(tmp1, (long long) nonceLen * 8, 0);
         tmp1 = _mm_insert_epi64(tmp1, 0, 1);
 
         Y = _mm_xor_si128(Y, tmp1);
@@ -292,10 +289,10 @@ void intel::gcm::AesGcm128wide::init(bool encryption_, unsigned char *key, size_
         // E(K,Y0)
 
         tmp1 = _mm_xor_si128(Y, roundKeys[0]);
-        for (j = 1; j < rounds; j++) {
+        for (j = 1; j < max_rounds; j++) {
             tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j]);
         }
-        T = _mm_aesenclast_si128(tmp1, roundKeys[rounds]);
+        T = _mm_aesenclast_si128(tmp1, roundKeys[max_rounds]);
     }
 
     //
@@ -321,18 +318,26 @@ void intel::gcm::AesGcm128wide::init(bool encryption_, unsigned char *key, size_
     ctr1 = _mm_shuffle_epi8(Y, BSWAP_EPI64);
     blocksRemaining = BLOCKS_REMAINING_INIT;
 
+
+    // Expand hash keys
+    hashKeys[HashKey_0] = H;
+    for (int t = HashKey_1; t >= 0; t--) {
+        gfmul(hashKeys[t + 1], H, &tmp1);
+        hashKeys[t] = tmp1;
+    }
+
 }
 
-size_t intel::gcm::AesGcm128wide::getMacLen() {
+size_t intel::gcm::AesGcm128wideEncrypt::getMacLen() {
     return this->macBlockLen;
 }
 
-void intel::gcm::AesGcm128wide::getMac(unsigned char *dest) {
+void intel::gcm::AesGcm128wideEncrypt::getMac(unsigned char *dest) {
     memcpy(dest, macBlock, macBlockLen);
 }
 
 
-size_t intel::gcm::AesGcm128wide::getOutputSize(size_t len) {
+size_t intel::gcm::AesGcm128wideEncrypt::getOutputSize(size_t len) {
     size_t totalData = len + bufBlockPtr;
     if (encryption) {
         return totalData + macBlockLen;
@@ -340,7 +345,7 @@ size_t intel::gcm::AesGcm128wide::getOutputSize(size_t len) {
     return totalData < macBlockLen ? 0 : totalData - macBlockLen;
 }
 
-size_t intel::gcm::AesGcm128wide::getUpdateOutputSize(size_t len) {
+size_t intel::gcm::AesGcm128wideEncrypt::getUpdateOutputSize(size_t len) {
     size_t totalData = len + bufBlockPtr;
     if (!encryption) {
         if (totalData < bufBlockLen) {
@@ -351,7 +356,7 @@ size_t intel::gcm::AesGcm128wide::getUpdateOutputSize(size_t len) {
     return totalData - totalData % FOUR_BLOCKS;
 }
 
-void intel::gcm::AesGcm128wide::processAADByte(unsigned char in) {
+void intel::gcm::AesGcm128wideEncrypt::processAADByte(unsigned char in) {
     ((unsigned char *) &last_aad_block)[atBlockPos] = in;
     if (++atBlockPos == BLOCK_SIZE) {
         // _gcm_processAadBlock(&last_aad_block,&S_at,&H);
@@ -364,13 +369,13 @@ void intel::gcm::AesGcm128wide::processAADByte(unsigned char in) {
     }
 }
 
-void intel::gcm::AesGcm128wide::processAADBytes(unsigned char *in, size_t inOff, size_t len) {
+void intel::gcm::AesGcm128wideEncrypt::processAADBytes(unsigned char *in, size_t inOff, size_t len) {
 
     auto start = in + inOff;
     auto end = start + len;
 
     for (unsigned char *pos = start; pos < end;) {
-        if (atBlockPos != 0|| end - pos < BLOCK_SIZE) {
+        if (atBlockPos != 0 || end - pos < BLOCK_SIZE) {
             //
             // Round up to block boundary if possible.
             //
@@ -404,7 +409,7 @@ void intel::gcm::AesGcm128wide::processAADBytes(unsigned char *in, size_t inOff,
 }
 
 
-size_t intel::gcm::AesGcm128wide::processByte(unsigned char in, unsigned char *out, size_t outputLen) {
+size_t intel::gcm::AesGcm128wideEncrypt::processByte(unsigned char in, unsigned char *out, size_t outputLen) {
 
     if (totalBytes == 0) {
         initCipher();
@@ -420,8 +425,9 @@ size_t intel::gcm::AesGcm128wide::processByte(unsigned char in, unsigned char *o
 
 
 size_t
-intel::gcm::AesGcm128wide::processBytes(unsigned char *in, size_t inOff, size_t len, unsigned char *out, int outOff,
-                                        size_t outputLen) {
+intel::gcm::AesGcm128wideEncrypt::processBytes(unsigned char *in, size_t inOff, size_t len, unsigned char *out,
+                                               int outOff,
+                                               size_t outputLen) {
 
     if (totalBytes == 0) {
         initCipher();
@@ -439,6 +445,7 @@ intel::gcm::AesGcm128wide::processBytes(unsigned char *in, size_t inOff, size_t 
         processBuffer(readPos, (size_t) (end - readPos), outPtr, outputLen, read, written);
         readPos += read;
         outPtr += written;
+        outputLen -= written;
     }
 
     return (size_t) (outPtr - outStart);
@@ -446,7 +453,7 @@ intel::gcm::AesGcm128wide::processBytes(unsigned char *in, size_t inOff, size_t 
 }
 
 
-size_t intel::gcm::AesGcm128wide::doFinal(unsigned char *output, size_t outOff, size_t outLen) {
+size_t intel::gcm::AesGcm128wideEncrypt::doFinal(unsigned char *output, size_t outOff, size_t outLen) {
 
 
     if (totalBytes == 0) {
@@ -462,8 +469,10 @@ size_t intel::gcm::AesGcm128wide::doFinal(unsigned char *output, size_t outOff, 
     size_t limit = bufBlockPtr;
 
     if (!encryption) {
+
+        // We need at least a mac block, and
         if (macBlockLen > bufBlockPtr) {
-            throw exceptions::CipherTextException("cipher text too short");
+            throw exceptions::CipherTextException("cipher text too short on decryption");
         }
         limit -= macBlockLen; // Limit of cipher text before tag.
         totalBytes -= macBlockLen;
@@ -471,12 +480,12 @@ size_t intel::gcm::AesGcm128wide::doFinal(unsigned char *output, size_t outOff, 
         // decryption so output buffer cannot be less than limit.
         // bytes are to limit are the mac block (tag)
         if (outLen - outOff < limit) {
-            throw exceptions::OutputLengthException("output buffer too small");
+            throw exceptions::OutputLengthException("output buffer too small on decryption");
         }
     } else {
         // encryption, output must take remaining buffer + mac block
         if (outLen - outOff < bufBlockPtr + macBlockLen) {
-            throw exceptions::OutputLengthException("output buffer too small");
+            throw exceptions::OutputLengthException("output buffer too small on encryption");
         }
     }
 
@@ -504,13 +513,7 @@ size_t intel::gcm::AesGcm128wide::doFinal(unsigned char *output, size_t outOff, 
         }
 
         if (limit % 16) {
-            //
-            //  Process remaining data less than one block in length.
-            //
 
-            if (outLen < limit % 16) {
-                throw exceptions::OutputLengthException("output len too short");
-            }
 
             //
             // Check block count.
@@ -526,12 +529,12 @@ size_t intel::gcm::AesGcm128wide::doFinal(unsigned char *output, size_t outOff, 
             ctr1 = _mm_add_epi32(ctr1, ONE);
             tmp1 = _mm_shuffle_epi8(ctr1, BSWAP_EPI64);
             tmp1 = _mm_xor_si128(tmp1, roundKeys[0]);
-            for (int j = 1; j < rounds - 1; j += 2) {
+            for (int j = 1; j < max_rounds - 1; j += 2) {
                 tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j]);
                 tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j + 1]);
             }
-            tmp1 = _mm_aesenc_si128(tmp1, roundKeys[rounds - 1]);
-            tmp1 = _mm_aesenclast_si128(tmp1, roundKeys[rounds]);
+            tmp1 = _mm_aesenc_si128(tmp1, roundKeys[max_rounds - 1]);
+            tmp1 = _mm_aesenclast_si128(tmp1, roundKeys[max_rounds]);
 
             __m128i in1 = _mm_loadu_si128((__m128i *) &bufBlock[t]);
 
@@ -593,8 +596,8 @@ size_t intel::gcm::AesGcm128wide::doFinal(unsigned char *output, size_t outOff, 
     }
 
 
-    tmp1 = _mm_insert_epi64(tmp1, (long long)totalBytes * 8, 0);
-    tmp1 = _mm_insert_epi64(tmp1, (long long)atLength * 8, 1);
+    tmp1 = _mm_insert_epi64(tmp1, (long long) totalBytes * 8, 0);
+    tmp1 = _mm_insert_epi64(tmp1, (long long) atLength * 8, 1);
 
     unsigned char tmpTag[BLOCK_SIZE];
 
@@ -624,34 +627,346 @@ size_t intel::gcm::AesGcm128wide::doFinal(unsigned char *output, size_t outOff, 
 }
 
 void
-intel::gcm::AesGcm128wide::processBuffer(unsigned char *in, size_t inlen, unsigned char *out, size_t outputLen,
-                                         size_t &read,
-                                         size_t &written) {
+intel::gcm::AesGcm128wideEncrypt::processBuffer(unsigned char *in, size_t inlen, unsigned char *out, size_t outputLen,
+                                                size_t &read,
+                                                size_t &written) {
 
-    size_t rem = bufBlockLen - bufBlockPtr;
-    size_t toCopy = inlen < rem ? inlen : rem;
-    memcpy(bufBlock + bufBlockPtr, in, toCopy);
-    bufBlockPtr += toCopy;
-    totalBytes += toCopy;
+    read = written = 0;
 
-    if (bufBlockPtr == bufBlockLen) {
+
+    if (encryption && bufBlockPtr == 0 && inlen > FOUR_BLOCKS && outputLen > FOUR_BLOCKS) {
+        // Special case when nothing is buffered, and we have more than 16 blocks to process, and we are doing
+        // encryption.
+
+        // The hash is calculated on the cipher text so if we are going to interleave reduction and encryption
+        // then the reduction is always going to be on the previous cipher texts.
+        // Eg:
+        // 1. Create initial cipher texts
+        // 2. Create subsequent cipher texts supplying previous cipher texts for reduction.
+        // 3. Loop back to 2 until input is consumed.
+        // 4. Final trailing reduction
+        //
+
+        if (out == nullptr) {
+            //
+            // Java api my supply a null output array if it expects no output, however
+            // if output does occur then we need to catch that here.
+            //
+            throw std::runtime_error("out is null, output generated when no output was expected by caller");
+        }
+
+        blocksRemaining -= 4;
+        if (blocksRemaining < 0) {
+            throw std::runtime_error("attempt to process too many blocks in GCM");
+        }
+
+
+
+        // Hash keys are constant throughout.
+        const __m128i h4 = hashKeys[3];
+        const __m128i h3 = hashKeys[2];
+        const __m128i h2 = hashKeys[1];
+        const __m128i h1 = hashKeys[0];
+
+        // Initial set of 16 blocks.
+        auto id0 = _mm_loadu_si128((__m128i *) &in[0 * 16]);
+        auto id1 = _mm_loadu_si128((__m128i *) &in[1 * 16]);
+        auto id2 = _mm_loadu_si128((__m128i *) &in[2 * 16]);
+        auto id3 = _mm_loadu_si128((__m128i *) &in[3 * 16]);
+
+        ctr1 = _mm_add_epi32(ctr1, ONE);
+        __m128i ctr2 = _mm_add_epi32(ctr1, ONE);
+        __m128i ctr3 = _mm_add_epi32(ctr2, ONE);
+        __m128i ctr4 = _mm_add_epi32(ctr3, ONE);
+
+
+        __m128i tmp1 = _mm_shuffle_epi8(ctr1, BSWAP_EPI64);
+        __m128i tmp2 = _mm_shuffle_epi8(ctr2, BSWAP_EPI64);
+        __m128i tmp3 = _mm_shuffle_epi8(ctr3, BSWAP_EPI64);
+        __m128i tmp4 = _mm_shuffle_epi8(ctr4, BSWAP_EPI64);
+
+
+        apply_aes_no_reduction(id0, id1, id2, id3, tmp1, tmp2, tmp3, tmp4, roundKeys, max_rounds);
+
+        _mm_storeu_si128((__m128i *) &out[0 * 16], id0);
+        _mm_storeu_si128((__m128i *) &out[1 * 16], id1);
+        _mm_storeu_si128((__m128i *) &out[2 * 16], id2);
+        _mm_storeu_si128((__m128i *) &out[3 * 16], id3);
+
+
+        // id0..3 are the initial set of cipher texts but bit swapped
+
+        id0 = _mm_shuffle_epi8(id0, BSWAP_MASK);
+        id1 = _mm_shuffle_epi8(id1, BSWAP_MASK);
+        id2 = _mm_shuffle_epi8(id2, BSWAP_MASK);
+        id3 = _mm_shuffle_epi8(id3, BSWAP_MASK);
+
+
+        written += FOUR_BLOCKS;
+        read += FOUR_BLOCKS;
+        totalBytes += FOUR_BLOCKS;
+        inlen -= FOUR_BLOCKS;
+        outputLen -= FOUR_BLOCKS;
+
+        in += FOUR_BLOCKS;
+        out += FOUR_BLOCKS;
+
+        ctr1 = ctr4;
+
+        while (inlen >= FOUR_BLOCKS && outputLen >= FOUR_BLOCKS) {
+
+            blocksRemaining -= 4;
+            if (blocksRemaining < 0) {
+                throw std::runtime_error("attempt to process too many blocks in GCM");
+            }
+
+            // Encrypt next set of 16 blocks passing the result of the last encryption for reduction.
+
+            auto d0 = _mm_loadu_si128((__m128i *) &in[0 * 16]);
+            auto d1 = _mm_loadu_si128((__m128i *) &in[1 * 16]);
+            auto d2 = _mm_loadu_si128((__m128i *) &in[2 * 16]);
+            auto d3 = _mm_loadu_si128((__m128i *) &in[3 * 16]);
+
+            ctr1 = _mm_add_epi32(ctr1, ONE);
+            ctr2 = _mm_add_epi32(ctr1, ONE);
+            ctr3 = _mm_add_epi32(ctr2, ONE);
+            ctr4 = _mm_add_epi32(ctr3, ONE);
+
+
+            tmp1 = _mm_shuffle_epi8(ctr1, BSWAP_EPI64);
+            tmp2 = _mm_shuffle_epi8(ctr2, BSWAP_EPI64);
+            tmp3 = _mm_shuffle_epi8(ctr3, BSWAP_EPI64);
+            tmp4 = _mm_shuffle_epi8(ctr4, BSWAP_EPI64);
+
+            id0 = _mm_xor_si128(id0, X);
+            apply_aes_with_reduction(d0, d1, d2, d3,
+                                     id0, id1, id2, id3,
+                                     h1, h2, h3, h4,
+                                     tmp1, tmp2, tmp3, tmp4,
+                                     roundKeys, &X, max_rounds);
+
+            _mm_storeu_si128((__m128i *) &out[0 * 16], d0);
+            _mm_storeu_si128((__m128i *) &out[1 * 16], d1);
+            _mm_storeu_si128((__m128i *) &out[2 * 16], d2);
+            _mm_storeu_si128((__m128i *) &out[3 * 16], d3);
+
+            // id0..3 are now the last cipher texts but bit swapped
+
+            id0 = _mm_shuffle_epi8(d0, BSWAP_MASK);
+            id1 = _mm_shuffle_epi8(d1, BSWAP_MASK);
+            id2 = _mm_shuffle_epi8(d2, BSWAP_MASK);
+            id3 = _mm_shuffle_epi8(d3, BSWAP_MASK);
+
+            written += FOUR_BLOCKS;
+            read += FOUR_BLOCKS;
+            totalBytes += FOUR_BLOCKS;
+            inlen -= FOUR_BLOCKS;
+            outputLen -= FOUR_BLOCKS;
+            in += FOUR_BLOCKS;
+            out += FOUR_BLOCKS;
+
+            ctr1 = ctr4;
+        }
+
+        //
+        // Do trailing reduction
+        //
+
+        id0 = _mm_xor_si128(id0, X);
+        gfmul_multi_reduce(
+                id0, id1, id2, id3,
+                h1, h2, h3, h4,
+                &X);
+
+        // fall through to existing code that will buffer trailing blocks if necessary
+
+    }
+
+
+    if (bufBlockPtr == 0 && inlen > bufBlockLen) {
         if (outputLen < FOUR_BLOCKS) {
             throw exceptions::OutputLengthException("output len too short");
         }
-        processFourBlocks(bufBlock, out);
-        if (!encryption) {
-            memcpy(bufBlock, bufBlock + FOUR_BLOCKS, macBlockLen);
-        }
-        bufBlockPtr -= FOUR_BLOCKS;
-        written = FOUR_BLOCKS;
+        processFourBlocks(in, out);
+        written += FOUR_BLOCKS;
+        read += FOUR_BLOCKS;
+        totalBytes += FOUR_BLOCKS;
     } else {
-        written = 0;
+        size_t rem = bufBlockLen - bufBlockPtr;
+        size_t toCopy = inlen < rem ? inlen : rem;
+        memcpy(bufBlock + bufBlockPtr, in, toCopy);
+        bufBlockPtr += toCopy;
+        totalBytes += toCopy;
+
+        if (bufBlockPtr == bufBlockLen) {
+            if (outputLen < FOUR_BLOCKS) {
+                throw exceptions::OutputLengthException("output len too short");
+            }
+            processFourBlocks(bufBlock, out);
+            bufBlockPtr -= FOUR_BLOCKS;
+            written += FOUR_BLOCKS;
+        }
+
+
+        read += toCopy;
     }
-    read = toCopy;
 }
 
 
-void intel::gcm::AesGcm128wide::processBlock(unsigned char *in, unsigned char *out, size_t outputLen) {
+void
+intel::gcm::AesGcm128wideDecrypt::processBuffer(unsigned char *in, size_t inlen, unsigned char *out, size_t outputLen,
+                                                size_t &read,
+                                                size_t &written) {
+
+    read = written = 0;
+
+    if (bufBlockPtr > 0 && bufBlockPtr + inlen > bufBlockLen) {
+
+        // We have 4 or more blocks with of data in the buffer.
+        // Process them now and copy any residual back to the start of the buffer.
+        if (bufBlockPtr >= FOUR_BLOCKS) {
+            if (outputLen < FOUR_BLOCKS) {
+                throw exceptions::OutputLengthException("output len too short");
+            }
+            processFourBlocks(bufBlock, out);
+            written += FOUR_BLOCKS;
+            outputLen -= FOUR_BLOCKS;
+            out += FOUR_BLOCKS;
+
+            //
+            // Copy whatever bytes after the 4 blocks back to the start of the buffer.
+            // Internal copy so read does not change.
+            //
+
+            size_t toCopy = bufBlockPtr - FOUR_BLOCKS;
+            memcpy(bufBlock, bufBlock + bufBlockPtr, toCopy);
+            bufBlockPtr = toCopy;
+        }
+
+        //
+        // There may still data in the buffer but less than before, does
+        // our condition for rounding the buffer out still exist with respect
+        // to the available input?
+        //
+        if (bufBlockPtr > 0 && bufBlockPtr + inlen > bufBlockLen) {
+            size_t toCopy = FOUR_BLOCKS - bufBlockPtr;
+
+            // Copy from the input what we need to round out the buffer.
+            memcpy(bufBlock + bufBlockPtr, in, toCopy);
+            if (outputLen < FOUR_BLOCKS) {
+                throw exceptions::OutputLengthException("output len too short");
+            }
+            processFourBlocks(bufBlock, out);
+            bufBlockPtr = 0;
+            written += FOUR_BLOCKS;
+            read += toCopy;
+            totalBytes += toCopy;
+            outputLen -= FOUR_BLOCKS;
+            in += toCopy;
+            out += FOUR_BLOCKS;
+        }
+    }
+
+    //
+    // Bulk decryption.
+    //
+    if (bufBlockPtr == 0 && inlen > bufBlockLen && outputLen > FOUR_BLOCKS) {
+
+        // Hash keys are constant throughout.
+        const __m128i h4 = hashKeys[3];
+        const __m128i h3 = hashKeys[2];
+        const __m128i h2 = hashKeys[1];
+        const __m128i h1 = hashKeys[0];
+
+        __m128i d0, d1, d2, d3, tmp12, tmp34, tmp56, tmp78;
+
+        while (inlen > bufBlockLen && outputLen > FOUR_BLOCKS) {
+
+            blocksRemaining -= 4;
+            if (blocksRemaining < 0) {
+                throw std::runtime_error("attempt to process too many blocks in GCM");
+            }
+
+
+            d0 = _mm_loadu_si128((__m128i *) &in[0 * 16]);
+            d1 = _mm_loadu_si128((__m128i *) &in[1 * 16]);
+            d2 = _mm_loadu_si128((__m128i *) &in[2 * 16]);
+            d3 = _mm_loadu_si128((__m128i *) &in[3 * 16]);
+
+            ctr1 = _mm_add_epi32(ctr1, ONE);
+            __m128i ctr2 = _mm_add_epi32(ctr1, ONE);
+            __m128i ctr3 = _mm_add_epi32(ctr2, ONE);
+            __m128i ctr4 = _mm_add_epi32(ctr3, ONE);
+
+            tmp12 = _mm_shuffle_epi8(ctr1, BSWAP_EPI64);
+            tmp34 = _mm_shuffle_epi8(ctr2, BSWAP_EPI64);
+            tmp56 = _mm_shuffle_epi8(ctr3, BSWAP_EPI64);
+            tmp78 = _mm_shuffle_epi8(ctr4, BSWAP_EPI64);
+
+            ctr1 = ctr4;
+
+            apply_aes_with_reduction(d0, d1, d2, d3,
+                                     h1, h2, h3, h4,
+                                     tmp12, tmp34, tmp56, tmp78,
+                                     roundKeys, &X, max_rounds);
+
+            _mm_storeu_si128((__m128i *) &out[0 * 16], d0);
+            _mm_storeu_si128((__m128i *) &out[1 * 16], d1);
+            _mm_storeu_si128((__m128i *) &out[2 * 16], d2);
+            _mm_storeu_si128((__m128i *) &out[3 * 16], d3);
+
+            // id0..3 are now the last cipher texts but bit swapped
+
+            written += FOUR_BLOCKS;
+            read += FOUR_BLOCKS;
+            totalBytes += FOUR_BLOCKS;
+            inlen -= FOUR_BLOCKS;
+            outputLen -= FOUR_BLOCKS;
+            in += FOUR_BLOCKS;
+            out += FOUR_BLOCKS;
+        }
+    } else {
+
+
+        if (bufBlockPtr == 0 && inlen > bufBlockLen) {
+            if (outputLen < FOUR_BLOCKS) {
+                throw exceptions::OutputLengthException("output len too short");
+            }
+            processFourBlocks(in, out);
+            written += FOUR_BLOCKS;
+            read += FOUR_BLOCKS;
+            totalBytes += FOUR_BLOCKS;
+
+        } else {
+
+            size_t rem = bufBlockLen - bufBlockPtr;
+            size_t toCopy = inlen < rem ? inlen : rem;
+            memcpy(bufBlock + bufBlockPtr, in, toCopy);
+            bufBlockPtr += toCopy;
+            totalBytes += toCopy;
+
+            if (bufBlockPtr == bufBlockLen) {
+                if (outputLen < FOUR_BLOCKS) {
+                    throw exceptions::OutputLengthException("output len too short");
+                }
+                processFourBlocks(bufBlock, out);
+
+                if (macBlockLen == 16) {
+                    _mm_storeu_si128((__m128i *) bufBlock, _mm_loadu_si128((__m128i *) (bufBlock + FOUR_BLOCKS)));
+                } else {
+                    memcpy(bufBlock, bufBlock + FOUR_BLOCKS, macBlockLen);
+                }
+
+                bufBlockPtr -= FOUR_BLOCKS;
+                written += FOUR_BLOCKS;
+            }
+            read += toCopy;
+        }
+    }
+}
+
+
+void intel::gcm::AesGcm128wideEncrypt::processBlock(unsigned char *in, unsigned char *out, size_t outputLen) {
 
     blocksRemaining -= 1;
 
@@ -668,12 +983,12 @@ void intel::gcm::AesGcm128wide::processBlock(unsigned char *in, unsigned char *o
 
     // print_bytes("ctr: ", &tmp1);
     tmp1 = _mm_xor_si128(tmp1, roundKeys[0]);
-    for (j = 1; j < rounds - 1; j += 2) {
+    for (j = 1; j < max_rounds - 1; j += 2) {
         tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j]);
         tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j + 1]);
     }
-    tmp1 = _mm_aesenc_si128(tmp1, roundKeys[rounds - 1]);
-    tmp1 = _mm_aesenclast_si128(tmp1, roundKeys[rounds]);
+    tmp1 = _mm_aesenc_si128(tmp1, roundKeys[max_rounds - 1]);
+    tmp1 = _mm_aesenclast_si128(tmp1, roundKeys[max_rounds]);
     __m128i in1 = _mm_loadu_si128((__m128i *) in);
     tmp1 = _mm_xor_si128(tmp1, in1);
     _mm_storeu_si128((__m128i *) (out), tmp1);
@@ -689,7 +1004,7 @@ void intel::gcm::AesGcm128wide::processBlock(unsigned char *in, unsigned char *o
 
 }
 
-void intel::gcm::AesGcm128wide::processFourBlocks(unsigned char *in, unsigned char *out) {
+void intel::gcm::AesGcm128wideEncrypt::processFourBlocks(unsigned char *in, unsigned char *out) {
 
     if (out == nullptr) {
         //
@@ -703,8 +1018,10 @@ void intel::gcm::AesGcm128wide::processFourBlocks(unsigned char *in, unsigned ch
     if (blocksRemaining < 0) {
         throw std::runtime_error("attempt to process too many blocks in GCM");
     }
-    ctr1 = _mm_add_epi32(ctr1, ONE);
 
+    const uint32_t rounds = max_rounds;
+
+    ctr1 = _mm_add_epi32(ctr1, ONE);
     __m128i ctr2 = _mm_add_epi32(ctr1, ONE);
     __m128i ctr3 = _mm_add_epi32(ctr2, ONE);
     __m128i ctr4 = _mm_add_epi32(ctr3, ONE);
@@ -714,87 +1031,96 @@ void intel::gcm::AesGcm128wide::processFourBlocks(unsigned char *in, unsigned ch
     __m128i tmp3 = _mm_shuffle_epi8(ctr3, BSWAP_EPI64);
     __m128i tmp4 = _mm_shuffle_epi8(ctr4, BSWAP_EPI64);
 
+    auto rk = roundKeys[0];
+    aes_xor(tmp1, tmp2, tmp3, tmp4, rk);
 
-    __m128i in1 = _mm_loadu_si128(((__m128i *) in));
-    in += BLOCK_SIZE;
-    __m128i in2 = _mm_loadu_si128(((__m128i *) in));
-    in += BLOCK_SIZE;
-    __m128i in3 = _mm_loadu_si128(((__m128i *) in));
-    in += BLOCK_SIZE;
-    __m128i in4 = _mm_loadu_si128(((__m128i *) in));
+    __m128i in1 = _mm_loadu_si128(((__m128i *) &in[0 * 16]));
+    __m128i in2 = _mm_loadu_si128(((__m128i *) &in[1 * 16]));
+    __m128i in3 = _mm_loadu_si128(((__m128i *) &in[2 * 16]));
+    __m128i in4 = _mm_loadu_si128(((__m128i *) &in[3 * 16]));
 
-
-
-    tmp1 = _mm_xor_si128(tmp1, roundKeys[0]);
-    tmp2 = _mm_xor_si128(tmp2, roundKeys[0]);
-    tmp3 = _mm_xor_si128(tmp3, roundKeys[0]);
-    tmp4 = _mm_xor_si128(tmp4, roundKeys[0]);
-
-
-    for (int j = 1; j < rounds - 1; j += 2) {
-        tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j]);
-        tmp2 = _mm_aesenc_si128(tmp2, roundKeys[j]);
-        tmp3 = _mm_aesenc_si128(tmp3, roundKeys[j]);
-        tmp4 = _mm_aesenc_si128(tmp4, roundKeys[j]);
-
-        tmp1 = _mm_aesenc_si128(tmp1, roundKeys[j + 1]);
-        tmp2 = _mm_aesenc_si128(tmp2, roundKeys[j + 1]);
-        tmp3 = _mm_aesenc_si128(tmp3, roundKeys[j + 1]);
-        tmp4 = _mm_aesenc_si128(tmp4, roundKeys[j + 1]);
+    int j;
+    for (j = 1; j < rounds; j++) {
+        aes_enc(tmp1, tmp2, tmp3, tmp4, roundKeys[j]);
     }
 
-    tmp1 = _mm_aesenc_si128(tmp1, roundKeys[rounds - 1]);
-    tmp2 = _mm_aesenc_si128(tmp2, roundKeys[rounds - 1]);
-    tmp3 = _mm_aesenc_si128(tmp3, roundKeys[rounds - 1]);
-    tmp4 = _mm_aesenc_si128(tmp4, roundKeys[rounds - 1]);
-
-    tmp1 = _mm_aesenclast_si128(tmp1, roundKeys[rounds]);
-    tmp2 = _mm_aesenclast_si128(tmp2, roundKeys[rounds]);
-    tmp3 = _mm_aesenclast_si128(tmp3, roundKeys[rounds]);
-    tmp4 = _mm_aesenclast_si128(tmp4, roundKeys[rounds]);
+    aes_enc_last(tmp1, tmp2, tmp3, tmp4, roundKeys[j]);
 
     tmp1 = _mm_xor_si128(tmp1, in1);
     tmp2 = _mm_xor_si128(tmp2, in2);
     tmp3 = _mm_xor_si128(tmp3, in3);
     tmp4 = _mm_xor_si128(tmp4, in4);
 
-    _mm_storeu_si128((__m128i *) out, tmp1);
-    out += BLOCK_SIZE;
-    _mm_storeu_si128((__m128i *) out, tmp2);
-    out += BLOCK_SIZE;
-    _mm_storeu_si128((__m128i *) out, tmp3);
-    out += BLOCK_SIZE;
-    _mm_storeu_si128((__m128i *) out, tmp4);
+    _mm_storeu_si128((__m128i *) &out[0 * 16], tmp1);
+    _mm_storeu_si128((__m128i *) &out[1 * 16], tmp2);
+    _mm_storeu_si128((__m128i *) &out[2 * 16], tmp3);
+    _mm_storeu_si128((__m128i *) &out[3 * 16], tmp4);
 
+    tmp1 = _mm_shuffle_epi8(tmp1, BSWAP_MASK);
+    tmp2 = _mm_shuffle_epi8(tmp2, BSWAP_MASK);
+    tmp3 = _mm_shuffle_epi8(tmp3, BSWAP_MASK);
+    tmp4 = _mm_shuffle_epi8(tmp4, BSWAP_MASK);
 
-    if (encryption) {
-        tmp1 = _mm_shuffle_epi8(tmp1, BSWAP_MASK);
-        tmp2 = _mm_shuffle_epi8(tmp2, BSWAP_MASK);
-        tmp3 = _mm_shuffle_epi8(tmp3, BSWAP_MASK);
-        tmp4 = _mm_shuffle_epi8(tmp4, BSWAP_MASK);
-        X = _mm_xor_si128(X, tmp1);
-        gfmul(X, H, &X);
-        X = _mm_xor_si128(X, tmp2);
-        gfmul(X, H, &X);
-        X = _mm_xor_si128(X, tmp3);
-        gfmul(X, H, &X);
-        X = _mm_xor_si128(X, tmp4);
-        gfmul(X, H, &X);
-    } else {
-        X = _mm_xor_si128(X, _mm_shuffle_epi8(in1, BSWAP_MASK));
-        gfmul(X, H, &X);
-        X = _mm_xor_si128(X, _mm_shuffle_epi8(in2, BSWAP_MASK));
-        gfmul(X, H, &X);
-        X = _mm_xor_si128(X, _mm_shuffle_epi8(in3, BSWAP_MASK));
-        gfmul(X, H, &X);
-        X = _mm_xor_si128(X, _mm_shuffle_epi8(in4, BSWAP_MASK));
-        gfmul(X, H, &X);
-    }
+    tmp1 = _mm_xor_si128(tmp1, X);
+    gfmul_multi_reduce(tmp1, tmp2, tmp3, tmp4,
+                       hashKeys[0], hashKeys[1], hashKeys[2], hashKeys[3],
+                       &X);
 
     ctr1 = ctr4;
 }
 
-void intel::gcm::AesGcm128wide::initCipher() {
+
+void intel::gcm::AesGcm128wideDecrypt::processFourBlocks(unsigned char *in, unsigned char *out) {
+
+    if (out == nullptr) {
+        //
+        // Java api my supply a null output array if it expects no output, however
+        // if output does occur then we need to catch that here.
+        //
+        throw std::runtime_error("out is null, output generated when no output was expected by caller");
+    }
+
+    __m128i ctr2,ctr3,ctr4,tmp12,tmp34,tmp56,tmp78;
+
+    blocksRemaining -= 4;
+    if (blocksRemaining < 0) {
+        throw std::runtime_error("attempt to process too many blocks in GCM");
+    }
+
+    ctr1 = _mm_add_epi32(ctr1, ONE);
+    ctr2 = _mm_add_epi32(ctr1, ONE);
+    ctr3 = _mm_add_epi32(ctr2, ONE);
+    ctr4 = _mm_add_epi32(ctr3, ONE);
+
+    tmp12 = _mm_shuffle_epi8(ctr1, BSWAP_EPI64);
+    tmp34 = _mm_shuffle_epi8(ctr2, BSWAP_EPI64);
+    tmp56 = _mm_shuffle_epi8(ctr3, BSWAP_EPI64);
+    tmp78 = _mm_shuffle_epi8(ctr4, BSWAP_EPI64);
+
+
+    __m128i in1 = _mm_loadu_si128(((__m128i *) &in[0 * 16]));
+    __m128i in2 = _mm_loadu_si128(((__m128i *) &in[1 * 16]));
+    __m128i in3 = _mm_loadu_si128(((__m128i *) &in[2 * 16]));
+    __m128i in4 = _mm_loadu_si128(((__m128i *) &in[3 * 16]));
+
+
+    apply_aes_with_reduction(in1, in2, in3, in4,
+                             hashKeys[0], hashKeys[1], hashKeys[2], hashKeys[3],
+                             tmp12, tmp34,tmp56 ,tmp78,
+                             roundKeys, &X, max_rounds);
+
+
+    _mm_storeu_si128((__m128i *) &out[0 * 16], in1);
+    _mm_storeu_si128((__m128i *) &out[1 * 16], in2);
+    _mm_storeu_si128((__m128i *) &out[2 * 16], in3);
+    _mm_storeu_si128((__m128i *) &out[3 * 16], in4);
+
+
+    ctr1 = ctr4;
+}
+
+
+void intel::gcm::AesGcm128wideEncrypt::initCipher() {
     if (atLength > 0) {
         S_atPre = S_at;
         atLengthPre = atLength;
@@ -813,67 +1139,13 @@ void intel::gcm::AesGcm128wide::initCipher() {
 
 }
 
-void intel::gcm::AesGcm128wide::setBlocksRemainingDown(int64_t down) {
+void intel::gcm::AesGcm128wideEncrypt::setBlocksRemainingDown(int64_t down) {
 
     if (totalBytes > 0) {
         throw std::runtime_error("cannot be called once transformation has processed data");
     }
 
     blocksRemaining -= down;
-}
-
-
-
-
-void intel::gcm::AesGcm128wide::gfmul(__m128i a, __m128i b, __m128i *res) {
-    __m128i tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7, tmp8;
-
-    tmp2 = _mm_clmulepi64_si128(a, b, 0x00);
-    tmp3 = _mm_clmulepi64_si128(a, b, 0x10);
-    tmp4 = _mm_clmulepi64_si128(a, b, 0x01);
-    tmp5 = _mm_clmulepi64_si128(a, b, 0x11);
-
-
-    tmp3 = _mm_xor_si128(tmp3, tmp4);
-    tmp4 = _mm_slli_si128(tmp3, 8);
-    tmp3 = _mm_srli_si128(tmp3, 8);
-    tmp2 = _mm_xor_si128(tmp2, tmp4);
-    tmp5 = _mm_xor_si128(tmp5, tmp3);
-
-    tmp6 = _mm_srli_epi32(tmp2, 31);
-    tmp7 = _mm_srli_epi32(tmp5, 31);
-    tmp2 = _mm_slli_epi32(tmp2, 1);
-    tmp5 = _mm_slli_epi32(tmp5, 1);
-
-    tmp8 = _mm_srli_si128(tmp6, 12);
-    tmp7 = _mm_slli_si128(tmp7, 4);
-    tmp6 = _mm_slli_si128(tmp6, 4);
-    tmp2 = _mm_or_si128(tmp2, tmp6);
-    tmp5 = _mm_or_si128(tmp5, tmp7);
-    tmp5 = _mm_or_si128(tmp5, tmp8);
-
-    //
-    tmp6 = _mm_slli_epi32(tmp2, 31);
-    tmp7 = _mm_slli_epi32(tmp2, 30);
-    tmp8 = _mm_slli_epi32(tmp2, 25);
-
-    tmp6 = _mm_xor_si128(tmp6, tmp7);
-    tmp6 = _mm_xor_si128(tmp6, tmp8);
-    tmp7 = _mm_srli_si128(tmp6, 4);
-    tmp6 = _mm_slli_si128(tmp6, 12);
-    tmp2 = _mm_xor_si128(tmp2, tmp6);
-
-    tmp1 = _mm_srli_epi32(tmp2, 1);
-    tmp3 = _mm_srli_epi32(tmp2, 2);
-    tmp4 = _mm_srli_epi32(tmp2, 7);
-    tmp1 = _mm_xor_si128(tmp1, tmp3);
-    tmp1 = _mm_xor_si128(tmp1, tmp4);
-    tmp1 = _mm_xor_si128(tmp1, tmp7);
-
-    tmp2 = _mm_xor_si128(tmp2, tmp1);
-    tmp5 = _mm_xor_si128(tmp5, tmp2);
-    *res = tmp5;
-
 }
 
 
@@ -901,7 +1173,7 @@ void intel::gcm::Exponentiator::exponentiateX(uint64_t pow, __m128i *output) {
         if ((pow & 1) != 0) {
             ensureAvailable(bit);
             auto tmp = lookupPow2->at(bit);
-            AesGcm128wide::gfmul(y, tmp.val, &y);
+            gfmul(y, tmp.val, &y);
         }
         ++bit;
         pow >>= 1;
@@ -915,7 +1187,7 @@ void intel::gcm::Exponentiator::ensureAvailable(uint64_t bit) {
     if (count <= bit) {
         __m128i tmp = lookupPow2->at(count - 1).val;
         do {
-            AesGcm128wide::gfmul(tmp, tmp, &tmp);
+            gfmul(tmp, tmp, &tmp);
             lookupPow2->push_back(_m128i_wrapper{tmp});
         } while (++count <= bit);
     }

@@ -17,6 +17,7 @@ using jniutil::JavaEnvUtils;
  * Method:    isPredictionResistant
  * Signature: ()Z
  */
+//[[maybe_unused]] JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_fips_HWEntropySource_isPredictionResistant
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_isPredictionResistant
         (JNIEnv *, jobject) {
     return intel::Rand::isPredictionResistant()? JNI_TRUE:JNI_FALSE;
@@ -27,6 +28,7 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_isPr
  * Method:    modulus
  * Signature: ()I
  */
+//[[maybe_unused]] JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_fips_HWEntropySource_modulus
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_modulus
         (JNIEnv *, jobject) {
     return (jint)intel::Rand::modulus();
@@ -37,6 +39,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_modulus
  * Method:    seedBuffer
  * Signature: ([B)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_HWEntropySource_seedBuffer
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_seedBuffer
         (JNIEnv *env, jobject, jbyteArray array, jboolean useSeedSource) {
 
