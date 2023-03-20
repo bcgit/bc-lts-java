@@ -8,10 +8,7 @@ import java.security.spec.AlgorithmParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 
 import org.bouncycastle.asn1.ua.UAObjectIdentifiers;
-import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.BufferedBlockCipher;
-import org.bouncycastle.crypto.CipherKeyGenerator;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.DSTU7624Engine;
 import org.bouncycastle.crypto.engines.DSTU7624WrapEngine;
 import org.bouncycastle.crypto.macs.KGMac;
@@ -139,7 +136,7 @@ public class DSTU7624
     {
         public OFB128()
         {    // TODO: key size is also meant to be fixed
-            super(new BufferedBlockCipher(new OFBBlockCipher(new DSTU7624Engine(128), 128)), 128);
+            super(new DefaultBufferedBlockCipher(new OFBBlockCipher(new DSTU7624Engine(128), 128)), 128);
         }
     }
 
@@ -148,7 +145,7 @@ public class DSTU7624
     {
         public OFB256()
         {
-            super(new BufferedBlockCipher(new OFBBlockCipher(new DSTU7624Engine(256), 256)), 256);
+            super(new DefaultBufferedBlockCipher(new OFBBlockCipher(new DSTU7624Engine(256), 256)), 256);
         }
     }
 
@@ -157,7 +154,7 @@ public class DSTU7624
     {
         public OFB512()
         {
-            super(new BufferedBlockCipher(new OFBBlockCipher(new DSTU7624Engine(512), 512)), 512);
+            super(new DefaultBufferedBlockCipher(new OFBBlockCipher(new DSTU7624Engine(512), 512)), 512);
         }
     }
 
@@ -166,7 +163,7 @@ public class DSTU7624
     {
         public CFB128()
         {    // TODO: key size is also meant to be fixed
-            super(new BufferedBlockCipher(new CFBBlockCipher(new DSTU7624Engine(128), 128)), 128);
+            super(new DefaultBufferedBlockCipher(new CFBBlockCipher(new DSTU7624Engine(128), 128)), 128);
         }
     }
 
@@ -175,7 +172,7 @@ public class DSTU7624
     {
         public CFB256()
         {
-            super(new BufferedBlockCipher(new CFBBlockCipher(new DSTU7624Engine(256), 256)), 256);
+            super(new DefaultBufferedBlockCipher(new CFBBlockCipher(new DSTU7624Engine(256), 256)), 256);
         }
     }
 
@@ -184,7 +181,7 @@ public class DSTU7624
     {
         public CFB512()
         {
-            super(new BufferedBlockCipher(new CFBBlockCipher(new DSTU7624Engine(512), 512)), 512);
+            super(new DefaultBufferedBlockCipher(new CFBBlockCipher(new DSTU7624Engine(512), 512)), 512);
         }
     }
 
@@ -193,7 +190,7 @@ public class DSTU7624
     {
         public CTR128()
         {    // TODO: key size is also meant to be fixed
-            super(new BufferedBlockCipher(new KCTRBlockCipher(new DSTU7624Engine(128))), 128);
+            super(new DefaultBufferedBlockCipher(new KCTRBlockCipher(new DSTU7624Engine(128))), 128);
         }
     }
 
@@ -202,7 +199,7 @@ public class DSTU7624
     {
         public CTR256()
         {
-            super(new BufferedBlockCipher(new KCTRBlockCipher(new DSTU7624Engine(256))), 256);
+            super(new DefaultBufferedBlockCipher(new KCTRBlockCipher(new DSTU7624Engine(256))), 256);
         }
     }
 
@@ -211,7 +208,7 @@ public class DSTU7624
     {
         public CTR512()
         {
-            super(new BufferedBlockCipher(new KCTRBlockCipher(new DSTU7624Engine(512))), 512);
+            super(new DefaultBufferedBlockCipher(new KCTRBlockCipher(new DSTU7624Engine(512))), 512);
         }
     }
 

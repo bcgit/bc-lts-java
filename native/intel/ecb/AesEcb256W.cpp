@@ -2,13 +2,10 @@
 // Created  on 18/5/2022.
 //
 
-#include <immintrin.h>
 #include <cstring>
-#include <iostream>
 #include "AesEcb256W.h"
 #include "../common.h"
-
-
+#include "../aes/aes_common_256b.h"
 
 
 /**
@@ -16,16 +13,17 @@
  * @return 16
  */
 uint32_t intel::ecb::AesEcb256W::getMultiBlockSize() {
-    return ECB_BLOCK_SIZE;
+    return ECB_BLOCK_SIZE_16;
 }
 
+
 intel::ecb::AesEcb256W::AesEcb256W() {
-    roundKeys256 = new __m256i[15];
+    roundKeys = new __m128i[15];
 }
 
 intel::ecb::AesEcb256W::~AesEcb256W() {
-    memset(roundKeys256, 0, 15 * sizeof(__m256i));
-    delete[] roundKeys256;
+    memset(roundKeys, 0, 15 * sizeof(__m128i));
+    delete[] roundKeys;
 }
 
 void intel::ecb::AesEcb256W::reset() {
@@ -39,6 +37,287 @@ void intel::ecb::AesEcb256W::reset() {
 intel::ecb::AesEcb256W128E::AesEcb256W128E() : AesEcb256W() {}
 
 intel::ecb::AesEcb256W128E::~AesEcb256W128E() = default;
+
+static inline void aes_ecb_blocks_128b(unsigned char *in, unsigned char *out,
+                                       const __m128i *roundKeys, const uint32_t num_blocks,
+                                       const int num_rounds, const int is_encrypt) {
+
+    if (num_blocks >= 16) {
+        auto b0 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[1 * 32]);
+        auto b2 = _mm256_loadu_si256((const __m256i *) &in[2 * 32]);
+        auto b3 = _mm256_loadu_si256((const __m256i *) &in[3 * 32]);
+        auto b4 = _mm256_loadu_si256((const __m256i *) &in[4 * 32]);
+        auto b5 = _mm256_loadu_si256((const __m256i *) &in[5 * 32]);
+        auto b6 = _mm256_loadu_si256((const __m256i *) &in[6 * 32]);
+        auto b7 = _mm256_loadu_si256((const __m256i *) &in[7 * 32]);
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b0, b1, b2, b3, b4, b5, b6, b7, roundKeys, num_rounds, 16);
+        else
+            aesdec_16_blocks_256b(b0, b1, b2, b3, b4, b5, b6, b7, roundKeys, num_rounds, 16);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b0);
+        _mm256_storeu_si256((__m256i *) &out[1 * 32], b1);
+        _mm256_storeu_si256((__m256i *) &out[2 * 32], b2);
+        _mm256_storeu_si256((__m256i *) &out[3 * 32], b3);
+        _mm256_storeu_si256((__m256i *) &out[4 * 32], b4);
+        _mm256_storeu_si256((__m256i *) &out[5 * 32], b5);
+        _mm256_storeu_si256((__m256i *) &out[6 * 32], b6);
+        _mm256_storeu_si256((__m256i *) &out[7 * 32], b7);
+    } else if (num_blocks >= 15) {
+        auto b0 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[1 * 32]);
+        auto b2 = _mm256_loadu_si256((const __m256i *) &in[2 * 32]);
+        auto b3 = _mm256_loadu_si256((const __m256i *) &in[3 * 32]);
+        auto b4 = _mm256_loadu_si256((const __m256i *) &in[4 * 32]);
+        auto b5 = _mm256_loadu_si256((const __m256i *) &in[5 * 32]);
+        auto b6 = _mm256_loadu_si256((const __m256i *) &in[6 * 32]);
+        auto b7 = _mm256_broadcastsi128_si256(_mm_load_si128((const __m128i *) &in[7 * 32]));
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b0, b1, b2, b3, b4, b5, b6, b7, roundKeys, num_rounds, 16);
+        else
+            aesdec_16_blocks_256b(b0, b1, b2, b3, b4, b5, b6, b7, roundKeys, num_rounds, 16);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b0);
+        _mm256_storeu_si256((__m256i *) &out[1 * 32], b1);
+        _mm256_storeu_si256((__m256i *) &out[2 * 32], b2);
+        _mm256_storeu_si256((__m256i *) &out[3 * 32], b3);
+        _mm256_storeu_si256((__m256i *) &out[4 * 32], b4);
+        _mm256_storeu_si256((__m256i *) &out[5 * 32], b5);
+        _mm256_storeu_si256((__m256i *) &out[6 * 32], b6);
+        _mm_storeu_si128((__m128i *) &out[7 * 32], _mm256_castsi256_si128(b7));
+    } else if (num_blocks == 14) {
+        auto b0 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[1 * 32]);
+        auto b2 = _mm256_loadu_si256((const __m256i *) &in[2 * 32]);
+        auto b3 = _mm256_loadu_si256((const __m256i *) &in[3 * 32]);
+        auto b4 = _mm256_loadu_si256((const __m256i *) &in[4 * 32]);
+        auto b5 = _mm256_loadu_si256((const __m256i *) &in[5 * 32]);
+        auto b6 = _mm256_loadu_si256((const __m256i *) &in[6 * 32]);
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b0, b1, b2, b3, b4, b5, b6, b6, roundKeys, num_rounds, 14);
+        else
+            aesdec_16_blocks_256b(b0, b1, b2, b3, b4, b5, b6, b6, roundKeys, num_rounds, 14);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b0);
+        _mm256_storeu_si256((__m256i *) &out[1 * 32], b1);
+        _mm256_storeu_si256((__m256i *) &out[2 * 32], b2);
+        _mm256_storeu_si256((__m256i *) &out[3 * 32], b3);
+        _mm256_storeu_si256((__m256i *) &out[4 * 32], b4);
+        _mm256_storeu_si256((__m256i *) &out[5 * 32], b5);
+        _mm256_storeu_si256((__m256i *) &out[6 * 32], b6);
+
+    } else if (num_blocks == 13) {
+        auto b0 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[1 * 32]);
+        auto b2 = _mm256_loadu_si256((const __m256i *) &in[2 * 32]);
+        auto b3 = _mm256_loadu_si256((const __m256i *) &in[3 * 32]);
+        auto b4 = _mm256_loadu_si256((const __m256i *) &in[4 * 32]);
+        auto b5 = _mm256_loadu_si256((const __m256i *) &in[5 * 32]);
+        auto b6 = _mm256_broadcastsi128_si256(_mm_load_si128((const __m128i *) &in[6 * 32]));
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b0, b1, b2, b3, b4, b5, b6, b6, roundKeys, num_rounds, 14);
+        else
+            aesdec_16_blocks_256b(b0, b1, b2, b3, b4, b5, b6, b6, roundKeys, num_rounds, 14);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b0);
+        _mm256_storeu_si256((__m256i *) &out[1 * 32], b1);
+        _mm256_storeu_si256((__m256i *) &out[2 * 32], b2);
+        _mm256_storeu_si256((__m256i *) &out[3 * 32], b3);
+        _mm256_storeu_si256((__m256i *) &out[4 * 32], b4);
+        _mm256_storeu_si256((__m256i *) &out[5 * 32], b5);
+        _mm_storeu_si128((__m128i *) &out[6 * 32], _mm256_castsi256_si128(b6));
+
+    } else if (num_blocks == 12) {
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+        auto b2 = _mm256_loadu_si256((const __m256i *) &in[1 * 32]);
+        auto b3 = _mm256_loadu_si256((const __m256i *) &in[2 * 32]);
+        auto b4 = _mm256_loadu_si256((const __m256i *) &in[3 * 32]);
+        auto b5 = _mm256_loadu_si256((const __m256i *) &in[4 * 32]);
+        auto b6 = _mm256_loadu_si256((const __m256i *) &in[5 * 32]);
+
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b1, b2, b3, b4, b5, b6, b6, b6, roundKeys, num_rounds, 12);
+        else
+            aesdec_16_blocks_256b(b1, b2, b3, b4, b5, b6, b6, b6, roundKeys, num_rounds, 12);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b1);
+        _mm256_storeu_si256((__m256i *) &out[1 * 32], b2);
+        _mm256_storeu_si256((__m256i *) &out[2 * 32], b3);
+        _mm256_storeu_si256((__m256i *) &out[3 * 32], b4);
+        _mm256_storeu_si256((__m256i *) &out[4 * 32], b5);
+        _mm256_storeu_si256((__m256i *) &out[5 * 32], b6);
+    } else if (num_blocks == 11) {
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+        auto b2 = _mm256_loadu_si256((const __m256i *) &in[1 * 32]);
+        auto b3 = _mm256_loadu_si256((const __m256i *) &in[2 * 32]);
+        auto b4 = _mm256_loadu_si256((const __m256i *) &in[3 * 32]);
+        auto b5 = _mm256_loadu_si256((const __m256i *) &in[4 * 32]);
+        auto b6 = _mm256_broadcastsi128_si256(_mm_load_si128((const __m128i *) &in[5 * 32]));
+
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b1, b2, b3, b4, b5, b6, b6, b6, roundKeys, num_rounds, 12);
+        else
+            aesdec_16_blocks_256b(b1, b2, b3, b4, b5, b6, b6, b6, roundKeys, num_rounds, 12);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b1);
+        _mm256_storeu_si256((__m256i *) &out[1 * 32], b2);
+        _mm256_storeu_si256((__m256i *) &out[2 * 32], b3);
+        _mm256_storeu_si256((__m256i *) &out[3 * 32], b4);
+        _mm256_storeu_si256((__m256i *) &out[4 * 32], b5);
+        _mm_storeu_si128((__m128i *) &out[5 * 32], _mm256_castsi256_si128(b6));
+    } else if (num_blocks == 10) {
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+        auto b2 = _mm256_loadu_si256((const __m256i *) &in[1 * 32]);
+        auto b3 = _mm256_loadu_si256((const __m256i *) &in[2 * 32]);
+        auto b4 = _mm256_loadu_si256((const __m256i *) &in[3 * 32]);
+        auto b5 = _mm256_loadu_si256((const __m256i *) &in[4 * 32]);
+
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b1, b2, b3, b4, b5, b5, b5, b5, roundKeys, num_rounds, 10);
+        else
+            aesdec_16_blocks_256b(b1, b2, b3, b4, b5, b5, b5, b5, roundKeys, num_rounds, 10);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b1);
+        _mm256_storeu_si256((__m256i *) &out[1 * 32], b2);
+        _mm256_storeu_si256((__m256i *) &out[2 * 32], b3);
+        _mm256_storeu_si256((__m256i *) &out[3 * 32], b4);
+        _mm256_storeu_si256((__m256i *) &out[4 * 32], b5);
+
+    } else if (num_blocks == 9) {
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+        auto b2 = _mm256_loadu_si256((const __m256i *) &in[1 * 32]);
+        auto b3 = _mm256_loadu_si256((const __m256i *) &in[2 * 32]);
+        auto b4 = _mm256_loadu_si256((const __m256i *) &in[3 * 32]);
+        auto b5 = _mm256_broadcastsi128_si256(_mm_load_si128((const __m128i *) &in[4 * 32]));
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b1, b2, b3, b4, b5, b5, b5, b5, roundKeys, num_rounds, 10);
+        else
+            aesdec_16_blocks_256b(b1, b2, b3, b4, b5, b5, b5, b5, roundKeys, num_rounds, 10);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b1);
+        _mm256_storeu_si256((__m256i *) &out[1 * 32], b2);
+        _mm256_storeu_si256((__m256i *) &out[2 * 32], b3);
+        _mm256_storeu_si256((__m256i *) &out[3 * 32], b4);
+        _mm_storeu_si128((__m128i *) &out[4 * 32], _mm256_castsi256_si128(b5));
+    } else if (num_blocks == 8) {
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+        auto b2 = _mm256_loadu_si256((const __m256i *) &in[1 * 32]);
+        auto b3 = _mm256_loadu_si256((const __m256i *) &in[2 * 32]);
+        auto b4 = _mm256_loadu_si256((const __m256i *) &in[3 * 32]);
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b1, b2, b3, b4, b4, b4, b4, b4, roundKeys, num_rounds, 8);
+        else
+            aesdec_16_blocks_256b(b1, b2, b3, b4, b4, b4, b4, b4, roundKeys, num_rounds, 8);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b1);
+        _mm256_storeu_si256((__m256i *) &out[1 * 32], b2);
+        _mm256_storeu_si256((__m256i *) &out[2 * 32], b3);
+        _mm256_storeu_si256((__m256i *) &out[3 * 32], b4);
+
+
+    } else if (num_blocks == 7) {
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+        auto b2 = _mm256_loadu_si256((const __m256i *) &in[1 * 32]);
+        auto b3 = _mm256_loadu_si256((const __m256i *) &in[2 * 32]);
+        auto b4 = _mm256_broadcastsi128_si256(_mm_load_si128((const __m128i *) &in[3 * 32]));
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b1, b2, b3, b4, b4, b4, b4, b4, roundKeys, num_rounds, 8);
+        else
+            aesdec_16_blocks_256b(b1, b2, b3, b4, b4, b4, b4, b4, roundKeys, num_rounds, 8);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b1);
+        _mm256_storeu_si256((__m256i *) &out[1 * 32], b2);
+        _mm256_storeu_si256((__m256i *) &out[2 * 32], b3);
+        _mm_storeu_si128((__m128i *) &out[3 * 32], _mm256_castsi256_si128(b4));
+    } else if (num_blocks == 6) {
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+        auto b2 = _mm256_loadu_si256((const __m256i *) &in[1 * 32]);
+        auto b3 = _mm256_loadu_si256((const __m256i *) &in[2 * 32]);
+
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b1, b2, b3, b3, b3, b3, b3, b3, roundKeys, num_rounds, 6);
+        else
+            aesdec_16_blocks_256b(b1, b2, b3, b3, b3, b3, b3, b3, roundKeys, num_rounds, 6);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b1);
+        _mm256_storeu_si256((__m256i *) &out[1 * 32], b2);
+        _mm256_storeu_si256((__m256i *) &out[2 * 32], b3);
+
+    } else if (num_blocks == 5) {
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+        auto b2 = _mm256_loadu_si256((const __m256i *) &in[1 * 32]);
+        auto b3 = _mm256_broadcastsi128_si256(_mm_load_si128((const __m128i *) &in[2 * 32]));
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b1, b2, b3, b3, b3, b3, b3, b3, roundKeys, num_rounds, 6);
+        else
+            aesdec_16_blocks_256b(b1, b2, b3, b3, b3, b3, b3, b3, roundKeys, num_rounds, 6);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b1);
+        _mm256_storeu_si256((__m256i *) &out[1 * 32], b2);
+        _mm_storeu_si128((__m128i *) &out[2 * 32], _mm256_castsi256_si128(b3));
+    } else if (num_blocks == 4) {
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+        auto b2 = _mm256_loadu_si256((const __m256i *) &in[1 * 32]);
+
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b1, b2, b2, b2, b2, b2, b2, b2, roundKeys, num_rounds, 4);
+        else
+            aesdec_16_blocks_256b(b1, b2, b2, b2, b2, b2, b2, b2, roundKeys, num_rounds, 4);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b1);
+        _mm256_storeu_si256((__m256i *) &out[1 * 32], b2);
+
+
+    } else if (num_blocks == 3) {
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+        auto b2 = _mm256_broadcastsi128_si256(_mm_load_si128((const __m128i *) &in[1 * 32]));
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b1, b2, b2, b2, b2, b2, b2, b2, roundKeys, num_rounds, 4);
+        else
+            aesdec_16_blocks_256b(b1, b2, b2, b2, b2, b2, b2, b2, roundKeys, num_rounds, 4);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b1);
+        _mm_storeu_si128((__m128i *) &out[1 * 32], _mm256_castsi256_si128(b2));
+    } else if (num_blocks == 2) {
+        auto b1 = _mm256_loadu_si256((const __m256i *) &in[0 * 32]);
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b1, b1, b1, b1, b1, b1, b1, b1, roundKeys, num_rounds, 2);
+        else
+            aesdec_16_blocks_256b(b1, b1, b1, b1, b1, b1, b1, b1, roundKeys, num_rounds, 2);
+
+        _mm256_storeu_si256((__m256i *) &out[0 * 32], b1);
+
+
+    } else if (num_blocks == 1) {
+
+        auto b1 = _mm256_broadcastsi128_si256(_mm_load_si128((const __m128i *) &in[0 * 32]));
+
+        if (is_encrypt)
+            aesenc_16_blocks_256b(b1, b1, b1, b1, b1, b1, b1, b1, roundKeys, num_rounds, 2);
+        else
+            aesdec_16_blocks_256b(b1, b1, b1, b1, b1, b1, b1, b1, roundKeys, num_rounds, 2);
+
+        _mm_storeu_si128((__m128i *) &out[0 * 32], _mm256_castsi256_si128(b1));
+    }
+
+
+}
 
 
 /**
@@ -66,83 +345,35 @@ size_t intel::ecb::AesEcb256W128E::processBlocks(unsigned char *input,
     unsigned char *out = output + out_start;
     unsigned char *outStart = out;
 
-    int t = blocks;
 
-    while (t >= 2) {
-        t -= 2;
-
-        auto tmp = _mm256_xor_si256(
-                _mm256_loadu_si256((__m256i *) in), roundKeys256[0]);
-
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[1]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[2]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[3]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[4]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[5]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[6]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[7]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[8]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[9]);
-
-        tmp = _mm256_aesenclast_epi128(tmp, roundKeys256[10]);
-        _mm256_storeu_si256((__m256i *) out, tmp);
-
-        out += ECB_BLOCK_SIZE * 2;
-        in += ECB_BLOCK_SIZE * 2;
-
+    while (blocks >= 16) {
+        aes_ecb_blocks_128b(in, out, roundKeys, 16, 10, 1);
+        blocks -= 16;
+        out += (ECB_BLOCK_SIZE_16);
+        in += (ECB_BLOCK_SIZE_16);
     }
 
-    //
-    // Remaining single blocks.
-    //
-    auto rk128 = (__m128i *) roundKeys256;
-    while (t > 0) {
-        t--;
 
-        auto tmp = _mm_xor_si128(
-                _mm_loadu_si128((__m128i *) in), rk128[0]);
-
-        tmp = _mm_aesenc_si128(tmp, rk128[2]);
-        tmp = _mm_aesenc_si128(tmp, rk128[4]);
-        tmp = _mm_aesenc_si128(tmp, rk128[6]);
-        tmp = _mm_aesenc_si128(tmp, rk128[8]);
-        tmp = _mm_aesenc_si128(tmp, rk128[10]);
-        tmp = _mm_aesenc_si128(tmp, rk128[12]);
-        tmp = _mm_aesenc_si128(tmp, rk128[14]);
-        tmp = _mm_aesenc_si128(tmp, rk128[16]);
-        tmp = _mm_aesenc_si128(tmp, rk128[18]);
-
-        tmp = _mm_aesenclast_si128(tmp, rk128[20]);
-        _mm_storeu_si128((__m128i *) out, tmp);
-
-        out += ECB_BLOCK_SIZE;
-        in += ECB_BLOCK_SIZE;
+    aes_ecb_blocks_128b(in, out, roundKeys, blocks, 10, 1);
+    out += (ECB_BLOCK_SIZE * blocks);
 
 
-    }
+    size_t len = (out - outStart);
 
-    return (size_t) (out - outStart);
+
+    return len;
 
 }
 
-void intel::ecb::AesEcb256W128E::init(unsigned char *uk) {
-    auto *rk = new __m128i[15];
-    memset(rk, 0, sizeof(__m128i) * 15);
-    init_128(rk, uk, true);
-
-    for (int t = 0; t < 15; t++) {
-        roundKeys256[t] = _mm256_set_m128i(rk[t], rk[t]);
-    }
-
-    memset(rk, 0, sizeof(__m128i) * 15);
-    delete[] rk;
-
+void intel::ecb::AesEcb256W128E::init(unsigned char *key) {
+    init_128(roundKeys, key, true);
 }
 
 
 intel::ecb::AesEcb256W192E::AesEcb256W192E() : AesEcb256W() {}
 
-intel::ecb::AesEcb256W192E::~AesEcb256W192E() = default;
+intel::ecb::AesEcb256W192E::~AesEcb256W192E() =
+default;
 
 
 /**
@@ -170,63 +401,16 @@ size_t intel::ecb::AesEcb256W192E::processBlocks(unsigned char *input,
     unsigned char *out = output + out_start;
     unsigned char *outStart = out;
 
-    int t = blocks;
-
-    while (t >= 2) {
-        t -= 2;
-
-        auto tmp = _mm256_xor_si256(
-                _mm256_loadu_si256((__m256i *) in), roundKeys256[0]);
-
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[1]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[2]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[3]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[4]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[5]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[6]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[7]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[8]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[9]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[10]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[11]);
-        tmp = _mm256_aesenclast_epi128(tmp, roundKeys256[12]);
-        _mm256_storeu_si256((__m256i *) out, tmp);
-
-        out += ECB_BLOCK_SIZE * 2;
-        in += ECB_BLOCK_SIZE * 2;
-
+    while (blocks >= 16) {
+        aes_ecb_blocks_128b(in, out, roundKeys, 16, 12, 1);
+        blocks -= 16;
+        out += (ECB_BLOCK_SIZE_16);
+        in += (ECB_BLOCK_SIZE_16);
     }
 
-    //
-    // Remaining single blocks.
-    //
-    auto rk128 = (__m128i *) roundKeys256;
-    while (t > 0) {
-        t--;
+    aes_ecb_blocks_128b(in, out, roundKeys, blocks, 12, 1);
+    out += (ECB_BLOCK_SIZE * blocks);
 
-        auto tmp = _mm_xor_si128(
-                _mm_loadu_si128((__m128i *) in), rk128[0]);
-
-        tmp = _mm_aesenc_si128(tmp, rk128[2]);
-        tmp = _mm_aesenc_si128(tmp, rk128[4]);
-        tmp = _mm_aesenc_si128(tmp, rk128[6]);
-        tmp = _mm_aesenc_si128(tmp, rk128[8]);
-        tmp = _mm_aesenc_si128(tmp, rk128[10]);
-        tmp = _mm_aesenc_si128(tmp, rk128[12]);
-        tmp = _mm_aesenc_si128(tmp, rk128[14]);
-        tmp = _mm_aesenc_si128(tmp, rk128[16]);
-        tmp = _mm_aesenc_si128(tmp, rk128[18]);
-        tmp = _mm_aesenc_si128(tmp, rk128[20]);
-        tmp = _mm_aesenc_si128(tmp, rk128[22]);
-
-        tmp = _mm_aesenclast_si128(tmp, rk128[24]);
-        _mm_storeu_si128((__m128i *) out, tmp);
-
-        out += ECB_BLOCK_SIZE;
-        in += ECB_BLOCK_SIZE;
-
-
-    }
 
     return (size_t) (out - outStart);
 
@@ -234,24 +418,14 @@ size_t intel::ecb::AesEcb256W192E::processBlocks(unsigned char *input,
 
 
 void intel::ecb::AesEcb256W192E::init(unsigned char *key) {
-
-    auto *rk = new __m128i[15];
-    memset(rk, 0, sizeof(__m128i) * 15);
-    init_192(rk, key, true);
-
-    for (int t = 0; t < 15; t++) {
-        roundKeys256[t] = _mm256_set_m128i(rk[t], rk[t]);
-    }
-
-    memset(rk, 0, sizeof(__m128i) * 15);
-    delete[] rk;
-
+    init_192(roundKeys, key, true);
 }
 
 
 intel::ecb::AesEcb256W256E::AesEcb256W256E() : AesEcb256W() {}
 
-intel::ecb::AesEcb256W256E::~AesEcb256W256E() = default;
+intel::ecb::AesEcb256W256E::~AesEcb256W256E() =
+default;
 
 /**
  * AES ECB 256 Encryption
@@ -278,90 +452,30 @@ size_t intel::ecb::AesEcb256W256E::processBlocks(unsigned char *input,
     unsigned char *out = output + out_start;
     unsigned char *outStart = out;
 
-    int t = blocks;
-
-    while (t >= 2) {
-        t -= 2;
-
-        auto tmp = _mm256_xor_si256(
-                _mm256_loadu_si256((__m256i *) in), roundKeys256[0]);
-
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[1]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[2]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[3]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[4]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[5]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[6]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[7]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[8]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[9]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[10]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[11]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[12]);
-        tmp = _mm256_aesenc_epi128(tmp, roundKeys256[13]);
-
-        tmp = _mm256_aesenclast_epi128(tmp, roundKeys256[14]);
-        _mm256_storeu_si256((__m256i *) out, tmp);
-
-        out += ECB_BLOCK_SIZE * 2;
-        in += ECB_BLOCK_SIZE * 2;
-
+    while (blocks >= 16) {
+        aes_ecb_blocks_128b(in, out, roundKeys, 16, 14, 1);
+        blocks -= 16;
+        out += (ECB_BLOCK_SIZE_16);
+        in += (ECB_BLOCK_SIZE_16);
     }
 
-    //
-    // Remaining single blocks.
-    //
-    auto rk128 = (__m128i *) roundKeys256;
-    while (t > 0) {
-        t--;
+    aes_ecb_blocks_128b(in, out, roundKeys, blocks, 14, 1);
+    out += (ECB_BLOCK_SIZE * blocks);
 
-        auto tmp = _mm_xor_si128(
-                _mm_loadu_si128((__m128i *) in), rk128[0]);
-
-        tmp = _mm_aesenc_si128(tmp, rk128[2]);
-        tmp = _mm_aesenc_si128(tmp, rk128[4]);
-        tmp = _mm_aesenc_si128(tmp, rk128[6]);
-        tmp = _mm_aesenc_si128(tmp, rk128[8]);
-        tmp = _mm_aesenc_si128(tmp, rk128[10]);
-        tmp = _mm_aesenc_si128(tmp, rk128[12]);
-        tmp = _mm_aesenc_si128(tmp, rk128[14]);
-        tmp = _mm_aesenc_si128(tmp, rk128[16]);
-        tmp = _mm_aesenc_si128(tmp, rk128[18]);
-        tmp = _mm_aesenc_si128(tmp, rk128[20]);
-        tmp = _mm_aesenc_si128(tmp, rk128[22]);
-        tmp = _mm_aesenc_si128(tmp, rk128[24]);
-        tmp = _mm_aesenc_si128(tmp, rk128[26]);
-
-        tmp = _mm_aesenclast_si128(tmp, rk128[28]);
-        _mm_storeu_si128((__m128i *) out, tmp);
-
-        out += ECB_BLOCK_SIZE;
-        in += ECB_BLOCK_SIZE;
-
-
-    }
 
     return (size_t) (out - outStart);
 
 }
 
 void intel::ecb::AesEcb256W256E::init(unsigned char *key) {
-    __m128i *rk = new __m128i[15];
-    memset(rk, 0, sizeof(__m128i) * 15);
-    init_256(rk, key, true);
-
-    for (int t = 0; t < 15; t++) {
-        roundKeys256[t] = _mm256_set_m128i(rk[t], rk[t]);
-    }
-
-    memset(rk, 0, sizeof(__m128i) * 15);
-    delete[] rk;
+    init_256(roundKeys, key, true);
 }
 
 
 intel::ecb::AesEcb256W128D::AesEcb256W128D() : AesEcb256W() {}
 
-intel::ecb::AesEcb256W128D::~AesEcb256W128D() = default;
+intel::ecb::AesEcb256W128D::~AesEcb256W128D() =
+default;
 
 /**
  * AES ECB 128 Decryption
@@ -388,60 +502,16 @@ size_t intel::ecb::AesEcb256W128D::processBlocks(unsigned char *input,
     unsigned char *out = output + out_start;
     unsigned char *outStart = out;
 
-    int t = blocks;
-
-    while (t >= 2) {
-        t -= 2;
-
-        auto tmp = _mm256_xor_si256(
-                _mm256_loadu_si256((__m256i *) in), roundKeys256[10]);
-
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[9]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[8]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[7]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[6]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[5]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[4]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[3]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[2]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[1]);
-
-        tmp = _mm256_aesdeclast_epi128(tmp, roundKeys256[0]);
-        _mm256_storeu_si256((__m256i *) out, tmp);
-
-        out += ECB_BLOCK_SIZE * 2;
-        in += ECB_BLOCK_SIZE * 2;
-
+    while (blocks >= 16) {
+        aes_ecb_blocks_128b(in, out, roundKeys, 16, 10, 0);
+        blocks -= 16;
+        out += (ECB_BLOCK_SIZE_16);
+        in += (ECB_BLOCK_SIZE_16);
     }
 
-    //
-    // Remaining single blocks.
-    //
-    auto rk128 = (__m128i *) roundKeys256;
-    while (t > 0) {
-        t--;
+    aes_ecb_blocks_128b(in, out, roundKeys, blocks, 10, 0);
+    out += (ECB_BLOCK_SIZE * blocks);
 
-        auto tmp = _mm_xor_si128(
-                _mm_loadu_si128((__m128i *) in), rk128[20]);
-
-        tmp = _mm_aesdec_si128(tmp, rk128[18]);
-        tmp = _mm_aesdec_si128(tmp, rk128[16]);
-        tmp = _mm_aesdec_si128(tmp, rk128[14]);
-        tmp = _mm_aesdec_si128(tmp, rk128[12]);
-        tmp = _mm_aesdec_si128(tmp, rk128[10]);
-        tmp = _mm_aesdec_si128(tmp, rk128[8]);
-        tmp = _mm_aesdec_si128(tmp, rk128[6]);
-        tmp = _mm_aesdec_si128(tmp, rk128[4]);
-        tmp = _mm_aesdec_si128(tmp, rk128[2]);
-
-        tmp = _mm_aesdeclast_si128(tmp, rk128[0]);
-        _mm_storeu_si128((__m128i *) out, tmp);
-
-        out += ECB_BLOCK_SIZE;
-        in += ECB_BLOCK_SIZE;
-
-
-    }
 
     return (size_t) (out - outStart);
 
@@ -449,22 +519,15 @@ size_t intel::ecb::AesEcb256W128D::processBlocks(unsigned char *input,
 
 
 void intel::ecb::AesEcb256W128D::init(unsigned char *key) {
-    __m128i *rk = new __m128i[15];
-    memset(rk, 0, sizeof(__m128i) * 15);
-    init_128(rk, key, false);
+    init_128(roundKeys, key, false);
 
-    for (int t = 0; t < 15; t++) {
-        roundKeys256[t] = _mm256_set_m128i(rk[t], rk[t]);
-    }
-
-    memset(rk, 0, sizeof(__m128i) * 15);
-    delete[] rk;
 }
 
 
 intel::ecb::AesEcb256W192D::AesEcb256W192D() : AesEcb256W() {}
 
-intel::ecb::AesEcb256W192D::~AesEcb256W192D() = default;
+intel::ecb::AesEcb256W192D::~AesEcb256W192D() =
+default;
 
 /**
  * AES ECB 192 Decryption
@@ -491,85 +554,30 @@ size_t intel::ecb::AesEcb256W192D::processBlocks(unsigned char *input,
     unsigned char *out = output + out_start;
     unsigned char *outStart = out;
 
-    int t = blocks;
-
-    while (t >= 2) {
-        t -= 2;
-
-        auto tmp = _mm256_xor_si256(
-                _mm256_loadu_si256((__m256i *) in), roundKeys256[12]);
-
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[11]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[10]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[9]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[8]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[7]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[6]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[5]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[4]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[3]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[2]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[1]);
-
-        tmp = _mm256_aesdeclast_epi128(tmp, roundKeys256[0]);
-        _mm256_storeu_si256((__m256i *) out, tmp);
-
-        out += ECB_BLOCK_SIZE * 2;
-        in += ECB_BLOCK_SIZE * 2;
-
+    while (blocks >= 16) {
+        aes_ecb_blocks_128b(in, out, roundKeys, 16, 12, 0);
+        blocks -= 16;
+        out += (ECB_BLOCK_SIZE_16);
+        in += (ECB_BLOCK_SIZE_16);
     }
 
-    //
-    // Remaining single blocks.
-    //
-    auto rk128 = (__m128i *) roundKeys256;
-    while (t > 0) {
-        t--;
+    aes_ecb_blocks_128b(in, out, roundKeys, blocks, 12, 0);
+    out += (ECB_BLOCK_SIZE * blocks);
 
-        auto tmp = _mm_xor_si128(
-                _mm_loadu_si128((__m128i *) in), rk128[24]);
-        tmp = _mm_aesdec_si128(tmp, rk128[22]);
-        tmp = _mm_aesdec_si128(tmp, rk128[20]);
-        tmp = _mm_aesdec_si128(tmp, rk128[18]);
-        tmp = _mm_aesdec_si128(tmp, rk128[16]);
-        tmp = _mm_aesdec_si128(tmp, rk128[14]);
-        tmp = _mm_aesdec_si128(tmp, rk128[12]);
-        tmp = _mm_aesdec_si128(tmp, rk128[10]);
-        tmp = _mm_aesdec_si128(tmp, rk128[8]);
-        tmp = _mm_aesdec_si128(tmp, rk128[6]);
-        tmp = _mm_aesdec_si128(tmp, rk128[4]);
-        tmp = _mm_aesdec_si128(tmp, rk128[2]);
-
-        tmp = _mm_aesdeclast_si128(tmp, rk128[0]);
-        _mm_storeu_si128((__m128i *) out, tmp);
-
-        out += ECB_BLOCK_SIZE;
-        in += ECB_BLOCK_SIZE;
-
-
-    }
 
     return (size_t) (out - outStart);
 
 }
 
 void intel::ecb::AesEcb256W192D::init(unsigned char *key) {
-    auto *rk = new __m128i[15];
-    memset(rk, 0, sizeof(__m128i) * 15);
-    init_192(rk, key, false);
-
-    for (int t = 0; t < 15; t++) {
-        roundKeys256[t] = _mm256_set_m128i(rk[t], rk[t]);
-    }
-
-    memset(rk, 0, sizeof(__m128i) * 15);
-    delete[] rk;
+    init_192(roundKeys, key, false);
 }
 
 
 intel::ecb::AesEcb256W256D::AesEcb256W256D() : AesEcb256W() {}
 
-intel::ecb::AesEcb256W256D::~AesEcb256W256D() = default;
+intel::ecb::AesEcb256W256D::~AesEcb256W256D() =
+default;
 
 /**
  * AES ECB 256 Decryption
@@ -596,80 +604,21 @@ size_t intel::ecb::AesEcb256W256D::processBlocks(unsigned char *input,
     unsigned char *out = output + out_start;
     unsigned char *outStart = out;
 
-    int t = blocks;
-
-    while (t >= 2) {
-        t -= 2;
-
-        auto tmp = _mm256_xor_si256(
-                _mm256_loadu_si256((__m256i *) in), roundKeys256[14]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[13]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[12]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[11]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[10]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[9]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[8]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[7]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[6]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[5]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[4]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[3]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[2]);
-        tmp = _mm256_aesdec_epi128(tmp, roundKeys256[1]);
-
-        tmp = _mm256_aesdeclast_epi128(tmp, roundKeys256[0]);
-        _mm256_storeu_si256((__m256i *) out, tmp);
-
-        out += ECB_BLOCK_SIZE * 2;
-        in += ECB_BLOCK_SIZE * 2;
-
+    while (blocks >= 16) {
+        aes_ecb_blocks_128b(in, out, roundKeys, 16, 14, 0);
+        blocks -= 16;
+        out += (ECB_BLOCK_SIZE_16);
+        in += (ECB_BLOCK_SIZE_16);
     }
 
-    //
-    // Remaining single blocks.
-    //
-    auto rk128 = (__m128i *) roundKeys256;
-    while (t > 0) {
-        t--;
+    aes_ecb_blocks_128b(in, out, roundKeys, blocks, 14, 0);
+    out += (ECB_BLOCK_SIZE * blocks);
 
-        auto tmp = _mm_xor_si128(
-                _mm_loadu_si128((__m128i *) in), rk128[28]);
-        tmp = _mm_aesdec_si128(tmp, rk128[26]);
-        tmp = _mm_aesdec_si128(tmp, rk128[24]);
-        tmp = _mm_aesdec_si128(tmp, rk128[22]);
-        tmp = _mm_aesdec_si128(tmp, rk128[20]);
-        tmp = _mm_aesdec_si128(tmp, rk128[18]);
-        tmp = _mm_aesdec_si128(tmp, rk128[16]);
-        tmp = _mm_aesdec_si128(tmp, rk128[14]);
-        tmp = _mm_aesdec_si128(tmp, rk128[12]);
-        tmp = _mm_aesdec_si128(tmp, rk128[10]);
-        tmp = _mm_aesdec_si128(tmp, rk128[8]);
-        tmp = _mm_aesdec_si128(tmp, rk128[6]);
-        tmp = _mm_aesdec_si128(tmp, rk128[4]);
-        tmp = _mm_aesdec_si128(tmp, rk128[2]);
-
-        tmp = _mm_aesdeclast_si128(tmp, rk128[0]);
-        _mm_storeu_si128((__m128i *) out, tmp);
-
-        out += ECB_BLOCK_SIZE;
-        in += ECB_BLOCK_SIZE;
-
-    }
 
     return (size_t) (out - outStart);
-
 
 }
 
 void intel::ecb::AesEcb256W256D::init(unsigned char *key) {
-    auto *rk = new __m128i[15];
-    memset(rk, 0, sizeof(__m128i) * 15);
-    init_256(rk, key, false);
-
-    for (int t = 0; t < 15; t++) {
-        roundKeys256[t] = _mm256_set_m128i(rk[t], rk[t]);
-    }
-
-    memset(rk, 0, sizeof(__m128i) * 15);
-    delete[] rk;
+    init_256(roundKeys, key, false);
 }

@@ -5,6 +5,7 @@
 
 #include <immintrin.h>
 #include "CBC512wide.h"
+#include "../../macro.h"
 #include <cstring>
 #include <iostream>
 #include "../common.h"
@@ -17,8 +18,8 @@ namespace intel {
         CBC512wide::CBC512wide() : CBCLike() {
             feedback = _mm_setzero_si128();
             initialFeedback = _mm_setzero_si128();
-            roundKeys = new __m512i[15];
-            memset(roundKeys, 0, 15 * sizeof(__m512i));
+            roundKeys = new __m128i[15];
+            memset(roundKeys, 0, 15 * sizeof(__m128i));
             feedbackCtrl = _mm512_set_epi64(5, 4, 3, 2, 1, 0, 9, 8);
 
         }
@@ -26,7 +27,7 @@ namespace intel {
         CBC512wide::~CBC512wide() {
             feedback = _mm_setzero_si128();
             initialFeedback = _mm_setzero_si128();
-            memset(roundKeys, 0, 15 * sizeof(__m512i));
+            memset(roundKeys, 0, 15 * sizeof(__m128i));
             delete[] roundKeys;
         }
 
@@ -34,33 +35,21 @@ namespace intel {
             feedback = _mm_loadu_si128((__m128i * )(iv));
             initialFeedback = feedback;
 
-            __m128i rk[15];
-            memset(&rk,0,15 * sizeof(__m128i));
-
             switch (keylen) {
                 case 16:
-                    init_128(rk,key, false);
+                    init_128(roundKeys,key, false);
                     break;
                 case 24:
-                    init_192(rk,key, false);
+                    init_192(roundKeys,key, false);
                     break;
                 case 32:
-                    init_256(rk,key, false);
+                    init_256(roundKeys,key, false);
                     break;
                 default:
                     std::cerr << "Invalid key size passed to lowest level of CBC512wide" << __FUNCTION__ << std::flush
                               << std::endl;
                     abort();
             }
-
-            auto rk256 = (__m256i *) roundKeys;
-
-            for (auto & t : rk) {
-                *rk256++ = _mm256_set_m128i(t, t);
-                *rk256++ = _mm256_set_m128i(t, t);
-            }
-
-            memset(rk,0,15 * sizeof(__m128i));
 
         }
 
@@ -69,7 +58,7 @@ namespace intel {
         }
 
         uint32_t CBC512wide::getMultiBlockSize() {
-            return CBC_BLOCK_SIZE * 4;
+            return CBC_BLOCK_SIZE * 16;
         }
 
 

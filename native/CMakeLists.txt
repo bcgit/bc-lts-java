@@ -15,6 +15,8 @@ if(${LOG_LIFECYCLE})
     set(LLCYCLE "LLCYCLE")
 endif()
 
+option(ENABLE_CODE_ANALYSIS "Run code analysis" OFF)
+
 # We also need to include the machine dependent libraries.
 set(JNI_INCLUDE_PLATFORM "")
 set(LIBCRYPTO "")
@@ -33,6 +35,8 @@ set(NATIVE_INSTALL_ROOT ${CMAKE_SOURCE_DIR}/target)
 
 set(VARIANT_PREFIX "unknown")
 set(ASM_INCLUDE ${CMAKE_SOURCE_DIR}/intel/asm)
+
+set(CMAKE_EXPORT_COMPILE_COMMANDS "ON")
 
 string(TIMESTAMP BUILD_TS "%Y-%m-%dT%H:%M:%SZ")
 
@@ -71,8 +75,22 @@ elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         string(APPEND CMAKE_ASM_NASM_FLAGS "-g -i${ASM_INCLUDE}")
         set(VARIANT_PREFIX "linux-x86_64")
         set(OPTIONS -Wconversion)
-    else ()
+        set(PROBE_OPTIONS -O3 -msse4.1 ${OPTIONS})
+        set(AVX_OPTIONS -O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS})
+        set(VAES_OPTIONS -O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2  ${OPTIONS})
+        set(VAESF_OPTIONS -O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f -mavx512bw -mvpclmulqdq ${OPTIONS})
 
+    else ()
+        MESSAGE("Building for Windows Intel")
+        FILE(TO_CMAKE_PATH "${JNI_INCLUDE}/win32" JNI_INCLUDE_PLATFORM)
+        set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/windows/x86_64)
+        set(CMAKE_C_FLAGS "-std=c99")
+        set(OPTIONS /Wall)
+        set(PROBE_OPTIONS ${OPTIONS})
+        set(SSE_OPTIONS ${OPTIONS})
+        set(AVX_OPTIONS ${OPTIONS})
+        set(VAES_OPTIONS /arch:AVX2  ${OPTIONS})
+        set(VAESF_OPTIONS /arch:AVX512 ${OPTIONS})
     endif ()
 
 endif ()
@@ -189,14 +207,18 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     set(CBC_VAES
             intel/cbc/CBCLike.h
             intel/cbc/CBCLike.cpp
+            intel/cbc/AesCBCEncrypt.cpp
+            intel/cbc/AesCBCDecrypt.cpp
+            intel/cbc/AesCBCNarrow.h
             intel/cbc/CBC128wide.cpp
             intel/cbc/CBC128wide.h
-            intel/cbc/AesCBCEncrypt.cpp
-            intel/cbc/CBC256wide.h
             intel/cbc/CBC256wide.cpp
-            intel/cbc/AesCBCDecryptVaes.h
-            intel/cbc/AesCBCDecryptVaes.cpp
+            intel/cbc/CBC256wide.h
             intel/jni/cbc_jni_vaes.cpp
+            intel/aes/aes_common_256b.h
+            intel/aes/aes_common_128b.h
+            intel/cbc/AesCBCDecryptVaes.cpp
+            intel/cbc/AesCBCDecryptVaes.h
             )
 
     set(CBC_VAES_512f
@@ -210,6 +232,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             intel/cbc/CBC512wide.cpp
             intel/cbc/CBC512wide.h
             intel/jni/cbc_jni_vaes_f.cpp
+            intel/aes/aes_common_512b.h
             )
 
 
@@ -241,6 +264,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             intel/ecb/ecb.cpp
             intel/ecb/ecb.h
             intel/jni/ecb_jni.cpp
+            intel/aes/aes_common_128b.h
             )
 
     set(ECB_VAES
@@ -249,6 +273,7 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             intel/ecb/ecb.cpp
             intel/ecb/ecb.h
             intel/jni/ecb_jni_vaes.cpp
+            intel/aes/aes_common_256b.h
             )
 
     set(ECB_VAES_512f
@@ -257,13 +282,15 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             intel/ecb/ecb.cpp
             intel/ecb/ecb.h
             intel/jni/ecb_jni_vaesf.cpp
+            intel/aes/aes_common_512b.h
             )
 
     set(GCM intel/jni/gcm_jni.cpp
             intel/gcm/AesGcm128wide.cpp
             intel/gcm/AesGcm128wide.h
             intel/gcm/gcm.cpp
-            intel/gcm/gcm.h)
+            intel/gcm/gcm.h
+            intel/gcm/ghash_128b.h)
 
 
     set(GCM_VAES intel/jni/gcm_jni_vaes.cpp
@@ -272,6 +299,13 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             intel/gcm/gcm.cpp
             intel/gcm/gcm.h)
 
+    set(GCM_VAES_512f intel/jni/gcm_jni_vaesf.cpp
+            intel/gcm/AesGcm512wide.cpp
+            intel/gcm/AesGcm512wide.h
+            intel/gcm/gcm.cpp
+            intel/gcm/gcm.h
+            intel/gcm/ghash_512b.h
+            )
 
     set(DIGEST intel/digest/Digest.cpp
             intel/digest/Digest.h
@@ -351,8 +385,8 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
 
     #Intel
     target_compile_options("${LIB_NATIVE}-avx" PRIVATE
-            $<$<COMPILE_LANGUAGE:CXX>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS}>
-            $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS}>
+            $<$<COMPILE_LANGUAGE:CXX>:${AVX_OPTIONS}>
+            $<$<COMPILE_LANGUAGE:C>:${AVX_OPTIONS}>
             )
     install(TARGETS "${LIB_NATIVE}-avx" LIBRARY DESTINATION ${PLATFORM_TARGET}/avx)
     target_compile_definitions("${LIB_NATIVE}-avx" PUBLIC ${LLCYCLE} BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_AVX BC_VARIANT=\"avx\" BUILD_TS=\"${BUILD_TS}\")
@@ -372,10 +406,10 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
             ${JVM_UTIL_IMPL}
             ${IDENT_IMPL}
 
-            ${GCM_VAES}
+            ${GCM}
             ${CBC_VAES}
             ${ECB_VAES}
-            ${CFB_VAES}
+            ${CFB}
             ${EXCEPTIONS}
             ${DIGEST}
             )
@@ -386,8 +420,8 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     #-mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS}
     #Intel
     target_compile_options("${LIB_NATIVE}-vaes" PRIVATE
-            $<$<COMPILE_LANGUAGE:CXX>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS} >
-            $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS}>
+            $<$<COMPILE_LANGUAGE:CXX>:${VAES_OPTIONS} >
+            $<$<COMPILE_LANGUAGE:C>:${VAES_OPTIONS}>
             )
     install(TARGETS "${LIB_NATIVE}-vaes" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaes)
     target_compile_definitions("${LIB_NATIVE}-vaes" PUBLIC ${LLCYCLE} BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VAES BC_VARIANT=\"vaes\" BC_VAES BUILD_TS=\"${BUILD_TS}\")
@@ -421,9 +455,9 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
     #-mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS}
     #Intel
     target_compile_options("${LIB_NATIVE}-vaesf" PRIVATE
-            $<$<COMPILE_LANGUAGE:CXX>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f ${OPTIONS} >
-            $<$<COMPILE_LANGUAGE:C>:-O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f ${OPTIONS}>
-            )
+            $<$<COMPILE_LANGUAGE:CXX>:${VAESF_OPTIONS} >
+            $<$<COMPILE_LANGUAGE:C>:${VAESF_OPTIONS}>
+    )
     install(TARGETS "${LIB_NATIVE}-vaesf" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaesf)
     target_compile_definitions("${LIB_NATIVE}-vaesf" PUBLIC ${LLCYCLE} BC_VARIANT_PREFIX=\"${VARIANT_PREFIX}\" BC_VAESF BC_VARIANT=\"vaesf\" BC_VAES BUILD_TS=\"${BUILD_TS}\")
 

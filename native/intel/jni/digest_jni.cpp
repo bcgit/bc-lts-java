@@ -18,20 +18,16 @@
  * Method:    makeNative
  * Signature: (I)J
  */
+//[[maybe_unused]] JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_fips_NativeDigest_makeNative
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_makeNative
         (JNIEnv *env, jobject, jint type) {
 
-    intel::digest::Digest *ptr;
-
-    switch (type) {
-        case 1:
-            ptr = new intel::digest::Sha256();
-            break;
-        default:
-            jniutil::JavaEnvUtils::throwIllegalArgumentException(env, "unknown digest type");
+    if (type == 1) {
+        return (jlong) new intel::digest::Sha256();
     }
 
-    return (jlong) ptr;
+    jniutil::JavaEnvUtils::throwIllegalArgumentException(env, "unknown digest type");
+    return 0;
 
 }
 
@@ -40,6 +36,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_makeNa
  * Method:    destroy
  * Signature: (J)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_NativeDigest_destroy
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_destroy
         (JNIEnv *, jclass, jlong ref) {
 
@@ -52,6 +49,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_destroy
  * Method:    getDigestSize
  * Signature: (J)I
  */
+//[[maybe_unused]] JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_fips_NativeDigest_getDigestSize
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_getDigestSize
         (JNIEnv *, jobject, jlong ref) {
     auto ptr = static_cast<intel::digest::Digest *>((void *) ref);
@@ -63,11 +61,12 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_getDige
  * Method:    update
  * Signature: (JB)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_NativeDigest_update__JB
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_update__JB
         (JNIEnv *, jobject, jlong ref, jbyte b) {
 
     auto ptr = static_cast<intel::digest::Digest *>((void *) ref);
-    ptr->update(b);
+    ptr->update((unsigned char)(b));
 }
 
 /*
@@ -75,12 +74,13 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_update_
  * Method:    update
  * Signature: (J[BII)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_NativeDigest_update__J_3BII
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_update__J_3BII
         (JNIEnv *env, jobject, jlong ref, jbyteArray in_, jint inOff, jint len) {
     auto ptr = static_cast<intel::digest::Digest *>((void *) ref);
 
     jniutil::JavaByteArray in(env, in_);
-    ptr->update(in.uvalue(), inOff, len);
+    ptr->update(in.uvalue(), (size_t) (inOff), (size_t) (len));
 }
 
 /*
@@ -88,12 +88,13 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_update_
  * Method:    doFinal
  * Signature: (J[BI)I
  */
+//[[maybe_unused]] JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_fips_NativeDigest_doFinal
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_doFinal
         (JNIEnv *env, jobject, jlong ref, jbyteArray out_, jint start) {
     auto ptr = static_cast<intel::digest::Digest *>((void *) ref);
 
     jniutil::JavaByteArrayCritical out(env, out_);
-    ptr->digest(out.uvalue(), start);
+    ptr->digest(out.uvalue(), (size_t) start);
     return ptr->getDigestSize();
 }
 
@@ -102,8 +103,9 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_doFinal
  * Method:    reset
  * Signature: (J)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_NativeDigest_reset
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_reset
-        (JNIEnv *env, jobject, jlong ref) {
+        (JNIEnv *, jobject, jlong ref) {
     auto ptr = static_cast<intel::digest::Digest *>((void *) ref);
     ptr->reset();
 }
@@ -113,8 +115,9 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_reset
  * Method:    getByteLength
  * Signature: (J)I
  */
+//[[maybe_unused]] JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_fips_NativeDigest_getByteLength
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_getByteLength
-        (JNIEnv *env, jobject, jlong ref) {
+        (JNIEnv *, jobject, jlong ref) {
     auto ptr = static_cast<intel::digest::Digest *>((void *) ref);
     return ptr->getByteLength();
 }
@@ -124,6 +127,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_getByte
  * Method:    encodeFullState
  * Signature: (J[BI)I
  */
+//[[maybe_unused]] JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_fips_NativeDigest_encodeFullState
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_encodeFullState
         (JNIEnv *env, jobject, jlong ref, jbyteArray dest, jint offset) {
 
@@ -143,8 +147,9 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_encodeF
  * Method:    restoreFullState
  * Signature: (J[BI)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_NativeDigest_restoreFullState
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_NativeDigest_restoreFullState
-        (JNIEnv *env, jobject, jlong ref, jbyteArray src, jint offset) {
+       (JNIEnv *env, jobject, jlong ref, jbyteArray src, jint offset) {
 
     auto ptr = static_cast<intel::digest::Digest *>((void *) ref);
     jniutil::JavaByteArray source(env, src);

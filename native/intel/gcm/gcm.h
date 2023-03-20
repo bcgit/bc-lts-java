@@ -13,7 +13,11 @@
 namespace intel::gcm {
 
     static __m128i ONE = _mm_set_epi32(0, 1, 0, 0);
-
+    static __m128i FOUR = _mm_set_epi32(0,4,0,0);
+    static __m128i EIGHT = _mm_set_epi32(0,8,0,0);
+    static __m128i TWELVE = _mm_set_epi32(0,12,0,0);
+    static __m128i SIXTEEN = _mm_set_epi32(0, 16, 0, 0);
+    static __m128i THIRTY_TWO = _mm_set_epi32(0, 32, 0, 0);
 
     class GCM {
 

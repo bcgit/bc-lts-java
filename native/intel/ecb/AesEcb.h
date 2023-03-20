@@ -6,8 +6,8 @@
 #define CORENATIVE_AESECB_H
 
 
-#include <immintrin.h>
 #include <cstdint>
+#include <immintrin.h>
 #include <jni_md.h>
 #include "ecb.h"
 
@@ -36,7 +36,7 @@ namespace intel {
 
             void reset() override;
 
-            void init(unsigned char *key) override = 0;
+            virtual void init(unsigned char *key) override =0;
 
             size_t processBlocks(
                     unsigned char *input,

@@ -6,7 +6,7 @@
 #define BCFIPS_0_0_AESCBC_H
 
 
-#include <immintrin.h>
+
 #include <jni_md.h>
 #include "CBC128wide.h"
 
@@ -17,15 +17,12 @@ namespace intel {
 
         class AesCBC128Enc : public CBC128wide {
         private:
-
-
-
         public:
             AesCBC128Enc();
 
             ~AesCBC128Enc() override;
 
-            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override;
+            size_t processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) override;
 
         };
 
@@ -39,7 +36,7 @@ namespace intel {
 
             ~AesCBC128Dec() override;
 
-            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override;
+            size_t processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) override;
         };
 
 
@@ -51,7 +48,7 @@ namespace intel {
             AesCBC192Enc();
 
             ~AesCBC192Enc() override;
-            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override;
+            size_t processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) override;
 
         };
 
@@ -64,7 +61,7 @@ namespace intel {
 
             ~AesCBC192Dec() override;
 
-            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override;
+            size_t processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) override;
 
 
         };
@@ -79,7 +76,7 @@ namespace intel {
 
             ~AesCBC256Enc() override;
 
-            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override;
+            size_t processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) override;
 
         };
 
@@ -94,7 +91,7 @@ namespace intel {
 
             ~AesCBC256Dec() override;
 
-            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override;
+            size_t processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) override;
 
         };
 

@@ -7,12 +7,13 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <immintrin.h>
+#include <emmintrin.h>
 
 
 #define ECB_BLOCK_SIZE 16
-#define ECB_BLOCK_SIZE_2 32
 #define ECB_BLOCK_SIZE_4 64
+#define ECB_BLOCK_SIZE_8 128
+#define ECB_BLOCK_SIZE_16 256
 
 namespace intel {
     namespace ecb {

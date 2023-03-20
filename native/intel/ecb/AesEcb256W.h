@@ -1,30 +1,33 @@
 //
-// Created on 12/7/22.
+// Created on 18/5/2022.
 //
 
-#ifndef BCN_AESECBW256_H
-#define BCN_AESECBW256_H
+#ifndef CORENATIVE_AesEcb256W_H
+#define CORENATIVE_AesEcb256W_H
+
 
 #include <cstdint>
 #include <immintrin.h>
 #include <jni_md.h>
 #include "ecb.h"
 
-/**
-        * AES ECB with the original AES-NI instructions no AVX.
-        */
 namespace intel {
+
     namespace ecb {
 
+        /**
+         * AES ECB with the original AES-NI instructions no AVX.
+         */
         class AesEcb256W : public ECB {
-
         private:
-            AesEcb256W & operator=(AesEcb256W const&);
-        protected:
-            __m256i *roundKeys256;
+            AesEcb256W &operator=(AesEcb256W const &);
 
+        protected:
+            __m128i *roundKeys;
         public:
-            AesEcb256W(const AesEcb256W &i) = delete;
+
+            AesEcb256W(const AesEcb256W &) = delete;
+
             AesEcb256W();
 
             ~AesEcb256W() override;
@@ -33,9 +36,9 @@ namespace intel {
 
             void reset() override;
 
-            virtual void init(unsigned char *key) override = 0;
+            virtual void init(unsigned char *key) override =0;
 
-            virtual size_t processBlocks(
+            size_t processBlocks(
                     unsigned char *input,
                     size_t in_start,
                     size_t in_len,
@@ -46,7 +49,6 @@ namespace intel {
 
 
         class AesEcb256W128E : public AesEcb256W {
-
         public:
             AesEcb256W128E();
 
@@ -96,6 +98,7 @@ namespace intel {
                     unsigned char *output,
                     size_t out_start) override;
         };
+
         class AesEcb256W192D : public AesEcb256W {
 
         public:
@@ -131,6 +134,7 @@ namespace intel {
                     unsigned char *output,
                     size_t out_start) override;
         };
+
         class AesEcb256W256D : public AesEcb256W {
 
         public:
@@ -153,4 +157,4 @@ namespace intel {
 }
 
 
-#endif //BCN_AESECBW256_H
+#endif //CORENATIVE_AesEcb256W_H

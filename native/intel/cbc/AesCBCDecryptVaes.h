@@ -2,11 +2,11 @@
 // Created  on 7/6/2022.
 //
 
-#ifndef BCFIPS_0_0_AesCBCDecryptVaes_H
-#define BCFIPS_0_0_AesCBCDecryptVaes_H
+#ifndef BCFIPS_0_0_AesCBCDecryptVaesF_H
+#define BCFIPS_0_0_AesCBCDecryptVaesF_H
 
 
-#include <immintrin.h>
+
 #include <jni_md.h>
 #include "CBC256wide.h"
 
@@ -22,7 +22,7 @@ namespace intel {
 
             ~AesCBC128VaesDec() override;
 
-            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override;
+            size_t processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) override;
         };
 
 
@@ -36,7 +36,7 @@ namespace intel {
 
             ~AesCBC192VaesDec() override;
 
-            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override;
+            size_t processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) override;
 
 
         };
@@ -50,11 +50,11 @@ namespace intel {
 
             ~AesCBC256VaesDec() override;
 
-            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override;
+            size_t processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) override;
 
         };
 
     }
 }
 
-#endif //BCFIPS_0_0_AesCBCDecryptVaes_H
+#endif //BCFIPS_0_0_AesCBCDecryptVaesF_H
