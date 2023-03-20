@@ -1335,7 +1335,7 @@ public class BaseBlockCipher
         public int processByte(byte in, byte[] out, int outOff)
             throws DataLengthException
         {
-            return cipher.processBytes(new byte[]{in}, 0, 1, out, outOff);
+            return cipher.processByte(in, out, outOff);
         }
 
         public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)

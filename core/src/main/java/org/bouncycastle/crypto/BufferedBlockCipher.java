@@ -18,6 +18,9 @@ public interface BufferedBlockCipher
     int getOutputSize(
             int length);
 
+    int processByte(byte in, byte[] out, int outOff)
+        throws DataLengthException;
+
     int processBytes(
             byte[] in,
             int inOff,
