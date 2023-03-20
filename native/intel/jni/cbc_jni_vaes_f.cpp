@@ -1,6 +1,7 @@
 #include <cassert>
 #include "org_bouncycastle_crypto_engines_AESNativeCBC.h"
 
+
 #include "../cbc/CBCLike.h"
 #include "../../jniutil/JavaByteArray.h"
 #include "../../jniutil/JavaByteArrayCritical.h"
@@ -20,10 +21,11 @@
 
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCBC
+ * Class:     org_bouncycastle_crypto_fips_AESNativeCBC
  * Method:    process
  * Signature: (J[BII[BI)I
  */
+//[[maybe_unused]] JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_fips_AESNativeCBC_process
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_process
         (JNIEnv *env, jclass, jlong ref, jbyteArray in_, jint inOff, jint blocks, jbyteArray out_, jint outOff) {
 
@@ -40,35 +42,38 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_process
     abortIf(in.isNull(), "input array passed to native layer was null");
 
     auto instance = static_cast<intel::cbc::CBCLike *>((void *) ref);
-    return (jint) instance->processBlock(in.uvalue() + inOff, (uint32_t) blocks, out.uvalue() + outOff);
+    return (jint) instance->processBlocks(in.uvalue() + inOff, (uint32_t) blocks, out.uvalue() + outOff);
 
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCBC
+ * Class:     org_bouncycastle_crypto_fips_AESNativeCBC
  * Method:    getMultiBlockSize
  * Signature: (I)I
  */
+//[[maybe_unused]] JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_fips_AESNativeCBC_getMultiBlockSize
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_getMultiBlockSize
-        (JNIEnv *, jclass, jint) {
-    return CBC_BLOCK_SIZE;
+        (JNIEnv *, jclass, jlong) {
+    return CBC_BLOCK_SIZE_16;
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCBC
+ * Class:     org_bouncycastle_crypto_fips_AESNativeCBC
  * Method:    getBlockSize
  * Signature: (J)I
  */
+//[[maybe_unused]] JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_fips_AESNativeCBC_getBlockSize
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_getBlockSize
         (JNIEnv *, jclass, jlong) {
     return CBC_BLOCK_SIZE;
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCBC
+ * Class:     org_bouncycastle_crypto_fips_AESNativeCBC
  * Method:    makeNative
  * Signature: (IZ)J
  */
+//[[maybe_unused]] JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_fips_AESNativeCBC_makeNative
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_makeNative
         (JNIEnv *, jclass, jint keySize, jboolean encryption) {
 
@@ -112,10 +117,11 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_makeNa
 
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCBC
+ * Class:     org_bouncycastle_crypto_fips_AESNativeCBC
  * Method:    init
  * Signature: (J[B[B)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_AESNativeCBC_init
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_init
         (JNIEnv *env, jobject, jlong ref, jbyteArray key_, jbyteArray iv_) {
 
@@ -131,10 +137,11 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_init
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCBC
+ * Class:     org_bouncycastle_crypto_fips_AESNativeCBC
  * Method:    dispose
  * Signature: (J)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_AESNativeCBC_dispose
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_dispose
         (JNIEnv *, jclass, jlong ref) {
 
@@ -144,10 +151,11 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_dispose
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCBC
+ * Class:     org_bouncycastle_crypto_fips_AESNativeCBC
  * Method:    reset
  * Signature: (J)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_AESNativeCBC_reset
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_reset
         (JNIEnv *, jclass, jlong ref) {
     auto instance = static_cast<intel::cbc::CBCLike *>((void *) ref);

@@ -6,7 +6,9 @@
 #define CORENATIVE_AESGCM_H
 
 #ifdef __linux__
+
 #include <stdint.h>
+
 #else
 
 #include <cstdint>
@@ -23,6 +25,7 @@ namespace intel {
 
 #define BLOCK_SIZE 16
 #define FOUR_BLOCKS 64
+#define EIGHT_BLOCKS 128
 
 
         /**
@@ -41,7 +44,8 @@ namespace intel {
         class Exponentiator {
         private:
             std::vector<_m128i_wrapper> *lookupPow2;
-            Exponentiator & operator=(Exponentiator const&);
+
+            Exponentiator &operator=(Exponentiator const &);
 
         public:
             Exponentiator(const Exponentiator &) = delete;
@@ -59,14 +63,18 @@ namespace intel {
         };
 
 
-        class AesGcm128wide : public GCM {
-        public:
-        private:
-
-            static __m128i BSWAP_EPI64;
-            static __m128i BSWAP_MASK;
-
+        class AesGcm128wideEncrypt : public GCM {
+        protected:
+            __m128i *hashKeys;
             __m128i *roundKeys;
+
+
+            int64_t blocksRemaining = 0;
+            __m128i X;
+            __m128i ctr1;
+            uint32_t max_rounds;
+            bool encryption;
+
 
             // mac block
             unsigned char *macBlock;
@@ -77,18 +85,15 @@ namespace intel {
 
             uint32_t atBlockPos = 0;
             size_t atLengthPre = 0;
-            int64_t blocksRemaining = 0;
-
-            __m128i X, H, Y, T, S_at, S_atPre, last_aad_block;
 
 
-            bool encryption;
-            uint32_t rounds;
+            __m128i H, Y, T, S_at, S_atPre, last_aad_block;
 
-            __m128i ctr1;
+
+
+
 
             // AD
-
 
             // bufBlock -- used for bytewise accumulation
             unsigned char *bufBlock;
@@ -106,24 +111,21 @@ namespace intel {
 
             Exponentiator *exp;
 
-            void processBuffer(unsigned char *in, size_t inlen, unsigned char *out, size_t outputLen, size_t &read,
-                               size_t &written);
 
             void processBlock(unsigned char *in, unsigned char *out, size_t outputLen);
 
-            void processFourBlocks(unsigned char *in, unsigned char *out);
 
             void initCipher();
 
 
-            AesGcm128wide & operator=(AesGcm128wide const&);
+            AesGcm128wideEncrypt &operator=(AesGcm128wideEncrypt const &);
 
         public:
-            AesGcm128wide(const AesGcm128wide &) = delete;
+            AesGcm128wideEncrypt(const AesGcm128wideEncrypt &) = delete;
 
-            AesGcm128wide();
+            AesGcm128wideEncrypt();
 
-            ~AesGcm128wide() override;
+            ~AesGcm128wideEncrypt() override;
 
             void reset(bool keepMac) override;
 
@@ -150,11 +152,24 @@ namespace intel {
             processBytes(unsigned char *in, size_t inOff, size_t len, unsigned char *out, int outOff,
                          size_t outputLen) override;
 
+
+            virtual void processBuffer(unsigned char *in, size_t inlen, unsigned char *out, size_t outputLen, size_t &read,
+                               size_t &written);
+
             size_t doFinal(unsigned char *output, size_t outOff, size_t outLen) override;
 
             void setBlocksRemainingDown(int64_t down) override;
 
-            static void gfmul(__m128i a, __m128i b, __m128i *res);
+            virtual void processFourBlocks(unsigned char *in, unsigned char *out);
+
+
+        };
+
+        class AesGcm128wideDecrypt : public AesGcm128wideEncrypt {
+        protected:
+            void processFourBlocks(unsigned char *in, unsigned char *out) override;
+            void processBuffer(unsigned char *in, size_t inlen, unsigned char *out, size_t outputLen, size_t &read,
+                               size_t &written) override;
         };
 
 

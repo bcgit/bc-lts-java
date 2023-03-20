@@ -26,7 +26,7 @@ namespace intel {
 
         AesCBC128Enc::~AesCBC128Enc() = default;
 
-        size_t AesCBC128Enc::processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) {
+        size_t AesCBC128Enc::processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) {
             unsigned char *outStart = out;
 
             __m128i data;
@@ -64,7 +64,7 @@ namespace intel {
 
         AesCBC192Enc::~AesCBC192Enc() = default;
 
-        size_t AesCBC192Enc::processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) {
+        size_t AesCBC192Enc::processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) {
             unsigned char *outStart = out;
 
             __m128i data;
@@ -107,7 +107,7 @@ namespace intel {
 
         AesCBC256Enc::~AesCBC256Enc() = default;
 
-        size_t AesCBC256Enc::processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) {
+        size_t AesCBC256Enc::processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) {
             unsigned char *outStart = out;
 
             __m128i data;

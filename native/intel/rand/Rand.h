@@ -11,7 +11,6 @@ namespace intel {
 
     class Rand {
     private:
-        bool hasRdSeed;
 
     public:
 

@@ -18,21 +18,23 @@
 
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCFB
+ * Class:     org_bouncycastle_crypto_fips_AESNativeCFB
  * Method:    processByte
  * Signature: (JB)B
  */
+//[[maybe_unused]] JNIEXPORT jbyte JNICALL Java_org_bouncycastle_crypto_fips_AESNativeCFB_processByte
 JNIEXPORT jbyte JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_processByte
-        (JNIEnv *env, jclass, jlong ref, jbyte in) {
+        (JNIEnv *, jclass, jlong ref, jbyte in) {
     auto instance = static_cast<intel::cfb::CFBLike *>((void *) ref);
-    return instance->processByte((unsigned char) in);
+    return (jbyte)instance->processByte((unsigned char) in);
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCFB
+ * Class:     org_bouncycastle_crypto_fips_AESNativeCFB
  * Method:    processBytes
  * Signature: (J[BII[BI)I
  */
+//[[maybe_unused]] JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_fips_AESNativeCFB_processBytes
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_processBytes
         (JNIEnv *env, jclass, jlong ref, jbyteArray in_, jint inOff, jint len, jbyteArray out_, jint outOff) {
 
@@ -50,10 +52,11 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_process
 
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCBC
+ * Class:     org_bouncycastle_crypto_fips_AESNativeCBC
  * Method:    makeNative
  * Signature: (IZ)J
  */
+//[[maybe_unused]] JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_fips_AESNativeCFB_makeNative
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_makeNative
         (JNIEnv *env, jclass, jboolean encrypt, jint keySize) {
 
@@ -102,10 +105,11 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_makeNa
 
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCBC
+ * Class:     org_bouncycastle_crypto_fips_AESNativeCBC
  * Method:    init
  * Signature: (J[B[B)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_AESNativeCFB_init
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_init
         (JNIEnv *env, jobject, jlong ref, jbyteArray key_, jbyteArray iv_) {
 
@@ -120,10 +124,11 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_init
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCBC
+ * Class:     org_bouncycastle_crypto_fips_AESNativeCBC
  * Method:    dispose
  * Signature: (J)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_AESNativeCFB_dispose
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_dispose
         (JNIEnv *, jclass, jlong ref) {
 
@@ -133,10 +138,11 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_dispose
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCBC
+ * Class:     org_bouncycastle_crypto_fips_AESNativeCBC
  * Method:    reset
  * Signature: (J)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_AESNativeCFB_reset
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_reset
         (JNIEnv *, jclass, jlong ref) {
     auto instance = static_cast<intel::cfb::CFBLike *>((void *) ref);
