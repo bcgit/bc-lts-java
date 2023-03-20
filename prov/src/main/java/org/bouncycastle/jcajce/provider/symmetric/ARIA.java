@@ -9,13 +9,10 @@ import java.security.spec.InvalidParameterSpecException;
 
 import javax.crypto.spec.IvParameterSpec;
 
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.internal.asn1.cms.CCMParameters;
 import org.bouncycastle.internal.asn1.cms.GCMParameters;
 import org.bouncycastle.asn1.nsri.NSRIObjectIdentifiers;
-import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.BufferedBlockCipher;
-import org.bouncycastle.crypto.CipherKeyGenerator;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.engines.ARIAEngine;
 import org.bouncycastle.crypto.engines.ARIAWrapEngine;
 import org.bouncycastle.crypto.engines.ARIAWrapPadEngine;
@@ -75,7 +72,7 @@ public final class ARIA
     {
         public CFB()
         {
-            super(new BufferedBlockCipher(new CFBBlockCipher(new ARIAEngine(), 128)), 128);
+            super(new DefaultBufferedBlockCipher(new CFBBlockCipher(new ARIAEngine(), 128)), 128);
         }
     }
 
@@ -84,7 +81,7 @@ public final class ARIA
     {
         public OFB()
         {
-            super(new BufferedBlockCipher(new OFBBlockCipher(new ARIAEngine(), 128)), 128);
+            super(new DefaultBufferedBlockCipher(new OFBBlockCipher(new ARIAEngine(), 128)), 128);
         }
     }
 

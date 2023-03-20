@@ -7,10 +7,7 @@ import java.security.spec.AlgorithmParameterSpec;
 
 import javax.crypto.spec.IvParameterSpec;
 
-import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.BufferedBlockCipher;
-import org.bouncycastle.crypto.CipherKeyGenerator;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.RC6Engine;
 import org.bouncycastle.crypto.generators.Poly1305KeyGenerator;
 import org.bouncycastle.crypto.macs.GMac;
@@ -61,7 +58,7 @@ public final class RC6
     {
         public CFB()
         {
-            super(new BufferedBlockCipher(new CFBBlockCipher(new RC6Engine(), 128)), 128);
+            super(new DefaultBufferedBlockCipher(new CFBBlockCipher(new RC6Engine(), 128)), 128);
         }
     }
 
@@ -70,7 +67,7 @@ public final class RC6
     {
         public OFB()
         {
-            super(new BufferedBlockCipher(new OFBBlockCipher(new RC6Engine(), 128)), 128);
+            super(new DefaultBufferedBlockCipher(new OFBBlockCipher(new RC6Engine(), 128)), 128);
         }
     }
 

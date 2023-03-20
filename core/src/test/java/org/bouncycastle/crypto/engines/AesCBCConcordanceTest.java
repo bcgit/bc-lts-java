@@ -112,5 +112,13 @@ public class AesCBCConcordanceTest
         }
 
 
+
+    }
+
+    public static void main()
+        throws Exception
+    {
+        AesCBCConcordanceTest t=new AesCBCConcordanceTest();
+        t.testCBCConcordance();
     }
 }

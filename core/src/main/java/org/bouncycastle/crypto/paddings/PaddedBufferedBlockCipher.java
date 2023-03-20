@@ -1,11 +1,6 @@
 package org.bouncycastle.crypto.paddings;
 
-import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.BufferedBlockCipher;
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.OutputLengthException;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
 
 /**
@@ -16,7 +11,7 @@ import org.bouncycastle.crypto.params.ParametersWithRandom;
  * The default padding mechanism used is the one outlined in PKCS5/PKCS7.
  */
 public class PaddedBufferedBlockCipher
-    extends BufferedBlockCipher
+    extends DefaultBufferedBlockCipher
 {
     BlockCipherPadding  padding;
 

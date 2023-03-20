@@ -3,6 +3,8 @@ package org.bouncycastle.crypto.test;
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoException;
+import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
+import org.bouncycastle.crypto.DefaultBufferedMultiBlockCipher;
 import org.bouncycastle.crypto.digests.GOST3411Digest;
 import org.bouncycastle.crypto.engines.GOST28147Engine;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
@@ -208,7 +210,7 @@ public class GOST28147Test
 //        System.out.println(new String(Hex.encode(key)));
         CipherParameters  param = new ParametersWithSBox(new KeyParameter(key), GOST28147Engine.getSBox("E-A"));
         //CipherParameters  param = new GOST28147Parameters(key,"D-Test");
-        BufferedBlockCipher cipher = new BufferedBlockCipher(new GOST28147Engine());
+        BufferedBlockCipher cipher = new DefaultBufferedBlockCipher(new GOST28147Engine());
 
         cipher.init(true, param);
         int len1 = cipher.processBytes(in, 0, in.length, out, 0);
@@ -246,7 +248,7 @@ public class GOST28147Test
                                                              GOST28147Engine.getSBox("E-A")), //type S-box
                                      Hex.decode("1234567890abcdef")); //IV
 
-        cipher = new BufferedBlockCipher(new CFBBlockCipher(new GOST28147Engine(), 64));
+        cipher = new DefaultBufferedMultiBlockCipher(new CFBBlockCipher(new GOST28147Engine(), 64));
 
         cipher.init(true, param);
         len1 = cipher.processBytes(in, 0, in.length, out, 0);
@@ -282,7 +284,7 @@ public class GOST28147Test
                                                              GOST28147Engine.getSBox("E-A")), //type S-box
                                      Hex.decode("aafd12f659cae634")); //IV
 
-        cipher = new BufferedBlockCipher(new CFBBlockCipher(new GOST28147Engine(), 64));
+        cipher = new DefaultBufferedMultiBlockCipher(new CFBBlockCipher(new GOST28147Engine(), 64));
 
         cipher.init(true, param);
         len1 = cipher.processBytes(in, 0, in.length, out, 0);
@@ -313,7 +315,7 @@ public class GOST28147Test
                                                              GOST28147Engine.getSBox("E-A")), //type S-box
                                      Hex.decode("1234567890abcdef")); //IV
 
-        cipher = new BufferedBlockCipher(new GOFBBlockCipher(new GOST28147Engine()));
+        cipher = new DefaultBufferedMultiBlockCipher(new GOFBBlockCipher(new GOST28147Engine()));
 
         cipher.init(true, param);
         len1 = cipher.processBytes(in, 0, in.length, out, 0);

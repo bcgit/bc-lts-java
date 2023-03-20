@@ -21,6 +21,7 @@ import org.bouncycastle.asn1.rosstandart.RosstandartObjectIdentifiers;
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CipherKeyGenerator;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.engines.CryptoProWrapEngine;
 import org.bouncycastle.crypto.engines.GOST28147Engine;
 import org.bouncycastle.crypto.engines.GOST28147WrapEngine;
@@ -86,7 +87,7 @@ public final class GOST28147
     {
         public GCFB()
         {
-            super(new BufferedBlockCipher(new GCFBBlockCipher(new GOST28147Engine())), 64);
+            super(new DefaultBufferedBlockCipher(new GCFBBlockCipher(new GOST28147Engine())), 64);
         }
     }
 

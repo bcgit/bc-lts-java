@@ -2,6 +2,7 @@ package org.bouncycastle.jcajce.provider.symmetric;
 
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CipherKeyGenerator;
+import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.engines.GOST3412_2015Engine;
 import org.bouncycastle.crypto.macs.CMac;
 import org.bouncycastle.crypto.modes.G3413CBCBlockCipher;
@@ -40,7 +41,7 @@ public class GOST3412_2015
     {
         public GCFB()
         {
-            super(new BufferedBlockCipher(new G3413CFBBlockCipher(new GOST3412_2015Engine())), false, 128);
+            super(new DefaultBufferedBlockCipher(new G3413CFBBlockCipher(new GOST3412_2015Engine())), false, 128);
         }
     }
 
@@ -49,7 +50,7 @@ public class GOST3412_2015
     {
         public GCFB8()
         {
-            super(new BufferedBlockCipher(new G3413CFBBlockCipher(new GOST3412_2015Engine(), 8)), false, 128);
+            super(new DefaultBufferedBlockCipher(new G3413CFBBlockCipher(new GOST3412_2015Engine(), 8)), false, 128);
         }
     }
 
@@ -58,7 +59,7 @@ public class GOST3412_2015
     {
         public OFB()
         {
-            super(new BufferedBlockCipher(new G3413OFBBlockCipher(new GOST3412_2015Engine())), false, 128);
+            super(new DefaultBufferedBlockCipher(new G3413OFBBlockCipher(new GOST3412_2015Engine())), false, 128);
         }
 
     }
@@ -68,7 +69,7 @@ public class GOST3412_2015
     {
         public CTR()
         {
-            super(new BufferedBlockCipher(new G3413CTRBlockCipher(new GOST3412_2015Engine())), true,64);
+            super(new DefaultBufferedBlockCipher(new G3413CTRBlockCipher(new GOST3412_2015Engine())), true,64);
         }
 
     }

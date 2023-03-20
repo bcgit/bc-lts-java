@@ -1,19 +1,13 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.BufferedBlockCipher;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.OutputLengthException;
-import org.bouncycastle.crypto.StreamBlockCipher;
+import org.bouncycastle.crypto.*;
 
 /**
  * A Cipher Text Stealing (CTS) mode cipher. CTS allows block ciphers to
  * be used to produce cipher text which is the same length as the plain text.
  */
 public class CTSBlockCipher
-    extends BufferedBlockCipher
-{
+        extends DefaultBufferedBlockCipher {
     private int     blockSize;
 
     /**
@@ -35,6 +29,21 @@ public class CTSBlockCipher
 
         buf = new byte[blockSize * 2];
         bufOff = 0;
+    }
+
+    @Override
+    public BlockCipher getUnderlyingCipher() {
+        return null;
+    }
+
+    @Override
+    public void init(boolean forEncryption, CipherParameters params) throws IllegalArgumentException {
+
+    }
+
+    @Override
+    public int getBlockSize() {
+        return 0;
     }
 
     /**
@@ -284,5 +293,10 @@ public class CTSBlockCipher
         reset();
 
         return offset;
+    }
+
+    @Override
+    public void reset() {
+
     }
 }

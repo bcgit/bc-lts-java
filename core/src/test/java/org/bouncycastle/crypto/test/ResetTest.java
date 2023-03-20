@@ -2,6 +2,8 @@ package org.bouncycastle.crypto.test;
 
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
+import org.bouncycastle.crypto.DefaultBufferedMultiBlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.DESEngine;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -21,7 +23,7 @@ public class ResetTest
     public void performTest()
         throws Exception
     {
-        BufferedBlockCipher cipher = new BufferedBlockCipher(new DESEngine());
+        BufferedBlockCipher cipher = new DefaultBufferedBlockCipher(new DESEngine());
 
         KeyParameter param = new KeyParameter(Hex.decode("0123456789abcdef"));
 
