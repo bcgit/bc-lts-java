@@ -10,7 +10,7 @@ package org.bouncycastle.crypto;
  * OFB one the last block may not be a multiple of the block size.
  */
 public class DefaultBufferedBlockCipher
-        implements BufferedBlockCipher
+    implements BufferedBlockCipher
 {
     protected byte[] buf;
     protected int bufOff;
@@ -165,6 +165,22 @@ public class DefaultBufferedBlockCipher
 
         // Note: Can assume partialBlockOkay is true for purposes of this calculation
         return length + bufOff;
+    }
+
+    @Override
+    public int processByte(byte in, byte[] out, int outOff)
+        throws DataLengthException
+    {
+        int resultLen = 0;
+
+        buf[bufOff++] = in;
+        if (bufOff == buf.length)
+        {
+            resultLen += cipher.processBlock(buf, 0, out, outOff);
+            bufOff = 0;
+        }
+
+        return resultLen;
     }
 
     /**

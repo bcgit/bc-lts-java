@@ -81,7 +81,6 @@ public class DefaultBufferedMultiBlockCipher
 
         cipher.init(forEncryption, params);
 
-
         buf = new byte[cipher.getMultiBlockSize()];
         bufOff = 0;
     }
@@ -107,7 +106,7 @@ public class DefaultBufferedMultiBlockCipher
     public int processBlock(byte[] input, int inOff, byte[] output, int outOff)
         throws DataLengthException, IllegalStateException
     {
-        return 0;
+        return processBytes(input, inOff, blockSize, output, outOff);
     }
 
     /**
@@ -164,6 +163,22 @@ public class DefaultBufferedMultiBlockCipher
         }
 
         return length + nblocks * blockSize + xcess;
+    }
+
+    @Override
+    public int processByte(byte in, byte[] out, int outOff)
+        throws DataLengthException
+    {
+        int resultLen = 0;
+
+        buf[bufOff++] = in;
+        if (bufOff == buf.length)
+        {
+            resultLen += cipher.processBlocks(buf, 0, buf.length / blockSize, out, outOff);
+            bufOff = 0;
+        }
+
+        return resultLen;
     }
 
     /**
