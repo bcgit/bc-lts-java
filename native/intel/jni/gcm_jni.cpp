@@ -9,7 +9,6 @@
 #include "../../jniutil/JavaByteArrayCritical.h"
 #include "../../macro.h"
 
-
 //
 // NOTE:
 // 99% of input validation is done on the java side and this code is not intended to
@@ -21,10 +20,11 @@
 
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCM
+ * Class:     org_bouncycastle_crypto_fips_AESNativeGCM
  * Method:    reset
  * Signature: (J)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_AESNativeGCM_reset
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_reset
         (JNIEnv *, jobject, jlong ref) {
     auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
@@ -32,10 +32,11 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_reset
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCM
+ * Class:     org_bouncycastle_crypto_fips_AESNativeGCM
  * Method:    initNative
  * Signature: (JZ[B[B[BI)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_AESNativeGCM_initNative
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_initNative
         (JNIEnv *env, jclass, jlong ref, jboolean direction, jbyteArray key_, jbyteArray nonce_, jbyteArray aad_,
          jint macSizeInBits) {
@@ -57,24 +58,29 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_initNat
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCM
+ * Class:     org_bouncycastle_crypto_fips_AESNativeGCM
  * Method:    makeInstance
  * Signature: (I)J
  */
+//[[maybe_unused]] JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_fips_AESNativeGCM_makeInstance
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_makeInstance
-        (JNIEnv *, jclass, jint keySize) {
+        (JNIEnv *, jclass, jint ,jboolean encryption) {
 
     // TODO add key size implementations.
 
-    auto instance = new intel::gcm::AesGcm128wide();
+
+    auto instance = encryption == JNI_TRUE?
+            new intel::gcm::AesGcm128wideEncrypt():
+            new intel::gcm::AesGcm128wideDecrypt();
     return (jlong) instance;
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCM
+ * Class:     org_bouncycastle_crypto_fips_AESNativeGCM
  * Method:    dispose
  * Signature: (J)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_AESNativeGCM_dispose
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_dispose
         (JNIEnv *, jclass, jlong ref) {
     auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
@@ -82,10 +88,11 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_dispose
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCM
+ * Class:     org_bouncycastle_crypto_fips_AESNativeGCM
  * Method:    processAADByte
  * Signature: (JB)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_AESNativeGCM_processAADByte
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_processAADByte
         (JNIEnv *, jclass, jlong ref, jbyte b) {
     auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
@@ -93,10 +100,11 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCM
+ * Class:     org_bouncycastle_crypto_fips_AESNativeGCM
  * Method:    processAADBytes
  * Signature: (J[BII)V
  */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_AESNativeGCM_processAADBytes
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_processAADBytes
         (JNIEnv *env, jclass, jlong ref, jbyteArray aad_, jint offset, jint len) {
 
@@ -106,10 +114,11 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCM
+ * Class:     org_bouncycastle_crypto_fips_AESNativeGCM
  * Method:    processByte
  * Signature: (JB[BI)I
  */
+//[[maybe_unused]] JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_fips_AESNativeGCM_processByte
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_processByte
         (JNIEnv *env, jclass, jlong ref, jbyte in, jbyteArray out_, jint outOff) {
 
@@ -120,10 +129,11 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCM
+ * Class:     org_bouncycastle_crypto_fips_AESNativeGCM
  * Method:    processBytes
  * Signature: (J[BII[BI)I
  */
+//[[maybe_unused]] JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_fips_AESNativeGCM_processBytes
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_processBytes
         (JNIEnv *env, jclass, jlong ref, jbyteArray in_, jint inOff, jint len, jbyteArray out_, jint outOff) {
 
@@ -143,7 +153,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
         out.disposeNow();
         in.disposeNow();
         jniutil::JavaEnvUtils::throwException(env,
-                                              "org/bouncycastle/crypto/OutputLengthException",
+                                              "org/bouncycastle/crypto/internal/OutputLengthException",
                                               exp.what());
     } catch (const std::runtime_error &err) {
         out.disposeNow();
@@ -155,10 +165,11 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCM
+ * Class:     org_bouncycastle_crypto_fips_AESNativeGCM
  * Method:    doFinal
  * Signature: (J[BI)I
  */
+//[[maybe_unused]] JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_fips_AESNativeGCM_doFinal
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_doFinal
         (JNIEnv *env, jclass, jlong ref, jbyteArray out_, jint outOff) {
 
@@ -171,12 +182,12 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_doFinal
     } catch (const exceptions::OutputLengthException &exp) {
         out.disposeNow();
         jniutil::JavaEnvUtils::throwException(env,
-                                              "org/bouncycastle/crypto/OutputLengthException",
+                                              "org/bouncycastle/crypto/internal/OutputLengthException",
                                               exp.what());
     } catch (const exceptions::CipherTextException &exp) {
         out.disposeNow();
         jniutil::JavaEnvUtils::throwException(env,
-                                              "org/bouncycastle/crypto/InvalidCipherTextException",
+                                              "org/bouncycastle/crypto/internal/InvalidCipherTextException",
                                               exp.what());
     } catch (const std::runtime_error &err) {
         out.disposeNow();
@@ -187,10 +198,11 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_doFinal
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCM
+ * Class:     org_bouncycastle_crypto_fips_AESNativeGCM
  * Method:    getUpdateOutputSize
  * Signature: (JI)I
  */
+//[[maybe_unused]] JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_fips_AESNativeGCM_getUpdateOutputSize
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_getUpdateOutputSize
         (JNIEnv *, jclass, jlong ref, jint len) {
 
@@ -200,10 +212,11 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_getUpda
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCM
+ * Class:     org_bouncycastle_crypto_fips_AESNativeGCM
  * Method:    getOutputSize
  * Signature: (JI)I
  */
+//[[maybe_unused]] JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_fips_AESNativeGCM_getOutputSize
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_getOutputSize
         (JNIEnv *, jclass, jlong ref, jint len) {
     auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
@@ -211,10 +224,11 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_getOutp
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCM
+ * Class:     org_bouncycastle_crypto_fips_AESNativeGCM
  * Method:    getMac
  * Signature: (J)[B
  */
+//[[maybe_unused]] JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_fips_AESNativeGCM_getMac
 JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_getMac
         (JNIEnv *env, jclass, jlong ref) {
 
@@ -232,5 +246,23 @@ JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_g
     env->ReleaseByteArrayElements(out, elements, 0);
 
     return out;
+
+}
+
+/*
+ * Class:     org_bouncycastle_crypto_fips_AESNativeGCM
+ * Method:    setBlocksRemainingDown
+ * Signature: (JJ)V
+ */
+//[[maybe_unused]] JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_fips_AESNativeGCM_setBlocksRemainingDown
+JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_setBlocksRemainingDown
+        (JNIEnv *env, jobject, jlong ref, jlong step) {
+
+    auto instance = static_cast<intel::gcm::GCM *>((void *) ref);
+    try {
+        instance->setBlocksRemainingDown(step);
+    } catch (const std::runtime_error &err) {
+        jniutil::JavaEnvUtils::throwIllegalArgumentException(env, err.what());
+    }
 
 }

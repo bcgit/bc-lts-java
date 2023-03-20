@@ -6,7 +6,7 @@
 #define BCFIPS_0_0_AesCBCDecryptVaesF_H
 
 
-#include <immintrin.h>
+
 #include <jni_md.h>
 #include "CBC512wide.h"
 
@@ -22,7 +22,7 @@ namespace intel {
 
             ~AesCBC128VaesFDec() override;
 
-            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override;
+            size_t processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) override;
         };
 
 
@@ -36,7 +36,7 @@ namespace intel {
 
             ~AesCBC192VaesFDec() override;
 
-            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override;
+            size_t processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) override;
 
 
         };
@@ -50,7 +50,7 @@ namespace intel {
 
             ~AesCBC256VaesFDec() override;
 
-            size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) override;
+            size_t processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) override;
 
         };
 

@@ -6,8 +6,8 @@
 #define BCFIPS_0_0_CBC512wide_H
 
 
-#include <immintrin.h>
 #include <jni_md.h>
+#include <immintrin.h>
 #include "CBCLike.h"
 
 
@@ -24,7 +24,7 @@ namespace intel {
         protected:
             __m128i feedback;
             __m128i initialFeedback;
-            __m512i *roundKeys;
+            __m128i *roundKeys;
             __m512i feedbackCtrl;
 
 

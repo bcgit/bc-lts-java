@@ -2,13 +2,17 @@
 #ifndef BCN_CBCLIKE_H
 #define BCN_CBCLIKE_H
 
-#include <immintrin.h>
 #include <cstddef>
 #include <cstdint>
+#include <immintrin.h>
 
 #define CBC_BLOCK_SIZE 16
 #define CBC_BLOCK_SIZE_2 32
 #define CBC_BLOCK_SIZE_4 64
+#define CBC_BLOCK_SIZE_16 256
+#define CBC_BLOCK_SIZE_8 128
+#define CBC_BLOCK_SIZE_16 256
+
 
 namespace intel {
 
@@ -30,7 +34,7 @@ namespace intel {
 
             virtual uint32_t getMultiBlockSize() = 0;
 
-            virtual size_t processBlock(unsigned char *in, uint32_t blocks, unsigned char *out) = 0;
+            virtual size_t processBlocks(unsigned char *in, uint32_t blocks, unsigned char *out) = 0;
 
         };
     }
