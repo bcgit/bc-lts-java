@@ -236,6 +236,11 @@ public final class CryptoServicesRegistrar
         defaultSecureRandomProvider.set(secureRandomProvider);
     }
 
+    /**
+     * Return the default entropy source for this JVM.
+     *
+     * @return the default entropy source.
+     */
     public static EntropySourceProvider getDefaultEntropySourceProvider()
     {
         if (NativeEntropySource.hasHardwareEntropy())
