@@ -39,7 +39,7 @@ class NativeLoader
 
     private static boolean javaSupportOnly = true;
 
-    private static final NativeServices nativeServices = new NativeServices();
+    private static final NativeServices nativeServices = new DefaultNativeServices();
 
     static synchronized boolean isJavaSupportOnly()
     {

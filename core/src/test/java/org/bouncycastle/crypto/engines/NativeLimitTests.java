@@ -1634,7 +1634,8 @@ public class NativeLimitTests
             throws Exception
     {
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasService("AES/GCM"))
+        NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
+        if (!nativeServices.hasService("AES/GCM"))
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
             {
@@ -1682,7 +1683,7 @@ public class NativeLimitTests
             AESNativeGCM nativeGCM = new AESNativeGCM();
             nativeGCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
             byte[] in;
-            if (NativeServices.getVariant().contains("vaes"))
+            if (nativeServices.getVariant().contains("vaes"))
             {
                 in = new byte[129];
             } else
@@ -1706,7 +1707,7 @@ public class NativeLimitTests
             AESNativeGCM nativeGCM = new AESNativeGCM();
             nativeGCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
             byte[] in;
-            if (NativeServices.getVariant().contains("vaes"))
+            if (nativeServices.getVariant().contains("vaes"))
             {
                 in = new byte[129];
             } else
@@ -1728,7 +1729,7 @@ public class NativeLimitTests
             AESNativeGCM nativeGCM = new AESNativeGCM();
             nativeGCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
             byte[] in;
-            if (NativeServices.getVariant().contains("vaes"))
+            if (nativeServices.getVariant().contains("vaes"))
             {
                 in = new byte[129];
             } else
@@ -1750,7 +1751,7 @@ public class NativeLimitTests
             AESNativeGCM nativeGCM = new AESNativeGCM();
             nativeGCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
             byte[] in;
-            if (NativeServices.getVariant().contains("vaes"))
+            if (nativeServices.getVariant().contains("vaes"))
             {
                 in = new byte[129];
             } else
@@ -1773,7 +1774,7 @@ public class NativeLimitTests
             AESNativeGCM nativeGCM = new AESNativeGCM();
             nativeGCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
             byte[] in;
-            if (NativeServices.getVariant().contains("vaes"))
+            if (nativeServices.getVariant().contains("vaes"))
             {
                 in = new byte[129];
             } else
@@ -1796,7 +1797,7 @@ public class NativeLimitTests
             AESNativeGCM nativeGCM = new AESNativeGCM();
             nativeGCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
             byte[] in;
-            if (NativeServices.getVariant().contains("vaes"))
+            if (nativeServices.getVariant().contains("vaes"))
             {
                 in = new byte[129];
             } else
@@ -1821,7 +1822,8 @@ public class NativeLimitTests
             throws Exception
     {
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasService("AES/GCM"))
+        NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
+        if (!nativeServices.hasService("AES/GCM"))
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
             {

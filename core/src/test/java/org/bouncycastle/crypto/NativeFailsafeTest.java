@@ -21,11 +21,14 @@ public class NativeFailsafeTest
         {
 
             CryptoServicesRegistrar.hasNativeServices();
-            String variant = NativeServices.getVariant();
+
+            NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
+
+            String variant = nativeServices.getVariant();
             if (variant == null) {
                 variant = "java";
             }
-            assertTrue("expected variant of " + requestedVariant + " got " + NativeServices.getVariant(), variant.equals(requestedVariant));
+            assertTrue("expected variant of " + requestedVariant + " got " + nativeServices.getVariant(), variant.equals(requestedVariant));
 
         } else
         {

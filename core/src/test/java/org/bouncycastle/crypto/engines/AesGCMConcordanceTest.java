@@ -32,7 +32,8 @@ public class AesGCMConcordanceTest
             throws Exception
     {
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasService("AES/GCM"))
+        NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
+        if (!nativeServices.hasService("AES/GCM"))
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
             {
@@ -43,7 +44,7 @@ public class AesGCMConcordanceTest
             return;
         }
 
-        System.out.println(NativeServices.getVariant() + " " + NativeServices.getBuildDate());
+        System.out.println(nativeServices.getVariant() + " " + nativeServices.getBuildDate());
 
         SecureRandom secureRandom = new SecureRandom();
 
@@ -153,7 +154,8 @@ public class AesGCMConcordanceTest
             throws Exception
     {
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasService("AES/GCM"))
+        NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
+        if (!nativeServices.hasService("AES/GCM"))
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
             {
@@ -164,7 +166,7 @@ public class AesGCMConcordanceTest
             return;
         }
 
-        System.out.println(NativeServices.getVariant() + " " + NativeServices.getBuildDate());
+        System.out.println(nativeServices.getVariant() + " " + nativeServices.getBuildDate());
 
         SecureRandom secureRandom = new SecureRandom();
 
@@ -236,7 +238,8 @@ public class AesGCMConcordanceTest
             throws Exception
     {
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasService("AES/GCM"))
+        NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
+        if (!nativeServices.hasService("AES/GCM"))
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
             {
@@ -247,7 +250,7 @@ public class AesGCMConcordanceTest
             return;
         }
 
-        System.out.println(NativeServices.getVariant() + " " + NativeServices.getBuildDate());
+        System.out.println(nativeServices.getVariant() + " " + nativeServices.getBuildDate());
 
         SecureRandom secureRandom = new SecureRandom();
 
