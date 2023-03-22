@@ -1,7 +1,6 @@
 package org.bouncycastle.crypto;
 
 public interface BufferedBlockCipher
-    extends BlockCipher
 {
     BlockCipher getUnderlyingCipher();
 
