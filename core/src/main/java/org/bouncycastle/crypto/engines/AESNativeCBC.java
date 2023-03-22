@@ -2,11 +2,7 @@ package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicePurpose;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.NativeService;
-import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.modes.CBCModeCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -15,19 +11,19 @@ import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 class AESNativeCBC
-    implements CBCModeCipher, NativeService
+   implements CBCModeCipher
 {
-
     private CBCRefWrapper referenceWrapper;
 
     byte[] IV = new byte[16];
     byte[] oldKey;
+    int keySize;
 
     private boolean encrypting;
 
     @Override
     public void init(boolean forEncryption, CipherParameters params)
-        throws IllegalArgumentException
+            throws IllegalArgumentException
     {
         boolean oldEncrypting = this.encrypting;
 
@@ -35,7 +31,7 @@ class AESNativeCBC
 
         if (params instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV)params;
+            ParametersWithIV ivParam = (ParametersWithIV) params;
             byte[] iv = ivParam.getIV();
 
             if (iv.length != getBlockSize())
@@ -55,12 +51,12 @@ class AESNativeCBC
             }
             else
             {
-                // The key parameter was null which indicates that the
+                // The key parameter was null which inidicates that they
                 // IV is being changed.
 
                 if (oldEncrypting != encrypting)
                 {
-                    throw new IllegalArgumentException("cannot change encrypting state without providing key.");
+                    throw new IllegalArgumentException("cannot change encrypting state without providing key");
                 }
 
                 if (oldKey == null)
@@ -108,21 +104,17 @@ class AESNativeCBC
     private void init(KeyParameter parameters)
     {
 
-        byte[] key = null;
+        byte[] key = ((KeyParameter) parameters).getKey();
 
-        if (parameters instanceof KeyParameter)
-        {
-            key = ((KeyParameter)parameters).getKey();
-        }
 
         switch (key.length)
         {
-        case 16:
-        case 24:
-        case 32:
-            break;
-        default:
-            throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
+            case 16:
+            case 24:
+            case 32:
+                break;
+            default:
+                throw new IllegalArgumentException("key must be only 16,24,or 32 bytes long.");
         }
 
         referenceWrapper = new CBCRefWrapper(makeNative(key.length, encrypting));
@@ -135,7 +127,7 @@ class AESNativeCBC
         oldKey = Arrays.clone(key);
 
         init(referenceWrapper.getReference(), key, IV);
-
+        keySize = key.length * 8;
     }
 
 
@@ -154,28 +146,8 @@ class AESNativeCBC
 
     @Override
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
-        throws DataLengthException, IllegalStateException
+            throws DataLengthException, IllegalStateException
     {
-
-        if (inOff < 0)
-        {
-            throw new DataLengthException("inOff is negative");
-        }
-
-        if (outOff < 0)
-        {
-            throw new DataLengthException("outOff is negative");
-        }
-
-        if ((inOff + getBlockSize()) > in.length)
-        {
-            throw new DataLengthException("input buffer too short");
-        }
-
-        if (outOff + getBlockSize() > out.length)
-        {
-            throw new DataLengthException("output buffer too short");
-        }
 
         if (referenceWrapper == null)
         {
@@ -207,34 +179,9 @@ class AESNativeCBC
 
     @Override
     public int processBlocks(byte[] in, int inOff, int blockCount, byte[] out, int outOff)
-        throws DataLengthException, IllegalStateException
+            throws DataLengthException, IllegalStateException
     {
-        if (inOff < 0)
-        {
-            throw new DataLengthException("inOff is negative");
-        }
 
-        if (outOff < 0)
-        {
-            throw new DataLengthException("outOff is negative");
-        }
-
-        if (blockCount < 0)
-        {
-            throw new DataLengthException("blockCount is negative");
-        }
-
-        int extent = getBlockSize() * blockCount;
-
-        if (inOff + extent > in.length)
-        {
-            throw new DataLengthException("input buffer too short");
-        }
-
-        if (outOff + extent > out.length)
-        {
-            throw new DataLengthException("output buffer too short");
-        }
 
         if (referenceWrapper == null)
         {
@@ -246,29 +193,27 @@ class AESNativeCBC
 
     private static native int process(long ref, byte[] in, int inOff, int blockCount, byte[] out, int outOff);
 
-    private static native int getMultiBlockSize(int i);
+    private static native int getMultiBlockSize(long ref);
 
     private static native int getBlockSize(long ref);
 
-    private static native long makeNative(int keyLen, boolean encryption);
+    static native long makeNative(int keyLen, boolean encryption);
 
-    private native void init(long nativeRef, byte[] key, byte[] iv);
+    native void init(long nativeRef, byte[] key, byte[] iv);
 
-    private static native void dispose(long ref);
+    static native void dispose(long ref);
 
     private static native void reset(long nativeRef);
 
     @Override
     public BlockCipher getUnderlyingCipher()
     {
-        BlockCipher engine = AESEngine.newInstance();
-        engine.init(encrypting, new KeyParameter(oldKey));
-        return engine;
+        return null;
     }
 
 
     private class Disposer
-        extends NativeDisposer
+            extends NativeDisposer
     {
         Disposer(long ref)
         {
@@ -285,7 +230,7 @@ class AESNativeCBC
     }
 
     private class CBCRefWrapper
-        extends NativeReference
+            extends NativeReference
     {
 
         public CBCRefWrapper(long reference)
@@ -300,5 +245,10 @@ class AESNativeCBC
         }
     }
 
+    @Override
+    public String toString()
+    {
+        return "CBC[Native](AES[Native](" + keySize + ")";
+    }
 
 }

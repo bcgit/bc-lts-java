@@ -1,5 +1,7 @@
 package org.bouncycastle.crypto.digests;
 
+import java.security.SecureRandom;
+
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.NativeServices;
@@ -7,9 +9,6 @@ import org.bouncycastle.crypto.SavableDigest;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Test;
-
-
-import java.security.SecureRandom;
 
 public class NativeDigestTests extends TestCase
 {
@@ -29,7 +28,7 @@ public class NativeDigestTests extends TestCase
             return;
         }
 
-        NativeDigest.SHA256Native dig = new NativeDigest.SHA256Native();
+        SHA256NativeDigest dig = new SHA256NativeDigest();
         byte[] res = new byte[dig.getDigestSize()];
         dig.doFinal(res, 0);
         TestCase.assertTrue("Empty Digest result",
@@ -59,14 +58,14 @@ public class NativeDigestTests extends TestCase
         for (int t = 0; t < 256; t++)
         {
 
-            NativeDigest.SHA256Native dig = new NativeDigest.SHA256Native();
+            SHA256NativeDigest dig = new SHA256NativeDigest();
             dig.update(msg, 0, t);
             byte[] state = dig.getEncodedState();
 
             byte[] resAfterStateExtraction = new byte[dig.getDigestSize()];
             dig.doFinal(resAfterStateExtraction, 0);
 
-            NativeDigest.SHA256Native dig2 = new NativeDigest.SHA256Native(state);
+            SHA256NativeDigest dig2 = new SHA256NativeDigest().restoreState(state, 0);
             byte[] resStateRecreated = new byte[dig2.getDigestSize()];
             dig2.doFinal(resStateRecreated, 0);
 
@@ -101,7 +100,7 @@ public class NativeDigestTests extends TestCase
         SecureRandom rand = new SecureRandom();
         rand.nextBytes(msg);
 
-        NativeDigest.SHA256Native dig = new NativeDigest.SHA256Native();
+        SHA256NativeDigest dig = new SHA256NativeDigest();
         SHA256Digest javaDigest = new SHA256Digest();
 
         for (int t = 0; t < 256; t++)
@@ -146,12 +145,12 @@ public class NativeDigestTests extends TestCase
         rand.nextBytes(msg);
 
 
-        NativeDigest.SHA256Native dig = new NativeDigest.SHA256Native();
+        SHA256NativeDigest dig = new SHA256NativeDigest();
         dig.update(msg, 0, 12);
         byte[] state = dig.getEncodedState();
 
 
-        NativeDigest.SHA256Native dig2 = new NativeDigest.SHA256Native(state);
+        SHA256NativeDigest dig2 = new SHA256NativeDigest().restoreState(state, 0);
 
         dig.update(msg, 12, msg.length - 12);
         dig2.update(msg, 12, msg.length - 12);
@@ -187,7 +186,7 @@ public class NativeDigestTests extends TestCase
             return;
         }
 
-        new NativeDigest.SHA256Native()
+        new SHA256NativeDigest()
         {
             {
                 try
@@ -202,7 +201,7 @@ public class NativeDigestTests extends TestCase
         };
 
 
-        new NativeDigest.SHA256Native()
+        new SHA256NativeDigest()
         {
             {
                 try
@@ -217,7 +216,7 @@ public class NativeDigestTests extends TestCase
         };
 
 
-        new NativeDigest.SHA256Native()
+        new SHA256NativeDigest()
         {
             {
                 try
@@ -231,7 +230,7 @@ public class NativeDigestTests extends TestCase
             }
         };
 
-        new NativeDigest.SHA256Native()
+        new SHA256NativeDigest()
         {
             {
                 try
@@ -246,7 +245,7 @@ public class NativeDigestTests extends TestCase
         };
 
 
-        new NativeDigest.SHA256Native()
+        new SHA256NativeDigest()
         {
             {
 
@@ -268,7 +267,7 @@ public class NativeDigestTests extends TestCase
         };
 
 
-        new NativeDigest.SHA256Native()
+        new SHA256NativeDigest()
         {
             {
 
@@ -305,7 +304,7 @@ public class NativeDigestTests extends TestCase
             return;
         }
 
-        new NativeDigest.SHA256Native()
+        new SHA256NativeDigest()
         {
             {
                 try
@@ -320,7 +319,7 @@ public class NativeDigestTests extends TestCase
         };
 
 
-        new NativeDigest.SHA256Native()
+        new SHA256NativeDigest()
         {
             {
                 try
@@ -335,7 +334,7 @@ public class NativeDigestTests extends TestCase
         };
 
 
-        new NativeDigest.SHA256Native()
+        new SHA256NativeDigest()
         {
             {
                 try
@@ -349,7 +348,7 @@ public class NativeDigestTests extends TestCase
             }
         };
 
-        new NativeDigest.SHA256Native()
+        new SHA256NativeDigest()
         {
             {
                 try
@@ -364,7 +363,7 @@ public class NativeDigestTests extends TestCase
         };
 
 
-        new NativeDigest.SHA256Native()
+        new SHA256NativeDigest()
         {
             {
                 //
@@ -403,7 +402,7 @@ public class NativeDigestTests extends TestCase
         //
         final byte[] saneState;
 
-        NativeDigest.SHA256Native dig = new NativeDigest.SHA256Native()
+        SHA256NativeDigest dig = new SHA256NativeDigest()
         {
             {
                 update((byte) 1);
@@ -416,7 +415,7 @@ public class NativeDigestTests extends TestCase
 
         try
         {
-            new NativeDigest.SHA256Native(new byte[saneState.length - 2]);
+            new SHA256NativeDigest().restoreState(new byte[saneState.length - 2], 0);
             fail("too short");
         } catch (Exception ex)
         {
@@ -426,7 +425,7 @@ public class NativeDigestTests extends TestCase
 
         try
         {
-            new NativeDigest.SHA256Native(new byte[saneState.length - 1]);
+            new SHA256NativeDigest().restoreState(new byte[saneState.length - 1], 0);
             fail("bad id");
         } catch (Exception ex)
         {
@@ -456,7 +455,7 @@ public class NativeDigestTests extends TestCase
                 }
             }
 
-            new NativeDigest.SHA256Native(state);
+            new SHA256NativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value exceeding 64");
         } catch (Exception ex)
         {
@@ -480,7 +479,7 @@ public class NativeDigestTests extends TestCase
                 }
             }
 
-            new NativeDigest.SHA256Native(state);
+            new SHA256NativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value exceeding 64");
         } catch (Exception ex)
         {
@@ -508,7 +507,7 @@ public class NativeDigestTests extends TestCase
         //
         final byte[] saneState;
 
-        NativeDigest.SHA256Native dig = new NativeDigest.SHA256Native()
+        SHA256NativeDigest dig = new SHA256NativeDigest()
         {
             {
                 update((byte) 1);
@@ -521,7 +520,7 @@ public class NativeDigestTests extends TestCase
 
         try
         {
-            new NativeDigest.SHA256Native(new byte[saneState.length - 2]);
+            new SHA256NativeDigest().restoreState(new byte[saneState.length - 2], 0);
             fail("too short");
         } catch (Exception ex)
         {
@@ -531,7 +530,7 @@ public class NativeDigestTests extends TestCase
 
         try
         {
-            new NativeDigest.SHA256Native(new byte[saneState.length - 1]);
+            new SHA256NativeDigest().restoreState(new byte[saneState.length - 1], 0);
             fail("bad id");
         } catch (Exception ex)
         {
@@ -561,7 +560,7 @@ public class NativeDigestTests extends TestCase
                 }
             }
 
-            new NativeDigest.SHA256Native(state);
+            new SHA256NativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value exceeding 64");
         } catch (Exception ex)
         {
@@ -585,7 +584,7 @@ public class NativeDigestTests extends TestCase
                 }
             }
 
-            new NativeDigest.SHA256Native(state);
+            new SHA256NativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value exceeding 64");
         } catch (Exception ex)
         {
@@ -611,10 +610,10 @@ public class NativeDigestTests extends TestCase
 
         // There are other tests for memoable, this is more of a sanity test
 
-        NativeDigest.SHA256Native dig1 = new NativeDigest.SHA256Native();
+        SHA256NativeDigest dig1 = new SHA256NativeDigest();
         dig1.update((byte) 1);
 
-        NativeDigest.SHA256Native dig2 = new NativeDigest.SHA256Native(dig1);
+        SHA256NativeDigest dig2 = new SHA256NativeDigest(dig1);
 
         SHA256Digest jig1 = new SHA256Digest();
         jig1.update((byte) 1);
