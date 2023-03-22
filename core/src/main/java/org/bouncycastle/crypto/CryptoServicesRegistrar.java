@@ -159,7 +159,7 @@ public final class CryptoServicesRegistrar
         return "BouncyCastle APIs (LTS edition) v1.0.0b";
     }
 
-    public static boolean hasNativeServices()
+    public static boolean isNativeEnabled()
     {
         return NativeLoader.isNativeAvailable();
     }

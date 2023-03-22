@@ -33,7 +33,7 @@ public class AesECBConcordanceTest
                 fail("no native ecb and no skip set for it");
                 return;
             }
-            System.out.println("Skipping ECB native concordance test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping ECB native concordance test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 

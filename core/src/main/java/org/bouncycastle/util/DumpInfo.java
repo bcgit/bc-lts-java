@@ -16,7 +16,7 @@ public class DumpInfo
         //-DM System.out.println
         System.out.println(CryptoServicesRegistrar.getInfo());
 
-        if (CryptoServicesRegistrar.hasNativeServices())
+        if (CryptoServicesRegistrar.isNativeEnabled())
         {
             NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
 

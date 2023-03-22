@@ -69,7 +69,7 @@ class NativeLoader
     /**
      * Disable native library even if loaded.
      *
-     * @param enabled when true will disable the use of native extensions.
+     * @param enabled when false will disable the use of native extensions.
      */
     static synchronized void setNativeEnabled(boolean enabled)
     {

@@ -20,7 +20,7 @@ public class NativeFailsafeTest
         if (requestedVariant != null)
         {
 
-            CryptoServicesRegistrar.hasNativeServices();
+            CryptoServicesRegistrar.isNativeEnabled();
 
             NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
 

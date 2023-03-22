@@ -91,7 +91,7 @@ public class AesCFBConcordanceTest
                 fail("no native cfb and no skip set for it");
                 return;
             }
-            System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.isNativeEnabled());
 
             return;
         }
@@ -200,7 +200,7 @@ public class AesCFBConcordanceTest
                 return;
             }
 
-            System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -288,7 +288,7 @@ public class AesCFBConcordanceTest
         NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
         if (!nativeServices.hasService("AES/CFB"))
         {
-            System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
