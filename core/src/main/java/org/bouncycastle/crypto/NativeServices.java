@@ -76,7 +76,7 @@ public class NativeServices
 
     static synchronized Set<String> getNativeFeatureSet()
     {
-        TreeSet<String> set = new TreeSet<>();
+        TreeSet<String> set = new TreeSet<String>();
 
         if (NativeFeatures.hasHardwareSeed())
         {
