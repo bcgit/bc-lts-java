@@ -25,7 +25,7 @@ public class NativeLimitTests
                 fail("no native cbc and no skip set for it");
                 return;
             }
-            System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -195,7 +195,7 @@ public class NativeLimitTests
                 fail("no native cbc and no skip set for it");
                 return;
             }
-            System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -335,7 +335,7 @@ public class NativeLimitTests
                 fail("no native cbc and no skip set for it");
                 return;
             }
-            System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -536,7 +536,7 @@ public class NativeLimitTests
                 fail("no native ecb and no skip set for it");
                 return;
             }
-            System.out.println("Skipping ECB Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping ECB Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -616,7 +616,7 @@ public class NativeLimitTests
                 fail("no native ecb and no skip set for it");
                 return;
             }
-            System.out.println("Skipping ECB Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping ECB Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -792,7 +792,7 @@ public class NativeLimitTests
                 fail("no native ecb and no skip set for it");
                 return;
             }
-            System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -1041,7 +1041,7 @@ public class NativeLimitTests
                 fail("no native gcm and no skip set for it");
                 return;
             }
-            System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -1202,7 +1202,7 @@ public class NativeLimitTests
                 fail("no native gcm and no skip set for it");
                 return;
             }
-            System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -1379,7 +1379,7 @@ public class NativeLimitTests
                 fail("no native gcm and no skip set for it");
                 return;
             }
-            System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping CBC Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -1458,7 +1458,7 @@ public class NativeLimitTests
                 fail("no native gcm and no skip set for it");
                 return;
             }
-            System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -1533,7 +1533,7 @@ public class NativeLimitTests
                 fail("no native gcm and no skip set for it");
                 return;
             }
-            System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -1642,7 +1642,7 @@ public class NativeLimitTests
                 fail("no native gcm and no skip set for it");
                 return;
             }
-            System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -1830,7 +1830,7 @@ public class NativeLimitTests
                 fail("no native gcm and no skip set for it");
                 return;
             }
-            System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping GCM Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -2146,7 +2146,7 @@ public class NativeLimitTests
                 fail("no native cfb and no skip set for it");
                 return;
             }
-            System.out.println("Skipping CFB Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping CFB Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -2344,7 +2344,7 @@ public class NativeLimitTests
                 fail("no native cfb and no skip set for it");
                 return;
             }
-            System.out.println("Skipping CFB Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping CFB Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -2482,7 +2482,7 @@ public class NativeLimitTests
                 fail("no native cfb and no skip set for it");
                 return;
             }
-            System.out.println("Skipping CFB Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping CFB Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -2636,7 +2636,7 @@ public class NativeLimitTests
                 fail("no native cfb and no skip set for it");
                 return;
             }
-            System.out.println("Skipping CFB Limit Test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping CFB Limit Test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 

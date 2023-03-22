@@ -28,4 +28,29 @@ public interface NativeServices
     boolean hasService(String feature);
 
     String getBuildDate();
+
+    String getLibraryIdent();
+
+    /**
+     * Returns true if some native support is ready and enabled.
+     * Consult feature set for details.
+     *
+     * @return true if some hardware support is enabled.
+     */
+    boolean isEnabled();
+
+    /**
+     * Returns true if some native support has been installed.
+     *
+     * @return true if some hardware support is installed.
+     */
+    boolean isInstalled();
+
+    /**
+     * Returns true if there are native libraries available for this
+     * platform and architecture.
+     *
+     * @return true if available, false if not.
+     */
+    boolean isSupported();
 }

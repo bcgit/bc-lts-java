@@ -37,7 +37,7 @@ public class AesCBCConcordanceTest
                 fail("no native cbc and no skip set for it");
                 return;
             }
-            System.out.println("Skipping CBC native concordance test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping CBC native concordance test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 

@@ -24,7 +24,7 @@ public class NativeDigestTests extends TestCase
                 fail("no native sha and no skip set for it");
                 return;
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -46,7 +46,7 @@ public class NativeDigestTests extends TestCase
                 fail("no native sha and no skip set for it");
                 return;
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -92,7 +92,7 @@ public class NativeDigestTests extends TestCase
                 fail("no native sha and no skip set for it");
                 return;
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -136,7 +136,7 @@ public class NativeDigestTests extends TestCase
                 fail("no native sha and no skip set for it");
                 return;
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -182,7 +182,7 @@ public class NativeDigestTests extends TestCase
                 fail("no native sha and no skip set for it");
                 return;
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -300,7 +300,7 @@ public class NativeDigestTests extends TestCase
                 fail("no native sha and no skip set for it");
                 return;
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -393,7 +393,7 @@ public class NativeDigestTests extends TestCase
                 fail("no native sha and no skip set for it");
                 return;
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -498,7 +498,7 @@ public class NativeDigestTests extends TestCase
                 fail("no native sha and no skip set for it");
                 return;
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -604,7 +604,7 @@ public class NativeDigestTests extends TestCase
                 fail("no native sha and no skip set for it");
                 return;
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 

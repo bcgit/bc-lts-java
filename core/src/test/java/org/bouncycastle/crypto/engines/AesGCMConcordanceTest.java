@@ -40,7 +40,7 @@ public class AesGCMConcordanceTest
                 fail("no native gcm and no skip set for it");
                 return;
             }
-            System.out.println("Skipping GCM native concordance test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping GCM native concordance test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -162,7 +162,7 @@ public class AesGCMConcordanceTest
                 fail("no native gcm and no skip set for it");
                 return;
             }
-            System.out.println("Skipping GCM native concordance test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping GCM native concordance test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -246,7 +246,7 @@ public class AesGCMConcordanceTest
                 fail("no native gcm and no skip set for it");
                 return;
             }
-            System.out.println("Skipping GCM native concordance test: " + CryptoServicesRegistrar.hasNativeServices());
+            System.out.println("Skipping GCM native concordance test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 

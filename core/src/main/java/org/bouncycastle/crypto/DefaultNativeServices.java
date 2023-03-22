@@ -68,6 +68,26 @@ class DefaultNativeServices
         return NativeLibIdentity.getNativeBuiltTimeStamp();
     }
 
+    public String getLibraryIdent()
+    {
+        return NativeLibIdentity.getLibraryIdent();
+    }
+
+    public boolean isEnabled()
+    {
+        return NativeLoader.isNativeAvailable();
+    }
+
+    public boolean isInstalled()
+    {
+        return NativeLoader.isNativeInstalled();
+    }
+
+    public boolean isSupported()
+    {
+        return NativeLoader.isNativeLibsAvailableForSystem();
+    }
+
     static Set<String> getNativeFeatureSet()
     {
         TreeSet<String> set = new TreeSet<String>();
