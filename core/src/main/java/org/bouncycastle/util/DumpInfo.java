@@ -23,7 +23,7 @@ public class DumpInfo
             System.out.println("Native Build Date: " + nativeServices.getBuildDate());
             System.out.println("Native Status: " + nativeServices.getStatusMessage());
             System.out.println("Native Variant: " + nativeServices.getVariant());
-            System.out.println("Native Features: " + nativeServices.getFeatureString());
+            System.out.println("Native Features: " + String.join(" ", nativeServices.getFeatureSet()));
         }
     }
 }

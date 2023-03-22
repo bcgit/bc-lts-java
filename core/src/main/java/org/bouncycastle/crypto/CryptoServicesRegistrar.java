@@ -145,7 +145,7 @@ public final class CryptoServicesRegistrar
         //
         NativeLoader.loadDriver();
 
-        nativeServices = new NativeServices();
+        nativeServices = new DefaultNativeServices();
     }
 
 
@@ -165,7 +165,7 @@ public final class CryptoServicesRegistrar
     }
 
     // TODO: what happens if setNativeEnabled() is passed true?
-    public static synchronized void setNativeEnabled(boolean enabled)
+    public static void setNativeEnabled(boolean enabled)
     {
         NativeLoader.setNativeEnabled(enabled);
         //TODO: nativeFeatures = null;

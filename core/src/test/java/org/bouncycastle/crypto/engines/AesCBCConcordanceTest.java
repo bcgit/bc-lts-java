@@ -28,7 +28,9 @@ public class AesCBCConcordanceTest
     public void testCBCConcordance()
         throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService("AES/CBC"))
+        NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
+
+        if (!nativeServices.hasService("AES/CBC"))
         {
             if (!System.getProperty("test.bcfips.ignore.native","").contains("cbc"))
             {
@@ -39,7 +41,7 @@ public class AesCBCConcordanceTest
             return;
         }
 
-        System.out.println(NativeServices.getVariant() + " " + NativeServices.getBuildDate());
+        System.out.println(nativeServices.getVariant() + " " + nativeServices.getBuildDate());
 
 
         SecureRandom secureRandom = new SecureRandom();

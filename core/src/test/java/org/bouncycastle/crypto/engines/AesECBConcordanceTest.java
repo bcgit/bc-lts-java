@@ -25,7 +25,8 @@ public class AesECBConcordanceTest
         throws Exception
     {
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasService("AES/ECB"))
+        NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
+        if (!nativeServices.hasService("AES/ECB"))
         {
             if (!System.getProperty("test.bcfips.ignore.native","").contains("ecb"))
             {
@@ -36,7 +37,7 @@ public class AesECBConcordanceTest
             return;
         }
 
-        System.out.println(NativeServices.getVariant() + " " + NativeServices.getBuildDate());
+        System.out.println(nativeServices.getVariant() + " " + nativeServices.getBuildDate());
 
         SecureRandom secureRandom = new SecureRandom();
 
