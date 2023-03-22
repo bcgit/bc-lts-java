@@ -110,7 +110,7 @@ class NativeLoader
         {
             return Collections.emptyList();
         }
-        ArrayList<String> out = new ArrayList<>();
+        ArrayList<String> out = new ArrayList<String>();
         for (String line : data.split("\n"))
         {
             line = line.trim();
