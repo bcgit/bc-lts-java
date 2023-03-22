@@ -89,14 +89,7 @@ public class DefaultBufferedBlockCipher
 
         cipher.init(forEncryption, params);
     }
-
-    @Override
-    public String getAlgorithmName()
-    {
-        //TODO
-        return "";
-    }
-
+    
     /**
      * return the blocksize for the underlying cipher.
      *
@@ -106,14 +99,7 @@ public class DefaultBufferedBlockCipher
     {
         return cipher.getBlockSize();
     }
-
-    @Override
-    public int processBlock(byte[] input, int inOff, byte[] output, int outOff)
-        throws DataLengthException, IllegalStateException
-    {
-        return 0;
-    }
-
+    
     /**
      * return the size of the output buffer required for an update
      * an input of len bytes.

@@ -9,7 +9,7 @@ package org.bouncycastle.crypto;
  * OFB one the last block may not be a multiple of the block size.
  */
 public class DefaultBufferedMultiBlockCipher
-        implements BufferedBlockCipher
+    implements BufferedBlockCipher
 {
     protected byte[] buf;
     protected int bufOff;
@@ -85,13 +85,6 @@ public class DefaultBufferedMultiBlockCipher
         bufOff = 0;
     }
 
-    @Override
-    public String getAlgorithmName()
-    {
-        //TODO
-        return "";
-    }
-
     /**
      * return the blocksize for the underlying cipher.
      *
@@ -101,14 +94,7 @@ public class DefaultBufferedMultiBlockCipher
     {
         return blockSize;
     }
-
-    @Override
-    public int processBlock(byte[] input, int inOff, byte[] output, int outOff)
-        throws DataLengthException, IllegalStateException
-    {
-        return processBytes(input, inOff, blockSize, output, outOff);
-    }
-
+    
     /**
      * return the size of the output buffer required for an update
      * an input of len bytes.
