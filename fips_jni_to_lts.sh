@@ -2,7 +2,7 @@
 #
 # Update JNI method names to reflect the LTS library names
 
-for i in native_c/jni/*.c
+for i in native_c/intel/jni/*.c
 do
 
     ed $i <<%%%
@@ -12,6 +12,8 @@ do
 /Java_org_bouncycastle_crypto_fips_AESNativeCTR/s//Java_org_bouncycastle_crypto_engines_AESNativeCTR/g
 /Java_org_bouncycastle_crypto_fips_AESNativeGCM/s//Java_org_bouncycastle_crypto_engines_AESNativeGCM/g
 /Java_org_bouncycastle_crypto_fips_SHA256NativeDigest/s//Java_org_bouncycastle_crypto_digests_SHA256NativeDigest/g
+/Java_org_bouncycastle_crypto_fips_NativeEntropySource/s//Java_org_bouncycastle_crypto_NativeEntropySource/g
+/Java_org_bouncycastle_crypto_fips_VarientSelector/s//Java_org_bouncycastle_crypto_VarientSelector/g
 w
 q
 %%%
