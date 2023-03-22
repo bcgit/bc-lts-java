@@ -2,12 +2,8 @@ package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicePurpose;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.NativeService;
-import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -17,9 +13,8 @@ import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 class AESNativeGCM
-    implements GCMModeCipher, NativeService
+    implements GCMModeCipher
 {
-
     private GCMRefWrapper refWrapper;
     private int macSize = 0;
 
@@ -32,6 +27,8 @@ class AESNativeGCM
     private boolean forEncryption = false;
 
     private boolean initialised = false;
+
+    private byte[] keptMac = null;
 
     @Override
     public BlockCipher getUnderlyingCipher()
@@ -51,6 +48,7 @@ class AESNativeGCM
         this.forEncryption = forEncryption;
         KeyParameter keyParam;
         byte[] newNonce = null;
+        keptMac = null;
 
         if (params instanceof AEADParameters)
         {
@@ -70,12 +68,12 @@ class AESNativeGCM
         }
         else if (params instanceof ParametersWithIV)
         {
-            ParametersWithIV param = (ParametersWithIV)params;
+            ParametersWithIV param = (ParametersWithIV) params;
 
             newNonce = param.getIV();
             initialAssociatedText = null;
             macSize = 128;
-            keyParam = (KeyParameter)param.getParameters();
+            keyParam = (KeyParameter) param.getParameters();
         }
         else
         {
@@ -109,32 +107,24 @@ class AESNativeGCM
             lastKey = keyParam.getKey();
         }
 
-        CryptoServicesRegistrar.checkConstraints(
-            new DefaultServiceProperties(
-                getAlgorithmName(),
-                lastKey.length * 8,
-                params,
-                forEncryption ? CryptoServicePurpose.ENCRYPTION : CryptoServicePurpose.DECRYPTION
-            ));
-
 
         switch (lastKey.length)
         {
-        case 16:
-        case 24:
-        case 32:
-            break;
-        default:
-            throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
+            case 16:
+            case 24:
+            case 32:
+                break;
+            default:
+                throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
         }
 
         initRef(lastKey.length);
 
 
         initNative(
-            refWrapper.getReference(),
-            forEncryption, lastKey,
-            nonce, initialAssociatedText, macSize);
+                refWrapper.getReference(),
+                forEncryption, lastKey,
+                nonce, initialAssociatedText, macSize);
 
 
         initialised = true;
@@ -143,7 +133,7 @@ class AESNativeGCM
 
     private void initRef(int keySize)
     {
-        refWrapper = new GCMRefWrapper(makeInstance(keySize));
+        refWrapper = new GCMRefWrapper(makeInstance(keySize, forEncryption));
     }
 
 
@@ -163,21 +153,21 @@ class AESNativeGCM
     @Override
     public void processAADBytes(byte[] in, int inOff, int len)
     {
-        if (inOff < 0)
-        {
-            throw new IllegalArgumentException("inOff is negative");
-        }
-
-        if (len < 0)
-        {
-            throw new IllegalArgumentException("len is negative");
-        }
-
-        if (inOff + len > in.length)
-        {
-            throw new IllegalArgumentException("inOff + len past end of data");
-        }
-
+//        if (inOff < 0)
+//        {
+//            throw new IllegalArgumentException("inOff is negative");
+//        }
+//
+//        if (len < 0)
+//        {
+//            throw new IllegalArgumentException("len is negative");
+//        }
+//
+//        if (inOff + len > in.length)
+//        {
+//            throw new IllegalArgumentException("inOff + len past end of data");
+//        }
+//
         if (refWrapper == null)
         {
             throw new IllegalStateException("GCM is uninitialized");
@@ -189,17 +179,17 @@ class AESNativeGCM
 
     @Override
     public int processByte(byte in, byte[] out, int outOff)
-        throws DataLengthException
+            throws DataLengthException
     {
-        if (outOff < 0)
-        {
-            throw new IllegalArgumentException("outOff is negative");
-        }
-
-        if (outOff > out.length)
-        {
-            throw new IllegalArgumentException("offset past end of output array");
-        }
+//        if (outOff < 0)
+//        {
+//            throw new IllegalArgumentException("outOff is negative");
+//        }
+//
+//        if (outOff > out.length)
+//        {
+//            throw new IllegalArgumentException("offset past end of output array");
+//        }
 
         if (refWrapper == null)
         {
@@ -210,37 +200,35 @@ class AESNativeGCM
     }
 
 
-
-
     @Override
     public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
-        throws DataLengthException
+            throws DataLengthException
     {
-        if (inOff < 0)
-        {
-            throw new IllegalStateException("inOff is negative");
-        }
-
-        if (len < 0)
-        {
-            throw new IllegalStateException("len is negative");
-        }
-
-        if (outOff < 0)
-        {
-            throw new IllegalStateException("outOff is negative");
-        }
-
-
-        if (inOff + len > in.length)
-        {
-            throw new IllegalStateException("inOff + len is past end of input");
-        }
-
-        if (outOff > 0 && (out == null || outOff > out.length))
-        {
-            throw new IllegalArgumentException("offset past end of output array");
-        }
+//        if (inOff < 0)
+//        {
+//            throw new IllegalStateException("inOff is negative");
+//        }
+//
+//        if (len < 0)
+//        {
+//            throw new IllegalStateException("len is negative");
+//        }
+//
+//        if (outOff < 0)
+//        {
+//            throw new IllegalStateException("outOff is negative");
+//        }
+//
+//
+//        if (inOff + len > in.length)
+//        {
+//            throw new IllegalStateException("inOff + len is past end of input");
+//        }
+//
+//        if (outOff > 0 && (out == null || outOff > out.length))
+//        {
+//            throw new IllegalArgumentException("offset past end of output array");
+//        }
 
         if (refWrapper == null)
         {
@@ -253,31 +241,41 @@ class AESNativeGCM
 
     @Override
     public int doFinal(byte[] out, int outOff)
-        throws IllegalStateException, InvalidCipherTextException
+            throws IllegalStateException, InvalidCipherTextException
     {
 
-        if (outOff < 0)
-        {
-            throw new IllegalArgumentException("outOff is negative");
-        }
-
-
-        if (outOff > out.length)
-        {
-            throw new IllegalArgumentException("offset past end of output array");
-        }
-
+//        if (outOff < 0)
+//        {
+//            throw new IllegalArgumentException("outOff is negative");
+//        }
+//
+//
+//        if (outOff > out.length)
+//        {
+//            throw new IllegalArgumentException("offset past end of output array");
+//        }
 
         checkStatus();
 
-        initialised = false;
-        return doFinal(refWrapper.getReference(), out, outOff);
+
+        int len = doFinal(refWrapper.getReference(), out, outOff);
+
+        //
+        // BlockCipherTest, testing ShortTagException.
+        //
+
+        resetKeepMac();
+        return len;
     }
 
 
     @Override
     public byte[] getMac()
     {
+        if (keptMac != null)
+        {
+            return Arrays.clone(keptMac);
+        }
         return getMac(refWrapper.getReference());
     }
 
@@ -306,7 +304,21 @@ class AESNativeGCM
         }
 
         reset(refWrapper.getReference());
+        initialised = false;
     }
+
+    private void resetKeepMac()
+    {
+        if (refWrapper == null)
+        {
+            // deal with reset being called before init.
+            return;
+        }
+
+        keptMac = getMac();
+        reset(refWrapper.getReference());
+    }
+
 
     private void checkStatus()
     {
@@ -320,31 +332,27 @@ class AESNativeGCM
         }
     }
 
-
     private native void reset(long ref);
 
+    static native void initNative(
+            long reference,
+            boolean forEncryption,
+            byte[] keyParam,
+            byte[] nonce,
+            byte[] initialAssociatedText,
+            int macSizeBits);
 
-    private static native void initNative(
-        long reference,
-        boolean forEncryption,
-        byte[] keyParam,
-        byte[] nonce,
-        byte[] initialAssociatedText,
-        int macSizeBits);
+    static native long makeInstance(int keySize, boolean forEncryption);
 
-    private static native long makeInstance(int keySize);
-
-    private static native void dispose(long nativeRef);
+    static native void dispose(long nativeRef);
 
     private static native void processAADByte(long ref, byte in);
 
     private static native void processAADBytes(long ref, byte[] in, int inOff, int len);
 
-    private static native int processByte(long ref, byte in, byte[] out, int outOff)
-        throws DataLengthException;
+    private static native int processByte(long ref, byte in, byte[] out, int outOff);
 
-    private static native int processBytes(long ref, byte[] in, int inOff, int len, byte[] out, int outOff)
-        throws DataLengthException;
+    private static native int processBytes(long ref, byte[] in, int inOff, int len, byte[] out, int outOff);
 
     private static native int doFinal(long ref, byte[] out, int outOff);
 
@@ -354,9 +362,25 @@ class AESNativeGCM
 
     public static native byte[] getMac(long ref);
 
+    /**
+     * Set blocks remaining but only to a lesser value and only if the transformation has processed no data.
+     * Functionality limited to within the module only.
+     *
+     * @param value the step value.
+     */
+    void setBlocksRemainingDown(long value)
+    {
+        setBlocksRemainingDown(refWrapper.getReference(), value);
+    }
+
+    // Set the blocks remaining, but only to a lesser value.
+    // This is intended for testing only and will throw from the native side if the
+    // transformation has processed any data.
+    private native void setBlocksRemainingDown(long nativeRef, long value);
+
 
     private static class GCMRefWrapper
-        extends NativeReference
+            extends NativeReference
     {
         public GCMRefWrapper(long reference)
         {
@@ -373,7 +397,7 @@ class AESNativeGCM
 
 
     private static class Disposer
-        extends NativeDisposer
+            extends NativeDisposer
     {
         Disposer(long ref)
         {
@@ -387,4 +411,13 @@ class AESNativeGCM
         }
     }
 
+    @Override
+    public String toString()
+    {
+        if (lastKey != null)
+        {
+            return "GCM[Native](AES[Native](" + (lastKey.length * 8) + "))";
+        }
+        return "GCM[Native](AES[Native](not initialized))";
+    }
 }

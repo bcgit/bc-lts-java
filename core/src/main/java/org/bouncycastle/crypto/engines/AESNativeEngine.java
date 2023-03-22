@@ -8,7 +8,6 @@ import org.bouncycastle.crypto.DefaultMultiBlockCipher;
 import org.bouncycastle.crypto.NativeBlockCipherProvider;
 import org.bouncycastle.crypto.NativeService;
 import org.bouncycastle.crypto.NativeServices;
-import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.CBCModeCipher;

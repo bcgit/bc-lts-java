@@ -1,7 +1,12 @@
 package org.bouncycastle.crypto.digests;
 
 
-import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.CryptoServiceProperties;
+import org.bouncycastle.crypto.CryptoServicePurpose;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.Digest;
+import org.bouncycastle.crypto.NativeServices;
+import org.bouncycastle.crypto.SavableDigest;
 import org.bouncycastle.util.Memoable;
 import org.bouncycastle.util.Pack;
 
@@ -32,17 +37,16 @@ public class SHA256Digest
     {
         if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.SHA2))
         {
-            return new NativeDigest.SHA256Native();
+            return new SHA256NativeDigest();
         }
         return new SHA256Digest();
     }
-
 
     public static SavableDigest newInstance(CryptoServicePurpose purpose)
     {
         if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.SHA2))
         {
-            return new NativeDigest.SHA256Native(purpose);
+            return new SHA256NativeDigest(purpose);
         }
         return new SHA256Digest(purpose);
     }
@@ -55,24 +59,26 @@ public class SHA256Digest
             return new SHA256Digest((SHA256Digest) digest);
         }
 
-        if (digest instanceof NativeDigest.SHA256Native)
+        if (digest instanceof SHA256NativeDigest)
         {
             if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.SHA2))
             {
-                return new NativeDigest.SHA256Native((NativeDigest.SHA256Native) digest);
+                return new SHA256NativeDigest((SHA256NativeDigest)digest);
             }
         }
 
         throw new IllegalArgumentException("receiver digest not available for input type " + (digest != null ? digest.getClass() : "null"));
-
-
     }
 
     public static SavableDigest newInstance(byte[] encoded)
     {
         if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.SHA2))
         {
-            return new NativeDigest.SHA256Native(encoded);
+            SHA256NativeDigest sha256 = new SHA256NativeDigest();
+
+            sha256.restoreFullState(encoded, 0);
+
+            return sha256;
         }
 
         return new SHA256Digest(encoded);
