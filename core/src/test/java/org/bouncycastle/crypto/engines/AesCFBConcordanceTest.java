@@ -83,14 +83,14 @@ public class AesCFBConcordanceTest
     public void testCFBByteByByte() throws Exception
     {
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
+        if (!CryptoServicesRegistrar.getNativeServices().hasService("AES/CFB"))
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("cfb"))
             {
                 fail("no native cfb and no skip set for it");
                 return;
             }
-            System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.getNativeStatus());
+            System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.hasNativeServices());
 
             return;
         }
@@ -189,7 +189,7 @@ public class AesCFBConcordanceTest
     public void testCFBOffsetByte() throws Exception
     {
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
+        if (!CryptoServicesRegistrar.getNativeServices().hasService("AES/CFB"))
         {
 
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("cfb"))
@@ -198,7 +198,7 @@ public class AesCFBConcordanceTest
                 return;
             }
 
-            System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.getNativeStatus());
+            System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.hasNativeServices());
             return;
         }
 
@@ -283,9 +283,9 @@ public class AesCFBConcordanceTest
             throws Exception
     {
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
+        if (!CryptoServicesRegistrar.getNativeServices().hasService("AES/CFB"))
         {
-            System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.getNativeStatus());
+            System.out.println("Skipping CFB native concordance test: " + CryptoServicesRegistrar.hasNativeServices());
             return;
         }
 

@@ -1,7 +1,28 @@
 package org.bouncycastle.crypto;
 
+/**
+ * The native methods of this class are used to determine the native features that are supported.
+ * UnsatisfiedLinkError are ignored, and it is assumed that the feature is not available at that time.
+ */
 class NativeFeatures
 {
+
+    static boolean hasCTRHardwareSupport()
+    {
+        try
+        {
+            return nativeCTR();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            //
+        }
+        return false;
+    }
+
+    private static native boolean nativeCTR();
+
+
     static boolean hasCFBHardwareSupport()
     {
         try
@@ -108,4 +129,20 @@ class NativeFeatures
     }
 
     private static native boolean nativeSHA2();
+
+
+    static boolean hasHardwareRSA()
+    {
+        try
+        {
+            return nativeRSA();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            //
+        }
+        return false;
+    }
+
+    private static native boolean nativeRSA();
 }

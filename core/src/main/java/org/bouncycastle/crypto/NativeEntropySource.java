@@ -6,51 +6,47 @@ import org.bouncycastle.crypto.prng.EntropySource;
 
 
 class NativeEntropySource
-        implements EntropySource, NativeService
+        implements EntropySource
 {
-
     private final int size;
     private final int effectiveSize;
 
-    private final boolean useNRBGSource;
+    private final boolean useSeedSource;
 
     public NativeEntropySource(int sizeInBits)
     {
-        if (sizeInBits <= 0)
-        {
-            throw new IllegalArgumentException("bit size less than 1");
-        }
-
         //
         // Round up conversion to bytes.
         //
         size = (sizeInBits + 7) / 8;
 
-        if (!hasHardwareEntropy())
+        if (!NativeLoader.hasNativeService(NativeServices.DRBG) ||
+            !NativeLoader.hasNativeService(NativeServices.NRBG))
         {
             throw new IllegalStateException("no hardware support for random");
         }
 
-        useNRBGSource = CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.NRBG);
+        useSeedSource = NativeLoader.hasNativeService(NativeServices.NRBG);
 
         int mod = modulus();
         effectiveSize = ((size + mod - 1) / mod) * mod;
     }
 
-
+    @Override
     public native boolean isPredictionResistant();
 
     public native int modulus();
 
+    @Override
     public byte[] getEntropy()
     {
         byte[] buf = new byte[effectiveSize];
-        seedBuffer(buf, useNRBGSource);
+        seedBuffer(buf, useSeedSource);
 
         if (areAllZeroes(buf, 0, buf.length))
         {
-            throw new IllegalStateException("entropy source returned an array of len "
-                    + buf.length + " where all elements are 0");
+            throw new IllegalStateException("entropy source return array of len "
+                + buf.length + " where all elements are 0");
         }
 
         if (size != effectiveSize)
@@ -63,7 +59,7 @@ class NativeEntropySource
 
     private native void seedBuffer(byte[] buf, boolean useSeedSource);
 
-
+    @Override
     public int entropySize()
     {
         return size * 8;
@@ -79,21 +75,5 @@ class NativeEntropySource
         return bits == 0;
     }
 
-
-    /**
-     * Entropy generation is supported either via rand or specific seed generation at a hardware level.
-     *
-     * @return true if seed or rand is supported
-     */
-    static boolean hasHardwareEntropy()
-    {
-        if (CryptoServicesRegistrar.hasNativeServices())
-        {
-            NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
-
-            return nativeServices.hasAnyFeature(NativeServices.NRBG, NativeServices.DRBG);
-        }
-
-        return false;
-    }
 }
+

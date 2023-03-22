@@ -468,7 +468,7 @@ public class AESEngine
      */
     public static MultiBlockCipher newInstance()
     {
-        if (CryptoServicesRegistrar.getNativeServices().hasFeature("AES/ECB"))
+        if (CryptoServicesRegistrar.getNativeServices().hasService("AES/ECB"))
         {
             return new AESNativeEngine();
         }

@@ -6,7 +6,6 @@ import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultMultiBlockCipher;
 import org.bouncycastle.crypto.NativeBlockCipherProvider;
-import org.bouncycastle.crypto.NativeService;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
@@ -21,7 +20,7 @@ import org.bouncycastle.util.dispose.NativeReference;
 
 class AESNativeEngine
     extends DefaultMultiBlockCipher
-    implements NativeBlockCipherProvider, NativeService
+    implements NativeBlockCipherProvider
 {
     protected NativeReference wrapper = null;
 
@@ -188,7 +187,7 @@ class AESNativeEngine
 
     public GCMModeCipher createGCM()
     {
-        if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.AES_GCM))
+        if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_GCM))
         {
             return new AESNativeGCM();
         }
@@ -199,7 +198,7 @@ class AESNativeEngine
     @Override
     public CBCModeCipher createCBC()
     {
-        if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.AES_CBC))
+        if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_CBC))
         {
             return new AESNativeCBC();
         }
@@ -214,7 +213,7 @@ class AESNativeEngine
             throw new IllegalArgumentException("invalid CFB bitsize: " + bitSize);
         }
 
-        if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.AES_CFB))
+        if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_CFB))
         {
             return new AESNativeCFB(bitSize);
         }

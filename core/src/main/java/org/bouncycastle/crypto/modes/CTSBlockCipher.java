@@ -1,7 +1,6 @@
 package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
@@ -15,7 +14,7 @@ import org.bouncycastle.crypto.StreamBlockCipher;
 public class CTSBlockCipher
     extends DefaultBufferedBlockCipher
 {
-    private int blockSize;
+    private int     blockSize;
 
     /**
      * Create a buffered block cipher that uses Cipher Text Stealing
@@ -23,7 +22,7 @@ public class CTSBlockCipher
      * @param cipher the underlying block cipher this buffering object wraps.
      */
     public CTSBlockCipher(
-        BlockCipher cipher)
+        BlockCipher     cipher)
     {
         if (cipher instanceof StreamBlockCipher)
         {
@@ -38,25 +37,6 @@ public class CTSBlockCipher
         bufOff = 0;
     }
 
-    @Override
-    public BlockCipher getUnderlyingCipher()
-    {
-        return null;
-    }
-
-    @Override
-    public void init(boolean forEncryption, CipherParameters params)
-        throws IllegalArgumentException
-    {
-
-    }
-
-    @Override
-    public int getBlockSize()
-    {
-        return 0;
-    }
-
     /**
      * return the size of the output buffer required for an update
      * an input of len bytes.
@@ -68,8 +48,8 @@ public class CTSBlockCipher
     public int getUpdateOutputSize(
         int len)
     {
-        int total = len + bufOff;
-        int leftOver = total % buf.length;
+        int total       = len + bufOff;
+        int leftOver    = total % buf.length;
 
         if (leftOver == 0)
         {
@@ -96,20 +76,20 @@ public class CTSBlockCipher
     /**
      * process a single byte, producing an output block if necessary.
      *
-     * @param in     the input byte.
-     * @param out    the space for any output that might be produced.
+     * @param in the input byte.
+     * @param out the space for any output that might be produced.
      * @param outOff the offset from which the output will be copied.
      * @return the number of output bytes copied to out.
-     * @throws DataLengthException   if there isn't enough space in out.
-     * @throws IllegalStateException if the cipher isn't initialised.
+     * @exception DataLengthException if there isn't enough space in out.
+     * @exception IllegalStateException if the cipher isn't initialised.
      */
     public int processByte(
-        byte in,
-        byte[] out,
-        int outOff)
+        byte        in,
+        byte[]      out,
+        int         outOff)
         throws DataLengthException, IllegalStateException
     {
-        int resultLen = 0;
+        int         resultLen = 0;
 
         if (bufOff == buf.length)
         {
@@ -127,21 +107,21 @@ public class CTSBlockCipher
     /**
      * process an array of bytes, producing output if necessary.
      *
-     * @param in     the input byte array.
-     * @param inOff  the offset at which the input data starts.
-     * @param len    the number of bytes to be copied out of the input array.
-     * @param out    the space for any output that might be produced.
+     * @param in the input byte array.
+     * @param inOff the offset at which the input data starts.
+     * @param len the number of bytes to be copied out of the input array.
+     * @param out the space for any output that might be produced.
      * @param outOff the offset from which the output will be copied.
      * @return the number of output bytes copied to out.
-     * @throws DataLengthException   if there isn't enough space in out.
-     * @throws IllegalStateException if the cipher isn't initialised.
+     * @exception DataLengthException if there isn't enough space in out.
+     * @exception IllegalStateException if the cipher isn't initialised.
      */
     public int processBytes(
-        byte[] in,
-        int inOff,
-        int len,
-        byte[] out,
-        int outOff)
+        byte[]      in,
+        int         inOff,
+        int         len,
+        byte[]      out,
+        int         outOff)
         throws DataLengthException, IllegalStateException
     {
         if (len < 0)
@@ -149,8 +129,8 @@ public class CTSBlockCipher
             throw new IllegalArgumentException("Can't have a negative input length!");
         }
 
-        int blockSize = getBlockSize();
-        int length = getUpdateOutputSize(len);
+        int blockSize   = getBlockSize();
+        int length      = getUpdateOutputSize(len);
 
         if (length > 0)
         {
@@ -196,19 +176,19 @@ public class CTSBlockCipher
     /**
      * Process the last block in the buffer.
      *
-     * @param out    the array the block currently being held is copied into.
+     * @param out the array the block currently being held is copied into.
      * @param outOff the offset at which the copying starts.
      * @return the number of output bytes copied to out.
-     * @throws DataLengthException        if there is insufficient space in out for
-     *                                    the output.
-     * @throws IllegalStateException      if the underlying cipher is not
-     *                                    initialised.
-     * @throws InvalidCipherTextException if cipher text decrypts wrongly (in
-     *                                    case the exception will never get thrown).
+     * @exception DataLengthException if there is insufficient space in out for
+     * the output.
+     * @exception IllegalStateException if the underlying cipher is not
+     * initialised.
+     * @exception InvalidCipherTextException if cipher text decrypts wrongly (in
+     * case the exception will never get thrown).
      */
     public int doFinal(
-        byte[] out,
-        int outOff)
+        byte[]  out,
+        int     outOff)
         throws DataLengthException, IllegalStateException, InvalidCipherTextException
     {
         if (bufOff + outOff > out.length)
@@ -216,9 +196,9 @@ public class CTSBlockCipher
             throw new OutputLengthException("output buffer to small in doFinal");
         }
 
-        int blockSize = cipher.getBlockSize();
-        int len = bufOff - blockSize;
-        byte[] block = new byte[blockSize];
+        int     blockSize = cipher.getBlockSize();
+        int     len = bufOff - blockSize;
+        byte[]  block = new byte[blockSize];
 
         if (forEncryption)
         {
@@ -241,9 +221,9 @@ public class CTSBlockCipher
                     buf[i] ^= block[i - blockSize];
                 }
 
-                if (cipher instanceof CBCModeCipher)
+                if (cipher instanceof CBCBlockCipher)
                 {
-                    BlockCipher c = ((CBCModeCipher)cipher).getUnderlyingCipher();
+                    BlockCipher c = ((CBCBlockCipher)cipher).getUnderlyingCipher();
 
                     c.processBlock(buf, blockSize, out, outOff);
                 }
@@ -266,13 +246,13 @@ public class CTSBlockCipher
                 throw new DataLengthException("need at least one block of input for CTS");
             }
 
-            byte[] lastBlock = new byte[blockSize];
+            byte[]  lastBlock = new byte[blockSize];
 
             if (bufOff > blockSize)
             {
-                if (cipher instanceof CBCModeCipher)
+                if (cipher instanceof CBCBlockCipher)
                 {
-                    BlockCipher c = ((CBCModeCipher)cipher).getUnderlyingCipher();
+                    BlockCipher c = ((CBCBlockCipher)cipher).getUnderlyingCipher();
 
                     c.processBlock(buf, 0, block, 0);
                 }
@@ -304,11 +284,5 @@ public class CTSBlockCipher
         reset();
 
         return offset;
-    }
-
-    @Override
-    public void reset()
-    {
-
     }
 }
