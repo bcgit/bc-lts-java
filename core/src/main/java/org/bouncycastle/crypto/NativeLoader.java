@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.jar.JarException;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.util.Arrays;
@@ -308,7 +307,7 @@ class NativeLoader
         // if any files are remaining in the set then there were unaccounted for files in
         // the installation location, and we cannot start the module.
         //
-        Set<File> filesInInstallLocation = new HashSet<>();
+        Set<File> filesInInstallLocation = new HashSet<File>();
 
         for (File f : bcFipsLibPath.listFiles())
         {
@@ -354,7 +353,7 @@ class NativeLoader
             try
             {
                 // Install probe lib
-                File lib = installLib("bc-probe", probeLibInJarPath, jarDir, bcFipsLibPath, filesInInstallLocation);
+                final File lib = installLib("bc-probe", probeLibInJarPath, jarDir, bcFipsLibPath, filesInInstallLocation);
 
                 AccessController.doPrivileged(
                         new PrivilegedAction<Object>()
@@ -407,7 +406,7 @@ class NativeLoader
             // eg: linux-x86_64-sse has a suffix of "sse"
             //
 
-            File lib = installLib("bc-fips-" + selectedVariant, variantPathInJar, jarDir, bcFipsLibPath, filesInInstallLocation);
+            final File lib = installLib("bc-fips-" + selectedVariant, variantPathInJar, jarDir, bcFipsLibPath, filesInInstallLocation);
 
 
             //
@@ -415,7 +414,7 @@ class NativeLoader
             //
             if (!filesInInstallLocation.isEmpty())
             {
-                nativeStatusMessage = String.format("unexpected files in %s: %s", bcFipsLibPath.toString(), filesInInstallLocation.stream().map(it -> it.getName()).collect(Collectors.joining(", ")));
+                nativeStatusMessage = String.format("unexpected files in %s: %s", bcFipsLibPath.toString()); // TODO:, filesInInstallLocation.stream().map(it -> it.getName()).collect(Collectors.joining(", ")));
                 nativeInstalled = false;
                 return;
             }
