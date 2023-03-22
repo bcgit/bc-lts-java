@@ -414,7 +414,16 @@ class NativeLoader
             //
             if (!filesInInstallLocation.isEmpty())
             {
-                nativeStatusMessage = String.format("unexpected files in %s: %s", bcFipsLibPath.toString()); // TODO:, filesInInstallLocation.stream().map(it -> it.getName()).collect(Collectors.joining(", ")));
+                StringBuilder sBld = new StringBuilder();
+                for (File f : filesInInstallLocation)
+                {
+                    if (sBld.length() != 0)
+                    {
+                        sBld.append(",");
+                    }
+                    sBld.append(f.getName());
+                }
+                nativeStatusMessage = String.format("unexpected files in %s: %s", bcFipsLibPath.toString(), sBld.toString());
                 nativeInstalled = false;
                 return;
             }
