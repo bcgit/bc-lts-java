@@ -19,9 +19,10 @@ public class NativeEntropyTests
 
         NativeLoader.loadDriver();
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasAnyFeature(NativeServices.DRBG, NativeServices.NRBG))
+        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.DRBG)
+            && !CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.NRBG))
         {
-            System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getStatusMessage());
+            System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
             return;
         }
 
@@ -41,9 +42,10 @@ public class NativeEntropyTests
 
         NativeLoader.loadDriver();
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasAnyFeature(NativeServices.DRBG, NativeServices.NRBG))
+        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.DRBG)
+            && !CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.NRBG))
         {
-            System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getStatusMessage());
+            System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
             return;
         }
 

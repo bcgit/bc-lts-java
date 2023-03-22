@@ -3,7 +3,6 @@ package org.bouncycastle.crypto.engines;
 import java.security.SecureRandom;
 
 import junit.framework.TestCase;
-
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.NativeServices;
@@ -29,14 +28,14 @@ public class AesCBCConcordanceTest
     public void testCBCConcordance()
         throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC"))
+        if (!CryptoServicesRegistrar.getNativeServices().hasService("AES/CBC"))
         {
             if (!System.getProperty("test.bcfips.ignore.native","").contains("cbc"))
             {
                 fail("no native cbc and no skip set for it");
                 return;
             }
-            System.out.println("Skipping CBC native concordance test: " + CryptoServicesRegistrar.getNativeStatus());
+            System.out.println("Skipping CBC native concordance test: " + CryptoServicesRegistrar.hasNativeServices());
             return;
         }
 
@@ -110,9 +109,6 @@ public class AesCBCConcordanceTest
             }
 
         }
-
-
-
     }
 
     public static void main()

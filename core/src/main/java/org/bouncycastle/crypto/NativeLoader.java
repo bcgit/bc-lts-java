@@ -8,15 +8,13 @@ import java.io.InputStream;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.jar.JarException;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.util.Arrays;
@@ -26,46 +24,38 @@ import org.bouncycastle.util.io.Streams;
 
 class NativeLoader
 {
+
     private static final Logger LOG = Logger.getLogger(NativeLoader.class.getName());
-    public static final String BC_LIB_CPU_VARIANT = "org.bouncycastle.native.cpu_variant";
+
+
+    public static final String BCFIPS_LIB_CPU_VARIANT = "org.bouncycastle.native.cpu_variant";
 
 
     private static boolean nativeLibsAvailableForSystem = false;
     private static boolean nativeInstalled = false;
     private static boolean nativeEnabled = true;
-    private static String nativeStatusMessage = "component load not attempted";
+    private static String nativeStatusMessage = "Driver load not attempted";
 
     private static String selectedVariant = null;
 
-    private static boolean loadCalled = false;
-    private static String nativeBuildDate = null;
+    private static boolean javaSupportOnly = true;
 
+    private static final NativeServices nativeServices = new NativeServices();
 
-    /**
-     * Hardware Aes ECB is supported.
-     *
-     * @return true if basic ecb is supported
-     */
-    public static boolean hasHardwareAesECB()
+    static synchronized boolean isJavaSupportOnly()
     {
-        return NativeLoader.isNativeAvailable() && NativeFeatures.hasAESHardwareSupport();
+        return javaSupportOnly;
     }
 
     /**
-     * Hardware Aes CBC is supported.
+     * Native has been installed.
      *
-     * @return true if supported
+     * @return true if the native lib has been installed.
      */
-    public static boolean hasHardwareAesCBC()
+    static synchronized boolean isNativeInstalled()
     {
-        return NativeLoader.isNativeAvailable() && NativeFeatures.hasAESHardwareSupport();
+        return nativeInstalled;
     }
-
-    public static boolean hasHardwareAesGCM()
-    {
-        return NativeLoader.isNativeAvailable() && NativeFeatures.hasGCMHardwareSupport();
-    }
-
 
     /**
      * Native is available.
@@ -87,17 +77,12 @@ class NativeLoader
         nativeEnabled = enabled;
     }
 
-    static synchronized String getStatusMessage()
+    static synchronized String getNativeStatusMessage()
     {
         return nativeStatusMessage;
     }
 
-    static synchronized String getNativeBuildDate()
-    {
-        return nativeBuildDate;
-    }
-
-    public static synchronized String getVariant()
+    static synchronized String getSelectedVariant()
     {
         return selectedVariant;
     }
@@ -110,11 +95,32 @@ class NativeLoader
             InputStream in = NativeLoader.class.getResourceAsStream(path);
             value = Strings.fromByteArray(Streams.readAll(in));
             in.close();
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             return null;
         }
         return value;
+    }
+
+    static List<String> loadVariantsDeps(String depFile, String libName)
+    {
+        String data = getFile(depFile);
+        if (data == null)
+        {
+            return Collections.emptyList();
+        }
+        ArrayList<String> out = new ArrayList<>();
+        for (String line : data.split("\n"))
+        {
+            line = line.trim();
+            String[] parts = line.split(":");
+            if (parts[0].trim().equals(libName))
+            {
+                out.add(parts[1].trim());
+            }
+        }
+        return Collections.unmodifiableList(out);
     }
 
 
@@ -127,6 +133,12 @@ class NativeLoader
         //
 
         String libLocalName = System.mapLibraryName(name);
+
+        List<String> deps = loadVariantsDeps(jarPath + "/deps.list", libLocalName);
+        for (String dep : deps)
+        {
+            filesInInstallLocation.remove(copyFromJar(jarPath + "/" + dep, bcLibPath, dep));
+        }
         File libToLoad = copyFromJar(libPathSegment + "/" + libLocalName, bcLibPath, libLocalName);
 
         filesInInstallLocation.remove(libToLoad);
@@ -135,28 +147,11 @@ class NativeLoader
         return libToLoad;
     }
 
-    public static synchronized void loadDriver()
-    {
-        try
-        {
-            if (loadCalled)
-            {
-                return;
-            }
 
-            bootNative();
-
-        } finally
-        {
-            loadCalled = true;
-        }
-    }
-
-
-    public static synchronized void bootNative()
+    static synchronized void loadDriver()
     {
 
-        String forcedVariant = Properties.getPropertyValue(BC_LIB_CPU_VARIANT);
+        String forcedVariant = Properties.getPropertyValue(BCFIPS_LIB_CPU_VARIANT);
 
 
         // No variants defined at all, or a
@@ -164,25 +159,21 @@ class NativeLoader
         //
         if ("java".equals(forcedVariant))
         {
+            javaSupportOnly = true;
             nativeInstalled = false;
             nativeStatusMessage = "java support only";
             return;
         }
 
-        String arch_ = Strings.toLowerCase(System.getProperty("os.arch", ""));
-        String os_ = Strings.toLowerCase(System.getProperty("os.name", ""));
+
+        String arch_ = Strings.toLowerCase(Properties.getPropertyValue("os.arch", ""));
+        String os_ = Strings.toLowerCase(Properties.getPropertyValue("os.name", ""));
         String platform = null;
         String arch = null;
-        String ldPathEnvVar = null;
 
-        if (os_.contains("darwin") || os_.contains("mac os"))
-        {
-            platform = "darwin";
-            ldPathEnvVar = "DYLIB_LIBRARY_PATH";
-        } else if (os_.contains("linux"))
+        if (os_.contains("linux"))
         {
             platform = "linux";
-            ldPathEnvVar = "LD_LIBRARY_PATH";
         }
 
 
@@ -205,78 +196,111 @@ class NativeLoader
         }
 
 
-        File bcFipsLibPath;
-        try
+        File bcFipsLibPath = AccessController.doPrivileged(new PrivilegedAction<File>()
         {
-
-            //
-            // Create a temporary file.
-            //
-            File tf = File.createTempFile("bc-jni", "");
-
-            //
-            // Create a directory using that file as a stem
-            //
-            final File tmpDir = new File(tf.getParent(), tf.getName() + "-libs");
-            if (!tmpDir.mkdirs())
+            @Override
+            public File run()
             {
-                nativeInstalled = false;
-                nativeStatusMessage = "unable to create temp directory for jni libs: " + tmpDir;
-                return;
-            }
 
-            //
-            // Delete original file.
-            //
-            if (!tf.delete())
-            {
-                nativeInstalled = false;
-                nativeStatusMessage = "unable to delete initial temporary file: " + tf;
-                return;
-            }
 
-            //
-            // Shutdown hook clean up installed libraries.
-            //
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
-            {
-                @Override
-                public void run()
+                File ioTmpDir = new File(Properties.getPropertyValue("java.io.tmpdir"));
+                if (!ioTmpDir.exists())
                 {
-                    if (!tmpDir.exists())
-                    {
-                        return;
-                    }
-                    boolean isDeleted = true;
-                    if (tmpDir.isDirectory())
-                    {
-                        for (File f : tmpDir.listFiles())
-                        {
-                            isDeleted &= f.delete();
-                        }
-                    }
-
-                    isDeleted &= tmpDir.delete();
-
-                    if (!isDeleted)
-                    {
-                        LOG.warning(" failed to delete: " + tmpDir.getAbsolutePath());
-                    } else
-                    {
-                        LOG.warning("cleaned up: " + tmpDir.getAbsolutePath());
-                    }
+                    nativeInstalled = false;
+                    nativeStatusMessage = ioTmpDir + " did not exist";
+                    return null;
                 }
-            }));
 
-            bcFipsLibPath = tmpDir.getCanonicalFile();
+                File bcFipsLibPath;
+                try
+                {
 
-        } catch (Exception ex)
+                    //
+                    // Create a temporary file, we cannot use the inbuilt method as it will attempt to start
+                    // an entropy source and the provider is not in a ready state.
+                    //
+                    File dir = null;
+                    long time = System.nanoTime();
+                    for (int t = 0; t < 1000; t++)
+                    {
+                        dir = new File(ioTmpDir, "bc-fips-jni" + Long.toString(time + t, 32) + "-libs");
+                        if (dir.mkdirs())
+                        {
+                            break;
+                        }
+                        dir = null;
+                        Thread.sleep(time % 97);
+                    }
+
+                    if (dir == null)
+                    {
+                        nativeInstalled = false;
+                        nativeStatusMessage = "unable to create directory in " + ioTmpDir + " after 1000 unique attempts";
+                        return null;
+                    }
+
+                    //
+                    // Create a directory using that file as a stem
+                    //
+                    if (!dir.exists())
+                    {
+                        nativeInstalled = false;
+                        nativeStatusMessage = "unable to create temp directory for jni libs: " + dir;
+                        return null;
+                    }
+
+                    final File tmpDir = dir;
+
+                    //
+                    // Shutdown hook clean up installed libraries.
+                    //
+                    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            if (!tmpDir.exists())
+                            {
+                                return;
+                            }
+                            boolean isDeleted = true;
+                            if (tmpDir.isDirectory())
+                            {
+                                for (File f : tmpDir.listFiles())
+                                {
+                                    isDeleted &= f.delete();
+                                }
+                            }
+
+                            isDeleted &= tmpDir.delete();
+
+                            if (!isDeleted)
+                            {
+                                LOG.warning(" failed to delete: " + tmpDir.getAbsolutePath());
+                            }
+                            else
+                            {
+                                LOG.fine("successfully cleaned up: " + tmpDir.getAbsolutePath());
+                            }
+                        }
+                    }));
+
+                    return tmpDir;
+                }
+                catch (Exception ex)
+                {
+                    nativeInstalled = false;
+                    nativeStatusMessage = "failed because it was not able to create a temporary file in 'java.io.tmpdir' " + ex.getMessage();
+                    return null;
+                }
+
+            }
+        });
+
+        if (bcFipsLibPath == null)
         {
-            nativeInstalled = false;
-            nativeStatusMessage = "failed because it was not able to create a temporary file in 'java.io.tmpdir' " + ex.getMessage();
             return;
         }
-
 
         //
         // We track all the existing files in the installation location.
@@ -284,7 +308,7 @@ class NativeLoader
         // if any files are remaining in the set then there were unaccounted for files in
         // the installation location, and we cannot start the module.
         //
-        Set<File> filesInInstallLocation = new HashSet<File>();
+        Set<File> filesInInstallLocation = new HashSet<>();
 
         for (File f : bcFipsLibPath.listFiles())
         {
@@ -305,15 +329,32 @@ class NativeLoader
         //
         String probeLibInJarPath = String.format("/native/%s/%s/probe", platform, arch);
 
+        InputStream tmpIn = NativeLoader.class.getResourceAsStream(probeLibInJarPath+"/"+System.mapLibraryName("bc-probe"));
+        if (tmpIn == null)
+        {
+            nativeStatusMessage = String.format("platform '%s' and architecture '%s' are not supported", platform, arch);
+            nativeInstalled = false;
+            return;
+        }
+        try
+        {
+            tmpIn.close();
+        }
+        catch (IOException ignored)
+        {
+        }
+
+
         if (forcedVariant != null)
         {
             selectedVariant = forcedVariant;
-        } else
+        }
+        else
         {
             try
             {
                 // Install probe lib
-                final File lib = installLib("bc-probe", probeLibInJarPath, jarDir, bcFipsLibPath, filesInInstallLocation);
+                File lib = installLib("bc-probe", probeLibInJarPath, jarDir, bcFipsLibPath, filesInInstallLocation);
 
                 AccessController.doPrivileged(
                         new PrivilegedAction<Object>()
@@ -327,29 +368,46 @@ class NativeLoader
                         }
                 );
 
-            } catch (Exception ex)
+
+            }
+            catch (Exception ex)
             {
                 nativeStatusMessage = "probe lib failed to load " + ex.getMessage();
                 nativeInstalled = false;
                 return;
             }
 
-            selectedVariant = VariantSelector.getBestVariantName();
+            try
+            {
+                selectedVariant = VariantSelector.getBestVariantName();
+            }
+            catch (Throwable ex)
+            {
+                nativeStatusMessage = "probe lib failed return a variant " + ex.getMessage();
+                nativeInstalled = false;
+                return;
+            }
+        }
+
+        if ("none".equals(selectedVariant))
+        {
+            javaSupportOnly = true;
+            nativeInstalled = false;
+            nativeStatusMessage = "probe returned no suitable CPU features, java support only";
+            return;
         }
 
 
         String variantPathInJar = String.format("/native/%s/%s/%s", platform, arch, selectedVariant);//  variantPaths.get(selectedVariant);
-        if (variantPathInJar == null)
-        {
-            nativeStatusMessage = String.format("variant %s is not available for installation", selectedVariant);
-            nativeInstalled = false;
-            return;
-        }
 
         try
         {
-            
-            final File lib = installLib("bc-components-" + selectedVariant, variantPathInJar, jarDir, bcFipsLibPath, filesInInstallLocation);
+            //
+            // Derive the suffix it is the last part of the variant name
+            // eg: linux-x86_64-sse has a suffix of "sse"
+            //
+
+            File lib = installLib("bc-fips-" + selectedVariant, variantPathInJar, jarDir, bcFipsLibPath, filesInInstallLocation);
 
 
             //
@@ -357,7 +415,7 @@ class NativeLoader
             //
             if (!filesInInstallLocation.isEmpty())
             {
-                nativeStatusMessage = String.format("unexpected files in %s: %s", bcFipsLibPath.toString(), collectionToString(filesInInstallLocation));
+                nativeStatusMessage = String.format("unexpected files in %s: %s", bcFipsLibPath.toString(), filesInInstallLocation.stream().map(it -> it.getName()).collect(Collectors.joining(", ")));
                 nativeInstalled = false;
                 return;
             }
@@ -374,16 +432,16 @@ class NativeLoader
                     }
             );
 
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             nativeStatusMessage = "native capabilities lib failed to load " + ex.getMessage();
             nativeInstalled = false;
             return;
         }
 
-        String reportedVariantName = NativeLibIdentity.getLibraryIdent();
 
-        if (!selectedVariant.equals(reportedVariantName))
+        if (!selectedVariant.equals(NativeLibIdentity.getLibraryIdent()))
         {
             nativeStatusMessage = String.format("loaded native library variant is %s but the requested library variant is %s", NativeLibIdentity.getLibraryIdent(), selectedVariant);
             nativeInstalled = false;
@@ -391,35 +449,26 @@ class NativeLoader
         }
 
 
-        nativeBuildDate = NativeLibIdentity.getNativeBuiltTimeStamp();
         nativeLibsAvailableForSystem = true;
         nativeStatusMessage = "successfully loaded";
         nativeInstalled = true;
+        javaSupportOnly = false;
+
     }
 
-
-    /**
-     * Turn a collection into a flat list of strings, java 1.6 compatible.
-     *
-     * @return A string
-     */
-    private static String collectionToString(Collection collection)
+    public static boolean isNativeLibsAvailableForSystem()
     {
-        boolean comma = false;
-        StringBuilder sb = new StringBuilder();
-        for (Object o : collection)
-        {
-            if (comma)
-            {
-                sb.append(",");
-            } else
-            {
-                comma = true;
-            }
-            sb.append(o.toString());
-        }
+        return nativeLibsAvailableForSystem;
+    }
 
-        return sb.toString();
+    static NativeServices getNativeServices()
+    {
+        return nativeServices;
+    }
+
+    static boolean hasNativeService(String feature)
+    {
+        return isNativeAvailable() && nativeServices.hasService(feature);
     }
 
     private static byte[] takeSHA256Digest(InputStream in)
@@ -427,7 +476,7 @@ class NativeLoader
         try
         {
             byte[] buf = new byte[65535];
-            SavableDigest dig = new SHA256Digest();
+            SHA256Digest dig = new SHA256Digest();
             int len;
             while ((len = in.read(buf)) >= 0)
             {
@@ -436,7 +485,8 @@ class NativeLoader
             byte[] res = new byte[dig.getDigestSize()];
             dig.doFinal(res, 0);
             return res;
-        } catch (IOException ex)
+        }
+        catch (IOException ex)
         {
             throw new RuntimeException(ex.getMessage(), ex);
         }
@@ -469,7 +519,6 @@ class NativeLoader
 
             inputStream = NativeLoader.class.getResourceAsStream(inJarPath);
         }
-
 
         FileOutputStream fos = new FileOutputStream(dest);
         Streams.pipeAll(inputStream, fos);

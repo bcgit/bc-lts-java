@@ -1,10 +1,7 @@
 package org.bouncycastle.crypto;
 
 import junit.framework.TestCase;
-import org.bouncycastle.crypto.NativeLoader;
 import org.junit.Test;
-
-import static junit.framework.TestCase.fail;
 
 public class NativeFailsafeTest
         extends TestCase
@@ -23,7 +20,7 @@ public class NativeFailsafeTest
         if (requestedVariant != null)
         {
 
-            CryptoServicesRegistrar.getNativeStatus();
+            CryptoServicesRegistrar.hasNativeServices();
             String variant = NativeServices.getVariant();
             if (variant == null) {
                 variant = "java";
@@ -40,7 +37,7 @@ public class NativeFailsafeTest
     public void testECB()
     {
 
-        boolean hasECB = NativeLoader.hasHardwareAesECB();
+        boolean hasECB = NativeFeatures.hasAESHardwareSupport();
 
         String skip = System.getProperty(NATIVE_FAILSAFE_TEST, "");
 
@@ -58,7 +55,7 @@ public class NativeFailsafeTest
     public void testCBC()
     {
 
-        boolean hasCBC = NativeLoader.hasHardwareAesCBC();
+        boolean hasCBC = NativeFeatures.hasCBCHardwareSupport();
 
         String skip = System.getProperty(NATIVE_FAILSAFE_TEST, "");
 
@@ -77,7 +74,7 @@ public class NativeFailsafeTest
     public void testGCM()
     {
 
-        boolean hasGCM = NativeLoader.hasHardwareAesGCM();
+        boolean hasGCM = NativeFeatures.hasGCMHardwareSupport();
 
         String skip = System.getProperty(NATIVE_FAILSAFE_TEST, "");
 

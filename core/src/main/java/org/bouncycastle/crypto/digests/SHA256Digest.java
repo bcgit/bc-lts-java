@@ -35,7 +35,7 @@ public class SHA256Digest
 
     public static SavableDigest newInstance()
     {
-        if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.SHA2))
+        if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
         {
             return new SHA256NativeDigest();
         }
@@ -44,7 +44,7 @@ public class SHA256Digest
 
     public static SavableDigest newInstance(CryptoServicePurpose purpose)
     {
-        if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.SHA2))
+        if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
         {
             return new SHA256NativeDigest(purpose);
         }
@@ -61,7 +61,7 @@ public class SHA256Digest
 
         if (digest instanceof SHA256NativeDigest)
         {
-            if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.SHA2))
+            if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
             {
                 return new SHA256NativeDigest((SHA256NativeDigest)digest);
             }
@@ -72,7 +72,7 @@ public class SHA256Digest
 
     public static SavableDigest newInstance(byte[] encoded)
     {
-        if (CryptoServicesRegistrar.getNativeServices().hasFeature(NativeServices.SHA2))
+        if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
         {
             SHA256NativeDigest sha256 = new SHA256NativeDigest();
 

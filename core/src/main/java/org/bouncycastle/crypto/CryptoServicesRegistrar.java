@@ -243,7 +243,8 @@ public final class CryptoServicesRegistrar
      */
     public static EntropySourceProvider getDefaultEntropySourceProvider()
     {
-        if (NativeEntropySource.hasHardwareEntropy())
+        if (NativeLoader.hasNativeService(NativeServices.DRBG) ||
+            NativeLoader.hasNativeService(NativeServices.NRBG))
         {
             return new EntropySourceProvider()
             {
@@ -579,11 +580,6 @@ public final class CryptoServicesRegistrar
         // TODO: return one based on system/security properties if set.
 
         return noConstraintsImpl;
-    }
-
-    public static String getNativeStatus()
-    {
-        return NativeLoader.getStatusMessage();
     }
 
     /**
