@@ -1,7 +1,12 @@
 package org.bouncycastle.crypto.paddings;
 
 
-import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.DefaultBufferedMultiBlockCipher;
+import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.MultiBlockCipher;
+import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
 import org.bouncycastle.util.Arrays;
 
@@ -142,7 +147,7 @@ public class PaddedBufferedMultiBlockCipher
 
         if (bufOff == buf.length)
         {
-            resultLen = cipher.processBlock(buf, 0, out, outOff);
+            resultLen += cipher.processBlocks(buf, 0, buf.length / blockSize, out, outOff);
             bufOff = 0;
         }
 
