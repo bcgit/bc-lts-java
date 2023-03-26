@@ -26,6 +26,7 @@ import org.bouncycastle.asn1.x509.TBSCertificate;
 import org.bouncycastle.asn1.x509.Time;
 import org.bouncycastle.asn1.x509.V3TBSCertificateGenerator;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.util.Exceptions;
 
 
 /**
@@ -112,7 +113,16 @@ public class X509v3CertificateBuilder
 
         for (Enumeration en = exts.oids(); en.hasMoreElements();)
         {
-            extGenerator.addExtension(exts.getExtension((ASN1ObjectIdentifier)en.nextElement()));
+            ASN1ObjectIdentifier oid = (ASN1ObjectIdentifier)en.nextElement();
+            // we remove the altSignatureAlgorithm, altSignatureValue, and subjectAltPublicKeyInfo
+            // extensions as they probably need to be regenerated.
+            if (Extension.subjectAltPublicKeyInfo.equals(oid)
+                || Extension.altSignatureAlgorithm.equals(oid)
+                || Extension.altSignatureValue.equals(oid))
+            {
+                continue;
+            }
+            extGenerator.addExtension(exts.getExtension(oid));
         }
     }
 
@@ -373,7 +383,51 @@ public class X509v3CertificateBuilder
         }
         catch (IOException e)
         {
-            throw new IllegalArgumentException("cannot produce certificate signature");
+            throw Exceptions.illegalArgumentException("cannot produce certificate signature", e);
+        }
+    }
+
+    /**
+     * Generate an X.509 certificate, based on the current issuer and subject
+     * using the passed in signer and containing altSignatureAlgorithm and altSignatureValue extensions
+     * based on the passed altSigner.
+     *
+     * @param signer the content signer to be used to generate the signature validating the certificate.
+     * @param altSigner the content signer used to create the altSignatureAlgorithm and altSignatureValue extension.
+     * @return a holder containing the resulting signed certificate.
+     */
+    public X509CertificateHolder build(
+        ContentSigner signer,
+        boolean isCritical,
+        ContentSigner altSigner)
+    {
+        tbsGen.setSignature(null);
+
+        try
+        {
+            extGenerator.addExtension(Extension.altSignatureAlgorithm, isCritical, altSigner.getAlgorithmIdentifier());
+        }
+        catch (IOException e)
+        {
+            throw Exceptions.illegalStateException("cannot add altSignatureAlgorithm extension", e);
+        }
+
+        tbsGen.setExtensions(extGenerator.generate());
+
+        try
+        {
+            extGenerator.addExtension(Extension.altSignatureValue, isCritical, new DERBitString(generateSig(altSigner, tbsGen.generatePreTBSCertificate())));
+
+            tbsGen.setSignature(signer.getAlgorithmIdentifier());
+
+            tbsGen.setExtensions(extGenerator.generate());
+            
+            TBSCertificate tbsCert = tbsGen.generateTBSCertificate();
+            return new X509CertificateHolder(generateStructure(tbsCert, signer.getAlgorithmIdentifier(), generateSig(signer, tbsCert)));
+        }
+        catch (IOException e)
+        {
+            throw Exceptions.illegalArgumentException("cannot produce certificate signature", e);
         }
     }
 
