@@ -14,7 +14,6 @@ import javax.crypto.spec.PSource;
 import junit.framework.Assert;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.test.pkix.PrintResults;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DEROctetString;
@@ -42,6 +41,7 @@ import org.bouncycastle.operator.AlgorithmNameFinder;
 import org.bouncycastle.operator.DefaultAlgorithmNameFinder;
 import org.bouncycastle.operator.DefaultSignatureNameFinder;
 import org.bouncycastle.operator.jcajce.JceAsymmetricKeyWrapper;
+import org.bouncycastle.test.PrintTestResult;
 import org.bouncycastle.util.encoders.Hex;
 
 public class AllTests
@@ -49,7 +49,6 @@ public class AllTests
 {
     private static final byte[] TEST_DATA = "Hello world!".getBytes();
     private static final String BC = BouncyCastleProvider.PROVIDER_NAME;
-    private static final String TEST_DATA_HOME = "bc.test.data.home";
 
     public void setUp()
     {
@@ -57,6 +56,13 @@ public class AllTests
         {
             Security.addProvider(new BouncyCastleProvider());
         }
+    }
+
+    public static void main(String[] args)
+    {
+        TestSuite suite = new TestSuite();
+        suite.addTestSuite(AllTests.class);
+        PrintTestResult.printResult(junit.textui.TestRunner.run(suite));
     }
 
     public void testAgainstKnownList()
@@ -132,9 +138,24 @@ public class AllTests
             new Object[]{NISTObjectIdentifiers.id_dsa_with_sha3_512, "SHA3-512WITHDSA"},
             new Object[]{BCObjectIdentifiers.falcon_512, "FALCON"},
             new Object[]{BCObjectIdentifiers.falcon_1024, "FALCON"},
-            new Object[]{BCObjectIdentifiers.sphincsPlus_sha_256, "SPHINCS+"},
-            new Object[]{BCObjectIdentifiers.sphincsPlus_sha_512, "SPHINCS+"},
-            new Object[]{BCObjectIdentifiers.sphincsPlus_shake_256, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_sha2_128s_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_sha2_128f_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_shake_128s_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_shake_128f_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_haraka_128s_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_haraka_128f_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_sha2_192s_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_sha2_192f_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_shake_192s_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_shake_192f_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_haraka_192s_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_haraka_192f_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_sha2_256s_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_sha2_256f_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_shake_256s_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_shake_256f_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_haraka_256s_r3, "SPHINCS+"},
+            new Object[]{BCObjectIdentifiers.sphincsPlus_haraka_256f_r3, "SPHINCS+"},
             new Object[]{GNUObjectIdentifiers.Tiger_192, "Tiger"},
 
             new Object[]{PKCSObjectIdentifiers.RC2_CBC, "RC2/CBC"},
@@ -382,12 +403,5 @@ public class AllTests
         Assert.assertEquals(new AlgorithmIdentifier(digestOid, DERNull.INSTANCE), oaepParams.getMaskGenAlgorithm().getParameters());
         Assert.assertEquals(PKCSObjectIdentifiers.id_pSpecified, oaepParams.getPSourceAlgorithm().getAlgorithm());
         Assert.assertEquals(new DEROctetString(Hex.decode("beef")), oaepParams.getPSourceAlgorithm().getParameters());
-    }
-
-    public static void main(String[] args)
-    {
-        TestSuite ts = new TestSuite();
-        ts.addTestSuite(AllTests.class);
-        PrintResults.printResult(junit.textui.TestRunner.run(ts));
     }
 }

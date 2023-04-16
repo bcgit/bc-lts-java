@@ -90,14 +90,6 @@ public class X509CertificateHolder
     }
 
     /**
-     * @deprecated use getVersionNumber
-     */
-    public int getVersion()
-    {
-        return x509Certificate.getVersionNumber();
-    }
-
-    /**
      * Return whether or not the holder's certificate contains extensions.
      *
      * @return true if extension are present, false otherwise.

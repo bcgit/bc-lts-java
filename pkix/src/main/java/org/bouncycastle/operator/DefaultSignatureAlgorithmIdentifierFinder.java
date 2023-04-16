@@ -200,9 +200,15 @@ public class DefaultSignatureAlgorithmIdentifierFinder
         algorithms.put("SPHINCS+", BCObjectIdentifiers.sphincsPlus);
         algorithms.put("SPHINCSPLUS", BCObjectIdentifiers.sphincsPlus);
 
+        algorithms.put("DILITHIUM2", BCObjectIdentifiers.dilithium2);
+        algorithms.put("DILITHIUM3", BCObjectIdentifiers.dilithium3);
+        algorithms.put("DILITHIUM5", BCObjectIdentifiers.dilithium5);
+        algorithms.put("DILITHIUM2-AES", BCObjectIdentifiers.dilithium2_aes);
+        algorithms.put("DILITHIUM3-AES", BCObjectIdentifiers.dilithium3_aes);
+        algorithms.put("DILITHIUM5-AES", BCObjectIdentifiers.dilithium5_aes);
+
         algorithms.put("FALCON-512", BCObjectIdentifiers.falcon_512);
         algorithms.put("FALCON-1024", BCObjectIdentifiers.falcon_1024);
-
 
         algorithms.put("PICNIC", BCObjectIdentifiers.picnic_signature);
         algorithms.put("SHA512WITHPICNIC", BCObjectIdentifiers.picnic_with_sha512);
@@ -260,9 +266,35 @@ public class DefaultSignatureAlgorithmIdentifierFinder
         // SPHINCS-PLUS
         //
         noParams.add(BCObjectIdentifiers.sphincsPlus);
-        noParams.add(BCObjectIdentifiers.sphincsPlus_shake_256);
-        noParams.add(BCObjectIdentifiers.sphincsPlus_sha_256);
-        noParams.add(BCObjectIdentifiers.sphincsPlus_sha_512);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_sha2_128s_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_sha2_128f_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_shake_128s_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_shake_128f_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_haraka_128s_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_haraka_128f_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_sha2_192s_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_sha2_192f_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_shake_192s_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_shake_192f_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_haraka_192s_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_haraka_192f_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_sha2_256s_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_sha2_256f_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_shake_256s_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_shake_256f_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_haraka_256s_r3);
+        noParams.add(BCObjectIdentifiers.sphincsPlus_haraka_256f_r3);
+
+        //
+        // Dilithium
+        //
+        noParams.add(BCObjectIdentifiers.dilithium);
+        noParams.add(BCObjectIdentifiers.dilithium2);
+        noParams.add(BCObjectIdentifiers.dilithium3);
+        noParams.add(BCObjectIdentifiers.dilithium5);
+        noParams.add(BCObjectIdentifiers.dilithium2_aes);
+        noParams.add(BCObjectIdentifiers.dilithium3_aes);
+        noParams.add(BCObjectIdentifiers.dilithium5_aes);
 
         //
         // Falcon
@@ -412,9 +444,18 @@ public class DefaultSignatureAlgorithmIdentifierFinder
         digestOids.put(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256);
         digestOids.put(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
 
-        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_256, NISTObjectIdentifiers.id_shake256);
-        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha_256, NISTObjectIdentifiers.id_sha256);
-        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha_512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_128s_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_128f_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_128s_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_128f_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_192s_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_192f_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_192s_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_192f_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_256s_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_256f_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_256s_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_256f_r3, NISTObjectIdentifiers.id_shake256);
 
 //        digestOids.put(GMObjectIdentifiers.sm2sign_with_rmd160, TeleTrusTObjectIdentifiers.ripemd160);
 //        digestOids.put(GMObjectIdentifiers.sm2sign_with_sha1, OIWObjectIdentifiers.idSHA1);
