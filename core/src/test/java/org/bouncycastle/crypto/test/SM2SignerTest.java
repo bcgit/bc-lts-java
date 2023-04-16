@@ -14,15 +14,20 @@ import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.digests.SM3Digest;
 import org.bouncycastle.crypto.generators.ECKeyPairGenerator;
+import org.bouncycastle.crypto.generators.SM2KeyPairGenerator;
 import org.bouncycastle.crypto.params.ECDomainParameters;
 import org.bouncycastle.crypto.params.ECKeyGenerationParameters;
+import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.params.ParametersWithID;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
+import org.bouncycastle.crypto.signers.ECDSASigner;
 import org.bouncycastle.crypto.signers.SM2Signer;
 import org.bouncycastle.math.ec.ECConstants;
 import org.bouncycastle.math.ec.ECCurve;
 import org.bouncycastle.math.ec.ECPoint;
+import org.bouncycastle.util.BigIntegers;
 import org.bouncycastle.util.Strings;
+import org.bouncycastle.util.test.FixedSecureRandom;
 import org.bouncycastle.util.test.SimpleTest;
 import org.bouncycastle.util.test.TestRandomBigInteger;
 
@@ -57,7 +62,7 @@ public class SM2SignerTest
     {
         doSignerTest(
             PARAMS_FP_DRAFT,
-            SHA256Digest.newInstance(),
+            new SHA256Digest(),
             "ALICE123@YAHOO.COM",
             "message digest",
             "128B2FA8BD433C6C068C8D803DFF79792A519A55171B1B650C23661D15897263",
@@ -87,7 +92,7 @@ public class SM2SignerTest
     {
         doSignerTest(
             "sm2p256v1",
-            SHA256Digest.newInstance(),
+            new SHA256Digest(),
             "sm2test@example.com",
             "hi chappy",
             "110E7973206F68C19EE5F7328C036F26911C8C73B4E4F36AE3291097F8984FFC",
@@ -117,7 +122,7 @@ public class SM2SignerTest
     {
         doSignerTest(
             "P-256",
-            SHA256Digest.newInstance(),
+            new SHA256Digest(),
             "sm2_p256_test@example.com",
             "no backdoors here",
             "110E7973206F68C19EE5F7328C036F26911C8C73B4E4F36AE3291097F8984FFC",
@@ -204,6 +209,46 @@ public class SM2SignerTest
         isTrue(!signer.verifySignature(encode(ECConstants.EIGHT, domainParams.getN())));
     }
 
+    private void doKeyGenAndSignBoundsCheck()
+        throws Exception
+    {
+        SM2KeyPairGenerator sm2KpGen = new SM2KeyPairGenerator();
+
+        ECDomainParameters paramsFpDraft = createParamsFpDraft();
+
+        // we expect it to reject N-1
+        try
+        {
+            sm2KpGen.init(new ECKeyGenerationParameters(paramsFpDraft, new FixedSecureRandom(BigIntegers.asUnsignedByteArray(paramsFpDraft.getN().subtract(BigIntegers.ONE)))));
+
+            sm2KpGen.generateKeyPair();
+
+            fail("no exception");
+        }
+        catch (ArrayIndexOutOfBoundsException e)
+        {
+            // continue
+        }
+
+        ECKeyPairGenerator ecKpGen = new ECKeyPairGenerator();
+
+        ecKpGen.init(new ECKeyGenerationParameters(paramsFpDraft, new FixedSecureRandom(BigIntegers.asUnsignedByteArray(paramsFpDraft.getN().subtract(BigIntegers.ONE)))));
+
+        AsymmetricCipherKeyPair kp = ecKpGen.generateKeyPair();
+
+        SM2Signer signer = new SM2Signer();
+
+        try
+        {
+            signer.init(true, kp.getPrivate());
+            fail("no exception");
+        }
+        catch (IllegalArgumentException e)
+        {
+            isEquals("SM2 private key out of range", e.getMessage());
+        }
+    }
+
     public void performTest()
         throws Exception
     {
@@ -215,6 +260,7 @@ public class SM2SignerTest
         doSignerTestFpP256Sha256();
         doSignerTestF2m();
         doVerifyBoundsCheck();
+        doKeyGenAndSignBoundsCheck();
     }
 
     private static ECDomainParameters createParamsFpDraft()

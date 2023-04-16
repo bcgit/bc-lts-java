@@ -496,7 +496,7 @@ public class SP80038GTest
         }
     }
 
-                                                      public void testFF1Rounding()
+    public void testFF1Rounding()
     {
         int radix = 256;
         byte[] key = Hex.decodeStrict("000102030405060708090a0b0c0d0e0f");

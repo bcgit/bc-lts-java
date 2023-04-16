@@ -4,14 +4,13 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.test.core.PrintResults;
 
 public class AllTests
     extends TestCase
 {
     public static void main (String[] args)
     {
-       PrintResults.printResult( junit.textui.TestRunner.run (suite()));
+        junit.textui.TestRunner.run (suite());
 
         UTF8Test.main(null);
     }

@@ -76,8 +76,8 @@ public class ASN1IntegerTest
             fail("no exception");
         }
         catch (IllegalArgumentException e)
-        {       
-            isEquals("test 1", "failed to construct sequence from byte[]: malformed integer", e.getMessage());
+        { 
+            isEquals("test 1: " + e.getMessage(), "failed to construct sequence from byte[]: malformed integer", e.getMessage());
         }
 
         try

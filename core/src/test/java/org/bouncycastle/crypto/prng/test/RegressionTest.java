@@ -7,7 +7,6 @@ public class RegressionTest
 {
     public static Test[]    tests = {
         new CTRDRBGTest(),
-        new DualECDRBGTest(),
         new HashDRBGTest(),
         new HMacDRBGTest(),
         new SP800RandomTest(),

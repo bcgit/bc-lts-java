@@ -8,9 +8,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.test.core.PrintResults;
+import org.bouncycastle.test.PrintTestResult;
 import org.bouncycastle.util.io.pem.PemHeader;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
@@ -19,20 +20,6 @@ import org.bouncycastle.util.io.pem.PemWriter;
 public class AllTests
     extends TestCase
 {
-
-    public static void main(String[] args)
-    {
-        PrintResults.printResult(junit.textui.TestRunner.run(suite()));
-    }
-
-    public static TestSuite suite()
-    {
-        TestSuite ts = new TestSuite();
-        ts.addTestSuite(AllTests.class);
-        return ts;
-    }
-
-
     public void testPemLength()
         throws IOException
     {
@@ -79,5 +66,17 @@ public class AllTests
         pWrt.close();
 
         assertEquals(bOut.toByteArray().length, pWrt.getOutputSize(pemObj));
+    }
+
+    public static void main(String[] args)
+    {
+        PrintTestResult.printResult(junit.textui.TestRunner.run(suite()));
+    }
+
+    public static Test suite()
+    {
+        TestSuite suite = new TestSuite("PEM Tests");
+        suite.addTestSuite(AllTests.class);
+        return suite;
     }
 }
