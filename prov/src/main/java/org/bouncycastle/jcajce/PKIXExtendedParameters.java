@@ -252,15 +252,7 @@ public class PKIXExtendedParameters
     {
         return null == validityDate ? null : new Date(validityDate.getTime());
     }
-
-    /**
-     * @deprecated Use 'getValidityDate' instead (which can return null).
-     */
-    public Date getDate()
-    {
-        return new Date(date.getTime());
-    }
-
+    
     /**
      * Defaults to <code>false</code>.
      *

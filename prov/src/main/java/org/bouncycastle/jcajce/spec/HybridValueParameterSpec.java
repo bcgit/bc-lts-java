@@ -45,7 +45,7 @@ public class HybridValueParameterSpec
         byte[] tVal = t;
 
         checkDestroyed();
-
+        
         return tVal;
     }
 

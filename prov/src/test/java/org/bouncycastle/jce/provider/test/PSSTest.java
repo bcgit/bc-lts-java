@@ -29,7 +29,7 @@ import org.bouncycastle.util.test.TestRandomData;
 public class PSSTest
     extends SimpleTest
 {
-    private class FixedRandom
+    private static class FixedRandom
         extends SecureRandom
     {
         byte[]  vals;
@@ -286,7 +286,7 @@ public class PSSTest
             fail("SHAKE128 signature verification failed");
         }
 
-        isTrue(s.getParameters() == null);
+        isTrue(s.getParameters() != null);
         
         s = Signature.getInstance(PKCSObjectIdentifiers.id_RSASSA_PSS.getId(), "BC");
 

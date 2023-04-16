@@ -9,10 +9,11 @@ import java.security.spec.InvalidParameterSpecException;
 
 import javax.crypto.spec.IvParameterSpec;
 
-import org.bouncycastle.crypto.*;
-import org.bouncycastle.internal.asn1.cms.CCMParameters;
-import org.bouncycastle.internal.asn1.cms.GCMParameters;
 import org.bouncycastle.asn1.nsri.NSRIObjectIdentifiers;
+import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.CipherKeyGenerator;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.engines.ARIAEngine;
 import org.bouncycastle.crypto.engines.ARIAWrapEngine;
 import org.bouncycastle.crypto.engines.ARIAWrapPadEngine;
@@ -24,6 +25,8 @@ import org.bouncycastle.crypto.modes.CCMBlockCipher;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.modes.OFBBlockCipher;
+import org.bouncycastle.internal.asn1.cms.CCMParameters;
+import org.bouncycastle.internal.asn1.cms.GCMParameters;
 import org.bouncycastle.jcajce.provider.config.ConfigurableProvider;
 import org.bouncycastle.jcajce.provider.symmetric.util.BaseAlgorithmParameterGenerator;
 import org.bouncycastle.jcajce.provider.symmetric.util.BaseAlgorithmParameters;
@@ -319,7 +322,7 @@ public final class ARIA
         {
             if (paramSpec == AlgorithmParameterSpec.class || GcmSpecUtil.isGcmSpec(paramSpec))
             {
-                if (GcmSpecUtil.gcmSpecExists())
+                if (GcmSpecUtil.gcmSpecExtractable())
                 {
                     return GcmSpecUtil.extractGcmSpec(gcmParams.toASN1Primitive());
                 }
@@ -404,7 +407,7 @@ public final class ARIA
         {
             if (paramSpec == AlgorithmParameterSpec.class || GcmSpecUtil.isGcmSpec(paramSpec))
             {
-                if (GcmSpecUtil.gcmSpecExists())
+                if (GcmSpecUtil.gcmSpecExtractable())
                 {
                     return GcmSpecUtil.extractGcmSpec(ccmParams.toASN1Primitive());
                 }
