@@ -30,15 +30,15 @@ sourceSets {
 }
 
 dependencies {
-  java9Implementation files([project(":core").sourceSets.main.output.classesDirs, sourceSets.main.output.classesDirs]) {
+  java9Implementation files([sourceSets.main.output.classesDirs]) {
      builtBy compileJava
   }
 
-  java11Implementation files([project(":core").sourceSets.main.output.classesDirs, sourceSets.main.output.classesDirs, sourceSets.java9.output.classesDirs]) {
+  java11Implementation files([sourceSets.main.output.classesDirs, sourceSets.java9.output.classesDirs]) {
      builtBy compileJava9Java
   }
 
-  java15Implementation files([project(":core").sourceSets.main.output.classesDirs, sourceSets.main.output.classesDirs, sourceSets.java9.output.classesDirs, sourceSets.java11.output.classesDirs]) {
+  java15Implementation files([sourceSets.main.output.classesDirs, sourceSets.java9.output.classesDirs, sourceSets.java11.output.classesDirs]) {
      builtBy compileJava11Java
   }
 }
@@ -74,7 +74,6 @@ compileJava15Java {
 
 jar {
   from sourceSets.main.output
-  from rootProject.project(":core").sourceSets.main.output
   into('META-INF/versions/9') {
     from sourceSets.java9.output
   }
@@ -91,7 +90,6 @@ task sourcesJar(type: Jar) {
   archiveBaseName = jar.archiveBaseName
   classifier = 'sources'
   from sourceSets.main.allSource
-  from rootProject.project(":core").sourceSets.main.allSource
   into('META-INF/versions/9') {
     from sourceSets.java9.allSource
   }
