@@ -30,16 +30,6 @@ public class TimeStampRequestGenerator
     {
     }
 
-    /**
-     * @deprecated use method taking ASN1ObjectIdentifier
-     * @param reqPolicy
-     */
-    public void setReqPolicy(
-        String reqPolicy)
-    {
-        this.reqPolicy= new ASN1ObjectIdentifier(reqPolicy);
-    }
-
     public void setReqPolicy(
         ASN1ObjectIdentifier reqPolicy)
     {
@@ -50,34 +40,6 @@ public class TimeStampRequestGenerator
         boolean certReq)
     {
         this.certReq = ASN1Boolean.getInstance(certReq);
-    }
-
-    /**
-     * add a given extension field for the standard extensions tag (tag 3)
-     * @throws IOException
-     * @deprecated use method taking ASN1ObjectIdentifier
-     */
-    public void addExtension(
-        String          OID,
-        boolean         critical,
-        ASN1Encodable   value)
-        throws IOException
-    {
-        this.addExtension(OID, critical, value.toASN1Primitive().getEncoded());
-    }
-
-    /**
-     * add a given extension field for the standard extensions tag
-     * The value parameter becomes the contents of the octet string associated
-     * with the extension.
-     * @deprecated use method taking ASN1ObjectIdentifier
-     */
-    public void addExtension(
-        String          OID,
-        boolean         critical,
-        byte[]          value)
-    {
-        extGenerator.addExtension(new ASN1ObjectIdentifier(OID), critical, value);
     }
 
     /**
@@ -104,53 +66,6 @@ public class TimeStampRequestGenerator
         byte[]               value)
     {
         extGenerator.addExtension(oid, isCritical, value);
-    }
-
-    /**
-     * @deprecated use method taking ANS1ObjectIdentifier
-     */
-    public TimeStampRequest generate(
-        String digestAlgorithm,
-        byte[] digest)
-    {
-        return this.generate(digestAlgorithm, digest, null);
-    }
-
-    /**
-     * @deprecated use method taking ANS1ObjectIdentifier
-     */
-    public TimeStampRequest generate(
-        String      digestAlgorithmOID,
-        byte[]      digest,
-        BigInteger  nonce)
-    {
-        if (digestAlgorithmOID == null)
-        {
-            throw new IllegalArgumentException("No digest algorithm specified");
-        }
-
-        ASN1ObjectIdentifier digestAlgOID = new ASN1ObjectIdentifier(digestAlgorithmOID);
-
-        AlgorithmIdentifier algID = dgstAlgFinder.find(digestAlgOID);
-        MessageImprint messageImprint = new MessageImprint(algID, digest);
-
-        Extensions  ext = null;
-        
-        if (!extGenerator.isEmpty())
-        {
-            ext = extGenerator.generate();
-        }
-        
-        if (nonce != null)
-        {
-            return new TimeStampRequest(new TimeStampReq(messageImprint,
-                    reqPolicy, new ASN1Integer(nonce), certReq, ext));
-        }
-        else
-        {
-            return new TimeStampRequest(new TimeStampReq(messageImprint,
-                    reqPolicy, null, certReq, ext));
-        }
     }
 
     public TimeStampRequest generate(ASN1ObjectIdentifier digestAlgorithm, byte[] digest)
