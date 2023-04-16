@@ -64,13 +64,19 @@ public final class Ed25519PrivateKeyParameters
         {
             if (null == cachedPublicKey)
             {
-                byte[] publicKey = new byte[Ed25519.PUBLIC_KEY_SIZE];
-                Ed25519.generatePublicKey(data, 0, publicKey, 0);
-                cachedPublicKey = new Ed25519PublicKeyParameters(publicKey, 0);
+                cachedPublicKey = new Ed25519PublicKeyParameters(Ed25519.generatePublicKey(data, 0));
             }
 
             return cachedPublicKey;
         }
+    }
+
+    /**
+     * @deprecated use overload that doesn't take a public key
+     */
+    public void sign(int algorithm, Ed25519PublicKeyParameters publicKey, byte[] ctx, byte[] msg, int msgOff, int msgLen, byte[] sig, int sigOff)
+    {
+        sign(algorithm, ctx, msg, msgOff, msgLen, sig, sigOff);
     }
 
     public void sign(int algorithm, byte[] ctx, byte[] msg, int msgOff, int msgLen, byte[] sig, int sigOff)
@@ -94,11 +100,28 @@ public final class Ed25519PrivateKeyParameters
         }
         case Ed25519.Algorithm.Ed25519ctx:
         {
+            if (null == ctx)
+            {
+                throw new NullPointerException("'ctx' cannot be null");
+            }
+            if (ctx.length > 255)
+            {
+                throw new IllegalArgumentException("ctx");
+            }
+
             Ed25519.sign(data, 0, pk, 0, ctx, msg, msgOff, msgLen, sig, sigOff);
             break;
         }
         case Ed25519.Algorithm.Ed25519ph:
         {
+            if (null == ctx)
+            {
+                throw new NullPointerException("'ctx' cannot be null");
+            }
+            if (ctx.length > 255)
+            {
+                throw new IllegalArgumentException("ctx");
+            }
             if (Ed25519.PREHASH_SIZE != msgLen)
             {
                 throw new IllegalArgumentException("msgLen");

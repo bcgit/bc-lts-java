@@ -8,6 +8,7 @@ import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Exceptions;
 
 /**
  * A participant in a Password Authenticated Key Exchange by Juggling (J-PAKE) exchange.
@@ -344,7 +345,7 @@ public class JPAKEParticipant
             throw new IllegalStateException("Round1 payload must be validated prior to creating Round2 payload for " + this.participantId);
         }
         BigInteger gA = JPAKEUtil.calculateGA(p, gx1, gx3, gx4);
-        BigInteger s = JPAKEUtil.calculateS(password);
+        BigInteger s = calculateS();
         BigInteger x2s = JPAKEUtil.calculateX2s(q, x2, s);
         BigInteger A = JPAKEUtil.calculateA(p, q, gA, x2s);
         BigInteger[] knowledgeProofForX2s = JPAKEUtil.calculateZeroKnowledgeProof(p, q, gA, A, x2s, participantId, digest, random);
@@ -426,7 +427,7 @@ public class JPAKEParticipant
         {
             throw new IllegalStateException("Round2 payload must be validated prior to creating key for " + participantId);
         }
-        BigInteger s = JPAKEUtil.calculateS(password);
+        BigInteger s = calculateS();
         
         /*
          * Clear the password array from memory, since we don't need it anymore.
@@ -545,4 +546,15 @@ public class JPAKEParticipant
         this.state = STATE_ROUND_3_VALIDATED;
     }
 
+    private BigInteger calculateS()
+    {
+        try
+        {
+            return JPAKEUtil.calculateS(q, password);
+        }
+        catch (CryptoException e)
+        {
+            throw Exceptions.illegalStateException(e.getMessage(), e);
+        }
+    }
 }

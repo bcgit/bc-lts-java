@@ -679,7 +679,7 @@ public abstract class ECCurve
 
         BigInteger q, r;
         ECPoint.Fp infinity;
-
+        
         public Fp(BigInteger q, BigInteger a, BigInteger b, BigInteger order, BigInteger cofactor)
         {
             this(q, a, b, order, cofactor, false);

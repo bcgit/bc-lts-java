@@ -64,13 +64,19 @@ public final class Ed448PrivateKeyParameters
         {
             if (null == cachedPublicKey)
             {
-                byte[] publicKey = new byte[Ed448.PUBLIC_KEY_SIZE];
-                Ed448.generatePublicKey(data, 0, publicKey, 0);
-                cachedPublicKey = new Ed448PublicKeyParameters(publicKey, 0);
+                cachedPublicKey = new Ed448PublicKeyParameters(Ed448.generatePublicKey(data, 0));
             }
 
             return cachedPublicKey;
         }
+    }
+
+    /**
+     * @deprecated use overload that doesn't take a public key
+     */
+    public void sign(int algorithm, Ed448PublicKeyParameters publicKey, byte[] ctx, byte[] msg, int msgOff, int msgLen, byte[] sig, int sigOff)
+    {
+        sign(algorithm, ctx, msg, msgOff, msgLen, sig, sigOff);
     }
 
     public void sign(int algorithm, byte[] ctx, byte[] msg, int msgOff, int msgLen, byte[] sig, int sigOff)
@@ -84,11 +90,28 @@ public final class Ed448PrivateKeyParameters
         {
         case Ed448.Algorithm.Ed448:
         {
+            if (null == ctx)
+            {
+                throw new NullPointerException("'ctx' cannot be null");
+            }
+            if (ctx.length > 255)
+            {
+                throw new IllegalArgumentException("ctx");
+            }
+
             Ed448.sign(data, 0, pk, 0, ctx, msg, msgOff, msgLen, sig, sigOff);
             break;
         }
         case Ed448.Algorithm.Ed448ph:
         {
+            if (null == ctx)
+            {
+                throw new NullPointerException("'ctx' cannot be null");
+            }
+            if (ctx.length > 255)
+            {
+                throw new IllegalArgumentException("ctx");
+            }
             if (Ed448.PREHASH_SIZE != msgLen)
             {
                 throw new IllegalArgumentException("msgLen");

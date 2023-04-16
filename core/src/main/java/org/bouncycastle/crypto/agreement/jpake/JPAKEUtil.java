@@ -56,12 +56,26 @@ public class JPAKEUtil
     }
 
     /**
-     * Converts the given password to a {@link BigInteger}
-     * for use in arithmetic calculations.
+     * Converts the given password to a {@link BigInteger} mod q.
      */
-    public static BigInteger calculateS(char[] password)
+    public static BigInteger calculateS(BigInteger q, byte[] password)
+        throws CryptoException
     {
-        return new BigInteger(Strings.toUTF8ByteArray(password));
+        BigInteger s = new BigInteger(1, password).mod(q);
+        if (s.signum() == 0)
+        {
+            throw new CryptoException("MUST ensure s is not equal to 0 modulo q");
+        }
+        return s;
+    }
+
+    /**
+     * Converts the given password to a {@link BigInteger} mod q.
+     */
+    public static BigInteger calculateS(BigInteger q, char[] password)
+        throws CryptoException
+    {
+        return calculateS(q, Strings.toUTF8ByteArray(password));
     }
 
     /**
