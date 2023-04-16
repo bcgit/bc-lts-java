@@ -7,6 +7,11 @@ import static ExtraFunctions.*
 jar.archiveBaseName = "bcprov-lts$vm_range"
 
 sourceSets {
+    main {
+        java {
+            srcDirs '../core/src/main/java'
+        }
+    }
     java9 {
         java {
             srcDirs = ['src/main/jdk1.9']
