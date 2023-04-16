@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.security.SecureRandom;
 
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
@@ -94,17 +95,21 @@ public class CBCBench
             {
                 t++;
                 output = asString(args, t, "-output");
-            } else if ("-variant".equals(args[t])) {
+            }
+            else if ("-variant".equals(args[t]))
+            {
                 t++;
-                System.setProperty("org.bouncycastle.native.cpu_variant",asString(args, t, "-variant"));
+                System.setProperty("org.bouncycastle.native.cpu_variant", asString(args, t, "-variant"));
             }
         }
 
+        NativeServices natServices = CryptoServicesRegistrar.getNativeServices();
 
         CBCModeCipher cbcEnc = CBCBlockCipher.newInstance(AESEngine.newInstance());
         CBCModeCipher cbcDec = CBCBlockCipher.newInstance(AESEngine.newInstance());
 
-        System.out.println(NativeServices.getVariant()+" "+ NativeServices.getBuildDate() +" "+NativeServices.getStatusMessage());
+        //-DM System.out.println
+        System.out.println(natServices.getVariant() + " " + natServices.getBuildDate() + " " + natServices.getStatusMessage());
 
         SecureRandom secureRandom = new SecureRandom();
 
@@ -188,9 +193,9 @@ public class CBCBench
                 double bytesPerSecondDec = (((double)msg.length) / decAvgNano) * 1000000000.0;
 
                 // -DM printf
-                pw.printf("%d\ttrue\t%d\t%.2f\n",ks, msg.length, bytesPerSecondEnc);
+                pw.printf("%d\ttrue\t%d\t%.2f\n", ks, msg.length, bytesPerSecondEnc);
                 // -DM printf
-                pw.printf("%d\tfalse\t%d\t%.2f\n",ks,  msg.length, bytesPerSecondDec);
+                pw.printf("%d\tfalse\t%d\t%.2f\n", ks, msg.length, bytesPerSecondDec);
 
 
             }

@@ -4,10 +4,9 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.security.SecureRandom;
 
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.modes.CBCBlockCipher;
-import org.bouncycastle.crypto.modes.CBCModeCipher;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -111,28 +110,30 @@ public class GCMBench
             {
                 t++;
                 output = asString(args, t, "-output");
-            } else if ("-variant".equals(args[t])) {
+            }
+            else if ("-variant".equals(args[t]))
+            {
                 t++;
-                System.setProperty("org.bouncycastle.native.cpu_variant",asString(args, t, "-variant"));
+                System.setProperty("org.bouncycastle.native.cpu_variant", asString(args, t, "-variant"));
             }
         }
 
+        NativeServices natServices = CryptoServicesRegistrar.getNativeServices();
 
         GCMModeCipher gcmEnc = GCMBlockCipher.newInstance(AESEngine.newInstance());
         GCMModeCipher gcmDec = GCMBlockCipher.newInstance(AESEngine.newInstance());
 
-
-        System.out.println(NativeServices.getVariant()+" "+ NativeServices.getBuildDate() +" "+NativeServices.getStatusMessage());
+        //-DM System.out.println
+        System.out.println(natServices.getVariant() + " " + natServices.getBuildDate() + " " + natServices.getStatusMessage());
 
         SecureRandom secureRandom = new SecureRandom();
-
 
         FileWriter fw = new FileWriter(output);
         PrintWriter pw = new PrintWriter(fw);
 
         pw.println("Keysize\tEncryption\tLength\tBPS");
 
-        for (int ks : new int[]{16,24,32}) //, 24, 32})
+        for (int ks : new int[]{16, 24, 32}) //, 24, 32})
         {
             byte[] key = new byte[ks];
             byte[] iv = new byte[12];
@@ -143,7 +144,6 @@ public class GCMBench
                 double count = 0;
 
 
-
                 long ts = 0;
                 long te = 0;
 
@@ -151,9 +151,8 @@ public class GCMBench
                 secureRandom.nextBytes(msg);
 
 
-                byte[] cipherText = new byte[msg.length+16];
+                byte[] cipherText = new byte[msg.length + 16];
                 byte[] finalResult = new byte[msg.length];
-
 
 
                 for (int b = 0; b < repeats; b++)
@@ -168,18 +167,17 @@ public class GCMBench
                     gcmDec.init(false, piv);
 
 
-
                     ts = System.nanoTime();
                     int l = gcmEnc.processBytes(msg, 0, msg.length, cipherText, 0);
                     te = System.nanoTime();
-                    gcmEnc.doFinal(cipherText,l);
+                    gcmEnc.doFinal(cipherText, l);
                     sumEnc += te - ts;
 
                     ts = System.nanoTime();
 
                     l = gcmDec.processBytes(cipherText, 0, cipherText.length, finalResult, 0);
                     te = System.nanoTime();
-                    gcmDec.doFinal(finalResult,l);
+                    gcmDec.doFinal(finalResult, l);
                     sumDec += te - ts;
 
                     count++;
@@ -218,11 +216,9 @@ public class GCMBench
                 double bytesPerSecondDec = (((double)msg.length) / decAvgNano) * 1000000000.0;
 
                 // -DM printf
-                pw.printf("%d\ttrue\t%d\t%.2f\n",ks, msg.length, bytesPerSecondEnc);
+                pw.printf("%d\ttrue\t%d\t%.2f\n", ks, msg.length, bytesPerSecondEnc);
                 // -DM printf
-                pw.printf("%d\tfalse\t%d\t%.2f\n",ks,  msg.length, bytesPerSecondDec);
-
-
+                pw.printf("%d\tfalse\t%d\t%.2f\n", ks, msg.length, bytesPerSecondDec);
 
 
             }
@@ -244,7 +240,8 @@ public class GCMBench
         try
         {
             i = Integer.parseInt(args[index].trim());
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             //-DM System.out.println
             System.out.println("count not parse " + name);

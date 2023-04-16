@@ -90,7 +90,7 @@ public class BCPBEKey
         if (param != null)
         {
             KeyParameter    kParam;
-
+            
             if (param instanceof ParametersWithIV)
             {
                 kParam = (KeyParameter)((ParametersWithIV)param).getParameters();
@@ -99,7 +99,7 @@ public class BCPBEKey
             {
                 kParam = (KeyParameter)param;
             }
-
+            
             enc = kParam.getKey();
         }
         else
@@ -113,7 +113,7 @@ public class BCPBEKey
                 enc = PBEParametersGenerator.PKCS5PasswordToUTF8Bytes(password);
             }
             else
-            {
+            {   
                 enc = PBEParametersGenerator.PKCS5PasswordToBytes(password);
             }
         }
@@ -122,7 +122,7 @@ public class BCPBEKey
 
         return enc;
     }
-
+    
     int getType()
     {
         int rv = type;
@@ -131,7 +131,7 @@ public class BCPBEKey
 
         return rv;
     }
-
+    
     int getDigest()
     {
         int rv = digest;
@@ -140,7 +140,7 @@ public class BCPBEKey
 
         return rv;
     }
-
+    
     int getKeySize()
     {
         int rv = keySize;
@@ -149,7 +149,7 @@ public class BCPBEKey
 
         return rv;
     }
-
+    
     public int getIvSize()
     {
         int rv = ivSize;
@@ -158,7 +158,7 @@ public class BCPBEKey
 
         return rv;
     }
-
+    
     public CipherParameters getParam()
     {
         CipherParameters rv = param;
@@ -208,7 +208,7 @@ public class BCPBEKey
 
         return rv;
     }
-
+    
     public ASN1ObjectIdentifier getOID()
     {
         ASN1ObjectIdentifier rv = oid;

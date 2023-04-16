@@ -1,5 +1,10 @@
 package org.bouncycastle.bctools;
 
+import java.io.FileWriter;
+import java.io.PrintWriter;
+import java.security.SecureRandom;
+
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
@@ -8,11 +13,6 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
-
-import javax.print.attribute.standard.MediaSize;
-import java.io.FileWriter;
-import java.io.PrintWriter;
-import java.security.SecureRandom;
 
 public class CFBBench
 {
@@ -30,7 +30,8 @@ public class CFBBench
         try
         {
             i = Integer.parseInt(args[index].trim());
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             //-DM System.out.println
             System.out.println("count not parse " + name);
@@ -64,7 +65,7 @@ public class CFBBench
 
 
     public static void main(String[] args)
-            throws Exception
+        throws Exception
     {
 
         int blockSize = 8;
@@ -79,30 +80,38 @@ public class CFBBench
             {
                 t++;
                 blockSize = asInt(args, t, "-blockSize");
-            } else if ("-maxBlocks".equals(args[t]))
+            }
+            else if ("-maxBlocks".equals(args[t]))
             {
                 t++;
                 maxBlocks = asInt(args, t, "-maxBlocks");
-            } else if ("-repeats".equals(args[t]))
+            }
+            else if ("-repeats".equals(args[t]))
             {
                 t++;
                 repeats = asInt(args, t, "-repeats");
-            } else if ("-output".equals(args[t]))
+            }
+            else if ("-output".equals(args[t]))
             {
                 t++;
                 output = asString(args, t, "-output");
-            } else if ("-variant".equals(args[t])) {
+            }
+            else if ("-variant".equals(args[t]))
+            {
                 t++;
-                System.setProperty("org.bouncycastle.native.cpu_variant",asString(args, t, "-variant"));
+                System.setProperty("org.bouncycastle.native.cpu_variant", asString(args, t, "-variant"));
             }
 
 
         }
 
+        NativeServices natServices = CryptoServicesRegistrar.getNativeServices();
+
         CFBModeCipher cfbEnc = CFBBlockCipher.newInstance(AESEngine.newInstance(), 128);
         CFBModeCipher cfbDec = CFBBlockCipher.newInstance(AESEngine.newInstance(), 128);
 
-        System.out.println(NativeServices.getVariant()+" "+ NativeServices.getBuildDate() +" "+NativeServices.getStatusMessage());
+        //-DM System.out.println
+        System.out.println(natServices.getVariant() + " " + natServices.getBuildDate() + " " + natServices.getStatusMessage());
 
         SecureRandom secureRandom = new SecureRandom();
 
@@ -182,9 +191,8 @@ public class CFBBench
                 double encAvgNano = sumEnc / count;
                 double decAvgNano = sumDec / count;
 
-                double bytesPerSecondEnc = (((double) msg.length) / encAvgNano) * 1000000000.0;
-                double bytesPerSecondDec = (((double) msg.length) / decAvgNano) * 1000000000.0;
-
+                double bytesPerSecondEnc = (((double)msg.length) / encAvgNano) * 1000000000.0;
+                double bytesPerSecondDec = (((double)msg.length) / decAvgNano) * 1000000000.0;
 
 
                 // -DM printf

@@ -12,11 +12,12 @@ import org.bouncycastle.test.PrintTestResult;
 public class AllTests
     extends TestCase
 {
-    public static void main (String[] args)
+    public static void main(String[] args)
     {
-       PrintTestResult.printResult(junit.textui.TestRunner.run(suite()));
+
+        PrintTestResult.printResult(junit.textui.TestRunner.run(suite()));
     }
-    
+
     public static Test suite()
     {
         TestSuite suite = new TestSuite("JCAJCE Provider Tests");
