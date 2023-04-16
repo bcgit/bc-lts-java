@@ -220,11 +220,6 @@ public class AESVectorFileTest
         test = new AESLightVectorFileTest();
         result = test.perform();
         System.out.println(result);
-
-        test = new AESFastVectorFileTest();
-        result = test.perform();
-        System.out.println(result);
-
     }
 
     private static class AESLightVectorFileTest extends AESVectorFileTest
@@ -237,20 +232,6 @@ public class AESVectorFileTest
         public String getName()
         {
             return "AESLight";
-        }
-
-    }
-
-    private static class AESFastVectorFileTest extends AESVectorFileTest
-    {
-        protected BlockCipher createNewEngineForTest()
-        {
-            return AESEngine.newInstance();
-        }
-
-        public String getName()
-        {
-            return "AES";
         }
 
     }

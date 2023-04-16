@@ -165,7 +165,7 @@ public class X9Test
     {
         return "X9";
     }
-                                                      
+    
     public static void main(
         String[]    args)
     {

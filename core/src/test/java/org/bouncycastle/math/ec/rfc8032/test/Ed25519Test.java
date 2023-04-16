@@ -2,18 +2,18 @@ package org.bouncycastle.math.ec.rfc8032.test;
 
 import java.security.SecureRandom;
 
-import junit.framework.TestCase;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.math.ec.rfc8032.Ed25519;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
+
+import junit.framework.TestCase;
 
 public class Ed25519Test
     extends TestCase
 {
     private static final SecureRandom RANDOM = new SecureRandom();
-
-    private static final byte[] NEUTRAL = Hex.decodeStrict("0100000000000000000000000000000000000000000000000000000000000000");
 
 //    @BeforeClass
 //    public static void init()
@@ -27,6 +27,7 @@ public class Ed25519Test
     {
         byte[] sk = new byte[Ed25519.SECRET_KEY_SIZE];
         byte[] pk = new byte[Ed25519.PUBLIC_KEY_SIZE];
+        byte[] pk2 = new byte[Ed25519.PUBLIC_KEY_SIZE];
         byte[] m = new byte[255];
         byte[] sig1 = new byte[Ed25519.SIGNATURE_SIZE];
         byte[] sig2 = new byte[Ed25519.SIGNATURE_SIZE];
@@ -36,7 +37,14 @@ public class Ed25519Test
         for (int i = 0; i < 10; ++i)
         {
             RANDOM.nextBytes(sk);
-            Ed25519.generatePublicKey(sk, 0, pk, 0);
+            Ed25519.PublicPoint publicPoint = Ed25519.generatePublicKey(sk, 0);
+            Ed25519.encodePublicPoint(publicPoint, pk, 0);
+
+            {
+                Ed25519.generatePublicKey(sk, 0, pk2, 0);
+
+                assertTrue("Ed25519 consistent generation #" + i, Arrays.areEqual(pk, pk2));
+            }
 
             int mLen = RANDOM.nextInt() & 255;
 
@@ -45,14 +53,29 @@ public class Ed25519Test
 
             assertTrue("Ed25519 consistent signatures #" + i, Arrays.areEqual(sig1, sig2));
 
-            boolean shouldVerify = Ed25519.verify(sig1, 0, pk, 0, m, 0, mLen);
+            {
+                boolean shouldVerify = Ed25519.verify(sig1, 0, pk, 0, m, 0, mLen);
 
-            assertTrue("Ed25519 consistent sign/verify #" + i, shouldVerify);
+                assertTrue("Ed25519 consistent sign/verify #" + i, shouldVerify);
+            }
+            {
+                boolean shouldVerify = Ed25519.verify(sig1, 0, publicPoint, m, 0, mLen);
+
+                assertTrue("Ed25519 consistent sign/verify #" + i, shouldVerify);
+            }
 
             sig1[Ed25519.PUBLIC_KEY_SIZE - 1] ^= 0x80;
-            boolean shouldNotVerify = Ed25519.verify(sig1, 0, pk, 0, m, 0, mLen);
 
-            assertFalse("Ed25519 consistent verification failure #" + i, shouldNotVerify);
+            {
+                boolean shouldNotVerify = Ed25519.verify(sig1, 0, pk, 0, m, 0, mLen);
+
+                assertFalse("Ed25519 consistent verification failure #" + i, shouldNotVerify);
+            }
+            {
+                boolean shouldNotVerify = Ed25519.verify(sig1, 0, publicPoint, m, 0, mLen);
+
+                assertFalse("Ed25519 consistent verification failure #" + i, shouldNotVerify);
+            }
         }
     }
     
@@ -61,6 +84,7 @@ public class Ed25519Test
     {
         byte[] sk = new byte[Ed25519.SECRET_KEY_SIZE];
         byte[] pk = new byte[Ed25519.PUBLIC_KEY_SIZE];
+        byte[] pk2 = new byte[Ed25519.PUBLIC_KEY_SIZE];
         byte[] ctx = new byte[RANDOM.nextInt() & 7];
         byte[] m = new byte[255];
         byte[] sig1 = new byte[Ed25519.SIGNATURE_SIZE];
@@ -72,7 +96,14 @@ public class Ed25519Test
         for (int i = 0; i < 10; ++i)
         {
             RANDOM.nextBytes(sk);
-            Ed25519.generatePublicKey(sk, 0, pk, 0);
+            Ed25519.PublicPoint publicPoint = Ed25519.generatePublicKey(sk, 0);
+            Ed25519.encodePublicPoint(publicPoint, pk, 0);
+
+            {
+                Ed25519.generatePublicKey(sk, 0, pk2, 0);
+
+                assertTrue("Ed25519 consistent generation #" + i, Arrays.areEqual(pk, pk2));
+            }
 
             int mLen = RANDOM.nextInt() & 255;
 
@@ -81,14 +112,29 @@ public class Ed25519Test
 
             assertTrue("Ed25519ctx consistent signatures #" + i, Arrays.areEqual(sig1, sig2));
 
-            boolean shouldVerify = Ed25519.verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
+            {
+                boolean shouldVerify = Ed25519.verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
 
-            assertTrue("Ed25519ctx consistent sign/verify #" + i, shouldVerify);
+                assertTrue("Ed25519ctx consistent sign/verify #" + i, shouldVerify);
+            }
+            {
+                boolean shouldVerify = Ed25519.verify(sig1, 0, publicPoint, ctx, m, 0, mLen);
+
+                assertTrue("Ed25519ctx consistent sign/verify #" + i, shouldVerify);
+            }
 
             sig1[Ed25519.PUBLIC_KEY_SIZE - 1] ^= 0x80;
-            boolean shouldNotVerify = Ed25519.verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
 
-            assertFalse("Ed25519ctx consistent verification failure #" + i, shouldNotVerify);
+            {
+                boolean shouldNotVerify = Ed25519.verify(sig1, 0, pk, 0, ctx, m, 0, mLen);
+
+                assertFalse("Ed25519ctx consistent verification failure #" + i, shouldNotVerify);
+            }
+            {
+                boolean shouldNotVerify = Ed25519.verify(sig1, 0, publicPoint, ctx, m, 0, mLen);
+
+                assertFalse("Ed25519ctx consistent verification failure #" + i, shouldNotVerify);
+            }
         }
     }
     
@@ -97,6 +143,7 @@ public class Ed25519Test
     {
         byte[] sk = new byte[Ed25519.SECRET_KEY_SIZE];
         byte[] pk = new byte[Ed25519.PUBLIC_KEY_SIZE];
+        byte[] pk2 = new byte[Ed25519.PUBLIC_KEY_SIZE];
         byte[] ctx = new byte[RANDOM.nextInt() & 7];
         byte[] m = new byte[255];
         byte[] ph = new byte[Ed25519.PREHASH_SIZE];
@@ -109,7 +156,14 @@ public class Ed25519Test
         for (int i = 0; i < 10; ++i)
         {
             RANDOM.nextBytes(sk);
-            Ed25519.generatePublicKey(sk, 0, pk, 0);
+            Ed25519.PublicPoint publicPoint = Ed25519.generatePublicKey(sk, 0);
+            Ed25519.encodePublicPoint(publicPoint, pk, 0);
+
+            {
+                Ed25519.generatePublicKey(sk, 0, pk2, 0);
+
+                assertTrue("Ed25519 consistent generation #" + i, Arrays.areEqual(pk, pk2));
+            }
 
             int mLen = RANDOM.nextInt() & 255;
 
@@ -122,14 +176,29 @@ public class Ed25519Test
 
             assertTrue("Ed25519ph consistent signatures #" + i, Arrays.areEqual(sig1, sig2));
 
-            boolean shouldVerify = Ed25519.verifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
+            {
+                boolean shouldVerify = Ed25519.verifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
 
-            assertTrue("Ed25519ph consistent sign/verify #" + i, shouldVerify);
+                assertTrue("Ed25519ph consistent sign/verify #" + i, shouldVerify);
+            }
+            {
+                boolean shouldVerify = Ed25519.verifyPrehash(sig1, 0, publicPoint, ctx, ph, 0);
+
+                assertTrue("Ed25519ph consistent sign/verify #" + i, shouldVerify);
+            }
 
             sig1[Ed25519.PUBLIC_KEY_SIZE - 1] ^= 0x80;
-            boolean shouldNotVerify = Ed25519.verifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
 
-            assertFalse("Ed25519ph consistent verification failure #" + i, shouldNotVerify);
+            {
+                boolean shouldNotVerify = Ed25519.verifyPrehash(sig1, 0, pk, 0, ctx, ph, 0);
+
+                assertFalse("Ed25519ph consistent verification failure #" + i, shouldNotVerify);
+            }
+            {
+                boolean shouldNotVerify = Ed25519.verifyPrehash(sig1, 0, publicPoint, ctx, ph, 0);
+
+                assertFalse("Ed25519ph consistent verification failure #" + i, shouldNotVerify);
+            }
         }
     }
 
@@ -369,8 +438,6 @@ public class Ed25519Test
 
     public void testPublicKeyValidationFull()
     {
-        assertFalse(Ed25519.validatePublicKeyFull(NEUTRAL, 0));
-
         byte[] sk = new byte[Ed25519.SECRET_KEY_SIZE];
         byte[] pk = new byte[Ed25519.PUBLIC_KEY_SIZE];
 
@@ -381,8 +448,23 @@ public class Ed25519Test
             assertTrue(Ed25519.validatePublicKeyFull(pk, 0));
         }
 
-        assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("0100000000000000000000000000000000000000000000000000000000000080"), 0));
+        // Small order points (canonical encodings)
+        assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("0000000000000000000000000000000000000000000000000000000000000000"), 0));
+        assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("0000000000000000000000000000000000000000000000000000000000000080"), 0));
+        assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("0100000000000000000000000000000000000000000000000000000000000000"), 0));
+        assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("ECFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
+        assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("C7176A703D4DD84FBA3C0B760D10670F2A2053FA2C39CCC64EC7FD7792AC037A"), 0));
+        assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("C7176A703D4DD84FBA3C0B760D10670F2A2053FA2C39CCC64EC7FD7792AC03FA"), 0));
+        assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("26E8958FC2B227B045C3F489F2EF98F0D5DFAC05D3C63339B13802886D53FC05"), 0));
+        assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("26E8958FC2B227B045C3F489F2EF98F0D5DFAC05D3C63339B13802886D53FC85"), 0));
 
+        // Small order points (non-canonical encodings)
+        assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("0100000000000000000000000000000000000000000000000000000000000080"), 0));
+        assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("ECFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
+
+        // Non-canonical encodings
+        assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("EDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
+        assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("EDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
         assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
         assertFalse(Ed25519.validatePublicKeyFull(Hex.decodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
 
@@ -411,8 +493,6 @@ public class Ed25519Test
 
     public void testPublicKeyValidationPartial()
     {
-        assertTrue(Ed25519.validatePublicKeyPartial(NEUTRAL, 0));
-
         byte[] sk = new byte[Ed25519.SECRET_KEY_SIZE];
         byte[] pk = new byte[Ed25519.PUBLIC_KEY_SIZE];
 
@@ -423,8 +503,23 @@ public class Ed25519Test
             assertTrue(Ed25519.validatePublicKeyPartial(pk, 0));
         }
 
-        assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("0100000000000000000000000000000000000000000000000000000000000080"), 0));
+        // Small order points (canonical encodings)
+        assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("0000000000000000000000000000000000000000000000000000000000000000"), 0));
+        assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("0000000000000000000000000000000000000000000000000000000000000080"), 0));
+        assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("0100000000000000000000000000000000000000000000000000000000000000"), 0));
+        assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("ECFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
+        assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("C7176A703D4DD84FBA3C0B760D10670F2A2053FA2C39CCC64EC7FD7792AC037A"), 0));
+        assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("C7176A703D4DD84FBA3C0B760D10670F2A2053FA2C39CCC64EC7FD7792AC03FA"), 0));
+        assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("26E8958FC2B227B045C3F489F2EF98F0D5DFAC05D3C63339B13802886D53FC05"), 0));
+        assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("26E8958FC2B227B045C3F489F2EF98F0D5DFAC05D3C63339B13802886D53FC85"), 0));
 
+        // Small order points (non-canonical encodings)
+        assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("0100000000000000000000000000000000000000000000000000000000000080"), 0));
+        assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("ECFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
+
+        // Non-canonical encodings
+        assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("EDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
+        assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("EDFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
         assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF7F"), 0));
         assertFalse(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), 0));
 
@@ -449,6 +544,160 @@ public class Ed25519Test
         assertTrue(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("FA4DA03321816C1C9066BD250982DDD1B4349C43C5E124D2B39F8DDA4E5364F8"), 0));
         assertTrue(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("FCADF40DE51A943F3B7847DBEBA0627B33D020D81DFFABF2B3701BD9B746952A"), 0));
         assertTrue(Ed25519.validatePublicKeyPartial(Hex.decodeStrict("379B071E6F7E2479D5A8588AB708137808D63F689127D4A228E2C1681873C55E"), 0));
+    }
+
+    /*
+     * Test vectors from the paper "Taming the many EdDSAs" (https://ia.cr/2020/1244).
+     */
+
+    public void testTamingNonRepudiation()
+    {
+        byte[] msg1 = Strings.toUTF8ByteArray("Send 100 USD to Alice");
+        byte[] msg2 = Strings.toUTF8ByteArray("Send 100000 USD to Alice");
+        byte[] pub = Hex.decodeStrict("ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f");
+        byte[] sig = Hex.decodeStrict("a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dc" +
+                                      "a5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04");
+
+        assertFalse(Ed25519.verify(sig, 0, pub, 0, msg1, 0, msg1.length));
+        assertFalse(Ed25519.verify(sig, 0, pub, 0, msg2, 0, msg2.length));
+    }
+
+    public void testTamingVector_00()
+    {
+        implTamingVector(0, false,
+            "8c93255d71dcab10e8f379c26200f3c7bd5f09d9bc3068d3ef4edeb4853022b6",
+            "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
+            "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac037a" +
+            "0000000000000000000000000000000000000000000000000000000000000000");
+    }
+
+    public void testTamingVector_01()
+    {
+        implTamingVector(1, false,
+            "9bd9f44f4dcc75bd531b56b2cd280b0bb38fc1cd6d1230e14861d861de092e79",
+            "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa",
+            "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43" +
+            "a5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04");
+    }
+
+    public void testTamingVector_02()
+    {
+        // NOTE: Algorithm 2 accepts this, although LibSodium rejects R as one of 8 small order points
+        implTamingVector(2, true,
+            "aebf3f2601a0c8c5d39cc7d8911642f740b78168218da8471772b35f9d35b9ab",
+            "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
+            "c7176a703d4dd84fba3c0b760d10670f2a2053fa2c39ccc64ec7fd7792ac03fa" +
+            "8c4bd45aecaca5b24fb97bc10ac27ac8751a7dfe1baff8b953ec9f5833ca260e");
+    }
+
+    public void testTamingVector_03()
+    {
+        // NOTE: Has mixed-order A and R; a full check could catch this, but is (too) expensive
+        implTamingVector(3, true,
+            "9bd9f44f4dcc75bd531b56b2cd280b0bb38fc1cd6d1230e14861d861de092e79",
+            "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
+            "9046a64750444938de19f227bb80485e92b83fdb4b6506c160484c016cc1852f" +
+            "87909e14428a7a1d62e9f22f3d3ad7802db02eb2e688b6c52fcd6648a98bd009");
+    }
+
+    public void testTamingVector_04()
+    {
+        implTamingVector(4, true,
+            "e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec4011eaccd55b53f56c",
+            "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
+            "160a1cb0dc9c0258cd0a7d23e94d8fa878bcb1925f2c64246b2dee1796bed512" +
+            "5ec6bc982a269b723e0668e540911a9a6a58921d6925e434ab10aa7940551a09");
+    }
+
+    public void testTamingVector_05()
+    {
+        implTamingVector(5, true,
+            "e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec4011eaccd55b53f56c",
+            "cdb267ce40c5cd45306fa5d2f29731459387dbf9eb933b7bd5aed9a765b88d4d",
+            "21122a84e0b5fca4052f5b1235c80a537878b38f3142356b2c2384ebad4668b7" +
+            "e40bc836dac0f71076f9abe3a53f9c03c1ceeeddb658d0030494ace586687405");
+    }
+
+    public void testTamingVector_06()
+    {
+        implTamingVector(6, false,
+            "85e241a07d148b41e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec40",
+            "442aad9f089ad9e14647b1ef9099a1ff4798d78589e66f28eca69c11f582a623",
+            "e96f66be976d82e60150baecff9906684aebb1ef181f67a7189ac78ea23b6c0e" +
+            "547f7690a0e2ddcd04d87dbc3490dc19b3b3052f7ff0538cb68afb369ba3a514");
+    }
+
+    public void testTamingVector_07()
+    {
+        implTamingVector(7, false,
+            "85e241a07d148b41e47d62c63f830dc7a6851a0b1f33ae4bb2f507fb6cffec40",
+            "442aad9f089ad9e14647b1ef9099a1ff4798d78589e66f28eca69c11f582a623",
+            "8ce5b96c8f26d0ab6c47958c9e68b937104cd36e13c33566acd2fe8d38aa1942" +
+            "7e71f98a4734e74f2f13f06f97c20d58cc3f54b8bd0d272f42b695dd7e89a8c22");
+    }
+
+    public void testTamingVector_08()
+    {
+        implTamingVector(8, false,
+            "9bedc267423725d473888631ebf45988bad3db83851ee85c85e241a07d148b41",
+            "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
+            "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" +
+            "03be9678ac102edcd92b0210bb34d7428d12ffc5df5f37e359941266a4e35f0f");
+    }
+
+    public void testTamingVector_09()
+    {
+        implTamingVector(9, false,
+            "9bedc267423725d473888631ebf45988bad3db83851ee85c85e241a07d148b41",
+            "f7badec5b8abeaf699583992219b7b223f1df3fbbea919844e3f7c554a43dd43",
+            "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff" +
+            "ca8c5b64cd208982aa38d4936621a4775aa233aa0505711d8fdcfdaa943d4908");
+    }
+
+    public void testTamingVector_10()
+    {
+        implTamingVector(10, false,
+            "e96b7021eb39c1a163b6da4e3093dcd3f21387da4cc4572be588fafae23c155b",
+            "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dc" +
+            "a5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04");
+    }
+
+    public void testTamingVector_11()
+    {
+        implTamingVector(11, false,
+            "39a591f5321bbe07fd5a23dc2f39d025d74526615746727ceefd6e82ae65c06f",
+            "ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+            "a9d55260f765261eb9b84e106f665e00b867287a761990d7135963ee0a7d59dc" +
+            "a5bb704786be79fc476f91d3f3f89b03984d8068dcf1bb7dfc6637b45450ac04");
+    }
+
+    private static void implTamingVector(int number, boolean expected, String msgHex, String pubHex, String sigHex)
+    {
+        boolean actual = implTamingVector(msgHex, pubHex, sigHex);
+
+        assertEquals("Failed Taming EdDSA Vector #" + number, expected, actual);
+    }
+
+    private static boolean implTamingVector(String msgHex, String pubHex, String sigHex)
+    {
+        if (sigHex.length() != Ed25519.SIGNATURE_SIZE * 2)
+        {
+            return false;
+        }
+
+        byte[] msg = Hex.decodeStrict(msgHex);
+        byte[] pub = Hex.decodeStrict(pubHex);
+        byte[] sig = Hex.decodeStrict(sigHex);
+
+        try
+        {
+            return Ed25519.verify(sig, 0, pub, 0, msg, 0, msg.length);
+        }
+        catch (RuntimeException e)
+        {
+            return false;
+        }
     }
 
     private static void checkEd25519Vector(String sSK, String sPK, String sM, String sSig, String text)

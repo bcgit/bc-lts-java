@@ -99,7 +99,7 @@ public class PrimesTest extends TestCase
 
     public void testSTRandomPrime()
     {
-        Digest[] digests = new Digest[]{ new SHA1Digest(), SHA256Digest.newInstance() };
+        Digest[] digests = new Digest[]{ new SHA1Digest(), new SHA256Digest() };
         for (int digestIndex = 0; digestIndex < digests.length; ++digestIndex)
         {
             int coincidenceCount = 0;

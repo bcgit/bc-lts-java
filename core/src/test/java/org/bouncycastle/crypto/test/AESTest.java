@@ -397,15 +397,15 @@ public class AESTest
         engine.init(true, params);
 
         SecureRandom rand = new SecureRandom();
-        byte[]       cipher = new byte[256 * 16];
-        byte[]       plain = new byte[255 * 16];
+        byte[]       cipher = new byte[256 * 16 + 1];
+        byte[]       plain = new byte[256 * 16];
 
         rand.nextBytes(plain);
         engine.processBytes(plain, 0, plain.length, cipher, 0);
 
         engine.init(true, params);
 
-        plain = new byte[256 * 16];
+        plain = new byte[256 * 16 + 1];
         engine.init(true, params);
 
         try
