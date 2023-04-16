@@ -5,7 +5,7 @@ import java.security.SecureRandom;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DefaultBufferedMultiBlockCipher;
+import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
@@ -14,6 +14,7 @@ import org.bouncycastle.crypto.modes.OFBBlockCipher;
 import org.bouncycastle.crypto.modes.SICBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
 
@@ -37,7 +38,7 @@ public class AESTest
 
     static SimpleTest[]  tests = 
             {
-                new BlockCipherVectorTest(0,  AESEngine.newInstance() ,
+                new BlockCipherVectorTest(0, AESEngine.newInstance(),
                         new KeyParameter(Hex.decode("80000000000000000000000000000000")),
                         "00000000000000000000000000000000", "0EDD33D3C621E546455BD8BA1418BEC8"),
                 new BlockCipherVectorTest(1, AESEngine.newInstance(),
@@ -111,7 +112,7 @@ public class AESTest
                         "C737317FE0846F132B23C8C2A672CE22", "E58B82BFBA53C0040DC610C642121168")
             };
     
-    private BlockCipher _engine =   AESEngine.newInstance();
+    private BlockCipher _engine = AESEngine.newInstance();
 
     public AESTest()
     {
@@ -126,7 +127,7 @@ public class AESTest
     private void testNullSIC()
         throws InvalidCipherTextException
     {
-        BufferedBlockCipher b = new DefaultBufferedMultiBlockCipher(new SICBlockCipher(AESEngine.newInstance()));
+        BufferedBlockCipher b = new DefaultBufferedBlockCipher(new SICBlockCipher(AESEngine.newInstance()));
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         b.init(true, new ParametersWithIV(kp, new byte[16]));
@@ -157,7 +158,7 @@ public class AESTest
     private void testNullCBC()
         throws InvalidCipherTextException
     {
-        BufferedBlockCipher b = new DefaultBufferedMultiBlockCipher(CBCBlockCipher.newInstance(AESEngine.newInstance()));
+        BufferedBlockCipher b = new DefaultBufferedBlockCipher(new CBCBlockCipher(AESEngine.newInstance()));
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         b.init(true, new ParametersWithIV(kp, new byte[16]));
@@ -188,7 +189,7 @@ public class AESTest
     private void testNullOFB()
         throws InvalidCipherTextException
     {
-        BufferedBlockCipher b = new DefaultBufferedMultiBlockCipher(new OFBBlockCipher(AESEngine.newInstance(), 128));
+        BufferedBlockCipher b = new DefaultBufferedBlockCipher(new OFBBlockCipher(AESEngine.newInstance(), 128));
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         b.init(true, new ParametersWithIV(kp, new byte[16]));
@@ -219,7 +220,7 @@ public class AESTest
     private void testNullCFB()
         throws InvalidCipherTextException
     {
-        BufferedBlockCipher b = new DefaultBufferedMultiBlockCipher(new CFBBlockCipher(AESEngine.newInstance(), 128));
+        BufferedBlockCipher b = new DefaultBufferedBlockCipher(new CFBBlockCipher(AESEngine.newInstance(), 128));
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         b.init(true, new ParametersWithIV(kp, new byte[16]));
@@ -422,6 +423,44 @@ public class AESTest
         }
     }
 
+    private void testLastByte()
+        throws Exception
+    {
+        SICBlockCipher cipher = new SICBlockCipher(AESEngine.newInstance());
+        byte[] iv = new byte[15];
+        byte[] key = new byte[16];
+
+        Arrays.fill(iv, (byte)0x0a);
+        cipher.init(true, new ParametersWithIV(new KeyParameter(key), iv));
+
+        int lastBlock = 255; // the last block
+        cipher.seekTo((lastBlock * 16));
+
+
+        for (int t = 0; t < 15; t++)     // the last byte
+        {
+            cipher.returnByte((byte)0x00);
+        }
+
+        //
+        // This should return the last byte
+        //
+        cipher.returnByte((byte)0);
+
+        //
+        // This should fail.
+        //
+        try
+        {
+            cipher.returnByte((byte)0);
+            fail("should not succed");
+        }
+        catch (Exception ex)
+        {
+            isEquals(ex.getMessage(), "Counter in CTR/SIC mode out of range.");
+        }
+    }
+
     private void ctrFragmentedTest()
         throws InvalidCipherTextException
     {
@@ -498,6 +537,7 @@ public class AESTest
         skipTest();
         ctrCounterTest();
         ctrFragmentedTest();
+        testLastByte();
     }
 
     public static void main(
