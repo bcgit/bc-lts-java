@@ -1,7 +1,9 @@
 package org.bouncycastle.operator;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
@@ -28,6 +30,8 @@ public class DefaultDigestAlgorithmIdentifierFinder
     private static Map digestOids = new HashMap();
     private static Map digestNameToOids = new HashMap();
     private static Map digestOidToAlgIds = new HashMap();
+
+    private static Set shake256oids = new HashSet();  // signatures that use SHAKE-256
 
     static
     {
@@ -104,9 +108,18 @@ public class DefaultDigestAlgorithmIdentifierFinder
         digestOids.put(BCObjectIdentifiers.sphincs256_with_SHA3_512, NISTObjectIdentifiers.id_sha3_512);
         digestOids.put(BCObjectIdentifiers.sphincs256_with_SHA512, NISTObjectIdentifiers.id_sha512);
 
-        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_256, NISTObjectIdentifiers.id_shake256);
-        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha_256, NISTObjectIdentifiers.id_sha256);
-        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha_512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_128s_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_128f_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_128s_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_128f_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_192s_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_192f_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_192s_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_192f_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_256s_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_256f_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_256s_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_256f_r3, NISTObjectIdentifiers.id_shake256);
 
         digestOids.put(BCObjectIdentifiers.falcon, NISTObjectIdentifiers.id_shake256);
         digestOids.put(BCObjectIdentifiers.falcon_512, NISTObjectIdentifiers.id_shake256);
@@ -209,6 +222,18 @@ public class DefaultDigestAlgorithmIdentifierFinder
         addDigestAlgId(TeleTrusTObjectIdentifiers.ripemd128, true);
         addDigestAlgId(TeleTrusTObjectIdentifiers.ripemd160, true);
         addDigestAlgId(TeleTrusTObjectIdentifiers.ripemd256, true);
+
+        shake256oids.add(EdECObjectIdentifiers.id_Ed448);
+
+        shake256oids.add(BCObjectIdentifiers.dilithium2);
+        shake256oids.add(BCObjectIdentifiers.dilithium3);
+        shake256oids.add(BCObjectIdentifiers.dilithium5);
+        shake256oids.add(BCObjectIdentifiers.dilithium2_aes);
+        shake256oids.add(BCObjectIdentifiers.dilithium3_aes);
+        shake256oids.add(BCObjectIdentifiers.dilithium5_aes);
+
+        shake256oids.add(BCObjectIdentifiers.falcon_512);
+        shake256oids.add(BCObjectIdentifiers.falcon_1024);
     }
 
     private static void addDigestAlgId(ASN1ObjectIdentifier oid, boolean withNullParams)
@@ -229,7 +254,7 @@ public class DefaultDigestAlgorithmIdentifierFinder
     {
         ASN1ObjectIdentifier sigAlgOid = sigAlgId.getAlgorithm();
 
-        if (sigAlgOid.equals(EdECObjectIdentifiers.id_Ed448))
+        if (shake256oids.contains(sigAlgOid))
         {
             return new AlgorithmIdentifier(NISTObjectIdentifiers.id_shake256_len, new ASN1Integer(512));
         }
