@@ -11,6 +11,7 @@ test-java-code:
   stage: test
   script:
     - "apply_overlay bc-java ./"
+    - "sh gettestdata.sh"
     - . cienv-11.sh
     - "./gradlew clean withNative prov:build util:build pg:build pkix:build tls:build mail:build"
 
@@ -18,6 +19,7 @@ test-code-sse:
   stage: testSSE
   script:
     - "apply_overlay bc-java ./"
+    - "sh gettestdata.sh"
     - "rm -rf /tmp/bcfipslibs"
     - "mkdir -p /tmp/bcfipslibs"
     - . cienv-11.sh
@@ -33,6 +35,7 @@ test-code-avx:
   stage: testAVX
   script:
     - "apply_overlay bc-java ./"
+    - "sh gettestdata.sh"
     - "rm -rf /tmp/bcfipslibs"
     - "mkdir -p /tmp/bcfipslibs"
     - . cienv-11.sh
@@ -47,6 +50,7 @@ test-code-vaes:
   stage: testVAES
   script:
     - "apply_overlay bc-java ./"
+    - "sh gettestdata.sh"
     - "rm -rf /tmp/bcfipslibs"
     - "mkdir -p /tmp/bcfipslibs"
     - . cienv-11.sh
@@ -61,6 +65,7 @@ test-code-vaesf:
   stage: testVAESF
   script:
     - "apply_overlay bc-java ./"
+    - "sh gettestdata.sh"
     - "rm -rf /tmp/bcfipslibs"
     - "mkdir -p /tmp/bcfipslibs"
     - . cienv-11.sh
