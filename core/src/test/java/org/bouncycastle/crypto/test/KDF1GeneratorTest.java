@@ -2,9 +2,9 @@ package org.bouncycastle.crypto.test;
 
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DerivationFunction;
-import org.bouncycastle.crypto.digests.ShortenedDigest;
 import org.bouncycastle.crypto.digests.SHA1Digest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.digests.ShortenedDigest;
 import org.bouncycastle.crypto.generators.KDF1BytesGenerator;
 import org.bouncycastle.crypto.params.ISO18033KDFParameters;
 import org.bouncycastle.util.encoders.Hex;
