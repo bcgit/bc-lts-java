@@ -30,8 +30,6 @@ sourceSets {
 }
 
 dependencies {
-  implementation(project(':core'))
-
   java9Implementation files([project(":core").sourceSets.main.output.classesDirs, sourceSets.main.output.classesDirs]) {
      builtBy compileJava
   }
@@ -109,14 +107,13 @@ task fullJavaDoc(type: Javadoc) {
   title = "Bouncy Castle Library (LTS Edition) ${version} Provider API"
   options.windowTitle = "Bouncy Castle Library (LTS Edition) ${version} Provider API"
   options.overview = "overview.html"
-  source = files([sourceSets.main.allJava, project(":core").sourceSets.main.allJava])
+  source = files([sourceSets.main.allJava])
 }
 
 task javadocJar(type: Jar, dependsOn: fullJavaDoc) {
   archiveBaseName = jar.archiveBaseName
   classifier = 'javadoc'
   from javadoc.destinationDir
-  from rootProject.project(":core").javadoc.destinationDir
 }
 
 artifacts {
