@@ -1,6 +1,5 @@
 package org.bouncycastle.tsp;
 
-import java.io.IOException;
 import java.math.BigInteger;
 
 import org.bouncycastle.asn1.ASN1Boolean;
