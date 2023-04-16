@@ -133,7 +133,7 @@ public interface BCObjectIdentifiers
     ASN1ObjectIdentifier xmss_mt_SHA512 = xmss_mt.branch("6");
     ASN1ObjectIdentifier xmss_mt_SHAKE128 = xmss_mt.branch("7");
     ASN1ObjectIdentifier xmss_mt_SHAKE256 = xmss_mt.branch("8");
-
+    
     /**
      * qTESLA
      */
@@ -153,10 +153,26 @@ public interface BCObjectIdentifiers
      * SPHINCS+
      */
     ASN1ObjectIdentifier sphincsPlus = bc_sig.branch("5");
-    ASN1ObjectIdentifier sphincsPlus_shake_256 = sphincsPlus.branch("1");
-    ASN1ObjectIdentifier sphincsPlus_sha_256 = sphincsPlus.branch("2");
-    ASN1ObjectIdentifier sphincsPlus_sha_512 = sphincsPlus.branch("3");
-    ASN1ObjectIdentifier sphincsPlus_haraka = sphincsPlus.branch("4");
+    ASN1ObjectIdentifier sphincsPlus_sha2_128s_r3 = sphincsPlus.branch("1");
+    ASN1ObjectIdentifier sphincsPlus_sha2_128f_r3 = sphincsPlus.branch("2");
+    ASN1ObjectIdentifier sphincsPlus_shake_128s_r3 = sphincsPlus.branch("3");
+    ASN1ObjectIdentifier sphincsPlus_shake_128f_r3 = sphincsPlus.branch("4");
+    ASN1ObjectIdentifier sphincsPlus_haraka_128s_r3 = sphincsPlus.branch("5");
+    ASN1ObjectIdentifier sphincsPlus_haraka_128f_r3 = sphincsPlus.branch("6");
+
+    ASN1ObjectIdentifier sphincsPlus_sha2_192s_r3 = sphincsPlus.branch("7");
+    ASN1ObjectIdentifier sphincsPlus_sha2_192f_r3 = sphincsPlus.branch("8");
+    ASN1ObjectIdentifier sphincsPlus_shake_192s_r3 = sphincsPlus.branch("9");
+    ASN1ObjectIdentifier sphincsPlus_shake_192f_r3 = sphincsPlus.branch("10");
+    ASN1ObjectIdentifier sphincsPlus_haraka_192s_r3 = sphincsPlus.branch("11");
+    ASN1ObjectIdentifier sphincsPlus_haraka_192f_r3 = sphincsPlus.branch("12");
+
+    ASN1ObjectIdentifier sphincsPlus_sha2_256s_r3 = sphincsPlus.branch("13");
+    ASN1ObjectIdentifier sphincsPlus_sha2_256f_r3 = sphincsPlus.branch("14");
+    ASN1ObjectIdentifier sphincsPlus_shake_256s_r3 = sphincsPlus.branch("15");
+    ASN1ObjectIdentifier sphincsPlus_shake_256f_r3 = sphincsPlus.branch("16");
+    ASN1ObjectIdentifier sphincsPlus_haraka_256s_r3 = sphincsPlus.branch("17");
+    ASN1ObjectIdentifier sphincsPlus_haraka_256f_r3 = sphincsPlus.branch("18");
 
     /**
      * Picnic
@@ -204,6 +220,19 @@ public interface BCObjectIdentifiers
     ASN1ObjectIdentifier dilithium2_aes = new ASN1ObjectIdentifier("1.3.6.1.4.1.2.267.11.4.4"); // dilithium.branch("4");
     ASN1ObjectIdentifier dilithium3_aes = new ASN1ObjectIdentifier("1.3.6.1.4.1.2.267.11.6.5"); // dilithium.branch("5");
     ASN1ObjectIdentifier dilithium5_aes = new ASN1ObjectIdentifier("1.3.6.1.4.1.2.267.11.8.7"); // dilithium.branch("6");
+
+    /*
+     * Rainbow
+     */
+    ASN1ObjectIdentifier rainbow = bc_sig.branch("9");
+
+    // OpenSSL OIDs
+    ASN1ObjectIdentifier rainbow_III_classic = rainbow.branch("1");
+    ASN1ObjectIdentifier rainbow_III_circumzenithal = rainbow.branch("2");
+    ASN1ObjectIdentifier rainbow_III_compressed = rainbow.branch("3");
+    ASN1ObjectIdentifier rainbow_V_classic = rainbow.branch("4");
+    ASN1ObjectIdentifier rainbow_V_circumzenithal = rainbow.branch("5");
+    ASN1ObjectIdentifier rainbow_V_compressed = rainbow.branch("6");
 
     /**
      * key_exchange(3) algorithms
@@ -273,6 +302,15 @@ public interface BCObjectIdentifiers
     ASN1ObjectIdentifier lightsaberkem256r3 = pqc_kem_saber.branch("7");
     ASN1ObjectIdentifier saberkem256r3 = pqc_kem_saber.branch("8");
     ASN1ObjectIdentifier firesaberkem256r3 = pqc_kem_saber.branch("9");
+    ASN1ObjectIdentifier ulightsaberkemr3 = pqc_kem_saber.branch("10");
+    ASN1ObjectIdentifier usaberkemr3 = pqc_kem_saber.branch("11");
+    ASN1ObjectIdentifier ufiresaberkemr3 = pqc_kem_saber.branch("12");
+    ASN1ObjectIdentifier lightsaberkem90sr3 = pqc_kem_saber.branch("13");
+    ASN1ObjectIdentifier saberkem90sr3 = pqc_kem_saber.branch("14");
+    ASN1ObjectIdentifier firesaberkem90sr3 = pqc_kem_saber.branch("15");
+    ASN1ObjectIdentifier ulightsaberkem90sr3 = pqc_kem_saber.branch("16");
+    ASN1ObjectIdentifier usaberkem90sr3 = pqc_kem_saber.branch("17");
+    ASN1ObjectIdentifier ufiresaberkem90sr3 = pqc_kem_saber.branch("18");
 
     /**
      * SIKE

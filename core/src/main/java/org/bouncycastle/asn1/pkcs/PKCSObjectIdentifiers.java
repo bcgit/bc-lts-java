@@ -243,8 +243,20 @@ public interface PKCSObjectIdentifiers
 
     /** S/MIME: Algorithm Identifiers ; 1.2.840.113549.1.9.16.3 */
     ASN1ObjectIdentifier id_alg                  = id_smime.branch("3");
+
+    /** PKCS#9: 1.2.840.113549.1.9.16.3.5 */
+    ASN1ObjectIdentifier    id_alg_ESDH             = id_alg.branch("5");
+    /** PKCS#9: 1.2.840.113549.1.9.16.3.6 */
+    ASN1ObjectIdentifier    id_alg_CMS3DESwrap      = id_alg.branch("6");
+    /** PKCS#9: 1.2.840.113549.1.9.16.3.7 */
+    ASN1ObjectIdentifier    id_alg_CMSRC2wrap       = id_alg.branch("7");
+    /** PKCS#9: 1.2.840.113549.1.9.16.3.8 */
+    ASN1ObjectIdentifier id_alg_zlibCompress        = id_alg.branch("8");
     /** PKCS#9: 1.2.840.113549.1.9.16.3.9 */
-    ASN1ObjectIdentifier id_alg_PWRI_KEK         = id_alg.branch("9");
+    ASN1ObjectIdentifier id_alg_PWRI_KEK            = id_alg.branch("9");
+    /** PKCS#9: 1.2.840.113549.1.9.16.3.10 */
+    ASN1ObjectIdentifier    id_alg_SSDH             = id_alg.branch("10");
+
     /**
      * <pre>
      * -- RSA-KEM Key Transport Algorithm  RFC 5990
@@ -447,14 +459,5 @@ public interface PKCSObjectIdentifiers
     ASN1ObjectIdentifier    pbeWithSHAAnd128BitRC2_CBC      = pkcs_12PbeIds.branch("5");
     /** PKCS#12: 1.2.840.113549.1.12.1.6 */
     ASN1ObjectIdentifier    pbeWithSHAAnd40BitRC2_CBC       = pkcs_12PbeIds.branch("6");
-
-    /** PKCS#9: 1.2.840.113549.1.9.16.3.6 */
-    ASN1ObjectIdentifier    id_alg_CMS3DESwrap = new ASN1ObjectIdentifier("1.2.840.113549.1.9.16.3.6");
-    /** PKCS#9: 1.2.840.113549.1.9.16.3.7 */
-    ASN1ObjectIdentifier    id_alg_CMSRC2wrap  = new ASN1ObjectIdentifier("1.2.840.113549.1.9.16.3.7");
-    /** PKCS#9: 1.2.840.113549.1.9.16.3.5 */
-    ASN1ObjectIdentifier    id_alg_ESDH  = new ASN1ObjectIdentifier("1.2.840.113549.1.9.16.3.5");
-    /** PKCS#9: 1.2.840.113549.1.9.16.3.10 */
-    ASN1ObjectIdentifier    id_alg_SSDH  = new ASN1ObjectIdentifier("1.2.840.113549.1.9.16.3.10");
 }
 
