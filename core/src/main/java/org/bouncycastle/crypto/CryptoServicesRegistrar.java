@@ -14,11 +14,9 @@ import java.security.Security;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.bouncycastle.asn1.x9.X9ECParameters;
@@ -28,7 +26,6 @@ import org.bouncycastle.crypto.params.DHParameters;
 import org.bouncycastle.crypto.params.DHValidationParameters;
 import org.bouncycastle.crypto.params.DSAParameters;
 import org.bouncycastle.crypto.params.DSAValidationParameters;
-import org.bouncycastle.crypto.prng.BasicEntropySourceProvider;
 import org.bouncycastle.crypto.prng.EntropySource;
 import org.bouncycastle.crypto.prng.EntropySourceProvider;
 import org.bouncycastle.crypto.prng.SP800SecureRandom;
@@ -254,13 +251,32 @@ public final class CryptoServicesRegistrar
                 }
             };
         }
+        else if (Properties.isOverrideSet("org.bouncycastle.drbg.entropy_thread"))
+        {
+            synchronized (entropyDaemon)
+            {
+                if (entropyThread == null)
+                {
+                    entropyThread = new Thread(entropyDaemon, "BC Entropy Daemon");
+                    entropyThread.setDaemon(true);
+                    entropyThread.start();
+                }
+            }
+            return new EntropySourceProvider()
+            {
+                public EntropySource get(int bitsRequired)
+                {
+                    return new HybridEntropySource(entropyDaemon, createBaseEntropySourceProvider(), bitsRequired);
+                }
+            };
+        }
         else
         {
             return new EntropySourceProvider()
             {
                 public EntropySource get(int bitsRequired)
                 {
-                    return new HybridEntropySource(entropyDaemon, createBaseEntropySourceProvider(), bitsRequired);
+                    return new OneShotHybridEntropySource(createBaseEntropySourceProvider(), bitsRequired);
                 }
             };
         }
@@ -667,7 +683,7 @@ public final class CryptoServicesRegistrar
         }
     }
 
-    private static EntropySourceProvider createInternalEntropySourceProvider()
+    private static IncrementalEntropySourceProvider createInternalEntropySourceProvider()
     {
         boolean hasGetInstanceStrong = AccessController.doPrivileged(new PrivilegedAction<Boolean>()
         {
@@ -703,11 +719,11 @@ public final class CryptoServicesRegistrar
                 }
             });
 
-            return new BasicEntropySourceProvider(strong, true);
+            return new IncrementalEntropySourceProvider(strong, true);
         }
         else
         {
-            return new BasicEntropySourceProvider(AccessController.doPrivileged(new PrivilegedAction<SecureRandom>()
+            return new IncrementalEntropySourceProvider(AccessController.doPrivileged(new PrivilegedAction<SecureRandom>()
             {
                 public SecureRandom run()
                 {
@@ -736,55 +752,7 @@ public final class CryptoServicesRegistrar
         entropyThread.setDaemon(true);
         entropyThread.start();
     }
-
-    private static class EntropyDaemon
-        implements Runnable
-    {
-        private final ConcurrentLinkedQueue<Runnable> tasks = new ConcurrentLinkedQueue<Runnable>();
-
-        void addTask(Runnable task)
-        {
-            tasks.add(task);
-        }
-
-        @Override
-        public void run()
-        {
-            while (!Thread.currentThread().isInterrupted())
-            {
-                Runnable task = tasks.poll();
-
-                if (task != null)
-                {
-                    try
-                    {
-                        task.run();
-                    }
-                    catch (Throwable e)
-                    {
-                        // ignore
-                    }
-                }
-                else
-                {
-                    try
-                    {
-                        Thread.sleep(5000);
-                    }
-                    catch (InterruptedException e)
-                    {
-                        Thread.currentThread().interrupt();
-                    }
-                }
-            }
-
-            if (LOG.isLoggable(Level.FINE))
-            {
-                LOG.fine("entropy thread interrupted - exiting");
-            }
-        }
-    }
-
+    
     private static class HybridEntropySource
         implements EntropySource
     {
@@ -893,7 +861,7 @@ public final class CryptoServicesRegistrar
             {
                 if (!scheduled.getAndSet(true))
                 {
-                    entropyDaemon.addTask(new EntropyGatherer(entropySource));
+                    entropyDaemon.addTask(new EntropyGatherer(entropySource, seedAvailable, entropy));
                 }
             }
 
@@ -901,28 +869,11 @@ public final class CryptoServicesRegistrar
             {
                 return byteLength * 8;
             }
-
-            private class EntropyGatherer
-                implements Runnable
-            {
-                private final EntropySource baseRandom;
-
-                EntropyGatherer(EntropySource baseRandom)
-                {
-                    this.baseRandom = baseRandom;
-                }
-
-                public void run()
-                {
-                    entropy.set(baseRandom.getEntropy());
-                    seedAvailable.set(true);
-                }
-            }
         }
     }
 
     private static class URLSeededEntropySourceProvider
-            implements EntropySourceProvider
+        implements EntropySourceProvider
     {
         private final InputStream seedStream;
 
@@ -964,8 +915,29 @@ public final class CryptoServicesRegistrar
 
         public EntropySource get(final int bitsRequired)
         {
-            return new EntropySource()
+            return new IncrementalEntropySource()
             {
+                public byte[] getEntropy(long pause)
+                    throws InterruptedException
+                {
+                    byte[] seed = new byte[numBytes];
+                    for (int i = 0; i < numBytes / 8; i++)
+                    {
+                        // we need to be mindful that we may not be the only thread/process looking for entropy
+                        sleep(pause);
+                        fetchEntropy(seed, i * 8, 8);
+                    }
+
+                    int extra = numBytes - ((numBytes / 8) * 8);
+                    if (extra != 0)
+                    {
+                        sleep(pause);
+                        fetchEntropy(seed, seed.length - extra, extra);
+                    }
+
+                    return seed;
+                }
+
                 private final int numBytes = (bitsRequired + 7) / 8;
 
                 public boolean isPredictionResistant()
@@ -975,22 +947,31 @@ public final class CryptoServicesRegistrar
 
                 public byte[] getEntropy()
                 {
-                    byte[] data = new byte[numBytes];
+                    try
+                    {
+                        return getEntropy(0);
+                    }
+                    catch (InterruptedException e)
+                    {
+                        Thread.currentThread().interrupt();
+                        throw new IllegalStateException("initial entropy fetch interrupted"); // should never happen
+                    }
+                }
 
+                private void fetchEntropy(byte[] data, int dataOff, int length)
+                {
                     int off = 0;
                     int len;
 
-                    while (off != data.length && (len = privilegedRead(data, off, data.length - off)) > -1)
+                    while (off != length && (len = privilegedRead(data, dataOff + off, length - off)) > -1)
                     {
                         off += len;
                     }
 
-                    if (off != data.length)
+                    if (off != length)
                     {
                         throw new InternalError("unable to fully read random source");
                     }
-
-                    return data;
                 }
 
                 public int entropySize()
@@ -998,6 +979,144 @@ public final class CryptoServicesRegistrar
                     return bitsRequired;
                 }
             };
+        }
+    }
+
+    private static void sleep(long ms)
+            throws InterruptedException
+    {
+        if (ms != 0)
+        {
+            Thread.sleep(ms);
+        }
+    }
+
+    private static class OneShotHybridEntropySource
+            implements EntropySource
+    {
+        private final AtomicBoolean seedAvailable = new AtomicBoolean(false);
+        private final AtomicInteger samples = new AtomicInteger(0);
+
+        private final SP800SecureRandom drbg;
+        private final SignallingEntropySource entropySource;
+        private final int bytesRequired;
+        private final byte[] additionalInput = Pack.longToBigEndian(System.currentTimeMillis());
+
+        OneShotHybridEntropySource(EntropySourceProvider entropyProvider, final int bitsRequired)
+        {
+            bytesRequired = (bitsRequired + 7) / 8;
+            // remember for the seed generator we need the correct security strength for SHA-512
+            entropySource = new SignallingEntropySource(seedAvailable, entropyProvider, 256);
+            drbg = new SP800SecureRandomBuilder(new EntropySourceProvider()
+            {
+                public EntropySource get(final int bitsRequired)
+                {
+                    return entropySource;
+                }
+            })
+                .setPersonalizationString(Strings.toByteArray("Bouncy Castle Hybrid Entropy Source"))
+                .buildHMAC(new HMac(new SHA512Digest()), entropySource.getEntropy(), false);     // 32 byte nonce
+        }
+
+        public boolean isPredictionResistant()
+        {
+            return true;
+        }
+
+        public byte[] getEntropy()
+        {
+            byte[] entropy = new byte[bytesRequired];
+
+            // after 1024 samples we'll start to check if there is new seed material,
+            // we do this less often than with the daemon based one due to the overheads.
+            if (samples.getAndIncrement() > 1024)
+            {
+                if (seedAvailable.getAndSet(false))
+                {
+                    samples.set(0);
+                    drbg.reseed(additionalInput);
+                }
+                else
+                {
+                    entropySource.schedule();
+                }
+            }
+
+            drbg.nextBytes(entropy);
+
+            return entropy;
+        }
+
+        public int entropySize()
+        {
+            return bytesRequired * 8;
+        }
+
+        private class SignallingEntropySource
+            implements IncrementalEntropySource
+        {
+            private final AtomicBoolean seedAvailable;
+            private final IncrementalEntropySource entropySource;
+            private final int byteLength;
+            private final AtomicReference entropy = new AtomicReference();
+            private final AtomicBoolean scheduled = new AtomicBoolean(false);
+
+            SignallingEntropySource(AtomicBoolean seedAvailable, EntropySourceProvider baseRandom, int bitsRequired)
+            {
+                this.seedAvailable = seedAvailable;
+                this.entropySource = (IncrementalEntropySource)baseRandom.get(bitsRequired);
+                this.byteLength = (bitsRequired + 7) / 8;
+            }
+
+            public boolean isPredictionResistant()
+            {
+                return true;
+            }
+
+            public byte[] getEntropy()
+            {
+                try
+                {
+                    return getEntropy(0);
+                }
+                catch (InterruptedException e)
+                {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException("initial entropy fetch interrupted"); // should never happen
+                }
+            }
+
+            public byte[] getEntropy(long pause)
+                throws InterruptedException
+            {
+                byte[] seed = (byte[])entropy.getAndSet(null);
+
+                if (seed == null || seed.length != byteLength)
+                {
+                    seed = entropySource.getEntropy(pause);
+                }
+                else
+                {
+                    scheduled.set(false);
+                }
+
+                return seed;
+            }
+
+            void schedule()
+            {
+                if (!scheduled.getAndSet(true))
+                {
+                    Thread thread = new Thread(new EntropyGatherer(entropySource, seedAvailable, entropy));
+                    thread.setDaemon(true);
+                    thread.start();
+                }
+            }
+
+            public int entropySize()
+            {
+                return byteLength * 8;
+            }
         }
     }
 }
