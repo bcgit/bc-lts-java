@@ -91,20 +91,19 @@ public class BaseBlockCipher
     implements PBE
 {
     private static final int BUF_SIZE = 512;
-    private static final Class gcmSpecClass = ClassUtil.loadClass(BaseBlockCipher.class, "javax.crypto.spec.GCMParameterSpec");
 
     //
     // specs we can handle.
     //
-    private Class[] availableSpecs =
-        {
-            RC2ParameterSpec.class,
-            RC5ParameterSpec.class,
-            gcmSpecClass,
-            GOST28147ParameterSpec.class,
-            IvParameterSpec.class,
-            PBEParameterSpec.class
-        };
+    private static final Class[] availableSpecs =
+    {
+        RC2ParameterSpec.class,
+        RC5ParameterSpec.class,
+        GcmSpecUtil.gcmSpecClass,
+        GOST28147ParameterSpec.class,
+        IvParameterSpec.class,
+        PBEParameterSpec.class
+    };
 
     private BlockCipher baseEngine;
     private BlockCipherProvider engineProvider;
@@ -881,7 +880,7 @@ public class BaseBlockCipher
 
             param = new FPEParameters((KeyParameter)param, spec.getRadixConverter(), spec.getTweak(), spec.isUsingInverseFunction());
         }
-        else if (gcmSpecClass != null && gcmSpecClass.isInstance(params))
+        else if (GcmSpecUtil.isGcmSpec(params))
         {
             if (!isAEADModeName(modeName) && !(cipher instanceof AEADGenericBlockCipher))
             {

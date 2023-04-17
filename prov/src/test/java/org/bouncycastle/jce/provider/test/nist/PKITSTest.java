@@ -426,13 +426,7 @@ class PKITSTest
 
         return new TrustAnchor(cert, null);
     }
-
-
-    private String getPkitsHome()
-    {
-        return "/PKITS";
-    }
-
+    
     public PKITSTest withEndEntity(String endCert)
     {
         endCert = endCert.replace(" ", "").replace("-", "");

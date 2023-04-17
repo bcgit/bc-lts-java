@@ -30,7 +30,7 @@ public class SHA256
             throws CloneNotSupportedException
         {
             Digest d = (Digest)super.clone();
-            d.digest =  SHA256Digest.newInstance(digest);
+            d.digest = SHA256Digest.newInstance(digest);
 
             return d;
         }

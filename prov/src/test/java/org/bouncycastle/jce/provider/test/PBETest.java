@@ -40,12 +40,12 @@ import org.bouncycastle.util.test.SimpleTest;
 
 /**
  * test out the various PBE modes, making sure the JCE implementations
- * are compatible woth the light weight ones.
+ * are compatible with the light weight ones.
  */
 public class PBETest
     extends SimpleTest
 {
-    private class OpenSSLTest
+    private static class OpenSSLTest
         extends SimpleTest
     {
         char[]    password;
@@ -127,7 +127,7 @@ public class PBETest
         }
     }
     
-    private class PKCS12Test
+    private static class PKCS12Test
         extends SimpleTest
     {
         char[]    password;
@@ -278,17 +278,17 @@ public class PBETest
         new PKCS12Test("AES",    "PBEWithSHA1And128BitAES-CBC-BC",   new SHA1Digest(),   128, 128),
         new PKCS12Test("AES",    "PBEWithSHA1And192BitAES-CBC-BC",   new SHA1Digest(),   192, 128),
         new PKCS12Test("AES",    "PBEWithSHA1And256BitAES-CBC-BC",   new SHA1Digest(),   256, 128),
-        new PKCS12Test("AES",    "PBEWithSHA256And128BitAES-CBC-BC", SHA256Digest.newInstance(), 128, 128),
-        new PKCS12Test("AES",    "PBEWithSHA256And192BitAES-CBC-BC", SHA256Digest.newInstance(), 192, 128),
-        new PKCS12Test("AES",    "PBEWithSHA256And256BitAES-CBC-BC", SHA256Digest.newInstance(), 256, 128),
+        new PKCS12Test("AES",    "PBEWithSHA256And128BitAES-CBC-BC", new SHA256Digest(), 128, 128),
+        new PKCS12Test("AES",    "PBEWithSHA256And192BitAES-CBC-BC", new SHA256Digest(), 192, 128),   
+        new PKCS12Test("AES",    "PBEWithSHA256And256BitAES-CBC-BC", new SHA256Digest(), 256, 128),
         new PKCS12Test("Twofish","PBEWithSHAAndTwofish-CBC",         new SHA1Digest(),   256, 128),
         new PKCS12Test("IDEA",   "PBEWithSHAAndIDEA-CBC",            new SHA1Digest(),   128,  64),
         new PKCS12Test("AES",    BCObjectIdentifiers.bc_pbe_sha1_pkcs12_aes128_cbc.getId(),   new SHA1Digest(),   128, 128),
         new PKCS12Test("AES",    BCObjectIdentifiers.bc_pbe_sha1_pkcs12_aes192_cbc.getId(),   new SHA1Digest(),   192, 128),
         new PKCS12Test("AES",    BCObjectIdentifiers.bc_pbe_sha1_pkcs12_aes256_cbc.getId(),   new SHA1Digest(),   256, 128),
-        new PKCS12Test("AES",    BCObjectIdentifiers.bc_pbe_sha256_pkcs12_aes128_cbc.getId(), SHA256Digest.newInstance(), 128, 128),
-        new PKCS12Test("AES",    BCObjectIdentifiers.bc_pbe_sha256_pkcs12_aes192_cbc.getId(), SHA256Digest.newInstance(), 192, 128),
-        new PKCS12Test("AES",    BCObjectIdentifiers.bc_pbe_sha256_pkcs12_aes256_cbc.getId(), SHA256Digest.newInstance(), 256, 128),
+        new PKCS12Test("AES",    BCObjectIdentifiers.bc_pbe_sha256_pkcs12_aes128_cbc.getId(), new SHA256Digest(), 128, 128),
+        new PKCS12Test("AES",    BCObjectIdentifiers.bc_pbe_sha256_pkcs12_aes192_cbc.getId(), new SHA256Digest(), 192, 128),
+        new PKCS12Test("AES",    BCObjectIdentifiers.bc_pbe_sha256_pkcs12_aes256_cbc.getId(), new SHA256Digest(), 256, 128),
     };
     
     private OpenSSLTest openSSLTests[] = {
