@@ -1,0 +1,6 @@
+Notes for implementors:
+
+CodeQL:
+codeql database create fipsnative  --source-root .  --language=cpp --overwrite --command "./build_linux.sh"
+
+codeql database analyze fipsnative cpp-code-scanning.qls --sarif-category="cpp" --format=csv --output analysis.csv
