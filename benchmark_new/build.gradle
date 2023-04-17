@@ -1,0 +1,33 @@
+
+
+
+dependencies {
+
+   implementation files(
+           "${projectDir}/../jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar",
+           "${projectDir}/../jars/bcpkix-lts8on-1.0.0-SNAPSHOT.jar"
+   )
+
+
+   implementation group: 'junit', name: 'junit', version: '4.11'
+   implementation group: 'javax.mail', name: 'mail', version: '1.4'
+  implementation project(path: ':prov')
+  implementation project(path: ':prov')
+  implementation project(path: ':prov')
+  implementation project(path: ':core')
+  implementation project(path: ':core')
+  implementation project(path: ':core')
+  implementation project(path: ':core')
+  implementation project(path: ':prov')
+  implementation project(path: ':prov')
+}
+
+processResources {
+    from "resources"
+}
+
+test {
+
+}
+
+jar.baseName = "bc-lts-java"
