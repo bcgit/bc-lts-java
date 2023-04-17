@@ -570,7 +570,7 @@ public class ParserTest
         {
             if (e.getCause() != null && !e.getCause().getMessage().endsWith(message))
             {
-               fail("issue " + index + " exception thrown, but wrong message");
+               fail("issue " + index + " exception thrown, but wrong message: " + e.getCause().getMessage());
             }
             else if (e.getCause() == null && !e.getMessage().equals(message))
             {

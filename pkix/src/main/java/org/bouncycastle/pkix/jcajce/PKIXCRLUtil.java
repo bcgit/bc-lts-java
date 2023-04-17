@@ -15,7 +15,7 @@ import org.bouncycastle.jcajce.PKIXCRLStoreSelector;
 import org.bouncycastle.util.Store;
 import org.bouncycastle.util.StoreException;
 
-class PKIXCRLUtil
+abstract class PKIXCRLUtil
 {
     static Set findCRLs(X509CRLStoreSelector crlselect, PKIXParameters paramsPKIX)
         throws AnnotatedException

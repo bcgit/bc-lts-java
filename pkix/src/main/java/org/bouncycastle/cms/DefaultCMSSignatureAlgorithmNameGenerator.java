@@ -26,6 +26,7 @@ public class DefaultCMSSignatureAlgorithmNameGenerator
 {
     private final Map encryptionAlgs = new HashMap();
     private final Map     digestAlgs = new HashMap();
+    private final Map     simpleAlgs = new HashMap();
 
     private void addEntries(ASN1ObjectIdentifier alias, String digest, String encryption)
     {
@@ -160,6 +161,19 @@ public class DefaultCMSSignatureAlgorithmNameGenerator
         digestAlgs.put(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256,  "GOST3411-2012-256");
         digestAlgs.put(RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512,  "GOST3411-2012-512");
         digestAlgs.put(GMObjectIdentifiers.sm3,  "SM3");
+
+        simpleAlgs.put(EdECObjectIdentifiers.id_Ed25519, "Ed25519");
+        simpleAlgs.put(EdECObjectIdentifiers.id_Ed448, "Ed448");
+        simpleAlgs.put(PKCSObjectIdentifiers.id_alg_hss_lms_hashsig, "LMS");
+
+        simpleAlgs.put(MiscObjectIdentifiers.id_alg_composite, "COMPOSITE");
+        simpleAlgs.put(BCObjectIdentifiers.falcon_512, "Falcon-512");
+        simpleAlgs.put(BCObjectIdentifiers.falcon_1024, "Falcon-1024");
+        simpleAlgs.put(BCObjectIdentifiers.dilithium2, "Dilithium2");
+        simpleAlgs.put(BCObjectIdentifiers.dilithium3, "Dilithium3");
+        simpleAlgs.put(BCObjectIdentifiers.dilithium5, "Dilithium5");
+
+        simpleAlgs.put(BCObjectIdentifiers.picnic_signature, "Picnic");
     }
 
     /**
@@ -224,38 +238,16 @@ public class DefaultCMSSignatureAlgorithmNameGenerator
     public String getSignatureName(AlgorithmIdentifier digestAlg, AlgorithmIdentifier encryptionAlg)
     {
         ASN1ObjectIdentifier encryptionAlgOID = encryptionAlg.getAlgorithm();
-        if (EdECObjectIdentifiers.id_Ed25519.equals(encryptionAlgOID))
+
+        String simpleAlgName = (String)simpleAlgs.get(encryptionAlgOID);
+        if (simpleAlgName != null)
         {
-            return "Ed25519";
-        }
-        if (EdECObjectIdentifiers.id_Ed448.equals(encryptionAlgOID))
-        {
-            return "Ed448";
-        }
-        if (PKCSObjectIdentifiers.id_alg_hss_lms_hashsig.equals(encryptionAlgOID))
-        {
-            return "LMS";
-        }
-        if (BCObjectIdentifiers.sphincsPlus.equals(encryptionAlgOID))
-        {
-            return "SPHINCSPlus";
-        }
-        if (MiscObjectIdentifiers.id_alg_composite.equals(encryptionAlgOID))
-        {
-            return "COMPOSITE";
-        }
-        if (BCObjectIdentifiers.falcon_512.equals(encryptionAlgOID))
-        {
-            return "Falcon-512";
-        }
-        if (BCObjectIdentifiers.falcon_1024.equals(encryptionAlgOID))
-        {
-            return "Falcon-1024";
+            return simpleAlgName;
         }
 
-        if (BCObjectIdentifiers.picnic_signature.equals(encryptionAlgOID))
+        if (encryptionAlgOID.on(BCObjectIdentifiers.sphincsPlus))
         {
-            return "Picnic";
+            return "SPHINCSPlus";
         }
 
         String digestName = getDigestAlgName(encryptionAlgOID);

@@ -54,6 +54,6 @@ public class ERSEvidenceRecordSelector
 
     public Object clone()
     {
-        return null;
+        return this;
     }
 }
