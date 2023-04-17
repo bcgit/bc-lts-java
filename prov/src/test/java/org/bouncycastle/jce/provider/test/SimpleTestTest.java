@@ -1,6 +1,5 @@
 package org.bouncycastle.jce.provider.test;
 
-import java.security.Provider;
 import java.security.Security;
 
 import junit.framework.TestCase;

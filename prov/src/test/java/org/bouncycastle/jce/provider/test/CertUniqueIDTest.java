@@ -15,6 +15,7 @@ import java.util.Set;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.test.SimpleTest;
 
 public class CertUniqueIDTest
@@ -82,7 +83,7 @@ public class CertUniqueIDTest
       //
       // create the certificate - version 3 - without subject unique ID
       //
-      X509Certificate cert = TestCertificateGen.createSelfSignedCert(nBldr.build(), "SHA256WithRSAEncryption", new KeyPair(pubKey, privKey));
+      X509Certificate cert = TestCertificateGen.createCertWithIDs(nBldr.build(), "SHA256withRSA", new KeyPair(pubKey, privKey), null, null);
 
       cert.checkValidity(new Date());
 
@@ -102,43 +103,28 @@ public class CertUniqueIDTest
       //
       // create the certificate - version 3 - with subject unique ID
       //
-      // TODO:
-//      certGen = new X509V3CertificateGenerator();
-//
-//      certGen.setSerialNumber(BigInteger.valueOf(1));
-//      certGen.setIssuerDN(new BCStyle(ord, values));
-//      certGen.setNotBefore(new Date(System.currentTimeMillis() - 50000));
-//      certGen.setNotAfter(new Date(System.currentTimeMillis() + 50000));
-//      certGen.setSubjectDN(new BCStyle(ord, values));
-//      certGen.setPublicKey(pubKey);
-//      certGen.setSignatureAlgorithm("MD5WithRSAEncryption");
-//
-//      boolean[] subjectUniqID = {true, false, false, false, true, false, false, true, false, true, true};
-//
-//      certGen.setSubjectUniqueID(subjectUniqID);
-//
-//      boolean[] issuerUniqID = {false, false, true, false, true, false, false, false, true, false, false, true, false, true, true};
-//
-//      certGen.setIssuerUniqueID(issuerUniqID);
-//
-//      cert = certGen.generate(privKey);
+
+      boolean[] subjectUniqID = {true, false, false, false, true, false, false, true, false, true, true};
+
+      boolean[] issuerUniqID = {false, false, true, false, true, false, false, false, true, false, false, true, false, true, true};
+      
+      cert = TestCertificateGen.createCertWithIDs(nBldr.build(), "SHA256withRSA", new KeyPair(pubKey, privKey), subjectUniqID, issuerUniqID);
 
       cert.checkValidity(new Date());
 
       cert.verify(pubKey);
 
       boolean[] subjectUniqueId = cert.getSubjectUniqueID();
-      // TODO:
-//      if (!Arrays.areEqual(subjectUniqID, subjectUniqueId))
-//      {
-//          fail("Subject unique id is not correct, original: "+arrayToString(subjectUniqID)+", from cert: "+arrayToString(subjectUniqueId));
-//      }
-//
-//      boolean[] issuerUniqueId = cert.getIssuerUniqueID();
-//      if (!Arrays.areEqual(issuerUniqID, issuerUniqueId))
-//      {
-//          fail("Issuer unique id is not correct, original: "+arrayToString(issuerUniqID)+", from cert: "+arrayToString(subjectUniqueId));
-//      }
+      if (!Arrays.areEqual(subjectUniqID, subjectUniqueId))
+      {
+          fail("Subject unique id is not correct, original: "+arrayToString(subjectUniqID)+", from cert: "+arrayToString(subjectUniqueId));
+      }
+
+      boolean[] issuerUniqueId = cert.getIssuerUniqueID();
+      if (!Arrays.areEqual(issuerUniqID, issuerUniqueId))
+      {
+          fail("Issuer unique id is not correct, original: "+arrayToString(issuerUniqID)+", from cert: "+arrayToString(subjectUniqueId));
+      }
   }
 
   private String arrayToString(boolean[] array)
