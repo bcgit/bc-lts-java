@@ -10,7 +10,7 @@ import org.bouncycastle.util.dispose.NativeReference;
  * SHA256 implementation.
  */
 class SHA256NativeDigest
-   implements SavableDigest
+        implements SavableDigest
 {
     private final CryptoServicePurpose purpose;
 
@@ -19,14 +19,13 @@ class SHA256NativeDigest
     SHA256NativeDigest(CryptoServicePurpose purpose)
     {
         this.purpose = purpose;
+        nativeRef = new DigestRefWrapper(makeNative());
+        reset();
     }
 
     SHA256NativeDigest()
     {
         this(CryptoServicePurpose.ANY);
-
-        nativeRef = new DigestRefWrapper(makeNative());
-        reset();
     }
 
     SHA256NativeDigest(SHA256NativeDigest src)
@@ -34,6 +33,7 @@ class SHA256NativeDigest
         this(CryptoServicePurpose.ANY);
 
         byte[] state = src.getEncodedState();
+
         restoreFullState(nativeRef.getReference(), state, 0);
     }
 
@@ -109,7 +109,7 @@ class SHA256NativeDigest
     @Override
     public void reset(Memoable other)
     {
-        SHA256NativeDigest dig = (SHA256NativeDigest)other;
+        SHA256NativeDigest dig = (SHA256NativeDigest) other;
         restoreFullState(nativeRef.getReference(), dig.getEncodedState(), 0);
     }
 

@@ -23,19 +23,19 @@ void throw_java_invalid_state(JNIEnv *env, const char *msg) {
 }
 
 void throw_bc_data_length_exception(JNIEnv *env, const char *msg) {
-    jclass exClass = (*env)->FindClass(env, "org/bouncycastle/crypto/internal/DataLengthException");
+    jclass exClass = (*env)->FindClass(env, "org/bouncycastle/crypto/DataLengthException");
     assert(exClass != NULL);
     (*env)->ThrowNew(env, exClass, msg);
 }
 
 void throw_bc_output_length_exception(JNIEnv *env, const char *msg) {
-    jclass exClass = (*env)->FindClass(env, "org/bouncycastle/crypto/internal/OutputLengthException");
+    jclass exClass = (*env)->FindClass(env, "org/bouncycastle/crypto/OutputLengthException");
     assert(exClass != NULL);
     (*env)->ThrowNew(env, exClass, msg);
 }
 
 void throw_bc_invalid_ciphertext_exception(JNIEnv *env, const char *msg) {
-    jclass exClass = (*env)->FindClass(env, "org/bouncycastle/crypto/internal/InvalidCipherTextException");
+    jclass exClass = (*env)->FindClass(env, "org/bouncycastle/crypto/InvalidCipherTextException");
     assert(exClass != NULL);
     (*env)->ThrowNew(env, exClass, msg);
 }

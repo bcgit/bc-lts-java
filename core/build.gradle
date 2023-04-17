@@ -60,24 +60,24 @@ task cleanNativeVariants(type: Delete) {
 task withNative() {
     doLast {
 
-        if (directoryExists("$rootDir/native/target/linux/x86_64/probe")) {
-            copyDirContent("$rootDir/native/target/linux/x86_64/probe", "$projectDir/src/main/resources/native/linux/x86_64/probe")
+        if (directoryExists("$rootDir/native_c/target/linux/x86_64/probe")) {
+            copyDirContent("$rootDir/native_c/target/linux/x86_64/probe", "$projectDir/src/main/resources/native/linux/x86_64/probe")
         }
 
-        if (directoryExists("$rootDir/native/target/linux/x86_64/sse")) {
-            copyDirContent("$rootDir/native/target/linux/x86_64/sse", "$projectDir/src/main/resources/native/linux/x86_64/sse")
+        if (directoryExists("$rootDir/native_c/target/linux/x86_64/sse")) {
+            copyDirContent("$rootDir/native_c/target/linux/x86_64/sse", "$projectDir/src/main/resources/native/linux/x86_64/sse")
         }
 
-        if (directoryExists("$rootDir/native/target/linux/x86_64/avx")) {
-            copyDirContent("$rootDir/native/target/linux/x86_64/avx", "$projectDir/src/main/resources/native/linux/x86_64/avx")
+        if (directoryExists("$rootDir/native_c/target/linux/x86_64/avx")) {
+            copyDirContent("$rootDir/native_c/target/linux/x86_64/avx", "$projectDir/src/main/resources/native/linux/x86_64/avx")
         }
 
-        if (directoryExists("$rootDir/native/target/linux/x86_64/vaes")) {
-            copyDirContent("$rootDir/native/target/linux/x86_64/vaes", "$projectDir/src/main/resources/native/linux/x86_64/vaes")
+        if (directoryExists("$rootDir/native_c/target/linux/x86_64/vaes")) {
+            copyDirContent("$rootDir/native_c/target/linux/x86_64/vaes", "$projectDir/src/main/resources/native/linux/x86_64/vaes")
         }
 
-        if (directoryExists("$rootDir/native/target/linux/x86_64/vaesf")) {
-            copyDirContent("$rootDir/native/target/linux/x86_64/vaesf", "$projectDir/src/main/resources/native/linux/x86_64/vaesf")
+        if (directoryExists("$rootDir/native_c/target/linux/x86_64/vaesf")) {
+            copyDirContent("$rootDir/native_c/target/linux/x86_64/vaesf", "$projectDir/src/main/resources/native/linux/x86_64/vaesf")
         }
 
     }
