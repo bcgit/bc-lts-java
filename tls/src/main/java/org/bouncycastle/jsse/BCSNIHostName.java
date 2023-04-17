@@ -2,7 +2,6 @@ package org.bouncycastle.jsse;
 
 import java.util.Locale;
 import java.util.regex.Pattern;
-
 import org.bouncycastle.jsse.provider.IDNUtil;
 import org.bouncycastle.tls.NameType;
 import org.bouncycastle.util.Strings;

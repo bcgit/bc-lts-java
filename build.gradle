@@ -49,18 +49,18 @@ ext {
   bcTestDataHome = file('core/src/test/data').absolutePath
 
   JavaVersion current = JavaVersion.current();
-  if (current.compareTo(JavaVersion.VERSION_1_8) <= 0)
-  {
-     vm_range = '6to8'
-     vm_source = 6
-     vm_target = 6
-  }
-  else
-  {
+  //if (current.compareTo(JavaVersion.VERSION_1_8) <= 0)
+  //{
+  //   vm_range = '6to8'
+  //   vm_source = 6
+  //   vm_target = 6
+  //}
+  //else
+  //#{
      vm_range = '8on'
      vm_source = 8
      vm_target = 8
-  }
+ // }
 
   lts_prov = "${rootProject.projectDir}/prov/build/libs/bcprov-lts${vm_range}-${version}.jar"
   lts_util = "${rootProject.projectDir}/util/build/libs/bcutil-lts${vm_range}-${version}.jar"
@@ -277,4 +277,5 @@ subprojects {
 
 
 test.dependsOn([':core:test', ':prov:test', ':pkix:test', ':mail:test', 'pg:test', ':tls:test'])
+
 

@@ -10,7 +10,7 @@ import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.NativeBlockCipherProvider;
-import org.bouncycastle.crypto.NativeService;
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.CBCModeCipher;
@@ -21,6 +21,7 @@ import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
+import org.bouncycastle.test.TestUtil;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
@@ -36,9 +37,9 @@ public class NativeACVPTest
     public void testECB()
         throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/ECB"))
+        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_ECB))
         {
-            System.out.println("Skipping ECB native ACVP vector test: " + CryptoServicesRegistrar.getNativeStatus());
+            System.out.println("Skipping ECB native ACVP vector test: " + TestUtil.errorMsg());
             return;
         }
 
@@ -155,9 +156,9 @@ public class NativeACVPTest
     public void testGCM()
         throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/GCM"))
+        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_GCM))
         {
-            System.out.println("Skipping GCM native ACVP vector test: " + CryptoServicesRegistrar.getNativeStatus());
+            System.out.println("Skipping GCM native ACVP vector test: " + TestUtil.errorMsg());
             return;
         }
 
@@ -176,7 +177,7 @@ public class NativeACVPTest
 
 
         GCMModeCipher nativeGCM = ((NativeBlockCipherProvider)AESEngine.newInstance()).createGCM();
-        if (!(nativeGCM instanceof NativeService))
+        if (!(nativeGCM.toString().contains("GCM[Native]")))
         {
             throw new IllegalStateException("expected native GCM got " + nativeGCM.getClass().getName());
         }
@@ -316,9 +317,9 @@ public class NativeACVPTest
     public void testCFB()
         throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
+        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_CFB))
         {
-            System.out.println("Skipping CFB native ACVP vector test: " + CryptoServicesRegistrar.getNativeStatus());
+            System.out.println("Skipping CFB native ACVP vector test: " + TestUtil.errorMsg());
             return;
         }
 
@@ -336,7 +337,8 @@ public class NativeACVPTest
 
 
         CFBModeCipher nativeCFB = ((NativeBlockCipherProvider)AESEngine.newInstance()).createCFB(128);
-        if (!(nativeCFB instanceof NativeService))
+
+        if (!(nativeCFB.toString().contains("CFB[Native]")))
         {
             throw new IllegalStateException("expected native CFB got " + nativeCFB.getClass().getName());
         }
@@ -436,9 +438,9 @@ public class NativeACVPTest
     public void testCFBStreamCipher()
         throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CFB"))
+        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_CFB))
         {
-            System.out.println("Skipping CFB native ACVP vector test: " + CryptoServicesRegistrar.getNativeStatus());
+            System.out.println("Skipping CFB native ACVP vector test: " + TestUtil.errorMsg());
             return;
         }
 
@@ -456,7 +458,7 @@ public class NativeACVPTest
 
 
         CFBModeCipher nativeCFB = ((NativeBlockCipherProvider)AESEngine.newInstance()).createCFB(128);
-        if (!(nativeCFB instanceof NativeService))
+        if (!(nativeCFB.toString().contains("CFB[Native]")))
         {
             throw new IllegalStateException("expected native CFB got " + nativeCFB.getClass().getName());
         }
@@ -572,9 +574,9 @@ public class NativeACVPTest
     public void testCBC()
         throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasFeature("AES/CBC"))
+        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_CBC))
         {
-            System.out.println("Skipping CBC native ACVP vector test: " + CryptoServicesRegistrar.getNativeStatus());
+            System.out.println("Skipping CBC native ACVP vector test: " + TestUtil.errorMsg());
             return;
         }
 
@@ -593,7 +595,7 @@ public class NativeACVPTest
 
 
         CBCModeCipher nativeCBC = ((NativeBlockCipherProvider)AESEngine.newInstance()).createCBC();
-        if (!(nativeCBC instanceof NativeService))
+        if (!(nativeCBC.toString().contains("CBC[Native]")))
         {
             throw new IllegalStateException("expected native CFB got " + nativeCBC.getClass().getName());
         }
