@@ -2,6 +2,7 @@ package org.bouncycastle.jce.provider.test;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
@@ -11,6 +12,7 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.cert.CertificateFactory;
+import java.security.cert.X509CRL;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 import java.util.HashMap;
@@ -30,6 +32,8 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.CRLNumber;
+import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.asn1.x509.Certificate;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.Extensions;
@@ -39,9 +43,11 @@ import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.KeyUsage;
 import org.bouncycastle.asn1.x509.SubjectKeyIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.asn1.x509.TBSCertList;
 import org.bouncycastle.asn1.x509.TBSCertificate;
 import org.bouncycastle.asn1.x509.Time;
 import org.bouncycastle.asn1.x509.V1TBSCertificateGenerator;
+import org.bouncycastle.asn1.x509.V2TBSCertListGenerator;
 import org.bouncycastle.asn1.x509.V3TBSCertificateGenerator;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
 
@@ -138,6 +144,48 @@ public class TestCertificateGen
         return (X509Certificate)CertificateFactory.getInstance("X.509", "BC").generateCertificate(new ByteArrayInputStream(new DERSequence(v).getEncoded(ASN1Encoding.DER)));
     }
 
+    public static X509Certificate createCertWithIDs(X500Name signerName, String sigName, KeyPair keyPair, boolean[] subjectUniqID, boolean[] issuerUniqID)
+        throws Exception
+    {
+        V3TBSCertificateGenerator certGen = new V3TBSCertificateGenerator();
+
+        long time = System.currentTimeMillis();
+
+        certGen.setSerialNumber(new ASN1Integer(serialNumber.getAndIncrement()));
+        certGen.setIssuer(signerName);
+        certGen.setSubject(signerName);
+        certGen.setStartDate(new Time(new Date(time - 5000)));
+        certGen.setEndDate(new Time(new Date(time + 30 * 60 * 1000)));
+        certGen.setSignature(algIds.get(sigName));
+        certGen.setSubjectPublicKeyInfo(SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()));
+
+        if (issuerUniqID != null)
+        {
+            certGen.setIssuerUniqueID(booleanToBitString(issuerUniqID));
+        }
+
+        if (subjectUniqID != null)
+        {
+            certGen.setSubjectUniqueID(booleanToBitString(subjectUniqID));
+        }
+
+        Signature sig = Signature.getInstance(sigName, "BC");
+
+        sig.initSign(keyPair.getPrivate());
+
+        sig.update(certGen.generateTBSCertificate().getEncoded(ASN1Encoding.DER));
+
+        TBSCertificate tbsCert = certGen.generateTBSCertificate();
+
+        ASN1EncodableVector v = new ASN1EncodableVector();
+
+        v.add(tbsCert);
+        v.add(algIds.get(sigName));
+        v.add(new DERBitString(sig.sign()));
+
+        return (X509Certificate)CertificateFactory.getInstance("X.509", "BC").generateCertificate(new ByteArrayInputStream(new DERSequence(v).getEncoded(ASN1Encoding.DER)));
+    }
+
     /**
      * Create a random 1024 bit RSA key pair
      */
@@ -215,6 +263,48 @@ public class TestCertificateGen
             caKey, subject, "SHA256withRSA", extGen.generate(), entityKey);
     }
 
+    public static X509CRL createCRL(
+        X509Certificate caCert,
+        PrivateKey caKey,
+        BigInteger revokedSerialNumber)
+        throws Exception
+    {
+        V2TBSCertListGenerator crlGen = new V2TBSCertListGenerator();
+        Date now = new Date();
+
+        X500Name issuer = new X500Name(caCert.getSubjectDN().getName());
+        crlGen.setIssuer(issuer);
+
+        crlGen.setThisUpdate(new Time(now));
+        crlGen.setNextUpdate(new Time(new Date(now.getTime() + 100000)));
+        crlGen.setSignature(algIds.get("SHA256withRSA"));
+
+        crlGen.addCRLEntry(new ASN1Integer(revokedSerialNumber), new Time(now), CRLReason.privilegeWithdrawn);
+
+        ExtensionsGenerator extGen = new ExtensionsGenerator();
+
+        extGen.addExtension(Extension.authorityKeyIdentifier, false, new AuthorityKeyIdentifier(new GeneralNames(new GeneralName(issuer)), caCert.getSerialNumber()));
+        extGen.addExtension(Extension.cRLNumber, false, new CRLNumber(BigInteger.valueOf(1)));
+
+        crlGen.setExtensions(extGen.generate());
+
+        Signature sig = Signature.getInstance("SHA256withRSA", "BC");
+
+        sig.initSign(caKey);
+
+        sig.update(crlGen.generateTBSCertList().getEncoded(ASN1Encoding.DER));
+
+        TBSCertList tbsCrl = crlGen.generateTBSCertList();
+
+        ASN1EncodableVector v = new ASN1EncodableVector();
+
+        v.add(tbsCrl);
+        v.add(algIds.get("SHA256withRSA"));
+        v.add(new DERBitString(sig.sign()));
+
+        return (X509CRL)CertificateFactory.getInstance("X.509", "BC").generateCRL(new ByteArrayInputStream(new DERSequence(v).getEncoded(ASN1Encoding.DER)));
+    }
+
     private static byte[] getDigest(SubjectPublicKeyInfo spki)
         throws IOException
     {
@@ -230,6 +320,27 @@ public class TestCertificateGen
         catch (NoSuchAlgorithmException e)
         {
             return null;
+        }
+    }
+
+    private static DERBitString booleanToBitString(boolean[] id)
+    {
+        byte[] bytes = new byte[(id.length + 7) / 8];
+
+        for (int i = 0; i != id.length; i++)
+        {
+            bytes[i / 8] |= (id[i]) ? (1 << ((7 - (i % 8)))) : 0;
+        }
+
+        int pad = id.length % 8;
+
+        if (pad == 0)
+        {
+            return new DERBitString(bytes);
+        }
+        else
+        {
+            return new DERBitString(bytes, 8 - pad);
         }
     }
 }

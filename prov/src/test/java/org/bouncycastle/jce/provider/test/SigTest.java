@@ -1,6 +1,7 @@
 package org.bouncycastle.jce.provider.test;
 
 import java.math.BigInteger;
+import java.security.AlgorithmParameters;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -16,6 +17,7 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.RSAPrivateKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 
@@ -81,7 +83,7 @@ public class SigTest
 
         fact = KeyPairGenerator.getInstance("RSA", "BC");
 
-        fact.initialize(768, new SecureRandom());
+        fact.initialize(2048, new SecureRandom());
 
         keyPair = fact.generateKeyPair();
 
@@ -258,15 +260,15 @@ public class SigTest
         trySig("SHA1WithRSAAndMGF1", data, signingKey, verifyKey);
         trySig("SHA224WithRSAAndMGF1", data, signingKey, verifyKey);
         trySig("SHA256WithRSAAndMGF1", data, signingKey, verifyKey);
-        //trySig("SHA384WithRSAAndMGF1", data, signingKey, verifyKey);
-       //trySig("SHA512WithRSAAndMGF1", data, signingKey, verifyKey);
+        trySig("SHA384WithRSAAndMGF1", data, signingKey, verifyKey);
+        trySig("SHA512WithRSAAndMGF1", data, signingKey, verifyKey);
         trySig("SHA512(224)WithRSAAndMGF1", data, signingKey, verifyKey);
         trySig("SHA512(256)WithRSAAndMGF1", data, signingKey, verifyKey);
 
         trySig("SHA3-224WithRSAAndMGF1", data, signingKey, verifyKey);
         trySig("SHA3-256WithRSAAndMGF1", data, signingKey, verifyKey);
-//        trySig("SHA3-384WithRSAAndMGF1", data, signingKey, verifyKey);
-//        trySig("SHA3-512WithRSAAndMGF1", data, signingKey, verifyKey);
+        trySig("SHA3-384WithRSAAndMGF1", data, signingKey, verifyKey);
+        trySig("SHA3-512WithRSAAndMGF1", data, signingKey, verifyKey);
 
         trySig("SHA1WithRSA/ISO9796-2", data, signingKey, verifyKey);
         trySig("SHA224WithRSA/ISO9796-2", data, signingKey, verifyKey);
@@ -288,6 +290,29 @@ public class SigTest
         trySig("SHA512(224)WithRSA/X9.31", data, signingKey, verifyKey);
         trySig("SHA512(256)WithRSA/X9.31", data, signingKey, verifyKey);
         trySig("WhirlpoolWithRSA/X9.31", data, signingKey, verifyKey);
+
+        tryPssSig("SHA224withRSAandSHAKE128", data, signingKey, verifyKey);
+        tryPssSig("SHA224withRSAandSHAKE256", data, signingKey, verifyKey);
+        tryPssSig("SHA512(224)withRSAandSHAKE128", data, signingKey, verifyKey);
+        tryPssSig("SHA512(224)withRSAandSHAKE256", data, signingKey, verifyKey);
+        tryPssSig("SHA256withRSAandSHAKE128", data, signingKey, verifyKey);
+        tryPssSig("SHA256withRSAandSHAKE256", data, signingKey, verifyKey);
+        tryPssSig("SHA512(256)withRSAandSHAKE128", data, signingKey, verifyKey);
+        tryPssSig("SHA512(256)withRSAandSHAKE256", data, signingKey, verifyKey);
+        tryPssSig("SHA384withRSAandSHAKE128", data, signingKey, verifyKey);
+        tryPssSig("SHA384withRSAandSHAKE256", data, signingKey, verifyKey);
+        tryPssSig("SHA512withRSAandSHAKE128", data, signingKey, verifyKey);
+        tryPssSig("SHA512withRSAandSHAKE256", data, signingKey, verifyKey);
+        tryPssSig("SHAKE128withRSASSA-PSS", data, signingKey, verifyKey);
+        tryPssSig("SHAKE256withRSASSA-PSS", data, signingKey, verifyKey);
+        tryPssSig("SHA3-224withRSAandSHAKE128", data, signingKey, verifyKey);
+        tryPssSig("SHA3-224withRSAandSHAKE256", data, signingKey, verifyKey);
+        tryPssSig("SHA3-256withRSAandSHAKE128", data, signingKey, verifyKey);
+        tryPssSig("SHA3-256withRSAandSHAKE256", data, signingKey, verifyKey);
+        tryPssSig("SHA3-384withRSAandSHAKE128", data, signingKey, verifyKey);
+        tryPssSig("SHA3-384withRSAandSHAKE256", data, signingKey, verifyKey);
+        tryPssSig("SHA3-512withRSAandSHAKE128", data, signingKey, verifyKey);
+        tryPssSig("SHA3-512withRSAandSHAKE256", data, signingKey, verifyKey);
 
         KeyFactory keyFact = KeyFactory.getInstance("RSA", "BC");
 
@@ -360,6 +385,38 @@ public class SigTest
         if (!sig.verify(sigBytes))
         {
             fail(algorithm + " verification failed");
+        }
+    }
+
+    private void tryPssSig(String algorithm, byte[] data, PrivateKey signingKey, PublicKey verifyKey)
+        throws Exception
+    {
+        Signature sig;
+        byte[] sigBytes;
+        sig = Signature.getInstance(algorithm, "BC");
+
+        sig.initSign(signingKey);
+
+        sig.update(data);
+
+        sigBytes = sig.sign();
+
+        AlgorithmParameters params = sig.getParameters();
+
+        sig = Signature.getInstance("RSASSA-PSS", "BC");
+
+        AlgorithmParameters vParams = AlgorithmParameters.getInstance(sig.getAlgorithm(), "BC");
+
+        vParams.init(params.getEncoded());
+
+        sig.initVerify(verifyKey);
+        sig.setParameter(vParams.getParameterSpec(AlgorithmParameterSpec.class));
+
+        sig.update(data);
+
+        if (!sig.verify(sigBytes))
+        {
+             fail(algorithm + " verification failed");
         }
     }
 

@@ -41,6 +41,9 @@ import org.bouncycastle.asn1.pkcs.PBKDF2Params;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.BasicConstraints;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.ExtensionsGenerator;
 import org.bouncycastle.crypto.util.PBKDF2Config;
 import org.bouncycastle.crypto.util.PBKDFConfig;
 import org.bouncycastle.crypto.util.ScryptConfig;
@@ -534,13 +537,16 @@ public class BCFKSStoreTest
         KeyPair kp1 = kpGen.generateKeyPair();
         KeyPair kp2 = kpGen.generateKeyPair();
 
+        ExtensionsGenerator extGen = new ExtensionsGenerator();
+        extGen.addExtension(Extension.basicConstraints, true, new BasicConstraints(false));
+
         X509Certificate finalCert = TestUtils.createSelfSignedCert("CN=Final", "SHA1withRSA", kp2);
         X509Certificate interCert = TestUtils.createCert(
             TestUtils.getCertSubject(finalCert),
             kp2.getPrivate(),
             "CN=EE",
             "SHA1withRSA",
-            null,
+            extGen.generate(),
             kp1.getPublic());
 
         checkOnePrivateKeyFips(kp1.getPrivate(), new X509Certificate[]{interCert, finalCert}, null);

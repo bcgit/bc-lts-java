@@ -19,7 +19,6 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
-import org.bouncycastle.crypto.DefaultBufferedMultiBlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.Mac;
 import org.bouncycastle.crypto.engines.AESEngine;
@@ -78,13 +77,6 @@ public final class AES
                     return AESEngine.newInstance();
                 }
             });
-//            super(new BlockCipherProvider()
-//            {
-//                public BlockCipher get()
-//                {
-//                    return new DefaultBufferedMultiBlockCipher(AESEngine.newInstance());
-//                }
-//            });
         }
     }
 
@@ -691,7 +683,7 @@ public final class AES
         {
             if (paramSpec == AlgorithmParameterSpec.class || GcmSpecUtil.isGcmSpec(paramSpec))
             {
-                if (GcmSpecUtil.gcmSpecExists())
+                if (GcmSpecUtil.gcmSpecExtractable())
                 {
                     return GcmSpecUtil.extractGcmSpec(gcmParams.toASN1Primitive());
                 }
@@ -776,7 +768,7 @@ public final class AES
         {
             if (paramSpec == AlgorithmParameterSpec.class || GcmSpecUtil.isGcmSpec(paramSpec))
             {
-                if (GcmSpecUtil.gcmSpecExists())
+                if (GcmSpecUtil.gcmSpecExtractable())
                 {
                     return GcmSpecUtil.extractGcmSpec(ccmParams.toASN1Primitive());
                 }
