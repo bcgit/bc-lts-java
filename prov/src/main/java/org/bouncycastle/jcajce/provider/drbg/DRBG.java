@@ -20,7 +20,8 @@ import org.bouncycastle.util.Strings;
 
 /**
  * <b>DRBG Configuration</b><br/>
- * <p>org.bouncycastle.drbg.gather_pause_secs - is to stop the entropy collection thread from grabbing all
+ * <p>
+ * org.bouncycastle.drbg.gather_pause_secs - is to stop the entropy collection thread from grabbing all
  * available entropy on the system. The original motivation for the hybrid infrastructure was virtual machines
  * sometimes produce very few bits of entropy a second, the original approach (which "worked" at least for BC) was
  * to just read on the second thread and allow things to progress around it, but it did tend to hog the system
@@ -29,9 +30,15 @@ import org.bouncycastle.util.Strings;
  * enough to allow everyone to work together, but small enough to ensure the provider's DRBG is being regularly
  * reseeded.
  * </p>
- * <p>org.bouncycastle.drbg.entropysource - is the class name for an implementation of EntropySourceProvider.
+ * <p>
+ * org.bouncycastle.drbg.entropysource - is the class name for an implementation of EntropySourceProvider.
  * For example, one could be provided which just reads directly from /dev/random and the extra infrastructure used here
- * could be avoided.</p>
+ * could be avoided.
+ * </p>
+ * <p>
+ * org.bouncycastle.drbg.entropy_thread - if true the provider will start a single daemon thread for handling entropy requests,
+ * rather than starting a thread periodically when samples are required.
+ * </p>
  */
 public class DRBG
 {

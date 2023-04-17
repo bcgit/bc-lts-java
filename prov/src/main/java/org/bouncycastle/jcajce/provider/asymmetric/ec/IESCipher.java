@@ -43,7 +43,6 @@ import org.bouncycastle.crypto.parsers.ECIESPublicKeyParser;
 import org.bouncycastle.crypto.util.DigestFactory;
 import org.bouncycastle.jcajce.provider.asymmetric.util.BaseCipherSpi;
 import org.bouncycastle.jcajce.provider.asymmetric.util.ECUtil;
-import org.bouncycastle.jcajce.provider.asymmetric.util.IESUtil;
 import org.bouncycastle.jcajce.provider.util.BadBlockException;
 import org.bouncycastle.jcajce.util.BCJcaJceHelper;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
@@ -171,7 +170,7 @@ public class IESCipher
         {
             ECCurve c = ((ECKeyParameters)key).getParameters().getCurve();
             int feSize = (c.getFieldSize() + 7) / 8; 
-            len2 = 2 * feSize;
+            len2 = 1 + 2 * feSize;
         }
         else
         {
@@ -181,7 +180,14 @@ public class IESCipher
         int inLen = buffer.size() + inputLen;
         if (engine.getCipher() == null)
         {
-            len3 = inLen;
+            if (state == Cipher.DECRYPT_MODE || state == Cipher.UNWRAP_MODE)
+            {
+                len3 = inLen - len1 - len2;
+            }
+            else
+            {
+                len3 = inLen;
+            }
         }
         else if (state == Cipher.ENCRYPT_MODE || state == Cipher.WRAP_MODE)
         {
@@ -269,18 +275,19 @@ public class IESCipher
     {
         otherKeyParameter = null;
 
-        // Use default parameters (including cipher key size) if none are specified
-        if (engineSpec == null)
-        {
-            byte[] nonce = null;
-            if (ivLength != 0 && opmode == Cipher.ENCRYPT_MODE)
-            {
-                nonce = new byte[ivLength];
-                random.nextBytes(nonce);
-            }
-            this.engineSpec = IESUtil.guessParameterSpec(engine.getCipher(), nonce);
-        }
-        else if (engineSpec instanceof IESParameterSpec)
+        // NOTE: For secure usage, sender and receiver should agree on a fixed value for the nonce.
+//        if (engineSpec == null)
+//        {
+//            byte[] nonce = null;
+//            if (ivLength != 0 && opmode == Cipher.ENCRYPT_MODE)
+//            {
+//                nonce = new byte[ivLength];
+//                random.nextBytes(nonce);
+//            }
+//            this.engineSpec = IESUtil.guessParameterSpec(engine.getCipher(), nonce);
+//        }
+//        else
+        if (engineSpec instanceof IESParameterSpec)
         {
             this.engineSpec = (IESParameterSpec)engineSpec;
         }
@@ -416,8 +423,6 @@ public class IESCipher
         }
 
         final ECDomainParameters ecParams = ((ECKeyParameters)key).getParameters();
-
-        final byte[] V;
 
         if (otherKeyParameter != null)
         {
@@ -607,7 +612,7 @@ public class IESCipher
     {
         public ECIESwithAESCBC()
         {
-            super(CBCBlockCipher.newInstance( AESEngine.newInstance()), 16);
+            super(CBCBlockCipher.newInstance(AESEngine.newInstance()), 16);
         }
     }
 

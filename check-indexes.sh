@@ -32,3 +32,14 @@ do
         echo $file
     fi
 done < indexes/bc-java.util.index
+
+while read l
+do
+    hash=`echo $l | sed -e "s/ .*//"`
+    file=`echo $l | sed -e "s/^[^ ]* //"`
+    current=`sha256sum $bc_java_dir/$file |  sed -e "s/ .*//"`
+    if [ $hash != $current ]
+    then
+        echo $file
+    fi
+done < indexes/bc-java.prov.index

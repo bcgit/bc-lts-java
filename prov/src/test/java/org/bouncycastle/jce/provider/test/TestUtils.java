@@ -399,7 +399,7 @@ class TestUtils
 
         public String toString()
         {
-            return null;
+            return "";
         }
 
         public PublicKey getPublicKey()
