@@ -110,7 +110,7 @@ public class JceAsymmetricKeyWrapper
     public JceAsymmetricKeyWrapper(AlgorithmParameters algorithmParams, PublicKey publicKey)
         throws InvalidParameterSpecException
     {
-        super(extractFromSpec(algorithmParams.getParameterSpec(AlgorithmParameterSpec.class)));
+        super(extractAlgID(publicKey, algorithmParams.getParameterSpec(AlgorithmParameterSpec.class)));
 
         this.publicKey = publicKey;
     }
@@ -123,7 +123,7 @@ public class JceAsymmetricKeyWrapper
      */
     public JceAsymmetricKeyWrapper(AlgorithmParameterSpec algorithmParameterSpec, PublicKey publicKey)
     {
-        super(extractFromSpec(algorithmParameterSpec));
+        super(extractAlgID(publicKey, algorithmParameterSpec));
 
         this.publicKey = publicKey;
     }
@@ -258,10 +258,9 @@ public class JceAsymmetricKeyWrapper
             }
             catch (InvalidKeyException e)
             {
-                e.printStackTrace();
             }
             catch (GeneralSecurityException e)
-            {   e.printStackTrace();
+            {
             }
             catch (IllegalStateException e)
             {
@@ -302,7 +301,7 @@ public class JceAsymmetricKeyWrapper
         return encryptedKeyBytes;
     }
 
-    private static AlgorithmIdentifier extractFromSpec(AlgorithmParameterSpec algorithmParameterSpec)
+    private static AlgorithmIdentifier extractAlgID(PublicKey pubKey, AlgorithmParameterSpec algorithmParameterSpec)
     {
         if (algorithmParameterSpec instanceof OAEPParameterSpec)
         {

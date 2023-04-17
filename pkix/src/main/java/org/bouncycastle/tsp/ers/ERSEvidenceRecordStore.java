@@ -101,7 +101,7 @@ public class ERSEvidenceRecordStore
 
                 for (int i = 0; i != records.size(); i++)
                 {
-                    ERSEvidenceRecord record = records.get(i);
+                    ERSEvidenceRecord record = (ERSEvidenceRecord)records.get(i);
                     if (selector.match(record))
                     {
                         rv.add(record);
@@ -118,7 +118,7 @@ public class ERSEvidenceRecordStore
         {
             // match all - use a set to avoid repeats
             Set<ERSEvidenceRecord> rv = new HashSet<ERSEvidenceRecord>(recordMap.size());
-            for (Iterator<List<ERSEvidenceRecord>> it = recordMap.values().iterator(); it.hasNext(); )
+            for (Iterator it = recordMap.values().iterator(); it.hasNext(); )
             {
                 rv.addAll((List<ERSEvidenceRecord>)it.next());
             }
@@ -126,9 +126,9 @@ public class ERSEvidenceRecordStore
         }
 
         Set<ERSEvidenceRecord> rv = new HashSet<ERSEvidenceRecord>();
-        for (Iterator<List<ERSEvidenceRecord>> it = recordMap.values().iterator(); it.hasNext(); )
+        for (Iterator it = recordMap.values().iterator(); it.hasNext(); )
         {
-            List<ERSEvidenceRecord> next = it.next();
+            List<ERSEvidenceRecord> next = (List<ERSEvidenceRecord>)it.next();
 
             for (int i = 0; i != next.size(); i++)
             {

@@ -13,7 +13,6 @@ import java.security.Security;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.test.pkix.PrintResults;
 import org.bouncycastle.asn1.eac.CertificateHolderAuthorization;
 import org.bouncycastle.asn1.eac.CertificateHolderReference;
 import org.bouncycastle.asn1.eac.CertificationAuthorityReference;
@@ -30,6 +29,7 @@ import org.bouncycastle.eac.operator.jcajce.JcaEACSignerBuilder;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECParameterSpec;
+import org.bouncycastle.test.PrintTestResult;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.io.Streams;
 
@@ -202,7 +202,7 @@ public class AllTests
     {
         Security.addProvider(new BouncyCastleProvider());
 
-       PrintResults.printResult( junit.textui.TestRunner.run(suite()));
+        PrintTestResult.printResult(junit.textui.TestRunner.run(suite()));
     }
 
     public static Test suite()

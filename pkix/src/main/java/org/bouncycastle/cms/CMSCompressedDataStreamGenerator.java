@@ -26,7 +26,7 @@ import org.bouncycastle.operator.OutputCompressor;
  */
 public class CMSCompressedDataStreamGenerator
 {
-    public static final String  ZLIB    = "1.2.840.113549.1.9.16.3.8";
+    public static final String ZLIB = CMSObjectIdentifiers.zlibCompress.getId();
 
     private int _bufferSize;
     
@@ -109,7 +109,7 @@ public class CMSCompressedDataStreamGenerator
             compressor.getOutputStream(octetStream), sGen, cGen, eiGen);
     }
 
-    private class CmsCompressedOutputStream
+    private static class CmsCompressedOutputStream
         extends OutputStream
     {
         private OutputStream _out;

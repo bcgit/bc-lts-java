@@ -164,7 +164,14 @@ public class ESTResponse
         //
         if ("base64".equalsIgnoreCase(getHeader("content-transfer-encoding")))
         {
-            inputStream = new CTEBase64InputStream(inputStream, getContentLength());
+            if (chunked)
+            {
+                inputStream = new CTEBase64InputStream(inputStream);
+            }
+            else
+            {
+                inputStream = new CTEBase64InputStream(inputStream, contentLength);
+            }
         }
     }
 
@@ -303,7 +310,7 @@ public class ESTResponse
     }
 
 
-    private class PrintingInputStream
+    private static class PrintingInputStream
         extends InputStream
     {
         private final InputStream src;

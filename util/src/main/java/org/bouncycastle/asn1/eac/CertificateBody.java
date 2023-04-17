@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Enumeration;
 
 import org.bouncycastle.asn1.ASN1EncodableVector;
-import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -43,7 +42,6 @@ import org.bouncycastle.asn1.DERSequence;
 public class CertificateBody
     extends ASN1Object
 {
-    ASN1InputStream seq;
     private ASN1TaggedObject certificateProfileIdentifier;// version of the certificate format. Must be 0 (version 1)
     private ASN1TaggedObject certificationAuthorityReference;//uniquely identifies the issuinng CA's signature key pair
     private PublicKeyDataObject publicKey;// stores the encoded public key

@@ -6,14 +6,14 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.test.pkix.PrintResults;
+import org.bouncycastle.test.PrintTestResult;
 
 public class AllTests
     extends TestCase
 {
     public static void main (String[] args)
     {
-       PrintResults.printResult( junit.textui.TestRunner.run(suite()));
+        PrintTestResult.printResult(junit.textui.TestRunner.run(suite()));
     }
     
     public static Test suite()

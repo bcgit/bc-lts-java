@@ -9,7 +9,6 @@ import java.security.cert.X509Certificate;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.test.pkix.PrintResults;
 import org.bouncycastle.asn1.dvcs.CertEtcToken;
 import org.bouncycastle.asn1.dvcs.TargetEtcChain;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateHolder;
@@ -40,6 +39,7 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
+import org.bouncycastle.test.PrintTestResult;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.io.Streams;
 
@@ -83,12 +83,6 @@ public class AllTests
         throws Exception
     {
         init();
-    }
-
-    private byte[] getInput(String name)
-        throws IOException
-    {
-        return Streams.readAll(getClass().getResourceAsStream(name));
     }
 
     public void testCCPDRequest()
@@ -224,7 +218,7 @@ public class AllTests
     {
         Security.addProvider(new BouncyCastleProvider());
 
-      PrintResults.printResult( junit.textui.TestRunner.run(suite()));
+        PrintTestResult.printResult(junit.textui.TestRunner.run(suite()));
     }
 
     public static Test suite()
