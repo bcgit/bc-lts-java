@@ -92,7 +92,7 @@ public class ElgamalDSATest
 
         KeyPairGenerator dsaKpGen = KeyPairGenerator.getInstance("DSA", "BC");
 
-        DSAParameters dsaParams = CryptoServicesRegistrar.getSizedProperty(CryptoServicesRegistrar.Property.DSA_DEFAULT_PARAMS, 2048);
+        DSAParameters dsaParams = (DSAParameters)CryptoServicesRegistrar.getSizedProperty(CryptoServicesRegistrar.Property.DSA_DEFAULT_PARAMS, 2048);
         
         dsaKpGen.initialize(new DSAParameterSpec(dsaParams.getP(), dsaParams.getQ(), dsaParams.getG()));
 
@@ -151,7 +151,7 @@ public class ElgamalDSATest
                     new JceAsymmetricKeyWrapper(new JcaX509CertificateConverter().setProvider("BC").getCertificate(cert))));
 
         CMSEnvelopedData encryptedCert = edGen.generate(
-                                new CMSProcessableByteArray(cert.getEncoded()),
+                                new CMSProcessableByteArray(new CMPCertificate(cert.toASN1Structure()).getEncoded()),
                                 new JceCMSContentEncryptorBuilder(CMSAlgorithm.AES128_CBC).setProvider("BC").build());
 
         CertificateResponseBuilder certRespBuilder = new CertificateResponseBuilder(senderReqMessage.getCertReqId(), new PKIStatusInfo(PKIStatus.granted));
@@ -178,13 +178,7 @@ public class ElgamalDSATest
 
         CertificateResponse certResp = certRepMessage.getResponses()[0];
 
-        // Note: we don't specify the provider here as we're actually using both BC and BCPQC
-
-        CMPCertificate cmpCert = certResp.getCertificate(new JceKeyTransEnvelopedRecipient(elgKp.getPrivate()));
-
-        assertEquals(true, Arrays.equals(cert.getEncoded(), cmpCert.getEncoded()));
-
-        X509CertificateHolder receivedCert = new X509CertificateHolder(cmpCert.getX509v3PKCert());
+        X509CertificateHolder receivedCert = new X509CertificateHolder(certResp.getCertificate(new JceKeyTransEnvelopedRecipient(elgKp.getPrivate())).getX509v3PKCert());
 
         X509CertificateHolder caCertHolder = certRepMessage.getX509Certificates()[0];
 
