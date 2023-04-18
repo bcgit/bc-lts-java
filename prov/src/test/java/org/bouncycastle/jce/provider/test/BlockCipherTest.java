@@ -37,6 +37,7 @@ import javax.crypto.spec.RC2ParameterSpec;
 import javax.crypto.spec.RC5ParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
@@ -51,6 +52,8 @@ public class BlockCipherTest
     extends SimpleTest
 {
     private static Set<String> shortIvOkay = new HashSet<String>();
+
+
 
     static
     {
@@ -1700,6 +1703,8 @@ public class BlockCipherTest
 
     public void performTest()
     {
+        CryptoServicesRegistrar.setNativeEnabled(true);
+
         for (int i = 0; i != cipherTests1.length; i += 2)
         {
             test(cipherTests1[i], input1, Hex.decode(cipherTests1[i + 1]));

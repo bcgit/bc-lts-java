@@ -3,12 +3,14 @@ package org.bouncycastle.jce.provider.test;
 import java.security.Security;
 
 import junit.framework.TestCase;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.test.SimpleTestResult;
 
 public class SimpleTestTest
     extends TestCase
 {
+
     public void testJCE()
     {
 
