@@ -11,35 +11,17 @@ fi
 
 bc_java_dir=$1
 
-while read l
+for mod in core util prov pkix
 do
-    hash=`echo $l | sed -e "s/ .*//"`
-    file=`echo $l | sed -e "s/^[^ ]* //"`
-    current=`sha256sum $bc_java_dir/$file |  sed -e "s/ .*//"`
-    if [ $hash != $current ]
-    then
-        echo $file
-    fi
-done < indexes/bc-java.core.index
-
-while read l
-do
-    hash=`echo $l | sed -e "s/ .*//"`
-    file=`echo $l | sed -e "s/^[^ ]* //"`
-    current=`sha256sum $bc_java_dir/$file |  sed -e "s/ .*//"`
-    if [ $hash != $current ]
-    then
-        echo $file
-    fi
-done < indexes/bc-java.util.index
-
-while read l
-do
-    hash=`echo $l | sed -e "s/ .*//"`
-    file=`echo $l | sed -e "s/^[^ ]* //"`
-    current=`sha256sum $bc_java_dir/$file |  sed -e "s/ .*//"`
-    if [ $hash != $current ]
-    then
-        echo $file
-    fi
-done < indexes/bc-java.prov.index
+    echo "checking $mod"
+    while read l
+    do
+        hash=`echo $l | sed -e "s/ .*//"`
+        file=`echo $l | sed -e "s/^[^ ]* //"`
+        current=`sha256sum $bc_java_dir/$file |  sed -e "s/ .*//"`
+        if [ $hash != $current ]
+        then
+            echo $file
+        fi
+    done < indexes/bc-java.$mod.index
+done
