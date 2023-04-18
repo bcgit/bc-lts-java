@@ -1,6 +1,8 @@
 package org.bouncycastle.crypto.digests;
 
+import org.bouncycastle.crypto.CryptoServiceProperties;
 import org.bouncycastle.crypto.CryptoServicePurpose;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.SavableDigest;
 import org.bouncycastle.util.Memoable;
 import org.bouncycastle.util.dispose.NativeDisposer;
@@ -21,6 +23,7 @@ class SHA256NativeDigest
         this.purpose = purpose;
         nativeRef = new DigestRefWrapper(makeNative());
         reset();
+        CryptoServicesRegistrar.checkConstraints(cryptoServiceProperties());
     }
 
     SHA256NativeDigest()
@@ -30,6 +33,7 @@ class SHA256NativeDigest
 
     SHA256NativeDigest(SHA256NativeDigest src)
     {
+
         this(CryptoServicePurpose.ANY);
 
         byte[] state = src.getEncodedState();
@@ -123,10 +127,14 @@ class SHA256NativeDigest
     }
 
 
+
+
     void restoreFullState(byte[] encoded, int offset)
     {
         restoreFullState(nativeRef.getReference(), encoded, offset);
     }
+
+
 
     @Override
     public String toString()
@@ -153,6 +161,11 @@ class SHA256NativeDigest
     static native int encodeFullState(long nativeRef, byte[] buffer, int offset);
 
     static native void restoreFullState(long reference, byte[] encoded, int offset);
+
+    protected CryptoServiceProperties cryptoServiceProperties()
+    {
+        return Utils.getDefaultProperties(this, 256, purpose);
+    }
 
 
     private static class Disposer

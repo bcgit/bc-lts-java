@@ -44,7 +44,7 @@ public class ECBNativeLimitTest extends TestCase
                 long ref = makeInstance(16, true);
                 try
                 {
-                    init(true, null);
+                    init(ref, null);
                     dispose(ref);
                     fail("accepted null key");
                 }
@@ -64,7 +64,7 @@ public class ECBNativeLimitTest extends TestCase
                 long ref = makeInstance(16, true);
                 try
                 {
-                    init(true, new KeyParameter(new byte[15]));
+                    init(ref, new byte[15]);
                     dispose(ref);
                     fail("invalid key size");
                 }

@@ -15,6 +15,10 @@ class NativeEntropySource
 
     public NativeEntropySource(int sizeInBits)
     {
+        if (sizeInBits <1) {
+            throw new IllegalStateException("bit size less than 1");
+        }
+
         //
         // Round up conversion to bytes.
         //
@@ -57,7 +61,7 @@ class NativeEntropySource
         return buf;
     }
 
-    private native void seedBuffer(byte[] buf, boolean useSeedSource);
+    native void seedBuffer(byte[] buf, boolean useSeedSource);
 
     @Override
     public int entropySize()

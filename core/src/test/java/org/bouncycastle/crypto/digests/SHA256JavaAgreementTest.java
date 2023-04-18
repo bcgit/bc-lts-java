@@ -13,7 +13,7 @@ import java.io.OutputStream;
 import java.security.DigestOutputStream;
 import java.security.SecureRandom;
 
-public class SHA256JavaAgreementTest
+public class SHA256JavaAgreementTest extends TestCase
 {
 
     @Before
@@ -50,6 +50,7 @@ public class SHA256JavaAgreementTest
         dig.doFinal(res, 0);
         return res;
     }
+
 
 
     @Test

@@ -181,7 +181,7 @@ public class DigestConstraintsTest
 
         CryptoServicesRegistrar.setServicesConstraints(new BitsOfSecurityConstraint(256));
 
-        new SHA256Digest(CryptoServicePurpose.PRF);
+        SHA256Digest.newInstance(CryptoServicePurpose.PRF);
 
         CryptoServicesRegistrar.setServicesConstraints(null);
     }

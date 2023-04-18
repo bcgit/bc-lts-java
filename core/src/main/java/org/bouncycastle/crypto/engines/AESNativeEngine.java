@@ -1,19 +1,8 @@
 package org.bouncycastle.crypto.engines;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicePurpose;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.DefaultMultiBlockCipher;
-import org.bouncycastle.crypto.NativeBlockCipherProvider;
-import org.bouncycastle.crypto.NativeServices;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
-import org.bouncycastle.crypto.modes.CBCBlockCipher;
-import org.bouncycastle.crypto.modes.CBCModeCipher;
-import org.bouncycastle.crypto.modes.CFBBlockCipher;
-import org.bouncycastle.crypto.modes.CFBModeCipher;
-import org.bouncycastle.crypto.modes.GCMBlockCipher;
-import org.bouncycastle.crypto.modes.GCMModeCipher;
+import org.bouncycastle.crypto.modes.*;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
@@ -23,6 +12,7 @@ class AESNativeEngine
     implements NativeBlockCipherProvider
 {
     protected NativeReference wrapper = null;
+    private int keyLen = 0;
 
     AESNativeEngine()
     {
@@ -60,6 +50,8 @@ class AESNativeEngine
 
             init(wrapper.getReference(), key);
 
+            keyLen = key.length * 8;
+
             return;
         }
 
@@ -83,26 +75,6 @@ class AESNativeEngine
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
         throws DataLengthException, IllegalStateException
     {
-        if (inOff < 0)
-        {
-            throw new IllegalStateException("inOff is negative");
-        }
-
-        if (outOff < 0)
-        {
-            throw new IllegalStateException("outOff is negative");
-        }
-
-        if (inOff + getBlockSize() > in.length)
-        {
-            throw new DataLengthException("input buffer too short");
-        }
-
-        if (outOff + getBlockSize() > out.length)
-        {
-            throw new DataLengthException("output buffer too short");
-        }
-
         if (wrapper == null)
         {
             throw new IllegalStateException("not initialized");
@@ -123,32 +95,6 @@ class AESNativeEngine
         throws DataLengthException, IllegalStateException
     {
 
-        if (inOff < 0)
-        {
-            throw new DataLengthException("inOff is negative");
-        }
-
-        if (outOff < 0)
-        {
-            throw new DataLengthException("outOff is negative");
-        }
-
-        if (blockCount < 0)
-        {
-            throw new DataLengthException("blockCount is negative");
-        }
-
-        int extent = getBlockSize() * blockCount;
-
-        if (inOff + extent > in.length)
-        {
-            throw new DataLengthException("input buffer too short");
-        }
-
-        if (outOff + extent > out.length)
-        {
-            throw new DataLengthException("output buffer too short");
-        }
 
         if (wrapper == null)
         {
@@ -183,11 +129,11 @@ class AESNativeEngine
 
     static native void dispose(long ref);
 
-    private static native void init(long nativeRef, byte[] key);
+    static native void init(long nativeRef, byte[] key);
 
     public GCMModeCipher createGCM()
     {
-        if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_GCM))
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM))
         {
             return new AESNativeGCM();
         }
@@ -198,7 +144,7 @@ class AESNativeEngine
     @Override
     public CBCModeCipher createCBC()
     {
-        if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_CBC))
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CBC))
         {
             return new AESNativeCBC();
         }
@@ -213,12 +159,23 @@ class AESNativeEngine
             throw new IllegalArgumentException("invalid CFB bitsize: " + bitSize);
         }
 
-        if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_CFB))
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CFB))
         {
             return new AESNativeCFB(bitSize);
         }
 
         return new CFBBlockCipher(new AESNativeEngine(), bitSize);
+    }
+
+
+    @Override
+    public SkippingStreamCipher createCTR()
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CTR)) {
+            return new AESNativeCTR();
+        }
+
+        return new SICBlockCipher(AESEngine.newInstance());
     }
 
     private static class Disposer
@@ -252,5 +209,8 @@ class AESNativeEngine
         }
     }
 
-
+    public String toString()
+    {
+        return "AES[Native](" + keyLen + ")";
+    }
 }

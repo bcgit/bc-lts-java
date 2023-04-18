@@ -2,6 +2,7 @@ package org.bouncycastle.crypto;
 
 import junit.framework.TestCase;
 import org.bouncycastle.util.Arrays;
+import org.junit.Test;
 
 public class NativeEntropyTests
         extends TestCase
@@ -13,14 +14,15 @@ public class NativeEntropyTests
      * <p>
      * This test does not do that, it is here to check that it returns something.
      */
+    @Test
     public void testESBasic()
             throws Exception
     {
 
         NativeLoader.loadDriver();
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.DRBG)
-            && !CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.NRBG))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.DRBG)
+            && !CryptoServicesRegistrar.hasEnabledService(NativeServices.NRBG))
         {
             System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
             return;
@@ -35,15 +37,20 @@ public class NativeEntropyTests
 
     }
 
+    @Test
     public void testESLimits()
             throws Exception
     {
-
-
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.DRBG)
+                && !CryptoServicesRegistrar.hasEnabledService(NativeServices.NRBG))
+        {
+            System.out.println("Skipping testESLimits, no native random: " + NativeLoader.getNativeStatusMessage());
+            return;
+        }
         NativeLoader.loadDriver();
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.DRBG)
-            && !CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.NRBG))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.DRBG)
+            && !CryptoServicesRegistrar.hasEnabledService(NativeServices.NRBG))
         {
             System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
             return;
@@ -57,8 +64,36 @@ public class NativeEntropyTests
         {
             assertTrue(ex.getMessage().contains("bit size less than 1"));
         }
+    }
 
+    @Test
+    public void testLimitsEnforcedFromNative() throws Exception {
 
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.DRBG)
+                && !CryptoServicesRegistrar.hasEnabledService(NativeServices.NRBG))
+        {
+            System.out.println("Skipping testLimitsEnforcedFromNative, no native random: " + NativeLoader.getNativeStatusMessage());
+            return;
+        }
+
+        NativeLoader.loadDriver();
+
+        NativeEntropySource es = new NativeEntropySource(128);
+        try
+        {
+            es.seedBuffer(null, true);
+            fail("not accept null");
+        } catch (Exception ex) {
+            TestCase.assertTrue(ex.getMessage().contains("array cannot be null"));
+        }
+
+        try
+        {
+            es.seedBuffer(new byte[1], true);
+            fail("not accept null");
+        } catch (Exception ex) {
+            TestCase.assertTrue(ex.getMessage().contains("array must be multiple of modulus"));
+        }
     }
 
 }

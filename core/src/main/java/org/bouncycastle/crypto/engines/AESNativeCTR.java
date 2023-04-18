@@ -1,20 +1,17 @@
 package org.bouncycastle.crypto.engines;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.MultiBlockCipher;
-import org.bouncycastle.crypto.SkippingStreamCipher;
-import org.bouncycastle.crypto.StreamCipher;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 public class AESNativeCTR
-    implements StreamCipher, SkippingStreamCipher, MultiBlockCipher
+        implements StreamCipher, SkippingStreamCipher, MultiBlockCipher
 {
 
     private CTRRefWrapper referenceWrapper = null;
+    private int keyLen;
 
     public AESNativeCTR()
     {
@@ -162,10 +159,9 @@ public class AESNativeCTR
             if (ivParam.getParameters() == null)
             {
                 init(referenceWrapper.getReference(), null, iv);
-            }
-            else
+            } else
             {
-                byte[] key = ((KeyParameter)ivParam.getParameters()).getKey();
+                byte[] key = ((KeyParameter) ivParam.getParameters()).getKey();
 
                 switch (key.length)
                 {
@@ -178,11 +174,11 @@ public class AESNativeCTR
                 }
 
                 init(referenceWrapper.getReference(), key, iv);
+                keyLen = key.length * 8;
             }
 
             reset();
-        }
-        else
+        } else
         {
             throw new IllegalArgumentException("CTR mode requires ParametersWithIV");
         }
@@ -241,6 +237,7 @@ public class AESNativeCTR
 
         return processBytes(referenceWrapper.getReference(), in, inOff, len, out, outOff);
     }
+
 
     @Override
     public void reset()
@@ -303,6 +300,15 @@ public class AESNativeCTR
         {
             AESNativeCTR.dispose(reference);
         }
+    }
+
+    public String toString()
+    {
+        if (keyLen > 0)
+        {
+            return "CTR[Native](CTR[Native](" + keyLen + "))";
+        }
+        return "CTR[Native](AES[Native](not initialized))";
     }
 
 }

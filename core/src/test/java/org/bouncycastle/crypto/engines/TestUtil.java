@@ -6,7 +6,7 @@ public class TestUtil
 {
     public static boolean hasNativeService(String service)
     {
-        return CryptoServicesRegistrar.getNativeServices().hasService(service);
+        return CryptoServicesRegistrar.hasEnabledService(service);
     }
 
     public static String errorMsg()
