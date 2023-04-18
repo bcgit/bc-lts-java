@@ -30,6 +30,7 @@ sourceSets {
 }
 
 dependencies {
+  implementation project(path: ':core')
   java9Implementation files([sourceSets.main.output.classesDirs]) {
      builtBy compileJava
   }

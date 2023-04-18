@@ -179,9 +179,9 @@ class AESNativeEngine
 
     private static native int getBlockSize(long ref);
 
-    private static native long makeInstance(int length, boolean forEncryption);
+    static native long makeInstance(int length, boolean forEncryption);
 
-    private static native void dispose(long ref);
+    static native void dispose(long ref);
 
     private static native void init(long nativeRef, byte[] key);
 
