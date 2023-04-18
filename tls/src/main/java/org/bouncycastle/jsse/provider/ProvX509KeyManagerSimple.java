@@ -346,14 +346,14 @@ class ProvX509KeyManagerSimple
     private static final class Match
         implements Comparable<Match>
     {
-        static final MatchQuality INVALID = MatchQuality.MISMATCH_SNI;
-        static final Match NOTHING = new Match(MatchQuality.NONE, Integer.MAX_VALUE, null);
+        static final ProvX509KeyManager.MatchQuality INVALID = ProvX509KeyManager.MatchQuality.MISMATCH_SNI;
+        static final Match NOTHING = new Match(ProvX509KeyManager.MatchQuality.NONE, Integer.MAX_VALUE, null);
 
-        final MatchQuality quality;
+        final ProvX509KeyManager.MatchQuality quality;
         final int keyTypeIndex;
         final Credential credential;
 
-        Match(MatchQuality quality, int keyTypeIndex, Credential credential)
+        Match(ProvX509KeyManager.MatchQuality quality, int keyTypeIndex, Credential credential)
         {
             this.quality = quality;
             this.keyTypeIndex = keyTypeIndex;
@@ -378,7 +378,7 @@ class ProvX509KeyManagerSimple
 
         boolean isIdeal()
         {
-            return MatchQuality.OK == quality && 0 == keyTypeIndex;
+            return ProvX509KeyManager.MatchQuality.OK == quality && 0 == keyTypeIndex;
         }
 
         boolean isValid()

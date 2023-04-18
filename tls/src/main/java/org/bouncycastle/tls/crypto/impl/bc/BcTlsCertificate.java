@@ -119,13 +119,4 @@ public class BcTlsCertificate
         }
         return true;
     }
-
-    public void validateKeyUsage(int keyUsageBits)
-        throws IOException
-    {
-        if (!supportsKeyUsage(keyUsageBits))
-        {
-            throw new TlsFatalAlert(AlertDescription.certificate_unknown);
-        }
-    }
 }
