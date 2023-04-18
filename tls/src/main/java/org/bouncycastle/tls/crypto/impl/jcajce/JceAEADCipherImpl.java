@@ -95,8 +95,16 @@ public class JceAEADCipherImpl
             {
                 AlgorithmParameters algParams = helper.createAlgorithmParameters(algorithmParamsName);
 
-                // fortunately CCM and GCM parameters have the same ASN.1 structure
-                algParams.init(new GCMParameters(nonce, macSize).getEncoded());
+                // believe it or not but there are things out there that do not support the ASN.1 encoding...
+                if (GCMUtil.isGCMParameterSpecAvailable())
+                {
+                    algParams.init(GCMUtil.createGCMParameterSpec(macSize * 8, nonce));
+                }
+                else
+                {
+                    // fortunately CCM and GCM parameters have the same ASN.1 structure
+                    algParams.init(new GCMParameters(nonce, macSize).getEncoded());
+                }
 
                 cipher.init(cipherMode, key, algParams, null);
 
