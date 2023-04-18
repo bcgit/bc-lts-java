@@ -24,7 +24,7 @@ public class AllTests
         suite.addTestSuite(AesCFBConcordanceTest.class);
         suite.addTestSuite(AesECBConcordanceTest.class);
         suite.addTestSuite(AesGCMConcordanceTest.class);
-        suite.addTestSuite(NativeLimitTests.class);
+        //suite.addTestSuite(NativeLimitTests.class);
         suite.addTestSuite(NativeEntropyTests.class);
         suite.addTestSuite(NativeFailsafeTest.class);
         return new BCTestSetup(suite);

@@ -120,12 +120,12 @@ Native Features: [SHA2, DRBG, AES/CFB, AES/GCM, NRBG, AES/ECB, AES/CBC]
 Use the following test targets to exercise the tests while using specific sets of native components
 compiled for certain CPU features.
 
-| Variant Name | Family  | Requirements                                             |
-|--------------|---------|----------------------------------------------------------|
-| sse          | x86_64  | sse4.1 sha aes pclmul rdrnd rdseed                       |
-| avx          | x86_64  | avx sha aes pclmul rdrnd -rdseed lzcnt                   |
-| vaes         | x8 6_64 | avx sha aes pclmul rdrnd rdseed lzcnt vaes avx2          |
-| vaesf        | x86_64  | avx sha aes pclmul rdrnd rdseed lzcnt vaes avx2 avx512f  |
+| Variant Name | Family | Requirements                                             |
+|--------------|--------|----------------------------------------------------------|
+| sse          | x86_64 | sse4.1 sha aes pclmul rdrnd rdseed                       |
+| avx          | x86_64 | avx sha aes pclmul rdrnd -rdseed lzcnt                   |
+| vaes         | x86_64 | avx sha aes pclmul rdrnd rdseed lzcnt vaes avx2          |
+| vaesf        | x86_64 | avx sha aes pclmul rdrnd rdseed lzcnt vaes avx2 avx512f  |
 
 Attempting to test a variant on a CPU without matching hardware features will cause a fault.
 ```
