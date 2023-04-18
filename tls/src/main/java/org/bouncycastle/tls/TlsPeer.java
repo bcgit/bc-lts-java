@@ -67,21 +67,6 @@ public interface TlsPeer
      */
     boolean requiresExtendedMasterSecret();
 
-    /**
-     * Controls whether the protocol will check the 'signatureAlgorithm' of received certificates as
-     * specified in RFC 5246 7.4.2, 7.4.4, 7.4.6 and similar rules for earlier TLS versions. We
-     * recommend to enable these checks, but this option is provided for cases where the default
-     * checks are for some reason too strict.
-     * 
-     * @return <code>true</code> if the 'signatureAlgorithm' of received certificates should be
-     *         checked, or <code>false</code> to skip those checks.
-     *
-     * @deprecated No longer called by the protocol classes. Can call
-     *             {@link TlsUtils#checkPeerSigAlgs(TlsContext, TlsCertificate[])} once a complete
-     *             CertPath has been determined (i.e. as part of chain validation).
-     */
-    boolean shouldCheckSigAlgOfPeerCerts();
-
     boolean shouldUseExtendedMasterSecret();
 
     /**

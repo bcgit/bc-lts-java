@@ -92,11 +92,6 @@ public abstract class AbstractTlsPeer
         return false;
     }
 
-    public boolean shouldCheckSigAlgOfPeerCerts()
-    {
-        return true;
-    }
-
     public boolean shouldUseExtendedMasterSecret()
     {
         return true;

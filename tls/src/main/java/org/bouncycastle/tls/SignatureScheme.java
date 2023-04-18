@@ -178,25 +178,6 @@ public class SignatureScheme
         }
     }
 
-    /** @deprecated Use {@link #getCryptoHashAlgorithm(int) instead. */
-    public static int getRSAPSSCryptoHashAlgorithm(int signatureScheme)
-    {
-        switch (signatureScheme)
-        {
-        case rsa_pss_pss_sha256:
-        case rsa_pss_rsae_sha256:
-            return CryptoHashAlgorithm.sha256;
-        case rsa_pss_pss_sha384:
-        case rsa_pss_rsae_sha384:
-            return CryptoHashAlgorithm.sha384;
-        case rsa_pss_pss_sha512:
-        case rsa_pss_rsae_sha512:
-            return CryptoHashAlgorithm.sha512;
-        default:
-            return -1;
-        }
-    }
-
     public static short getHashAlgorithm(int signatureScheme)
     {
         return (short)((signatureScheme >>> 8) & 0xFF);

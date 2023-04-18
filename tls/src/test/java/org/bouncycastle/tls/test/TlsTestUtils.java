@@ -25,7 +25,6 @@ import org.bouncycastle.asn1.pkcs.RSAPrivateKey;
 import org.bouncycastle.asn1.sec.ECPrivateKey;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
-import org.bouncycastle.crypto.SavableDigest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
@@ -104,7 +103,7 @@ public class TlsTestUtils
 
     static byte[] sha256DigestOf(byte[] input)
     {
-        SavableDigest d = SHA256Digest.newInstance();
+        SHA256Digest d = new SHA256Digest();
         d.update(input, 0, input.length);
         byte[] result = new byte[d.getDigestSize()];
         d.doFinal(result, 0);

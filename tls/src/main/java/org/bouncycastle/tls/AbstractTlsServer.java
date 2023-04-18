@@ -65,13 +65,7 @@ public abstract class AbstractTlsServer
     {
         return false;
     }
-
-    /** @deprecated Use 'serverExtensions' directly, it is now never null */
-    protected Hashtable checkServerExtensions()
-    {
-        return serverExtensions;
-    }
-
+    
     protected int getMaximumNegotiableCurveBits()
     {
         int[] clientSupportedGroups = context.getSecurityParametersHandshake().getClientSupportedGroups();
