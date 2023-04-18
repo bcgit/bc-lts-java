@@ -57,7 +57,7 @@ ba3d732dfff4800d521fe41d946de9bb99afd39ceabedbc218c5b5166226a84f  pkix/src/test/
 dbc30e599de56b91716e006183f13ee779d667cbed5e674da973677019f41109  pkix/src/test/java/org/bouncycastle/cert/test/ConverterTest.java
 55dcf83d5f13451d0a545aaee5205d27cf29a4676fcd3f5afcd1291b640e2574  pkix/src/test/java/org/bouncycastle/cert/test/AttrCertTest.java
 461b7d005ff3528e642cb723c1b00de46b207e2aa6a48dfb763d863a2db5134a  pkix/src/test/java/org/bouncycastle/cert/test/PEMData.java
-9fa7c7389e5b6edf504c8187fa0315f7a317d70c689374fa52e3f603fa885c42  pkix/src/test/java/org/bouncycastle/cert/test/BcCertTest.java
+72dfa891d8bff186b6064c3de64c7432f2b4405ad44d05e4273970189efa9e55  pkix/src/test/java/org/bouncycastle/cert/test/BcCertTest.java
 1986947deb609552fb17616208fb4199b95f77a82e57fa4c688072829f2aab45  pkix/src/test/java/org/bouncycastle/cert/test/CertTest.java
 97e95fbaf56bad19bec3d19e2c4d3a6432af37ae7a51e09aec2005ecee7c732b  pkix/src/test/java/org/bouncycastle/cert/test/ExternalKeyTest.java
 acbe3dd44babf2e10b60565d4bc33088e21270b49bf1d294afd8fd568566503a  pkix/src/test/java/org/bouncycastle/cert/test/BcPKCS10Test.java
@@ -578,7 +578,7 @@ bee5b8dc94eee5fa954d7c6b04c36e558c9fc137d56388d2790b661d6cc9fe7b  pkix/src/main/
 87940181e1c006ac3bda13b4a67cddc140deb6175738650ea77a6db22b4ba62d  pkix/src/main/java/org/bouncycastle/cms/Recipient.java
 279cd8d38f1d5a9a4282bd22d41b2dce65a6ac55f661d8f93b27903c224b9ca5  pkix/src/main/java/org/bouncycastle/cms/CMSSignedDataGenerator.java
 5d66dd4140223cea08da5f8115ed1be76d1b682caa24a9c9bd99a1e23cafcdbf  pkix/src/main/java/org/bouncycastle/cms/KEMRecipientInformation.java
-36b2d1a131ba8854376db557bbd9ec0632ff858cf56270d4b90d25c8d6d4af3a  pkix/src/main/java/org/bouncycastle/cms/CMSSignedHelper.java
+1cdd6295d66f805962c4fb08855d9873e867dcd842dda24134395ec7044591be  pkix/src/main/java/org/bouncycastle/cms/CMSSignedHelper.java
 77734919d10dc50d8b2973093fde47ea05815d22fcb4fccba918c4bda2476347  pkix/src/main/java/org/bouncycastle/cms/CMSVerifierCertificateNotValidException.java
 2b468f8e1e505c433354a2c10b3267ca3f5d8ed97e11f3a84eeadae770310e67  pkix/src/main/java/org/bouncycastle/cms/CMSTypedData.java
 8d0ef00be5f6b719fff02fe5972f3d06bfb26b067d7e240af1409dc4706da58d  pkix/src/main/java/org/bouncycastle/cms/SignerId.java

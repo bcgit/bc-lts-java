@@ -185,7 +185,7 @@ d0618be60a9d0a8d0c20ec6cd9089c9c2cf032823f4ecafa6fbe07bd1b58aad2  core/src/test/
 5073664aff802dea0bf0d37be45b929c2ecab3b676736fccf214718d662d2913  core/src/test/java/org/bouncycastle/crypto/test/RSADigestSignerTest.java
 5562763e7883061be907467688ce3c15ea63d0b6a638cc8a6e65977543d9e936  core/src/test/java/org/bouncycastle/crypto/test/GOST3411_2012_512DigestTest.java
 ebc0524fdfff9a6b3c9f41d9b2da383c3c8038021dec4334b0c26121440a9463  core/src/test/java/org/bouncycastle/crypto/test/NullTest.java
-3d8b6c00a5fd715bf7466bb4ba14d86e47a092e9e18ed4da2b3f1ed39cf8aa69  core/src/test/java/org/bouncycastle/crypto/test/GCMTest.java
+0b0d5e5fb05f88fb813c250ff80e923c2c4b375d2060d734aa89bfddc4dd9549  core/src/test/java/org/bouncycastle/crypto/test/GCMTest.java
 c75cd8695fee2cfc76892dbbbf103cb91eccf6d4e89132eb84bafed153d3b7c3  core/src/test/java/org/bouncycastle/crypto/test/CAST5Test.java
 5f5809652ababb525b59925a3c74f410b906306d64dbccc9fd5f561f01891952  core/src/test/java/org/bouncycastle/crypto/test/RIPEMD128DigestTest.java
 99c1eb9f564d60e948ac9f3981b82452cc7285ee84b900c2914ea65099fb04a8  core/src/test/java/org/bouncycastle/crypto/test/DSTU7564Test.java
@@ -560,7 +560,7 @@ ad29884e1577f55c0bc1551f17cd20a10ebd5d898af23b381f435aa2a0b21b12  core/src/main/
 30b971a7f7431400fec70336fded4c1d5937a221ee35e727841467ff0371cd66  core/src/main/java/org/bouncycastle/crypto/digests/NonMemoableDigest.java
 d78e4f8d1844d01e7bf83179e061f684bc83b338a7356c7d1751d1ba2075e1bd  core/src/main/java/org/bouncycastle/crypto/digests/SkeinEngine.java
 e8edca40441cd4cead4c90d7eb8fe46c8e7896d7f063a23b0219ba3e84d6b302  core/src/main/java/org/bouncycastle/crypto/digests/Blake2bDigest.java
-70869304d080cb3131c5e3d4096408172a1c4b88bf0df59f043bd8f97341a491  core/src/main/java/org/bouncycastle/crypto/digests/SHA256Digest.java
+76b9708e168970bea9eba99d7fd68c24071a6e96d3960d563ade5787d1633621  core/src/main/java/org/bouncycastle/crypto/digests/SHA256Digest.java
 bf5f33fdfddd9eb9a08cfe11b9ef361e961c7babd22f8492e6dbb83535d49d94  core/src/main/java/org/bouncycastle/crypto/io/CipherInputStream.java
 c0867963baea9eeb92ef79c81add87ed04f2e00ab5338243f578e7a87ab91f8d  core/src/main/java/org/bouncycastle/crypto/io/MacInputStream.java
 53f1f6954db539ac603760747b71eee5926efcd74c73702f0f53c078ba5cee0c  core/src/main/java/org/bouncycastle/crypto/io/CipherOutputStream.java
