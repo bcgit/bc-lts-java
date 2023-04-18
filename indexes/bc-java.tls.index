@@ -59,7 +59,7 @@ a324aa89377b7a6495f284e6e91dc4c5b2471f96b5ee8ef16bf9aee17b63733c  tls/src/test/j
 f928992d0e61a476b5d85114c7e6c49382b3ce1431f82f0fb03055f46cc17e34  tls/src/test/java/org/bouncycastle/tls/test/TlsServerRawKeysTest.java
 35517658931fb2065186141c0322e609549491037424311b10035e6ba8f34ea5  tls/src/test/java/org/bouncycastle/tls/test/MockDTLSServer.java
 0b109b265d68d423ca87a49ca6cb72256018f3042562c4e6c6eb9374c136cc15  tls/src/test/java/org/bouncycastle/tls/test/TlsRawKeysProtocolTest.java
-de89d5ca43cfa68d370ffddc1b958a6bba79559ce3295a25c44b5147b6097533  tls/src/test/java/org/bouncycastle/tls/test/TlsTestUtils.java
+9e141d4af432d88076820bc78a4668caae951ba4a133ccf96f7b3c5d764b6278  tls/src/test/java/org/bouncycastle/tls/test/TlsTestUtils.java
 e57d0b9882852f04d16b072b8db48f45bb1711e69cb4f124b99dbac3a54eb577  tls/src/test/java/org/bouncycastle/tls/test/MockTlsClient.java
 3b55e13d7510375ae5a496a6446f9d86639324a87edc120fc0eafa74892519db  tls/src/test/java/org/bouncycastle/tls/test/TlsTestClientProtocol.java
 55d7e33582f7b2a4e820bacb1a44d637833ee242f7e72a0fa985e6f11a6111cc  tls/src/test/java/org/bouncycastle/tls/test/MockDatagramAssociation.java
