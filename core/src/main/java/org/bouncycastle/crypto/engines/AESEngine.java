@@ -468,7 +468,7 @@ public class AESEngine
      */
     public static MultiBlockCipher newInstance()
     {
-        if (CryptoServicesRegistrar.getNativeServices().hasService("AES/ECB"))
+        if (CryptoServicesRegistrar.hasEnabledService("AES/ECB"))
         {
             return new AESNativeEngine();
         }
@@ -651,5 +651,20 @@ public class AESEngine
             return 256;
         }
         return (workingKey.length - 7) << 5;
+    }
+
+    @Override
+    public String toString() {
+        switch (ROUNDS)
+        {
+            case 10:
+                return "AES[Java](128)";
+            case 12:
+                return "AES[Java](192)";
+            case 14:
+                return "AES[Java](256)";
+        }
+
+        return "AESEngine(not initialized)";
     }
 }

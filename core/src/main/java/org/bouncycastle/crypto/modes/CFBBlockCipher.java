@@ -290,4 +290,10 @@ public class CFBBlockCipher
 
         cipher.reset();
     }
+
+    @Override
+    public String toString()
+    {
+        return "CFB[Java](" + cipher.toString() + ")";
+    }
 }

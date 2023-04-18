@@ -22,37 +22,37 @@ import org.bouncycastle.util.Pack;
  * NIST Special Publication 800-38D.
  */
 public class GCMBlockCipher
-    implements GCMModeCipher
+        implements GCMModeCipher
 {
     private static final int BLOCK_SIZE = 16;
 
     // not final due to a compiler bug
-    private BlockCipher   cipher;
+    private BlockCipher cipher;
     private GCMMultiplier multiplier;
     private GCMExponentiator exp;
 
     // These fields are set by init and not modified by processing
-    private boolean             forEncryption;
-    private boolean             initialised;
-    private int                 macSize;
-    private byte[]              lastKey;
-    private byte[]              nonce;
-    private byte[]              initialAssociatedText;
-    private byte[]              H;
-    private byte[]              J0;
+    private boolean forEncryption;
+    private boolean initialised;
+    private int macSize;
+    private byte[] lastKey;
+    private byte[] nonce;
+    private byte[] initialAssociatedText;
+    private byte[] H;
+    private byte[] J0;
 
     // These fields are modified during processing
-    private byte[]      bufBlock;
-    private byte[]      macBlock;
-    private byte[]      S, S_at, S_atPre;
-    private byte[]      counter;
-    private int         blocksRemaining;
-    private int         bufOff;
-    private long        totalLength;
-    private byte[]      atBlock;
-    private int         atBlockPos;
-    private long        atLength;
-    private long        atLengthPre;
+    private byte[] bufBlock;
+    private byte[] macBlock;
+    private byte[] S, S_at, S_atPre;
+    private byte[] counter;
+    private int blocksRemaining;
+    private int bufOff;
+    private long totalLength;
+    private byte[] atBlock;
+    private int atBlockPos;
+    private long atLength;
+    private long atLengthPre;
 
     /**
      * Return a new GCM mode cipher based on the passed in base cipher
@@ -63,7 +63,7 @@ public class GCMBlockCipher
     {
         if (cipher instanceof NativeBlockCipherProvider)
         {
-            NativeBlockCipherProvider engine = (NativeBlockCipherProvider)cipher;
+            NativeBlockCipherProvider engine = (NativeBlockCipherProvider) cipher;
 
             return engine.createGCM();
         }
@@ -75,7 +75,7 @@ public class GCMBlockCipher
      * Return a new GCM mode cipher based on the passed in base cipher and multiplier.
      *
      * @param cipher the base cipher for the GCM mode.
-     * @param m the GCM multiplier to use.
+     * @param m      the GCM multiplier to use.
      */
     public static GCMModeCipher newInstance(BlockCipher cipher, GCMMultiplier m)
     {
@@ -92,7 +92,7 @@ public class GCMBlockCipher
         if (c.getBlockSize() != BLOCK_SIZE)
         {
             throw new IllegalArgumentException(
-                "cipher required with a block size of " + BLOCK_SIZE + ".");
+                    "cipher required with a block size of " + BLOCK_SIZE + ".");
         }
 
         if (m == null)
@@ -119,7 +119,7 @@ public class GCMBlockCipher
      * Sizes less than 96 are not recommended, but are supported for specialized applications.
      */
     public void init(boolean forEncryption, CipherParameters params)
-        throws IllegalArgumentException
+            throws IllegalArgumentException
     {
         this.forEncryption = forEncryption;
         this.macBlock = null;
@@ -130,7 +130,7 @@ public class GCMBlockCipher
 
         if (params instanceof AEADParameters)
         {
-            AEADParameters param = (AEADParameters)params;
+            AEADParameters param = (AEADParameters) params;
 
             newNonce = param.getNonce();
             initialAssociatedText = param.getAssociatedText();
@@ -143,17 +143,15 @@ public class GCMBlockCipher
 
             macSize = macSizeBits / 8;
             keyParam = param.getKey();
-        }
-        else if (params instanceof ParametersWithIV)
+        } else if (params instanceof ParametersWithIV)
         {
-            ParametersWithIV param = (ParametersWithIV)params;
+            ParametersWithIV param = (ParametersWithIV) params;
 
             newNonce = param.getIV();
-            initialAssociatedText  = null;
+            initialAssociatedText = null;
             macSize = 16;
-            keyParam = (KeyParameter)param.getParameters();
-        }
-        else
+            keyParam = (KeyParameter) param.getParameters();
+        } else
         {
             throw new IllegalArgumentException("invalid parameters passed to GCM");
         }
@@ -161,9 +159,9 @@ public class GCMBlockCipher
         int bufLength = forEncryption ? BLOCK_SIZE : (BLOCK_SIZE + macSize);
         this.bufBlock = new byte[bufLength];
 
-        if (newNonce == null || newNonce.length < 1)
+        if (newNonce == null || newNonce.length < 12)
         {
-            throw new IllegalArgumentException("IV must be at least 1 byte");
+            throw new IllegalArgumentException("IV must be at least 12 byte");
         }
 
         if (forEncryption)
@@ -201,8 +199,7 @@ public class GCMBlockCipher
             // GCMMultiplier tables don't change unless the key changes (and are expensive to init)
             multiplier.init(H);
             exp = null;
-        }
-        else if (this.H == null)
+        } else if (this.H == null)
         {
             throw new IllegalArgumentException("Key must be specified in initial init");
         }
@@ -213,12 +210,11 @@ public class GCMBlockCipher
         {
             System.arraycopy(nonce, 0, J0, 0, nonce.length);
             this.J0[BLOCK_SIZE - 1] = 0x01;
-        }
-        else
+        } else
         {
             gHASH(J0, nonce, nonce.length);
             byte[] X = new byte[BLOCK_SIZE];
-            Pack.longToBigEndian((long)nonce.length * 8, X, 8);
+            Pack.longToBigEndian((long) nonce.length * 8, X, 8);
             gHASHBlock(J0, X);
         }
 
@@ -346,7 +342,7 @@ public class GCMBlockCipher
     }
 
     public int processByte(byte in, byte[] out, int outOff)
-        throws DataLengthException
+            throws DataLengthException
     {
         checkStatus();
 
@@ -357,8 +353,7 @@ public class GCMBlockCipher
             {
                 encryptBlock(bufBlock, 0, out, outOff);
                 bufOff = 0;
-            }
-            else
+            } else
             {
                 decryptBlock(bufBlock, 0, out, outOff);
                 System.arraycopy(bufBlock, BLOCK_SIZE, bufBlock, 0, macSize);
@@ -370,7 +365,7 @@ public class GCMBlockCipher
     }
 
     public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
-        throws DataLengthException
+            throws DataLengthException
     {
         checkStatus();
 
@@ -412,8 +407,7 @@ public class GCMBlockCipher
 
             bufOff = BLOCK_SIZE + inLimit - inOff;
             System.arraycopy(in, inOff, bufBlock, 0, bufOff);
-        }
-        else
+        } else
         {
             int available = bufBlock.length - bufOff;
             if (len < available)
@@ -462,7 +456,7 @@ public class GCMBlockCipher
     }
 
     public int doFinal(byte[] out, int outOff)
-        throws IllegalStateException, InvalidCipherTextException
+            throws IllegalStateException, InvalidCipherTextException
     {
         checkStatus();
 
@@ -479,8 +473,7 @@ public class GCMBlockCipher
             {
                 throw new OutputLengthException("Output buffer too short");
             }
-        }
-        else
+        } else
         {
             if (extra < macSize)
             {
@@ -564,8 +557,7 @@ public class GCMBlockCipher
             // Append T to the message
             System.arraycopy(macBlock, 0, out, outOff + bufOff, macSize);
             resultLen += macSize;
-        }
-        else
+        } else
         {
             // Retrieve the T value from the message and compare to calculated one
             byte[] msgMac = new byte[macSize];
@@ -587,7 +579,7 @@ public class GCMBlockCipher
     }
 
     private void reset(
-        boolean clearMac)
+            boolean clearMac)
     {
         cipher.reset();
 
@@ -607,7 +599,7 @@ public class GCMBlockCipher
 
         if (bufBlock != null)
         {
-            Arrays.fill(bufBlock, (byte)0);
+            Arrays.fill(bufBlock, (byte) 0);
         }
 
         if (clearMac)
@@ -618,8 +610,7 @@ public class GCMBlockCipher
         if (forEncryption)
         {
             initialised = false;
-        }
-        else
+        } else
         {
             if (initialAssociatedText != null)
             {
@@ -678,8 +669,7 @@ public class GCMBlockCipher
         {
             GCMUtil.xor(buf, off, ctrBlock, 0, len);
             gHASHPartial(S, buf, off, len);
-        }
-        else
+        } else
         {
             gHASHPartial(S, buf, off, len);
             GCMUtil.xor(buf, off, ctrBlock, 0, len);
@@ -725,10 +715,17 @@ public class GCMBlockCipher
         blocksRemaining--;
 
         int c = 1;
-        c += counter[15] & 0xFF; counter[15] = (byte)c; c >>>= 8;
-        c += counter[14] & 0xFF; counter[14] = (byte)c; c >>>= 8;
-        c += counter[13] & 0xFF; counter[13] = (byte)c; c >>>= 8;
-        c += counter[12] & 0xFF; counter[12] = (byte)c;
+        c += counter[15] & 0xFF;
+        counter[15] = (byte) c;
+        c >>>= 8;
+        c += counter[14] & 0xFF;
+        counter[14] = (byte) c;
+        c >>>= 8;
+        c += counter[13] & 0xFF;
+        counter[13] = (byte) c;
+        c >>>= 8;
+        c += counter[12] & 0xFF;
+        counter[12] = (byte) c;
 
         cipher.processBlock(counter, 0, block, 0);
     }
@@ -743,5 +740,11 @@ public class GCMBlockCipher
             }
             throw new IllegalStateException("GCM cipher needs to be initialised");
         }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "GCM[Java](" + cipher.toString() + ")";
     }
 }

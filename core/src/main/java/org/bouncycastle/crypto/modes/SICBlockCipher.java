@@ -1,11 +1,6 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.OutputLengthException;
-import org.bouncycastle.crypto.SkippingStreamCipher;
-import org.bouncycastle.crypto.StreamBlockCipher;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
@@ -25,6 +20,22 @@ public class SICBlockCipher
     private byte[]          counter;
     private byte[]          counterOut;
     private int             byteCount;
+
+
+    /**
+     * Return a new CBC mode cipher based on the passed in base cipher
+     *
+     * @param cipher the base cipher for the CBC mode.
+     */
+    public static StreamCipher newInstance(BlockCipher cipher)
+    {
+        if (cipher instanceof NativeBlockCipherProvider)
+        {
+            return ((NativeBlockCipherProvider)cipher).createCTR();
+        }
+
+        return new SICBlockCipher(cipher);
+    }
 
     /**
      * Basic constructor.

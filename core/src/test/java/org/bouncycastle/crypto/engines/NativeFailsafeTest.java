@@ -57,7 +57,7 @@ public class NativeFailsafeTest
     @Test
     public void testAesCBC()
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_CBC))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CBC))
         {
             if (System.getProperty(NATIVE_FAILSAFE_TEST, "").contains("cbc"))
             {
@@ -81,7 +81,7 @@ public class NativeFailsafeTest
     @Test
     public void testAesGCM()
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_GCM))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM))
         {
             if (System.getProperty(NATIVE_FAILSAFE_TEST, "").contains("gcm"))
             {
@@ -106,7 +106,7 @@ public class NativeFailsafeTest
     @Test
     public void testAesCTR()
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_CTR))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CTR))
         {
             if (System.getProperty(NATIVE_FAILSAFE_TEST, "").contains("ctr"))
             {
@@ -131,7 +131,7 @@ public class NativeFailsafeTest
     @Test
     public void testSHA()
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
         {
             if (System.getProperty(NATIVE_FAILSAFE_TEST, "").contains("sha"))
             {
@@ -155,7 +155,7 @@ public class NativeFailsafeTest
     @Test
     public void testAesCFB()
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_CFB))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CFB))
         {
             if (System.getProperty(NATIVE_FAILSAFE_TEST, "").contains("cfb"))
             {
@@ -181,7 +181,7 @@ public class NativeFailsafeTest
     public void testRdRand()
     {
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.DRBG))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.DRBG))
         {
             if (System.getProperty(NATIVE_FAILSAFE_TEST, "").contains("drbg"))
             {
@@ -206,7 +206,7 @@ public class NativeFailsafeTest
     @Test
     public void testRdSeed()
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.NRBG))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.NRBG))
         {
             if (System.getProperty(NATIVE_FAILSAFE_TEST, "").contains("nrbg"))
             {

@@ -35,7 +35,7 @@ public class SHA256Digest
 
     public static SavableDigest newInstance()
     {
-        if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
         {
             return new SHA256NativeDigest();
         }
@@ -44,7 +44,7 @@ public class SHA256Digest
 
     public static SavableDigest newInstance(CryptoServicePurpose purpose)
     {
-        if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
         {
             return new SHA256NativeDigest(purpose);
         }
@@ -61,9 +61,9 @@ public class SHA256Digest
 
         if (digest instanceof SHA256NativeDigest)
         {
-            if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
+            if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
             {
-                return new SHA256NativeDigest((SHA256NativeDigest)digest);
+                return new SHA256NativeDigest((SHA256NativeDigest) digest);
             }
         }
 
@@ -73,7 +73,7 @@ public class SHA256Digest
 
     public static SavableDigest newInstance(byte[] encoded, int offset)
     {
-        if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
         {
             SHA256NativeDigest sha256 = new SHA256NativeDigest();
 
@@ -86,11 +86,10 @@ public class SHA256Digest
     }
 
 
-
     /**
      * Standard constructor
      */
-   public  SHA256Digest()
+    public SHA256Digest()
     {
         this(CryptoServicePurpose.ANY);
     }
@@ -111,7 +110,6 @@ public class SHA256Digest
     /**
      * Copy constructor.  This will copy the state of the provided
      * message digest.
-     *
      */
     public SHA256Digest(SHA256Digest t)
     {
@@ -425,6 +423,12 @@ public class SHA256Digest
     protected CryptoServiceProperties cryptoServiceProperties()
     {
         return Utils.getDefaultProperties(this, 256, purpose);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "SHA256[Java]()";
     }
 }
 

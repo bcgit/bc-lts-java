@@ -12,16 +12,16 @@ import org.bouncycastle.util.Arrays;
  * implements Cipher-Block-Chaining (CBC) mode on top of a simple cipher.
  */
 public class CBCBlockCipher
-    extends DefaultMultiBlockCipher
-    implements CBCModeCipher
+        extends DefaultMultiBlockCipher
+        implements CBCModeCipher
 {
-    private byte[]          IV;
-    private byte[]          cbcV;
-    private byte[]          cbcNextV;
+    private byte[] IV;
+    private byte[] cbcV;
+    private byte[] cbcNextV;
 
-    private int             blockSize;
-    private BlockCipher     cipher = null;
-    private boolean         encrypting;
+    private int blockSize;
+    private BlockCipher cipher = null;
+    private boolean encrypting;
 
     /**
      * Return a new CBC mode cipher based on the passed in base cipher
@@ -32,7 +32,7 @@ public class CBCBlockCipher
     {
         if (cipher instanceof NativeBlockCipherProvider)
         {
-            return ((NativeBlockCipherProvider)cipher).createCBC();
+            return ((NativeBlockCipherProvider) cipher).createCBC();
         }
 
         return new CBCBlockCipher(cipher);
@@ -44,7 +44,7 @@ public class CBCBlockCipher
      * @param cipher the block cipher to be used as the basis of chaining.
      */
     public CBCBlockCipher(
-        BlockCipher cipher)
+            BlockCipher cipher)
     {
         this.cipher = cipher;
         this.blockSize = cipher.getBlockSize();
@@ -69,15 +69,15 @@ public class CBCBlockCipher
      * If an IV isn't passed as part of the parameter, the IV will be all zeros.
      *
      * @param encrypting if true the cipher is initialised for
-     *  encryption, if false for decryption.
-     * @param params the key and other data required by the cipher.
-     * @exception IllegalArgumentException if the params argument is
-     * inappropriate.
+     *                   encryption, if false for decryption.
+     * @param params     the key and other data required by the cipher.
+     * @throws IllegalArgumentException if the params argument is
+     *                                  inappropriate.
      */
     public void init(
-        boolean             encrypting,
-        CipherParameters    params)
-        throws IllegalArgumentException
+            boolean encrypting,
+            CipherParameters params)
+            throws IllegalArgumentException
     {
         boolean oldEncrypting = this.encrypting;
 
@@ -85,7 +85,7 @@ public class CBCBlockCipher
 
         if (params instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV)params;
+            ParametersWithIV ivParam = (ParametersWithIV) params;
             byte[] iv = ivParam.getIV();
 
             if (iv.length != blockSize)
@@ -101,13 +101,11 @@ public class CBCBlockCipher
             if (ivParam.getParameters() != null)
             {
                 cipher.init(encrypting, ivParam.getParameters());
-            }
-            else if (oldEncrypting != encrypting)
+            } else if (oldEncrypting != encrypting)
             {
                 throw new IllegalArgumentException("cannot change encrypting state without providing key.");
             }
-        }
-        else
+        } else
         {
             reset();
 
@@ -115,8 +113,7 @@ public class CBCBlockCipher
             if (params != null)
             {
                 cipher.init(encrypting, params);
-            }
-            else if (oldEncrypting != encrypting)
+            } else if (oldEncrypting != encrypting)
             {
                 throw new IllegalArgumentException("cannot change encrypting state without providing key.");
             }
@@ -147,21 +144,21 @@ public class CBCBlockCipher
      * Process one block of input from the array in and write it to
      * the out array.
      *
-     * @param in the array containing the input data.
-     * @param inOff offset into the in array the data starts at.
-     * @param out the array the output data will be copied into.
+     * @param in     the array containing the input data.
+     * @param inOff  offset into the in array the data starts at.
+     * @param out    the array the output data will be copied into.
      * @param outOff the offset into the out array the output will start at.
-     * @exception DataLengthException if there isn't enough data in in, or
-     * space in out.
-     * @exception IllegalStateException if the cipher isn't initialised.
      * @return the number of bytes processed and produced.
+     * @throws DataLengthException   if there isn't enough data in in, or
+     *                               space in out.
+     * @throws IllegalStateException if the cipher isn't initialised.
      */
     public int processBlock(
-        byte[]      in,
-        int         inOff,
-        byte[]      out,
-        int         outOff)
-        throws DataLengthException, IllegalStateException
+            byte[] in,
+            int inOff,
+            byte[] out,
+            int outOff)
+            throws DataLengthException, IllegalStateException
     {
         return (encrypting) ? encryptBlock(in, inOff, out, outOff) : decryptBlock(in, inOff, out, outOff);
     }
@@ -173,7 +170,7 @@ public class CBCBlockCipher
     public void reset()
     {
         System.arraycopy(IV, 0, cbcV, 0, IV.length);
-        Arrays.fill(cbcNextV, (byte)0);
+        Arrays.fill(cbcNextV, (byte) 0);
 
         cipher.reset();
     }
@@ -181,21 +178,21 @@ public class CBCBlockCipher
     /**
      * Do the appropriate chaining step for CBC mode encryption.
      *
-     * @param in the array containing the data to be encrypted.
-     * @param inOff offset into the in array the data starts at.
-     * @param out the array the encrypted data will be copied into.
+     * @param in     the array containing the data to be encrypted.
+     * @param inOff  offset into the in array the data starts at.
+     * @param out    the array the encrypted data will be copied into.
      * @param outOff the offset into the out array the output will start at.
-     * @exception DataLengthException if there isn't enough data in in, or
-     * space in out.
-     * @exception IllegalStateException if the cipher isn't initialised.
      * @return the number of bytes processed and produced.
+     * @throws DataLengthException   if there isn't enough data in in, or
+     *                               space in out.
+     * @throws IllegalStateException if the cipher isn't initialised.
      */
     private int encryptBlock(
-        byte[]      in,
-        int         inOff,
-        byte[]      out,
-        int         outOff)
-        throws DataLengthException, IllegalStateException
+            byte[] in,
+            int inOff,
+            byte[] out,
+            int outOff)
+            throws DataLengthException, IllegalStateException
     {
         if ((inOff + blockSize) > in.length)
         {
@@ -224,21 +221,21 @@ public class CBCBlockCipher
     /**
      * Do the appropriate chaining step for CBC mode decryption.
      *
-     * @param in the array containing the data to be decrypted.
-     * @param inOff offset into the in array the data starts at.
-     * @param out the array the decrypted data will be copied into.
+     * @param in     the array containing the data to be decrypted.
+     * @param inOff  offset into the in array the data starts at.
+     * @param out    the array the decrypted data will be copied into.
      * @param outOff the offset into the out array the output will start at.
-     * @exception DataLengthException if there isn't enough data in in, or
-     * space in out.
-     * @exception IllegalStateException if the cipher isn't initialised.
      * @return the number of bytes processed and produced.
+     * @throws DataLengthException   if there isn't enough data in in, or
+     *                               space in out.
+     * @throws IllegalStateException if the cipher isn't initialised.
      */
     private int decryptBlock(
-        byte[]      in,
-        int         inOff,
-        byte[]      out,
-        int         outOff)
-        throws DataLengthException, IllegalStateException
+            byte[] in,
+            int inOff,
+            byte[] out,
+            int outOff)
+            throws DataLengthException, IllegalStateException
     {
         if ((inOff + blockSize) > in.length)
         {
@@ -260,12 +257,18 @@ public class CBCBlockCipher
         /*
          * swap the back up buffer into next position
          */
-        byte[]  tmp;
+        byte[] tmp;
 
         tmp = cbcV;
         cbcV = cbcNextV;
         cbcNextV = tmp;
 
         return length;
+    }
+
+    @Override
+    public String toString()
+    {
+        return "CBC[Java](" + cipher.toString() + ")";
     }
 }

@@ -3,6 +3,7 @@ package org.bouncycastle.crypto.engines;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.modes.CBCModeCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -208,7 +209,9 @@ class AESNativeCBC
     @Override
     public BlockCipher getUnderlyingCipher()
     {
-        return null;
+        MultiBlockCipher eng = AESEngine.newInstance();
+        eng.init(encrypting,new KeyParameter(oldKey));
+        return eng;
     }
 
 

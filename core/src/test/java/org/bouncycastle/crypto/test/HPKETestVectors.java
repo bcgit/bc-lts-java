@@ -233,7 +233,7 @@ public class HPKETestVectors
                         psk_id = Hex.decode((String)buf.get("psk_id"));
                     }
 
-                    System.out.println("test case: " + count);
+      //              System.out.println("test case: " + count);
 //                    System.out.println("mode: " + mode + " kemID: " + kem_id + " kdfID: " + kdf_id + " aeadID: " + aead_id);
 
                     HPKE hpke = new HPKE(mode, kem_id, kdf_id, aead_id);

@@ -30,6 +30,8 @@ class AESNativeGCM
 
     private byte[] keptMac = null;
 
+    private boolean finalCalled = false;
+
     @Override
     public BlockCipher getUnderlyingCipher()
     {
@@ -81,9 +83,9 @@ class AESNativeGCM
         }
 
 
-        if (newNonce == null || newNonce.length < 1)
+        if (newNonce == null || newNonce.length < 12)
         {
-            throw new IllegalArgumentException("IV must be at least 1 byte");
+            throw new IllegalArgumentException("IV must be at least 12 bytes");
         }
 
         if (forEncryption)
@@ -121,12 +123,14 @@ class AESNativeGCM
         initRef(lastKey.length);
 
 
+
         initNative(
                 refWrapper.getReference(),
                 forEncryption, lastKey,
                 nonce, initialAssociatedText, macSize);
 
 
+        finalCalled = false;
         initialised = true;
     }
 
@@ -305,6 +309,7 @@ class AESNativeGCM
 
         reset(refWrapper.getReference());
         initialised = false;
+
     }
 
     private void resetKeepMac()
@@ -317,6 +322,7 @@ class AESNativeGCM
 
         keptMac = getMac();
         reset(refWrapper.getReference());
+        initialised = false;
     }
 
 

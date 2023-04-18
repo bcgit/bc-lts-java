@@ -1,7 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 
-import java.security.Security;
+
 
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.NativeServices;
@@ -26,7 +26,7 @@ public class GCMBlocksRemainingFailureTest
     public void testWithOneBlockRemaining_Ok()
         throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_GCM))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM))
         {
             System.out.println("Skipping due to lack of AES/CMUL CPU support.");
             System.out.println("Native Features: "+ TestUtil.getNativeFeatureString());
@@ -52,7 +52,7 @@ public class GCMBlocksRemainingFailureTest
     public void failWholeBlockExtra()
         throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_GCM))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM))
         {
             System.out.println("Skipping due to lack of AES/CMUL CPU support.");
             System.out.println("Native Features: "+ TestUtil.getNativeFeatureString());
@@ -88,7 +88,7 @@ public class GCMBlocksRemainingFailureTest
     public void failWholeBlockExtraAfterFour()
         throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_GCM))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM))
         {
             System.out.println("Skipping due to lack of AES/CMUL CPU support.");
             System.out.println("Native Features: "+ TestUtil.getNativeFeatureString());
@@ -124,7 +124,7 @@ public class GCMBlocksRemainingFailureTest
     public void failDueToPartialFinalBlock()
         throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_GCM))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM))
         {
             System.out.println("Skipping due to lack of AES/CMUL CPU support.");
             System.out.println("Native Features: "+ TestUtil.getNativeFeatureString());
@@ -156,7 +156,7 @@ public class GCMBlocksRemainingFailureTest
     public void testCannotAdjustUp()
         throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_GCM))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM))
         {
             System.out.println("Skipping due to lack of AES/CMUL CPU support.");
             System.out.println("Native Features: "+ TestUtil.getNativeFeatureString());
@@ -181,7 +181,7 @@ public class GCMBlocksRemainingFailureTest
     public void testCannotAdjustAfterUse()
         throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.AES_GCM))
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM))
         {
             System.out.println("Skipping due to lack of AES/CMUL CPU support.");
             System.out.println("Native Features: "+ TestUtil.getNativeFeatureString());
