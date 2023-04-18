@@ -204,11 +204,11 @@ class PEMUtilities
 
         if (blockMode.equals("CBC"))
         {
-            engine = new CBCBlockCipher(engine);
+            engine = CBCBlockCipher.newInstance(engine);
         }
         else if (blockMode.equals("CFB"))
         {
-            engine = new CFBBlockCipher(engine, engine.getBlockSize() * 8);
+            engine = CFBBlockCipher.newInstance(engine, engine.getBlockSize() * 8);
         }
         else if (blockMode.equals("OFB"))
         {
