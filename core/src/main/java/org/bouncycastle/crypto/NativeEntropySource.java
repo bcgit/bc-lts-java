@@ -6,7 +6,7 @@ import org.bouncycastle.crypto.prng.EntropySource;
 
 
 class NativeEntropySource
-        implements EntropySource
+    implements EntropySource
 {
     private final int size;
     private final int effectiveSize;
@@ -15,7 +15,8 @@ class NativeEntropySource
 
     public NativeEntropySource(int sizeInBits)
     {
-        if (sizeInBits <1) {
+        if (sizeInBits < 1)
+        {
             throw new IllegalStateException("bit size less than 1");
         }
 

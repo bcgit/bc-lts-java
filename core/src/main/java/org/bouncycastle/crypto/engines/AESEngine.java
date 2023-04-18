@@ -490,7 +490,7 @@ public class AESEngine
      * @param forEncryption whether we are for encryption.
      * @param params        the parameters required to set up the cipher.
      * @throws IllegalArgumentException if the params argument is
-     * inappropriate.
+     *                                  inappropriate.
      */
     public void init(
         boolean forEncryption,
@@ -654,15 +654,16 @@ public class AESEngine
     }
 
     @Override
-    public String toString() {
+    public String toString()
+    {
         switch (ROUNDS)
         {
-            case 10:
-                return "AES[Java](128)";
-            case 12:
-                return "AES[Java](192)";
-            case 14:
-                return "AES[Java](256)";
+        case 10:
+            return "AES[Java](128)";
+        case 12:
+            return "AES[Java](192)";
+        case 14:
+            return "AES[Java](256)";
         }
 
         return "AESEngine(not initialized)";
