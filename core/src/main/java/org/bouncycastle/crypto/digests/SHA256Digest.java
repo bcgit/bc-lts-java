@@ -70,19 +70,22 @@ public class SHA256Digest
         throw new IllegalArgumentException("receiver digest not available for input type " + (digest != null ? digest.getClass() : "null"));
     }
 
-    public static SavableDigest newInstance(byte[] encoded)
+
+    public static SavableDigest newInstance(byte[] encoded, int offset)
     {
         if (CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
         {
             SHA256NativeDigest sha256 = new SHA256NativeDigest();
 
-            sha256.restoreFullState(encoded, 0);
+            sha256.restoreFullState(encoded, offset);
 
             return sha256;
         }
 
         return new SHA256Digest(encoded);
     }
+
+
 
     /**
      * Standard constructor

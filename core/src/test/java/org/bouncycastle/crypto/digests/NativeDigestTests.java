@@ -1,34 +1,50 @@
 package org.bouncycastle.crypto.digests;
 
-import java.security.SecureRandom;
-
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.SavableDigest;
+import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
-public class NativeDigestTests extends TestCase
+import java.security.SecureRandom;
+
+public class NativeDigestTests
+        extends TestCase
 {
+    @Before
+    public void setUp()
+    {
+//        FipsStatus.isReady();
+        CryptoServicesRegistrar.setNativeEnabled(true);
+    }
+
+
+    @After
+    public void tearDown()
+    {
+        CryptoServicesRegistrar.setNativeEnabled(true);
+    }
+
 
     @Test
-    public void testSHA256Empty() throws Exception
+    public void testSHA256Empty()
+            throws Exception
     {
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
+        if (!TestUtil.hasNativeService("SHA2"))
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
             {
-                fail("no native sha and no skip set for it");
-                return;
+                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
-        SHA256NativeDigest dig = new SHA256NativeDigest();
+        SavableDigest dig = SHA256Digest.newInstance();
         byte[] res = new byte[dig.getDigestSize()];
         dig.doFinal(res, 0);
         TestCase.assertTrue("Empty Digest result",
@@ -37,18 +53,18 @@ public class NativeDigestTests extends TestCase
     }
 
     @Test
-    public void testSHA256FullStateEncoding() throws Exception
+    public void testSHA256FullStateEncoding()
+            throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
+        if (!TestUtil.hasNativeService("SHA2"))
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
             {
-                fail("no native sha and no skip set for it");
-                return;
+                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
+
 
         byte[] msg = new byte[256];
         SecureRandom rand = new SecureRandom();
@@ -58,14 +74,14 @@ public class NativeDigestTests extends TestCase
         for (int t = 0; t < 256; t++)
         {
 
-            SHA256NativeDigest dig = new SHA256NativeDigest();
+            SavableDigest dig = SHA256Digest.newInstance();
             dig.update(msg, 0, t);
             byte[] state = dig.getEncodedState();
 
             byte[] resAfterStateExtraction = new byte[dig.getDigestSize()];
             dig.doFinal(resAfterStateExtraction, 0);
 
-            SHA256NativeDigest dig2 = new SHA256NativeDigest().restoreState(state, 0);
+            SavableDigest dig2 =  SHA256Digest.newInstance(state,0);
             byte[] resStateRecreated = new byte[dig2.getDigestSize()];
             dig2.doFinal(resStateRecreated, 0);
 
@@ -83,16 +99,16 @@ public class NativeDigestTests extends TestCase
     }
 
 
-    public void testSHA256ByteByByte() throws Exception
+    public void testSHA256ByteByByte()
+            throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
+
+        if (!TestUtil.hasNativeService("SHA2"))
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
             {
-                fail("no native sha and no skip set for it");
-                return;
+                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -100,7 +116,7 @@ public class NativeDigestTests extends TestCase
         SecureRandom rand = new SecureRandom();
         rand.nextBytes(msg);
 
-        SHA256NativeDigest dig = new SHA256NativeDigest();
+        SavableDigest dig = SHA256Digest.newInstance();
         SHA256Digest javaDigest = new SHA256Digest();
 
         for (int t = 0; t < 256; t++)
@@ -127,35 +143,36 @@ public class NativeDigestTests extends TestCase
      * @throws Exception
      */
     @Test
-    public void testSHA256FullStateEncodingExtraData() throws Exception
+    public void testSHA256FullStateEncodingExtraData()
+            throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
+
+        if (!TestUtil.hasNativeService("SHA2"))
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
             {
-                fail("no native sha and no skip set for it");
-                return;
+                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
+
 
         byte[] msg = new byte[256];
         SecureRandom rand = new SecureRandom();
         rand.nextBytes(msg);
 
 
-        SHA256NativeDigest dig = new SHA256NativeDigest();
+        SavableDigest dig =  SHA256Digest.newInstance();
         dig.update(msg, 0, 12);
         byte[] state = dig.getEncodedState();
 
 
-        SHA256NativeDigest dig2 = new SHA256NativeDigest().restoreState(state, 0);
+        SavableDigest dig2 = SHA256Digest.newInstance(state, 0);
 
         dig.update(msg, 12, msg.length - 12);
         dig2.update(msg, 12, msg.length - 12);
 
-        SavableDigest javaDigest = new SHA256Digest();
+        SHA256Digest javaDigest = new SHA256Digest();
         javaDigest.update(msg, 0, msg.length);
 
         byte[] d1Result = new byte[dig.getDigestSize()];
@@ -170,21 +187,20 @@ public class NativeDigestTests extends TestCase
 
     }
 
-
-    public void testUpdateLimitEnforcement() throws Exception
+    public void testUpdateLimitEnforcement()
+            throws Exception
     {
 
 
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
+        if (!TestUtil.hasNativeService("SHA2"))
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
             {
-                fail("no native sha and no skip set for it");
-                return;
+                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
+
 
         new SHA256NativeDigest()
         {
@@ -193,9 +209,10 @@ public class NativeDigestTests extends TestCase
                 {
                     update(null, 0, 0);
                     fail("accepted null byte array");
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
-                    TestCase.assertTrue(ex.getMessage().contains("input is null"));
+                    TestCase.assertTrue(ex.getMessage().contains("input was null"));
                 }
             }
         };
@@ -208,9 +225,10 @@ public class NativeDigestTests extends TestCase
                 {
                     update(new byte[0], -1, 0);
                     fail("accepted negative input offset");
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
-                    TestCase.assertTrue(ex.getMessage().contains("inOff is negative"));
+                    TestCase.assertTrue(ex.getMessage().contains("offset is negative"));
                 }
             }
         };
@@ -223,7 +241,8 @@ public class NativeDigestTests extends TestCase
                 {
                     update(new byte[0], 0, -1);
                     fail("accepted negative input len");
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
                     TestCase.assertTrue(ex.getMessage().contains("len is negative"));
                 }
@@ -237,9 +256,10 @@ public class NativeDigestTests extends TestCase
                 {
                     update(new byte[1], 1, 1);
                     fail("accepted input past end of buffer");
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
-                    TestCase.assertTrue(ex.getMessage().contains("exceeds input length"));
+                    TestCase.assertTrue(ex.getMessage().contains("array too short for offset + len"));
                 }
             }
         };
@@ -291,18 +311,19 @@ public class NativeDigestTests extends TestCase
 
     }
 
-    public void testDoFinalLimitEnforcement() throws Exception
+    public void testDoFinalLimitEnforcement()
+            throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
+
+        if (!TestUtil.hasNativeService("SHA2"))
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
             {
-                fail("no native sha and no skip set for it");
-                return;
+                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
+
 
         new SHA256NativeDigest()
         {
@@ -311,9 +332,10 @@ public class NativeDigestTests extends TestCase
                 {
                     doFinal(null, 0);
                     fail("accepted null byte array");
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
-                    TestCase.assertTrue(ex.getMessage().contains("output is null"));
+                    TestCase.assertTrue(ex.getMessage().contains("output was null"));
                 }
             }
         };
@@ -326,9 +348,10 @@ public class NativeDigestTests extends TestCase
                 {
                     doFinal(new byte[0], -1);
                     fail("accepted negative output offset");
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
-                    TestCase.assertTrue(ex.getMessage().contains("outOff is negative"));
+                    TestCase.assertTrue(ex.getMessage().contains("offset is negative"));
                 }
             }
         };
@@ -341,9 +364,10 @@ public class NativeDigestTests extends TestCase
                 {
                     doFinal(new byte[0], 1);
                     fail("accept offset pas end of buffer");
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
-                    TestCase.assertTrue(ex.getMessage().contains("exceeds output length"));
+                    TestCase.assertTrue(ex.getMessage().contains("offset past end of array"));
                 }
             }
         };
@@ -355,12 +379,16 @@ public class NativeDigestTests extends TestCase
                 {
                     doFinal(new byte[20], 0);
                     fail("accepted output array too small");
-                } catch (Exception ex)
+                }
+                catch (Exception ex)
                 {
-                    TestCase.assertTrue(ex.getMessage().contains("too small for digest result"));
+                    TestCase.assertTrue(ex.getMessage().contains("array + offset too short for digest output"));
                 }
             }
         };
+
+
+
 
 
         new SHA256NativeDigest()
@@ -384,18 +412,142 @@ public class NativeDigestTests extends TestCase
 
     }
 
-    public void testRecreatingFromEncodedState() throws Exception
+    public void testRecreatingFromEncodedState()
+            throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
+
+        if (!TestUtil.hasNativeService("SHA2"))
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
             {
-                fail("no native sha and no skip set for it");
-                return;
+                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
+
+
+        //
+        // Generate the sane state, we need to do this as runtime as it may very because of alignment.
+        //
+        final byte[] saneState;
+
+        SHA256NativeDigest dig = new SHA256NativeDigest()
+        {
+            {
+                update((byte) 1);
+                update((byte) 1);
+                update((byte) 1);
+                update((byte) 1);
+            }
+        };
+        saneState = dig.getEncodedState();
+
+
+        try
+        {
+            new SHA256NativeDigest().restoreState(null, 0);
+            fail("too short");
+        }
+        catch (Exception ex)
+        {
+            TestCase.assertTrue(ex.getMessage().contains("input was null"));
+        }
+
+
+
+        try
+        {
+            new SHA256NativeDigest().restoreState(new byte[saneState.length - 2], 0);
+            fail("too short");
+        }
+        catch (Exception ex)
+        {
+            TestCase.assertTrue(ex.getMessage().contains("array at offset too short for encoded input"));
+        }
+
+
+        try
+        {
+            new SHA256NativeDigest().restoreState(new byte[saneState.length], 0);
+            fail("bad id");
+        }
+        catch (Exception ex)
+        {
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha256 encoded state"));
+        }
+
+
+        // At length should fail.
+        try
+        {
+            // Check bufPtr limit test
+
+            byte[] state = Arrays.clone(saneState);
+
+
+            //
+            // Our sane state has four bytes written to it, so both bufPtr and byteCount should be four.
+            // Here we find every four in the state and set it to 64, because we cannot guarantee the position
+            // within in the struct that the LSB of bufPtr will be.
+            // This will enable us to assert that length checking of encoded bufPtr is correct.
+
+            for (int t = 0; t < state.length; t++)
+            {
+                if (state[t] == 4)
+                {
+                    state[t] = 64;
+                    break;
+                }
+            }
+
+            new SHA256NativeDigest().restoreState(state, 0);
+            fail("should fail on bufPtr value exceeding 64");
+        }
+        catch (Exception ex)
+        {
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha256 encoded state"));
+        }
+
+
+        // Over length should fail
+        try
+        {
+            // Check bufPtr limit test
+
+            byte[] state = Arrays.clone(saneState);
+
+
+            for (int t = 0; t < state.length; t++)
+            {
+                if (state[t] == 4)
+                {
+                    state[t] = 65;
+                }
+            }
+
+            new SHA256NativeDigest().restoreFullState(state, 0);
+            fail("should fail on bufPtr value exceeding 64");
+        }
+        catch (Exception ex)
+        {
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha256 encoded state"));
+        }
+
+    }
+
+    public void testRecreatingFromMemoable()
+            throws Exception
+    {
+
+        if (!TestUtil.hasNativeService("SHA2"))
+        {
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            {
+                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
 
         //
         // Generate the sane state, we need to do this as runtime as it may very because of alignment.
@@ -415,21 +567,35 @@ public class NativeDigestTests extends TestCase
 
         try
         {
-            new SHA256NativeDigest().restoreState(new byte[saneState.length - 2], 0);
-            fail("too short");
-        } catch (Exception ex)
+            new SHA256NativeDigest().restoreState(null, 0);
+            fail("accepted null");
+        }
+        catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("less than size of SHA256FullStateType"));
+            TestCase.assertTrue(ex.getMessage().contains("input was null"));
         }
 
 
         try
         {
-            new SHA256NativeDigest().restoreState(new byte[saneState.length - 1], 0);
-            fail("bad id");
-        } catch (Exception ex)
+            new SHA256NativeDigest().restoreState(new byte[saneState.length - 2], 0);
+            fail("too short");
+        }
+        catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("unrecognized id"));
+            TestCase.assertTrue(ex.getMessage().contains("array at offset too short for encoded input"));
+        }
+
+
+        try
+        {
+            // All zeroes.
+            new SHA256NativeDigest().restoreFullState(new byte[saneState.length], 0);
+            fail("bad id");
+        }
+        catch (Exception ex)
+        {
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha256 encoded state"));
         }
 
 
@@ -457,9 +623,10 @@ public class NativeDigestTests extends TestCase
 
             new SHA256NativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value exceeding 64");
-        } catch (Exception ex)
+        }
+        catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("exceeds buffer length"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha256 encoded state"));
         }
 
 
@@ -481,130 +648,27 @@ public class NativeDigestTests extends TestCase
 
             new SHA256NativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value exceeding 64");
-        } catch (Exception ex)
-        {
-            TestCase.assertTrue(ex.getMessage().contains("exceeds buffer length"));
         }
+        catch (Exception ex)
+        {
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha256 encoded state"));
+        }
+
+
+
 
     }
-
-
-    public void testRecreatingFromMemoable() throws Exception
-    {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
-        {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
-            {
-                fail("no native sha and no skip set for it");
-                return;
-            }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
-            return;
-        }
-
-        //
-        // Generate the sane state, we need to do this as runtime as it may very because of alignment.
-        //
-        final byte[] saneState;
-
-        SHA256NativeDigest dig = new SHA256NativeDigest()
-        {
-            {
-                update((byte) 1);
-                update((byte) 1);
-                update((byte) 1);
-                update((byte) 1);
-            }
-        };
-        saneState = dig.getEncodedState();
-
-        try
-        {
-            new SHA256NativeDigest().restoreState(new byte[saneState.length - 2], 0);
-            fail("too short");
-        } catch (Exception ex)
-        {
-            TestCase.assertTrue(ex.getMessage().contains("less than size of SHA256FullStateType"));
-        }
-
-
-        try
-        {
-            new SHA256NativeDigest().restoreState(new byte[saneState.length - 1], 0);
-            fail("bad id");
-        } catch (Exception ex)
-        {
-            TestCase.assertTrue(ex.getMessage().contains("unrecognized id"));
-        }
-
-
-        // At length should fail.
-        try
-        {
-            // Check bufPtr limit test
-
-            byte[] state = Arrays.clone(saneState);
-
-
-            //
-            // Our sane state has four bytes written to it, so both bufPtr and byteCount should be four.
-            // Here we find every four in the state and set it to 64, because we cannot guarantee the position
-            // within in the struct that the LSB of bufPtr will be.
-            // This will enable us to assert that length checking of encoded bufPtr is correct.
-
-            for (int t = 0; t < state.length; t++)
-            {
-                if (state[t] == 4)
-                {
-                    state[t] = 64;
-                }
-            }
-
-            new SHA256NativeDigest().restoreState(state, 0);
-            fail("should fail on bufPtr value exceeding 64");
-        } catch (Exception ex)
-        {
-            TestCase.assertTrue(ex.getMessage().contains("exceeds buffer length"));
-        }
-
-
-        // Over length should fail
-        try
-        {
-            // Check bufPtr limit test
-
-            byte[] state = Arrays.clone(saneState);
-
-
-            for (int t = 0; t < state.length; t++)
-            {
-                if (state[t] == 4)
-                {
-                    state[t] = 65;
-                }
-            }
-
-            new SHA256NativeDigest().restoreState(state, 0);
-            fail("should fail on bufPtr value exceeding 64");
-        } catch (Exception ex)
-        {
-            TestCase.assertTrue(ex.getMessage().contains("exceeds buffer length"));
-        }
-
-    }
-
 
     @Test
-    public void testMemoable() throws Exception
+    public void testMemoable()
+            throws Exception
     {
-        if (!CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.SHA2))
+        if (!TestUtil.hasNativeService("SHA2"))
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
             {
-                fail("no native sha and no skip set for it");
-                return;
+                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
-            System.out.println("Skipping testSHA256Empty, no native sha256: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
 
@@ -630,5 +694,4 @@ public class NativeDigestTests extends TestCase
         TestCase.assertTrue(Arrays.areEqual(j1, r2));
 
     }
-
 }
