@@ -20,13 +20,7 @@ public final class RecordPreview
         this.recordSize = recordSize;
         this.contentLimit = contentLimit;
     }
-
-    /** @deprecated Use {@link #getContentLimit} instead */
-    public int getApplicationDataLimit()
-    {
-        return contentLimit;
-    }
-
+    
     public int getContentLimit()
     {
         return contentLimit;
