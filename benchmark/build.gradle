@@ -1,0 +1,18 @@
+
+
+
+dependencies {
+   implementation project(path: ':prov')
+   implementation project(path: ':core')
+}
+
+processResources {
+    from "resources"
+}
+
+test {
+
+}
+
+jar.baseName = "bc-benchmark-java"
+version = "0.1"
