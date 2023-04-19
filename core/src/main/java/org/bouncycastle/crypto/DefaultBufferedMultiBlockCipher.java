@@ -277,7 +277,7 @@ public class DefaultBufferedMultiBlockCipher
                     throw new DataLengthException("data not block size aligned");
                 }
 
-                int j = cipher.processBlocks(buf, 0, bufOff / blockSize, buf, 0);
+                cipher.processBlocks(buf, 0, (bufOff / blockSize + 1), buf, 0);
                 resultLen = bufOff;
                 bufOff = 0;
                 System.arraycopy(buf, 0, out, outOff, resultLen);
