@@ -1,6 +1,5 @@
 stages:
   - test
-  - testSSE
   - testAVX
   - testVAES
   - testVAESF
@@ -14,21 +13,6 @@ test-java-code:
     - "sh gettestdata.sh"
     - . cienv-11.sh
     - "./gradlew clean withNative prov:build util:build pg:build pkix:build tls:build mail:build"
-
-test-code-sse:
-  stage: testSSE
-  script:
-    - "apply_overlay bc-java ./"
-    - "sh gettestdata.sh"
-    - "rm -rf /tmp/bcfipslibs"
-    - "mkdir -p /tmp/bcfipslibs"
-    - . cienv-11.sh
-    - "./gradlew clean core:compileJava; \ cd native; \ ./build_linux.sh; \ cd .."
-    - "./gradlew clean cleanNativeVariants withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
-    - "tmpLibDir=$(mktemp -d -t bc-jni-libs-XXXXXXXXXX)"
-    - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
-    - "java -Dorg.bouncycastle.native.cpu_variant=sse -cp jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo"
-    - "./gradlew -Pskip.pqc.tests testSSE  -x test"
 
 
 test-code-avx:
