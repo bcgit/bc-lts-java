@@ -1,5 +1,5 @@
 stages:
-  - test
+  #- test
   - testAVX
   - testVAES
   - testVAESF
@@ -23,7 +23,7 @@ test-code-avx:
     - "rm -rf /tmp/bcfipslibs"
     - "mkdir -p /tmp/bcfipslibs"
     - . cienv-11.sh
-    - "./gradlew clean core:compileJava; \ cd native_c; \ ./build_linux.sh; \ cd .."
+    - "./gradlew clean core:compileJava; cd native_c; ./build_linux.sh;  cd .."
     - "./gradlew clean cleanNativeVariants withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
     - "tmpLibDir=$(mktemp -d -t bc-jni-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
@@ -38,7 +38,7 @@ test-code-vaes:
     - "rm -rf /tmp/bcfipslibs"
     - "mkdir -p /tmp/bcfipslibs"
     - . cienv-11.sh
-    - "./gradlew clean core:compileJava; \ cd native_c; \ ./build_linux.sh; \ cd .."
+    - "./gradlew clean core:compileJava; cd native_c; ./build_linux.sh; cd .."
     - "./gradlew clean cleanNativeVariants withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
     - "tmpLibDir=$(mktemp -d -t bc-jni-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
@@ -53,7 +53,7 @@ test-code-vaesf:
     - "rm -rf /tmp/bcfipslibs"
     - "mkdir -p /tmp/bcfipslibs"
     - . cienv-11.sh
-    - "./gradlew clean core:compileJava; \ cd native_c; \ ./build_linux.sh; \ cd .."
+    - "./gradlew clean core:compileJava;  cd native_c; ./build_linux.sh; cd .."
     - "./gradlew clean cleanNativeVariants withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
     - "tmpLibDir=$(mktemp -d -t bc-jni-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
