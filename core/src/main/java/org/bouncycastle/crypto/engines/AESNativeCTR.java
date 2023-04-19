@@ -1,13 +1,17 @@
 package org.bouncycastle.crypto.engines;
 
-import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.MultiBlockCipher;
+import org.bouncycastle.crypto.SkippingStreamCipher;
+import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 public class AESNativeCTR
-        implements StreamCipher, SkippingStreamCipher, MultiBlockCipher
+    implements StreamCipher, SkippingStreamCipher, MultiBlockCipher
 {
 
     private CTRRefWrapper referenceWrapper = null;
@@ -25,7 +29,8 @@ public class AESNativeCTR
 
 
     @Override
-    public int processBlock(byte[] in, int inOff, byte[] out, int outOff) throws DataLengthException, IllegalStateException
+    public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
+        throws DataLengthException, IllegalStateException
     {
 //        if (inOff < 0)
 //        {
@@ -63,7 +68,8 @@ public class AESNativeCTR
     }
 
     @Override
-    public int processBlocks(byte[] in, int inOff, int blockCount, byte[] out, int outOff) throws DataLengthException, IllegalStateException
+    public int processBlocks(byte[] in, int inOff, int blockCount, byte[] out, int outOff)
+        throws DataLengthException, IllegalStateException
     {
 
 //        if (inOff < 0)
@@ -134,11 +140,12 @@ public class AESNativeCTR
 
 
     @Override
-    public void init(boolean forEncryption, CipherParameters params) throws IllegalArgumentException
+    public void init(boolean forEncryption, CipherParameters params)
+        throws IllegalArgumentException
     {
         if (params instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV) params;
+            ParametersWithIV ivParam = (ParametersWithIV)params;
             byte[] iv = ivParam.getIV();
 
             int blockSize = getBlockSize();
@@ -159,18 +166,19 @@ public class AESNativeCTR
             if (ivParam.getParameters() == null)
             {
                 init(referenceWrapper.getReference(), null, iv);
-            } else
+            }
+            else
             {
-                byte[] key = ((KeyParameter) ivParam.getParameters()).getKey();
+                byte[] key = ((KeyParameter)ivParam.getParameters()).getKey();
 
                 switch (key.length)
                 {
-                    case 16:
-                    case 24:
-                    case 32:
-                        break;
-                    default:
-                        throw new IllegalArgumentException("invalid key length, key must be 16,24 or 32 bytes");
+                case 16:
+                case 24:
+                case 32:
+                    break;
+                default:
+                    throw new IllegalArgumentException("invalid key length, key must be 16,24 or 32 bytes");
                 }
 
                 init(referenceWrapper.getReference(), key, iv);
@@ -178,7 +186,8 @@ public class AESNativeCTR
             }
 
             reset();
-        } else
+        }
+        else
         {
             throw new IllegalArgumentException("CTR mode requires ParametersWithIV");
         }
@@ -203,7 +212,8 @@ public class AESNativeCTR
     }
 
     @Override
-    public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff) throws DataLengthException
+    public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
+        throws DataLengthException
     {
 //        if (inOff < 0)
 //        {
@@ -271,7 +281,7 @@ public class AESNativeCTR
 
 
     private static class CTRRefWrapper
-            extends NativeReference
+        extends NativeReference
     {
         public CTRRefWrapper(long reference)
         {
@@ -288,7 +298,7 @@ public class AESNativeCTR
 
 
     private static class Disposer
-            extends NativeDisposer
+        extends NativeDisposer
     {
         Disposer(long ref)
         {

@@ -12,7 +12,7 @@ import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 class AESNativeCBC
-   implements CBCModeCipher
+    implements CBCModeCipher
 {
     private CBCRefWrapper referenceWrapper;
 
@@ -24,7 +24,7 @@ class AESNativeCBC
 
     @Override
     public void init(boolean forEncryption, CipherParameters params)
-            throws IllegalArgumentException
+        throws IllegalArgumentException
     {
         boolean oldEncrypting = this.encrypting;
 
@@ -32,7 +32,7 @@ class AESNativeCBC
 
         if (params instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV) params;
+            ParametersWithIV ivParam = (ParametersWithIV)params;
             byte[] iv = ivParam.getIV();
 
             if (iv.length != getBlockSize())
@@ -47,7 +47,7 @@ class AESNativeCBC
             // if null it's an IV changed only.
             if (ivParam.getParameters() != null)
             {
-                init((KeyParameter) ivParam.getParameters());
+                init((KeyParameter)ivParam.getParameters());
                 // cipher.init(encrypting, ivParam.getParameters());
             }
             else
@@ -78,7 +78,7 @@ class AESNativeCBC
             // if it's null, key is to be reused.
             if (params != null)
             {
-                init((KeyParameter) params);
+                init((KeyParameter)params);
                 // cipher.init(encrypting, params);
             }
             else
@@ -105,17 +105,17 @@ class AESNativeCBC
     private void init(KeyParameter parameters)
     {
 
-        byte[] key = ((KeyParameter) parameters).getKey();
+        byte[] key = ((KeyParameter)parameters).getKey();
 
 
         switch (key.length)
         {
-            case 16:
-            case 24:
-            case 32:
-                break;
-            default:
-                throw new IllegalArgumentException("key must be only 16,24,or 32 bytes long.");
+        case 16:
+        case 24:
+        case 32:
+            break;
+        default:
+            throw new IllegalArgumentException("key must be only 16,24,or 32 bytes long.");
         }
 
         referenceWrapper = new CBCRefWrapper(makeNative(key.length, encrypting));
@@ -147,7 +147,7 @@ class AESNativeCBC
 
     @Override
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
-            throws DataLengthException, IllegalStateException
+        throws DataLengthException, IllegalStateException
     {
 
         if (referenceWrapper == null)
@@ -180,7 +180,7 @@ class AESNativeCBC
 
     @Override
     public int processBlocks(byte[] in, int inOff, int blockCount, byte[] out, int outOff)
-            throws DataLengthException, IllegalStateException
+        throws DataLengthException, IllegalStateException
     {
 
 
@@ -210,13 +210,13 @@ class AESNativeCBC
     public BlockCipher getUnderlyingCipher()
     {
         MultiBlockCipher eng = AESEngine.newInstance();
-        eng.init(encrypting,new KeyParameter(oldKey));
+        eng.init(encrypting, new KeyParameter(oldKey));
         return eng;
     }
 
 
     private class Disposer
-            extends NativeDisposer
+        extends NativeDisposer
     {
         Disposer(long ref)
         {
@@ -233,7 +233,7 @@ class AESNativeCBC
     }
 
     private class CBCRefWrapper
-            extends NativeReference
+        extends NativeReference
     {
 
         public CBCRefWrapper(long reference)

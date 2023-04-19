@@ -12,8 +12,8 @@ import org.bouncycastle.util.Arrays;
  * implements Cipher-Block-Chaining (CBC) mode on top of a simple cipher.
  */
 public class CBCBlockCipher
-        extends DefaultMultiBlockCipher
-        implements CBCModeCipher
+    extends DefaultMultiBlockCipher
+    implements CBCModeCipher
 {
     private byte[] IV;
     private byte[] cbcV;
@@ -32,7 +32,7 @@ public class CBCBlockCipher
     {
         if (cipher instanceof NativeBlockCipherProvider)
         {
-            return ((NativeBlockCipherProvider) cipher).createCBC();
+            return ((NativeBlockCipherProvider)cipher).createCBC();
         }
 
         return new CBCBlockCipher(cipher);
@@ -44,7 +44,7 @@ public class CBCBlockCipher
      * @param cipher the block cipher to be used as the basis of chaining.
      */
     public CBCBlockCipher(
-            BlockCipher cipher)
+        BlockCipher cipher)
     {
         this.cipher = cipher;
         this.blockSize = cipher.getBlockSize();
@@ -75,9 +75,9 @@ public class CBCBlockCipher
      *                                  inappropriate.
      */
     public void init(
-            boolean encrypting,
-            CipherParameters params)
-            throws IllegalArgumentException
+        boolean encrypting,
+        CipherParameters params)
+        throws IllegalArgumentException
     {
         boolean oldEncrypting = this.encrypting;
 
@@ -85,7 +85,7 @@ public class CBCBlockCipher
 
         if (params instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV) params;
+            ParametersWithIV ivParam = (ParametersWithIV)params;
             byte[] iv = ivParam.getIV();
 
             if (iv.length != blockSize)
@@ -101,11 +101,13 @@ public class CBCBlockCipher
             if (ivParam.getParameters() != null)
             {
                 cipher.init(encrypting, ivParam.getParameters());
-            } else if (oldEncrypting != encrypting)
+            }
+            else if (oldEncrypting != encrypting)
             {
                 throw new IllegalArgumentException("cannot change encrypting state without providing key.");
             }
-        } else
+        }
+        else
         {
             reset();
 
@@ -113,7 +115,8 @@ public class CBCBlockCipher
             if (params != null)
             {
                 cipher.init(encrypting, params);
-            } else if (oldEncrypting != encrypting)
+            }
+            else if (oldEncrypting != encrypting)
             {
                 throw new IllegalArgumentException("cannot change encrypting state without providing key.");
             }
@@ -154,11 +157,11 @@ public class CBCBlockCipher
      * @throws IllegalStateException if the cipher isn't initialised.
      */
     public int processBlock(
-            byte[] in,
-            int inOff,
-            byte[] out,
-            int outOff)
-            throws DataLengthException, IllegalStateException
+        byte[] in,
+        int inOff,
+        byte[] out,
+        int outOff)
+        throws DataLengthException, IllegalStateException
     {
         return (encrypting) ? encryptBlock(in, inOff, out, outOff) : decryptBlock(in, inOff, out, outOff);
     }
@@ -170,7 +173,7 @@ public class CBCBlockCipher
     public void reset()
     {
         System.arraycopy(IV, 0, cbcV, 0, IV.length);
-        Arrays.fill(cbcNextV, (byte) 0);
+        Arrays.fill(cbcNextV, (byte)0);
 
         cipher.reset();
     }
@@ -188,11 +191,11 @@ public class CBCBlockCipher
      * @throws IllegalStateException if the cipher isn't initialised.
      */
     private int encryptBlock(
-            byte[] in,
-            int inOff,
-            byte[] out,
-            int outOff)
-            throws DataLengthException, IllegalStateException
+        byte[] in,
+        int inOff,
+        byte[] out,
+        int outOff)
+        throws DataLengthException, IllegalStateException
     {
         if ((inOff + blockSize) > in.length)
         {
@@ -231,11 +234,11 @@ public class CBCBlockCipher
      * @throws IllegalStateException if the cipher isn't initialised.
      */
     private int decryptBlock(
-            byte[] in,
-            int inOff,
-            byte[] out,
-            int outOff)
-            throws DataLengthException, IllegalStateException
+        byte[] in,
+        int inOff,
+        byte[] out,
+        int outOff)
+        throws DataLengthException, IllegalStateException
     {
         if ((inOff + blockSize) > in.length)
         {
