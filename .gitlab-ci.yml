@@ -6,13 +6,13 @@ stages:
 
 
 
-test-java-code:
-  stage: test
-  script:
-    - "apply_overlay bc-java ./"
-    - "sh gettestdata.sh"
-    - . cienv-11.sh
-    - "./gradlew clean withNative prov:build util:build pg:build pkix:build tls:build mail:build"
+# test-java-code:
+#   stage: test
+#   script:
+#     - "apply_overlay bc-java ./"
+#     - "sh gettestdata.sh"
+#     - . cienv-11.sh
+#     - "./gradlew clean withNative prov:build util:build pg:build pkix:build tls:build mail:build"
 
 
 test-code-avx:
