@@ -550,9 +550,8 @@ public class NewSMIMEEnvelopedTest
         MimeBodyPart res = edGen.generate(
             data,
             new JceCMSContentEncryptorBuilder(CMSAlgorithm.AES128_CBC).setProvider(BC).build());
-        
-        SMIMEEnveloped ed = new SMIMEEnveloped(res);
 
+        SMIMEEnveloped ed = new SMIMEEnveloped(res);
 
         assertEquals(ed.getEncryptionAlgOID(), CMSEnvelopedDataGenerator.AES128_CBC);
 
