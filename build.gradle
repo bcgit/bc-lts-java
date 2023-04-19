@@ -187,27 +187,6 @@ subprojects {
 
   }
 
-  task('testSSE', type: Test) {
-    systemProperty 'bc.test.data.home', bcTestDataHome
-    maxHeapSize = "2048m"
-    testLogging.showStandardStreams = true
-    testLogging.showCauses = true
-    testLogging.showExceptions = true
-    testLogging.showStackTraces = true
-
-    filter {
-      includeTestsMatching "AllTest*"
-
-      if (rootProject.hasProperty("skip.pqc.tests"))
-      {
-        exclude('**/pqc/**')
-      }
-    }
-
-    jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=sse'
-
-
-  }
 
 
   task testFull(type: Test) {
