@@ -70,12 +70,12 @@ class AESNativeGCM
         }
         else if (params instanceof ParametersWithIV)
         {
-            ParametersWithIV param = (ParametersWithIV) params;
+            ParametersWithIV param = (ParametersWithIV)params;
 
             newNonce = param.getIV();
             initialAssociatedText = null;
             macSize = 128;
-            keyParam = (KeyParameter) param.getParameters();
+            keyParam = (KeyParameter)param.getParameters();
         }
         else
         {
@@ -112,22 +112,21 @@ class AESNativeGCM
 
         switch (lastKey.length)
         {
-            case 16:
-            case 24:
-            case 32:
-                break;
-            default:
-                throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
+        case 16:
+        case 24:
+        case 32:
+            break;
+        default:
+            throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
         }
 
         initRef(lastKey.length);
 
 
-
         initNative(
-                refWrapper.getReference(),
-                forEncryption, lastKey,
-                nonce, initialAssociatedText, macSize);
+            refWrapper.getReference(),
+            forEncryption, lastKey,
+            nonce, initialAssociatedText, macSize);
 
 
         finalCalled = false;
@@ -183,7 +182,7 @@ class AESNativeGCM
 
     @Override
     public int processByte(byte in, byte[] out, int outOff)
-            throws DataLengthException
+        throws DataLengthException
     {
 //        if (outOff < 0)
 //        {
@@ -206,7 +205,7 @@ class AESNativeGCM
 
     @Override
     public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
-            throws DataLengthException
+        throws DataLengthException
     {
 //        if (inOff < 0)
 //        {
@@ -245,7 +244,7 @@ class AESNativeGCM
 
     @Override
     public int doFinal(byte[] out, int outOff)
-            throws IllegalStateException, InvalidCipherTextException
+        throws IllegalStateException, InvalidCipherTextException
     {
 
 //        if (outOff < 0)
@@ -341,12 +340,12 @@ class AESNativeGCM
     private native void reset(long ref);
 
     static native void initNative(
-            long reference,
-            boolean forEncryption,
-            byte[] keyParam,
-            byte[] nonce,
-            byte[] initialAssociatedText,
-            int macSizeBits);
+        long reference,
+        boolean forEncryption,
+        byte[] keyParam,
+        byte[] nonce,
+        byte[] initialAssociatedText,
+        int macSizeBits);
 
     static native long makeInstance(int keySize, boolean forEncryption);
 
@@ -386,7 +385,7 @@ class AESNativeGCM
 
 
     private static class GCMRefWrapper
-            extends NativeReference
+        extends NativeReference
     {
         public GCMRefWrapper(long reference)
         {
@@ -403,7 +402,7 @@ class AESNativeGCM
 
 
     private static class Disposer
-            extends NativeDisposer
+        extends NativeDisposer
     {
         Disposer(long ref)
         {
