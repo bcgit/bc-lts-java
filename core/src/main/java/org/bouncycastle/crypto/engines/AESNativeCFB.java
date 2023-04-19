@@ -29,16 +29,16 @@ class AESNativeCFB
         this.bitSize = bitSize;
         switch (bitSize)
         {
-            case 128:
-                break;
-            default:
-                throw new IllegalArgumentException("native feedback bit size can only be 128");
+        case 128:
+            break;
+        default:
+            throw new IllegalArgumentException("native feedback bit size can only be 128");
         }
     }
 
     @Override
     public void init(boolean forEncryption, CipherParameters params)
-            throws IllegalArgumentException
+        throws IllegalArgumentException
     {
 
         boolean oldEncrypting = this.encrypting;
@@ -50,7 +50,7 @@ class AESNativeCFB
 
         if (params instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV) params;
+            ParametersWithIV ivParam = (ParametersWithIV)params;
             iv = ivParam.getIV();
 
             if (iv.length > getBlockSize() || iv.length < 1)
@@ -69,7 +69,7 @@ class AESNativeCFB
 
             if (ivParam.getParameters() != null)
             {
-                key = ((KeyParameter) ivParam.getParameters()).getKey();
+                key = ((KeyParameter)ivParam.getParameters()).getKey();
             }
 
             if (key != null)
@@ -91,7 +91,7 @@ class AESNativeCFB
 
             if (params instanceof KeyParameter)
             {
-                key = ((KeyParameter) params).getKey();
+                key = ((KeyParameter)params).getKey();
                 oldKey = Arrays.clone(key);
                 iv = oldIv;
             }
@@ -111,12 +111,12 @@ class AESNativeCFB
 
         switch (key.length)
         {
-            case 16:
-            case 24:
-            case 32:
-                break;
-            default:
-                throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
+        case 16:
+        case 24:
+        case 32:
+            break;
+        default:
+            throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
         }
 
 
@@ -140,7 +140,7 @@ class AESNativeCFB
 
     @Override
     public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
-            throws DataLengthException
+        throws DataLengthException
     {
 //        if (inOff < 0)
 //        {
@@ -184,7 +184,7 @@ class AESNativeCFB
 
     @Override
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
-            throws DataLengthException, IllegalStateException
+        throws DataLengthException, IllegalStateException
     {
 
 //        if (inOff < 0)
@@ -237,7 +237,7 @@ class AESNativeCFB
 
     @Override
     public int processBlocks(byte[] in, int inOff, int blockCount, byte[] out, int outOff)
-            throws DataLengthException, IllegalStateException
+        throws DataLengthException, IllegalStateException
     {
 
 //        if (inOff < 0)
@@ -279,7 +279,7 @@ class AESNativeCFB
     private static native byte processByte(long ref, byte in);
 
     private static native int processBytes(long ref, byte[] in, int inOff, int len, byte[] out, int outOff)
-            throws DataLengthException;
+        throws DataLengthException;
 
     static native long makeNative(boolean encrypting, int keyLen);
 
@@ -293,7 +293,7 @@ class AESNativeCFB
 
 
     private static class Disposer
-            extends NativeDisposer
+        extends NativeDisposer
     {
         Disposer(long ref)
         {
@@ -308,7 +308,7 @@ class AESNativeCFB
     }
 
     private static class CFBRefWrapper
-            extends NativeReference
+        extends NativeReference
     {
 
         public CFBRefWrapper(long reference)
