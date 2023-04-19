@@ -16,6 +16,8 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.jcajce.spec.AEADParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
@@ -28,154 +30,127 @@ import org.bouncycastle.util.encoders.Hex;
 public class Benchmark
 {
     private static double SECONDS = 1000000000.0;
-
+    private static String variant;
 
     public static void main(String[] args)
-        throws Exception
+            throws Exception
     {
-//        try
-//        {
-//            Security.addProvider(new BouncyCastleProvider());
-//        }
-//        catch (Exception e)
-//        {
-//            e.printStackTrace();
-//        }
 
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
         {
             Security.addProvider(new BouncyCastleProvider());
         }
-//
-//
-//        FipsStatus.isReady();
 
+
+
+        variant = CryptoServicesRegistrar.getNativeServices().getVariant();
+        if (variant == null)
+        {
+            variant = "java";
+        }
 
         List<Sample> sampleList = new ArrayList<>();
         String name = null;
         String[] header = null;
         String fs = "";
-//        try {
-////            fs = FipsStatus.getNativeFeatureString();
-//        } catch (NoSuchMethodError sne) {
-//
-//            fs = "";
-//        }
 
 
         if (args.length == 0)
         {
-            System.err.println("Expected gcm, ecb, cbc, sha");
+            System.err.println("Expected gcm, ecb, cbc, sha, ctr, cfb");
             System.exit(1);
-        }
-        else
+        } else
         {
             if (args[0].equals("sha"))
             {
                 benchmarkSHA256(1024 * 256, sampleList);
                 header = new String[]{"Label", "Message Size", "Throughput B/s"};
-                if (fs.contains("SHA"))
+                if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
                 {
                     name = "SHANative";
-                }
-                else
+                } else
                 {
                     name = "SHAJava";
                 }
-            }
-            else if (args[0].equals("gcm"))
+            } else if (args[0].equals("gcm"))
             {
                 benchmarkGCM(1024 * 2048, sampleList);
 
                 header = new String[]{"Label", "Message Size", "Throughput B/s"};
-                if (fs.contains("AES/GCM"))
+                if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM))
                 {
                     name = "GCMNative";
-                }
-                else
+                } else
                 {
                     name = "GCMJava";
                 }
-            }
-            else if (args[0].equals("cbc"))
+            } else if (args[0].equals("cbc"))
             {
                 header = new String[]{"Label", "Message Size", "Throughput B/s"};
                 benchmarkCBC(1024 * 256, sampleList);
 
-                if (fs.contains("AES"))
+                if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CBC))
                 {
                     name = "CBCNative";
-                }
-                else
+                } else
                 {
                     name = "CBCJava";
                 }
-            }
-            else if (args[0].equals("ecb"))
+            } else if (args[0].equals("ecb"))
             {
                 header = new String[]{"Label", "Message Size", "Throughput B/s"};
                 benchmarkECB(1024 * 384, sampleList);
 
-                if (fs.contains("AES"))
+                if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_ECB))
                 {
                     name = "ECBNative";
-                }
-                else
+                } else
                 {
                     name = "ECBJava";
                 }
-            }
-            else if (args[0].equals("ecb_jce"))
+            } else if (args[0].equals("ecb_jce"))
             {
                 header = new String[]{"Label", "Message Size", "Throughput B/s"};
                 benchmarkECBJCE(1024 * 384, sampleList);
 
-                if (fs.contains("AES"))
+                if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_ECB))
                 {
                     name = "ECBNative_JCE";
-                }
-                else
+                } else
                 {
                     name = "ECBJava_JCE";
                 }
-            }
-            else if (args[0].equals("cfb"))
+            } else if (args[0].equals("cfb"))
             {
                 header = new String[]{"Label", "Message Size", "Throughput B/s"};
                 benchmarkCFB(1024 * 384, sampleList);
 
-                if (fs.contains("AES"))
+                if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CFB))
                 {
                     name = "CFBNative_JCE";
-                }
-                else
+                } else
                 {
                     name = "CFBJava_JCE";
                 }
-            }
-            else if (args[0].equals("ctr"))
+            } else if (args[0].equals("ctr"))
             {
                 header = new String[]{"Label", "Message Size", "Throughput B/s"};
                 benchmarkCTR(1024 * 384, sampleList);
 
-                if (fs.contains("AES"))
+                if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CTR))
                 {
                     name = "CTRNative_JCE";
-                }
-                else
+                } else
                 {
                     name = "CTRJava_JCE";
                 }
-            }
-            else
+            } else
             {
                 System.err.println("Expected gcm, ecb, cbc, sha");
                 System.exit(1);
             }
 
-            name = name + "-" + args[1];
-//            name = name + "-" + FipsStatus.getNativeLibraryIdent();
-
+            name = name + "-" + variant;
 
             FileWriter fw = new FileWriter(name + ".csv");
             PrintWriter pw = new PrintWriter(fw);
@@ -196,57 +171,45 @@ public class Benchmark
 
 
     public static void benchmarkSHA256(int maxSize, List<Sample> dataPoints)
-        throws Exception
+            throws Exception
     {
         int msgSize = 1;
         for (; msgSize < maxSize; )
         {
             byte[] msg = new byte[msgSize];
-            Arrays.fill(msg, (byte)msgSize);
-
-//            FipsDigestOperatorFactory<FipsSHS.Parameters> factory = new FipsSHS.OperatorFactory<FipsSHS.Parameters>();
-//            OutputDigestCalculator<FipsSHS.Parameters> calculator = factory.createOutputDigestCalculator(FipsSHS.SHA256);
-            MessageDigest digestStream = MessageDigest.getInstance("SHA-256");
+            Arrays.fill(msg, (byte) msgSize);
+            MessageDigest digestStream = MessageDigest.getInstance("SHA-256","BC");
 
             double accumulator = 0;
             double samples = 0;
             for (int k = 0; k < 64; k++)
             {
-//                OutputStream digestStream = calculator.getDigestStream();
                 long ts = System.nanoTime();
                 digestStream.update(msg);
                 digestStream.digest();
-//                digestStream.write(msg);
-//                digestStream.close();
-//                calculator.getDigest();
                 long te = System.nanoTime();
 
                 double deltaNano = (te - ts);
                 double deltaSecond = deltaNano / SECONDS;
-                double bps = ((double)msg.length) / deltaSecond;
+                double bps = ((double) msg.length) / deltaSecond;
 
                 accumulator += bps;
                 samples += 1;
                 msg[0] += 1;
             }
 
-
-//            dataPoints.add(new Sample("SHA256-" + FipsStatus.getNativeLibraryIdent(), msg.length, (accumulator / samples) / 1024.0, "B/s"));
-            dataPoints.add(new Sample("SHA256-", msg.length, (accumulator / samples) / 1024.0, "B/s"));
+            dataPoints.add(new Sample("SHA256-" + variant, msg.length, (accumulator / samples) / 1024.0, "B/s"));
 
             if (msgSize < 128)
             {
                 msgSize += 1;
-            }
-            else if (msgSize < 2048)
+            } else if (msgSize < 2048)
             {
                 msgSize += 16;
-            }
-            else if (msgSize < 102400)
+            } else if (msgSize < 102400)
             {
                 msgSize += 256;
-            }
-            else
+            } else
             {
                 msgSize += 1024;
             }
@@ -255,7 +218,7 @@ public class Benchmark
     }
 
     public static void benchmarkGCM(int maxSize, List<Sample> dataPoints)
-        throws Exception
+            throws Exception
     {
 
         SecureRandom random = new SecureRandom();
@@ -267,7 +230,7 @@ public class Benchmark
             byte[] msg = new byte[msgSize];
 
 
-            Arrays.fill(msg, (byte)msgSize);
+            Arrays.fill(msg, (byte) msgSize);
 
             int[] keySizes = new int[]{16, 24, 32};
 
@@ -310,7 +273,7 @@ public class Benchmark
                         ct.write(d);
                         double deltaNano = (te - ts);
                         double deltaSecond = deltaNano / SECONDS;
-                        double bps = ((double)msg.length) / deltaSecond;
+                        double bps = ((double) msg.length) / deltaSecond;
                         if (bps > bpsMaxEnc)
                         {
                             bpsMaxEnc = bps;
@@ -332,7 +295,7 @@ public class Benchmark
 //                    }
                         deltaNano = (te - ts);
                         deltaSecond = deltaNano / SECONDS;
-                        bps = ((double)msg.length) / deltaSecond;
+                        bps = ((double) msg.length) / deltaSecond;
                         if (bps > bpsMaxDec)
                         {
                             bpsMaxDec = bps;
@@ -340,8 +303,7 @@ public class Benchmark
                         accumulatorDec = bpsMaxDec;
                         //   samples += 1;
                         msg[0] += 1;
-                    }
-                    catch (Exception e)
+                    } catch (Exception e)
                     {
                         e.printStackTrace();
                     }
@@ -350,19 +312,17 @@ public class Benchmark
                 }
 //                dataPoints.add(new Sample("Encrypt " + ks + " " + FipsStatus.getNativeLibraryIdent(), msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
 //                dataPoints.add(new Sample("Decrypt " + ks + " " + FipsStatus.getNativeLibraryIdent(), msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
-                dataPoints.add(new Sample("Encrypt " + ks + " ", msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
-                dataPoints.add(new Sample("Decrypt " + ks + " ", msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
+                dataPoints.add(new Sample("Encrypt " + ks + " " + variant, msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
+                dataPoints.add(new Sample("Decrypt " + ks + " " + variant, msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
 
 
                 if (msgSize < 128)
                 {
                     msgSize += 1;
-                }
-                else if (msgSize < 2048)
+                } else if (msgSize < 2048)
                 {
                     msgSize += 16;
-                }
-                else
+                } else
                 {
                     msgSize += 2048;
                 }
@@ -372,14 +332,14 @@ public class Benchmark
 
 
     public static void benchmarkCBC(int maxSize, List<Sample> dataPoints)
-        throws Exception
+            throws Exception
     {
         SecureRandom random = new SecureRandom();
         int msgSize = 16;
         for (; msgSize < maxSize; )
         {
             byte[] msg = new byte[msgSize];
-            Arrays.fill(msg, (byte)msgSize);
+            Arrays.fill(msg, (byte) msgSize);
 
             int[] keySizes = new int[]{16, 24, 32};
 
@@ -389,17 +349,6 @@ public class Benchmark
                 random.nextBytes(key);
 
                 byte[] nonce = Hex.decode("58d2240f580a31c1d24948e901020304");
-
-
-//                FipsAES.OperatorFactory fipsSymmetricFactory = new FipsAES.OperatorFactory();
-//
-//                FipsOutputEncryptor<FipsAES.Parameters> outputEncryptor = fipsSymmetricFactory.createOutputEncryptor(
-//                        new SymmetricSecretKey(FipsAES.CBC, key), FipsAES.CBC.withIV(nonce));
-//
-//
-//                FipsOutputDecryptor<FipsAES.Parameters> inputEncryptor = fipsSymmetricFactory.createOutputDecryptor(
-//                        new SymmetricSecretKey(FipsAES.CBC, key), FipsAES.CBC.withIV(nonce));
-
 
                 double accumulatorEnc = 0;
                 double accumulatorDec = 0;
@@ -432,7 +381,7 @@ public class Benchmark
                         ct.write(d);
                         double deltaNano = (te - ts);
                         double deltaSecond = deltaNano / SECONDS;
-                        double bps = ((double)msg.length) / deltaSecond;
+                        double bps = ((double) msg.length) / deltaSecond;
                         if (bps > bpsMaxEnc)
                         {
                             bpsMaxEnc = bps;
@@ -449,7 +398,7 @@ public class Benchmark
 
                         deltaNano = (te - ts);
                         deltaSecond = deltaNano / SECONDS;
-                        bps = ((double)msg.length) / deltaSecond;
+                        bps = ((double) msg.length) / deltaSecond;
 
                         if (bps > bpsMaxDec)
                         {
@@ -470,15 +419,14 @@ public class Benchmark
 
 //                dataPoints.add(new Sample("Encrypt " + ks + " " + FipsStatus.getNativeLibraryIdent(), msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
 //                dataPoints.add(new Sample("Decrypt " + ks + " " + FipsStatus.getNativeLibraryIdent(), msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
-                dataPoints.add(new Sample("Encrypt " + ks + " ", msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
-                dataPoints.add(new Sample("Decrypt " + ks + " ", msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
+                dataPoints.add(new Sample("Encrypt " + ks + " " + variant, msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
+                dataPoints.add(new Sample("Decrypt " + ks + " " + variant, msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
 
 
                 if (msgSize < 2048)
                 {
                     msgSize += 16;
-                }
-                else
+                } else
                 {
                     msgSize += 256;
                 }
@@ -490,21 +438,19 @@ public class Benchmark
 
 
     public static void benchmarkECB(int maxSize, List<Sample> dataPoints)
-        throws Exception
+            throws Exception
     {
         SecureRandom random = new SecureRandom();
 
 //        for (int j = 0; j < 2; j++) {
 
-        System.out.println();
-        System.out.println();
 
         dataPoints.clear();
         int msgSize = 16;
         for (; msgSize < maxSize; )
         {
             byte[] msg = new byte[msgSize];
-            Arrays.fill(msg, (byte)msgSize);
+            Arrays.fill(msg, (byte) msgSize);
 
             int[] keySizes = new int[]{16, 24, 32};
 
@@ -551,7 +497,7 @@ public class Benchmark
 
                         double deltaNano = (te - ts);
                         double deltaSecond = deltaNano / SECONDS;
-                        double bps = ((double)msg.length) / deltaSecond;
+                        double bps = ((double) msg.length) / deltaSecond;
 
                         if (bps > maxEnc)
                         {
@@ -585,21 +531,24 @@ public class Benchmark
                         if (!MessageDigest.isEqual(pt.toByteArray(), msg))
                         {
 
+                            // +DM pw.printLn
                             System.out.println(Hex.toHexString(ct.toByteArray()) + " " + ct.toByteArray().length);
-
+                            // +DM pw.printLn
                             System.out.println();
 
-
+                            // +DM pw.printLn
                             System.out.println(Hex.toHexString(pt.toByteArray()));
+                            // +DM pw.printLn
                             System.out.println();
+                            // +DM pw.printLn
                             System.out.println(Hex.toHexString(msg));
-
+                            // +DM pw.printLn
                             System.out.println((pt.toByteArray().length - msg.length) / 16);
                             //throw new RuntimeException("ecb pt not equal");
                         }
                         deltaNano = (te - ts);
                         deltaSecond = deltaNano / SECONDS;
-                        bps = ((double)msg.length) / deltaSecond;
+                        bps = ((double) msg.length) / deltaSecond;
 
                         if (bps > maxDec)
                         {
@@ -610,14 +559,13 @@ public class Benchmark
                         accumulatorDec = maxDec;
 //                        samples += 1;
                         msg[0] += 1;
-                    }
-                    catch (Exception e)
+                    } catch (Exception e)
                     {
                         e.printStackTrace();
                     }
                 }
-                dataPoints.add(new Sample("Encrypt " + ks + " ", msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
-                dataPoints.add(new Sample("Decrypt " + ks + " ", msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
+                dataPoints.add(new Sample("Encrypt " + ks + " " + variant, msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
+                dataPoints.add(new Sample("Decrypt " + ks + " " + variant, msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
 
 //                dataPoints.add(new Sample("Encrypt " + ks + " " + FipsStatus.getNativeLibraryIdent(), msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
 //                dataPoints.add(new Sample("Decrypt " + ks + " " + FipsStatus.getNativeLibraryIdent(), msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
@@ -625,8 +573,7 @@ public class Benchmark
                 if (msgSize < 2048)
                 {
                     msgSize += 16;
-                }
-                else
+                } else
                 {
                     msgSize += 256;
                 }
@@ -641,7 +588,7 @@ public class Benchmark
 
 
     public static void benchmarkECBJCE(int maxSize, List<Sample> dataPoints)
-        throws Exception
+            throws Exception
     {
         SecureRandom random = new SecureRandom();
 
@@ -652,7 +599,7 @@ public class Benchmark
         for (; msgSize < maxSize; )
         {
             byte[] msg = new byte[msgSize];
-            Arrays.fill(msg, (byte)msgSize);
+            Arrays.fill(msg, (byte) msgSize);
 
             byte[] cText = new byte[msgSize + 16];
             byte[] pText = new byte[msgSize + 16];
@@ -696,7 +643,7 @@ public class Benchmark
 
                     double deltaNano = (te - ts);
                     double deltaSecond = deltaNano / SECONDS;
-                    double bps = ((double)msg.length) / deltaSecond;
+                    double bps = ((double) msg.length) / deltaSecond;
 
                     if (bps > maxEnc)
                     {
@@ -714,21 +661,25 @@ public class Benchmark
                     if (!Arrays.areEqual(pText, 0, msg.length, msg, 0, msg.length))
                     {
 
+                        // +DM pw.printLn
                         System.out.println(Hex.toHexString(cText) + " " + cText.length);
-
+                        // +DM pw.printLn
                         System.out.println();
 
-
+                        // +DM pw.printLn
                         System.out.println(Hex.toHexString(pText));
+                        // +DM pw.printLn
                         System.out.println();
+                        // +DM pw.printLn
                         System.out.println(Hex.toHexString(msg));
 
+                        // +DM pw.printLn
                         System.out.println((pText.length - msg.length) / 16);
                         throw new RuntimeException("ecb pt not equal");
                     }
                     deltaNano = (te - ts);
                     deltaSecond = deltaNano / SECONDS;
-                    bps = ((double)msg.length) / deltaSecond;
+                    bps = ((double) msg.length) / deltaSecond;
 
                     if (bps > maxDec)
                     {
@@ -742,16 +693,15 @@ public class Benchmark
                 }
 
 
-                dataPoints.add(new Sample("Encrypt " + ks + " ", msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
-                dataPoints.add(new Sample("Decrypt " + ks + " ", msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
+                dataPoints.add(new Sample("Encrypt " + ks + " " + variant, msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
+                dataPoints.add(new Sample("Decrypt " + ks + " " + variant, msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
 //                dataPoints.add(new Sample("Encrypt " + ks + " " + FipsStatus.getNativeLibraryIdent(), msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
 //                dataPoints.add(new Sample("Decrypt " + ks + " " + FipsStatus.getNativeLibraryIdent(), msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
 
                 if (msgSize < 2048)
                 {
                     msgSize += 16;
-                }
-                else
+                } else
                 {
                     msgSize += 256;
                 }
@@ -765,7 +715,7 @@ public class Benchmark
     }
 
     public static void benchmarkCFB(int maxSize, List<Sample> dataPoints)
-        throws Exception
+            throws Exception
     {
 
         SecureRandom random = new SecureRandom();
@@ -777,7 +727,7 @@ public class Benchmark
             byte[] msg = new byte[msgSize];
 
 
-            Arrays.fill(msg, (byte)msgSize);
+            Arrays.fill(msg, (byte) msgSize);
 
             int[] keySizes = new int[]{16, 24, 32};
 
@@ -821,7 +771,7 @@ public class Benchmark
                         ct.write(d);
                         double deltaNano = (te - ts);
                         double deltaSecond = deltaNano / SECONDS;
-                        double bps = ((double)msg.length) / deltaSecond;
+                        double bps = ((double) msg.length) / deltaSecond;
                         if (bps > bpsMaxEnc)
                         {
                             bpsMaxEnc = bps;
@@ -842,7 +792,7 @@ public class Benchmark
 //                    }
                         deltaNano = (te - ts);
                         deltaSecond = deltaNano / SECONDS;
-                        bps = ((double)msg.length) / deltaSecond;
+                        bps = ((double) msg.length) / deltaSecond;
                         if (bps > bpsMaxDec)
                         {
                             bpsMaxDec = bps;
@@ -850,8 +800,7 @@ public class Benchmark
                         accumulatorDec = bpsMaxDec;
                         //   samples += 1;
                         msg[0] += 1;
-                    }
-                    catch (Exception e)
+                    } catch (Exception e)
                     {
                         e.printStackTrace();
                     }
@@ -860,19 +809,17 @@ public class Benchmark
                 }
 //                dataPoints.add(new Sample("Encrypt " + ks + " " + FipsStatus.getNativeLibraryIdent(), msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
 //                dataPoints.add(new Sample("Decrypt " + ks + " " + FipsStatus.getNativeLibraryIdent(), msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
-                dataPoints.add(new Sample("Encrypt " + ks + " ", msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
-                dataPoints.add(new Sample("Decrypt " + ks + " ", msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
+                dataPoints.add(new Sample("Encrypt " + ks + " " + variant, msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
+                dataPoints.add(new Sample("Decrypt " + ks + " " + variant, msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
 
 
                 if (msgSize < 128)
                 {
                     msgSize += 1;
-                }
-                else if (msgSize < 2048)
+                } else if (msgSize < 2048)
                 {
                     msgSize += 16;
-                }
-                else
+                } else
                 {
                     msgSize += 2048;
                 }
@@ -881,7 +828,7 @@ public class Benchmark
     }
 
     public static void benchmarkCTR(int maxSize, List<Sample> dataPoints)
-        throws Exception
+            throws Exception
     {
 
         SecureRandom random = new SecureRandom();
@@ -893,7 +840,7 @@ public class Benchmark
             byte[] msg = new byte[msgSize];
 
 
-            Arrays.fill(msg, (byte)msgSize);
+            Arrays.fill(msg, (byte) msgSize);
 
             int[] keySizes = new int[]{16, 24, 32};
 
@@ -912,7 +859,7 @@ public class Benchmark
                 double samples = 1;
                 double bpsMaxEnc = Double.MIN_VALUE;
                 double bpsMaxDec = Double.MIN_VALUE;
-                Cipher enc = Cipher.getInstance("AES/CTR/PKCS7Padding", "BC");
+                Cipher enc = Cipher.getInstance("AES/CTR/NOPadding", "BC");
                 for (int k = 0; k < 30; k++)
                 {
                     ct.reset();
@@ -937,7 +884,7 @@ public class Benchmark
                         ct.write(d);
                         double deltaNano = (te - ts);
                         double deltaSecond = deltaNano / SECONDS;
-                        double bps = ((double)msg.length) / deltaSecond;
+                        double bps = ((double) msg.length) / deltaSecond;
                         if (bps > bpsMaxEnc)
                         {
                             bpsMaxEnc = bps;
@@ -958,7 +905,7 @@ public class Benchmark
 //                    }
                         deltaNano = (te - ts);
                         deltaSecond = deltaNano / SECONDS;
-                        bps = ((double)msg.length) / deltaSecond;
+                        bps = ((double) msg.length) / deltaSecond;
                         if (bps > bpsMaxDec)
                         {
                             bpsMaxDec = bps;
@@ -966,8 +913,7 @@ public class Benchmark
                         accumulatorDec = bpsMaxDec;
                         //   samples += 1;
                         msg[0] += 1;
-                    }
-                    catch (Exception e)
+                    } catch (Exception e)
                     {
                         e.printStackTrace();
                     }
@@ -976,19 +922,17 @@ public class Benchmark
                 }
 //                dataPoints.add(new Sample("Encrypt " + ks + " " + FipsStatus.getNativeLibraryIdent(), msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
 //                dataPoints.add(new Sample("Decrypt " + ks + " " + FipsStatus.getNativeLibraryIdent(), msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
-                dataPoints.add(new Sample("Encrypt " + ks + " ", msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
-                dataPoints.add(new Sample("Decrypt " + ks + " ", msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
+                dataPoints.add(new Sample("Encrypt " + ks + " " + variant, msg.length, (accumulatorEnc / samples) / 1024.0, "KB/s"));
+                dataPoints.add(new Sample("Decrypt " + ks + " " + variant, msg.length, (accumulatorDec / samples) / 1024.0, "KB/s"));
 
 
                 if (msgSize < 128)
                 {
                     msgSize += 1;
-                }
-                else if (msgSize < 2048)
+                } else if (msgSize < 2048)
                 {
                     msgSize += 16;
-                }
-                else
+                } else
                 {
                     msgSize += 2048;
                 }

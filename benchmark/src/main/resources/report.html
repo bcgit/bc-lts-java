@@ -1,0 +1,92 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        google.charts.load('current', {'packages': ['corechart', 'line']});
+        google.charts.setOnLoadCallback(loaded);
+
+
+        /* DATA */
+
+        function loaded() {
+
+            var switches = document.getElementById("switches");
+
+            cols.forEach(item => {
+                var button = document.createElement("button");
+                button.textContent=item.label + (item.selected?" ✓":"");
+                button.type="button";
+                button.onclick=function (e) {
+                    if (item.selected) {
+                        item.selected = false;
+                        button.textContent = item.label;
+                    } else {
+                        item.selected = true;
+                        button.textContent = item.label+" ✓";
+                    }
+                    drawChart();
+                }
+                switches.append(button);
+            })
+
+            drawChart();
+        }
+
+
+        function drawChart() {
+            var data = new google.visualization.DataTable();
+            data.addColumn('number', 'Message Size');
+
+            var table = [];
+            var selected = [];
+            selected.push(colData['X']); // Always first
+            cols.forEach(item => {
+                if (item.selected) {
+                    data.addColumn('number', item.label);
+                    selected.push(colData[item.label]);
+                }
+            });
+
+            //
+            // Work across selected creating a row array.
+            //
+
+            var t = 0;
+            var maxLen = 1000000;
+            do {
+
+                table.push(Array(selected.length));
+                maxLen = 1000000;
+                for (var j = 0; j < selected.length; j++) {
+                    table[table.length - 1][j] = selected[j][t];
+                    maxLen = Math.min(maxLen, selected[j].length);
+                }
+                t++;
+            } while (t < maxLen);
+
+            data.addRows(table);
+            var options = {
+
+                title: "--title--",
+                subtitle: 'KB per second',
+                hAxis: {
+                    title: 'Message Size Bytes',
+                    logScale: false
+                },
+                vAxis: {
+                    title: 'Throughput KB/s',
+                    logScale: false
+                },
+            };
+
+            var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+            chart.draw(data, options);
+        }
+    </script>
+</head>
+<body>
+<div id="switches"></div>
+<div id="curve_chart" style="width: 90vw; height: 90vh"></div>
+</body>
+</html>
