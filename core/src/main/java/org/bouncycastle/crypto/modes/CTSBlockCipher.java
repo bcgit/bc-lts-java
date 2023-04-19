@@ -251,7 +251,7 @@ public class CTSBlockCipher
 
             if (bufOff > blockSize)
             {
-                if (cipher instanceof CBCModeCipher)
+             if (cipher instanceof CBCModeCipher)
                 {
                     BlockCipher c = ((CBCModeCipher)cipher).getUnderlyingCipher();
 

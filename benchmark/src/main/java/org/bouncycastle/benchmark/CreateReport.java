@@ -44,7 +44,8 @@ public class CreateReport
             if (f.getName().contains("JCE"))
             {
                 suffux = "_JCE";
-            } else
+            }
+            else
             {
                 suffux = "_LOW";
             }
@@ -52,10 +53,12 @@ public class CreateReport
             if (f.getName().contains("Java"))
             {
                 fprefix = "Java" + suffux;
-            } else if (f.getName().contains("Native"))
+            }
+            else if (f.getName().contains("Native"))
             {
                 fprefix = "Native" + suffux;
-            } else
+            }
+            else
             {
                 fprefix = f.getName();
             }

@@ -1,7 +1,5 @@
 package org.bouncycastle.crypto;
 
-import java.security.Security;
-
 import junit.framework.TestCase;
 
 import org.bouncycastle.util.Properties;
@@ -40,7 +38,7 @@ public class ForcedLoadTest
         }
 
 
-        String forcedVariant = Properties.getPropertyValue(NativeLoader.BCFIPS_LIB_CPU_VARIANT);
+        String forcedVariant = Properties.getPropertyValue(NativeLoader.BCLTS_LIB_CPU_VARIANT);
         if (forcedVariant == null)
         {
             TestCase.fail("no forced variant selected by test runner, if forcing a variant is not intended then set -Dunforced-variant-test-bypass=true");

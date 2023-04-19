@@ -57,9 +57,9 @@ make install
 #
 
 if [ -x "$(command -v execstack)" ]; then
-execstack -c target/linux/x86_64/avx/libbc-fips-avx.so
-execstack -c target/linux/x86_64/vaes/libbc-fips-vaes.so
-execstack -c target/linux/x86_64/vaesf/libbc-fips-vaesf.so
+execstack -c target/linux/x86_64/avx/libbc-lts-avx.so
+execstack -c target/linux/x86_64/vaes/libbc-lts-vaes.so
+execstack -c target/linux/x86_64/vaesf/libbc-lts-vaesf.so
 else
 echo ""
 echo "!! WARNING !!"
@@ -88,8 +88,8 @@ exit;
 depListFileInJavaResources="$installDir/deps.list";
 touch "$depListFileInJavaResources"
 
-## "vaes/libbc-fips-vaes"
-libs=("probe/libbc-probe" "avx/libbc-fips-avx" "vaes/libbc-fips-vaes" "vaesf/libbc-fips-vaesf");
+## "vaes/libbc-lts-vaes"
+libs=("probe/libbc-probe" "avx/libbc-lts-avx" "vaes/libbc-lts-vaes" "vaesf/libbc-lts-vaesf");
 for name in "${libs[@]}"; do
   installedLib="${installDir}/${name}.so"
   installedLibName="$(basename -- $installedLib)"

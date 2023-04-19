@@ -50,7 +50,7 @@ artifacts {
 }
 
 
-task cleanNativeVariants(type: Delete) {
+task cleanNative(type: Delete) {
     delete("$projectDir/src/main/resources/native/");
     delete("$projectDir/src/main/resources/META-INF/DRIVERS");
 }

@@ -48,7 +48,7 @@ import org.bouncycastle.util.io.pem.PemWriter;
 public class EnrollExample
 {
     public EnrollExample(String[] args)
-        throws Exception
+            throws Exception
     {
         Security.addProvider(new BouncyCastleProvider());
 
@@ -102,7 +102,8 @@ public class EnrollExample
                 }
                 else if (arg.equals("--keyStorePass"))
                 {
-                    clientKeyStoreFilePassword = ExampleUtils.nextArgAsString("Keystore password", args, t).toCharArray();
+                    clientKeyStoreFilePassword =
+                            ExampleUtils.nextArgAsString("Keystore password", args, t).toCharArray();
                     t += 1;
                 }
                 else if (arg.equals("--keyStoreType"))
@@ -155,7 +156,8 @@ public class EnrollExample
                 {
                     keyFile = ExampleUtils.nextArgAsString("Load keys from file", args, t);
                     t += 1;
-                } else if (arg.equals("--sl"))
+                }
+                else if (arg.equals("--sl"))
                 {
                     suffixList = ExampleUtils.nextArgAsString("Suffix List", args, t);
                     t += 1;
@@ -201,7 +203,7 @@ public class EnrollExample
 
         if (tlsProviderClass != null)
         {
-            Security.addProvider((Provider)Class.forName(tlsProviderClass).newInstance());
+            Security.addProvider((Provider) Class.forName(tlsProviderClass).newInstance());
         }
 
 
@@ -266,13 +268,15 @@ public class EnrollExample
 
 
         PKCS10CertificationRequestBuilder pkcs10Builder = new JcaPKCS10CertificationRequestBuilder(
-            new X500Name("CN=" + cn),
-            keyPair.getPublic());
+                new X500Name("CN=" + cn),
+                keyPair.getPublic());
 
-        ContentSigner contentSigner = new JcaContentSignerBuilder("SHA256WITHECDSA").setProvider("BC").build(keyPair.getPrivate());
+        ContentSigner contentSigner =
+                new JcaContentSignerBuilder("SHA256WITHECDSA").setProvider("BC").build(keyPair.getPrivate());
 
 
-        JsseESTServiceBuilder est = new JsseESTServiceBuilder(serverRootUrl, JcaJceUtils.getCertPathTrustManager(ExampleUtils.toTrustAnchor(ExampleUtils.readPemCertificates(trustAnchorFile)), null));
+        JsseESTServiceBuilder est = new JsseESTServiceBuilder(serverRootUrl,
+                JcaJceUtils.getCertPathTrustManager(ExampleUtils.toTrustAnchor(ExampleUtils.readPemCertificates(trustAnchorFile)), null));
         est.withTimeout(timeout);
         est.withLabel(label);
 
@@ -307,12 +311,12 @@ public class EnrollExample
             if (credentials.length == 3)
             {
                 auth = new JcaHttpAuthBuilder(credentials[0], credentials[1], credentials[2].toCharArray())
-                    .setNonceGenerator(new SecureRandom()).setProvider("BC").build();
+                        .setNonceGenerator(new SecureRandom()).setProvider("BC").build();
             }
             else if (credentials.length == 2)
             {
                 auth = new JcaHttpAuthBuilder(null, credentials[0], credentials[1].toCharArray())
-                    .setNonceGenerator(new SecureRandom()).setProvider("BC").build();
+                        .setNonceGenerator(new SecureRandom()).setProvider("BC").build();
             }
             else
             {
@@ -389,7 +393,7 @@ public class EnrollExample
     }
 
     public static void main(String[] args)
-        throws Exception
+            throws Exception
     {
         try
         {
@@ -414,14 +418,17 @@ public class EnrollExample
         System.out.println("--keyStorePass <password>              Optional Key Store password.");
         System.out.println("--keyStoreType <JKS>                   Optional Key Store type, defaults to JKS");
         System.out.println("--auth <realm:user:password>           Auth credentials, if real is not");
-        System.out.println("--tls <version>                        Use this TLS version when creating socket factory, Eg TLSv1.2");
+        System.out.println("--tls <version>                        Use this TLS version when creating socket factory," +
+                " Eg TLSv1.2");
         System.out.println("--tlsProvider <provider> <class>       The JSSE Provider.");
         System.out.println("--pop                                  Turn on PoP");
         System.out.println("--to <milliseconds>                    Timeout in milliseconds.");
         System.out.println("--no-name-verifier                     No hostname verifier.");
         System.out.println("--label <ca label>                     CA Label.");
-        System.out.println("--save <path to file>                  Save generated public and private key to file, (PEM)");
-        System.out.println("--load <path to file>                  Load generated public and private key from a file, (PEM)");
+        System.out.println("--save <path to file>                  Save generated public and private key to file, " +
+                "(PEM)");
+        System.out.println("--load <path to file>                  Load generated public and private key from a file," +
+                " (PEM)");
         System.out.println("--sl <file>                            List of known suffixes.");
     }
 }
