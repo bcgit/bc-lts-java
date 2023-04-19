@@ -11,7 +11,8 @@ class NativeLibIdentity
         try
         {
             return getLibIdent();
-        } catch (UnsatisfiedLinkError ule)
+        }
+        catch (UnsatisfiedLinkError ule)
         {
             return ule.getMessage();
         }
@@ -24,7 +25,8 @@ class NativeLibIdentity
         try
         {
             return getBuiltTimeStamp();
-        } catch (UnsatisfiedLinkError ule)
+        }
+        catch (UnsatisfiedLinkError ule)
         {
             return ule.getMessage();
         }
