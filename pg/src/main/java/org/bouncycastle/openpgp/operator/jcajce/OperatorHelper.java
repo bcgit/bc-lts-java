@@ -310,7 +310,7 @@ class OperatorHelper
             throw new PGPException("Can't use DSA for encryption.");
         case PGPPublicKey.ECDSA:
             throw new PGPException("Can't use ECDSA for encryption.");
-        case PGPPublicKey.EDDSA:
+        case PGPPublicKey.EDDSA_LEGACY:
             throw new PGPException("Can't use EDDSA for encryption.");
         default:
             throw new PGPException("unknown asymmetric algorithm: " + encAlgorithm);
@@ -376,7 +376,7 @@ class OperatorHelper
         case PublicKeyAlgorithmTags.ECDSA:
             encAlg = "ECDSA";
             break;
-        case PublicKeyAlgorithmTags.EDDSA:
+        case PublicKeyAlgorithmTags.EDDSA_LEGACY:
             return createSignature("Ed25519");
         default:
             throw new PGPException("unknown algorithm tag in signature:" + keyAlgorithm);
@@ -701,6 +701,8 @@ class OperatorHelper
                 c.updateAAD(Pack.longToBigEndian(totalBytes));
 
                 out.write(c.doFinal(aaData, 0, 0)); // output final tag
+
+                out.close();
             }
             catch (GeneralSecurityException e)
             {

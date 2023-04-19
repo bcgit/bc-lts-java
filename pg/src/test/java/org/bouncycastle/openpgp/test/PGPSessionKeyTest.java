@@ -150,8 +150,10 @@ public class PGPSessionKeyTest
         ArmoredInputStream msgArmorIn = new ArmoredInputStream(msgIn);
         PGPObjectFactory objectFactory = new BcPGPObjectFactory(msgArmorIn);
         PGPEncryptedDataList encryptedDataList = (PGPEncryptedDataList)objectFactory.nextObject();
+        PGPSessionKeyEncryptedData encryptedData = encryptedDataList.extractSessionKeyEncryptedData();
+
         SessionKeyDataDecryptorFactory decryptorFactory = new BcSessionKeyDataDecryptorFactory(new PGPSessionKey(PK_ENC_SESSIONKEY_ALG, Hex.decode(PK_ENC_SESSIONKEY)));
-        InputStream decrypted = encryptedDataList.extractSessionKeyEncryptedData().getDataStream(decryptorFactory);
+        InputStream decrypted = encryptedData.getDataStream(decryptorFactory);
 
         objectFactory = new BcPGPObjectFactory(decrypted);
         PGPLiteralData literalData = (PGPLiteralData)objectFactory.nextObject();
@@ -170,9 +172,11 @@ public class PGPSessionKeyTest
         ArmoredInputStream msgArmorIn = new ArmoredInputStream(msgIn);
         PGPObjectFactory objectFactory = new BcPGPObjectFactory(msgArmorIn);
         PGPEncryptedDataList encryptedDataList = (PGPEncryptedDataList)objectFactory.nextObject();
+        PGPSessionKeyEncryptedData encryptedData = encryptedDataList.extractSessionKeyEncryptedData();
+
         SessionKeyDataDecryptorFactory decryptorFactory =
             new JceSessionKeyDataDecryptorFactoryBuilder().build(new PGPSessionKey(PK_ENC_SESSIONKEY_ALG, Hex.decode(PK_ENC_SESSIONKEY)));
-        InputStream decrypted = encryptedDataList.extractSessionKeyEncryptedData().getDataStream(decryptorFactory);
+        InputStream decrypted = encryptedData.getDataStream(decryptorFactory);
 
         objectFactory = new BcPGPObjectFactory(decrypted);
         PGPLiteralData literalData = (PGPLiteralData)objectFactory.nextObject();
@@ -236,8 +240,10 @@ public class PGPSessionKeyTest
 
         PGPObjectFactory objectFactory = new BcPGPObjectFactory(msgArmorIn);
         PGPEncryptedDataList encryptedDataList = (PGPEncryptedDataList)objectFactory.nextObject();
+        PGPSessionKeyEncryptedData encryptedData = encryptedDataList.extractSessionKeyEncryptedData();
+
         SessionKeyDataDecryptorFactory decryptorFactory = new BcSessionKeyDataDecryptorFactory(new PGPSessionKey(PBE_ENC_SESSIONKEY_ALG, Hex.decode(PBE_ENC_SESSIONKEY)));
-        InputStream decrypted = encryptedDataList.extractSessionKeyEncryptedData().getDataStream(decryptorFactory);
+        InputStream decrypted = encryptedData.getDataStream(decryptorFactory);
 
         objectFactory = new BcPGPObjectFactory(decrypted);
         PGPCompressedData compressedData = (PGPCompressedData)objectFactory.nextObject();

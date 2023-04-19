@@ -6,9 +6,13 @@ import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bouncycastle.bcpg.AEADEncDataPacket;
+import org.bouncycastle.bcpg.BCPGHeaderObject;
 import org.bouncycastle.bcpg.BCPGOutputStream;
 import org.bouncycastle.bcpg.HashAlgorithmTags;
 import org.bouncycastle.bcpg.PacketTags;
+import org.bouncycastle.bcpg.SymmetricEncDataPacket;
+import org.bouncycastle.bcpg.SymmetricEncIntegrityPacket;
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
 import org.bouncycastle.openpgp.operator.PBEKeyEncryptionMethodGenerator;
 import org.bouncycastle.openpgp.operator.PGPAEADDataEncryptor;
@@ -71,7 +75,7 @@ public class PGPEncryptedDataGenerator
 
     private BCPGOutputStream pOut;
     private OutputStream cOut;
-    private boolean oldFormat = false;
+    private boolean useOldFormat = false;
     private PGPDigestCalculator digestCalc;
     private OutputStream genOut;
     private PGPDataEncryptorBuilder dataEncryptorBuilder;
@@ -79,6 +83,7 @@ public class PGPEncryptedDataGenerator
     private List methods = new ArrayList();
     private int defAlgorithm;
     private SecureRandom rand;
+    private boolean forceSessionKey = false;
 
     /**
      * Base constructor.
@@ -94,15 +99,26 @@ public class PGPEncryptedDataGenerator
      * Base constructor with the option to turn on formatting for PGP 2.6.x compatibility.
      *
      * @param encryptorBuilder builder to create actual data encryptor.
-     * @param oldFormat        PGP 2.6.x compatibility required.
+     * @param oldFormat        PGP 2.6.x compatibility requested.
      */
     public PGPEncryptedDataGenerator(PGPDataEncryptorBuilder encryptorBuilder, boolean oldFormat)
     {
         this.dataEncryptorBuilder = encryptorBuilder;
-        this.oldFormat = oldFormat;
+        this.useOldFormat = oldFormat;
 
         this.defAlgorithm = dataEncryptorBuilder.getAlgorithm();
         this.rand = dataEncryptorBuilder.getSecureRandom();
+    }
+
+    /**
+     * Some versions of PGP always expect a session key, this will force use
+     * of a session key even if a single PBE encryptor is provided.
+     *
+     * @param forceSessionKey true if a session key should always be used, default is false.
+     */
+    public void setForceSessionKey(boolean forceSessionKey)
+    {
+        this.forceSessionKey = forceSessionKey;
     }
 
     /**
@@ -188,21 +204,23 @@ public class PGPEncryptedDataGenerator
 
         if (methods.size() == 1)
         {
-            if (methods.get(0) instanceof PBEKeyEncryptionMethodGenerator)
+            boolean isPBE = methods.get(0) instanceof PBEKeyEncryptionMethodGenerator;
+            if (isPBE && !forceSessionKey)
             {
                 PBEKeyEncryptionMethodGenerator m = (PBEKeyEncryptionMethodGenerator)methods.get(0);
 
-                key = m.getKey(dataEncryptorBuilder.getAlgorithm());
+                key = m.getKey(defAlgorithm);
 
-                pOut.writePacket(((PGPKeyEncryptionMethodGenerator)methods.get(0)).generate(defAlgorithm, null));
+                pOut.writePacket(m.generate(defAlgorithm, null));
             }
             else
             {
                 key = PGPUtil.makeRandomKey(defAlgorithm, rand);
                 byte[] sessionInfo = createSessionInfo(defAlgorithm, key);
+
                 PGPKeyEncryptionMethodGenerator m = (PGPKeyEncryptionMethodGenerator)methods.get(0);
 
-                pOut.writePacket(m.generate(defAlgorithm, sessionInfo));
+                writeWrappedSessionKey(m, sessionInfo);
             }
         }
         else // multiple methods
@@ -214,7 +232,7 @@ public class PGPEncryptedDataGenerator
             {
                 PGPKeyEncryptionMethodGenerator m = (PGPKeyEncryptionMethodGenerator)methods.get(i);
 
-                pOut.writePacket(m.generate(defAlgorithm, sessionInfo));
+                writeWrappedSessionKey(m, sessionInfo);
             }
         }
 
@@ -229,23 +247,19 @@ public class PGPEncryptedDataGenerator
                 PGPAEADDataEncryptor encryptor = (PGPAEADDataEncryptor)dataEncryptor;
 
                 byte[] iv = encryptor.getIV();
-                
+
+                AEADEncDataPacket encOut = new AEADEncDataPacket(dataEncryptorBuilder.getAlgorithm(), encryptor.getAEADAlgorithm(), encryptor.getChunkSize(), iv);
+
                 if (buffer != null)
                 {
-                    pOut = new ClosableBCPGOutputStream(out, PacketTags.AEAD_ENC_DATA, buffer);
+                    pOut = new ClosableBCPGOutputStream(out, encOut, buffer);
                 }
                 else
                 {
                     long chunkLength = 1L << (encryptor.getChunkSize() + 6);
                     long tagLengths = ((length + chunkLength - 1) / chunkLength) * 16 + 16; // data blocks + final tag
-                    pOut = new ClosableBCPGOutputStream(out, PacketTags.AEAD_ENC_DATA, (length + tagLengths + 4 + iv.length));
+                    pOut = new ClosableBCPGOutputStream(out, encOut, (length + tagLengths + 4 + iv.length));
                 }
-
-                pOut.write(1);           // version
-                pOut.write(dataEncryptorBuilder.getAlgorithm());
-                pOut.write(encryptor.getAEADAlgorithm());
-                pOut.write(encryptor.getChunkSize());
-                pOut.write(iv);
 
                 genOut = cOut = dataEncryptor.getOutputStream(pOut);
 
@@ -253,33 +267,32 @@ public class PGPEncryptedDataGenerator
             }
             else
             {
+                BCPGHeaderObject encOut;
+                if (digestCalc != null)
+                {
+                    encOut = new SymmetricEncIntegrityPacket();
+                    if (useOldFormat)
+                    {
+                        throw new PGPException("symmetric-enc-integrity packets not supported in old PGP format");
+                    }
+                }
+                else
+                {
+                    encOut = new SymmetricEncDataPacket();
+                }
+
                 if (buffer == null)
                 {
                     //
                     // we have to add block size + 2 for the generated IV and + 1 + 22 if integrity protected
                     //
-                    if (digestCalc != null)
-                    {
-                        pOut = new ClosableBCPGOutputStream(out, PacketTags.SYM_ENC_INTEGRITY_PRO, length + dataEncryptor.getBlockSize() + 2 + 1 + 22);
+                    long outLength = (digestCalc == null) ? length + dataEncryptor.getBlockSize() + 2 : length + dataEncryptor.getBlockSize() + 2 + 1 + 22;
 
-                        pOut.write(1);        // version number
-                    }
-                    else
-                    {
-                        pOut = new ClosableBCPGOutputStream(out, PacketTags.SYMMETRIC_KEY_ENC, length + dataEncryptor.getBlockSize() + 2, oldFormat);
-                    }
+                    pOut = new ClosableBCPGOutputStream(out, encOut, outLength, useOldFormat);
                 }
                 else
                 {
-                    if (digestCalc != null)
-                    {
-                        pOut = new ClosableBCPGOutputStream(out, PacketTags.SYM_ENC_INTEGRITY_PRO, buffer);
-                        pOut.write(1);        // version number
-                    }
-                    else
-                    {
-                        pOut = new ClosableBCPGOutputStream(out, PacketTags.SYMMETRIC_KEY_ENC, buffer);
-                    }
+                    pOut = new ClosableBCPGOutputStream(out, encOut, buffer);
                 }
 
                 genOut = cOut = dataEncryptor.getOutputStream(pOut);
@@ -302,6 +315,20 @@ public class PGPEncryptedDataGenerator
         catch (Exception e)
         {
             throw new PGPException("Exception creating cipher", e);
+        }
+    }
+
+    private void writeWrappedSessionKey(PGPKeyEncryptionMethodGenerator m, byte[] sessionInfo)
+        throws IOException, PGPException
+    {
+        if (m instanceof PBEKeyEncryptionMethodGenerator)
+        {
+            pOut.writePacket(m.generate(
+                ((PBEKeyEncryptionMethodGenerator)m).getSessionKeyWrapperAlgorithm(defAlgorithm), sessionInfo));
+        }
+        else
+        {
+            pOut.writePacket(m.generate(defAlgorithm, sessionInfo));
         }
     }
 
@@ -402,22 +429,28 @@ public class PGPEncryptedDataGenerator
     private static class ClosableBCPGOutputStream
         extends BCPGOutputStream
     {
-        public ClosableBCPGOutputStream(OutputStream out, int symmetricKeyEnc, byte[] buffer)
+        public ClosableBCPGOutputStream(OutputStream out, BCPGHeaderObject header, byte[] buffer)
             throws IOException
         {
-            super(out, symmetricKeyEnc, buffer);
+            super(out, header.getType(), buffer);
+
+            header.encode(this);
         }
 
-        public ClosableBCPGOutputStream(OutputStream out, int symmetricKeyEnc, long length, boolean oldFormat)
+        public ClosableBCPGOutputStream(OutputStream out, BCPGHeaderObject header, long length, boolean useOldIfPossible)
             throws IOException
         {
-            super(out, symmetricKeyEnc, length, oldFormat);
+            super(out, header.getType(), length, useOldIfPossible);
+
+            header.encode(this);
         }
 
-        public ClosableBCPGOutputStream(OutputStream out, int symEncIntegrityPro, long length)
+        public ClosableBCPGOutputStream(OutputStream out, BCPGHeaderObject header, long length)
             throws IOException
         {
-            super(out, symEncIntegrityPro, length);
+            super(out, header.getType(), length);
+
+            header.encode(this);
         }
 
         public void close()

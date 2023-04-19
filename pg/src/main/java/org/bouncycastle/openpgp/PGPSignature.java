@@ -520,7 +520,7 @@ public class PGPSignature
             {
                 signature = BigIntegers.asUnsignedByteArray(sigValues[0].getValue());
             }
-            else if (this.getKeyAlgorithm() == PublicKeyAlgorithmTags.EDDSA)
+            else if (this.getKeyAlgorithm() == PublicKeyAlgorithmTags.EDDSA_LEGACY)
             {
                 signature = new byte[64];
                 byte[] a = BigIntegers.asUnsignedByteArray(sigValues[0].getValue());
@@ -604,16 +604,7 @@ public class PGPSignature
             return;
         }
 
-        BCPGOutputStream out;
-
-        if (outStream instanceof BCPGOutputStream)
-        {
-            out = (BCPGOutputStream)outStream;
-        }
-        else
-        {
-            out = new BCPGOutputStream(outStream);
-        }
+        BCPGOutputStream out = BCPGOutputStream.wrap(outStream);
 
         out.writePacket(sigPck);
         if (!forTransfer && trustPck != null)

@@ -22,6 +22,7 @@ import org.bouncycastle.openpgp.operator.PGPDigestCalculatorProvider;
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPDigestCalculatorProviderBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
+import org.bouncycastle.test.PrintTestResult;
 
 public class PGPUnicodeTest
     extends TestCase
@@ -30,7 +31,7 @@ public class PGPUnicodeTest
     {
         if (Security.getProvider("BC") == null)
         {
-            Security.addProvider(new BouncyCastleProvider());
+            Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
         }
     }
 
@@ -153,7 +154,7 @@ public class PGPUnicodeTest
     public static void main (String[] args)
         throws Exception
     {
-        junit.textui.TestRunner.run(suite());
+       PrintTestResult.printResult( junit.textui.TestRunner.run(suite()));
     }
 
     public static Test suite()

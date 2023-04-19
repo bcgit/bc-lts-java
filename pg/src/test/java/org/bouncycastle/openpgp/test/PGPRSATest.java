@@ -1300,7 +1300,7 @@ public class PGPRSATest
 
         PGPSignatureSubpacketGenerator subGen = new PGPSignatureSubpacketGenerator();
 
-        subGen.setEmbeddedSignature(false, signatureGenerator.generateCertification(secretKey.getPublicKey(), signSubKeyPair.getPublicKey()));
+        subGen.addEmbeddedSignature(false, signatureGenerator.generateCertification(secretKey.getPublicKey(), signSubKeyPair.getPublicKey()));
 
         PGPSecretKey secretSigSubKey = new PGPSecretKey(
                                 secretKey.extractKeyPair(masterDecryptor),

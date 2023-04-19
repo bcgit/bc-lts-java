@@ -215,18 +215,6 @@ public class PGPSignatureSubpacketGenerator
      *
      * @param isCritical true if should be treated as critical, false otherwise.
      * @param userID     signer user-id
-     * @deprecated use {@link #addSignerUserID(boolean, String)} instead.
-     */
-    public void setSignerUserID(boolean isCritical, String userID)
-    {
-        addSignerUserID(isCritical, userID);
-    }
-
-    /**
-     * Add a signer user-id to the signature.
-     *
-     * @param isCritical true if should be treated as critical, false otherwise.
-     * @param userID     signer user-id
      */
     public void addSignerUserID(boolean isCritical, String userID)
     {
@@ -238,7 +226,13 @@ public class PGPSignatureSubpacketGenerator
         packets.add(new SignerUserID(isCritical, userID));
     }
 
-    public void setSignerUserID(boolean isCritical, byte[] rawUserID)
+    /**
+     * Add a signer user-id to the signature.
+     *
+     * @param isCritical true if should be treated as critical, false otherwise.
+     * @param rawUserID     signer user-id
+     */
+    public void addSignerUserID(boolean isCritical, byte[] rawUserID)
     {
         if (rawUserID == null)
         {
@@ -246,20 +240,6 @@ public class PGPSignatureSubpacketGenerator
         }
 
         packets.add(new SignerUserID(isCritical, false, rawUserID));
-    }
-
-    /**
-     * Add an embedded signature packet.
-     *
-     * @param isCritical   true if should be treated as critical, false otherwise.
-     * @param pgpSignature embedded signature
-     * @throws IOException in case of an error
-     * @deprecated use {@link #addEmbeddedSignature(boolean, PGPSignature)} instead.
-     */
-    public void setEmbeddedSignature(boolean isCritical, PGPSignature pgpSignature)
-        throws IOException
-    {
-        addEmbeddedSignature(isCritical, pgpSignature);
     }
 
     /**
@@ -299,21 +279,6 @@ public class PGPSignatureSubpacketGenerator
      *
      * @param isCritical      true if should be treated as critical, false otherwise.
      * @param isHumanReadable true if the notation is human-readable.
-     * @param notationName    name of the notation key
-     * @param notationValue   value of the notation
-     * @deprecated use {@link #addNotationData(boolean, boolean, String, String)} instead.
-     */
-    public void setNotationData(boolean isCritical, boolean isHumanReadable, String notationName,
-                                String notationValue)
-    {
-        addNotationData(isCritical, isHumanReadable, notationName, notationValue);
-    }
-
-    /**
-     * Add a notation data packet to the signature.
-     *
-     * @param isCritical      true if should be treated as critical, false otherwise.
-     * @param isHumanReadable true if the notation is human-readable.
      * @param notationName    name of the notation key.
      * @param notationValue   value of the notation.
      */
@@ -334,19 +299,6 @@ public class PGPSignatureSubpacketGenerator
     public void setRevocationReason(boolean isCritical, byte reason, String description)
     {
         packets.add(new RevocationReason(isCritical, reason, description));
-    }
-
-    /**
-     * Adds a revocation key sub packet.
-     *
-     * @param isCritical   true if should be treated as critical, false otherwise.
-     * @param keyAlgorithm algorithm of the revocation key
-     * @param fingerprint  fingerprint of the revocation key
-     * @deprecated use {@link #addRevocationKey(boolean, int, byte[])} instead.
-     */
-    public void setRevocationKey(boolean isCritical, int keyAlgorithm, byte[] fingerprint)
-    {
-        addRevocationKey(isCritical, keyAlgorithm, fingerprint);
     }
 
     /**
@@ -406,18 +358,6 @@ public class PGPSignatureSubpacketGenerator
     public void setIssuerFingerprint(boolean isCritical, PGPPublicKey publicKey)
     {
         packets.add(new IssuerFingerprint(isCritical, publicKey.getVersion(), publicKey.getFingerprint()));
-    }
-
-    /**
-     * Adds a intended recipient fingerprint for an encrypted payload the signature is associated with.
-     *
-     * @param isCritical true if critical, false otherwise.
-     * @param publicKey  the public key the encrypted payload was encrypted against.
-     * @deprecated use {@link #addIntendedRecipientFingerprint(boolean, PGPPublicKey)} instead.
-     */
-    public void setIntendedRecipientFingerprint(boolean isCritical, PGPPublicKey publicKey)
-    {
-        addIntendedRecipientFingerprint(isCritical, publicKey);
     }
 
     /**

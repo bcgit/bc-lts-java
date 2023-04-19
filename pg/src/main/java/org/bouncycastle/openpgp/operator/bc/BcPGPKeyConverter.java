@@ -135,7 +135,7 @@ public class BcPGPKeyConverter
             case PublicKeyAlgorithmTags.ECDSA:
                 return implGetPrivateKeyEC((ECDSAPublicBCPGKey)pubPk.getKey(), (ECSecretBCPGKey)privPk);
 
-            case PublicKeyAlgorithmTags.EDDSA:
+            case PublicKeyAlgorithmTags.EDDSA_LEGACY:
             {
                 EdSecretBCPGKey eddsaK = (EdSecretBCPGKey)privPk;
                 EdDSAPublicBCPGKey eddsaPub = (EdDSAPublicBCPGKey)pubPk.getKey();
@@ -227,7 +227,7 @@ public class BcPGPKeyConverter
             case PublicKeyAlgorithmTags.ECDSA:
                 return implGetPublicKeyEC((ECDSAPublicBCPGKey)publicPk.getKey());
 
-            case PublicKeyAlgorithmTags.EDDSA:
+            case PublicKeyAlgorithmTags.EDDSA_LEGACY:
             {
                 EdDSAPublicBCPGKey eddsaK = (EdDSAPublicBCPGKey)publicPk.getKey();
 
@@ -235,7 +235,7 @@ public class BcPGPKeyConverter
 
                 if (pEnc.length < 1)
                 {
-                    throw new IllegalArgumentException("Invalid Edwards public key");
+                    throw new IllegalArgumentException("Invalid EdDSA public key");
                 }
 
                 if (pEnc[0] == 0x40 && !eddsaK.getCurveOID().equals(EdECObjectIdentifiers.id_Ed448))
@@ -251,7 +251,7 @@ public class BcPGPKeyConverter
                         pEnc));
                 }
 
-                throw new IllegalArgumentException("Invalid Ed25519 public key");
+                throw new IllegalArgumentException("Invalid EdDSA public key");
             }
 
             case PublicKeyAlgorithmTags.ELGAMAL_ENCRYPT:
@@ -313,7 +313,7 @@ public class BcPGPKeyConverter
             return new ECSecretBCPGKey(ecK.getD());
         }
 
-        case PublicKeyAlgorithmTags.EDDSA:
+        case PublicKeyAlgorithmTags.EDDSA_LEGACY:
         {
             if (privKey instanceof Ed25519PrivateKeyParameters)
             {

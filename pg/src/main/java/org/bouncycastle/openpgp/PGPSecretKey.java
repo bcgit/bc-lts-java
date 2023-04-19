@@ -3,6 +3,7 @@ package org.bouncycastle.openpgp;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -28,6 +29,9 @@ import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
 import org.bouncycastle.bcpg.TrustPacket;
 import org.bouncycastle.bcpg.UserAttributePacket;
 import org.bouncycastle.bcpg.UserIDPacket;
+import org.bouncycastle.gpg.SExprParser;
+import org.bouncycastle.openpgp.operator.KeyFingerPrintCalculator;
+import org.bouncycastle.openpgp.operator.PBEProtectionRemoverFactory;
 import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor;
 import org.bouncycastle.openpgp.operator.PBESecretKeyEncryptor;
 import org.bouncycastle.openpgp.operator.PGPContentSignerBuilder;
@@ -392,7 +396,7 @@ public class PGPSecretKey
         int algorithm = pub.getAlgorithm();
 
         return ((algorithm == PGPPublicKey.RSA_GENERAL) || (algorithm == PGPPublicKey.RSA_SIGN)
-            || (algorithm == PGPPublicKey.DSA) || (algorithm == PGPPublicKey.ECDSA) || (algorithm == PGPPublicKey.EDDSA) || (algorithm == PGPPublicKey.ELGAMAL_GENERAL));
+            || (algorithm == PGPPublicKey.DSA) || (algorithm == PGPPublicKey.ECDSA) || (algorithm == PGPPublicKey.EDDSA_LEGACY) || (algorithm == PGPPublicKey.ELGAMAL_GENERAL));
     }
 
     /**
@@ -435,6 +439,16 @@ public class PGPSecretKey
     public long getKeyID()
     {
         return pub.getKeyID();
+    }
+
+    /**
+     * Return the fingerprint of the public key associated with this key.
+     *
+     * @return key fingerprint.
+     */
+    public byte[] getFingerprint()
+    {
+        return pub.getFingerprint();
     }
 
     /**
@@ -648,7 +662,7 @@ public class PGPSecretKey
                 ECSecretBCPGKey ecPriv = new ECSecretBCPGKey(in);
 
                 return new PGPPrivateKey(this.getKeyID(), pubPk, ecPriv);
-            case PGPPublicKey.EDDSA:
+            case PGPPublicKey.EDDSA_LEGACY:
                 EdSecretBCPGKey edPriv = new EdSecretBCPGKey(in);
 
                 return new PGPPrivateKey(this.getKeyID(), pubPk, edPriv);
@@ -713,20 +727,10 @@ public class PGPSecretKey
         return bOut.toByteArray();
     }
 
-    public void encode(
-        OutputStream outStream)
+    public void encode(OutputStream outStream)
         throws IOException
     {
-        BCPGOutputStream out;
-
-        if (outStream instanceof BCPGOutputStream)
-        {
-            out = (BCPGOutputStream)outStream;
-        }
-        else
-        {
-            out = new BCPGOutputStream(outStream);
-        }
+        BCPGOutputStream out = BCPGOutputStream.wrap(outStream);
 
         out.writePacket(secret);
         if (pub.trustPk != null)
