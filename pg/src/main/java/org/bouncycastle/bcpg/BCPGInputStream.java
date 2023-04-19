@@ -13,19 +13,6 @@ import org.bouncycastle.util.io.Streams;
 public class BCPGInputStream
     extends InputStream implements PacketTags
 {
-    InputStream    in;
-    boolean        next = false;
-    int            nextB;
-
-    boolean        mNext = false;
-    int            mNextB;
-
-    public BCPGInputStream(
-        InputStream    in)
-    {
-        this.in = in;
-    }
-
     /**
      * If the argument is a {@link BCPGInputStream}, return it.
      * Otherwise wrap it in a {@link BCPGInputStream} and then return the result.
@@ -42,6 +29,19 @@ public class BCPGInputStream
         return new BCPGInputStream(in);
     }
 
+    InputStream    in;
+    boolean        next = false;
+    int            nextB;
+
+    boolean        mNext = false;
+    int            mNextB;
+
+    public BCPGInputStream(
+        InputStream    in)
+    {
+        this.in = in;
+    }
+    
     public int available()
         throws IOException
     {
@@ -210,13 +210,13 @@ public class BCPGInputStream
             }
             else if (l <= 223)
             {
-                int b = in.read();
+                int b = this.read();
 
                 bodyLen = ((l - 192) << 8) + (b) + 192;
             }
             else if (l == 255)
             {
-                bodyLen = (in.read() << 24) | (in.read() << 16) |  (in.read() << 8)  | in.read();
+                bodyLen = (this.read() << 24) | (this.read() << 16) |  (this.read() << 8)  | this.read();
             }
             else
             {
@@ -301,6 +301,8 @@ public class BCPGInputStream
             return new ModDetectionCodePacket(objStream);
         case AEAD_ENC_DATA:
             return new AEADEncDataPacket(objStream);
+        case PADDING:
+            return new PaddingPacket(objStream);
         case EXPERIMENTAL_1:
         case EXPERIMENTAL_2:
         case EXPERIMENTAL_3:
@@ -311,11 +313,17 @@ public class BCPGInputStream
         }
     }
 
-    public int skipMarkerPackets()
+    /**
+     * skip any marker and padding packets found in the stream.
+     * @return the tag for the next non-marker/padding packet
+     * @throws IOException on a parsing issue.
+     */
+    public int skipMarkerAndPaddingPackets()
         throws IOException
     {
         int tag;
-        while ((tag = nextPacketTag()) == PacketTags.MARKER)
+        while ((tag = nextPacketTag()) == PacketTags.MARKER
+             || tag == PacketTags.PADDING)
         {
             readPacket();
         }

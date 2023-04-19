@@ -248,34 +248,7 @@ public class PGPPublicKey
     {
         return publicPk.getTime();
     }
-
-    /**
-     * @return number of valid days from creation time - zero means no
-     * expiry.
-     * @deprecated use getValidSeconds(): greater than version 3 keys may be valid for less than a day.
-     */
-    public int getValidDays()
-    {
-        if (publicPk.getVersion() > 3)
-        {
-            long delta = this.getValidSeconds() % (24 * 60 * 60);
-            int days = (int)(this.getValidSeconds() / (24 * 60 * 60));
-
-            if (delta > 0 && days == 0)
-            {
-                return 1;
-            }
-            else
-            {
-                return days;
-            }
-        }
-        else
-        {
-            return publicPk.getValidDays();
-        }
-    }
-
+    
     /**
      * Return the trust data associated with the public key, if present.
      *
@@ -394,7 +367,7 @@ public class PGPPublicKey
     }
 
     /**
-     * Return the fingerprint of the key.
+     * Return the fingerprint of the public key.
      *
      * @return key fingerprint.
      */
@@ -480,7 +453,7 @@ public class PGPPublicKey
      * Return any userIDs associated with the key in raw byte form. No attempt is made
      * to convert the IDs into Strings.
      *
-     * @return an iterator of Strings.
+     * @return an iterator of byte[].
      */
     public Iterator<byte[]> getRawUserIDs()
     {
@@ -721,21 +694,10 @@ public class PGPPublicKey
      * @param forTransfer if the purpose of encoding is to send key to other users.
      * @throws IOException in case of encoding error.
      */
-    public void encode(
-        OutputStream outStream,
-        boolean forTransfer)
+    public void encode(OutputStream outStream, boolean forTransfer)
         throws IOException
     {
-        BCPGOutputStream out;
-
-        if (outStream instanceof BCPGOutputStream)
-        {
-            out = (BCPGOutputStream)outStream;
-        }
-        else
-        {
-            out = new BCPGOutputStream(outStream);
-        }
+        BCPGOutputStream out = BCPGOutputStream.wrap(outStream);
 
         out.writePacket(publicPk);
         if (!forTransfer && trustPk != null)
@@ -784,17 +746,6 @@ public class PGPPublicKey
                 ((PGPSignature)subSigs.get(j)).encode(out, forTransfer);
             }
         }
-    }
-
-    /**
-     * Check whether this (sub)key has a revocation signature on it.
-     *
-     * @return boolean indicating whether this (sub)key has been revoked.
-     * @deprecated this method is poorly named, use hasRevocation().
-     */
-    public boolean isRevoked()
-    {
-        return hasRevocation();
     }
 
     /**
@@ -957,7 +908,7 @@ public class PGPPublicKey
 
     private static PGPPublicKey removeCert(
         PGPPublicKey key,
-        Object id)
+        UserDataPacket id)
     {
         PGPPublicKey returnKey = new PGPPublicKey(key);
         boolean found = false;
@@ -973,12 +924,7 @@ public class PGPPublicKey
             }
         }
 
-        if (!found)
-        {
-            return null;
-        }
-
-        return returnKey;
+        return found ? returnKey : null;
     }
 
     /**
@@ -1031,7 +977,7 @@ public class PGPPublicKey
 
     private static PGPPublicKey removeCert(
         PGPPublicKey key,
-        Object id,
+        UserDataPacket id,
         PGPSignature certification)
     {
         PGPPublicKey returnKey = new PGPPublicKey(key);
@@ -1041,16 +987,11 @@ public class PGPPublicKey
         {
             if (id.equals(returnKey.ids.get(i)))
             {
-                found = ((List<PGPSignature>)returnKey.idSigs.get(i)).remove(certification);
+                found |= ((List<PGPSignature>)returnKey.idSigs.get(i)).remove(certification);
             }
         }
 
-        if (!found)
-        {
-            return null;
-        }
-
-        return returnKey;
+        return found ? returnKey : null;
     }
 
     /**
@@ -1080,15 +1021,9 @@ public class PGPPublicKey
         }
 
         PGPPublicKey returnKey = new PGPPublicKey(key);
+        List<PGPSignature> sigs = returnKey.subSigs != null ? returnKey.subSigs : returnKey.keySigs;
 
-        if (returnKey.subSigs != null)
-        {
-            returnKey.subSigs.add(certification);
-        }
-        else
-        {
-            returnKey.keySigs.add(certification);
-        }
+        sigs.add(certification);
 
         return returnKey;
     }
@@ -1105,50 +1040,17 @@ public class PGPPublicKey
         PGPSignature certification)
     {
         PGPPublicKey returnKey = new PGPPublicKey(key);
-        boolean found;
+        List<PGPSignature> sigs = returnKey.subSigs != null ? returnKey.subSigs : returnKey.keySigs;
 
-        if (returnKey.subSigs != null)
-        {
-            found = returnKey.subSigs.remove(certification);
-        }
-        else
-        {
-            found = returnKey.keySigs.remove(certification);
-        }
+        boolean found = sigs.remove(certification);
 
-        if (!found)
+        for (Iterator<List<PGPSignature>> it = returnKey.idSigs.iterator(); it.hasNext(); )
         {
-            for (Iterator<byte[]> it = key.getRawUserIDs(); it.hasNext(); )
-            {
-                byte[] rawID = (byte[])it.next();
-                for (Iterator<PGPSignature> sIt = key.getSignaturesForID(rawID); sIt.hasNext(); )
-                {
-                    if (certification == sIt.next())
-                    {
-                        found = true;
-                        returnKey = PGPPublicKey.removeCertification(returnKey, rawID, certification);
-                    }
-                }
-            }
-
-            if (!found)
-            {
-                for (Iterator<PGPUserAttributeSubpacketVector> it = key.getUserAttributes(); it.hasNext(); )
-                {
-                    PGPUserAttributeSubpacketVector id = (PGPUserAttributeSubpacketVector)it.next();
-                    for (Iterator<PGPSignature> sIt = key.getSignaturesForUserAttribute(id); sIt.hasNext(); )
-                    {
-                        if (certification == sIt.next())
-                        {
-                            found = true;
-                            returnKey = PGPPublicKey.removeCertification(returnKey, id, certification);
-                        }
-                    }
-                }
-            }
+            List<PGPSignature> idSigs = (List<PGPSignature>)it.next();
+            found |= idSigs.remove(certification);
         }
 
-        return returnKey;
+        return found ? returnKey : null;
     }
 
     /**
@@ -1206,8 +1108,7 @@ public class PGPPublicKey
                     found = true;
                     // join existing sig with copy to apply modifications in unhashed subpackets
                     existingKeySig = PGPSignature.join(existingKeySig, keySig);
-                    keySigs.remove(i);
-                    keySigs.add(i, existingKeySig);
+                    keySigs.set(i, existingKeySig);
                     break;
                 }
             }
@@ -1241,14 +1142,7 @@ public class PGPPublicKey
             {
                 ids.add(copyId);
                 idSigs.add(copyIdSigs);
-                if (joinTrustPackets)
-                {
-                    idTrusts.add(copyTrust);
-                }
-                else
-                {
-                    idTrusts.add(null);
-                }
+                idTrusts.add(joinTrustPackets ? copyTrust : null);
                 continue;
             }
 
@@ -1258,8 +1152,7 @@ public class PGPPublicKey
                 TrustPacket existingTrust = (TrustPacket)idTrusts.get(existingIdIndex);
                 if (existingTrust == null || Arrays.areEqual(copyTrust.getLevelAndTrustAmount(), existingTrust.getLevelAndTrustAmount()))
                 {
-                    idTrusts.remove(existingIdIndex);
-                    idTrusts.add(existingIdIndex, copyTrust);
+                    idTrusts.set(existingIdIndex, copyTrust);
                 }
             }
 
@@ -1276,8 +1169,7 @@ public class PGPPublicKey
                         found = true;
                         // join existing sig with copy to apply modifications in unhashed subpackets
                         existingSig = PGPSignature.join(existingSig, newSig);
-                        existingIdSigs.remove(i);
-                        existingIdSigs.add(i, existingSig);
+                        existingIdSigs.set(i, existingSig);
                         break;
                     }
                 }
@@ -1309,8 +1201,7 @@ public class PGPPublicKey
                             found = true;
                             // join existing sig with copy to apply modifications in unhashed subpackets
                             existingSubSig = PGPSignature.join(existingSubSig, copySubSig);
-                            subSigs.remove(i);
-                            subSigs.add(i, existingSubSig);
+                            subSigs.set(i, existingSubSig);
                             break;
                         }
                     }

@@ -475,7 +475,7 @@ public class PGPSignatureTest
         PGPSignatureSubpacketGenerator hashedGen = new PGPSignatureSubpacketGenerator();
 
         hashedGen.setSignatureExpirationTime(false, TEST_EXPIRATION_TIME);
-        hashedGen.setSignerUserID(true, TEST_USER_ID);
+        hashedGen.addSignerUserID(true, TEST_USER_ID);
         hashedGen.setPreferredCompressionAlgorithms(false, PREFERRED_COMPRESSION_ALGORITHMS);
         hashedGen.setPreferredHashAlgorithms(false, PREFERRED_HASH_ALGORITHMS);
         hashedGen.setPreferredSymmetricAlgorithms(false, PREFERRED_SYMMETRIC_ALGORITHMS);
@@ -613,7 +613,7 @@ public class PGPSignatureTest
 
         hashedGen.setIssuerFingerprint(false, secretDSAKey);
 
-        hashedGen.setIntendedRecipientFingerprint(false, secretKey.getPublicKey());
+        hashedGen.addIntendedRecipientFingerprint(false, secretKey.getPublicKey());
 
         sGen.setHashedSubpackets(hashedGen.generate());
 
@@ -941,7 +941,7 @@ public class PGPSignatureTest
 
         try
         {
-            sGen.setNotationData(true, false, name4, value4);
+            sGen.addNotationData(true, false, name4, value4);
             fail("truncation occurs silently");
         }
         catch (IllegalArgumentException e)
@@ -954,7 +954,7 @@ public class PGPSignatureTest
 
         try
         {
-            sGen.setNotationData(true, false, name3, value4);
+            sGen.addNotationData(true, false, name3, value4);
             fail("truncation occurs silently");
         }
         catch (IllegalArgumentException e)

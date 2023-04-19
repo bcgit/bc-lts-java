@@ -57,7 +57,7 @@ class BcImplProvider
         case HashAlgorithmTags.SHA224:
             return new SHA224Digest();
         case HashAlgorithmTags.SHA256:
-            return SHA256Digest.newInstance();
+            return new SHA256Digest();
         case HashAlgorithmTags.SHA384:
             return new SHA384Digest();
         case HashAlgorithmTags.SHA512:
@@ -97,7 +97,7 @@ class BcImplProvider
             return new DSADigestSigner(new DSASigner(), createDigest(hashAlgorithm));
         case PublicKeyAlgorithmTags.ECDSA:
             return new DSADigestSigner(new ECDSASigner(), createDigest(hashAlgorithm));
-        case PublicKeyAlgorithmTags.EDDSA:
+        case PublicKeyAlgorithmTags.EDDSA_LEGACY:
             if (keyParam instanceof Ed25519PrivateKeyParameters || keyParam instanceof Ed25519PublicKeyParameters)
             {
                 return new EdDsaSigner(new Ed25519Signer(), createDigest(hashAlgorithm));
@@ -118,7 +118,7 @@ class BcImplProvider
         case SymmetricKeyAlgorithmTags.AES_128:
         case SymmetricKeyAlgorithmTags.AES_192:
         case SymmetricKeyAlgorithmTags.AES_256:
-            engine = AESEngine.newInstance();
+            engine = new AESEngine();
             break;
         case SymmetricKeyAlgorithmTags.CAMELLIA_128:
         case SymmetricKeyAlgorithmTags.CAMELLIA_192:
@@ -158,7 +158,7 @@ class BcImplProvider
         case SymmetricKeyAlgorithmTags.AES_128:
         case SymmetricKeyAlgorithmTags.AES_192:
         case SymmetricKeyAlgorithmTags.AES_256:
-            return new RFC3394WrapEngine(AESEngine.newInstance());
+            return new RFC3394WrapEngine(new AESEngine());
         case SymmetricKeyAlgorithmTags.CAMELLIA_128:
         case SymmetricKeyAlgorithmTags.CAMELLIA_192:
         case SymmetricKeyAlgorithmTags.CAMELLIA_256:

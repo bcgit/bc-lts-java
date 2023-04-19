@@ -12,7 +12,6 @@ module org.bouncycastle.lts.pg
     exports org.bouncycastle.gpg.keybox.bc;
     exports org.bouncycastle.gpg.keybox.jcajce;
     exports org.bouncycastle.openpgp.bc;
-    exports org.bouncycastle.openpgp.examples;
     exports org.bouncycastle.openpgp.jcajce;
     exports org.bouncycastle.openpgp.operator;
     exports org.bouncycastle.openpgp.operator.bc;

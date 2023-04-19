@@ -231,32 +231,6 @@ public class PGPUtil
         }
     }
 
-
-    /**
-     * Return the JCA/JCE provider that will be used by factory classes in situations where a
-     * provider must be determined on the fly.
-     *
-     * @return the name of the default provider.
-     * @deprecated unused
-     */
-    public static String getDefaultProvider()
-    {
-        // TODO: no longer used.
-        return defProvider;
-    }
-
-    /**
-     * Set the provider to be used by the package when it is necessary to find one on the fly.
-     *
-     * @param provider the name of the JCA/JCE provider to use by default.
-     * @deprecated unused
-     */
-    public static void setDefaultProvider(
-        String provider)
-    {
-        defProvider = provider;
-    }
-
     static MPInteger[] dsaSigToMpi(
         byte[] encoding)
         throws PGPException

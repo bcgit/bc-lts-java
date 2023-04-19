@@ -12,6 +12,22 @@ public class BCPGOutputStream
     extends OutputStream
     implements PacketTags, CompressionAlgorithmTags
 {
+    /**
+     * If the argument is a {@link BCPGOutputStream}, return it.
+     * Otherwise wrap it in a {@link BCPGOutputStream} and then return the result.
+     *
+     * @param out output stream
+     * @return BCPGOutputStream
+     */
+    public static BCPGOutputStream wrap(OutputStream out)
+    {
+        if (out instanceof BCPGOutputStream)
+        {
+            return (BCPGOutputStream)out;
+        }
+        return new BCPGOutputStream(out);
+    }
+
     OutputStream    out;
     private boolean useOldFormat;
     private byte[]  partialBuffer;
@@ -185,8 +201,9 @@ public class BCPGOutputStream
             partialFlush(true);
             partialBuffer = null;
         }
-        
-        if (oldPackets)
+
+        // only tags <= 0xF in value can be written as old packets.
+        if (tag <= 0xF && oldPackets)
         {
             hdr |= tag << 2;
             
@@ -361,7 +378,7 @@ public class BCPGOutputStream
     {
         o.encode(this);
     }
-    
+
     /**
      * Flush the underlying stream.
      */

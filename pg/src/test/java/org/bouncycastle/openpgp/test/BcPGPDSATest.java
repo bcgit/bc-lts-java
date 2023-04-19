@@ -326,7 +326,7 @@ public class BcPGPDSATest
         Iterator        it = sKey.getSecretKey().getPublicKey().getUserIDs();
         String          primaryUserID = (String)it.next();
         
-        spGen.setSignerUserID(true, primaryUserID);
+        spGen.addSignerUserID(true, primaryUserID);
         
         sGen.setHashedSubpackets(spGen.generate());
         
