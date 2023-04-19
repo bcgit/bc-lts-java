@@ -1,37 +1,54 @@
 package org.bouncycastle.mail.smime.test;
 
 import java.security.Security;
+import java.util.Enumeration;
 
 import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
+import junit.framework.TestResult;
 import junit.framework.TestSuite;
-import org.bouncycastle.test.mail.PrintResults;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class AllTests
     extends TestCase
 {
-    public static void main (String[] args)
+    public static void main(String[] args)
         throws Exception
     {
-       PrintResults.printResult( junit.textui.TestRunner.run (suite()));
+        TestResult tr = junit.textui.TestRunner.run(suite());
+
+        Enumeration e = tr.failures();
+        if (e != null)
+        {
+            while (e.hasMoreElements())
+            {
+                System.out.println(e.nextElement());
+            }
+        }
+
+        e = tr.failures();
+        if (e != null)
+        {
+            while (e.hasMoreElements())
+            {
+                System.out.println(e.nextElement());
+            }
+        }
+
+        if (!tr.wasSuccessful())
+        {
+            System.exit(1);
+        }
     }
-    
+
     public static Test suite()
         throws Exception
     {
-        TestSuite suite= new TestSuite("SMIME tests");
+        TestSuite suite = new TestSuite("SMIME tests");
 
         suite.addTestSuite(NewSMIMESignedTest.class);
-        try
-        {
-            suite.addTestSuite(SignedMailValidatorTest.class);
-        } catch (NoClassDefFoundError ignored) {
-            // Can be excluded from some jar related tests where the module
-            // System prevents loading of test resources in the same package
-            // TODO probably move resources.
-        }
+        suite.addTestSuite(SignedMailValidatorTest.class);
         suite.addTestSuite(NewSMIMEEnvelopedTest.class);
         suite.addTestSuite(SMIMECompressedTest.class);
         suite.addTestSuite(SMIMEMiscTest.class);
