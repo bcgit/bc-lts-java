@@ -27,7 +27,7 @@ class NativeLoader
     private static final Logger LOG = Logger.getLogger(NativeLoader.class.getName());
 
 
-    public static final String BCFIPS_LIB_CPU_VARIANT = "org.bouncycastle.native.cpu_variant";
+    public static final String BCLTS_LIB_CPU_VARIANT = "org.bouncycastle.native.cpu_variant";
 
 
     private static boolean nativeLibsAvailableForSystem = false;
@@ -150,7 +150,7 @@ class NativeLoader
     static synchronized void loadDriver()
     {
 
-        String forcedVariant = Properties.getPropertyValue(BCFIPS_LIB_CPU_VARIANT);
+        String forcedVariant = Properties.getPropertyValue(BCLTS_LIB_CPU_VARIANT);
 
 
         // No variants defined at all, or a
@@ -195,7 +195,7 @@ class NativeLoader
         }
 
 
-        File bcFipsLibPath = AccessController.doPrivileged(new PrivilegedAction<File>()
+        File bcLtsLibPath = AccessController.doPrivileged(new PrivilegedAction<File>()
         {
             @Override
             public File run()
@@ -210,7 +210,7 @@ class NativeLoader
                     return null;
                 }
 
-                File bcFipsLibPath;
+
                 try
                 {
 
@@ -222,7 +222,7 @@ class NativeLoader
                     long time = System.nanoTime();
                     for (int t = 0; t < 1000; t++)
                     {
-                        dir = new File(ioTmpDir, "bc-fips-jni" + Long.toString(time + t, 32) + "-libs");
+                        dir = new File(ioTmpDir, "bc-lts-jni" + Long.toString(time + t, 32) + "-libs");
                         if (dir.mkdirs())
                         {
                             break;
@@ -296,7 +296,7 @@ class NativeLoader
             }
         });
 
-        if (bcFipsLibPath == null)
+        if (bcLtsLibPath == null)
         {
             return;
         }
@@ -309,7 +309,7 @@ class NativeLoader
         //
         Set<File> filesInInstallLocation = new HashSet<File>();
 
-        for (File f : bcFipsLibPath.listFiles())
+        for (File f : bcLtsLibPath.listFiles())
         {
             filesInInstallLocation.add(f);
         }
@@ -353,7 +353,7 @@ class NativeLoader
             try
             {
                 // Install probe lib
-                final File lib = installLib("bc-probe", probeLibInJarPath, jarDir, bcFipsLibPath, filesInInstallLocation);
+                final File lib = installLib("bc-probe", probeLibInJarPath, jarDir, bcLtsLibPath, filesInInstallLocation);
 
                 AccessController.doPrivileged(
                         new PrivilegedAction<Object>()
@@ -406,7 +406,7 @@ class NativeLoader
             // eg: linux-x86_64-sse has a suffix of "sse"
             //
 
-            final File lib = installLib("bc-fips-" + selectedVariant, variantPathInJar, jarDir, bcFipsLibPath, filesInInstallLocation);
+            final File lib = installLib("bc-lts-" + selectedVariant, variantPathInJar, jarDir, bcLtsLibPath, filesInInstallLocation);
 
 
             //
@@ -423,7 +423,7 @@ class NativeLoader
                     }
                     sBld.append(f.getName());
                 }
-                nativeStatusMessage = String.format("unexpected files in %s: %s", bcFipsLibPath.toString(), sBld.toString());
+                nativeStatusMessage = String.format("unexpected files in %s: %s", bcLtsLibPath.toString(), sBld.toString());
                 nativeInstalled = false;
                 return;
             }

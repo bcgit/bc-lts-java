@@ -14,9 +14,9 @@ set(FIPS_JAVA_HEADERS ${FIPS_JAVA_ROOT}/build/generated/sources/headers/java/mai
 
 option(ENABLE_CODE_ANALYSIS "Run code analysis" OFF)
 
-set(CORE_NATIVE "bc-fips-c")
+set(CORE_NATIVE "bc-lts-c")
 set(LIB_PROBE "bc-probe")
-set(LIB_NATIVE "bc-fips")
+set(LIB_NATIVE "bc-lts")
 
 string(TIMESTAMP BUILD_TS "%Y-%m-%dT%H:%M:%S")
 

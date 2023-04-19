@@ -11,6 +11,9 @@ sourceSets {
         java {
             srcDirs '../core/src/main/java'
         }
+        resources {
+            srcDirs '../core/src/main/resources'
+        }
     }
     java9 {
         java {
