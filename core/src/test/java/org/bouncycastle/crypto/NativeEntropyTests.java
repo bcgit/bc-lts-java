@@ -24,8 +24,14 @@ public class NativeEntropyTests
         if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.DRBG)
             && !CryptoServicesRegistrar.hasEnabledService(NativeServices.NRBG))
         {
-            System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
-            return;
+
+            if (System.getProperty("test.bcfips.ignore.native","").contains("es")) {
+                System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
+                return;
+            }
+
+            TestCase.fail("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
+
         }
 
         NativeEntropySource nes = new NativeEntropySource(1024);
@@ -41,13 +47,19 @@ public class NativeEntropyTests
     public void testESLimits()
             throws Exception
     {
+        NativeLoader.loadDriver();
         if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.DRBG)
                 && !CryptoServicesRegistrar.hasEnabledService(NativeServices.NRBG))
         {
-            System.out.println("Skipping testESLimits, no native random: " + NativeLoader.getNativeStatusMessage());
-            return;
+
+            if (System.getProperty("test.bcfips.ignore.native","").contains("es")) {
+                System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
+                return;
+            }
+
+            TestCase.fail("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
         }
-        NativeLoader.loadDriver();
+
 
         if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.DRBG)
             && !CryptoServicesRegistrar.hasEnabledService(NativeServices.NRBG))
@@ -72,8 +84,14 @@ public class NativeEntropyTests
         if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.DRBG)
                 && !CryptoServicesRegistrar.hasEnabledService(NativeServices.NRBG))
         {
-            System.out.println("Skipping testLimitsEnforcedFromNative, no native random: " + NativeLoader.getNativeStatusMessage());
-            return;
+
+            if (System.getProperty("test.bcfips.ignore.native","").contains("es")) {
+                System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
+                return;
+            }
+
+            TestCase.fail("Skipping testLimitsEnforcedFromNative, no native random: " + NativeLoader.getNativeStatusMessage());
+
         }
 
         NativeLoader.loadDriver();
