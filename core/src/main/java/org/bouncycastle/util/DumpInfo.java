@@ -7,8 +7,6 @@ public class DumpInfo
 {
     public static void main(String[] args)
     {
-        CryptoServicesRegistrar.getNativeServices();
-
         //-DM System.out.println
         //-DM System.out.println
         //-DM System.out.println
