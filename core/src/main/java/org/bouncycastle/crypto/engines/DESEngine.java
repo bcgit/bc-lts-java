@@ -16,10 +16,10 @@ public class DESEngine
     extends DESBase
     implements BlockCipher
 {
-    protected static final int BLOCK_SIZE = 8;
+    protected static final int  BLOCK_SIZE = 8;
 
-    private boolean forEncryption;
-    private int[] workingKey = null;
+    private boolean             forEncryption;
+    private int[]               workingKey = null;
 
     /**
      * standard constructor.
@@ -33,24 +33,24 @@ public class DESEngine
      * initialise a DES cipher.
      *
      * @param encrypting whether or not we are for encryption.
-     * @param params     the parameters required to set up the cipher.
-     * @throws IllegalArgumentException if the params argument is
-     *                                  inappropriate.
+     * @param params the parameters required to set up the cipher.
+     * @exception IllegalArgumentException if the params argument is
+     * inappropriate.
      */
     public void init(
-        boolean encrypting,
-        CipherParameters params)
+        boolean           encrypting,
+        CipherParameters  params)
     {
         if (params instanceof KeyParameter)
         {
-            if (((KeyParameter)params).getKey().length > 8)
+            if (((KeyParameter)params).getKeyLength() > 8)
             {
                 throw new IllegalArgumentException("DES key too long - should be 8 bytes");
             }
 
             forEncryption = encrypting;
             workingKey = generateWorkingKey(encrypting,
-                ((KeyParameter)params).getKey());
+                                  ((KeyParameter)params).getKey());
 
             CryptoServicesRegistrar.checkConstraints(new DefaultServiceProperties(getAlgorithmName(), 56, params, Utils.getPurpose(forEncryption)));
 
@@ -113,31 +113,31 @@ public class DESEngine
 //            0x89,0xab,0xcd,0xef,0x01,0x23,0x45,0x67
 //        };
 
-    private static final short[] bytebit =
+    private static final short[]    bytebit =
         {
             0200, 0100, 040, 020, 010, 04, 02, 01
         };
 
-    private static final int[] bigbyte =
+    private static final int[]    bigbyte =
         {
             0x800000, 0x400000, 0x200000, 0x100000,
-            0x80000, 0x40000, 0x20000, 0x10000,
-            0x8000, 0x4000, 0x2000, 0x1000,
-            0x800, 0x400, 0x200, 0x100,
-            0x80, 0x40, 0x20, 0x10,
-            0x8, 0x4, 0x2, 0x1
+            0x80000,  0x40000,  0x20000,  0x10000,
+            0x8000,      0x4000,   0x2000,   0x1000,
+            0x800,    0x400,    0x200,    0x100,
+            0x80,      0x40,        0x20,     0x10,
+            0x8,      0x4,      0x2,      0x1
         };
 
     /*
      * Use the key schedule specified in the Standard (ANSI X3.92-1981).
      */
 
-    private static final byte[] pc1 =
+    private static final byte[]    pc1 =
         {
-            56, 48, 40, 32, 24, 16, 8, 0, 57, 49, 41, 33, 25, 17,
-            9, 1, 58, 50, 42, 34, 26, 18, 10, 2, 59, 51, 43, 35,
-            62, 54, 46, 38, 30, 22, 14, 6, 61, 53, 45, 37, 29, 21,
-            13, 5, 60, 52, 44, 36, 28, 20, 12, 4, 27, 19, 11, 3
+            56, 48, 40, 32, 24, 16,  8,   0, 57, 49, 41, 33, 25, 17,
+             9,  1, 58, 50, 42, 34, 26,  18, 10,  2, 59, 51, 43, 35,
+            62, 54, 46, 38, 30, 22, 14,   6, 61, 53, 45, 37, 29, 21,
+            13,  5, 60, 52, 44, 36, 28,  20, 12,  4, 27, 19, 11,  3
         };
 
     private static final byte[] totrot =
@@ -148,8 +148,8 @@ public class DESEngine
 
     private static final byte[] pc2 =
         {
-            13, 16, 10, 23, 0, 4, 2, 27, 14, 5, 20, 9,
-            22, 18, 11, 3, 25, 7, 15, 6, 26, 19, 12, 1,
+            13, 16, 10, 23,  0,  4,  2, 27, 14,  5, 20,  9,
+            22, 18, 11,  3, 25,  7, 15,  6, 26, 19, 12,  1,
             40, 51, 30, 36, 46, 54, 29, 39, 50, 44, 32, 47,
             43, 48, 38, 55, 33, 52, 45, 41, 49, 35, 28, 31
         };
@@ -309,28 +309,28 @@ public class DESEngine
     /**
      * generate an integer based working key based on our secret key
      * and what we processing we are planning to do.
-     * <p>
+     *
      * Acknowledgements for this routine go to James Gillogly &amp; Phil Karn.
-     * (whoever, and wherever they are!).
+     *         (whoever, and wherever they are!).
      */
     protected int[] generateWorkingKey(
         boolean encrypting,
-        byte[] key)
+        byte[]  key)
     {
-        int[] newKey = new int[32];
-        boolean[] pc1m = new boolean[56],
-            pcr = new boolean[56];
+        int[]       newKey = new int[32];
+        boolean[]   pc1m = new boolean[56],
+                    pcr = new boolean[56];
 
         for (int j = 0; j < 56; j++)
         {
-            int l = pc1[j];
+            int    l = pc1[j];
 
             pc1m[j] = ((key[l >>> 3] & bytebit[l & 07]) != 0);
         }
 
         for (int i = 0; i < 16; i++)
         {
-            int l, m, n;
+            int    l, m, n;
 
             if (encrypting)
             {
@@ -389,16 +389,16 @@ public class DESEngine
         //
         for (int i = 0; i != 32; i += 2)
         {
-            int i1, i2;
+            int    i1, i2;
 
             i1 = newKey[i];
             i2 = newKey[i + 1];
 
             newKey[i] = ((i1 & 0x00fc0000) << 6) | ((i1 & 0x00000fc0) << 10)
-                | ((i2 & 0x00fc0000) >>> 10) | ((i2 & 0x00000fc0) >>> 6);
+                                   | ((i2 & 0x00fc0000) >>> 10) | ((i2 & 0x00000fc0) >>> 6);
 
             newKey[i + 1] = ((i1 & 0x0003f000) << 12) | ((i1 & 0x0000003f) << 16)
-                | ((i2 & 0x0003f000) >>> 4) | (i2 & 0x0000003f);
+                                   | ((i2 & 0x0003f000) >>> 4) | (i2 & 0x0000003f);
         }
 
         return newKey;
@@ -408,13 +408,13 @@ public class DESEngine
      * the DES engine.
      */
     protected void desFunc(
-        int[] wKey,
-        byte[] in,
-        int inOff,
-        byte[] out,
-        int outOff)
+        int[]   wKey,
+        byte[]  in,
+        int     inOff,
+        byte[]  out,
+        int     outOff)
     {
-        int work, right, left;
+        int     work, right, left;
 
         left = Pack.bigEndianToInt(in, inOff);
         right = Pack.bigEndianToInt(in, inOff + 4);
@@ -439,29 +439,29 @@ public class DESEngine
 
         for (int round = 0; round < 8; round++)
         {
-            int fval;
+            int     fval;
 
-            work = (right << 28) | (right >>> 4);
+            work  = (right << 28) | (right >>> 4);
             work ^= wKey[round * 4 + 0];
-            fval = SP7[work & 0x3f];
-            fval |= SP5[(work >>> 8) & 0x3f];
+            fval  = SP7[ work      & 0x3f];
+            fval |= SP5[(work >>>  8) & 0x3f];
             fval |= SP3[(work >>> 16) & 0x3f];
             fval |= SP1[(work >>> 24) & 0x3f];
-            work = right ^ wKey[round * 4 + 1];
-            fval |= SP8[work & 0x3f];
-            fval |= SP6[(work >>> 8) & 0x3f];
+            work  = right ^ wKey[round * 4 + 1];
+            fval |= SP8[ work      & 0x3f];
+            fval |= SP6[(work >>>  8) & 0x3f];
             fval |= SP4[(work >>> 16) & 0x3f];
             fval |= SP2[(work >>> 24) & 0x3f];
             left ^= fval;
-            work = (left << 28) | (left >>> 4);
+            work  = (left << 28) | (left >>> 4);
             work ^= wKey[round * 4 + 2];
-            fval = SP7[work & 0x3f];
-            fval |= SP5[(work >>> 8) & 0x3f];
+            fval  = SP7[ work      & 0x3f];
+            fval |= SP5[(work >>>  8) & 0x3f];
             fval |= SP3[(work >>> 16) & 0x3f];
             fval |= SP1[(work >>> 24) & 0x3f];
-            work = left ^ wKey[round * 4 + 3];
-            fval |= SP8[work & 0x3f];
-            fval |= SP6[(work >>> 8) & 0x3f];
+            work  = left ^ wKey[round * 4 + 3];
+            fval |= SP8[ work      & 0x3f];
+            fval |= SP6[(work >>>  8) & 0x3f];
             fval |= SP4[(work >>> 16) & 0x3f];
             fval |= SP2[(work >>> 24) & 0x3f];
             right ^= fval;
@@ -487,11 +487,5 @@ public class DESEngine
 
         Pack.intToBigEndian(right, out, outOff);
         Pack.intToBigEndian(left, out, outOff + 4);
-    }
-
-    @Override
-    public String toString()
-    {
-        return "DESede[" + workingKey.length + "]";
     }
 }
