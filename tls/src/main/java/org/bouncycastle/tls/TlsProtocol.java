@@ -299,6 +299,8 @@ public abstract class TlsProtocol
             raiseAlertWarning(AlertDescription.close_notify, "Connection closed");
 
             closeConnection();
+
+            getPeer().notifyConnectionClosed();
         }
     }
 
@@ -336,6 +338,8 @@ public abstract class TlsProtocol
         }
 
         closeConnection();
+
+        getPeer().notifyConnectionClosed();
     }
 
     protected abstract void handleHandshakeMessage(short type, HandshakeMessageInput buf)

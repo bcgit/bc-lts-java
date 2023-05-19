@@ -95,7 +95,7 @@ public class DTLSServerProtocol
     {
         SecurityParameters securityParameters = state.serverContext.getSecurityParametersHandshake();
         DTLSReliableHandshake handshake = new DTLSReliableHandshake(state.serverContext, recordLayer,
-            state.server.getHandshakeTimeoutMillis(), request);
+            state.server.getHandshakeTimeoutMillis(), state.server.getHandshakeResendTimeMillis(), request);
 
         DTLSReliableHandshake.Message clientMessage = null;
 
@@ -551,6 +551,27 @@ public class DTLSServerProtocol
          */
         securityParameters.applicationProtocol = TlsExtensionsUtils.getALPNExtensionServer(state.serverExtensions);
         securityParameters.applicationProtocolSet = true;
+
+        // Connection ID
+        if (ProtocolVersion.DTLSv12.equals(securityParameters.getNegotiatedVersion()))
+        {
+            /*
+             * RFC 9146 3. When a DTLS session is resumed or renegotiated, the "connection_id" extension is
+             * negotiated afresh.
+             */
+            byte[] serverConnectionID = TlsExtensionsUtils.getConnectionIDExtension(state.serverExtensions);
+            if (serverConnectionID != null)
+            {
+                byte[] clientConnectionID = TlsExtensionsUtils.getConnectionIDExtension(state.clientExtensions);
+                if (clientConnectionID == null)
+                {
+                    throw new TlsFatalAlert(AlertDescription.internal_error);
+                }
+
+                securityParameters.connectionIDLocal = clientConnectionID;
+                securityParameters.connectionIDPeer = serverConnectionID;
+            }
+        }
 
         /*
          * TODO RFC 3546 2.3 If [...] the older session is resumed, then the server MUST ignore

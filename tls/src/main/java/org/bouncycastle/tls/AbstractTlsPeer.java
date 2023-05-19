@@ -62,6 +62,11 @@ public abstract class AbstractTlsPeer
         return 0;
     }
 
+    public int getHandshakeResendTimeMillis()
+    {
+        return 1000;
+    }
+
     public boolean allowLegacyResumption()
     {
         return false;
@@ -90,6 +95,11 @@ public abstract class AbstractTlsPeer
     public boolean requiresExtendedMasterSecret()
     {
         return false;
+    }
+
+    public boolean shouldCheckSigAlgOfPeerCerts()
+    {
+        return true;
     }
 
     public boolean shouldUseExtendedMasterSecret()
@@ -131,6 +141,10 @@ public abstract class AbstractTlsPeer
     }
 
     public void notifyAlertReceived(short alertLevel, short alertDescription)
+    {
+    }
+
+    public void notifyConnectionClosed()
     {
     }
 
