@@ -3,10 +3,15 @@ package org.bouncycastle.tls.test;
 import java.security.SecureRandom;
 
 import org.bouncycastle.tls.DTLSClientProtocol;
+import org.bouncycastle.tls.DTLSRequest;
 import org.bouncycastle.tls.DTLSServerProtocol;
 import org.bouncycastle.tls.DTLSTransport;
+import org.bouncycastle.tls.DTLSVerifier;
 import org.bouncycastle.tls.DatagramTransport;
+import org.bouncycastle.tls.crypto.TlsCrypto;
+import org.bouncycastle.tls.crypto.impl.bc.BcTlsCrypto;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Strings;
 
 import junit.framework.TestCase;
 
@@ -69,18 +74,50 @@ public class DTLSProtocolTest
         {
             try
             {
-                MockDTLSServer server = new MockDTLSServer();
-                DTLSTransport dtlsServer = serverProtocol.accept(server, serverTransport);
-                byte[] buf = new byte[dtlsServer.getReceiveLimit()];
-                while (!isShutdown)
+                TlsCrypto serverCrypto = new BcTlsCrypto();
+
+                DTLSRequest request = null;
+
+                // Use DTLSVerifier to require a HelloVerifyRequest cookie exchange before accepting
                 {
-                    int length = dtlsServer.receive(buf, 0, buf.length, 1000);
-                    if (length >= 0)
+                    DTLSVerifier verifier = new DTLSVerifier(serverCrypto);
+
+                    // NOTE: Test value only - would typically be the client IP address
+                    byte[] clientID = Strings.toUTF8ByteArray("MockDtlsClient");
+
+                    int receiveLimit = serverTransport.getReceiveLimit();
+                    int dummyOffset = serverCrypto.getSecureRandom().nextInt(16) + 1;
+                    byte[] buf = new byte[dummyOffset + serverTransport.getReceiveLimit()];
+
+                    do
                     {
-                        dtlsServer.send(buf, 0, length);
+                        if (isShutdown)
+                            return;
+
+                        int length = serverTransport.receive(buf, dummyOffset, receiveLimit, 1000);
+                        if (length > 0)
+                        {
+                            request = verifier.verifyRequest(clientID, buf, dummyOffset, length, serverTransport);
+                        }
                     }
+                    while (request == null);
                 }
-                dtlsServer.close();
+
+                // NOTE: A real server would handle each DTLSRequest in a new task/thread and continue accepting
+                {
+                    MockDTLSServer server = new MockDTLSServer(serverCrypto);
+                    DTLSTransport dtlsTransport = serverProtocol.accept(server, serverTransport, request);                
+                    byte[] buf = new byte[dtlsTransport.getReceiveLimit()];
+                    while (!isShutdown)
+                    {
+                        int length = dtlsTransport.receive(buf, 0, buf.length, 1000);
+                        if (length >= 0)
+                        {
+                            dtlsTransport.send(buf, 0, length);
+                        }
+                    }
+                    dtlsTransport.close();
+                }
             }
             catch (Exception e)
             {

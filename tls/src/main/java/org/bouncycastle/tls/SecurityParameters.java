@@ -64,6 +64,11 @@ public class SecurityParameters
     byte[] localVerifyData = null;
     byte[] peerVerifyData = null;
 
+    /** Connection ID we use during communication to the peer. */
+    byte[] connectionIDLocal;
+    /** Connection ID our peer uses for communication to us. */
+    byte[] connectionIDPeer;
+
     void clear()
     {
         this.sessionHash = null;
@@ -143,6 +148,16 @@ public class SecurityParameters
         return clientSupportedGroups;
     }
 
+    public byte[] getConnectionIDLocal()
+    {
+        return connectionIDLocal;
+    }
+
+    public byte[] getConnectionIDPeer()
+    {
+        return connectionIDPeer;
+    }
+
     public Vector getServerSigAlgs()
     {
         return serverSigAlgs;
@@ -175,6 +190,14 @@ public class SecurityParameters
     }
 
     /**
+     * @deprecated Use {@link #getPRFAlgorithm()} instead.
+     */
+    public int getPrfAlgorithm()
+    {
+        return prfAlgorithm;
+    }
+
+    /**
      * @return {@link PRFAlgorithm}
      */
     public int getPRFAlgorithm()
@@ -188,6 +211,16 @@ public class SecurityParameters
     public int getPRFCryptoHashAlgorithm()
     {
         return prfCryptoHashAlgorithm;
+    }
+
+    /**
+     * @return {@link HashAlgorithm} for the current {@link PRFAlgorithm}
+     * 
+     * @deprecated Use {@link #getPRFCryptoHashAlgorithm()} instead.
+     */
+    public short getPRFHashAlgorithm()
+    {
+        return prfHashAlgorithm;
     }
 
     public int getPRFHashLength()
