@@ -58,7 +58,7 @@ public interface BCObjectIdentifiers
     ASN1ObjectIdentifier bc_pbe_sha1_pkcs12 = bc_pbe_sha1.branch("2");
 
     /**
-     * SHA-256.PKCS12; 1.3.6.1.4.1.22554.1.2.1.1
+     * SHA-256.PKCS5; 1.3.6.1.4.1.22554.1.2.1.1
      */
     ASN1ObjectIdentifier bc_pbe_sha256_pkcs5 = bc_pbe_sha256.branch("1");
     /**
@@ -133,7 +133,7 @@ public interface BCObjectIdentifiers
     ASN1ObjectIdentifier xmss_mt_SHA512 = xmss_mt.branch("6");
     ASN1ObjectIdentifier xmss_mt_SHAKE128 = xmss_mt.branch("7");
     ASN1ObjectIdentifier xmss_mt_SHAKE256 = xmss_mt.branch("8");
-    
+
     /**
      * qTESLA
      */
