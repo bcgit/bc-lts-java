@@ -314,6 +314,17 @@ public class BCPGInputStream
     }
 
     /**
+     * @deprecated use skipMarkerAndPaddingPackets
+     * @return the tag for the next non-marker/padding packet
+     * @throws IOException on a parsing issue.
+     */
+    public int skipMarkerPackets()
+        throws IOException
+    {
+        return skipMarkerAndPaddingPackets();
+    }
+
+    /**
      * skip any marker and padding packets found in the stream.
      * @return the tag for the next non-marker/padding packet
      * @throws IOException on a parsing issue.

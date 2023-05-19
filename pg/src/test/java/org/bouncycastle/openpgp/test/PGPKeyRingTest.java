@@ -2011,18 +2011,15 @@ public class PGPKeyRingTest
     public void test4()
         throws Exception
     {
-        JcaPGPSecretKeyRingCollection    secretRings = new JcaPGPSecretKeyRingCollection(sec4);
-
-        Iterator    rIt = secretRings.getKeyRings();
-        int            count = 0;
-        
-        byte[]    encRing = secretRings.getEncoded();
-        
+        JcaPGPSecretKeyRingCollection secretRings = new JcaPGPSecretKeyRingCollection(sec4);
+        byte[] encRing = secretRings.getEncoded();
         secretRings = new JcaPGPSecretKeyRingCollection(encRing);
-        
+
+        int count = 0;
+        Iterator rIt = secretRings.getKeyRings();
         while (rIt.hasNext())
         {
-            PGPSecretKeyRing                    pgpSec = (PGPSecretKeyRing)rIt.next();
+            PGPSecretKeyRing pgpSec = (PGPSecretKeyRing)rIt.next();
     
             count++;
             
@@ -2447,6 +2444,11 @@ public class PGPKeyRingTest
         {
             PGPPublicKey pubKey = ((PGPSecretKey)secretKeys.next()).getPublicKey();
             
+            if (pubKey.getValidDays() != 28)
+            {
+                fail("days wrong on secret key ring");
+            }
+            
             if (pubKey.getValidSeconds() != 28 * 24 * 60 * 60)
             {
                 fail("seconds wrong on secret key ring");
@@ -2460,6 +2462,11 @@ public class PGPKeyRingTest
         {
             PGPPublicKey pubKey = (PGPPublicKey)publicKeys.next();
 
+            if (pubKey.getValidDays() != 28)
+            {
+                fail("days wrong on public key ring");
+            }
+            
             if (pubKey.getValidSeconds() != 28 * 24 * 60 * 60)
             {
                 fail("seconds wrong on public key ring");

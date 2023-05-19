@@ -975,4 +975,28 @@ public class PGPSecretKey
 
         return new PGPSecretKey(secretKey.secret, publicKey);
     }
+
+    /**
+     * Parse a secret key from one of the GPG S expression keys associating it with the passed in public key.
+     *
+     * @return a secret key object.
+     * @deprecated use org.bouncycastle.gpg.SExprParser - it will also allow you to verify the protection checksum if it is available.
+     */
+    public static PGPSecretKey parseSecretKeyFromSExpr(InputStream inputStream, PBEProtectionRemoverFactory keyProtectionRemoverFactory, PGPPublicKey pubKey)
+        throws IOException, PGPException
+    {
+        return new SExprParser(null).parseSecretKey(inputStream, keyProtectionRemoverFactory, pubKey);
+    }
+
+    /**
+     * Parse a secret key from one of the GPG S expression keys.
+     *
+     * @return a secret key object.
+     * @deprecated use org.bouncycastle.gpg.SExprParser - it will also allow you to verify the protection checksum if it is available.
+     */
+    public static PGPSecretKey parseSecretKeyFromSExpr(InputStream inputStream, PBEProtectionRemoverFactory keyProtectionRemoverFactory, KeyFingerPrintCalculator fingerPrintCalculator)
+        throws IOException, PGPException
+    {
+        return new SExprParser(null).parseSecretKey(inputStream, keyProtectionRemoverFactory, fingerPrintCalculator);
+    }
 }

@@ -10,13 +10,20 @@ public interface PublicKeyAlgorithmTags
     int RSA_SIGN = 3;          // RSA Sign-Only
     int ELGAMAL_ENCRYPT = 16;  // Elgamal (Encrypt-Only), see [ELGAMAL]
     int DSA = 17;              // DSA (Digital Signature Standard)
-
+    /**
+     * @deprecated use ECDH
+     */
+    int EC = 18;               // Reserved for Elliptic Curve
     int ECDH = 18;             // Reserved for Elliptic Curve (actual algorithm name)
     int ECDSA = 19;            // Reserved for ECDSA
     int ELGAMAL_GENERAL = 20;  // Elgamal (Encrypt or Sign)
     int DIFFIE_HELLMAN = 21;   // Reserved for Diffie-Hellman (X9.42, as defined for IETF-S/MIME)
-
+    /**
+     * @deprecated use Ed25519 or Ed448
+     */
+    int EDDSA = 22;            // EdDSA - (internet draft, but appearing in use)
     int EDDSA_LEGACY = 22;     // new name for old EDDSA tag.
+    
     int X25519 = 25;
     int X448 = 26;
     int Ed25519 = 27;

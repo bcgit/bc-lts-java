@@ -96,7 +96,7 @@ public class OnePassSignaturePacket
     {
         return isContaining == 1;
     }
-
+    
     /**
      * 
      */

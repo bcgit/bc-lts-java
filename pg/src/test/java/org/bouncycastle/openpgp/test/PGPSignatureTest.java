@@ -475,7 +475,7 @@ public class PGPSignatureTest
         PGPSignatureSubpacketGenerator hashedGen = new PGPSignatureSubpacketGenerator();
 
         hashedGen.setSignatureExpirationTime(false, TEST_EXPIRATION_TIME);
-        hashedGen.addSignerUserID(true, TEST_USER_ID);
+        hashedGen.setSignerUserID(true, TEST_USER_ID);
         hashedGen.setPreferredCompressionAlgorithms(false, PREFERRED_COMPRESSION_ALGORITHMS);
         hashedGen.setPreferredHashAlgorithms(false, PREFERRED_HASH_ALGORITHMS);
         hashedGen.setPreferredSymmetricAlgorithms(false, PREFERRED_SYMMETRIC_ALGORITHMS);
@@ -561,7 +561,7 @@ public class PGPSignatureTest
         //
         sGen = new PGPSignatureGenerator(new JcaPGPContentSignerBuilder(PublicKeyAlgorithmTags.DSA, HashAlgorithmTags.SHA1).setProvider("BC"));
 
-        sGen.init(PGPSignature.SUBKEY_BINDING, pgpPrivDSAKey);
+        sGen.init(PGPSignature.DEFAULT_CERTIFICATION, pgpPrivDSAKey);
 
         sGen.setHashedSubpackets(null);
         sGen.setUnhashedSubpackets(null);
@@ -572,7 +572,7 @@ public class PGPSignatureTest
 
         if (!sig.verifyCertification(TEST_USER_ID, secretKey.getPublicKey()))
         {
-            fail("subkey binding verification failed.");
+            fail("user-id verification failed.");
         }
 
         hashedPcks = sig.getHashedSubPackets();
@@ -605,7 +605,7 @@ public class PGPSignatureTest
         //
         sGen = new PGPSignatureGenerator(new JcaPGPContentSignerBuilder(PublicKeyAlgorithmTags.DSA, HashAlgorithmTags.SHA1).setProvider("BC"));
 
-        sGen.init(PGPSignature.SUBKEY_BINDING, pgpPrivDSAKey);
+        sGen.init(PGPSignature.DEFAULT_CERTIFICATION, pgpPrivDSAKey);
 
         hashedGen = new PGPSignatureSubpacketGenerator();
 
@@ -613,7 +613,7 @@ public class PGPSignatureTest
 
         hashedGen.setIssuerFingerprint(false, secretDSAKey);
 
-        hashedGen.addIntendedRecipientFingerprint(false, secretKey.getPublicKey());
+        hashedGen.setIntendedRecipientFingerprint(false, secretKey.getPublicKey());
 
         sGen.setHashedSubpackets(hashedGen.generate());
 
@@ -625,7 +625,7 @@ public class PGPSignatureTest
 
         if (!sig.verifyCertification(TEST_USER_ID, secretKey.getPublicKey()))
         {
-            fail("subkey binding verification failed.");
+            fail("user-id verification failed.");
         }
 
         hashedPcks = sig.getHashedSubPackets();
@@ -941,7 +941,7 @@ public class PGPSignatureTest
 
         try
         {
-            sGen.addNotationData(true, false, name4, value4);
+            sGen.setNotationData(true, false, name4, value4);
             fail("truncation occurs silently");
         }
         catch (IllegalArgumentException e)
@@ -954,7 +954,7 @@ public class PGPSignatureTest
 
         try
         {
-            sGen.addNotationData(true, false, name3, value4);
+            sGen.setNotationData(true, false, name3, value4);
             fail("truncation occurs silently");
         }
         catch (IllegalArgumentException e)

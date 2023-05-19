@@ -346,7 +346,7 @@ public class PGPClearSignedSignatureTest
         Iterator    it = pgpSecKey.getPublicKey().getUserIDs();
         if (it.hasNext())
         {
-            spGen.addSignerUserID(false, (String)it.next());
+            spGen.setSignerUserID(false, (String)it.next());
             sGen.setHashedSubpackets(spGen.generate());
         }
         
