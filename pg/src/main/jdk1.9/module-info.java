@@ -1,4 +1,4 @@
-module org.bouncycastle.lts.pg
+module org.bouncycastle.pg
 {
     requires org.bouncycastle.lts.prov;
     requires java.logging;

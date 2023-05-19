@@ -248,7 +248,34 @@ public class PGPPublicKey
     {
         return publicPk.getTime();
     }
-    
+
+    /**
+     * @return number of valid days from creation time - zero means no
+     * expiry.
+     * @deprecated use getValidSeconds(): greater than version 3 keys may be valid for less than a day.
+     */
+    public int getValidDays()
+    {
+        if (publicPk.getVersion() > 3)
+        {
+            long delta = this.getValidSeconds() % (24 * 60 * 60);
+            int days = (int)(this.getValidSeconds() / (24 * 60 * 60));
+
+            if (delta > 0 && days == 0)
+            {
+                return 1;
+            }
+            else
+            {
+                return days;
+            }
+        }
+        else
+        {
+            return publicPk.getValidDays();
+        }
+    }
+
     /**
      * Return the trust data associated with the public key, if present.
      *
@@ -746,6 +773,17 @@ public class PGPPublicKey
                 ((PGPSignature)subSigs.get(j)).encode(out, forTransfer);
             }
         }
+    }
+
+    /**
+     * Check whether this (sub)key has a revocation signature on it.
+     *
+     * @return boolean indicating whether this (sub)key has been revoked.
+     * @deprecated this method is poorly named, use hasRevocation().
+     */
+    public boolean isRevoked()
+    {
+        return hasRevocation();
     }
 
     /**

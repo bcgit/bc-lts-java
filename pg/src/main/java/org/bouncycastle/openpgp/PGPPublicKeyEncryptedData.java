@@ -9,11 +9,16 @@ import org.bouncycastle.bcpg.InputStreamPacket;
 import org.bouncycastle.bcpg.PublicKeyEncSessionPacket;
 import org.bouncycastle.bcpg.SymmetricEncIntegrityPacket;
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
+import org.bouncycastle.bcpg.UnsupportedPacketVersionException;
 import org.bouncycastle.openpgp.operator.PGPDataDecryptor;
 import org.bouncycastle.openpgp.operator.PGPDataDecryptorFactory;
 import org.bouncycastle.openpgp.operator.PublicKeyDataDecryptorFactory;
+import org.bouncycastle.openpgp.operator.SessionKeyDataDecryptorFactory;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.io.TeeInputStream;
+
+import static org.bouncycastle.bcpg.PublicKeyEncSessionPacket.VERSION_3;
+import static org.bouncycastle.bcpg.PublicKeyEncSessionPacket.VERSION_6;
 
 /**
  * A public key encrypted data object.
@@ -21,6 +26,7 @@ import org.bouncycastle.util.io.TeeInputStream;
 public class PGPPublicKeyEncryptedData
     extends PGPEncryptedData
 {
+
     PublicKeyEncSessionPacket keyData;
 
     PGPPublicKeyEncryptedData(
@@ -68,9 +74,21 @@ public class PGPPublicKeyEncryptedData
         PublicKeyDataDecryptorFactory dataDecryptorFactory)
         throws PGPException
     {
-        byte[] plain = dataDecryptorFactory.recoverSessionData(keyData.getAlgorithm(), keyData.getEncSessionKey());
-
-        return plain[0];
+        if (keyData.getVersion() == VERSION_3)
+        {
+            byte[] plain = dataDecryptorFactory.recoverSessionData(keyData.getAlgorithm(), keyData.getEncSessionKey());
+            // symmetric cipher algorithm is stored in first octet of session data
+            return plain[0];
+        }
+        else if (keyData.getVersion() == VERSION_6)
+        {
+            // PKESK v5 stores the cipher algorithm in the SEIPD v2 packet fields.
+            return ((SymmetricEncIntegrityPacket) encData).getCipherAlgorithm();
+        }
+        else
+        {
+            throw new UnsupportedPacketVersionException("Unsupported packet version: " + keyData.getVersion());
+        }
     }
 
     /**
@@ -108,6 +126,16 @@ public class PGPPublicKeyEncryptedData
     }
 
     /**
+     * @deprecated will be removed in 1.74, use PGPEncryptedDataList.extractSessionKeyEncryptedData() and then apply the dataDecryptorFactory.
+     */
+    public InputStream getDataStream(
+        SessionKeyDataDecryptorFactory dataDecryptorFactory)
+        throws PGPException
+    {
+        return getDataStream(dataDecryptorFactory, dataDecryptorFactory.getSessionKey());
+    }
+
+    /**
      * Open an input stream which will provide the decrypted data protected by this object.
      *
      * @param dataDecryptorFactory decryptor factory to use to recover the session data and provide the stream.
@@ -124,6 +152,7 @@ public class PGPPublicKeyEncryptedData
         {
             try
             {
+                // OpenPGP V5 style AEAD
                 if (encData instanceof AEADEncDataPacket)
                 {
                     AEADEncDataPacket aeadData = (AEADEncDataPacket)encData;
@@ -133,7 +162,7 @@ public class PGPPublicKeyEncryptedData
                         throw new PGPException("session key and AEAD algorithm mismatch");
                     }
 
-                    PGPDataDecryptor dataDecryptor = dataDecryptorFactory.createDataDecryptor(aeadData.getAEADAlgorithm(), aeadData.getIV(), aeadData.getChunkSize(), sessionKey.getAlgorithm(), sessionKey.getKey());
+                    PGPDataDecryptor dataDecryptor = dataDecryptorFactory.createDataDecryptor(aeadData, sessionKey);
 
                     BCPGInputStream encIn = encData.getInputStream();
 

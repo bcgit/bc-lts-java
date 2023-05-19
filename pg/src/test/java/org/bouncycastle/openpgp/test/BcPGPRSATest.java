@@ -1339,8 +1339,8 @@ public class BcPGPRSATest
     {            
         PGPPublicKeyRing pubRing = new PGPPublicKeyRing(encodedRing, new BcKeyFingerprintCalculator());
         PGPPublicKey k = pubRing.getPublicKey();
-
-        if (k.getValidSeconds() / (24L * 60 * 60) != masterDays)
+        
+        if (k.getValidDays() != masterDays)
         {
             fail("mismatch on master valid days.");
         }
@@ -1351,7 +1351,7 @@ public class BcPGPRSATest
         
         k = (PGPPublicKey)it.next();
         
-        if (k.getValidSeconds() / (24L * 60 * 60) != subKeyDays)
+        if (k.getValidDays() != subKeyDays)
         {
             fail("mismatch on subkey valid days.");
         }

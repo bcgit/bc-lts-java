@@ -1300,7 +1300,7 @@ public class PGPRSATest
 
         PGPSignatureSubpacketGenerator subGen = new PGPSignatureSubpacketGenerator();
 
-        subGen.addEmbeddedSignature(false, signatureGenerator.generateCertification(secretKey.getPublicKey(), signSubKeyPair.getPublicKey()));
+        subGen.setEmbeddedSignature(false, signatureGenerator.generateCertification(secretKey.getPublicKey(), signSubKeyPair.getPublicKey()));
 
         PGPSecretKey secretSigSubKey = new PGPSecretKey(
                                 secretKey.extractKeyPair(masterDecryptor),
@@ -1615,7 +1615,7 @@ public class PGPRSATest
         PGPPublicKeyRing pubRing = new PGPPublicKeyRing(encodedRing, new JcaKeyFingerprintCalculator());
         PGPPublicKey k = pubRing.getPublicKey();
         
-        if (k.getValidSeconds() / (24L * 60 * 60) != masterDays)
+        if (k.getValidDays() != masterDays)
         {
             fail("mismatch on master valid days.");
         }
@@ -1626,7 +1626,7 @@ public class PGPRSATest
         
         k = (PGPPublicKey)it.next();
         
-        if (k.getValidSeconds()  / (24L * 60 * 60) != subKeyDays)
+        if (k.getValidDays() != subKeyDays)
         {
             fail("mismatch on subkey valid days.");
         }
