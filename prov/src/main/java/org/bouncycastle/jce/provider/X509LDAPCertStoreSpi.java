@@ -36,7 +36,6 @@ import org.bouncycastle.asn1.x509.CertificatePair;
 import org.bouncycastle.jce.X509LDAPCertStoreParameters;
 
 /**
- * 
  * This is a general purpose implementation to get X.509 certificates and CRLs
  * from a LDAP location.
  * <p>
@@ -50,21 +49,24 @@ import org.bouncycastle.jce.X509LDAPCertStoreParameters;
 public class X509LDAPCertStoreSpi
     extends CertStoreSpi
 {
-    private X509LDAPCertStoreParameters params;
+    private static String[] FILTER_ESCAPE_TABLE = new String['\\' + 1];
 
-    public X509LDAPCertStoreSpi(CertStoreParameters params)
-        throws InvalidAlgorithmParameterException
+    static
     {
-        super(params);
+        // Filter encoding table -------------------------------------
 
-        if (!(params instanceof X509LDAPCertStoreParameters))
+        // fill with char itself
+        for (char c = 0; c < FILTER_ESCAPE_TABLE.length; c++)
         {
-            throw new InvalidAlgorithmParameterException(
-                X509LDAPCertStoreSpi.class.getName() + ": parameter must be a " + X509LDAPCertStoreParameters.class.getName() + " object\n"
-                    + params.toString());
+            FILTER_ESCAPE_TABLE[c] = String.valueOf(c);
         }
 
-        this.params = (X509LDAPCertStoreParameters)params;
+        // escapes (RFC2254)
+        FILTER_ESCAPE_TABLE['*'] = "\\2a";
+        FILTER_ESCAPE_TABLE['('] = "\\28";
+        FILTER_ESCAPE_TABLE[')'] = "\\29";
+        FILTER_ESCAPE_TABLE['\\'] = "\\5c";
+        FILTER_ESCAPE_TABLE[0] = "\\00";
     }
 
     /**
@@ -87,7 +89,25 @@ public class X509LDAPCertStoreSpi
      */
     private static final String URL_CONTEXT_PREFIX = "com.sun.jndi.url";
 
-    private DirContext connectLDAP() throws NamingException
+    private X509LDAPCertStoreParameters params;
+
+    public X509LDAPCertStoreSpi(CertStoreParameters params)
+        throws InvalidAlgorithmParameterException
+    {
+        super(params);
+
+        if (!(params instanceof X509LDAPCertStoreParameters))
+        {
+            throw new InvalidAlgorithmParameterException(
+                X509LDAPCertStoreSpi.class.getName() + ": parameter must be a " + X509LDAPCertStoreParameters.class.getName() + " object\n"
+                    + params.toString());
+        }
+
+        this.params = (X509LDAPCertStoreParameters)params;
+    }
+
+    private DirContext connectLDAP()
+        throws NamingException
     {
         Properties props = new Properties();
         props.setProperty(Context.INITIAL_CONTEXT_FACTORY, LDAP_PROVIDER);
@@ -137,7 +157,7 @@ public class X509LDAPCertStoreSpi
         {
             temp = temp.substring(0, temp.length() - 1);
         }
-        return temp;
+        return filterEncode(temp);
     }
 
     public Collection engineGetCertificates(CertSelector selector)
@@ -195,7 +215,7 @@ public class X509LDAPCertStoreSpi
                 {
 
                 }
-                for (Iterator it2 = bytesList.iterator(); it2.hasNext();)
+                for (Iterator it2 = bytesList.iterator(); it2.hasNext(); )
                 {
                     ByteArrayInputStream bIn = new ByteArrayInputStream(
                         (byte[])it2.next());
@@ -346,7 +366,7 @@ public class X509LDAPCertStoreSpi
         if (xselector.getIssuerNames() != null)
         {
             for (Iterator it = xselector.getIssuerNames().iterator(); it
-                .hasNext();)
+                .hasNext(); )
             {
                 Object o = it.next();
                 String attrValue = null;
@@ -397,6 +417,42 @@ public class X509LDAPCertStoreSpi
     }
 
     /**
+     * Escape a value for use in a filter.
+     *
+     * @param value the value to escape.
+     * @return a properly escaped representation of the supplied value.
+     */
+    private String filterEncode(String value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+
+        // make buffer roomy
+        StringBuilder encodedValue = new StringBuilder(value.length() * 2);
+
+        int length = value.length();
+
+        for (int i = 0; i < length; i++)
+        {
+            char c = value.charAt(i);
+
+            if (c < FILTER_ESCAPE_TABLE.length)
+            {
+                encodedValue.append(FILTER_ESCAPE_TABLE[c]);
+            }
+            else
+            {
+                // default: add the char
+                encodedValue.append(c);
+            }
+        }
+
+        return encodedValue.toString();
+    }
+
+    /**
      * Returns a Set of byte arrays with the certificate or CRL encodings.
      *
      * @param attributeName  The attribute name to look for in the LDAP.
@@ -406,9 +462,11 @@ public class X509LDAPCertStoreSpi
      * @return Set of byte arrays with the certificate encodings.
      */
     private Set search(String attributeName, String attributeValue,
-                       String[] attrs) throws CertStoreException
+                       String[] attrs)
+        throws CertStoreException
     {
         String filter = attributeName + "=" + attributeValue;
+//        System.out.println(filter);
         if (attributeName == null)
         {
             filter = null;
@@ -417,7 +475,6 @@ public class X509LDAPCertStoreSpi
         Set set = new HashSet();
         try
         {
-
             ctx = connectLDAP();
 
             SearchControls constraints = new SearchControls();
@@ -456,7 +513,6 @@ public class X509LDAPCertStoreSpi
         {
             throw new CertStoreException(
                 "Error getting results from LDAP directory " + e);
-
         }
         finally
         {
@@ -473,5 +529,4 @@ public class X509LDAPCertStoreSpi
         }
         return set;
     }
-
 }

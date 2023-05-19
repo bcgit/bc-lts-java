@@ -145,7 +145,7 @@ public final class BouncyCastleProvider extends Provider
      */
     public BouncyCastleProvider()
     {
-        super(PROVIDER_NAME, 1.0000, info);
+        super(PROVIDER_NAME, 2.7300, info);
 
         AccessController.doPrivileged(new PrivilegedAction()
         {

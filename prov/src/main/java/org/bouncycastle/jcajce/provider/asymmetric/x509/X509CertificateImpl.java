@@ -36,6 +36,7 @@ import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1IA5String;
 import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -64,6 +65,7 @@ import org.bouncycastle.jcajce.io.OutputStreamFactory;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Integers;
 import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.Strings;
@@ -78,7 +80,6 @@ abstract class X509CertificateImpl
     protected boolean[] keyUsage;
     protected String sigAlgName;
     protected byte[] sigAlgParams;
-
     X509CertificateImpl(JcaJceHelper bcHelper, org.bouncycastle.asn1.x509.Certificate c,
         BasicConstraints basicConstraints, boolean[] keyUsage, String sigAlgName, byte[] sigAlgParams)
     {
@@ -297,29 +298,21 @@ abstract class X509CertificateImpl
             throw new CertificateParsingException("error processing extended key usage extension");
         }
     }
-    
+
     public int getBasicConstraints()
     {
-        if (basicConstraints != null)
+        if (basicConstraints == null || !basicConstraints.isCA())
         {
-            if (basicConstraints.isCA())
-            {
-                if (basicConstraints.getPathLenConstraint() == null)
-                {
-                    return Integer.MAX_VALUE;
-                }
-                else
-                {
-                    return basicConstraints.getPathLenConstraint().intValue();
-                }
-            }
-            else
-            {
-                return -1;
-            }
+            return -1;
         }
 
-        return -1;
+        ASN1Integer pathLenConstraint = basicConstraints.getPathLenConstraintInteger();
+        if (pathLenConstraint == null)
+        {
+            return Integer.MAX_VALUE;
+        }
+
+        return pathLenConstraint.intPositiveValueExact();
     }
 
     public Collection getSubjectAlternativeNames()
@@ -374,7 +367,7 @@ abstract class X509CertificateImpl
             }
             catch (Exception e)
             {
-                throw new IllegalStateException("error parsing " + e.toString());
+                throw Exceptions.illegalStateException("error parsing " + e.getMessage(), e);
             }
         }
 
@@ -460,7 +453,7 @@ abstract class X509CertificateImpl
         }
         catch (IOException e)
         {
-            return null;   // should never happen...
+            throw Exceptions.illegalStateException("failed to recover public key: " + e.getMessage(), e);
         }
     }
 

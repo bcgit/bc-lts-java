@@ -81,8 +81,6 @@ cf04ebfb7025f5e38af390abddec49da35133cec5d42eab039ef4963a6024b05  util/src/test/
 72e445ccc54216bd9a2df16a9edadd41737fa7b4143b2f2bd5c98790b781ee7d  util/src/test/java/org/bouncycastle/oer/test/TestFromVector.java
 3e9e6e5ed51d704d690474863e2f62d322e736711424020c4ad58d5f6d65f99d  util/src/test/java/org/bouncycastle/oer/test/TestBuilders.java
 c6f2d989dc8e8dac27d81f86b8570216e3007b1ed0cc122c11d60f7147345824  util/src/test/java/org/bouncycastle/oer/test/Populate.java
-a5faf5188cc2b2e81cf12b564677b5746b3d3c046bb934ae689df8155e062ac0  util/src/test/resources/org/bouncycastle/asn1/icao/test/masterlist-content.data
-e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  util/src/test/resources/.gitkeep
 8b1a64ff64fff5a77cf6e78a7a72d72ee5353001d3f9ea7e55d4834b0b6f6eca  util/src/main/jdk1.9/module-info.java
 fc1c90ca1e6d4ed6d6dedc1102db75657fb16e613e26675596bd1d5a2e47341e  util/src/main/java/org/bouncycastle/asn1/cmc/IdentityProofV2.java
 457be4f323553ea3d918563930acab4de45db4c861f8bf9a39b1182908289f27  util/src/main/java/org/bouncycastle/asn1/cmc/Utils.java
@@ -281,7 +279,7 @@ bfe5515ea1967bc398efd25f2e1ab9059179d0e9679205809213f65833b511bd  util/src/main/
 133b025f1945a3baa5725af7d5fe928a35af9c49ba794400c7ad0badb8bf46d6  util/src/main/java/org/bouncycastle/asn1/smime/SMIMECapabilitiesAttribute.java
 33c89da4cfbec2e02dbe8dd4d47a86bbf571b7bfb2b6fde04bdd21c1a695fbbf  util/src/main/java/org/bouncycastle/asn1/smime/SMIMEAttributes.java
 ab34d2e5236794174ca83e757f34da8965099b5f51aad7bbe9de2ff3bca34192  util/src/main/java/org/bouncycastle/asn1/tsp/EvidenceRecord.java
-19715f66721d39470f6c28d99294cce1b86ffc4d8d327ddfdd122dc104cd687a  util/src/main/java/org/bouncycastle/asn1/tsp/ArchiveTimeStamp.java
+8636e68082b8d719ed5a6aa5eedbd55c3e78caa6376dd149c1db8e7603ac944d  util/src/main/java/org/bouncycastle/asn1/tsp/ArchiveTimeStamp.java
 24442dda35e4fe5d6517a5adc357de144446060be1085a1471e5742e7fa45a00  util/src/main/java/org/bouncycastle/asn1/tsp/ArchiveTimeStampSequence.java
 e4354938049f9ee459ec86d11ebf18c30c5acbf8e688a311a827747dad44fd8f  util/src/main/java/org/bouncycastle/asn1/tsp/TimeStampResp.java
 b62bcc07b5f952b1d2080e2875271593ac07e5a2d81f4e3157e9c8f54d0ebd2b  util/src/main/java/org/bouncycastle/asn1/tsp/CryptoInfos.java
@@ -290,7 +288,7 @@ bbacec6b3ce14542c6ff9775bcc2a97c36df9a26a137544d700e32b1157520d3  util/src/main/
 4a048fb36ca6e100b6b85c04d9a82f274a13d94412db23faeeae508267a5f1b6  util/src/main/java/org/bouncycastle/asn1/tsp/MessageImprint.java
 d7bd3fb0241a7ea8e27a0827a58443561b7f4215bec24070ff17539e29529812  util/src/main/java/org/bouncycastle/asn1/tsp/TSTInfo.java
 c5507b4eec47c95247c316a6167508d85531f330b3f4e4697eb68910afa3cec9  util/src/main/java/org/bouncycastle/asn1/tsp/TimeStampReq.java
-b852c304e9075cde86b8aaa361fc507c1f89e88af4769773a0f5ab40dc39c46d  util/src/main/java/org/bouncycastle/asn1/tsp/EncryptionInfo.java
+8f269cc1c8e74dfb1d2cc5f99b654df7decc523edd3187de91740813a2d3592a  util/src/main/java/org/bouncycastle/asn1/tsp/EncryptionInfo.java
 10629d00fe383c458d63a7702f83e3aa1382f8dbe66ce2e3cecabcb1618ea062  util/src/main/java/org/bouncycastle/asn1/tsp/ArchiveTimeStampChain.java
 7c694d778d80e847b5386e850639435f1827e0645ef8ff75216148a50e1a916e  util/src/main/java/org/bouncycastle/asn1/cms/OtherRecipientInfo.java
 4c44bf37e4a68204c41c191a824b8b3b4bcb6ac98db1ddfecb10734dc0f8da83  util/src/main/java/org/bouncycastle/asn1/cms/IssuerAndSerialNumber.java
@@ -329,6 +327,7 @@ b9610cd26543b7c669404e8cacd134e3d48b7d0c37cf947bfdb8e6714708818f  util/src/main/
 2e971a979f0eae56d9bdf01e2a7a5ef68f72af214b33638a08a6480fd411bdae  util/src/main/java/org/bouncycastle/asn1/cms/TimeStampedDataParser.java
 72a2b0d012a67d879063c5b3177136f63e4dbc6426a235e7dd5dad0ab5329dc8  util/src/main/java/org/bouncycastle/asn1/cms/RecipientKeyIdentifier.java
 9a53763935c2e843af5baa41793c73c1f1dcb4740fa3c0c7b9b2f36294b24840  util/src/main/java/org/bouncycastle/asn1/cms/TimeStampTokenEvidence.java
+3ed27db5f42d9752bd1fddb2782389ce8e7638e4f3af6c9b93e263066c504a27  util/src/main/java/org/bouncycastle/asn1/cms/CMSORIforKEMOtherInfo.java
 2ddab2f06a87df196c94f4d6feb388b102878212cf011d37238efd5316ca9f9c  util/src/main/java/org/bouncycastle/asn1/cms/AuthenticatedData.java
 fe9f97d850f0bcd8ba9245ba541cc842d9baceaf7f3f487dd172acb9a354790d  util/src/main/java/org/bouncycastle/asn1/cms/CMSAlgorithmProtection.java
 e85b273d2d8ceac0c289d1a7cdbfce1341e89eb49804b1acae6a17bf27bb66c5  util/src/main/java/org/bouncycastle/asn1/cms/TimeStampedData.java
@@ -343,6 +342,7 @@ f60b2ff60ee99166d468e5ad97a264236ebe4124c1bf7cc83c85394907e1e6b2  util/src/main/
 ee114d61f49f792f09ae9ad8f3957886073bfc90c1b1dba6d4fbec333f45a784  util/src/main/java/org/bouncycastle/asn1/cms/KeyTransRecipientInfo.java
 f617931711663885a95024a88bca2d66af2130011b27015fa540665cd26510b6  util/src/main/java/org/bouncycastle/asn1/cms/OriginatorIdentifierOrKey.java
 0158cf3dd585eccd13216ba50bd46976bb32e80e8996ec6c7982ad090bc02c46  util/src/main/java/org/bouncycastle/asn1/cms/Time.java
+7a703dfe1e0e364d8e1b25c3b28ffe295b971e1bd6712a34a71df5f21992fe0c  util/src/main/java/org/bouncycastle/asn1/cms/KEMRecipientInfo.java
 6516316b954ba32c9454bf81a397a09957f7f61a4e4c0dbae5ea721559a08feb  util/src/main/java/org/bouncycastle/asn1/cms/EnvelopedData.java
 49973bd74fd7b63380c0b70daa4351a104257c7a8af6b24fb4b2beab6c212959  util/src/main/java/org/bouncycastle/asn1/cms/Attributes.java
 ac191615eb8242b3c165b8cc5dddcf1fd5432f571754653d470ae633aebd26d8  util/src/main/java/org/bouncycastle/asn1/cms/CCMParameters.java
