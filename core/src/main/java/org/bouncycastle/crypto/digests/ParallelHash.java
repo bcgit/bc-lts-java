@@ -1,6 +1,10 @@
 package org.bouncycastle.crypto.digests;
 
-import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.CryptoServicePurpose;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.Digest;
+import org.bouncycastle.crypto.Xof;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Strings;
 
@@ -73,8 +77,11 @@ public class ParallelHash
         this.compressorBuffer = Arrays.clone(source.compressorBuffer);
         this.purpose = source.purpose;
 
-        CryptoServicesRegistrar.checkConstraints(Utils.getDefaultProperties(this, bitLength, purpose));
+        this.firstOutput = source.firstOutput;
+        this.nCount = source.nCount;
+        this.bufOff = source.bufOff;
 
+        CryptoServicesRegistrar.checkConstraints(Utils.getDefaultProperties(this, bitLength, purpose));
     }
 
     public String getAlgorithmName()
