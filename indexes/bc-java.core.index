@@ -1028,7 +1028,7 @@ f7e1542ad0eaa96c0d43557ffbf1408b06db47dd725477baad36585175eef30f  core/src/main/
 cdb5d65c61bcc9860e1f6418ee32fe4398c9f2b272028ecb1c9d1fa594de89ab  core/src/main/java/org/bouncycastle/asn1/nsri/NSRIObjectIdentifiers.java
 71e8368ef555f5d7d82620aa40f5cd72fda4f68fec64541407ec0dd1ab071105  core/src/main/java/org/bouncycastle/asn1/StreamUtil.java
 3f69e0e02f7f81ad61b2f7bd0ff18c26224f1046a9baeea22c996baed5202ab3  core/src/main/java/org/bouncycastle/asn1/DERUniversalString.java
-b14f2198d08021d82cd4a0f1ec2f742df97db3b22ab363ee082e8fb349be0ecb  core/src/main/java/org/bouncycastle/asn1/BEROctetString.java
+8812bfc472720bbc64528ba54b58fa54358576a2e6f7c60832283cdb305af918  core/src/main/java/org/bouncycastle/asn1/BEROctetString.java
 67ccb8f281b4028792fd5f306ee808db22ccc1c86dc11357d8f93ee3eb03bfd8  core/src/main/java/org/bouncycastle/asn1/DLExternal.java
 68e756423354e611196af2edd7fd431cf31f865c6c073a5664d88f789606ec0b  core/src/main/java/org/bouncycastle/asn1/iana/IANAObjectIdentifiers.java
 561943e5bf15b98b71b196212e8c1648dba3862d3fa6fe505257521f54f05de6  core/src/main/java/org/bouncycastle/asn1/iso/ISOIECObjectIdentifiers.java
