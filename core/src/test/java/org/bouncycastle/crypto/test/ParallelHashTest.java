@@ -23,7 +23,7 @@ public class ParallelHashTest
     public void performTest()
         throws Exception
     {
-        ParallelHash  pHash = new ParallelHash(128, new byte[0], 8);
+        ParallelHash pHash = new ParallelHash(128, new byte[0], 8);
 
         byte[] data = Hex.decode("00 01 02 03 04 05 06 07 10 11 12 13 14 15 16 17 20 21 22 23 24 25 26 27");
         pHash.update(data, 0, data.length);
@@ -164,9 +164,9 @@ public class ParallelHashTest
         }
     }
 
-     public static void main(
-         String[]    args)
-     {
-         runTest(new ParallelHashTest());
-     }
+    public static void main(
+        String[] args)
+    {
+        runTest(new ParallelHashTest());
+    }
 }
