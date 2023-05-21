@@ -127,7 +127,7 @@ public class TupleHashTest
         }
 
         d.update(Hex.decode("202122232425262728"), 0, 9);
-        
+
         d.doFinal(resBuf, 0);
 
         if (!areEqual(expected, resBuf))
