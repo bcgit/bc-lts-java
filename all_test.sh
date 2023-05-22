@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-version="1.0.0-SNAPSHOT"
+version=`fgrep version gradle.properties | sed -e "s/version=//"`
 
 rm -rf mtest
 mkdir mtest
