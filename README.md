@@ -65,12 +65,12 @@ Change into the ```<base_dir>/``` directory.
 ```
 
 This will build a java only variation and install it in the ```jars``` directory. The name of the jar is defined with
-the ```version=1.0.0-SNAPSHOT``` version property in ```gradle.properties```.
+the ```version=2.73.0-SNAPSHOT``` version property in ```gradle.properties```.
 
 Running the DumpInfo class from the jar will report something similar to:
 
 ```
-java -cp jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo
+java -cp jars/bcprov-lts8on-2.73.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo
         
 BouncyCastle APIs (LTS edition) v1.0.0b
 Native Status: probe lib failed to load /native/linux/x86_64/probe/libbc-probe.so lib not found in jar
@@ -104,7 +104,7 @@ doing the following on a modern Intel CPU.
 
 ```
 #Running:
-java -cp jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo
+java -cp jars/bcprov-lts8on-2.73.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo
 
 BouncyCastle APIs (LTS edition) v1.0.0b
 Native Status: successfully loaded
@@ -146,7 +146,7 @@ The module can be used like any other jar file, it will manage the installation 
 a temporary directory created in the same path as ```File.createTempFile()```.
 
 ```
-java -cp jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo
+java -cp jars/bcprov-lts8on-2.73.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo
 
 BouncyCastle APIs (LTS edition) v1.0.0b
 Native Status: successfully loaded
@@ -167,7 +167,7 @@ this value can be set within the security policy as well.
 For example, using -Dorg.bouncycastle.native.cpu_variant=sse:
 
 ```
-java -cp jars/bcprov-lts8on-1.0.0-SNAPSHOT.jar -Dorg.bouncycastle.native.cpu_variant=sse  org.bouncycastle.util.DumpInfo
+java -cp jars/bcprov-lts8on-2.73.0-SNAPSHOT.jar -Dorg.bouncycastle.native.cpu_variant=sse  org.bouncycastle.util.DumpInfo
 
 BouncyCastle APIs (LTS edition) v1.0.0b
 Native Status: successfully loaded
