@@ -11,7 +11,7 @@ tj=( $artifactsHome/*tests.jar )
 
 testJar="${tj[0]}";
 
-prefixes=("bcprov-lts8on" "bcpkix-lts8on" "bctls-lts8on" "bcutil-lts8on" "bcpg-lts8on" "bcmail-lts8on")
+prefixes=("bcprov-lts8on" "bcpkix-lts8on" "bctls-lts8on" "bcutil-lts8on" "bcpg-lts8on" "bcmail-lts8on" "bcpg-lts8on")
 
 for str in "${prefixes[@]}"; do
   src="jars/${str}-${version}.jar"
