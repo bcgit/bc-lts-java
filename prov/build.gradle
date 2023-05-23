@@ -87,6 +87,9 @@ jar {
   into('META-INF/versions/15') {
     from sourceSets.java15.output
   }
+  into('native') {
+    from '../native_c/target'
+  }
   manifest.attributes('Multi-Release': 'true')
 }
 
@@ -102,6 +105,12 @@ task sourcesJar(type: Jar) {
   }
   into('META-INF/versions/15') {
     from sourceSets.java15.allSource
+  }
+  into('native/intel') {
+    from '../native_c/intel'
+  }
+  into('native/jniutil') {
+    from '../native_c/jniutil'
   }
 }
 
