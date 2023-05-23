@@ -11,7 +11,7 @@ fi
 
 bc_java_dir=$1
 
-for mod in core util prov pkix tls mail
+for mod in core util prov pkix tls pg mail 
 do
     echo "checking $mod"
     while read l

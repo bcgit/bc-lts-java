@@ -28,7 +28,7 @@ public class BcPGPDataEncryptorBuilder
     private SecureRandom random;
     private boolean withIntegrityPacket;
     private int encAlgorithm;
-    private boolean isV5StyleAEAD = true; // TODO: change to false in 1.75
+    private boolean isV5StyleAEAD = false;
     private int aeadAlgorithm = -1;
     private int chunkSize;
 
@@ -88,38 +88,6 @@ public class BcPGPDataEncryptorBuilder
      */
     @Override
     public BcPGPDataEncryptorBuilder setWithAEAD(int aeadAlgorithm, int chunkSize)
-    {
-        if (isV5StyleAEAD)
-        {
-            return setWithV5AEAD(aeadAlgorithm, chunkSize);
-        }
-        else
-        {
-            return setWithV6AEAD(aeadAlgorithm, chunkSize);
-        }
-    }
-
-    private BcPGPDataEncryptorBuilder setWithV5AEAD(int aeadAlgorithm, int chunkSize)
-    {
-        if (encAlgorithm != SymmetricKeyAlgorithmTags.AES_128
-            && encAlgorithm != SymmetricKeyAlgorithmTags.AES_192
-            && encAlgorithm != SymmetricKeyAlgorithmTags.AES_256)
-        {
-            throw new IllegalStateException("AEAD algorithms can only be used with AES");
-        }
-
-        if (chunkSize < 6)
-        {
-            throw new IllegalArgumentException("minimum chunkSize is 6");
-        }
-
-        this.aeadAlgorithm = aeadAlgorithm;
-        this.chunkSize = chunkSize - 6;
-
-        return this;
-    }
-
-    private BcPGPDataEncryptorBuilder setWithV6AEAD(int aeadAlgorithm, int chunkSize)
     {
         if (encAlgorithm != SymmetricKeyAlgorithmTags.AES_128
             && encAlgorithm != SymmetricKeyAlgorithmTags.AES_192
@@ -323,10 +291,5 @@ public class BcPGPDataEncryptorBuilder
             return Arrays.clone(iv);
         }
 
-        @Override
-        public boolean isV5StyleAEAD()
-        {
-            return isV5StyleAEAD;
-        }
     }
 }
