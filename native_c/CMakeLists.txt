@@ -28,14 +28,27 @@ set(NATIVE_INSTALL_ROOT ${CMAKE_SOURCE_DIR}/target)
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
         MESSAGE("Building for Linux Intel")
+
+        set(OPTIMISE_FLAG -O3)
+        # Test for dev environment.
+        # If dev environment variable LTS_DEV exists then turn off optimisations and switch on debugging
+        #
+        if (DEFINED ENV{LTS_DEV})
+            set(OPTIMISE_FLAG -g)
+            MESSAGE("DEBUG BUILD --- NOT OPTIMISED")
+        else ()
+            MESSAGE("RELEASE BUILD --- OPTIMISED")
+        endif ()
+
+
         set(JNI_INCLUDE_PLATFORM ${JNI_INCLUDE}/linux)
         set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/linux/x86_64)
         set(CMAKE_C_FLAGS "-std=c99")
         set(OPTIONS -Wconversion -static-libgcc -z noexecstack)
-        set(PROBE_OPTIONS -O3 -msse4.1 ${OPTIONS})
-        set(AVX_OPTIONS -O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS})
-        set(VAES_OPTIONS -O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS})
-        set(VAESF_OPTIONS -O3 -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f -mavx512bw -mvpclmulqdq ${OPTIONS})
+        set(PROBE_OPTIONS ${OPTIMISE_FLAG} -msse4.1 ${OPTIONS})
+        set(AVX_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS})
+        set(VAES_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS})
+        set(VAESF_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f -mavx512bw -mvpclmulqdq ${OPTIONS})
         set(ASM_OPTIONS -f elf64)
         set(COMMON_ASM intel/common_sysV.asm)
     endif ()
