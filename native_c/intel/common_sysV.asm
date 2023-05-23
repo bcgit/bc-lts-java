@@ -13,16 +13,6 @@ global _inv_128
 global _inv_192
 global _inv_256
 
-%define xmm1 xmm8
-%define xmm2 xmm9
-%define xmm3 xmm10
-%define xmm4 xmm11
-%define xmm5 xmm12
-%define xmm6 xmm13
-
-%define rsi rsi
-%define rdi rdi
-
 SECTION .text
 align 16
 ;
