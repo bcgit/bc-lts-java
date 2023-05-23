@@ -95,6 +95,7 @@ task modTestJar(type: Jar) {
 * Use for running all tests on signed jars.
 */
 task allTestJar(type: Jar) {
+  duplicatesStrategy=DuplicatesStrategy.WARN
   from(project(":core").sourceSets.test.output)
   exclude("org/bouncycastle/crypto/engines/*")
   exclude("org/bouncycastle/crypto/NativeEntropyTests.*")
@@ -115,6 +116,7 @@ allTestJar.dependsOn(compileTestJava);
 * Use for running all tests on signed jars.
 */
 task allTestUnisgnedJar(type: Jar) {
+  duplicatesStrategy=DuplicatesStrategy.WARN
   from(project(":core").sourceSets.test.output)
   from(project(":mail").sourceSets.test.output)
   from(project(":pkix").sourceSets.test.output)
