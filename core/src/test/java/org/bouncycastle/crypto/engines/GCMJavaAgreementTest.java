@@ -26,13 +26,9 @@ public class GCMJavaAgreementTest extends TestCase
 {
     private static final String BCFIPS_LIB_CPU_VARIANT = "org.bouncycastle.native.cpu_variant";
 
-
     @Before
-    public void before()
+    public void setUp()
     {
-        CryptoServicesRegistrar.setNativeEnabled(true);
-
-
         String forcedVariant = System.getProperty(BCFIPS_LIB_CPU_VARIANT);
         if (forcedVariant != null)
         {
@@ -46,7 +42,7 @@ public class GCMJavaAgreementTest extends TestCase
 
 
     @After
-    public void after()
+    public void tearDown()
     {
         CryptoServicesRegistrar.setNativeEnabled(true);
     }
