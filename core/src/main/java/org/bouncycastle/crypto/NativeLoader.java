@@ -180,7 +180,7 @@ class NativeLoader
             javaSupportOnly = true;
             nativeInstalled = false;
             nativeStatusMessage = "java support only";
-            LOG.warning("exited with " + nativeStatusMessage);
+            LOG.fine("exited with " + nativeStatusMessage);
             return;
         }
 
@@ -427,52 +427,50 @@ class NativeLoader
         }
 
 
-        if (forcedVariant != null)
+        //
+        // Endeavour ot install the probe library, if this does not install then
+        // forced variants will be usable.
+        //
+        try
         {
-            selectedVariant = forcedVariant;
-        }
-        else
-        {
-            try
-            {
-                // Install probe lib
-                final File lib = installLib("bc-probe", probeLibInJarPath, jarDir, bcLtsLibPath,
-                        filesInInstallLocation);
+            // Install probe lib
+            final File lib = installLib("bc-probe", probeLibInJarPath, jarDir, bcLtsLibPath,
+                    filesInInstallLocation);
 
-                AccessController.doPrivileged(
-                        new PrivilegedAction<Object>()
+            AccessController.doPrivileged(
+                    new PrivilegedAction<Object>()
+                    {
+                        @Override
+                        public Object run()
                         {
-                            @Override
-                            public Object run()
-                            {
-                                System.load(lib.getAbsolutePath());
-                                return new Object();
-                            }
+                            System.load(lib.getAbsolutePath());
+                            return new Object();
                         }
-                );
+                    }
+            );
 
 
-            }
-            catch (Exception ex)
-            {
-                nativeStatusMessage = "probe lib failed to load " + ex.getMessage();
-                nativeInstalled = false;
-                LOG.warning("exited with " + nativeStatusMessage);
-                return;
-            }
-
-            try
-            {
-                selectedVariant = VariantSelector.getBestVariantName();
-            }
-            catch (Throwable ex)
-            {
-                nativeStatusMessage = "probe lib failed return a variant " + ex.getMessage();
-                nativeInstalled = false;
-                LOG.warning("exited with " + nativeStatusMessage);
-                return;
-            }
         }
+        catch (Exception ex)
+        {
+            nativeStatusMessage = "probe lib failed to load " + ex.getMessage();
+            nativeInstalled = false;
+            LOG.warning("exited with " + nativeStatusMessage);
+            return;
+        }
+
+        try
+        {
+            selectedVariant = VariantSelector.getBestVariantName();
+        }
+        catch (Throwable ex)
+        {
+            nativeStatusMessage = "probe lib failed return a variant " + ex.getMessage();
+            nativeInstalled = false;
+            LOG.warning("exited with " + nativeStatusMessage);
+            return;
+        }
+
 
         if ("none".equals(selectedVariant))
         {
@@ -481,6 +479,11 @@ class NativeLoader
             nativeStatusMessage = "probe returned no suitable CPU features, java support only";
             LOG.warning("exited with " + nativeStatusMessage);
             return;
+        }
+
+        if (forcedVariant != null)
+        {
+            selectedVariant = forcedVariant;
         }
 
 
