@@ -42,7 +42,7 @@ void handle_gcm_result(JNIEnv *env, gcm_err *err) {
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_reset
-        (JNIEnv *, jobject, jlong ref) {
+        (JNIEnv *env, jobject o, jlong ref) {
 
     gcm_ctx *ctx = (gcm_ctx *) ref;
     gcm_reset(ctx, false);
@@ -55,7 +55,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_reset
  * Signature: (JZ[B[B[BI)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_initNative
-        (JNIEnv *env, jclass, jlong ref, jboolean encryption, jbyteArray key_, jbyteArray iv_, jbyteArray ad_,
+        (JNIEnv *env, jclass cl, jlong ref, jboolean encryption, jbyteArray key_, jbyteArray iv_, jbyteArray ad_,
          jint macSizeInBits) {
 
     gcm_err *err = NULL;
@@ -128,7 +128,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_initNat
  * Signature: (IZ)J
  */
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_makeInstance
-        (JNIEnv *, jclass, jint, jboolean ignored) {
+        (JNIEnv *env, jclass cl, jint i, jboolean ignored) {
     gcm_ctx *gcm = gcm_create_ctx();
     return (jlong) gcm;
 }
@@ -150,7 +150,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_dispose
  * Signature: (JB)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_processAADByte
-        (JNIEnv *, jclass, jlong ref, jbyte aadByte) {
+        (JNIEnv *env, jclass cl, jlong ref, jbyte aadByte) {
 
     gcm_ctx *ctx = (gcm_ctx *) ref;
     gcm_process_aad_byte(ctx, (uint8_t) aadByte);
@@ -163,7 +163,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
  * Signature: (J[BII)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_processAADBytes
-        (JNIEnv *env, jclass, jlong ref, jbyteArray aad_, jint offset, jint len) {
+        (JNIEnv *env, jclass cl, jlong ref, jbyteArray aad_, jint offset, jint len) {
 
     gcm_ctx *ctx = (gcm_ctx *) ref;
     java_bytearray_ctx aad;
@@ -195,7 +195,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
  * Signature: (JB[BI)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_processByte
-        (JNIEnv *env, jclass, jlong ref, jbyte byte, jbyteArray out, jint offset) {
+        (JNIEnv *env, jclass cl, jlong ref, jbyte byte, jbyteArray out, jint offset) {
 
     gcm_err *err = NULL;
     critical_bytearray_ctx output;
@@ -249,7 +249,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
  * Signature: (J[BII[BI)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_processBytes
-        (JNIEnv *env, jclass, jlong ref, jbyteArray in, jint inOff, jint len, jbyteArray out, jint outoff) {
+        (JNIEnv *env, jclass cl, jlong ref, jbyteArray in, jint inOff, jint len, jbyteArray out, jint outoff) {
 
     gcm_err *err = NULL;
     gcm_ctx *ctx = (gcm_ctx *) ref;
@@ -326,7 +326,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
  * Signature: (J[BI)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_doFinal
-        (JNIEnv *env, jclass, jlong ref, jbyteArray out, jint offset) {
+        (JNIEnv *env, jclass cl, jlong ref, jbyteArray out, jint offset) {
 
     gcm_err *err = NULL;
     size_t written = 0;
@@ -371,7 +371,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_doFinal
  * Signature: (JI)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_getUpdateOutputSize
-        (JNIEnv *env, jclass, jlong ref, jint len) {
+        (JNIEnv *env, jclass cl, jlong ref, jint len) {
     gcm_ctx *ctx = (gcm_ctx *) ref;
 
     if (len < 0) {
@@ -406,7 +406,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_getOutp
  * Signature: (J)[B
  */
 JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_getMac
-        (JNIEnv *env, jclass, jlong ref) {
+        (JNIEnv *env, jclass cl, jlong ref) {
 
 
     gcm_ctx *ctx = (gcm_ctx *) ref;
@@ -441,7 +441,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_g
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_setBlocksRemainingDown
-        (JNIEnv *env, jobject, jlong ref, jlong downValue) {
+        (JNIEnv *env, jobject oj, jlong ref, jlong downValue) {
 
     //
     // This method is not part of the public api, it is used in testing.

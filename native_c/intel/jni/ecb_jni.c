@@ -57,7 +57,7 @@ __attribute__((unused)) JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engi
  * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_getMultiBlockSize
-        (JNIEnv *, jclass, jlong) {
+        (JNIEnv * env, jclass cl, jlong l) {
 #ifdef BC_AVX
     return ECB_BLOCK_SIZE * 8;
 #else
@@ -72,7 +72,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_getM
  */
 
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_getBlockSize
-        (JNIEnv *, jclass, jlong) {
+        (JNIEnv *env, jclass cl, jlong l) {
     return ECB_BLOCK_SIZE;
 }
 
@@ -82,7 +82,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_getB
  * Signature: (IZ)J
  */
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_makeInstance
-        (JNIEnv *env, jclass, jint keyLen, jboolean encryption) {
+        (JNIEnv *env, jclass cl, jint keyLen, jboolean encryption) {
 
 
     ecb_ctx *ctx = NULL;

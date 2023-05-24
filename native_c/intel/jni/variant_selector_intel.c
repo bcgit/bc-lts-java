@@ -24,7 +24,7 @@ void cpuid(cpuid_t *info, unsigned int leaf, unsigned int subleaf) {
  * Signature: ()Ljava/lang/String;
  */
 JNIEXPORT jstring JNICALL Java_org_bouncycastle_crypto_VariantSelector_getBestVariantName
-        (JNIEnv *env, jclass) {
+        (JNIEnv *env, jclass jc) {
 
 
     cpuid_t info;
@@ -67,7 +67,7 @@ JNIEXPORT jstring JNICALL Java_org_bouncycastle_crypto_VariantSelector_getBestVa
  * Signature: ()[Ljava/lang/String;
  */
  JNIEXPORT jobjectArray JNICALL Java_org_bouncycastle_crypto_VariantSelector_getFeatureMatrix
-        (JNIEnv *env, jclass) {
+        (JNIEnv *env, jclass jc) {
 
     cpuid_t info;
 

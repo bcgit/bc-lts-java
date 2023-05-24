@@ -14,7 +14,7 @@
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_makeNative
-        (JNIEnv *, jclass) {
+        (JNIEnv *env, jclass cl) {
     return (jlong) sha256_create_ctx();
 }
 
@@ -36,7 +36,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_d
  * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_getDigestSize
-        (JNIEnv *, jclass, jlong ref) {
+        (JNIEnv *env, jclass cl, jlong ref) {
     sha256_ctx *sha = (sha256_ctx *) ((void *) ref);
     return (jint) sha256_getSize(sha);
 }
@@ -47,7 +47,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_g
  * Signature: (JB)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_update__JB
-        (JNIEnv *, jclass, jlong ref, jbyte b) {
+        (JNIEnv *env, jclass cl, jlong ref, jbyte b) {
     sha256_ctx *sha = (sha256_ctx *) ((void *) ref);
     sha256_update_byte(sha, (uint8_t) b);
 }
@@ -58,7 +58,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_u
  * Signature: (J[BII)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_update__J_3BII
-        (JNIEnv *env, jclass, jlong ref, jbyteArray array, jint inOff, jint len) {
+        (JNIEnv *env, jclass jc, jlong ref, jbyteArray array, jint inOff, jint len) {
 
     critical_bytearray_ctx input;
     init_critical_ctx(&input, env, array);
@@ -98,7 +98,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_u
  * Signature: (J[BI)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_doFinal
-        (JNIEnv *env, jclass, jlong ref, jbyteArray array, jint offset) {
+        (JNIEnv *env, jclass jc, jlong ref, jbyteArray array, jint offset) {
 
     java_bytearray_ctx out;
     init_bytearray_ctx(&out);
@@ -144,7 +144,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_d
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_reset
-        (JNIEnv *, jclass, jlong ref) {
+        (JNIEnv *enc, jclass jc, jlong ref) {
     sha256_ctx *sha = (sha256_ctx *) ((void *) ref);
     sha256_reset(sha);
 }
@@ -155,7 +155,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_r
  * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_getByteLength
-        (JNIEnv *, jclass, jlong ref) {
+        (JNIEnv *env, jclass jc, jlong ref) {
     sha256_ctx *sha = (sha256_ctx *) ((void *) ref);
     sha256_getByteLen(sha);
 }
@@ -166,7 +166,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_g
  * Signature: (J[BI)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_encodeFullState
-        (JNIEnv *env, jclass, jlong ref, jbyteArray array, jint offset) {
+        (JNIEnv *env, jclass jc, jlong ref, jbyteArray array, jint offset) {
 
 
     if (array == NULL) {
@@ -216,7 +216,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_e
  * Signature: (J[BI)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_restoreFullState
-        (JNIEnv *env, jclass, jlong ref, jbyteArray in, jint offset) {
+        (JNIEnv *env, jclass jc, jlong ref, jbyteArray in, jint offset) {
 
     sha256_ctx *sha = (sha256_ctx *) ((void *) ref);
     java_bytearray_ctx input;

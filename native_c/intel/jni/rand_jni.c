@@ -17,7 +17,7 @@
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_isPredictionResistant
-        (JNIEnv *env, jobject) {
+        (JNIEnv *env, jobject jo) {
     return JNI_TRUE;
 }
 
@@ -27,7 +27,7 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_isPr
  * Signature: ()I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_modulus
-        (JNIEnv *env, jobject) {
+        (JNIEnv *env, jobject jo) {
     return RAND_MOD;
 }
 
@@ -37,7 +37,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_modulus
  * Signature: ([BZ)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_seedBuffer
-        (JNIEnv *env, jobject, jbyteArray buf_, jboolean useSeed) {
+        (JNIEnv *env, jobject jo, jbyteArray buf_, jboolean useSeed) {
 
     java_bytearray_ctx buf;
     init_bytearray_ctx(&buf);
