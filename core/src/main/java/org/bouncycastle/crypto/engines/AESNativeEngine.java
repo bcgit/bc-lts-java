@@ -213,7 +213,7 @@ class AESNativeEngine
 
         public ECBNativeRef(long reference)
         {
-            super(reference);
+            super(reference,"ECB");
         }
 
         @Override

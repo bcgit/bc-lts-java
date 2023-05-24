@@ -238,7 +238,7 @@ class AESNativeCBC
 
         public CBCRefWrapper(long reference)
         {
-            super(reference);
+            super(reference,"CBC");
         }
 
         @Override
