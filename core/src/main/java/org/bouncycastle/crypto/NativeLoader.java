@@ -623,6 +623,7 @@ class NativeLoader
 
             if (LOG.isLoggable(Level.FINE))
             {
+                // -DM Hex.toHexString
                 LOG.fine("existing file digest: " + Hex.toHexString(currentDigest));
             }
 
@@ -631,6 +632,7 @@ class NativeLoader
 
             if (LOG.isLoggable(Level.FINE))
             {
+                // -DM Hex.toHexString
                 LOG.fine("new file digest: " + Hex.toHexString(newDigest));
             }
 

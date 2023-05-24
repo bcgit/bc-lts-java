@@ -87,9 +87,6 @@ jar {
   into('META-INF/versions/15') {
     from sourceSets.java15.output
   }
-  into('native') {
-    from '../native_c/target'
-  }
   manifest.attributes('Multi-Release': 'true')
 }
 
