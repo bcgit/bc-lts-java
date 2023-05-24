@@ -9,7 +9,7 @@ import java.util.TreeSet;
  * the feature definition strings.
  */
 class DefaultNativeServices
-    implements NativeServices
+        implements NativeServices
 {
 
     private static Set<String> nativeFeatures = null;
@@ -56,7 +56,14 @@ class DefaultNativeServices
     {
         if (nativeFeatures == null)
         {
-            nativeFeatures = getNativeFeatureSet();
+            if (NativeLoader.isJavaSupportOnly())
+            {
+                nativeFeatures = Collections.singleton(NONE);
+            }
+            else
+            {
+                nativeFeatures = getNativeFeatureSet();
+            }
         }
 
         return nativeFeatures.contains(feature);
@@ -92,43 +99,46 @@ class DefaultNativeServices
     {
         TreeSet<String> set = new TreeSet<String>();
 
-        if (NativeFeatures.hasHardwareSeed())
+        if (!NativeLoader.isJavaSupportOnly())
         {
-            set.add(NRBG);
-        }
-        if (NativeFeatures.hasHardwareRand())
-        {
-            set.add(DRBG);
-        }
+            if (NativeFeatures.hasHardwareSeed())
+            {
+                set.add(NRBG);
+            }
+            if (NativeFeatures.hasHardwareRand())
+            {
+                set.add(DRBG);
+            }
 
-        if (NativeFeatures.hasAESHardwareSupport())
-        {
-            set.add(AES_ECB);
-        }
+            if (NativeFeatures.hasAESHardwareSupport())
+            {
+                set.add(AES_ECB);
+            }
 
-        if (NativeFeatures.hasGCMHardwareSupport())
-        {
-            set.add(AES_GCM);
-        }
+            if (NativeFeatures.hasGCMHardwareSupport())
+            {
+                set.add(AES_GCM);
+            }
 
-        if (NativeFeatures.hasCBCHardwareSupport())
-        {
-            set.add(AES_CBC);
-        }
+            if (NativeFeatures.hasCBCHardwareSupport())
+            {
+                set.add(AES_CBC);
+            }
 
-        if (NativeFeatures.hasCFBHardwareSupport())
-        {
-            set.add(AES_CFB);
-        }
+            if (NativeFeatures.hasCFBHardwareSupport())
+            {
+                set.add(AES_CFB);
+            }
 
-        if (NativeFeatures.hasCTRHardwareSupport())
-        {
-            set.add(AES_CTR); // Only AES is needed for CTR mode.
-        }
+            if (NativeFeatures.hasCTRHardwareSupport())
+            {
+                set.add(AES_CTR); // Only AES is needed for CTR mode.
+            }
 
-        if (NativeFeatures.hasHardwareSHA())
-        {
-            set.add(SHA2);
+            if (NativeFeatures.hasHardwareSHA())
+            {
+                set.add(SHA2);
+            }
         }
 
         if (set.isEmpty())

@@ -23,9 +23,8 @@ public class CBCJavaAgreementTest extends TestCase
 {
 
     @Before
-    public void before()
+    public void setup()
     {
-
         CryptoServicesRegistrar.setNativeEnabled(true);
     }
 

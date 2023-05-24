@@ -40,7 +40,7 @@ public class NativeFailsafeTest
     public void testECB()
     {
 
-        boolean hasECB = NativeFeatures.hasAESHardwareSupport();
+        boolean hasECB = !NativeLoader.isJavaSupportOnly() &&  NativeFeatures.hasAESHardwareSupport();
 
         String skip = System.getProperty(NATIVE_FAILSAFE_TEST, "");
 
@@ -58,7 +58,7 @@ public class NativeFailsafeTest
     public void testCBC()
     {
 
-        boolean hasCBC = NativeFeatures.hasCBCHardwareSupport();
+        boolean hasCBC = !NativeLoader.isJavaSupportOnly() && NativeFeatures.hasCBCHardwareSupport();
 
         String skip = System.getProperty(NATIVE_FAILSAFE_TEST, "");
 
@@ -77,13 +77,49 @@ public class NativeFailsafeTest
     public void testGCM()
     {
 
-        boolean hasGCM = NativeFeatures.hasGCMHardwareSupport();
+        boolean hasGCM = !NativeLoader.isJavaSupportOnly() && NativeFeatures.hasGCMHardwareSupport();
 
         String skip = System.getProperty(NATIVE_FAILSAFE_TEST, "");
 
         if (!hasGCM)
         {
             if (skip.contains("gcm"))
+            {
+                return;
+            }
+            fail("expected support for native gcm");
+        }
+    }
+
+    @Test
+    public void testCTR()
+    {
+
+        boolean hasCTR = !NativeLoader.isJavaSupportOnly() && NativeFeatures.hasCTRHardwareSupport();
+
+        String skip = System.getProperty(NATIVE_FAILSAFE_TEST, "");
+
+        if (!hasCTR)
+        {
+            if (skip.contains("ctr"))
+            {
+                return;
+            }
+            fail("expected support for native gcm");
+        }
+    }
+
+    @Test
+    public void testCFB()
+    {
+
+        boolean hasCFB = !NativeLoader.isJavaSupportOnly() && NativeFeatures.hasCFBHardwareSupport();
+
+        String skip = System.getProperty(NATIVE_FAILSAFE_TEST, "");
+
+        if (!hasCFB)
+        {
+            if (skip.contains("cfb"))
             {
                 return;
             }

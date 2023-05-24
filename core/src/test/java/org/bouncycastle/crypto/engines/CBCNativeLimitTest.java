@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import junit.framework.TestCase;
+import org.junit.Assert.*;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.NativeServices;
 
@@ -8,6 +9,10 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 
 public class CBCNativeLimitTest extends TestCase
 {
@@ -28,16 +33,12 @@ public class CBCNativeLimitTest extends TestCase
         {
             if (!System.getProperty("test.bcfips.ignore.native","").contains("cbc"))
             {
-                fail("no native cbc and no skip set for it");
+               fail("no native cbc and no skip set for it");
                 return;
             }
             System.out.println("Skipping CBC native concordance test: " + CryptoServicesRegistrar.isNativeEnabled());
             return;
         }
-        
-        
-
-      
 
 
         new AESNativeCBC()
@@ -48,7 +49,7 @@ public class CBCNativeLimitTest extends TestCase
                 {
                     init(ref, null, new byte[16]);
                     dispose(ref);
-                    fail("accepted null key");
+                    TestCase.fail("accepted null key");
                 }
                 catch (Exception ex)
                 {
@@ -67,7 +68,7 @@ public class CBCNativeLimitTest extends TestCase
                 {
                     init(ref, new byte[16], null);
                     dispose(ref);
-                    fail("accepted null iv");
+                    TestCase.fail("accepted null iv");
                 }
                 catch (Exception ex)
                 {

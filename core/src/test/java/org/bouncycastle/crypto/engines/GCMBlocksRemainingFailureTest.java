@@ -3,6 +3,7 @@ package org.bouncycastle.crypto.engines;
 
 
 
+import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -12,11 +13,11 @@ import org.junit.Before;
 import org.junit.Test;
 
 
-public class GCMBlocksRemainingFailureTest
+public class GCMBlocksRemainingFailureTest extends TestCase
 {
 
     @Before
-    public void before()
+    public void setUp()
     {
         CryptoServicesRegistrar.setNativeEnabled(true);
 

@@ -10,6 +10,7 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -25,15 +26,13 @@ public class CFBJavaAgreementTest extends TestCase
 
 
     @Before
-    public void before()
+    public void setUp()
     {
-
-
         CryptoServicesRegistrar.setNativeEnabled(true);
     }
 
     @After
-    public void after()
+    public void tearDown()
     {
         CryptoServicesRegistrar.setNativeEnabled(true);
     }
@@ -48,10 +47,10 @@ public class CFBJavaAgreementTest extends TestCase
 
         if (expectNative)
         {
-            TestCase.assertTrue("Native implementation expected", cfb.toString().contains("CFB[Native](AES[Native]"));
+            Assert.assertTrue("Native implementation expected", cfb.toString().contains("CFB[Native](AES[Native]"));
         } else
         {
-            TestCase.assertTrue("Java implementation expected", cfb.toString().contains("CFB[Java](AES[Java]"));
+            Assert.assertTrue("Java implementation expected", cfb.toString().contains("CFB[Java](AES[Java]"));
         }
 
         byte[] out = new byte[message.length];
@@ -71,10 +70,10 @@ public class CFBJavaAgreementTest extends TestCase
 
         if (expectNative)
         {
-            TestCase.assertTrue("Native implementation expected", cfb.toString().contains("CFB[Native](AES[Native]"));
+            Assert.assertTrue("Native implementation expected", cfb.toString().contains("CFB[Native](AES[Native]"));
         } else
         {
-            TestCase.assertTrue("Java implementation expected", cfb.toString().contains("CFB[Java](AES[Java]"));
+            Assert.assertTrue("Java implementation expected", cfb.toString().contains("CFB[Java](AES[Java]"));
         }
 
         byte[] out = new byte[message.length];
@@ -93,10 +92,10 @@ public class CFBJavaAgreementTest extends TestCase
 
         if (expectNative)
         {
-            TestCase.assertTrue("Native implementation expected", cfb.toString().contains("CFB[Native](AES[Native]"));
+            Assert.assertTrue("Native implementation expected", cfb.toString().contains("CFB[Native](AES[Native]"));
         } else
         {
-            TestCase.assertTrue("Java implementation expected", cfb.toString().contains("CFB[Java](AES[Java]"));
+            Assert.assertTrue("Java implementation expected", cfb.toString().contains("CFB[Java](AES[Java]"));
         }
 
         byte[] out = new byte[ct.length];
@@ -117,10 +116,10 @@ public class CFBJavaAgreementTest extends TestCase
 
         if (expectNative)
         {
-            TestCase.assertTrue("Native implementation expected", cfb.toString().contains("CFB[Native](AES[Native]"));
+            Assert.assertTrue("Native implementation expected", cfb.toString().contains("CFB[Native](AES[Native]"));
         } else
         {
-            TestCase.assertTrue("Java implementation expected", cfb.toString().contains("CFB[Java](AES[Java]"));
+            Assert.assertTrue("Java implementation expected", cfb.toString().contains("CFB[Java](AES[Java]"));
         }
 
         byte[] out = new byte[ct.length];
@@ -150,7 +149,7 @@ public class CFBJavaAgreementTest extends TestCase
         //
         CryptoServicesRegistrar.setNativeEnabled(false);
         byte[] javaCT = generateCT(javaPT, key, iv, false);
-        TestCase.assertFalse(CryptoServicesRegistrar.getNativeServices().isEnabled());
+        Assert.assertFalse(CryptoServicesRegistrar.getNativeServices().isEnabled());
 
         //
         // Turn on native
@@ -170,14 +169,14 @@ public class CFBJavaAgreementTest extends TestCase
                 System.out.println(Hex.toHexString(ct));
             }
 
-            TestCase.assertTrue(keySize + " AES-NI CT did not match", Arrays.areEqual(ct, javaCT));
+            Assert.assertTrue(keySize + " AES-NI CT did not match", Arrays.areEqual(ct, javaCT));
 
             byte[] pt = generatePT(javaCT, key, iv, true);
 
-            TestCase.assertTrue(keySize + " AES-NI PT did not match", Arrays.areEqual(pt, javaPT));
+            Assert.assertTrue(keySize + " AES-NI PT did not match", Arrays.areEqual(pt, javaPT));
 
             ct = generateCTByteOff(javaPT, key, iv, true);
-            TestCase.assertTrue(keySize + " AES-NI CT did not match", Arrays.areEqual(ct, javaCT));
+            Assert.assertTrue(keySize + " AES-NI CT did not match", Arrays.areEqual(ct, javaCT));
 
             pt = generatePTByteOff(javaCT, key, iv, true);
 
@@ -187,7 +186,7 @@ public class CFBJavaAgreementTest extends TestCase
                 System.out.println(Hex.toHexString(pt));
             }
 
-            TestCase.assertTrue(keySize + " AES-NI PT did not match", Arrays.areEqual(pt, javaPT));
+            Assert.assertTrue(keySize + " AES-NI PT did not match", Arrays.areEqual(pt, javaPT));
 
         }
 
@@ -227,7 +226,7 @@ public class CFBJavaAgreementTest extends TestCase
             pt[t] = engine.returnByte(ct[t]);
         }
 
-        TestCase.assertTrue("did not round trip byte by byte", Arrays.areEqual(pt, msg));
+        Assert.assertTrue("did not round trip byte by byte", Arrays.areEqual(pt, msg));
 
     }
 
@@ -239,7 +238,7 @@ public class CFBJavaAgreementTest extends TestCase
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
             {
-                TestCase.fail("Skipping CFB Agreement Test: " + TestUtil.errorMsg());
+                Assert.fail("Skipping CFB Agreement Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -255,7 +254,7 @@ public class CFBJavaAgreementTest extends TestCase
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
             {
-                TestCase.fail("Skipping CFB Agreement Test: " + TestUtil.errorMsg());
+                Assert.fail("Skipping CFB Agreement Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -271,7 +270,7 @@ public class CFBJavaAgreementTest extends TestCase
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
             {
-                TestCase.fail("Skipping CFB Agreement Test: " + TestUtil.errorMsg());
+                Assert.fail("Skipping CFB Agreement Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -292,7 +291,7 @@ public class CFBJavaAgreementTest extends TestCase
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
             {
-                TestCase.fail("Skipping CFB streaming monte Test: " + TestUtil.errorMsg());
+                Assert.fail("Skipping CFB streaming monte Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -340,12 +339,12 @@ public class CFBJavaAgreementTest extends TestCase
                 byte nc = nativeEnc.returnByte(b);
                 byte jc = javaEnc.returnByte(b);
 
-                TestCase.assertEquals(Hex.toHexString(seed) + " ct equal jc", nc, jc);
+                Assert.assertEquals(Hex.toHexString(seed) + " ct equal jc", nc, jc);
 
                 byte np = nativeDec.returnByte(nc);
                 byte jp = javaDec.returnByte(jc);
 
-                TestCase.assertEquals(Hex.toHexString(seed) + " pt equal jp", np, jp);
+                Assert.assertEquals(Hex.toHexString(seed) + " pt equal jp", np, jp);
 
             } else
             {
@@ -364,13 +363,13 @@ public class CFBJavaAgreementTest extends TestCase
                 nativeEnc.processBytes(msg, 0, msg.length, nc, 0);
                 javaEnc.processBytes(msg, 0, msg.length, jc, 0);
 
-                TestCase.assertTrue(Hex.toHexString(seed) + " Java CT = Native Ct", Arrays.areEqual(jc, nc));
+                Assert.assertTrue(Hex.toHexString(seed) + " Java CT = Native Ct", Arrays.areEqual(jc, nc));
 
 
                 nativeDec.processBytes(nc, 0, nc.length, np, 0);
                 javaDec.processBytes(jc, 0, jc.length, jp, 0);
 
-                TestCase.assertTrue(Hex.toHexString(seed) + " Java PT = Native Pt", Arrays.areEqual(jp, np));
+                Assert.assertTrue(Hex.toHexString(seed) + " Java PT = Native Pt", Arrays.areEqual(jp, np));
 
             }
         }
@@ -389,7 +388,7 @@ public class CFBJavaAgreementTest extends TestCase
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
             {
-                TestCase.fail("Skipping CFB spread test: " + TestUtil.errorMsg());
+                Assert.fail("Skipping CFB spread test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -449,7 +448,7 @@ public class CFBJavaAgreementTest extends TestCase
                     jPt[t] = javaDec.returnByte(jCt[t]);
                 }
 
-                TestCase.assertTrue("Key Size: " + keySize + " javaCT = nativeCt", Arrays.areEqual(jCt, nCt));
+                Assert.assertTrue("Key Size: " + keySize + " javaCT = nativeCt", Arrays.areEqual(jCt, nCt));
 
                 if (!Arrays.areEqual(jPt, nPt))
                 {
@@ -457,10 +456,10 @@ public class CFBJavaAgreementTest extends TestCase
                     System.out.println(Hex.toHexString(nPt));
                 }
 
-                TestCase.assertTrue("Key Size: " + keySize + " javaPt = nativePt", Arrays.areEqual(jPt, nPt));
+                Assert.assertTrue("Key Size: " + keySize + " javaPt = nativePt", Arrays.areEqual(jPt, nPt));
 
 
-                TestCase.assertTrue("Key Size: " + keySize + " message = javaPt", Arrays.areEqual(jPt, Arrays.copyOfRange(msg, 0, lim)));
+                Assert.assertTrue("Key Size: " + keySize + " message = javaPt", Arrays.areEqual(jPt, Arrays.copyOfRange(msg, 0, lim)));
             }
         }
     }
@@ -478,7 +477,7 @@ public class CFBJavaAgreementTest extends TestCase
         {
             if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
             {
-                TestCase.fail("Skipping CFB spread test: " + TestUtil.errorMsg());
+                Assert.fail("Skipping CFB spread test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -533,7 +532,7 @@ public class CFBJavaAgreementTest extends TestCase
                 nativeDec.processBytes(nCt, 0, lim, nPt, 0);
                 javaDec.processBytes(jCt, 0, lim, jPt, 0);
 
-                TestCase.assertTrue("Key Size: " + keySize + " javaCT = nativeCt", Arrays.areEqual(jCt, nCt));
+                Assert.assertTrue("Key Size: " + keySize + " javaCT = nativeCt", Arrays.areEqual(jCt, nCt));
 
                 if (!Arrays.areEqual(jPt, nPt))
                 {
@@ -541,10 +540,10 @@ public class CFBJavaAgreementTest extends TestCase
                     System.out.println(Hex.toHexString(nPt));
                 }
 
-                TestCase.assertTrue("Key Size: " + keySize + " javaPt = nativePt", Arrays.areEqual(jPt, nPt));
+                Assert.assertTrue("Key Size: " + keySize + " javaPt = nativePt", Arrays.areEqual(jPt, nPt));
 
 
-                TestCase.assertTrue("Key Size: " + keySize + " message = javaPt", Arrays.areEqual(jPt, Arrays.copyOfRange(msg, 0, lim)));
+                Assert.assertTrue("Key Size: " + keySize + " message = javaPt", Arrays.areEqual(jPt, Arrays.copyOfRange(msg, 0, lim)));
             }
         }
     }

@@ -20,9 +20,8 @@ public class ECBJavaAgreementTest extends TestCase
     private boolean hasAvx;
 
     @Before
-    public void before()
+    public void setUp()
     {
-
         CryptoServicesRegistrar.setNativeEnabled(true);
     }
 
