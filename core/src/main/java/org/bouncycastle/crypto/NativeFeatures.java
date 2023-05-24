@@ -1,12 +1,15 @@
 package org.bouncycastle.crypto;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * The native methods of this class are used to determine the native features that are supported.
  * UnsatisfiedLinkError are ignored, and it is assumed that the feature is not available at that time.
  */
 class NativeFeatures
 {
-
+    private static final Logger NATIVE_FEATURE_LOG = Logger.getLogger(NativeFeatures.class.getName());
     static boolean hasCTRHardwareSupport()
     {
         try
@@ -16,6 +19,9 @@ class NativeFeatures
         catch (UnsatisfiedLinkError ule)
         {
             //
+        }
+        if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
+            NATIVE_FEATURE_LOG.log(Level.FINE,"native ctr not supported");
         }
         return false;
     }
@@ -33,6 +39,9 @@ class NativeFeatures
         {
             //
         }
+        if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
+            NATIVE_FEATURE_LOG.log(Level.FINE,"native cfb not supported");
+        }
         return false;
     }
 
@@ -47,6 +56,9 @@ class NativeFeatures
         catch (UnsatisfiedLinkError ule)
         {
             //
+        }
+        if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
+            NATIVE_FEATURE_LOG.log(Level.FINE,"native cbc not supported");
         }
         return false;
     }
@@ -64,6 +76,9 @@ class NativeFeatures
         {
             //
         }
+        if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
+            NATIVE_FEATURE_LOG.log(Level.FINE,"native aes not supported");
+        }
         return false;
     }
 
@@ -78,6 +93,9 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
+            if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
+                NATIVE_FEATURE_LOG.log(Level.FINE,"native gcm not supported");
+            }
             return false;
         }
     }
@@ -95,6 +113,9 @@ class NativeFeatures
         {
             //
         }
+        if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
+            NATIVE_FEATURE_LOG.log(Level.FINE,"native rand not supported");
+        }
         return false;
     }
 
@@ -109,6 +130,9 @@ class NativeFeatures
         catch (UnsatisfiedLinkError ule)
         {
             //
+        }
+        if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
+            NATIVE_FEATURE_LOG.log(Level.FINE,"native seed not supported");
         }
         return false;
     }
@@ -125,24 +149,16 @@ class NativeFeatures
         {
             //
         }
+        if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
+            NATIVE_FEATURE_LOG.log(Level.FINE,"native sha not supported");
+        }
         return false;
     }
 
     private static native boolean nativeSHA2();
 
 
-    static boolean hasHardwareRSA()
-    {
-        try
-        {
-            return nativeRSA();
-        }
-        catch (UnsatisfiedLinkError ule)
-        {
-            //
-        }
-        return false;
-    }
+
 
     private static native boolean nativeRSA();
 }
