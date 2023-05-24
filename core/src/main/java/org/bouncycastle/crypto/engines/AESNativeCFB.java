@@ -313,7 +313,7 @@ class AESNativeCFB
 
         public CFBRefWrapper(long reference)
         {
-            super(reference);
+            super(reference,"CFB");
         }
 
         @Override

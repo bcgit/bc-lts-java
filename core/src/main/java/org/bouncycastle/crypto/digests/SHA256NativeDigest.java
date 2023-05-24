@@ -190,7 +190,7 @@ class SHA256NativeDigest
 
         public DigestRefWrapper(long reference)
         {
-            super(reference);
+            super(reference,"SHA256");
         }
 
         @Override

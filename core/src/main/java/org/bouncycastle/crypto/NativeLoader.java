@@ -20,6 +20,7 @@ import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.Strings;
+import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.io.Streams;
 
 class NativeLoader
@@ -134,12 +135,21 @@ class NativeLoader
 
         String libLocalName = System.mapLibraryName(name);
 
+        if (LOG.isLoggable(Level.FINE))
+        {
+            LOG.fine("attempting to install: " + libLocalName);
+        }
+
         List<String> deps = loadVariantsDeps(jarPath + "/deps.list", libLocalName);
         for (String dep : deps)
         {
             filesInInstallLocation.remove(copyFromJar(jarPath + "/" + dep, bcLibPath, dep));
         }
         File libToLoad = copyFromJar(libPathSegment + "/" + libLocalName, bcLibPath, libLocalName);
+        if (LOG.isLoggable(Level.FINE))
+        {
+            LOG.fine("installed " + libToLoad);
+        }
 
         filesInInstallLocation.remove(libToLoad);
 
@@ -294,6 +304,11 @@ class NativeLoader
                         @Override
                         public void run()
                         {
+                            if (LOG.isLoggable(Level.FINE))
+                            {
+                                LOG.fine("cleanup shutdown hook started");
+                            }
+
                             if (!tmpDir.exists())
                             {
                                 return;
@@ -597,17 +612,41 @@ class NativeLoader
 
         if (dest.exists())
         {
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.fine("installation target exists: " + dest.getAbsolutePath());
+            }
+
             FileInputStream fin = new FileInputStream(dest);
             byte[] currentDigest = takeSHA256Digest(fin);
             fin.close();
 
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.fine("existing file digest: " + Hex.toHexString(currentDigest));
+            }
+
             byte[] newDigest = takeSHA256Digest(inputStream);
             inputStream.close();
 
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.fine("new file digest: " + Hex.toHexString(newDigest));
+            }
+
             if (Arrays.constantTimeAreEqual(currentDigest, newDigest))
             {
+                if (LOG.isLoggable(Level.FINE))
+                {
+                    LOG.fine("existing file already exists and is the same");
+                }
                 // Same file so do nothing!
                 return dest;
+            }
+
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.fine("existing file is different and will be replaced");
             }
 
             inputStream = NativeLoader.class.getResourceAsStream(inJarPath);

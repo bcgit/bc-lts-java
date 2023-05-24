@@ -1,10 +1,12 @@
 package org.bouncycastle.util.dispose;
 
+import java.awt.*;
 import java.lang.ref.PhantomReference;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.concurrent.atomic.AtomicLong;
@@ -12,13 +14,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DisposalDaemon
-    implements Runnable
+        implements Runnable
 {
     private static final Logger LOG = Logger.getLogger(DisposalDaemon.class.getName());
 
     private static ReferenceQueue<Disposable> referenceQueue = new ReferenceQueue<Disposable>();
 
-    private static Set<ReferenceWrapperWithDisposerRunnable> refs = Collections.synchronizedSet(new HashSet<ReferenceWrapperWithDisposerRunnable>());
+    private static Set<ReferenceWrapperWithDisposerRunnable> refs =
+            Collections.synchronizedSet(new HashSet<ReferenceWrapperWithDisposerRunnable>());
 
     private static AtomicLong ctr = new AtomicLong(Long.MIN_VALUE);
 
@@ -48,12 +51,22 @@ public class DisposalDaemon
             @Override
             public void run()
             {
-                ReferenceWrapperWithDisposerRunnable item = (ReferenceWrapperWithDisposerRunnable)referenceQueue.poll();
+                if (LOG.isLoggable(Level.FINE))
+                {
+                    LOG.fine("Shutdown hook started");
+                }
+                ReferenceWrapperWithDisposerRunnable item =
+                        (ReferenceWrapperWithDisposerRunnable) referenceQueue.poll();
                 while (item != null)
                 {
                     refs.remove(item);
                     item.dispose();
-                    item = (ReferenceWrapperWithDisposerRunnable)referenceQueue.poll();
+                    item = (ReferenceWrapperWithDisposerRunnable) referenceQueue.poll();
+
+                    if (LOG.isLoggable(Level.FINE))
+                    {
+                        LOG.fine("Shutdown hook disposed: " + item);
+                    }
                 }
 
             }
@@ -64,6 +77,10 @@ public class DisposalDaemon
     {
         ReferenceWrapperWithDisposerRunnable ref = new ReferenceWrapperWithDisposerRunnable(disposable, referenceQueue);
         refs.add(ref);
+        if (LOG.isLoggable(Level.FINE))
+        {
+            LOG.fine("Registered: " + disposable.toString());
+        }
     }
 
     public void run()
@@ -72,9 +89,14 @@ public class DisposalDaemon
         {
             try
             {
-                ReferenceWrapperWithDisposerRunnable item = (ReferenceWrapperWithDisposerRunnable)referenceQueue.remove();
+                ReferenceWrapperWithDisposerRunnable item =
+                        (ReferenceWrapperWithDisposerRunnable) referenceQueue.remove();
                 refs.remove(item);
                 item.dispose();
+                if (LOG.isLoggable(Level.FINE))
+                {
+                    LOG.fine("Disposed: " + item);
+                }
             }
             catch (InterruptedException iex)
             {
@@ -82,21 +104,17 @@ public class DisposalDaemon
             }
             catch (Throwable e)
             {
-                if (LOG.isLoggable(Level.FINE))
-                {
-                    LOG.fine("exception in disposal thread: " + e.getMessage());
-                }
+                LOG.warning("exception in disposal thread: " + e.getMessage());
             }
         }
     }
 
     private static class ReferenceWrapperWithDisposerRunnable
-        extends PhantomReference<Disposable>
-//        implements Comparable<ReferenceWrapperWithDisposerRunnable>
+            extends PhantomReference<Disposable>
     {
 
-        private final long id;
         private final Runnable disposer;
+        private final String label;
 
         /**
          * Creates a new phantom reference that refers to the given object and
@@ -114,8 +132,8 @@ public class DisposalDaemon
         public ReferenceWrapperWithDisposerRunnable(Disposable referent, ReferenceQueue<? super Disposable> q)
         {
             super(referent, q);
+            this.label = referent.toString(); // capture label from referent
             this.disposer = referent.getDisposeAction();
-            this.id = ctr.getAndIncrement();
         }
 
         public void dispose()
@@ -123,11 +141,10 @@ public class DisposalDaemon
             disposer.run();
         }
 
-//        @Override
-//        public int compareTo(ReferenceWrapperWithDisposerRunnable o)
-//        {
-//            return Long.valueOf(o.id).compareTo(id);
-//        }
+        public String toString()
+        {
+            return label;
+        }
     }
 }
 

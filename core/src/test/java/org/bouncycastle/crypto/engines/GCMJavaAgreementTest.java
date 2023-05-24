@@ -4,6 +4,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
 import java.security.SecureRandom;
 import java.util.Optional;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 import junit.framework.TestCase;
@@ -29,6 +32,15 @@ public class GCMJavaAgreementTest extends TestCase
     @Before
     public void setUp()
     {
+
+        ConsoleHandler consoleHandler = new ConsoleHandler();
+        consoleHandler.setLevel(Level.FINE);
+        Logger foo = Logger.getLogger("org.bouncycastle.util.dispose.DisposalDaemon");
+        foo.setLevel(Level.FINE);
+        foo.addHandler(consoleHandler);
+      //  Logger.getLogger("org.bouncycastle.util.dispose.DisposalDaemon").addHandler(consoleHandler);
+
+
         String forcedVariant = System.getProperty(BCFIPS_LIB_CPU_VARIANT);
         if (forcedVariant != null)
         {
@@ -57,7 +69,8 @@ public class GCMJavaAgreementTest extends TestCase
         if (expectNative)
         {
             TestCase.assertTrue("Native implementation expected", gcm.toString().contains("GCM[Native]"));
-        } else
+        }
+        else
         {
             TestCase.assertTrue("Java implementation expected", gcm.toString().contains("GCM[Java]"));
         }
@@ -80,7 +93,8 @@ public class GCMJavaAgreementTest extends TestCase
         if (expectNative)
         {
             TestCase.assertTrue("Native implementation expected", gcm.toString().contains("GCM[Native]"));
-        } else
+        }
+        else
         {
             TestCase.assertTrue("Java implementation expected", gcm.toString().contains("GCM[Java]"));
         }
@@ -139,7 +153,8 @@ public class GCMJavaAgreementTest extends TestCase
                         if (javaCT[j] == ct[j])
                         {
                             System.out.print("  ");
-                        } else
+                        }
+                        else
                         {
                             System.out.print("^^");
                         }
@@ -152,10 +167,11 @@ public class GCMJavaAgreementTest extends TestCase
                 byte[] pt = generatePT(javaCT, key, iv, true);
 
 
-               if (!Arrays.areEqual(pt,javaPT)) {
-                   System.out.println(Hex.toHexString(pt));
-                   System.out.println(Hex.toHexString(javaPT));
-               }
+                if (!Arrays.areEqual(pt, javaPT))
+                {
+                    System.out.println(Hex.toHexString(pt));
+                    System.out.println(Hex.toHexString(javaPT));
+                }
 
 
                 TestCase.assertTrue(keySize + " AES-NI PT did not match", Arrays.areEqual(pt, javaPT));
@@ -330,7 +346,7 @@ public class GCMJavaAgreementTest extends TestCase
     private void writeAllAndClose(byte[] data, ByteArrayOutputStream bos, GCMModeCipher os) throws Exception
     {
 
-        byte[] output = new byte[ os.getOutputSize(data.length)];
+        byte[] output = new byte[os.getOutputSize(data.length)];
 
         int j = 0;
         j = os.processBytes(data, 0, data.length, output, j);

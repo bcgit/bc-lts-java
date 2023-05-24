@@ -389,7 +389,7 @@ class AESNativeGCM
     {
         public GCMRefWrapper(long reference)
         {
-            super(reference);
+            super(reference,"GCM");
         }
 
         @Override

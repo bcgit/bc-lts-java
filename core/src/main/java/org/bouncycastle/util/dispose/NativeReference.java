@@ -4,11 +4,13 @@ public abstract class NativeReference
     implements Disposable
 {
     protected final long reference;
+    protected final String label;
 
 
-    public NativeReference(long reference)
+    public NativeReference(long reference, String name)
     {
         this.reference = reference;
+        this.label = "Reference("+ name +") 0x"+Long.toHexString(reference);
         DisposalDaemon.addDisposable(this);
     }
 
@@ -26,4 +28,7 @@ public abstract class NativeReference
         return reference;
     }
 
+    public String toString() {
+        return label;
+    }
 }

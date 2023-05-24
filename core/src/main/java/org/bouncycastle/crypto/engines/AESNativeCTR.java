@@ -285,7 +285,7 @@ public class AESNativeCTR
     {
         public CTRRefWrapper(long reference)
         {
-            super(reference);
+            super(reference,"CTR");
         }
 
         @Override
