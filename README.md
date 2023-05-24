@@ -92,11 +92,11 @@ Building a jar with native capabilities exercising only the java core tests, run
 capabilities is covered next.
 
 ```
-  ./gradlew clean cleanNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars
+  ./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars
 
 # If you need to skip the tests
 
-./gradlew clean cleanNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test
+./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test
 ```
 
 After building a jar with the native libraries bundled in you can veryify they are getting loaded by
@@ -133,10 +133,10 @@ Attempting to test a variant on a CPU without matching hardware features will ca
 # Using testXXX will run the java tests but with the native componnents swapped in
 # where appropriate. We don't need to rerun the java only tests again hence the '-x test'
 
-./gradlew clean cleanNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars testSSE -x test
-./gradlew clean cleanNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars testAVX -x test
-./gradlew clean cleanNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars testVAES -x test
-./gradlew clean cleanNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars testVAESF -x test
+./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars testSSE -x test
+./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars testAVX -x test
+./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars testVAES -x test
+./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars testVAESF -x test
 
 ```
 
