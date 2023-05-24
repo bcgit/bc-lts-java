@@ -88,6 +88,7 @@ task modTestJar(type: Jar) {
   from(project(":tls").sourceSets.test.output)
   from(project(":util").sourceSets.test.output)
   from(project(":test").sourceSets.test.output)
+  from(project(":pg").sourceSets.test.output)
   classifier("tests")
 }
 
@@ -106,6 +107,7 @@ task allTestJar(type: Jar) {
   from(project(":tls").sourceSets.test.output)
   from(project(":util").sourceSets.test.output)
   from(project(":test").sourceSets.test.output)
+  from(project(":pg").sourceSets.test.output)
   classifier("tests")
 }
 
@@ -124,6 +126,7 @@ task allTestUnisgnedJar(type: Jar) {
   from(project(":tls").sourceSets.test.output)
   from(project(":util").sourceSets.test.output)
   from(project(":test").sourceSets.test.output)
+  from(project(":pg").sourceSets.test.output)
   classifier("unsigned-tests")
 }
 

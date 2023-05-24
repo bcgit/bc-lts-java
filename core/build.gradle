@@ -29,6 +29,7 @@ task sourcesJar(type: Jar) {
   archiveBaseName = jar.archiveBaseName
   classifier = 'sources'
   from sourceSets.main.allSource
+    exclude("**/*.so")
   into('native/intel') {
     from '../native_c/intel'
   }

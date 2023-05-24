@@ -94,6 +94,7 @@ task sourcesJar(type: Jar) {
   archiveBaseName = jar.archiveBaseName
   classifier = 'sources'
   from sourceSets.main.allSource
+    exclude("**/*.so")
   into('META-INF/versions/9') {
     from sourceSets.java9.allSource
   }
