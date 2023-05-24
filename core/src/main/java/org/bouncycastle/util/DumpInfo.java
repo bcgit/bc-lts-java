@@ -28,6 +28,8 @@ public class DumpInfo
             System.out.println("Native Variant: " + nativeServices.getVariant());
             System.out.println("Native Features: " + String.join(" ", nativeServices.getFeatureSet()));
             System.out.println("");
+
+
             String[][] result = nativeServices.getVariantSelectionMatrix();
             StringBuffer sBld = new StringBuffer();
             if (result.length > 0)
