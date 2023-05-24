@@ -139,7 +139,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_makeIn
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_dispose
-        (JNIEnv *, jclass, jlong ref) {
+        (JNIEnv *env, jclass jc, jlong ref) {
     gcm_ctx *ctx = (gcm_ctx *) ref;
     gcm_free(ctx);
 }
@@ -388,7 +388,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_getUpda
  * Signature: (JI)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_getOutputSize
-        (JNIEnv *env, jclass, jlong ref, jint len) {
+        (JNIEnv *env, jclass jo, jlong ref, jint len) {
 
     gcm_ctx *ctx = (gcm_ctx *) ref;
 
