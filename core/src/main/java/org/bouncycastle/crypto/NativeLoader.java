@@ -25,8 +25,7 @@ import org.bouncycastle.util.io.Streams;
 class NativeLoader
 {
 
-    private static final Logger LOADER_LOG = Logger.getLogger(NativeLoader.class.getName());
-
+    private static final Logger LOG = Logger.getLogger(NativeLoader.class.getName());
 
     public static final String BCLTS_LIB_CPU_VARIANT = "org.bouncycastle.native.cpu_variant";
 
@@ -152,17 +151,15 @@ class NativeLoader
     static synchronized void loadDriver()
     {
 
-        if (LOADER_LOG.isLoggable(Level.FINE))
-        {
-            LOADER_LOG.log(Level.FINE, "native loader start");
-        }
+
+        LOG.log(Level.FINE, "native loader start");
+
 
         String forcedVariant = Properties.getPropertyValue(BCLTS_LIB_CPU_VARIANT);
 
-        if (LOADER_LOG.isLoggable(Level.FINE))
+        if (LOG.isLoggable(Level.FINE))
         {
-            LOADER_LOG.log(Level.FINE, "forced variant is: " + (forcedVariant != null ? forcedVariant : " not " +
-                    "defined"));
+            LOG.fine("forced variant is: " + (forcedVariant != null ? forcedVariant : " not defined"));
         }
 
         // No variants defined at all, or a
@@ -173,16 +170,13 @@ class NativeLoader
             javaSupportOnly = true;
             nativeInstalled = false;
             nativeStatusMessage = "java support only";
-            if (LOADER_LOG.isLoggable(Level.FINE))
-            {
-                LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-            }
+            LOG.warning("exited with " + nativeStatusMessage);
             return;
         }
 
-        if (LOADER_LOG.isLoggable(Level.FINE))
+        if (LOG.isLoggable(Level.FINE))
         {
-            LOADER_LOG.log(Level.FINE, "examining properties to determine platform and architecture");
+            LOG.log(Level.FINE, "examining properties to determine platform and architecture");
         }
 
         String arch_ = Strings.toLowerCase(Properties.getPropertyValue("os.arch", ""));
@@ -190,10 +184,10 @@ class NativeLoader
         String platform = null;
         String arch = null;
 
-        if (LOADER_LOG.isLoggable(Level.FINE))
+        if (LOG.isLoggable(Level.FINE))
         {
-            LOADER_LOG.log(Level.FINE, "host ARCH: " + arch_);
-            LOADER_LOG.log(Level.FINE, "host OS: " + os_);
+            LOG.log(Level.FINE, "host ARCH: " + arch_);
+            LOG.log(Level.FINE, "host OS: " + os_);
         }
 
 
@@ -206,10 +200,7 @@ class NativeLoader
         if (platform == null)
         {
             nativeStatusMessage = "OS '" + os_ + "' is not supported.";
-            if (LOADER_LOG.isLoggable(Level.FINE))
-            {
-                LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-            }
+            LOG.warning("exited with " + nativeStatusMessage);
             return;
         }
 
@@ -222,29 +213,19 @@ class NativeLoader
         if (arch == null)
         {
             nativeStatusMessage = "architecture '" + arch_ + "' is not supported";
-            if (LOADER_LOG.isLoggable(Level.FINE))
-            {
-                LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-            }
+            LOG.warning("exited with " + nativeStatusMessage);
             return;
         }
 
-        if (LOADER_LOG.isLoggable(Level.FINE))
+        if (LOG.isLoggable(Level.FINE))
         {
-            LOADER_LOG.log(Level.FINE, "derived native platform: " + platform);
-            LOADER_LOG.log(Level.FINE, "derived native architecture: " + arch);
+            LOG.log(Level.FINE, "derived native platform: " + platform);
+            LOG.log(Level.FINE, "derived native architecture: " + arch);
         }
 
-
-        if (LOADER_LOG.isLoggable(Level.FINE))
+        if (LOG.isLoggable(Level.FINE))
         {
-            LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-        }
-
-
-        if (LOADER_LOG.isLoggable(Level.FINE))
-        {
-            LOADER_LOG.log(Level.FINE, "begin determining path to install native libraries");
+            LOG.log(Level.FINE, "begin determining path to install native libraries");
         }
 
         File bcLtsLibPath = AccessController.doPrivileged(new PrivilegedAction<File>()
@@ -258,10 +239,7 @@ class NativeLoader
                 {
                     nativeInstalled = false;
                     nativeStatusMessage = ioTmpDir + " did not exist";
-                    if (LOADER_LOG.isLoggable(Level.FINE))
-                    {
-                        LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-                    }
+                    LOG.warning("exited with " + nativeStatusMessage);
                     return null;
                 }
 
@@ -291,10 +269,7 @@ class NativeLoader
                         nativeInstalled = false;
                         nativeStatusMessage = "unable to create directory in " + ioTmpDir + " after 1000 unique " +
                                 "attempts";
-                        if (LOADER_LOG.isLoggable(Level.FINE))
-                        {
-                            LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-                        }
+                        LOG.warning("exited with " + nativeStatusMessage);
                         return null;
                     }
 
@@ -305,10 +280,7 @@ class NativeLoader
                     {
                         nativeInstalled = false;
                         nativeStatusMessage = "unable to create temp directory for jni libs: " + dir;
-                        if (LOADER_LOG.isLoggable(Level.FINE))
-                        {
-                            LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-                        }
+                        LOG.warning("exited with " + nativeStatusMessage);
                         return null;
                     }
 
@@ -339,11 +311,11 @@ class NativeLoader
 
                             if (!isDeleted)
                             {
-                                LOADER_LOG.warning(" failed to delete: " + tmpDir.getAbsolutePath());
+                                LOG.warning(" failed to delete: " + tmpDir.getAbsolutePath());
                             }
                             else
                             {
-                                LOADER_LOG.fine("successfully cleaned up: " + tmpDir.getAbsolutePath());
+                                LOG.fine("successfully cleaned up: " + tmpDir.getAbsolutePath());
                             }
                         }
                     }));
@@ -355,10 +327,7 @@ class NativeLoader
                     nativeInstalled = false;
                     nativeStatusMessage = "failed because it was not able to create a temporary file in 'java.io" +
                             ".tmpdir' " + ex.getMessage();
-                    if (LOADER_LOG.isLoggable(Level.FINE))
-                    {
-                        LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-                    }
+                    LOG.warning("exited with " + nativeStatusMessage);
                     return null;
                 }
 
@@ -370,9 +339,9 @@ class NativeLoader
             return;
         }
 
-        if (LOADER_LOG.isLoggable(Level.FINE))
+        if (LOG.isLoggable(Level.FINE))
         {
-            LOADER_LOG.log(Level.FINE, "native library install location: " + bcLtsLibPath.getAbsolutePath());
+            LOG.log(Level.FINE, "native library install location: " + bcLtsLibPath.getAbsolutePath());
         }
 
 
@@ -389,13 +358,13 @@ class NativeLoader
             filesInInstallLocation.add(f);
         }
 
-        if (LOADER_LOG.isLoggable(Level.FINE))
+        if (LOG.isLoggable(Level.FINE))
         {
             if (!filesInInstallLocation.isEmpty())
             {
                 for (File file : filesInInstallLocation)
                 {
-                    LOADER_LOG.log(Level.FINE, "found in install location: " + file.getAbsolutePath());
+                    LOG.log(Level.FINE, "found in install location: " + file.getAbsolutePath());
                 }
             }
         }
@@ -406,9 +375,9 @@ class NativeLoader
         String jarDir = String.format("/native/%s/%s", platform, arch);
 
 
-        if (LOADER_LOG.isLoggable(Level.FINE))
+        if (LOG.isLoggable(Level.FINE))
         {
-            LOADER_LOG.log(Level.FINE, "library path within LTS jar: " + jarDir);
+            LOG.log(Level.FINE, "library path within LTS jar: " + jarDir);
         }
 
 
@@ -419,9 +388,9 @@ class NativeLoader
         //
         String probeLibInJarPath = String.format("/native/%s/%s/probe", platform, arch);
 
-        if (LOADER_LOG.isLoggable(Level.FINE))
+        if (LOG.isLoggable(Level.FINE))
         {
-            LOADER_LOG.log(Level.FINE, "begin install probe library from: " + probeLibInJarPath);
+            LOG.log(Level.FINE, "begin install probe library from: " + probeLibInJarPath);
         }
 
         InputStream tmpIn = NativeLoader.class.getResourceAsStream(probeLibInJarPath + "/" + System.mapLibraryName(
@@ -431,10 +400,7 @@ class NativeLoader
             nativeStatusMessage = String.format("platform '%s' and architecture '%s' are not supported", platform,
                     arch);
             nativeInstalled = false;
-            if (LOADER_LOG.isLoggable(Level.FINE))
-            {
-                LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-            }
+            LOG.warning("exited with " + nativeStatusMessage);
             return;
         }
         try
@@ -476,10 +442,7 @@ class NativeLoader
             {
                 nativeStatusMessage = "probe lib failed to load " + ex.getMessage();
                 nativeInstalled = false;
-                if (LOADER_LOG.isLoggable(Level.FINE))
-                {
-                    LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-                }
+                LOG.warning("exited with " + nativeStatusMessage);
                 return;
             }
 
@@ -491,10 +454,7 @@ class NativeLoader
             {
                 nativeStatusMessage = "probe lib failed return a variant " + ex.getMessage();
                 nativeInstalled = false;
-                if (LOADER_LOG.isLoggable(Level.FINE))
-                {
-                    LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-                }
+                LOG.warning("exited with " + nativeStatusMessage);
                 return;
             }
         }
@@ -504,10 +464,7 @@ class NativeLoader
             javaSupportOnly = true;
             nativeInstalled = false;
             nativeStatusMessage = "probe returned no suitable CPU features, java support only";
-            if (LOADER_LOG.isLoggable(Level.FINE))
-            {
-                LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-            }
+            LOG.warning("exited with " + nativeStatusMessage);
             return;
         }
 
@@ -543,10 +500,7 @@ class NativeLoader
                 nativeStatusMessage = String.format("unexpected files in %s: %s", bcLtsLibPath.toString(),
                         sBld.toString());
                 nativeInstalled = false;
-                if (LOADER_LOG.isLoggable(Level.FINE))
-                {
-                    LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-                }
+                LOG.warning("exited with " + nativeStatusMessage);
                 return;
             }
 
@@ -567,10 +521,7 @@ class NativeLoader
         {
             nativeStatusMessage = "native capabilities lib failed to load " + ex.getMessage();
             nativeInstalled = false;
-            if (LOADER_LOG.isLoggable(Level.FINE))
-            {
-                LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-            }
+            LOG.warning("exited with " + nativeStatusMessage);
             return;
         }
 
@@ -580,10 +531,7 @@ class NativeLoader
             nativeStatusMessage = String.format("loaded native library variant is %s but the requested library " +
                     "variant is %s", NativeLibIdentity.getLibraryIdent(), selectedVariant);
             nativeInstalled = false;
-            if (LOADER_LOG.isLoggable(Level.FINE))
-            {
-                LOADER_LOG.log(Level.FINE, "exited with " + nativeStatusMessage);
-            }
+            LOG.warning("exited with " + nativeStatusMessage);
             return;
         }
 
@@ -593,9 +541,10 @@ class NativeLoader
         nativeInstalled = true;
         javaSupportOnly = false;
 
-        if (LOADER_LOG.isLoggable(Level.FINE))
+        if (LOG.isLoggable(Level.FINE))
         {
-            LOADER_LOG.log(Level.FINE, nativeStatusMessage);
+            LOG.log(Level.FINE, nativeStatusMessage);
+            LOG.fine("native loader has finished");
         }
 
     }
