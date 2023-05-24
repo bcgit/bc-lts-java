@@ -89,7 +89,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_seekTo
  * Signature: (J[B[B)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_init
-        (JNIEnv *env, jclass, jlong ref, jbyteArray key_, jbyteArray iv_) {
+        (JNIEnv *env, jclass cl, jlong ref, jbyteArray key_, jbyteArray iv_) {
 
     java_bytearray_ctx key, iv;
 
@@ -150,7 +150,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_init
  * Signature: (JB)B
  */
 JNIEXPORT jbyte JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_returnByte
-        (JNIEnv *env, jclass, jlong ref, jbyte in) {
+        (JNIEnv *env, jclass cl, jlong ref, jbyte in) {
 
     unsigned char v = (unsigned char) in;
     ctr_ctx *ctx = (ctr_ctx *) ((void *) ref);
@@ -201,7 +201,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_process
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_reset
-        (JNIEnv *, jclass, jlong ref) {
+        (JNIEnv *env, jclass cl, jlong ref) {
     ctr_ctx *ctx = (ctr_ctx *) ((void *) ref);
     ctr_reset(ctx);
 }
@@ -212,7 +212,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_reset
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_dispose
-        (JNIEnv *, jclass, jlong ref) {
+        (JNIEnv *env, jclass cl, jlong ref) {
 
     ctr_ctx *ctx = (ctr_ctx *) ((void *) ref);
     ctr_free_ctx(ctx);

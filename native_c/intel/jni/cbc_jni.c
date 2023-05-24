@@ -14,7 +14,7 @@
  * Signature: (J[BII[BI)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_process
-        (JNIEnv *env, jclass, jlong ref, jbyteArray in_, jint inOff, jint blocks, jbyteArray out_, jint outOff) {
+        (JNIEnv *env, jclass cl, jlong ref, jbyteArray in_, jint inOff, jint blocks, jbyteArray out_, jint outOff) {
 
     critical_bytearray_ctx output;
     critical_bytearray_ctx input;
@@ -50,7 +50,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_process
  * Signature: (I)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_getMultiBlockSize
-        (JNIEnv *e, jclass c, jlong) {
+        (JNIEnv *e, jclass c, jlong l) {
 #ifdef BC_AVX
     return CBC_BLOCK_SIZE * 8;
 #else
@@ -64,7 +64,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_getMult
  * Signature: (J)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_getBlockSize
-        (JNIEnv *e, jclass c, jlong) {
+        (JNIEnv *e, jclass class, jlong l) {
     return CBC_BLOCK_SIZE;
 }
 
@@ -74,7 +74,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_getBloc
  * Signature: (IZ)J
  */
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_makeNative
-        (JNIEnv *env, jclass c, jint keySize, jboolean encryption) {
+        (JNIEnv *env, jclass class, jint keySize, jboolean encryption) {
 
     cbc_ctx *ctx = NULL;
     switch (keySize) {
@@ -114,7 +114,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_makeNa
  * Signature: (J[B[B)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_init
-        (JNIEnv *env, jobject, jlong ref, jbyteArray key_, jbyteArray iv_) {
+        (JNIEnv *env, jobject o, jlong ref, jbyteArray key_, jbyteArray iv_) {
 
     java_bytearray_ctx key, iv;
 

@@ -52,7 +52,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
  * Signature: ()Z
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCTR
-        (JNIEnv *, jclass) {
+        (JNIEnv *env, jclass cl) {
     cpuid_t info;
     cpuid(&info, 1, 0);
 
@@ -66,7 +66,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
  * Signature: ()Z
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeAES
-        (JNIEnv *, jclass) {
+        (JNIEnv *env, jclass cl) {
 
     cpuid_t info;
     cpuid(&info, 1, 0);
@@ -81,7 +81,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
  * Signature: ()Z
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCM
-        (JNIEnv *, jclass) {
+        (JNIEnv *env, jclass cl) {
 
     cpuid_t info;
     cpuid(&info, 1, 0);
@@ -100,7 +100,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
  * Signature: ()Z
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeRand
-        (JNIEnv *, jclass) {
+        (JNIEnv *env, jclass cl) {
 
     cpuid_t info;
     cpuid(&info, 1, 0);
@@ -115,7 +115,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
  * Signature: ()Z
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSeed
-        (JNIEnv *, jclass) {
+        (JNIEnv *env, jclass cl) {
     cpuid_t info;
     cpuid(&info, 7, 0);
 
@@ -128,7 +128,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
  * Signature: ()Z
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA2
-        (JNIEnv *, jclass) {
+        (JNIEnv *env, jclass cl) {
     cpuid_t info;
     cpuid(&info, 7, 0);
 

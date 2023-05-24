@@ -14,7 +14,7 @@
  * Signature: (JB)B
  */
 JNIEXPORT jbyte JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_processByte
-        (JNIEnv *e, jclass cl, jlong ref, jbyte in) {
+        (JNIEnv *e, jclass class, jlong ref, jbyte in) {
     cfb_ctx *ctx = (cfb_ctx *) ((void *) ref);
 
     if (ctx->encryption) {
@@ -30,7 +30,7 @@ JNIEXPORT jbyte JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_proces
  * Signature: (J[BII[BI)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_processBytes
-        (JNIEnv *env, jclass cl, jlong ref, jbyteArray in_, jint inOff, jint len, jbyteArray out_, jint outOff) {
+        (JNIEnv *env, jclass class, jlong ref, jbyteArray in_, jint inOff, jint len, jbyteArray out_, jint outOff) {
 
     critical_bytearray_ctx output;
     critical_bytearray_ctx input;
@@ -68,7 +68,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_process
  * Signature: (IZ)J
  */
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_makeNative
-        (JNIEnv *env, jclass, jboolean encryption, jint keySize) {
+        (JNIEnv *env, jclass class, jboolean encryption, jint keySize) {
 
     cfb_ctx *ctx = NULL;
     uint32_t rounds;
@@ -145,7 +145,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_init
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_dispose
-        (JNIEnv *e, jclass cl, jlong ref) {
+        (JNIEnv *e, jclass class, jlong ref) {
 
     cfb_ctx *ctx = (cfb_ctx *) ((void *) ref);
     cfb_free_ctx(ctx);
