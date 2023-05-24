@@ -9,7 +9,8 @@ import java.util.logging.Logger;
  */
 class NativeFeatures
 {
-    private static final Logger NATIVE_FEATURE_LOG = Logger.getLogger(NativeFeatures.class.getName());
+    private static final Logger LOG = Logger.getLogger(NativeFeatures.class.getName());
+
     static boolean hasCTRHardwareSupport()
     {
         try
@@ -18,12 +19,12 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            //
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native ctr exception: " + ule.getMessage(), ule);
+            }
+            return false;
         }
-        if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
-            NATIVE_FEATURE_LOG.log(Level.FINE,"native ctr not supported");
-        }
-        return false;
     }
 
     private static native boolean nativeCTR();
@@ -37,12 +38,12 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            //
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native cfb exception: " + ule.getMessage(), ule);
+            }
+            return false;
         }
-        if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
-            NATIVE_FEATURE_LOG.log(Level.FINE,"native cfb not supported");
-        }
-        return false;
     }
 
     native private static boolean nativeCFB();
@@ -55,12 +56,12 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            //
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native cbc exception: " + ule.getMessage(), ule);
+            }
+            return false;
         }
-        if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
-            NATIVE_FEATURE_LOG.log(Level.FINE,"native cbc not supported");
-        }
-        return false;
     }
 
     private native static boolean nativeCBC();
@@ -74,12 +75,12 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            //
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native aes exception: " + ule.getMessage(), ule);
+            }
+            return false;
         }
-        if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
-            NATIVE_FEATURE_LOG.log(Level.FINE,"native aes not supported");
-        }
-        return false;
     }
 
     private static native boolean nativeAES();
@@ -93,8 +94,9 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
-                NATIVE_FEATURE_LOG.log(Level.FINE,"native gcm not supported");
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native gcm exception: " + ule.getMessage(), ule);
             }
             return false;
         }
@@ -111,12 +113,12 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            //
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native rand exception: " + ule.getMessage(), ule);
+            }
+            return false;
         }
-        if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
-            NATIVE_FEATURE_LOG.log(Level.FINE,"native rand not supported");
-        }
-        return false;
     }
 
     private static native boolean nativeRand();
@@ -129,12 +131,12 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            //
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native seed exception: " + ule.getMessage(), ule);
+            }
+            return false;
         }
-        if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
-            NATIVE_FEATURE_LOG.log(Level.FINE,"native seed not supported");
-        }
-        return false;
     }
 
     private static native boolean nativeSeed();
@@ -147,17 +149,15 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            //
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native sha exception: " + ule.getMessage(), ule);
+            }
+            return false;
         }
-        if (NATIVE_FEATURE_LOG.isLoggable(Level.FINE)) {
-            NATIVE_FEATURE_LOG.log(Level.FINE,"native sha not supported");
-        }
-        return false;
     }
 
     private static native boolean nativeSHA2();
-
-
 
 
     private static native boolean nativeRSA();
