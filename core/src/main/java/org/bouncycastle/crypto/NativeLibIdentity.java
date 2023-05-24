@@ -14,7 +14,7 @@ class NativeLibIdentity
         }
         catch (UnsatisfiedLinkError ule)
         {
-            return ule.getMessage();
+            return "java";
         }
     }
 
@@ -28,7 +28,7 @@ class NativeLibIdentity
         }
         catch (UnsatisfiedLinkError ule)
         {
-            return ule.getMessage();
+            return "None";
         }
     }
 

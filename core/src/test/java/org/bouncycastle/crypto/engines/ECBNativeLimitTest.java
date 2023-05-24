@@ -8,6 +8,9 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 public class ECBNativeLimitTest extends TestCase
 {
     @Before

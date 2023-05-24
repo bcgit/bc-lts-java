@@ -32,19 +32,11 @@ public class GCMJavaAgreementTest extends TestCase
     @Before
     public void setUp()
     {
-
-        ConsoleHandler consoleHandler = new ConsoleHandler();
-        consoleHandler.setLevel(Level.FINE);
-        Logger foo = Logger.getLogger("org.bouncycastle.util.dispose.DisposalDaemon");
-        foo.setLevel(Level.FINE);
-        foo.addHandler(consoleHandler);
-      //  Logger.getLogger("org.bouncycastle.util.dispose.DisposalDaemon").addHandler(consoleHandler);
-
-
         String forcedVariant = System.getProperty(BCFIPS_LIB_CPU_VARIANT);
         if (forcedVariant != null)
         {
-            if (!forcedVariant.equals(CryptoServicesRegistrar.getNativeServices().getVariant()))
+
+            if (!forcedVariant.equals(CryptoServicesRegistrar.getNativeServices().getLibraryIdent()))
             {
                 throw new RuntimeException("Forced variant not the same as loaded variant: " + forcedVariant + " " + CryptoServicesRegistrar.getNativeServices().getVariant());
             }

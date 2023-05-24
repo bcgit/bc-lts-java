@@ -20,7 +20,7 @@ public class CTRJavaAgreementTest extends TestCase
 {
 
     @Before
-    public void before()
+    public void setUp()
     {
         CryptoServicesRegistrar.setNativeEnabled(true);
     }

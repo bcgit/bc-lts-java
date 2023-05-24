@@ -62,7 +62,10 @@ task cleanNative(type: Delete) {
     delete("$projectDir/src/main/resources/META-INF/DRIVERS");
 }
 
-
+task('copyJars', type:Copy) {
+    from new File(projectDir,"build/libs")
+    into new File(rootDir,"jars")
+}
 
 task withNative() {
     doLast {
