@@ -91,7 +91,6 @@ set(MUL_AVX intel/jni/cmul_jni.c intel/mul/cmul.h intel/mul/cmul128.c)
 set(MUL_VAESF intel/jni/cmul_jni.c intel/mul/cmul.h intel/mul/cmul128.c)
 
 
-
 set(ECB
         intel/jni/ecb_jni.c
         intel/ecb/ecb128w.c
