@@ -231,7 +231,6 @@ public class MulTest
     public void testMul()
     {
 
-
         for (int i = 0; i < vecs.size(); i++)
         {
             Vec vector = vecs.get(i);

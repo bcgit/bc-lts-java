@@ -1,7 +1,6 @@
 //
 //
 
-#include <stdio.h>
 #include "cmul.h"
 #include "immintrin.h"
 

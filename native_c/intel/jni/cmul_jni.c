@@ -57,26 +57,26 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_math_raw_Mul_cmulAcc
 
     if (x_off < 0) {
         throw_java_illegal_argument(env,
-                                    "x_off is negative");
+                                    "x offset is negative");
         goto exit;
     }
 
 
     if (x_off > x.size) {
-        throw_java_illegal_argument(env, "x_off is past end of array");
+        throw_java_illegal_argument(env, "x offset is past end of array");
         goto exit;
     }
 
 
     if (y_off < 0) {
         throw_java_illegal_argument(env,
-                                    "y_off is negative");
+                                    "y offset is negative");
         goto exit;
     }
 
 
     if (y_off > y.size) {
-        throw_java_illegal_argument(env, "y_off is past end of array");
+        throw_java_illegal_argument(env, "y offset is past end of array");
         goto exit;
     }
 
