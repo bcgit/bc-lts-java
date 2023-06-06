@@ -139,6 +139,12 @@ class DefaultNativeServices
             {
                 set.add(SHA2);
             }
+
+            if (NativeFeatures.hasMultiplyAcc())
+            {
+                set.add(MULACC);
+            }
+
         }
 
         if (set.isEmpty())

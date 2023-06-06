@@ -81,7 +81,15 @@ set(JNI_UTIL
         jniutil/exceptions.c
         jniutil/exceptions.h
         jniutil/jni_asserts.h
+        jniutil/longarrays.c
+        jniutil/longarrays.h
+        jniutil/longarraycritical.c
+        jniutil/longarraycritical.h
         )
+
+set(MUL_AVX intel/jni/cmul_jni.c intel/mul/cmul.h intel/mul/cmul128.c)
+set(MUL_VAESF intel/jni/cmul_jni.c intel/mul/cmul.h intel/mul/cmul128.c)
+
 
 
 set(ECB
@@ -217,6 +225,7 @@ add_library(${LIB_NATIVE}-avx SHARED
         ${RAND}
         ${SHA256}
         ${GCM}
+        ${MUL_AVX}
         )
 target_include_directories("${LIB_NATIVE}-avx" PUBLIC ${JNI_INCLUDES})
 target_compile_options("${LIB_NATIVE}-avx" PRIVATE $<$<COMPILE_LANGUAGE:C>:${AVX_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -235,6 +244,7 @@ add_library(${LIB_NATIVE}-vaes SHARED
         ${RAND}
         ${SHA256}
         ${GCM}
+        ${MUL_AVX}
         )
 target_include_directories("${LIB_NATIVE}-vaes" PUBLIC ${JNI_INCLUDES})
 target_compile_options("${LIB_NATIVE}-vaes" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAES_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -253,6 +263,7 @@ add_library(${LIB_NATIVE}-vaesf SHARED
         ${RAND}
         ${SHA256}
         ${GCM_VAESF}
+        ${MUL_VAESF}
         )
 target_include_directories("${LIB_NATIVE}-vaesf" PUBLIC ${JNI_INCLUDES})
 target_compile_options("${LIB_NATIVE}-vaesf" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAESF_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)

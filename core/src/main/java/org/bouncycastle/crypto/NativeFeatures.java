@@ -157,8 +157,26 @@ class NativeFeatures
         }
     }
 
+    static boolean hasMultiplyAcc()
+    {
+        try
+        {
+            return nativeMulAcc();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native multiply and accumulate exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+
     private static native boolean nativeSHA2();
 
+    private static native boolean nativeMulAcc();
 
     private static native boolean nativeRSA();
 }

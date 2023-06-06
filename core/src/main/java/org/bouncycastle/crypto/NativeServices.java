@@ -14,6 +14,7 @@ public interface NativeServices
     String AES_CTR = "AES/CTR";
 
     String SHA2 = "SHA2";
+    String MULACC = "MULACC";
 
     String NONE = "NONE";
 
