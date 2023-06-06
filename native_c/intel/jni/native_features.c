@@ -136,3 +136,21 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 
 }
 
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeMulAcc
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeMulAcc
+        (JNIEnv *env, jclass cl) {
+
+    cpuid_t info;
+    cpuid(&info, 1, 0);
+
+    bool pclmulqdq = (info.ecx & (1 << 1)) != 0;
+
+    return (pclmulqdq) ? JNI_TRUE : JNI_FALSE;
+
+}
+
+
