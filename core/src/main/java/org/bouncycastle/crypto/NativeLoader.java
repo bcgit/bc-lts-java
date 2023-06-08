@@ -205,6 +205,10 @@ class NativeLoader
         {
             platform = "linux";
         }
+        else if (os_.contains("mac") || os_.contains("darwin"))
+        {
+            platform = "darwin";
+        }
 
 
         if (platform == null)
@@ -214,9 +218,13 @@ class NativeLoader
             return;
         }
 
-        if ((arch_.contains("x86") || arch_.contains("amd")) && arch_.contains("64"))
+        if ((arch_.contains("x86") || (arch_.contains("amd")) && arch_.contains("64")))
         {
             arch = "x86_64";
+        }
+        else if (arch_.contains("aarch64"))
+        {
+            arch = "arm64";
         }
 
 

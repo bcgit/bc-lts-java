@@ -43,7 +43,7 @@ compileJava {
 
 compileJava9Java {
   javaCompiler = javaToolchains.compilerFor {
-    languageVersion = JavaLanguageVersion.of(9)
+    languageVersion = JavaLanguageVersion.of(11)
   }
   sourceCompatibility = 9
   targetCompatibility = 9

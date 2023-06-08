@@ -27,7 +27,7 @@ public class ECBNativeLimitTest extends TestCase
         NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
         if (!nativeServices.hasService("AES/ECB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("cbc"))
+            if (!System.getProperty("test.bcfips.ignore.native","").contains("ecb"))
             {
                 fail("no native ecb and no skip set for it");
                 return;

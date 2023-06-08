@@ -4,7 +4,7 @@
 #define BC_LTS_longarrayS_H
 
 #include <stdbool.h>
-#include <malloc.h>
+#include <stdlib.h>
 #include <memory.h>
 #include "jni.h"
 #include <stdint.h>
