@@ -90,6 +90,16 @@ task withNative() {
             copyDirContent("$rootDir/native_c/target/linux/x86_64/vaesf", "$projectDir/src/main/resources/native/linux/x86_64/vaesf")
         }
 
+        // arm
+        if (directoryExists("$rootDir/native_c/target/darwin/arm64/probe")) {
+            copyDirContent("$rootDir/native_c/target/darwin/arm64/probe", "$projectDir/src/main/resources/native/darwin/arm64/probe")
+        }
+
+        if (directoryExists("$rootDir/native_c/target/darwin/arm64/neon")) {
+            copyDirContent("$rootDir/native_c/target/darwin/arm64/neon", "$projectDir/src/main/resources/native/darwin/arm64/neon")
+        }
+
+
     }
 }
 
