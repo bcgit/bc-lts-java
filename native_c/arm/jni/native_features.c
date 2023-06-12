@@ -1,18 +1,8 @@
 
 #include <stdbool.h>
 #include "org_bouncycastle_crypto_NativeFeatures.h"
+#include "../../jniutil/variant_selector.h"
 
-
-struct cpuid_info {
-    bool loaded;
-    bool aes;
-    bool sha256;
-    bool sha512;
-    bool sha3;
-    bool neon;
-    bool arm64;
-    bool sve2;
-};
 
 static struct cpuid_info cpu_info = {
         false,
@@ -24,7 +14,6 @@ static struct cpuid_info cpu_info = {
         false,
         false
 };
-
 
 #ifdef __APPLE__
 
@@ -57,8 +46,43 @@ void probe_system() {
     }
 }
 
-#elif
-// Linux version here
+#else
+#include <sys/auxv.h>
+#include <asm/hwcap.h>
+#include <sys/utsname.h>
+#include <errno.h>
+#include <string.h>
+
+#define aa64 "aarch64"
+
+void probe_system() {
+
+
+    if (!cpu_info.loaded) {
+
+        unsigned long hwcaps = getauxval(AT_HWCAP);
+
+        cpu_info.loaded = true;
+        cpu_info.aes = hwcaps & HWCAP_AES;
+        cpu_info.sha256 = hwcaps & HWCAP_SHA2; //  has_feature("hw.optional.arm.FEAT_SHA256");
+        cpu_info.sha512 = hwcaps & HWCAP_SHA512; // has_feature("hw.optional.arm.FEAT_SHA512");
+        cpu_info.sha3 = hwcaps & HWCAP_SHA3; // has_feature("hw.optional.arm.FEAT_SHA512");
+        // has_feature("hw.optional.neon");
+
+        struct utsname buffer;
+        errno = 0;
+        if (uname(&buffer) < 0) {
+            cpu_info.neon = false;
+        } else {
+            if (strncmp(aa64, buffer.machine, strlen(aa64)) == 0) {
+                cpu_info.arm64 = true;
+                cpu_info.neon = true;
+            }
+        }
+        //cpu_info.arm64 = has_feature("hw.optional.arm64");
+    }
+
+}
 #endif
 
 /*

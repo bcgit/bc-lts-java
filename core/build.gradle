@@ -70,6 +70,7 @@ task('copyJars', type:Copy) {
 task withNative() {
     doLast {
 
+        // Intel -- Linux
         if (directoryExists("$rootDir/native_c/target/linux/x86_64/probe")) {
             copyDirContent("$rootDir/native_c/target/linux/x86_64/probe", "$projectDir/src/main/resources/native/linux/x86_64/probe")
         }
@@ -90,13 +91,22 @@ task withNative() {
             copyDirContent("$rootDir/native_c/target/linux/x86_64/vaesf", "$projectDir/src/main/resources/native/linux/x86_64/vaesf")
         }
 
-        // arm
+        // ARM - darwin
         if (directoryExists("$rootDir/native_c/target/darwin/arm64/probe")) {
             copyDirContent("$rootDir/native_c/target/darwin/arm64/probe", "$projectDir/src/main/resources/native/darwin/arm64/probe")
         }
 
         if (directoryExists("$rootDir/native_c/target/darwin/arm64/neon")) {
             copyDirContent("$rootDir/native_c/target/darwin/arm64/neon", "$projectDir/src/main/resources/native/darwin/arm64/neon")
+        }
+
+        // ARM - linux
+        if (directoryExists("$rootDir/native_c/target/linux/arm64/probe")) {
+            copyDirContent("$rootDir/native_c/target/linux/arm64/probe", "$projectDir/src/main/resources/native/linux/arm64/probe")
+        }
+
+        if (directoryExists("$rootDir/native_c/target/linux/arm64/neon")) {
+            copyDirContent("$rootDir/native_c/target/linux/arm64/neon", "$projectDir/src/main/resources/native/linux/arm64/neon")
         }
 
 

@@ -1,16 +1,26 @@
 cmake_minimum_required(VERSION 3.16)
 
-FILE(TO_CMAKE_PATH "$ENV{JAVA_HOME}/include" JNI_INCLUDE)
+message("Looking for either JAVA_HOME or LTS_JDK8 env vars. ")
 
-FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/../core" FIPS_JAVA_ROOT)
+if (DEFINED ENV{JAVA_HOME})
+    message("Found JAVA_HOME..")
+    FILE(TO_CMAKE_PATH "$ENV{JAVA_HOME}/include" JNI_INCLUDE)
+else ()
+    message("Found LTS_JDK8..")
+    FILE(TO_CMAKE_PATH "$ENV{LTS_JDK8}/include" JNI_INCLUDE)
+endif ()
+
+
+FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/../core" LTS_JAVA_ROOT)
 
 message("JNI Include directory:  ${JNI_INCLUDE}")
-message("FIPS_JAVA_ROOT  ${FIPS_JAVA_ROOT}")
+message("LTS_JAVA_ROOT: ${LTS_JAVA_ROOT}")
 
 # We also need to include the machine dependent libraries.
 set(JNI_INCLUDE_PLATFORM "")
 set(LIBCRYPTO "")
-set(FIPS_JAVA_HEADERS ${FIPS_JAVA_ROOT}/build/generated/sources/headers/java/main)
+set(LTS_JAVA_HEADERS ${LTS_JAVA_ROOT}/build/generated/sources/headers/java/main)
+message("LTS_JAVA_HEADERS: " ${LTS_JAVA_HEADERS})
 
 option(ENABLE_CODE_ANALYSIS "Run code analysis" OFF)
 
@@ -22,10 +32,6 @@ string(TIMESTAMP BUILD_TS "%Y-%m-%dT%H:%M:%S")
 
 
 project(${CORE_NATIVE} LANGUAGES C)
-
-
-message(${CMAKE_SYSTEM_PROCESSOR})
-message(${CMAKE_SYSTEM_NAME})
 
 set(NATIVE_INSTALL_ROOT ${CMAKE_SOURCE_DIR}/target)
 
@@ -46,24 +52,27 @@ set(JNI_UTIL
         jniutil/longarrays.h
         jniutil/longarraycritical.c
         jniutil/longarraycritical.h
+        jniutil/variant_selector.h
         )
 
 
-if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64")
+
+if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64"))
+
+
+    set(OPTIMISE_FLAG -O3)
+    # Test for dev environment.
+    # If dev environment variable LTS_DEV exists then turn off optimisations and switch on debugging
+    #
+    if (DEFINED ENV{LTS_DEV})
+        set(OPTIMISE_FLAG -g)
+        MESSAGE("DEBUG BUILD --- NOT OPTIMISED")
+    else ()
+        MESSAGE("RELEASE BUILD --- OPTIMISED")
+    endif ()
 
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Darwin")
-
-        set(OPTIMISE_FLAG -O3)
-        # Test for dev environment.
-        # If dev environment variable LTS_DEV exists then turn off optimisations and switch on debugging
-        #
-        if (DEFINED ENV{LTS_DEV})
-            set(OPTIMISE_FLAG -g)
-            MESSAGE("DEBUG BUILD --- NOT OPTIMISED")
-        else ()
-            MESSAGE("RELEASE BUILD --- OPTIMISED")
-        endif ()
-
+        message("Detected OSX Darwin")
 
         set(JNI_INCLUDE_PLATFORM ${JNI_INCLUDE}/darwin)
         set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/darwin/arm64)
@@ -71,20 +80,28 @@ if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64")
         set(PROBE_OPTIONS ${OPTIMISE_FLAG})
         set(ARM64_NEON_OPTIONS ${OPTIMISE_FLAG})
 
+    elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+        message("Detected Linux")
+        set(JNI_INCLUDE_PLATFORM ${JNI_INCLUDE}/linux)
+        set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/linux/arm64)
+        set(OPTIONS -Wconversion)
+        set(PROBE_OPTIONS ${OPTIMISE_FLAG})
+        set(ARM64_NEON_OPTIONS -Wconversion -march=armv8.4-a+crypto  ${OPTIMISE_FLAG})
+
     endif ()
 
-    MESSAGE("JNI_INCLUDE_PLATFORM" ${JNI_INCLUDE_PLATFORM})
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${JNI_INCLUDE} ${JNI_INCLUDE_PLATFORM} ${FIPS_JAVA_HEADERS})
+    MESSAGE("JNI_INCLUDE_PLATFORM " ${JNI_INCLUDE_PLATFORM})
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${JNI_INCLUDE} ${JNI_INCLUDE_PLATFORM} ${LTS_JAVA_HEADERS})
 
 
-    set(PROBE arm/jni/variant_selector_intel.c)
+    set(PROBE arm/jni/variant_selector_arm.c)
     set(COMMON arm/jni/native_features.c arm/jni/ident_jni.c)
     set(COMMON_NEON
             arm/aes/aes_common_neon.h
             arm/aes/aes_key.c
             arm/aes/schedule.h)
 
-    set(ECB  arm/jni/ecb_jni.c arm/ecb/ecb.h arm/ecb/ecb_neon.c)
+    set(ECB  arm/jni/ecb_jni.c arm/ecb/ecb.h arm/ecb/ecb_neon.c jniutil/variant_selector.h)
 
 
     add_library(${LIB_PROBE} SHARED ${PROBE})
@@ -160,7 +177,7 @@ else ()
     endif ()
 
     MESSAGE("JNI_INCLUDE_PLATFORM" ${JNI_INCLUDE_PLATFORM})
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${JNI_INCLUDE} ${JNI_INCLUDE_PLATFORM} ${FIPS_JAVA_HEADERS})
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${JNI_INCLUDE} ${JNI_INCLUDE_PLATFORM} ${LTS_JAVA_HEADERS})
 
 
     set(PROBE intel/jni/variant_selector_intel.c)

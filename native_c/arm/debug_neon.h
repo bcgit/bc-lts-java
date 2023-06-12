@@ -1,6 +1,6 @@
 
 #include <arm_neon.h>
-#include <printf.h>
+#include <stdio.h>
 
 void print_uint8x16_t(uint8x16_t *v) {
     for (int t = 0; t < sizeof(uint8x16_t); t++) {
