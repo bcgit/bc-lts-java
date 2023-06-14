@@ -5,6 +5,7 @@
 #define BC_LTS_C_VARIANT_SELECTOR_H
 
 #include <stdbool.h>
+#include <stdlib.h>
 
 struct cpuid_info {
     bool loaded;
@@ -15,7 +16,14 @@ struct cpuid_info {
     bool neon;
     bool arm64;
     bool sve2;
+    bool le;
 };
+
+bool is_le() {
+    uint16_t w = 0xFF01;
+    uint8_t *d = (uint8_t *) &w;
+    return d[0] == 0x01;
+}
 
 void probe_system();
 

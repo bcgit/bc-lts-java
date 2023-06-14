@@ -43,6 +43,7 @@ void probe_system() {
         cpu_info.sha3 = has_feature("hw.optional.arm.FEAT_SHA512");
         cpu_info.neon = has_feature("hw.optional.neon");
         cpu_info.arm64 = has_feature("hw.optional.arm64");
+        cpu_info.le = is_le();
     }
 }
 
@@ -64,10 +65,10 @@ void probe_system() {
 
         cpu_info.loaded = true;
         cpu_info.aes = hwcaps & HWCAP_AES;
-        cpu_info.sha256 = hwcaps & HWCAP_SHA2; //  has_feature("hw.optional.arm.FEAT_SHA256");
-        cpu_info.sha512 = hwcaps & HWCAP_SHA512; // has_feature("hw.optional.arm.FEAT_SHA512");
-        cpu_info.sha3 = hwcaps & HWCAP_SHA3; // has_feature("hw.optional.arm.FEAT_SHA512");
-        // has_feature("hw.optional.neon");
+        cpu_info.sha256 = hwcaps & HWCAP_SHA2;
+        cpu_info.sha512 = hwcaps & HWCAP_SHA512;
+        cpu_info.sha3 = hwcaps & HWCAP_SHA3;
+        cpu_info.le = is_le();
 
         struct utsname buffer;
         errno = 0;
@@ -79,7 +80,7 @@ void probe_system() {
                 cpu_info.neon = true;
             }
         }
-        //cpu_info.arm64 = has_feature("hw.optional.arm64");
+
     }
 
 }

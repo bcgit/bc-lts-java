@@ -5,9 +5,8 @@
 #include "org_bouncycastle_crypto_VariantSelector.h"
 
 
-
-
 static struct cpuid_info cpu_info = {
+        false,
         false,
         false,
         false,
@@ -47,6 +46,8 @@ void probe_system() {
         cpu_info.sha3 = has_feature("hw.optional.arm.FEAT_SHA512");
         cpu_info.neon = has_feature("hw.optional.neon");
         cpu_info.arm64 = has_feature("hw.optional.arm64");
+        cpu_info.le = is_le();
+
     }
 
 }
@@ -73,6 +74,7 @@ void probe_system() {
         cpu_info.sha256 = hwcaps & HWCAP_SHA2; //  has_feature("hw.optional.arm.FEAT_SHA256");
         cpu_info.sha512 = hwcaps & HWCAP_SHA512; // has_feature("hw.optional.arm.FEAT_SHA512");
         cpu_info.sha3 = hwcaps & HWCAP_SHA3; // has_feature("hw.optional.arm.FEAT_SHA512");
+        cpu_info.le = is_le();
         // has_feature("hw.optional.neon");
 
         struct utsname buffer;
@@ -103,9 +105,12 @@ JNIEXPORT jstring JNICALL Java_org_bouncycastle_crypto_VariantSelector_getBestVa
 
     probe_system();
 
-    // SVE2 later
-    if (cpu_info.arm64 && cpu_info.neon) {
-        return (*env)->NewStringUTF(env, "neon");
+
+    // Neon little endian
+    if (cpu_info.arm64 && cpu_info.neon && cpu_info.le) {
+        return (*env)->NewStringUTF(env, "neon-le");
+    } else if (cpu_info.arm64 && cpu_info.neon && !cpu_info.le) {
+        return (*env)->NewStringUTF(env, "neon-be");
     }
 
     return (*env)->NewStringUTF(env, "none");
@@ -126,7 +131,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_bouncycastle_crypto_VariantSelector_getF
     jobjectArray outerArray = (*env)->NewObjectArray(env, 1, (*env)->FindClass(env, "[Ljava/lang/String;"), NULL);
 
     if (cpu_info.neon) {
-        jobjectArray arm64 = (*env)->NewObjectArray(env, 7, (*env)->FindClass(env, "java/lang/String"), NULL);
+        jobjectArray arm64 = (*env)->NewObjectArray(env, 8, (*env)->FindClass(env, "java/lang/String"), NULL);
         (*env)->SetObjectArrayElement(env, outerArray, 0, arm64);
         int t = 0;
         (*env)->SetObjectArrayElement(env, arm64, t++, (*env)->NewStringUTF(env, "neon"));
@@ -161,12 +166,18 @@ JNIEXPORT jobjectArray JNICALL Java_org_bouncycastle_crypto_VariantSelector_getF
             (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "-neon"));
         }
         t++;
-        if (cpu_info.arm64 && cpu_info.neon) {
+        if (cpu_info.le) {
+            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "Little Endian"));
+        } else {
+            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "Big Endian"));
+        }
+
+        t++;
+        if (cpu_info.arm64 && cpu_info.neon && cpu_info.le) {
             (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "Variant Supported"));
         } else {
             (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "No Variant Support"));
         }
-
     }
 
     return outerArray;
