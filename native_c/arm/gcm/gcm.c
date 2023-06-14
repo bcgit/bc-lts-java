@@ -6,6 +6,16 @@
 #include <assert.h>
 #include "gcm.h"
 
+static inline void swap_endian_inplace(uint8x16_t *in) {
+    *in = vrev64q_u8(*in);
+    *in = vextq_u8(*in, *in, 8);
+}
+
+static inline uint8x16_t swap_endian(uint8x16_t in) {
+    in = vrev64q_u8(in);
+    return vextq_u8(in, in, 8);
+}
+
 gcm_err *make_gcm_error(const char *msg, int type) {
     gcm_err *err = calloc(1, sizeof(gcm_err));
     err->msg = msg;
@@ -91,7 +101,7 @@ void gcm__initBytes(gcm_ctx *ctx) {
     }
 
     if (ctx->atBlockPos > 0) {
-        uint8x16_t   tmp =  vrev64q_u8(ctx->last_aad_block);//  _mm_shuffle_epi8(ctx->last_aad_block, *BSWAP_MASK);
+        uint8x16_t tmp = vrev64q_u8(ctx->last_aad_block);//  _mm_shuffle_epi8(ctx->last_aad_block, *BSWAP_MASK);
         tmp = vextq_u8(tmp, tmp, 8);
 
         ctx->S_atPre = veorq_u8(ctx->S_atPre, tmp);
@@ -155,7 +165,7 @@ void gcm_process_aad_bytes(gcm_ctx *ctx, uint8_t *aad, size_t len) {
     }
 }
 
-static const uint8x16_t insert_32 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+static const uint8x16_t insert_32 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1};
 
 gcm_err *gcm_init(
         gcm_ctx *ctx,
@@ -169,7 +179,7 @@ gcm_err *gcm_init(
         uint32_t macBlockLenBits) {
 
     clear_aes_key(&ctx->aesKey);
-    init_aes_key(&ctx->aesKey,key,keyLen,true);
+    init_aes_key(&ctx->aesKey, key, keyLen, true);
     ctx->encryption = encryption;
 
 
@@ -235,10 +245,38 @@ gcm_err *gcm_init(
         memcpy(nonceBuf, nonce, nonceLen);
         ctx->Y = vld1q_u8(nonceBuf);
         memset(nonceBuf, 0, 16);
-        ctx->Y = vorrq_u8(ctx->Y,insert_32);
+        ctx->Y = vorrq_u8(ctx->Y, insert_32);
 
-        // stopped in init.
+        dual_block(&ctx->aesKey, ctx->X, ctx->Y, &ctx->H, &ctx->T);
 
+        // swap endian -le only.
+        ctx->H = vrev64q_u8(ctx->H);
+        ctx->H = vextq_u8(ctx->H, ctx->H, 8);
+
+    } else {
+        single_block(&ctx->aesKey, ctx->X, &ctx->H);
+        // swap endian -le only.
+        ctx->H = vrev64q_u8(ctx->H);
+        ctx->H = vextq_u8(ctx->H, ctx->H, 8);
+
+        int i;
+        for (i = 0; i < nonceLen / 16; i++) {
+            tmp1 = vld1q_u8(&nonce[i]);
+            tmp1 = vrev64q_u8(tmp1);
+            tmp1 = vextq_u8(tmp1, tmp1, 8);
+            ctx->Y = veorq_u8(ctx->Y, tmp1);
+            ctx->Y = gfmul(ctx->Y, ctx->H);
+        }
+        if (nonceLen % 16) {
+            for (int j = 0; j < nonceLen % 16; j++) {
+                ((uint8_t *) &ctx->last_block)[j] = nonce[i * 16 + j];
+            }
+            tmp1 = ctx->last_block;
+            swap_endian_inplace(&tmp1); //  tmp1 = _mm_shuffle_epi8(tmp1, *BSWAP_MASK);
+
+            ctx->Y = veorq_u8(ctx->Y, tmp1);
+            ctx->Y = gfmul(ctx->Y, ctx->H);
+        }
 
     }
 

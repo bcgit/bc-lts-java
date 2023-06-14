@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <arm_neon.h>
 #include "gcm_hash.h"
+#include "gcm_aes_func.h"
 #include "../aes/aes_common_neon.h"
 
 

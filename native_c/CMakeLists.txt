@@ -102,7 +102,12 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
 
     set(ECB arm/jni/ecb_jni.c arm/ecb/ecb.h arm/ecb/ecb_neon.c jniutil/variant_selector.h)
 
-    set(GCM arm/jni/gcm_jni.c arm/gcm/gcm.h arm/gcm/gcm.c arm/gcm/gcm_hash.h)
+    set(GCM
+            arm/jni/gcm_jni.c
+            arm/gcm/gcm.h
+            arm/gcm/gcm.c
+            arm/gcm/gcm_hash.h
+            arm/gcm/gcm_aes_func.h)
 
 
     add_library(${LIB_PROBE}-le SHARED ${PROBE})
