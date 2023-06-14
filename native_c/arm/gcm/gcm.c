@@ -250,20 +250,24 @@ gcm_err *gcm_init(
         dual_block(&ctx->aesKey, ctx->X, ctx->Y, &ctx->H, &ctx->T);
 
         // swap endian -le only.
-        ctx->H = vrev64q_u8(ctx->H);
-        ctx->H = vextq_u8(ctx->H, ctx->H, 8);
+//        ctx->H = vrev64q_u8(ctx->H);
+//        ctx->H = vextq_u8(ctx->H, ctx->H, 8);
+        swap_endian_inplace(&ctx->H);
+
 
     } else {
         single_block(&ctx->aesKey, ctx->X, &ctx->H);
         // swap endian -le only.
-        ctx->H = vrev64q_u8(ctx->H);
-        ctx->H = vextq_u8(ctx->H, ctx->H, 8);
+        swap_endian_inplace(&ctx->H);
+//        ctx->H = vrev64q_u8(ctx->H);
+//        ctx->H = vextq_u8(ctx->H, ctx->H, 8);
 
         int i;
         for (i = 0; i < nonceLen / 16; i++) {
             tmp1 = vld1q_u8(&nonce[i]);
-            tmp1 = vrev64q_u8(tmp1);
-            tmp1 = vextq_u8(tmp1, tmp1, 8);
+            swap_endian_inplace(&tmp1);
+//            tmp1 = vrev64q_u8(tmp1);
+//            tmp1 = vextq_u8(tmp1, tmp1, 8);
             ctx->Y = veorq_u8(ctx->Y, tmp1);
             ctx->Y = gfmul(ctx->Y, ctx->H);
         }
@@ -277,6 +281,18 @@ gcm_err *gcm_init(
             ctx->Y = veorq_u8(ctx->Y, tmp1);
             ctx->Y = gfmul(ctx->Y, ctx->H);
         }
+
+        const uint32x4_t nlen = {0,0,0,0};
+        tmp1 = _mm_insert_epi64(tmp1, (long long) nonceLen * 8, 0);
+        tmp1 = _mm_insert_epi64(tmp1, 0, 1);
+
+        ctx->Y = _mm_xor_si128(ctx->Y, tmp1);
+        gfmul(ctx->Y, ctx->H, &ctx->Y);
+        ctx->Y = _mm_shuffle_epi8(ctx->Y, *BSWAP_MASK);
+        // E(K,Y0)
+
+
+
 
     }
 
