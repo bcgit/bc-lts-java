@@ -41,7 +41,7 @@ test-code-vaes:
     - "./gradlew clean cleanNative withNative build -x test"
     - "tmpLibDir=$(mktemp -d -t bc-jni-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
-    - "java -Dorg.bouncycastle.native.cpu_variant=avx -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo"
+    - "java -Dorg.bouncycastle.native.cpu_variant=vaes -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo"
     - "./gradlew -Pskip.pqc.tests testVAES  -x test"
 
 test-code-vaesf:
@@ -56,5 +56,5 @@ test-code-vaesf:
     - "./gradlew clean cleanNative withNative build -x test"
     - "tmpLibDir=$(mktemp -d -t bc-jni-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
-    - "java -Dorg.bouncycastle.native.cpu_variant=avx -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo"
+    - "java -Dorg.bouncycastle.native.cpu_variant=vaesf -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo"
     - "./gradlew -Pskip.pqc.tests testVAESF  -x test"
