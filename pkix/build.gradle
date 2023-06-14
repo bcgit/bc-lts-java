@@ -84,6 +84,6 @@ artifacts {
 
 task('copyJars', type:Copy) {
   from new File(projectDir,"build/libs")
-  into new File(rootDir,"jars")
+  into new File(rootDir,"../bc-lts-java-jars/${version}/")
 }
 

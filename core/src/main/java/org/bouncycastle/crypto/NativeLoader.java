@@ -425,13 +425,19 @@ class NativeLoader
         }
 
         String probeLibPrefix;
-        if (isARM) {
-            if (isLE()) {
-                probeLibPrefix ="bc-probe-le";
-            } else {
-                probeLibPrefix ="bc-probe-be";
+        if (isARM)
+        {
+            if (isLE())
+            {
+                probeLibPrefix = "bc-probe-le";
             }
-        } else {
+            else
+            {
+                probeLibPrefix = "bc-probe-be";
+            }
+        }
+        else
+        {
             probeLibPrefix = "bc-probe";
         }
 
