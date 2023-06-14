@@ -56,7 +56,6 @@ set(JNI_UTIL
         )
 
 
-
 if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64"))
 
 
@@ -80,19 +79,19 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
         set(PROBE_OPTIONS ${OPTIMISE_FLAG})
         set(ARM64_NEON_OPTIONS ${OPTIMISE_FLAG})
 
+
     elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         message("Detected Linux")
         set(JNI_INCLUDE_PLATFORM ${JNI_INCLUDE}/linux)
         set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/linux/arm64)
         set(OPTIONS -Wconversion)
         set(PROBE_OPTIONS ${OPTIMISE_FLAG})
-        set(ARM64_NEON_OPTIONS -Wconversion -march=armv8.4-a+crypto  ${OPTIMISE_FLAG})
-
+        set(ARM64_NEON_OPTIONS -Wconversion -march=armv8.4-a+crypto ${OPTIMISE_FLAG})
+        set(ARM_BE -mbig-endian)
     endif ()
 
     MESSAGE("JNI_INCLUDE_PLATFORM " ${JNI_INCLUDE_PLATFORM})
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${JNI_INCLUDE} ${JNI_INCLUDE_PLATFORM} ${LTS_JAVA_HEADERS})
-
 
     set(PROBE arm/jni/variant_selector_arm.c)
     set(COMMON arm/jni/native_features.c arm/jni/ident_jni.c)
@@ -101,31 +100,67 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             arm/aes/aes_key.c
             arm/aes/schedule.h)
 
-    set(ECB  arm/jni/ecb_jni.c arm/ecb/ecb.h arm/ecb/ecb_neon.c jniutil/variant_selector.h)
+    set(ECB arm/jni/ecb_jni.c arm/ecb/ecb.h arm/ecb/ecb_neon.c jniutil/variant_selector.h)
+
+    set(GCM arm/jni/gcm_jni.c arm/gcm/gcm.h arm/gcm/gcm.c arm/gcm/gcm_hash.h)
 
 
-    add_library(${LIB_PROBE} SHARED ${PROBE})
-    target_include_directories(${LIB_PROBE} PUBLIC ${JNI_INCLUDES})
-    target_compile_options(${LIB_PROBE} PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${PROBE_OPTIONS}>)
-    target_compile_definitions(${LIB_PROBE} PUBLIC BUILD_TS=\"${BUILD_TS}\")
-    install(TARGETS "${LIB_PROBE}" LIBRARY DESTINATION ${PLATFORM_TARGET}/probe)
+    add_library(${LIB_PROBE}-le SHARED ${PROBE})
+    target_include_directories(${LIB_PROBE}-le PUBLIC ${JNI_INCLUDES})
+    target_compile_options(${LIB_PROBE}-le PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${PROBE_OPTIONS}>)
+    target_compile_definitions(${LIB_PROBE}-le PUBLIC BUILD_TS=\"${BUILD_TS}\")
+    install(TARGETS "${LIB_PROBE}-le" LIBRARY DESTINATION ${PLATFORM_TARGET}/probe)
 
 
-    # Arm projects
-    add_library(${LIB_NATIVE}-neon SHARED
+    #
+    # Arm projects LE
+    #
+    add_library(${LIB_NATIVE}-neon-le SHARED
             ${JNI_UTIL}
             ${COMMON}
             ${COMMON_NEON}
             ${ECB}
+            ${GCM}
             )
-    target_include_directories("${LIB_NATIVE}-neon" PUBLIC ${JNI_INCLUDES})
-    target_compile_options("${LIB_NATIVE}-neon" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
-    install(TARGETS "${LIB_NATIVE}-neon" LIBRARY DESTINATION ${PLATFORM_TARGET}/neon)
-    target_compile_definitions("${LIB_NATIVE}-neon" PUBLIC BC_NEON BC_VARIANT=\"neon\" BUILD_TS=\"${BUILD_TS}\")
+    target_include_directories("${LIB_NATIVE}-neon-le" PUBLIC ${JNI_INCLUDES})
+    target_compile_options("${LIB_NATIVE}-neon-le" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
+    install(TARGETS "${LIB_NATIVE}-neon-le" LIBRARY DESTINATION ${PLATFORM_TARGET}/neon)
+    target_compile_definitions("${LIB_NATIVE}-neon-le" PUBLIC BC_NEON BC_VARIANT=\"neon-le\" BUILD_TS=\"${BUILD_TS}\")
 
 
+    # A Linux issue.
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+
+        #
+        # Big Endian compile targets
+        #
+
+        add_library(${LIB_PROBE}-be SHARED ${PROBE})
+        target_include_directories(${LIB_PROBE}-be PUBLIC ${JNI_INCLUDES})
+        target_compile_options(${LIB_PROBE}-be PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${PROBE_OPTIONS} -mbig-endian>)
+        target_compile_definitions(${LIB_PROBE}-be PUBLIC BUILD_TS=\"${BUILD_TS}\")
+        install(TARGETS "${LIB_PROBE}-be" LIBRARY DESTINATION ${PLATFORM_TARGET}/probe)
+
+
+
+        add_library(${LIB_NATIVE}-neon-be SHARED
+                ${JNI_UTIL}
+                ${COMMON}
+                ${COMMON_NEON}
+                ${ECB}
+                ${GCM}
+                )
+        target_include_directories("${LIB_NATIVE}-neon-be" PUBLIC ${JNI_INCLUDES})
+        target_compile_options("${LIB_NATIVE}-neon-be" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS} ${ARM_BE}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
+        install(TARGETS "${LIB_NATIVE}-neon-be" LIBRARY DESTINATION ${PLATFORM_TARGET}/neon)
+        target_compile_definitions("${LIB_NATIVE}-neon-be" PUBLIC BC_NEON BC_VARIANT=\"neon\" BUILD_TS=\"${BUILD_TS}\")
+    endif ()
+
+    #
+    # Main method for testing.
+    #
     add_executable("tryit" arm/main.c arm/debug_neon.h)
-    target_link_libraries("tryit" ${LIB_NATIVE}-neon)
+    target_link_libraries("tryit" ${LIB_NATIVE}-neon-le)
 
 
 else ()

@@ -2,7 +2,6 @@
 //
 
 
-#include <stdlib.h>
 #include "../aes/aes_common_neon.h"
 #include "ecb.h"
 #include "../debug_neon.h"

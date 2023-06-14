@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
@@ -157,6 +159,10 @@ class NativeLoader
         return libToLoad;
     }
 
+    static boolean isLE()
+    {
+        return ByteOrder.nativeOrder().equals(ByteOrder.LITTLE_ENDIAN);
+    }
 
     static synchronized void loadDriver()
     {
@@ -193,6 +199,7 @@ class NativeLoader
         String os_ = Strings.toLowerCase(Properties.getPropertyValue("os.name", ""));
         String platform = null;
         String arch = null;
+        boolean isARM = false;
 
         if (LOG.isLoggable(Level.FINE))
         {
@@ -225,6 +232,7 @@ class NativeLoader
         else if (arch_.contains("aarch64"))
         {
             arch = "arm64";
+            isARM = true;
         }
 
 
@@ -416,8 +424,20 @@ class NativeLoader
             LOG.log(Level.FINE, "begin install probe library from: " + probeLibInJarPath);
         }
 
+        String probeLibPrefix;
+        if (isARM) {
+            if (isLE()) {
+                probeLibPrefix ="bc-probe-le";
+            } else {
+                probeLibPrefix ="bc-probe-be";
+            }
+        } else {
+            probeLibPrefix = "bc-probe";
+        }
+
+
         InputStream tmpIn = NativeLoader.class.getResourceAsStream(probeLibInJarPath + "/" + System.mapLibraryName(
-                "bc-probe"));
+                probeLibPrefix));
         if (tmpIn == null)
         {
             nativeStatusMessage = String.format("platform '%s' and architecture '%s' are not supported", platform,
@@ -442,7 +462,7 @@ class NativeLoader
         try
         {
             // Install probe lib
-            final File lib = installLib("bc-probe", probeLibInJarPath, jarDir, bcLtsLibPath,
+            final File lib = installLib(probeLibPrefix, probeLibInJarPath, jarDir, bcLtsLibPath,
                     filesInInstallLocation);
 
             AccessController.doPrivileged(
