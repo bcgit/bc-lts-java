@@ -8,6 +8,7 @@ stages:
 test-java-code:
   stage: test
   script:
+    - "ifconfig"
     - "apply_overlay bc-java ./"
     - "sh gettestdata.sh"
     - . cienv-11.sh
