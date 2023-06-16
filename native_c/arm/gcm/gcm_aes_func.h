@@ -36,48 +36,48 @@ static inline void dual_block(
 
         in1 = vaeseq_u8(in1, r0);
         in2 = vaeseq_u8(in2, r0);
-        
+
         const uint8x16_t r1 = rk[r + 1];
         *out1 = veorq_u8(in1, r1);
         *out2 = veorq_u8(in2, r1);
+
+    } else {
+
+        //
+        // Decryption
+        //
+
+        size_t r = rounds;
+        for (; r > 1; r--) {
+            in1 = vaesdq_u8(in1, rk[r]);
+            in2 = vaesdq_u8(in2, rk[r]);
+            in1 = vaesimcq_u8(in1);
+            in2 = vaesimcq_u8(in2);
+        }
+
+        const uint8x16_t r0 = rk[1];
+        in1 = vaesdq_u8(in1, r0);
+        in2 = vaesdq_u8(in2, r0);
+
+        const uint8x16_t r1 = rk[0];
+
+        *out1 = veorq_u8(in1, r1);
+        *out2 = veorq_u8(in2, r1);
     }
-
-    //
-    // Decryption
-    //
-
-    size_t r = rounds;
-    for (; r > 1; r--) {
-        in1 = vaesdq_u8(in1, rk[r]);
-        in2 = vaesdq_u8(in2, rk[r]);
-        in1 = vaesimcq_u8(in1);
-        in2 = vaesimcq_u8(in2);
-    }
-
-    const uint8x16_t r0 = rk[1];
-    in1 = vaesdq_u8(in1, r0);
-    in2 = vaesdq_u8(in2, r0);
-
-    const uint8x16_t r1 = rk[0];
-
-    *out1 = veorq_u8(in1, r1);
-    *out2 = veorq_u8(in2, r1);
 }
 
 
 /**
- * Process two blocks.
+ * Process one block.
  * @param key
  * @param in1 input 1
- * @param in2  input block 2
  * @param out1 output block 1
- * @param out2 output block 2
  */
 static inline void single_block(
         aes_key *key,
         uint8x16_t in1,
         uint8x16_t *out1
-        ) {
+) {
 
     const size_t rounds = key->rounds;
     const uint8x16_t *rk = key->round_keys;
@@ -95,25 +95,114 @@ static inline void single_block(
         const uint8x16_t r1 = rk[r + 1];
         *out1 = veorq_u8(in1, r1);
 
+    } else {
+
+        //
+        // Decryption
+        //
+
+        size_t r = rounds;
+        for (; r > 1; r--) {
+            in1 = vaesdq_u8(in1, rk[r]);
+            in1 = vaesimcq_u8(in1);
+        }
+
+        const uint8x16_t r0 = rk[1];
+        in1 = vaesdq_u8(in1, r0);
+
+        const uint8x16_t r1 = rk[0];
+
+        *out1 = veorq_u8(in1, r1);
     }
-
-    //
-    // Decryption
-    //
-
-    size_t r = rounds;
-    for (; r > 1; r--) {
-        in1 = vaesdq_u8(in1, rk[r]);
-        in1 = vaesimcq_u8(in1);
-    }
-
-    const uint8x16_t r0 = rk[1];
-    in1 = vaesdq_u8(in1, r0);
-
-    const uint8x16_t r1 = rk[0];
-
-    *out1 = veorq_u8(in1, r1);
 }
+
+
+
+
+/**
+ * Process one block.
+ * @param key
+ * @param in1 input 1
+ * @param out1 output block 1
+ */
+static inline void quad_block(
+        aes_key *key,
+        uint8x16_t *d1,
+        uint8x16_t *d2,
+        uint8x16_t *d3,
+        uint8x16_t *d4
+) {
+
+    uint8x16_t in1 = *d1;
+    uint8x16_t in2 = *d2;
+    uint8x16_t in3 = *d3;
+    uint8x16_t in4 = *d4;
+
+    const size_t rounds = key->rounds;
+    const uint8x16_t *rk = key->round_keys;
+    if (key->encryption) {
+        size_t r = 0;
+        for (r = 0; r < rounds - 1; r++) {
+            const uint16x8_t k = rk[r];
+            in1 = vaeseq_u8(in1, k);
+            in1 = vaesmcq_u8(in1);
+            in2 = vaeseq_u8(in2, k);
+            in2 = vaesmcq_u8(in2);
+            in3 = vaeseq_u8(in3, k);
+            in3 = vaesmcq_u8(in3);
+            in4 = vaeseq_u8(in4, k);
+            in4 = vaesmcq_u8(in4);
+        }
+
+        const uint8x16_t r0 = rk[r];
+
+        in1 = vaeseq_u8(in1, r0);
+        in2 = vaeseq_u8(in2, r0);
+        in3 = vaeseq_u8(in3, r0);
+        in4 = vaeseq_u8(in4, r0);
+
+        const uint8x16_t r1 = rk[r + 1];
+        *d1 = veorq_u8(in1, r1);
+        *d2 = veorq_u8(in2, r1);
+        *d3 = veorq_u8(in3, r1);
+        *d4 = veorq_u8(in4, r1);
+
+    } else {
+
+        //
+        // Decryption
+        //
+
+        size_t r = rounds;
+        for (; r > 1; r--) {
+            const uint16x8_t k = rk[r];
+            in1 = vaesdq_u8(in1, k);
+            in1 = vaesimcq_u8(in1);
+            in2 = vaesdq_u8(in2, k);
+            in2 = vaesimcq_u8(in2);
+            in3 = vaesdq_u8(in3, k);
+            in3 = vaesimcq_u8(in3);
+            in4 = vaesdq_u8(in4, k);
+            in4 = vaesimcq_u8(in4);
+        }
+
+        const uint8x16_t r0 = rk[1];
+        in1 = vaesdq_u8(in1, r0);
+        in2 = vaesdq_u8(in2, r0);
+        in3 = vaesdq_u8(in3, r0);
+        in4 = vaesdq_u8(in4, r0);
+
+        const uint8x16_t r1 = rk[0];
+
+        *d1 = veorq_u8(in1, r1);
+        *d2 = veorq_u8(in2, r1);
+        *d3 = veorq_u8(in3, r1);
+        *d4 = veorq_u8(in4, r1);
+    }
+}
+
+
+
 
 
 

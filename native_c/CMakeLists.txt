@@ -107,7 +107,9 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             arm/gcm/gcm.h
             arm/gcm/gcm.c
             arm/gcm/gcm_hash.h
-            arm/gcm/gcm_aes_func.h)
+            arm/gcm/gcm_aes_func.h
+            arm/gcm/gcm_neon.c
+            )
 
 
     add_library(${LIB_PROBE}-le SHARED ${PROBE})

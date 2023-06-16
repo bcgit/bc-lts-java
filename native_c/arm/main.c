@@ -9,49 +9,50 @@
 
 
 #include "gcm/gcm_hash.h"
+#include "gcm/gcm.h"
 
 #define BUF_LEN 128
 
 
 int main() {
 
-    uint8x16_t insert_32 = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
-    print_uint8x16_t(&insert_32);
-
-    exit(0);
-
-    uint8_t src[16];
-    for (int t=0; t<16;t++) {
-        src[t] = t;
-    }
-
-//    memset(src, 0, 16);
-//    src[0] = 0xFF;
-
-    uint8x16_t zero = vdupq_n_u16(0);
-
-//    uint32_t aa[4] = {0x4e57FF, 0xFFFFFFFF, 0x4e57FF, 0x4e57FF};
-//    uint32_t bb[4] = {0xfe, 0x27, 0x33, 0x4e57FF};
-
-    uint8x16_t a = vld1q_u8((const unsigned char *) src);
-    print_uint8x16_t(&a);
-    a = vrev64q_u8(a);
-    a = vextq_u8(a,a,8);
-
-
-    print_uint8x16_t(&a);
-
-
-
-
-//    a = vrev32q_u8(a);
-//    print_uint8x16_t(&a);
+//    uint8_t z[16];
+//    for (int t = 0; t < 16; t++) {
+//        z[t] = t;
+//    }
 //
-//    a = vrev16q_u8(a);
-//    print_uint8x16_t(&a);
+//    uint16x8_t tmp1 =vld1q_u8(z);
 //
-//    a = vrev32q_u8(a);
-//    print_uint8x16_t(&a);
+//    print_uint8x16_t(&tmp1);
+//
+//    tmp1 = vrev64q_u8(tmp1);
+//    print_uint8x16_t(&tmp1);
+//
+//    exit(0);
 
+
+    int iv_len = 33;
+    int aad_len = 17;
+    uint8_t key[16];
+    uint8_t iv[iv_len];
+    uint8_t aad[aad_len];
+
+
+    memset(key, 1, 16);
+    memset(iv, 2, iv_len);
+    memset(aad, 3, aad_len);
+
+    gcm_ctx *gcm = gcm_create_ctx();
+    gcm_init(
+            gcm,
+            true,
+            key,
+            16,
+            iv,
+            iv_len,
+            aad,
+            aad_len,
+            16);
+    gcm_free(gcm);
 
 }

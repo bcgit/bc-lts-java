@@ -4,8 +4,6 @@
 
 #include "../aes/aes_common_neon.h"
 #include "ecb.h"
-#include "../debug_neon.h"
-
 
 static inline void
 enc_blocks(const uint8x16_t *rk, uint8_t *src, uint8_t *dest, const uint32_t blocks, const size_t rounds) {

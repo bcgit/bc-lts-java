@@ -6,15 +6,25 @@
 #include <assert.h>
 #include "gcm.h"
 
-static inline void swap_endian_inplace(uint8x16_t *in) {
-    *in = vrev64q_u8(*in);
-    *in = vextq_u8(*in, *in, 8);
+#include "../debug_neon.h"
+
+
+
+bool areEqualCT(const uint8_t *left, const uint8_t *right, size_t len) {
+
+    assert(left != NULL);
+    assert(right != NULL);
+
+    uint32_t nonEqual = 0;
+
+    for (int i = 0; i != len; i++) {
+        nonEqual |= (left[i] ^ right[i]);
+    }
+
+    return nonEqual == 0;
 }
 
-static inline uint8x16_t swap_endian(uint8x16_t in) {
-    in = vrev64q_u8(in);
-    return vextq_u8(in, in, 8);
-}
+
 
 gcm_err *make_gcm_error(const char *msg, int type) {
     gcm_err *err = calloc(1, sizeof(gcm_err));
@@ -247,14 +257,16 @@ gcm_err *gcm_init(
         memset(nonceBuf, 0, 16);
         ctx->Y = vorrq_u8(ctx->Y, insert_32);
 
+        print_uint8x16_t(&ctx->X);
+        print_uint8x16_t(&ctx->Y);
+
+
         dual_block(&ctx->aesKey, ctx->X, ctx->Y, &ctx->H, &ctx->T);
 
         // swap endian -le only.
 //        ctx->H = vrev64q_u8(ctx->H);
 //        ctx->H = vextq_u8(ctx->H, ctx->H, 8);
         swap_endian_inplace(&ctx->H);
-
-
     } else {
         single_block(&ctx->aesKey, ctx->X, &ctx->H);
         // swap endian -le only.
@@ -282,18 +294,147 @@ gcm_err *gcm_init(
             ctx->Y = gfmul(ctx->Y, ctx->H);
         }
 
-        const uint32x4_t nlen = {0,0,0,0};
-        tmp1 = _mm_insert_epi64(tmp1, (long long) nonceLen * 8, 0);
-        tmp1 = _mm_insert_epi64(tmp1, 0, 1);
+         //        tmp1 = _mm_insert_epi64(tmp1, (long long) nonceLen * 8, 0);
+        const uint32x4_t nlen = {nonceLen * 8, 0, 0, 0}; // TODO look for intrinsic that can set u32 into a single lane
+        tmp1 = vld1q_u8((const unsigned char *) &nlen);
 
-        ctx->Y = _mm_xor_si128(ctx->Y, tmp1);
-        gfmul(ctx->Y, ctx->H, &ctx->Y);
-        ctx->Y = _mm_shuffle_epi8(ctx->Y, *BSWAP_MASK);
+//        tmp1 = _mm_insert_epi64(tmp1, 0, 1);
+
+        ctx->Y = veorq_u8(ctx->Y,tmp1);
+        ctx->Y = gfmul(ctx->Y, ctx->H);
+        swap_endian_inplace(&ctx->Y);
+//        ctx->Y = _mm_xor_si128(ctx->Y, tmp1);
+//        gfmul(ctx->Y, ctx->H, &ctx->Y);
+//        ctx->Y = _mm_shuffle_epi8(ctx->Y, *BSWAP_MASK);
         // E(K,Y0)
 
-
-
+        single_block(&ctx->aesKey,ctx->Y, &ctx->T);
 
     }
 
+    //
+    // Capture initial state.
+    //
+    ctx->initialX = ctx->X;
+    ctx->initialY = ctx->Y;
+    ctx->initialT = ctx->T;
+    ctx->initialH = ctx->H;
+
+    //
+    // Process any initial associated data.
+    //
+    if (ctx->initAD != NULL) {
+        gcm_process_aad_bytes(ctx, ctx->initAD, ctx->initADLen);
+    }
+
+    ctx->last_block = vdupq_n_u64(0);
+
+    // BSWAP_EPI64 = vrev64q_u8(tmp1);
+
+    ctx->ctr1 = vrev64q_u8(ctx->Y);
+    ctx->blocksRemaining = BLOCKS_REMAINING_INIT;
+
+    ctx->hashKeys[HASHKEY_0] = ctx->H;
+    for (int t = HASHKEY_1; t >= 0; t--) {
+        ctx->hashKeys[t] = gfmul(ctx->hashKeys[t + 1], ctx->H);
+    }
+
+
+    return NULL;// All good
+
+}
+
+size_t gcm_get_output_size(gcm_ctx *ctx, size_t len) {
+    size_t totalData = len + ctx->bufBlockIndex;
+    if (ctx->encryption) {
+        return totalData + ctx->macBlockLen;
+    }
+    return totalData < ctx->macBlockLen ? 0 : totalData - ctx->macBlockLen;
+}
+
+size_t gcm_get_update_output_size(gcm_ctx *ctx, size_t len) {
+
+    size_t totalData = len + ctx->bufBlockIndex;
+    if (!ctx->encryption) {
+        if (totalData < ctx->bufBlockLen) {
+            return 0;
+        }
+        totalData -= ctx->macBlockLen;
+    }
+
+    return totalData - totalData % GCM_BLOCK_SIZE; //FOUR_BLOCKS;
+
+}
+
+/**
+ *
+ * @return NULL if no error, else ptr to struct CALLER NEEDS TO FREE
+ */
+gcm_err *gcm_process_byte(gcm_ctx *ctx, uint8_t byte, uint8_t *output, size_t outputLen, size_t *written) {
+    if (ctx->totalBytes == 0) {
+        gcm__initBytes(ctx);
+    }
+
+    size_t read = 0;
+
+    if (ctx->encryption) {
+        return process_buffer_enc(ctx, &byte, 1, output, outputLen, &read, written);
+    }
+
+    return process_buffer_dec(ctx, &byte, 1, output, outputLen, &read, written);
+
+}
+
+/**
+ *
+ * @param ctx
+ * @param input
+ * @param len
+ * @param output
+ * @return NULL if no error, else ptr to struct CALLER NEEDS TO FREE
+ */
+gcm_err *gcm_process_bytes(gcm_ctx *ctx, uint8_t *input, size_t len, unsigned char *output, size_t outputLen,
+                           size_t *written) {
+
+
+    if (ctx->totalBytes == 0 && len >0) {
+        gcm__initBytes(ctx);
+    }
+
+    size_t rd = 0;
+    size_t wr = 0;
+
+    gcm_err *err = NULL;
+
+    unsigned char *start = input;
+    unsigned char *end = start + len;
+    unsigned char *outPtr = output;
+    unsigned char *outStart = outPtr;
+
+    if (ctx->encryption) {
+        for (unsigned char *readPos = start; readPos < end;) {
+            err = process_buffer_enc(ctx, readPos, len, outPtr, outputLen, &rd, &wr);
+            if (err != NULL) {
+                break;
+            }
+            readPos += rd;
+            len -= rd;
+            outPtr += wr;
+            outputLen -= wr;
+        }
+    } else {
+        for (unsigned char *readPos = start; readPos < end;) {
+            err = process_buffer_dec(ctx, readPos, len, outPtr, outputLen, &rd, &wr);
+            if (err != NULL) {
+                break;
+            }
+            readPos += rd;
+            len -= rd;
+            outPtr += wr;
+            outputLen -= wr;
+        }
+    }
+
+    *written = (size_t) (outPtr - outStart);
+    return err;
 }

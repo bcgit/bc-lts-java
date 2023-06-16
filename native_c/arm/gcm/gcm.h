@@ -175,4 +175,6 @@ void gcm_variant_init(gcm_ctx *ctx);
 
 void gcm_exponentiate(uint8x16_t H, uint64_t pow, uint8x16_t *output);
 
+
+
 #endif //BC_LTS_C_GCM_H
