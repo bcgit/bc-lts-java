@@ -9,6 +9,7 @@ import java.security.SecureRandom;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.BlowfishEngine;
@@ -530,9 +531,9 @@ public class CipherStreamTest
 
             testMode(new PaddedBufferedBlockCipher(new CBCBlockCipher(cipher1), new PKCS7Padding()), withIv);
 
-            testMode(new BufferedBlockCipher(new OFBBlockCipher(cipher1, blockSize)), withIv);
-            testMode(new BufferedBlockCipher(new CFBBlockCipher(cipher1, blockSize)), withIv);
-            testMode(new BufferedBlockCipher(new SICBlockCipher(cipher1)), withIv);
+            testMode(new DefaultBufferedBlockCipher(new OFBBlockCipher(cipher1, blockSize)), withIv);
+            testMode(new DefaultBufferedBlockCipher(new CFBBlockCipher(cipher1, blockSize)), withIv);
+            testMode(new DefaultBufferedBlockCipher(new SICBlockCipher(cipher1)), withIv);
         }
         // CTS requires at least one block
         if (blockSize <= 16 && streamSize >= blockSize)
