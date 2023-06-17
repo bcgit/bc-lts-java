@@ -449,7 +449,7 @@ class NativeLoader
             nativeStatusMessage = String.format("platform '%s' and architecture '%s' are not supported", platform,
                     arch);
             nativeInstalled = false;
-            LOG.warning("exited with " + nativeStatusMessage);
+            LOG.fine("exited with " + nativeStatusMessage);
             return;
         }
         try
@@ -459,7 +459,6 @@ class NativeLoader
         catch (IOException ignored)
         {
         }
-
 
         //
         // Endeavour ot install the probe library, if this does not install then
@@ -505,7 +504,6 @@ class NativeLoader
             return;
         }
 
-
         if ("none".equals(selectedVariant))
         {
             javaSupportOnly = true;
@@ -519,7 +517,6 @@ class NativeLoader
         {
             selectedVariant = forcedVariant;
         }
-
 
         String variantPathInJar = String.format("/native/%s/%s/%s", platform, arch, selectedVariant);//  variantPaths
         // .get(selectedVariant);
@@ -587,7 +584,6 @@ class NativeLoader
             return;
         }
 
-
         nativeLibsAvailableForSystem = true;
         nativeStatusMessage = "successfully loaded";
         nativeInstalled = true;
@@ -598,7 +594,6 @@ class NativeLoader
             LOG.log(Level.FINE, nativeStatusMessage);
             LOG.fine("native loader has finished");
         }
-
     }
 
     public static boolean isNativeLibsAvailableForSystem()
