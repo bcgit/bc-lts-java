@@ -9,7 +9,6 @@ import java.security.SecureRandom;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DefaultBufferedMultiBlockCipher;
 import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.BlowfishEngine;
@@ -511,7 +510,7 @@ public class CipherStreamTest
         testMode(new ChaChaEngine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[8]));
         testMode(new Grainv1Engine(), new ParametersWithIV(new KeyParameter(new byte[10]), new byte[8]));
         testMode(new Grain128Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]));
-        testMode(new HC128Engine(), new KeyParameter(new byte[16]));
+        testMode(new HC128Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
         testMode(new HC256Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
 
         testSkipping(new Salsa20Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[8]));
@@ -531,9 +530,9 @@ public class CipherStreamTest
 
             testMode(new PaddedBufferedBlockCipher(new CBCBlockCipher(cipher1), new PKCS7Padding()), withIv);
 
-            testMode(new DefaultBufferedMultiBlockCipher(new OFBBlockCipher(cipher1, blockSize)), withIv);
-            testMode(new DefaultBufferedMultiBlockCipher(new CFBBlockCipher(cipher1, blockSize)), withIv);
-            testMode(new DefaultBufferedMultiBlockCipher(new SICBlockCipher(cipher1)), withIv);
+            testMode(new BufferedBlockCipher(new OFBBlockCipher(cipher1, blockSize)), withIv);
+            testMode(new BufferedBlockCipher(new CFBBlockCipher(cipher1, blockSize)), withIv);
+            testMode(new BufferedBlockCipher(new SICBlockCipher(cipher1)), withIv);
         }
         // CTS requires at least one block
         if (blockSize <= 16 && streamSize >= blockSize)
