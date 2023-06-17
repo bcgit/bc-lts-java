@@ -7,6 +7,7 @@ import java.util.Vector;
 import org.bouncycastle.tls.crypto.TlsCrypto;
 import org.bouncycastle.tls.crypto.TlsDHConfig;
 import org.bouncycastle.tls.crypto.TlsECConfig;
+import org.bouncycastle.util.Integers;
 
 /**
  * Base class for a TLS server.
@@ -70,6 +71,11 @@ public abstract class AbstractTlsServer
     protected Hashtable checkServerExtensions()
     {
         return serverExtensions;
+    }
+
+    protected String getDetailMessageNoCipherSuite()
+    {
+        return "No selectable cipher suite";
     }
 
     protected int getMaximumNegotiableCurveBits()
@@ -464,7 +470,7 @@ public abstract class AbstractTlsServer
             }
         }
 
-        throw new TlsFatalAlert(AlertDescription.handshake_failure, "No selectable cipher suite");
+        throw new TlsFatalAlert(AlertDescription.handshake_failure, getDetailMessageNoCipherSuite());
     }
 
     // Hashtable is (Integer -> byte[])
@@ -638,7 +644,7 @@ public abstract class AbstractTlsServer
              * RFC 9146 3. When a DTLS session is resumed or renegotiated, the "connection_id" extension is
              * negotiated afresh.
              */
-            if (clientExtensions != null && clientExtensions.containsKey(ExtensionType.connection_id))
+            if (clientExtensions != null && clientExtensions.containsKey(Integers.valueOf(ExtensionType.connection_id)))
             {
                 byte[] serverConnectionID = getNewConnectionID();
                 if (serverConnectionID != null)
