@@ -32,7 +32,7 @@ public class AEAD
         {
         case HPKE.aead_AES_GCM128:
         case HPKE.aead_AES_GCM256:
-            cipher = new GCMBlockCipher(new AESEngine());
+            cipher = GCMBlockCipher.newInstance(AESEngine.newInstance());
             break;
         case HPKE.aead_CHACHA20_POLY1305:
             cipher = new ChaCha20Poly1305();
