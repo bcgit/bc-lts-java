@@ -254,4 +254,32 @@ public class MulLimitTest
     }
 
 
+    @Test
+    public void testZeroLenInputs() throws Exception
+    {
+        if (skip())
+        {
+            return;
+        }
+
+        //
+        // Check that zero len inputs do not cause issues.
+        //
+
+        Mul.multiplyAcc(new long[0], 0, new long[0], 0, new long[10]);
+
+        Mul.multiplyAcc(new long[1], 1, new long[0], 0, new long[10]);
+
+
+        // Verify nothing is written to z.
+        long[] z = new long[2];
+        z[0] = 0xFF;
+        Mul.multiplyAcc(new long[0], 0, new long[1], 1, z);
+        TestCase.assertEquals(0xFF, z[0]);
+
+
+        Mul.multiplyAcc(new long[1], 1, new long[1], 1, new long[0]);
+    }
+
+
 }
