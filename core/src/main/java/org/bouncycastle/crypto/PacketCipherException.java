@@ -2,23 +2,48 @@ package org.bouncycastle.crypto;
 
 public class PacketCipherException extends Exception
 {
-    public PacketCipherException()
+    private final Reason reason;
+
+    enum Reason
     {
+        INVALID_CIPHERTEXT,
+        OUTPUT_LENGTH,
+        DATA_LENGTH,
+        OTHER
     }
 
-    public PacketCipherException(String message)
+    public static PacketCipherException from(Throwable throwable)
     {
-        super(message);
+        if (throwable instanceof InvalidCipherTextException)
+        {
+            return new PacketCipherException(Reason.INVALID_CIPHERTEXT, throwable.getMessage(), throwable);
+        }
+        else if (throwable instanceof OutputLengthException)
+        {
+            return new PacketCipherException(Reason.OUTPUT_LENGTH, throwable.getMessage(), throwable);
+        }
+        else if (throwable instanceof DataLengthException)
+        {
+            return new PacketCipherException(Reason.DATA_LENGTH, throwable.getMessage(), throwable);
+        }
+        return new PacketCipherException(Reason.OTHER, throwable.getMessage(), throwable);
     }
 
-    public PacketCipherException(String message, Throwable cause)
+    private PacketCipherException(Reason reason, String message, Throwable cause)
     {
         super(message, cause);
+        this.reason = reason;
     }
 
-    public PacketCipherException(Throwable cause)
+    @Override
+    public String getMessage()
     {
-        super(cause);
+        return reason.toString() + " " + super.getMessage();
     }
 
+    @Override
+    public String toString()
+    {
+        return reason.toString() + " " + super.toString();
+    }
 }
