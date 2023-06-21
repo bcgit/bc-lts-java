@@ -90,6 +90,10 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_math_raw_Mul_cmulAcc
         goto exit;
     }
 
+    if (x_size == 0) {
+        goto exit;
+    }
+
     if (z.size < x_size * 2) {
         throw_java_invalid_state(env, "z is less than twice the size of x");
         goto exit;

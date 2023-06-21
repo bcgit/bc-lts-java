@@ -4,8 +4,6 @@ import java.io.IOException;
 
 /**
  * Parser for indefinite-length tagged objects.
- * 
- * Test for and use only {@link ASN1TaggedObjectParser}.
  */
 class BERTaggedObjectParser
     implements ASN1TaggedObjectParser
@@ -41,16 +39,6 @@ class BERTaggedObjectParser
         return this._tagClass == tagClass && this._tagNo == tagNo;
     }
 
-    /**
-     * Return true if this tagged object is marked as constructed.
-     *
-     * @return true if constructed, false otherwise.
-     */
-    public boolean isConstructed()
-    {
-        return true;
-    }
-    
     /**
      * Return an in-memory, encodable, representation of the tagged object.
      *

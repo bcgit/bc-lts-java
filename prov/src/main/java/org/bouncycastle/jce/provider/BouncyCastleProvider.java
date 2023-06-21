@@ -9,6 +9,7 @@ import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -24,6 +25,7 @@ import org.bouncycastle.jcajce.provider.config.ProviderConfiguration;
 import org.bouncycastle.jcajce.provider.symmetric.util.ClassUtil;
 import org.bouncycastle.jcajce.provider.util.AlgorithmProvider;
 import org.bouncycastle.jcajce.provider.util.AsymmetricKeyInfoConverter;
+import org.bouncycastle.util.Strings;
 
 /**
  * To add the provider at runtime use:
@@ -138,6 +140,8 @@ public final class BouncyCastleProvider extends Provider
         "DRBG"
     };
 
+    private Map<String, Service> serviceMap = new ConcurrentHashMap<String, Service>();
+
     /**
      * Construct a new provider.  This should only be required when
      * using runtime registration of the provider using the
@@ -145,7 +149,7 @@ public final class BouncyCastleProvider extends Provider
      */
     public BouncyCastleProvider()
     {
-        super(PROVIDER_NAME, 2.7300, info);
+        super(PROVIDER_NAME, 2.7302, info);
 
         AccessController.doPrivileged(new PrivilegedAction()
         {
@@ -200,7 +204,42 @@ public final class BouncyCastleProvider extends Provider
         put("CertStore.LDAP", "org.bouncycastle.jce.provider.X509LDAPCertStoreSpi");
         put("CertStore.Multi", "org.bouncycastle.jce.provider.MultiCertStoreSpi");
         put("Alg.Alias.CertStore.X509LDAP", "LDAP");
+
+        getService("SecureRandom", "DEFAULT");  // prime for new SecureRandom() on 1.8 JVMs.
     }
+
+    public final Service getService(String type, String algorithm)
+        {
+            String upperCaseAlgName = Strings.toUpperCase(algorithm);
+            String key = type + "." + upperCaseAlgName;
+
+            Service service = serviceMap.get(key);
+
+            if (service == null)
+            {
+                synchronized (this)
+                {
+                    if (!serviceMap.containsKey(key))
+                    {
+                        service = super.getService(type, algorithm);
+                        if (service == null)
+                        {
+                            return null;
+                        }
+                        serviceMap.put(key, service);
+                        // remove legacy entry and swap to service entry
+                        super.remove(service.getType() + "." + service.getAlgorithm());
+                        super.putService(service);
+                    }
+                    else
+                    {
+                        service = serviceMap.get(key);
+                    }
+                }
+            }
+
+            return service;
+        }
 
     private void loadAlgorithms(String packageName, String[] names)
     {

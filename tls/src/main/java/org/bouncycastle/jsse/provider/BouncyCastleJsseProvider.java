@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bouncycastle.tls.crypto.impl.jcajce.JcaTlsCryptoProvider;
 import org.bouncycastle.util.Strings;
@@ -25,10 +26,10 @@ public class BouncyCastleJsseProvider
 
     private static final String JSSE_CONFIG_PROPERTY = "org.bouncycastle.jsse.config";
 
-    private static final double PROVIDER_VERSION = 1.0016;
-    private static final String PROVIDER_INFO = "Bouncy Castle JSSE Provider Version 1.0.16";
+    private static final double PROVIDER_VERSION = 1.0017;
+    private static final String PROVIDER_INFO = "Bouncy Castle JSSE Provider Version 1.0.17";
 
-    private final Map<String, BcJsseService> serviceMap = new HashMap<String, BcJsseService>();
+    private final Map<String, BcJsseService> serviceMap = new ConcurrentHashMap<String, BcJsseService>();
     private final Map<String, EngineCreator> creatorMap = new HashMap<String, EngineCreator>();
 
     private final boolean isInFipsMode;
@@ -262,7 +263,7 @@ public class BouncyCastleJsseProvider
         doPut(key, value);
     }
 
-    public synchronized final Provider.Service getService(String type, String algorithm)
+    public final Provider.Service getService(String type, String algorithm)
     {
         String upperCaseAlgName = Strings.toUpperCase(algorithm);
 
@@ -285,7 +286,7 @@ public class BouncyCastleJsseProvider
                 return null;
             }
 
-            String attributeKeyStart = type + "." + upperCaseAlgName + " ";
+            String attributeKeyStart = type + "." + realName + " ";
 
             List<String> aliases = new ArrayList<String>();
             Map<String, String> attributes = new HashMap<String, String>();
@@ -308,7 +309,9 @@ public class BouncyCastleJsseProvider
 
             service = new BcJsseService(this, type, upperCaseAlgName, className, aliases, getAttributeMap(attributes), creatorMap.get(className));
 
-            serviceMap.put(type + "." + upperCaseAlgName, service);
+            BcJsseService altService = serviceMap.putIfAbsent(type + "." + upperCaseAlgName, service);
+
+            service = altService != null ? altService : service;
         }
 
         return service;
@@ -327,9 +330,9 @@ public class BouncyCastleJsseProvider
         return bcServiceSet;
     }
 
-    private static final Map<Map<String, String>, Map<String, String> > attributeMaps = new HashMap<Map<String, String>, Map<String, String>>();
+    private static final Map<Map<String, String>, Map<String, String>> attributeMaps = new HashMap<Map<String, String>, Map<String, String>>();
 
-    private static Map<String, String> getAttributeMap(Map<String, String> attributeMap)
+    private static synchronized Map<String, String> getAttributeMap(Map<String, String> attributeMap)
     {
         Map<String, String> attrMap = attributeMaps.get(attributeMap);
         if (attrMap != null)

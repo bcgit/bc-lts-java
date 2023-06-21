@@ -1,6 +1,5 @@
 package org.bouncycastle.asn1;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 
 import org.bouncycastle.util.Arrays;
@@ -257,77 +256,6 @@ public abstract class ASN1TaggedObject
     }
 
     /**
-     * Return the contents of this object as a byte[]
-     *
-     * @return the encoded contents of the object.
-     */
-    byte[] getContents()
-    {
-        try
-        {
-            byte[] baseEncoding = obj.toASN1Primitive().getEncoded(getASN1Encoding());
-            if (isExplicit())
-            {
-                return baseEncoding;
-            }
-
-            ByteArrayInputStream input = new ByteArrayInputStream(baseEncoding);
-            int tag = input.read();
-            ASN1InputStream.readTagNumber(input, tag);
-            int length = ASN1InputStream.readLength(input, input.available(), false);
-            int remaining = input.available();
-
-            // For indefinite form, account for end-of-contents octets
-            int contentsLength = length < 0 ? remaining - 2 : remaining;
-            if (contentsLength < 0)
-            {
-                throw new ASN1ParsingException("failed to get contents");
-            }
-
-            byte[] contents = new byte[contentsLength];
-            System.arraycopy(baseEncoding, baseEncoding.length - remaining, contents, 0, contentsLength);
-            return contents;
-        }
-        catch (IOException e)
-        {
-            throw new ASN1ParsingException("failed to get contents", e);
-        }
-    }
-
-    /**
-     * Return true if the object is marked as constructed, false otherwise.
-     *
-     * @return true if constructed, otherwise false.
-     */
-    boolean isConstructed()
-    {
-        return encodeConstructed();
-    }
-
-    /**
-     * Return whatever was following the tag.
-     * <p>
-     * Note: tagged objects are generally context dependent. If you're trying to
-     * extract a tagged object you should be going via the appropriate getInstance
-     * method.
-     * 
-     * @deprecated Tagged objects now include the {@link #getTagClass() tag class}.
-     *             This method will raise an exception if it is not
-     *             {@link BERTags#CONTEXT_SPECIFIC}. Use
-     *             {@link #getBaseUniversal(boolean, int)} only after confirming the
-     *             expected tag class.
-     */
-    ASN1Primitive getObject()
-    {
-        if (BERTags.CONTEXT_SPECIFIC != getTagClass())
-        {
-            throw new IllegalStateException("this method only valid for CONTEXT_SPECIFIC tags");
-        }
-
-        return obj.toASN1Primitive();
-    }
-
-    /**
      * Needed for open types, until we have better type-guided parsing support. Use sparingly for other
      * purposes, and prefer {@link #getExplicitBaseTagged()}, {@link #getImplicitBaseTagged(int, int)} or
      * {@link #getBaseUniversal(boolean, int)} where possible. Before using, check for matching tag
@@ -509,31 +437,24 @@ public abstract class ASN1TaggedObject
     {
         boolean maybeExplicit = (contentsElements.size() == 1);
 
-        ASN1TaggedObject taggedObject = maybeExplicit
+        return maybeExplicit
             ?   new DLTaggedObject(PARSED_EXPLICIT, tagClass, tagNo, contentsElements.get(0))
             :   new DLTaggedObject(PARSED_IMPLICIT, tagClass, tagNo, DLFactory.createSequence(contentsElements));
-
-        return taggedObject;
     }
 
     static ASN1Primitive createConstructedIL(int tagClass, int tagNo, ASN1EncodableVector contentsElements)
     {
         boolean maybeExplicit = (contentsElements.size() == 1);
 
-        ASN1TaggedObject taggedObject = maybeExplicit
+        return maybeExplicit
             ?   new BERTaggedObject(PARSED_EXPLICIT, tagClass, tagNo, contentsElements.get(0))
             :   new BERTaggedObject(PARSED_IMPLICIT, tagClass, tagNo, BERFactory.createSequence(contentsElements));
-
-            return taggedObject;
     }
 
     static ASN1Primitive createPrimitive(int tagClass, int tagNo, byte[] contentsOctets)
     {
         // Note: !CONSTRUCTED => IMPLICIT
-        ASN1TaggedObject taggedObject = new DLTaggedObject(PARSED_IMPLICIT, tagClass, tagNo,
-            new DEROctetString(contentsOctets));
-
-        return taggedObject;
+        return new DLTaggedObject(PARSED_IMPLICIT, tagClass, tagNo, new DEROctetString(contentsOctets));
     }
 
     private static ASN1TaggedObject checkedCast(ASN1Primitive primitive)
