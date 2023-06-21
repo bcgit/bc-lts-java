@@ -1,7 +1,9 @@
 #!/bin/bash
 
 
-export ltsLib="../jars/bcprov-lts8on-2.74.0-SNAPSHOT.jar"
+export version="2.73.2-SNAPSHOT";
+
+export ltsLib="../../bc-lts-java-jars/$version/bcprov-lts8on-${version}.jar"
 
 
 java  -cp "$ltsLib" org.bouncycastle.util.DumpInfo -verbose

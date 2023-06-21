@@ -131,10 +131,10 @@ JNIEXPORT jobjectArray JNICALL Java_org_bouncycastle_crypto_VariantSelector_getF
     jobjectArray outerArray = (*env)->NewObjectArray(env, 1, (*env)->FindClass(env, "[Ljava/lang/String;"), NULL);
 
     if (cpu_info.neon) {
-        jobjectArray arm64 = (*env)->NewObjectArray(env, 8, (*env)->FindClass(env, "java/lang/String"), NULL);
+        jobjectArray arm64 = (*env)->NewObjectArray(env, 7, (*env)->FindClass(env, "java/lang/String"), NULL);
         (*env)->SetObjectArrayElement(env, outerArray, 0, arm64);
         int t = 0;
-        (*env)->SetObjectArrayElement(env, arm64, t++, (*env)->NewStringUTF(env, "neon"));
+        (*env)->SetObjectArrayElement(env, arm64, t++, (*env)->NewStringUTF(env, "neon-le"));
 
         if (cpu_info.aes) {
             (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "+aes"));
@@ -165,13 +165,6 @@ JNIEXPORT jobjectArray JNICALL Java_org_bouncycastle_crypto_VariantSelector_getF
         } else {
             (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "-neon"));
         }
-        t++;
-        if (cpu_info.le) {
-            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "Little Endian"));
-        } else {
-            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "Big Endian"));
-        }
-
         t++;
         if (cpu_info.arm64 && cpu_info.neon && cpu_info.le) {
             (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "Variant Supported"));

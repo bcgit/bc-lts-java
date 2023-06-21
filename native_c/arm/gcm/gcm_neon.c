@@ -7,7 +7,6 @@
 #include "gcm_hash.h"
 
 
-
 static inline uint8x16_t reduce(uint8x16_t tee, uint8x16_t high) {
     uint32x4_t tmp6 = vsriq_n_u32(zero, tee, 31);
     uint32x4_t tmp7 = vsriq_n_u32(zero, high, 31);
@@ -53,15 +52,15 @@ uint8x16_t gfmul_multi_reduce(
     uint8x16_t high, low, med, tee;
 
     high = (uint8x16_t) vmull_high_p64(d3, h3);
-    low = (uint8x16_t) vmull_p64(vget_low_p64(d3), vget_low_p64(h3));
-    med = (uint8x16_t) vmull_p64(vget_high_p64(d3), vget_low_p64(h3));
-    tee = (uint8x16_t) vmull_p64(vget_low_p64(d3), vget_high_p64(h3));
+    low = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(d3), (poly64_t) vget_low_p64(h3));
+    med = (uint8x16_t) vmull_p64((poly64_t) vget_high_p64(d3), (poly64_t) vget_low_p64(h3));
+    tee = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(d3), (poly64_t) vget_high_p64(h3));
 
 
     high2 = (uint8x16_t) vmull_high_p64(d2, h2);
-    low2 = (uint8x16_t) vmull_p64(vget_low_p64(d2), vget_low_p64(h2));
-    med2 = (uint8x16_t) vmull_p64(vget_high_p64(d2), vget_low_p64(h2));
-    tee2 = (uint8x16_t) vmull_p64(vget_low_p64(d2), vget_high_p64(h2));
+    low2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(d2), (poly64_t) vget_low_p64(h2));
+    med2 = (uint8x16_t) vmull_p64((poly64_t) vget_high_p64(d2), (poly64_t) vget_low_p64(h2));
+    tee2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(d2), (poly64_t) vget_high_p64(h2));
 
     high = veorq_u8(high, high2);
     low = veorq_u8(low, low2);
@@ -69,9 +68,9 @@ uint8x16_t gfmul_multi_reduce(
     tee = veorq_u8(tee, tee2);
 
     high2 = (uint8x16_t) vmull_high_p64(d1, h1);
-    low2 = (uint8x16_t) vmull_p64(vget_low_p64(d1), vget_low_p64(h1));
-    med2 = (uint8x16_t) vmull_p64(vget_high_p64(d1), vget_low_p64(h1));
-    tee2 = (uint8x16_t) vmull_p64(vget_low_p64(d1), vget_high_p64(h1));
+    low2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(d1), (poly64_t) vget_low_p64(h1));
+    med2 = (uint8x16_t) vmull_p64((poly64_t) vget_high_p64(d1), (poly64_t) vget_low_p64(h1));
+    tee2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(d1), (poly64_t) vget_high_p64(h1));
 
     high = veorq_u8(high, high2);
     low = veorq_u8(low, low2);
@@ -79,9 +78,9 @@ uint8x16_t gfmul_multi_reduce(
     tee = veorq_u8(tee, tee2);
 
     high2 = (uint8x16_t) vmull_high_p64(d0, h0);
-    low2 = (uint8x16_t) vmull_p64(vget_low_p64(d0), vget_low_p64(h0));
-    med2 = (uint8x16_t) vmull_p64(vget_high_p64(d0), vget_low_p64(h0));
-    tee2 = (uint8x16_t) vmull_p64(vget_low_p64(d0), vget_high_p64(h0));
+    low2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(d0), (poly64_t) vget_low_p64(h0));
+    med2 = (uint8x16_t) vmull_p64((poly64_t) vget_high_p64(d0), (poly64_t) vget_low_p64(h0));
+    tee2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(d0), (poly64_t) vget_high_p64(h0));
 
     high = veorq_u8(high, high2);
     low = veorq_u8(low, low2);
@@ -94,7 +93,7 @@ uint8x16_t gfmul_multi_reduce(
     low = veorq_u8(low, med);
     high = veorq_u8(high, tee);
 
-    return reduce(low,high);
+    return reduce(low, high);
 
 
 }
@@ -132,14 +131,76 @@ static inline void aes_enc_last(
 static inline void apply_aes_no_reduction(
         uint8x16_t *io0, uint8x16_t *io1, uint8x16_t *io2, uint8x16_t *io3,
         uint8x16_t ctr0s, uint8x16_t ctr1s, uint8x16_t ctr2s, uint8x16_t ctr3s, uint8x16_t *roundKeys,
-        const uint32_t num_rounds) {
+        const size_t num_rounds) {
 
-    int r;
-    for (r = 0; r < num_rounds - 1; r++) {
-        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[r]);
+    const uint8x16_t r0 = roundKeys[0];
+    const uint8x16_t r1 = roundKeys[1];
+    const uint8x16_t r2 = roundKeys[2];
+    const uint8x16_t r3 = roundKeys[3];
+    const uint8x16_t r4 = roundKeys[4];
+    const uint8x16_t r5 = roundKeys[5];
+    const uint8x16_t r6 = roundKeys[6];
+    const uint8x16_t r7 = roundKeys[7];
+    const uint8x16_t r8 = roundKeys[8];
+    const uint8x16_t r9 = roundKeys[9];
+    const uint8x16_t r10 = roundKeys[10];
+    const uint8x16_t r11 = roundKeys[11];
+    const uint8x16_t r12 = roundKeys[12];
+    const uint8x16_t r13 = roundKeys[13];
+    const uint8x16_t r14 = roundKeys[14];
+
+
+    if (num_rounds == 10) {
+
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r0);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r1);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r2);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r3);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r4);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r5);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r6);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r7);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r8);
+        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r9);
+        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r10);
+    } else if (num_rounds == 12) {
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r0);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r1);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r2);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r3);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r4);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r5);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r6);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r7);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r8);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r9);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r10);
+        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r11);
+        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r12);
+    } else {
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r0);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r1);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r2);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r3);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r4);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r5);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r6);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r7);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r8);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r9);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r10);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r11);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r12);
+        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r13);
+        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r14);
     }
-    aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[r++]);
-    aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[r]);
+
+//    int r;
+//    for (r = 0; r < num_rounds - 1; r++) {
+//        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[r]);
+//    }
+//    aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[r++]);
+//    aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[r]);
 
     *io0 = veorq_u8(ctr0s, *io0);
     *io1 = veorq_u8(ctr1s, *io1);
@@ -154,66 +215,82 @@ static inline void apply_aes_with_reduction(uint8x16_t *io0, uint8x16_t *io1, ui
                                             const uint8x16_t h3,
                                             uint8x16_t ctr0s, uint8x16_t ctr1s, uint8x16_t ctr2s, uint8x16_t ctr3s,
                                             uint8x16_t *roundKeys,
-                                            uint8x16_t *X, const uint32_t num_rounds) {
+                                            uint8x16_t *X, const size_t num_rounds) {
 
 
     uint8x16_t high, med, low, tee, high2, med2, low2, tee2;
 
+    const uint8x16_t r0 = roundKeys[0];
+    const uint8x16_t r1 = roundKeys[1];
+    const uint8x16_t r2 = roundKeys[2];
+    const uint8x16_t r3 = roundKeys[3];
+    const uint8x16_t r4 = roundKeys[4];
+    const uint8x16_t r5 = roundKeys[5];
+    const uint8x16_t r6 = roundKeys[6];
+    const uint8x16_t r7 = roundKeys[7];
+    const uint8x16_t r8 = roundKeys[8];
+    const uint8x16_t r9 = roundKeys[9];
+    const uint8x16_t r10 = roundKeys[10];
+    const uint8x16_t r11 = roundKeys[11];
+    const uint8x16_t r12 = roundKeys[12];
+    const uint8x16_t r13 = roundKeys[13];
+    const uint8x16_t r14 = roundKeys[14];
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[0]);
+
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r0);
 
     high = (uint8x16_t) vmull_high_p64(i3, h3);
-    low = (uint8x16_t) vmull_p64(vget_low_p64(i3), vget_low_p64(h3));
-    med = (uint8x16_t) vmull_p64(vget_high_p64(i3), vget_low_p64(h3));
-    tee = (uint8x16_t) vmull_p64(vget_low_p64(i3), vget_high_p64(h3));
+    low = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i3), (poly64_t) vget_low_p64(h3));
+    med = (uint8x16_t) vmull_p64((poly64_t) vget_high_p64(i3), (poly64_t) vget_low_p64(h3));
+    tee = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i3), (poly64_t) vget_high_p64(h3));
 
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[1]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r1);
 
     high2 = (uint8x16_t) vmull_high_p64(i2, h2);
-    low2 = (uint8x16_t) vmull_p64(vget_low_p64(i2), vget_low_p64(h2));
-    med2 = (uint8x16_t) vmull_p64(vget_high_p64(i2), vget_low_p64(h2));
-    tee2 = (uint8x16_t) vmull_p64(vget_low_p64(i2), vget_high_p64(h2));
+    low2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i2), (poly64_t) vget_low_p64(h2));
+    med2 = (uint8x16_t) vmull_p64((poly64_t) vget_high_p64(i2), (poly64_t) vget_low_p64(h2));
+    tee2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i2), (poly64_t) vget_high_p64(h2));
 
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[2]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r2);
 
     high = veorq_u8(high, high2);
     low = veorq_u8(low, low2);
     med = veorq_u8(med, med2);
     tee = veorq_u8(tee, tee2);
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[3]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r3);
 
     high2 = (uint8x16_t) vmull_high_p64(i1, h1);
-    low2 = (uint8x16_t) vmull_p64(vget_low_p64(i1), vget_low_p64(h1));
-    med2 = (uint8x16_t) vmull_p64(vget_high_p64(i1), vget_low_p64(h1));
-    tee2 = (uint8x16_t) vmull_p64(vget_low_p64(i1), vget_high_p64(h1));
+    low2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i1), (poly64_t) vget_low_p64(h1));
+    med2 = (uint8x16_t) vmull_p64((poly64_t) vget_high_p64(i1), (poly64_t) vget_low_p64(h1));
+    tee2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i1), (poly64_t) vget_high_p64(h1));
 
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[4]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r4);
 
     high = veorq_u8(high, high2);
     low = veorq_u8(low, low2);
     med = veorq_u8(med, med2);
     tee = veorq_u8(tee, tee2);
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[5]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r5);
 
     high2 = (uint8x16_t) vmull_high_p64(i0, h0);
-    low2 = (uint8x16_t) vmull_p64(vget_low_p64(i0), vget_low_p64(h0));
-    med2 = (uint8x16_t) vmull_p64(vget_high_p64(i0), vget_low_p64(h0));
-    tee2 = (uint8x16_t) vmull_p64(vget_low_p64(i0), vget_high_p64(h0));
+    low2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i0), (poly64_t) vget_low_p64(h0));
+    med2 = (uint8x16_t) vmull_p64((poly64_t) vget_high_p64(i0), (poly64_t) vget_low_p64(h0));
+    tee2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i0), (poly64_t) vget_high_p64(h0));
 
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[6]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r6);
 
     high = veorq_u8(high, high2);
     low = veorq_u8(low, low2);
     med = veorq_u8(med, med2);
     tee = veorq_u8(tee, tee2);
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[7]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r7);
 
     tee = veorq_u8((uint8x16_t) tee, (uint8x16_t) med);
     med = vextq_u8(zero, tee, 8); //vget_low_p64(gh);
@@ -221,7 +298,7 @@ static inline void apply_aes_with_reduction(uint8x16_t *io0, uint8x16_t *io1, ui
     low = veorq_u8(low, med);
     high = veorq_u8(high, tee);
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[8]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r8);
 
     // reduce(low,high);
 
@@ -236,7 +313,7 @@ static inline void apply_aes_with_reduction(uint8x16_t *io0, uint8x16_t *io1, ui
     tee = vorrq_u8(tee, tmp6);
 
     if (num_rounds == 10) {
-        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[9]);
+        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r9);
 
         high = vorrq_u8(high, tmp7);
         high = vorrq_u8(high, tmp8);
@@ -245,7 +322,7 @@ static inline void apply_aes_with_reduction(uint8x16_t *io0, uint8x16_t *io1, ui
         tmp7 = vsliq_n_u32(zero, tee, 30);
         tmp8 = vsliq_n_u32(zero, tee, 25);
 
-        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[10]);
+        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r10);
 
         tmp6 = veorq_u8(tmp6, tmp7);
         tmp6 = veorq_u8(tmp6, tmp8);
@@ -265,69 +342,75 @@ static inline void apply_aes_with_reduction(uint8x16_t *io0, uint8x16_t *io1, ui
         high = veorq_u8(high, tee); // result
 
     } else if (num_rounds == 12) {
-        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[9]);
-        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[10]);
-        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[11]);
-        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[12]);
-
 
         high = vorrq_u8(high, tmp7);
         high = vorrq_u8(high, tmp8);
 
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r9);
+
         tmp6 = vsliq_n_u32(zero, tee, 31);
         tmp7 = vsliq_n_u32(zero, tee, 30);
         tmp8 = vsliq_n_u32(zero, tee, 25);
-
         tmp6 = veorq_u8(tmp6, tmp7);
+
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r10);
+
         tmp6 = veorq_u8(tmp6, tmp8);
         tmp7 = vextq_u8(tmp6, zero, 4);
         tmp6 = vextq_u8(zero, tmp6, 4);
         tee = veorq_u8(tee, tmp6);
 
+        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r11);
+
         uint8x16_t tmp1 = vsriq_n_u32(zero, tee, 1);
         uint8x16_t gh = vsriq_n_u32(zero, tee, 2);
         uint8x16_t t3 = vsriq_n_u32(zero, tee, 7);
-
         tmp1 = veorq_u8(tmp1, gh);
+
+
+        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r12);
+
         tmp1 = veorq_u8(tmp1, t3);
         tmp1 = veorq_u8(tmp1, tmp7);
-
         tee = veorq_u8(tee, tmp1);
         high = veorq_u8(high, tee); // result
-
-
 
     } else {
-        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[9]);
-        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[10]);
-        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[11]);
-        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[12]);
-        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[13]);
-        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[14]);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r9);
 
         high = vorrq_u8(high, tmp7);
         high = vorrq_u8(high, tmp8);
-
         tmp6 = vsliq_n_u32(zero, tee, 31);
         tmp7 = vsliq_n_u32(zero, tee, 30);
-        tmp8 = vsliq_n_u32(zero, tee, 25);
 
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r10);
+
+        tmp8 = vsliq_n_u32(zero, tee, 25);
         tmp6 = veorq_u8(tmp6, tmp7);
         tmp6 = veorq_u8(tmp6, tmp8);
         tmp7 = vextq_u8(tmp6, zero, 4);
+
+
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r11);
+
         tmp6 = vextq_u8(zero, tmp6, 4);
         tee = veorq_u8(tee, tmp6);
-
         uint8x16_t tmp1 = vsriq_n_u32(zero, tee, 1);
         uint8x16_t gh = vsriq_n_u32(zero, tee, 2);
-        uint8x16_t t3 = vsriq_n_u32(zero, tee, 7);
 
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r12);
+
+        uint8x16_t t3 = vsriq_n_u32(zero, tee, 7);
         tmp1 = veorq_u8(tmp1, gh);
         tmp1 = veorq_u8(tmp1, t3);
         tmp1 = veorq_u8(tmp1, tmp7);
 
+        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r13);
+
         tee = veorq_u8(tee, tmp1);
         high = veorq_u8(high, tee); // result
+
+        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r14);
 
     }
 
@@ -343,35 +426,50 @@ static inline void apply_aes_with_reduction(uint8x16_t *io0, uint8x16_t *io1, ui
 
 
 static inline void apply_aes_with_reduction_dec(uint8x16_t *io0, uint8x16_t *io1, uint8x16_t *io2, uint8x16_t *io3,
-                                                const uint8x16_t h0, const uint8x16_t h1, const uint8x16_t h2, const uint8x16_t h3,
-                                                uint8x16_t ctr0s, uint8x16_t ctr1s, uint8x16_t ctr2s, uint8x16_t ctr3s, uint8x16_t *roundKeys,
-                                                uint8x16_t *X, const uint32_t num_rounds) {
-
-
-
+                                                const uint8x16_t h0, const uint8x16_t h1, const uint8x16_t h2,
+                                                const uint8x16_t h3,
+                                                uint8x16_t ctr0s, uint8x16_t ctr1s, uint8x16_t ctr2s, uint8x16_t ctr3s,
+                                                uint8x16_t *roundKeys,
+                                                uint8x16_t *X, const size_t num_rounds) {
 
 
     uint8x16_t high, med, low, tee, high2, med2, low2, tee2, i0;
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[0]);
+    const uint8x16_t r0 = roundKeys[0];
+    const uint8x16_t r1 = roundKeys[1];
+    const uint8x16_t r2 = roundKeys[2];
+    const uint8x16_t r3 = roundKeys[3];
+    const uint8x16_t r4 = roundKeys[4];
+    const uint8x16_t r5 = roundKeys[5];
+    const uint8x16_t r6 = roundKeys[6];
+    const uint8x16_t r7 = roundKeys[7];
+    const uint8x16_t r8 = roundKeys[8];
+    const uint8x16_t r9 = roundKeys[9];
+    const uint8x16_t r10 = roundKeys[10];
+    const uint8x16_t r11 = roundKeys[11];
+    const uint8x16_t r12 = roundKeys[12];
+    const uint8x16_t r13 = roundKeys[13];
+    const uint8x16_t r14 = roundKeys[14];
+
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r0);
 
     i0 = swap_endian(*io3);
     high = (uint8x16_t) vmull_high_p64(i0, h3);
-    low = (uint8x16_t) vmull_p64(vget_low_p64(i0), vget_low_p64(h3));
-    med = (uint8x16_t) vmull_p64(vget_high_p64(i0), vget_low_p64(h3));
-    tee = (uint8x16_t) vmull_p64(vget_low_p64(i0), vget_high_p64(h3));
+    low = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i0), (poly64_t) vget_low_p64(h3));
+    med = (uint8x16_t) vmull_p64((poly64_t) vget_high_p64(i0), (poly64_t) vget_low_p64(h3));
+    tee = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i0), (poly64_t) vget_high_p64(h3));
 
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[1]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r1);
 
     i0 = swap_endian(*io2);
 
     high2 = (uint8x16_t) vmull_high_p64(i0, h2);
-    low2 = (uint8x16_t) vmull_p64(vget_low_p64(i0), vget_low_p64(h2));
-    med2 = (uint8x16_t) vmull_p64(vget_high_p64(i0), vget_low_p64(h2));
-    tee2 = (uint8x16_t) vmull_p64(vget_low_p64(i0), vget_high_p64(h2));
+    low2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i0), (poly64_t) vget_low_p64(h2));
+    med2 = (uint8x16_t) vmull_p64((poly64_t) vget_high_p64(i0), (poly64_t) vget_low_p64(h2));
+    tee2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i0), (poly64_t) vget_high_p64(h2));
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[2]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r2);
 
 
     high = veorq_u8(high, high2);
@@ -379,15 +477,15 @@ static inline void apply_aes_with_reduction_dec(uint8x16_t *io0, uint8x16_t *io1
     med = veorq_u8(med, med2);
     tee = veorq_u8(tee, tee2);
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[3]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r3);
 
     i0 = swap_endian(*io1);
     high2 = (uint8x16_t) vmull_high_p64(i0, h1);
-    low2 = (uint8x16_t) vmull_p64(vget_low_p64(i0), vget_low_p64(h1));
-    med2 = (uint8x16_t) vmull_p64(vget_high_p64(i0), vget_low_p64(h1));
-    tee2 = (uint8x16_t) vmull_p64(vget_low_p64(i0), vget_high_p64(h1));
+    low2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i0), (poly64_t) vget_low_p64(h1));
+    med2 = (uint8x16_t) vmull_p64((poly64_t) vget_high_p64(i0), (poly64_t) vget_low_p64(h1));
+    tee2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i0), (poly64_t) vget_high_p64(h1));
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[4]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r4);
 
     high = veorq_u8(high, high2);
     low = veorq_u8(low, low2);
@@ -395,15 +493,15 @@ static inline void apply_aes_with_reduction_dec(uint8x16_t *io0, uint8x16_t *io1
     tee = veorq_u8(tee, tee2);
 
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[5]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r5);
 
     i0 = veorq_u8(*X, swap_endian(*io0));
     high2 = (uint8x16_t) vmull_high_p64(i0, h0);
-    low2 = (uint8x16_t) vmull_p64(vget_low_p64(i0), vget_low_p64(h0));
-    med2 = (uint8x16_t) vmull_p64(vget_high_p64(i0), vget_low_p64(h0));
-    tee2 = (uint8x16_t) vmull_p64(vget_low_p64(i0), vget_high_p64(h0));
+    low2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i0), (poly64_t) vget_low_p64(h0));
+    med2 = (uint8x16_t) vmull_p64((poly64_t) vget_high_p64(i0), (poly64_t) vget_low_p64(h0));
+    tee2 = (uint8x16_t) vmull_p64((poly64_t) vget_low_p64(i0), (poly64_t) vget_high_p64(h0));
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[6]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r6);
 
     high = veorq_u8(high, high2);
     low = veorq_u8(low, low2);
@@ -411,7 +509,7 @@ static inline void apply_aes_with_reduction_dec(uint8x16_t *io0, uint8x16_t *io1
     tee = veorq_u8(tee, tee2);
 
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[7]);
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r7);
 
 
     tee = veorq_u8((uint8x16_t) tee, (uint8x16_t) med);
@@ -420,8 +518,7 @@ static inline void apply_aes_with_reduction_dec(uint8x16_t *io0, uint8x16_t *io1
     low = veorq_u8(low, med);
     high = veorq_u8(high, tee);
 
-    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[8]);
-
+    aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r8);
 
 
     uint32x4_t tmp6 = vsriq_n_u32(zero, low, 31);
@@ -430,24 +527,23 @@ static inline void apply_aes_with_reduction_dec(uint8x16_t *io0, uint8x16_t *io1
     high = vsliq_n_u32(zero, high, 1);
 
 
-
     uint32x4_t tmp8 = vextq_u8(tmp6, zero, 12);
     tmp7 = vextq_u8(zero, tmp7, 12);
     tmp6 = vextq_u8(zero, tmp6, 12);
     tee = vorrq_u8(tee, tmp6);
 
-    high = vorrq_u8(high,tmp7);
-    high = vorrq_u8(high,tmp8);
+    high = vorrq_u8(high, tmp7);
+    high = vorrq_u8(high, tmp8);
 
     if (num_rounds == 10) {
 
-        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[9]);
+        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r9);
 
         tmp6 = vsliq_n_u32(zero, tee, 31);
         tmp7 = vsliq_n_u32(zero, tee, 30);
         tmp8 = vsliq_n_u32(zero, tee, 25);
 
-        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[10]);
+        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r10);
 
         tmp6 = veorq_u8(tmp6, tmp7);
         tmp6 = veorq_u8(tmp6, tmp8);
@@ -467,26 +563,28 @@ static inline void apply_aes_with_reduction_dec(uint8x16_t *io0, uint8x16_t *io1
         high = veorq_u8(high, tee); // result
 
     } else if (num_rounds == 12) {
-        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[9]);
-        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[10]);
-        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[11]);
-        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[12]);
-
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r9);
         tmp6 = vsliq_n_u32(zero, tee, 31);
         tmp7 = vsliq_n_u32(zero, tee, 30);
         tmp8 = vsliq_n_u32(zero, tee, 25);
-
         tmp6 = veorq_u8(tmp6, tmp7);
+
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r10);
+
         tmp6 = veorq_u8(tmp6, tmp8);
         tmp7 = vextq_u8(tmp6, zero, 4);
         tmp6 = vextq_u8(zero, tmp6, 4);
         tee = veorq_u8(tee, tmp6);
 
+        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r11);
+
         uint8x16_t tmp1 = vsriq_n_u32(zero, tee, 1);
         uint8x16_t gh = vsriq_n_u32(zero, tee, 2);
         uint8x16_t t3 = vsriq_n_u32(zero, tee, 7);
-
         tmp1 = veorq_u8(tmp1, gh);
+
+        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r12);
+
         tmp1 = veorq_u8(tmp1, t3);
         tmp1 = veorq_u8(tmp1, tmp7);
 
@@ -494,34 +592,40 @@ static inline void apply_aes_with_reduction_dec(uint8x16_t *io0, uint8x16_t *io1
         high = veorq_u8(high, tee); // result
 
     } else {
-        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[9]);
-        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[10]);
-        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[11]);
-        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[12]);
-        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[13]);
-        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, roundKeys[14]);
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r9);
 
         tmp6 = vsliq_n_u32(zero, tee, 31);
         tmp7 = vsliq_n_u32(zero, tee, 30);
         tmp8 = vsliq_n_u32(zero, tee, 25);
 
         tmp6 = veorq_u8(tmp6, tmp7);
+
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r10);
+
         tmp6 = veorq_u8(tmp6, tmp8);
         tmp7 = vextq_u8(tmp6, zero, 4);
         tmp6 = vextq_u8(zero, tmp6, 4);
         tee = veorq_u8(tee, tmp6);
+
+
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r11);
+
 
         uint8x16_t tmp1 = vsriq_n_u32(zero, tee, 1);
         uint8x16_t gh = vsriq_n_u32(zero, tee, 2);
         uint8x16_t t3 = vsriq_n_u32(zero, tee, 7);
 
         tmp1 = veorq_u8(tmp1, gh);
+
+        aes_enc(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r12);
+
         tmp1 = veorq_u8(tmp1, t3);
         tmp1 = veorq_u8(tmp1, tmp7);
-
         tee = veorq_u8(tee, tmp1);
         high = veorq_u8(high, tee); // result
 
+        aes_enc_last(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r13);
+        aes_xor(&ctr0s, &ctr1s, &ctr2s, &ctr3s, r14);
     }
 
 
@@ -554,24 +658,11 @@ gcm_err *process_block(gcm_ctx *ctx, uint8_t *in, uint8_t *out, size_t outputLen
         return make_gcm_error("output len too short", OUTPUT_LENGTH);
     }
 
-    int j;
 
     ctx->ctr1 = vaddq_u32(ctx->ctr1, one);
     uint8x16_t tmp1 = vrev64q_u8(ctx->ctr1);
     single_block(&ctx->aesKey, tmp1, &tmp1);
 
-
-//    tmp1 = _mm_xor_si128(tmp1, ctx->roundKeys[0]);
-//    for (j = 1; j < ctx->num_rounds - 1; j += 2) {
-//        tmp1 = _mm_aesenc_si128(tmp1, ctx->roundKeys[j]);
-//        tmp1 = _mm_aesenc_si128(tmp1, ctx->roundKeys[j + 1]);
-//    }
-//    tmp1 = _mm_aesenc_si128(tmp1, ctx->roundKeys[ctx->num_rounds - 1]);
-//    tmp1 = _mm_aesenclast_si128(tmp1, ctx->roundKeys[ctx->num_rounds]);
-//    __m128i in1 = _mm_loadu_si128((__m128i *) in);
-//    tmp1 = _mm_xor_si128(tmp1, in1);
-//    _mm_storeu_si128((__m128i *) (out), tmp1);
-//    tmp1 = _mm_shuffle_epi8(tmp1, *BSWAP_MASK);
 
     uint8x16_t in1 = vld1q_u8(in);
     tmp1 = veorq_u8(tmp1, in1);
@@ -772,7 +863,6 @@ gcm_err *process_buffer_enc(gcm_ctx *ctx,
             ctr2 = vaddq_u32(ctx->ctr1, one);
             ctr3 = vaddq_u32(ctr2, one);
             ctr4 = vaddq_u32(ctr3, one);
-
 
 
             tmp1 = vrev64q_u8(ctx->ctr1);
@@ -1084,7 +1174,7 @@ gcm_err *process_buffer_dec(gcm_ctx *ctx,
 
 void gcm_exponentiate(uint8x16_t H, uint64_t pow, uint8x16_t *output) {
 
-    uint32x4_t y = { 0, 0, 0,-2147483648};
+    uint32x4_t y = {0, 0, 0, (uint32_t) -2147483648};
 
     if (pow > 0) {
         uint8x16_t x = H;
@@ -1109,7 +1199,6 @@ void gcm_exponentiate(uint8x16_t H, uint64_t pow, uint8x16_t *output) {
  */
 gcm_err *gcm_doFinal(gcm_ctx *ctx, unsigned char *output, size_t outLen, size_t *written) {
     *written = 0;
-
 
 
     if (ctx->totalBytes == 0) {
@@ -1251,7 +1340,7 @@ gcm_err *gcm_doFinal(gcm_ctx *ctx, unsigned char *output, size_t outLen, size_t 
 
 
 
-    uint64x2_t z = {ctx->totalBytes * 8,ctx->atLength * 8}; // endian
+    uint64x2_t z = {ctx->totalBytes * 8, ctx->atLength * 8}; // endian
     tmp1 = z;
 
 
@@ -1280,7 +1369,6 @@ gcm_err *gcm_doFinal(gcm_ctx *ctx, unsigned char *output, size_t outLen, size_t 
         outPtr += ctx->macBlockLen;
     } else {
         if (!areEqualCT(ctx->macBlock, ctx->bufBlock + limit, ctx->macBlockLen)) {
-
             return make_gcm_error("mac check in GCM failed", ILLEGAL_CIPHER_TEXT);
         }
     }

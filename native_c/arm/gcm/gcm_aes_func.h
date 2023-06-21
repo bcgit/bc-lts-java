@@ -7,7 +7,6 @@
 #include "gcm_common.h"
 
 
-
 /**
  * Process two blocks.
  * @param key
@@ -84,37 +83,202 @@ static inline void single_block(
     const size_t rounds = key->rounds;
     const uint8x16_t *rk = key->round_keys;
     if (key->encryption) {
-        size_t r = 0;
-        for (r = 0; r < rounds - 1; r++) {
-            in1 = vaeseq_u8(in1, rk[r]);
+
+        if (rounds == 10) {
+            in1 = vaeseq_u8(in1, rk[0]);
             in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[1]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[2]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[3]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[4]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[5]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[6]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[7]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[8]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[9]);
+            *out1 = veorq_u8(in1, rk[10]);
+        } else if (rounds == 12) {
+            in1 = vaeseq_u8(in1, rk[0]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[1]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[2]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[3]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[4]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[5]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[6]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[7]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[8]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[9]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[10]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[11]);
+            *out1 = veorq_u8(in1, rk[12]);
+        } else {
+            in1 = vaeseq_u8(in1, rk[0]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[1]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[2]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[3]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[4]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[5]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[6]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[7]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[8]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[9]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[10]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[11]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[12]);
+            in1 = vaesmcq_u8(in1);
+            in1 = vaeseq_u8(in1, rk[13]);
+            *out1 = veorq_u8(in1, rk[14]);
         }
-
-        const uint8x16_t r0 = rk[r];
-
-        in1 = vaeseq_u8(in1, r0);
-
-        const uint8x16_t r1 = rk[r + 1];
-        *out1 = veorq_u8(in1, r1);
-
     } else {
 
         //
         // Decryption
         //
 
-        size_t r = rounds;
-        for (; r > 1; r--) {
-            in1 = vaesdq_u8(in1, rk[r]);
+
+        if (rounds == 10) {
+            in1 = vaesdq_u8(in1, rk[0]);
             in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[1]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[2]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[3]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[4]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[5]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[6]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[7]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[8]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[9]);
+            *out1 = veorq_u8(in1, rk[10]);
+
+        } else if (rounds == 12) {
+            in1 = vaesdq_u8(in1, rk[0]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[1]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[2]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[3]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[4]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[5]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[6]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[7]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[8]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[9]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[10]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[11]);
+            *out1 = veorq_u8(in1, rk[12]);
+
+        } else {
+            in1 = vaesdq_u8(in1, rk[0]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[1]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[2]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[3]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[4]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[5]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[6]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[7]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[8]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[9]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[10]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[11]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[12]);
+            in1 = vaesimcq_u8(in1);
+
+            in1 = vaesdq_u8(in1, rk[13]);
+            *out1 = veorq_u8(in1, rk[14]);
+
         }
-
-        const uint8x16_t r0 = rk[1];
-        in1 = vaesdq_u8(in1, r0);
-
-        const uint8x16_t r1 = rk[0];
-
-        *out1 = veorq_u8(in1, r1);
     }
 }
 
@@ -200,7 +364,6 @@ static inline void quad_block(
         *d4 = veorq_u8(in4, r1);
     }
 }
-
 
 
 #endif //BC_LTS_C_GCM_AES_FUNC_H

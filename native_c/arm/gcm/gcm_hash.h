@@ -16,9 +16,9 @@
 static inline uint8x16_t gfmul(uint8x16_t a, uint8x16_t b) {
 
     uint8x16_t t1 = (uint8x16_t) vmull_high_p64(a, b);
-    uint8x16_t t2 = (uint8x16_t) vmull_p64(vget_low_p64(a), vget_low_p64(b));
-    uint8x16_t t3 = (uint8x16_t) vmull_p64(vget_high_p64(a), vget_low_p64(b));
-    uint8x16_t gh = (uint8x16_t) vmull_p64(vget_low_p64(a), vget_high_p64(b));
+    uint8x16_t t2 = (uint8x16_t) vmull_p64((poly64_t)vget_low_p64(a), (poly64_t)vget_low_p64(b));
+    uint8x16_t t3 = (uint8x16_t) vmull_p64((poly64_t)vget_high_p64(a), (poly64_t)vget_low_p64(b));
+    uint8x16_t gh = (uint8x16_t) vmull_p64((poly64_t)vget_low_p64(a), (poly64_t)vget_high_p64(b));
 
 
     gh = veorq_u8((uint8x16_t) gh, (uint8x16_t) t3);

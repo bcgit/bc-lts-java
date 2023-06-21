@@ -2,8 +2,10 @@
 //
 
 
+#include <arm_neon.h>
 #include "../aes/aes_common_neon.h"
 #include "ecb.h"
+
 
 static inline void
 enc_blocks(const uint8x16_t *rk, uint8_t *src, uint8_t *dest, const uint32_t blocks, const size_t rounds) {
@@ -293,6 +295,6 @@ size_t ecb_process_blocks(aes_key *key, uint8_t *src, uint32_t blocks, uint8_t *
             dest += blocks * ECB_BLOCK_SIZE;
     }
 
-    return dest - destStart;
+    return (size_t) (dest - destStart);
 
 }

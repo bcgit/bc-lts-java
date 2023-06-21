@@ -6,7 +6,7 @@
 #include <assert.h>
 #include "gcm.h"
 #include "gcm_hash.h"
-#include "../debug_neon.h"
+//#include "../debug_neon.h"
 
 
 gcm_err *make_gcm_error(const char *msg, int type) {
@@ -281,7 +281,7 @@ gcm_err *gcm_init(
         }
 
          //        tmp1 = _mm_insert_epi64(tmp1, (long long) nonceLen * 8, 0);
-        const uint32x4_t nlen = {nonceLen * 8, 0, 0, 0}; // TODO look for intrinsic that can set u32 into a single lane
+        const uint32x4_t nlen = {(uint32_t)nonceLen * 8, 0, 0, 0}; // TODO look for intrinsic that can set u32 into a single lane
         tmp1 = nlen;
 
 //        tmp1 = _mm_insert_epi64(tmp1, 0, 1);
