@@ -20,7 +20,7 @@ public class SimpleTestTest
                 {
                     result.getException().printStackTrace();
                 }
-                fail(i+" -> "+  result.toString());
+                fail(tests[i].getClass().getName()+" "+i+" -> "+  result.toString());
             }
         }
     }

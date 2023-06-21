@@ -107,7 +107,7 @@ JNIEXPORT jstring JNICALL Java_org_bouncycastle_crypto_VariantSelector_getBestVa
 
 
     // Neon little endian
-    if (cpu_info.arm64 && cpu_info.neon && cpu_info.le) {
+    if (cpu_info.arm64 && cpu_info.neon) {
         return (*env)->NewStringUTF(env, "neon-le");
     } else if (cpu_info.arm64 && cpu_info.neon && !cpu_info.le) {
         return (*env)->NewStringUTF(env, "neon-be");

@@ -4,6 +4,8 @@
 
 #include "arm_neon.h"
 #include "../aes/aes_common_neon.h"
+#include "gcm_common.h"
+
 
 
 /**
@@ -117,8 +119,6 @@ static inline void single_block(
 }
 
 
-
-
 /**
  * Process one block.
  * @param key
@@ -200,10 +200,6 @@ static inline void quad_block(
         *d4 = veorq_u8(in4, r1);
     }
 }
-
-
-
-
 
 
 

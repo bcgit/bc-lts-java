@@ -131,7 +131,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             )
     target_include_directories("${LIB_NATIVE}-neon-le" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-neon-le" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
-    install(TARGETS "${LIB_NATIVE}-neon-le" LIBRARY DESTINATION ${PLATFORM_TARGET}/neon)
+    install(TARGETS "${LIB_NATIVE}-neon-le" LIBRARY DESTINATION ${PLATFORM_TARGET}/neon-le)
     target_compile_definitions("${LIB_NATIVE}-neon-le" PUBLIC BC_NEON BC_VARIANT=\"neon-le\" BUILD_TS=\"${BUILD_TS}\")
 
 
@@ -159,7 +159,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
                 )
         target_include_directories("${LIB_NATIVE}-neon-be" PUBLIC ${JNI_INCLUDES})
         target_compile_options("${LIB_NATIVE}-neon-be" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS} ${ARM_BE}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
-        install(TARGETS "${LIB_NATIVE}-neon-be" LIBRARY DESTINATION ${PLATFORM_TARGET}/neon)
+        install(TARGETS "${LIB_NATIVE}-neon-be" LIBRARY DESTINATION ${PLATFORM_TARGET}/neon-be)
         target_compile_definitions("${LIB_NATIVE}-neon-be" PUBLIC BC_NEON BC_VARIANT=\"neon\" BUILD_TS=\"${BUILD_TS}\")
     endif ()
 

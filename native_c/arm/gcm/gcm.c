@@ -5,25 +5,8 @@
 #include <libc.h>
 #include <assert.h>
 #include "gcm.h"
-
+#include "gcm_hash.h"
 #include "../debug_neon.h"
-
-
-
-bool areEqualCT(const uint8_t *left, const uint8_t *right, size_t len) {
-
-    assert(left != NULL);
-    assert(right != NULL);
-
-    uint32_t nonEqual = 0;
-
-    for (int i = 0; i != len; i++) {
-        nonEqual |= (left[i] ^ right[i]);
-    }
-
-    return nonEqual == 0;
-}
-
 
 
 gcm_err *make_gcm_error(const char *msg, int type) {
@@ -55,6 +38,7 @@ void gcm_free(gcm_ctx *ctx) {
 }
 
 void gcm_reset(gcm_ctx *ctx, bool keepMac) {
+
 
     ctx->atLength = 0;
     ctx->totalBytes = 0;
@@ -233,7 +217,7 @@ gcm_err *gcm_init(
     ctx->bufBlockIndex = 0;
 
     // TODO change for multi-block
-    ctx->bufBlockLen = encryption ? GCM_BLOCK_SIZE : (GCM_BLOCK_SIZE + ctx->macBlockLen);
+    ctx->bufBlockLen = encryption ? FOUR_BLOCKS : (FOUR_BLOCKS + ctx->macBlockLen);
 
     ctx->S_at = vdupq_n_u64(0);
     ctx->S_atPre = vdupq_n_u64(0);
@@ -257,10 +241,6 @@ gcm_err *gcm_init(
         memset(nonceBuf, 0, 16);
         ctx->Y = vorrq_u8(ctx->Y, insert_32);
 
-        print_uint8x16_t(&ctx->X);
-        print_uint8x16_t(&ctx->Y);
-
-
         dual_block(&ctx->aesKey, ctx->X, ctx->Y, &ctx->H, &ctx->T);
 
         // swap endian -le only.
@@ -274,15 +254,21 @@ gcm_err *gcm_init(
 //        ctx->H = vrev64q_u8(ctx->H);
 //        ctx->H = vextq_u8(ctx->H, ctx->H, 8);
 
+
+        ctx->Y = veorq_u8(ctx->Y, ctx->Y);
+
         int i;
         for (i = 0; i < nonceLen / 16; i++) {
-            tmp1 = vld1q_u8(&nonce[i]);
+            tmp1 = vld1q_u8(&nonce[i*16]);
             swap_endian_inplace(&tmp1);
+
 //            tmp1 = vrev64q_u8(tmp1);
 //            tmp1 = vextq_u8(tmp1, tmp1, 8);
             ctx->Y = veorq_u8(ctx->Y, tmp1);
             ctx->Y = gfmul(ctx->Y, ctx->H);
         }
+
+
         if (nonceLen % 16) {
             for (int j = 0; j < nonceLen % 16; j++) {
                 ((uint8_t *) &ctx->last_block)[j] = nonce[i * 16 + j];
@@ -296,7 +282,7 @@ gcm_err *gcm_init(
 
          //        tmp1 = _mm_insert_epi64(tmp1, (long long) nonceLen * 8, 0);
         const uint32x4_t nlen = {nonceLen * 8, 0, 0, 0}; // TODO look for intrinsic that can set u32 into a single lane
-        tmp1 = vld1q_u8((const unsigned char *) &nlen);
+        tmp1 = nlen;
 
 //        tmp1 = _mm_insert_epi64(tmp1, 0, 1);
 
@@ -309,6 +295,9 @@ gcm_err *gcm_init(
         // E(K,Y0)
 
         single_block(&ctx->aesKey,ctx->Y, &ctx->T);
+
+
+
 
     }
 
@@ -353,7 +342,6 @@ size_t gcm_get_output_size(gcm_ctx *ctx, size_t len) {
 }
 
 size_t gcm_get_update_output_size(gcm_ctx *ctx, size_t len) {
-
     size_t totalData = len + ctx->bufBlockIndex;
     if (!ctx->encryption) {
         if (totalData < ctx->bufBlockLen) {
@@ -361,9 +349,7 @@ size_t gcm_get_update_output_size(gcm_ctx *ctx, size_t len) {
         }
         totalData -= ctx->macBlockLen;
     }
-
-    return totalData - totalData % GCM_BLOCK_SIZE; //FOUR_BLOCKS;
-
+    return totalData - totalData % FOUR_BLOCKS;
 }
 
 /**

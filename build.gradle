@@ -150,7 +150,7 @@ subprojects {
   sourceCompatibility = "$vm_source"
   targetCompatibility = "$vm_target"
 
-  task('testNEON', type: Test) {
+  task('testNEON_LE', type: Test) {
     systemProperty 'bc.test.data.home', bcTestDataHome
     maxHeapSize = "2048m"
     testLogging.showStandardStreams = true
@@ -161,7 +161,7 @@ subprojects {
     filter {
       includeTestsMatching "AllTest*"
     }
-    jvmArgs '-Dtest.bcfips.ignore.native=sha,gcm,cbc,es,cfb,ctr', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=neon'
+    jvmArgs '-Dtest.bcfips.ignore.native=sha,cbc,es,cfb,ctr', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=neon-le'
 
   }
 

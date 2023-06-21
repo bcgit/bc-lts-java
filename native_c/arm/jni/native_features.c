@@ -143,7 +143,9 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCM
         (JNIEnv *env, jclass cl) {
 
-    return JNI_FALSE;
+    probe_system();
+
+    return cpu_info.aes ? JNI_TRUE : JNI_FALSE;
 
 }
 

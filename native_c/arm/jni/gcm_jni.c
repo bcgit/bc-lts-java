@@ -102,16 +102,16 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_initNat
     }
 
 
-//    err = gcm_init(
-//            ctx,
-//            encryption == JNI_TRUE,
-//            key.bytearray,
-//            key.size,
-//            iv.bytearray,
-//            iv.size,
-//            ad.bytearray,
-//            ad.size,
-//            (uint32_t) macSizeInBits);
+    err = gcm_init(
+            ctx,
+            encryption == JNI_TRUE,
+            key.bytearray,
+            key.size,
+            iv.bytearray,
+            iv.size,
+            ad.bytearray,
+            ad.size,
+            (uint32_t) macSizeInBits);
 
 
     exit:
@@ -119,7 +119,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_initNat
     release_bytearray_ctx(&iv);
     release_bytearray_ctx(&ad);
 
-   // handle_gcm_result(env, err);
+    handle_gcm_result(env, err);
 }
 
 /*
@@ -129,10 +129,9 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_initNat
  */
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_makeInstance
         (JNIEnv *env, jclass cl, jint i, jboolean ignored) {
-   // gcm_ctx *gcm = gcm_create_ctx();
+    gcm_ctx *gcm = gcm_create_ctx();
 
-   return 0;
-  // return (jlong) gcm;
+    return (jlong) gcm;
 }
 
 /*
@@ -143,7 +142,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_makeIn
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_dispose
         (JNIEnv *env, jclass jc, jlong ref) {
     gcm_ctx *ctx = (gcm_ctx *) ref;
-   // gcm_free(ctx);
+    gcm_free(ctx);
 }
 
 /*
@@ -155,7 +154,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
         (JNIEnv *env, jclass cl, jlong ref, jbyte aadByte) {
 
     gcm_ctx *ctx = (gcm_ctx *) ref;
-    //gcm_process_aad_byte(ctx, (uint8_t) aadByte);
+    gcm_process_aad_byte(ctx, (uint8_t) aadByte);
 
 }
 
@@ -184,7 +183,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
         goto exit;
     }
 
-   // gcm_process_aad_bytes(ctx, aad.bytearray + offset, (size_t) len);
+    gcm_process_aad_bytes(ctx, aad.bytearray + offset, (size_t) len);
 
     exit:
     release_bytearray_ctx(&aad);
@@ -205,7 +204,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
 
     size_t written = 0;
     gcm_ctx *ctx = (gcm_ctx *) ref;
-
 
 
     if (offset < 0) {
@@ -231,16 +229,16 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
     uint8_t *dest = output.critical == NULL ? NULL : output.critical + offset;
     size_t outputLen = output.array == NULL ? 0 : output.size - (size_t) offset;
 
-//    err = gcm_process_byte(
-//            ctx,
-//            (uint8_t) byte,
-//            dest,
-//            outputLen, &written);
+    err = gcm_process_byte(
+            ctx,
+            (uint8_t) byte,
+            dest,
+            outputLen, &written);
 
     exit:
     release_critical_ctx(&output);
 
-   // handle_gcm_result(env, err);
+    handle_gcm_result(env, err);
 
     return (jint) written;
 }
@@ -304,12 +302,12 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
     uint8_t *src = input.critical + inOff;
 
 
-//    err = gcm_process_bytes(ctx,
-//                            src,
-//                            (size_t) len,
-//                            dest,
-//                            outLen,
-//                            &written);
+    err = gcm_process_bytes(ctx,
+                            src,
+                            (size_t) len,
+                            dest,
+                            outLen,
+                            &written);
 
 
     exit:
@@ -317,7 +315,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_process
     release_critical_ctx(&output);
 
 
-    //handle_gcm_result(env, err);
+    handle_gcm_result(env, err);
 
     return (jint) written;
 }
@@ -338,7 +336,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_doFinal
     init_critical_ctx(&output, env, out);
 
 
-
     if (!critical_not_null(&output, "output was null", env)) {
         goto exit;
     }
@@ -356,12 +353,12 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_doFinal
     uint8_t *dest = output.critical + offset;
     size_t len = output.size - (size_t) offset;
 
-  //  err = gcm_doFinal(ctx, dest, len, &written);
+    err = gcm_doFinal(ctx, dest, len, &written);
 
     exit:
     release_critical_ctx(&output);
 
-   // handle_gcm_result(env, err);
+    handle_gcm_result(env, err);
 
     return (jint) written;
 
@@ -381,8 +378,8 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_getUpda
         return 0;
     }
 
-   // return (jint) gcm_get_update_output_size(ctx, (size_t) len);
-    return 0;
+    return (jint) gcm_get_update_output_size(ctx, (size_t) len);
+
 }
 
 /*
@@ -400,8 +397,8 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_getOutp
         return 0;
     }
 
-   // return (jint) gcm_get_output_size(ctx, (size_t) len);
-    return 0;
+    return (jint) gcm_get_output_size(ctx, (size_t) len);
+
 }
 
 /*
@@ -414,7 +411,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_g
 
 
     gcm_ctx *ctx = (gcm_ctx *) ref;
-    size_t macBlockLen =  0; // gcm_getMac(ctx, NULL);
+    size_t macBlockLen = gcm_getMac(ctx, NULL);
 
     jbyteArray out = (*env)->NewByteArray(env, (jint) macBlockLen);
     if (out == NULL) {
@@ -431,7 +428,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_g
         goto exit;
     }
 
-    //gcm_getMac(ctx, out_ctx.bytearray);
+    gcm_getMac(ctx, out_ctx.bytearray);
 
     exit:
     release_bytearray_ctx(&out_ctx);
