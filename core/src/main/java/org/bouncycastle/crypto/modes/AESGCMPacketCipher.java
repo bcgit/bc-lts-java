@@ -15,20 +15,26 @@ import java.util.WeakHashMap;
 public class AESGCMPacketCipher implements PacketCipher
 {
 
+    public static AESGCMPacketCipher newInstance(BlockCipher cipher)
+    {
+        return null;
+    }
+
+    private AESGCMPacketCipher()
+    {
+    }
 
     @Override
-    public int getOutputSize(boolean direction, CipherParameters parameters, int len)
+    public int getOutputSize(boolean forEncryption, CipherParameters parameters, int len)
     {
         return 0;
     }
 
 
     @Override
-    public int processPacket(boolean direction, CipherParameters parameters, byte[] input, int inOff, int len,
+    public int processPacket(boolean forEncryption, CipherParameters parameters, byte[] input, int inOff, int len,
                               byte[] output, int outOff) throws PacketCipherException
     {
         return 0;
     }
-
-
 }
