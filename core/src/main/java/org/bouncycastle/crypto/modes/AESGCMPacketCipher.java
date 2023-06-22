@@ -24,10 +24,10 @@ public class AESGCMPacketCipher implements PacketCipher
 
 
     @Override
-    public void processPacket(boolean direction, CipherParameters parameters, byte[] input, int inOff, int len,
+    public int processPacket(boolean direction, CipherParameters parameters, byte[] input, int inOff, int len,
                               byte[] output, int outOff) throws PacketCipherException
     {
-
+        return 0;
     }
 
 
