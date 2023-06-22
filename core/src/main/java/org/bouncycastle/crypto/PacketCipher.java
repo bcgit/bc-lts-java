@@ -27,8 +27,9 @@ public interface PacketCipher
      * @param len        the number of bytes of input to process.
      * @param output     The output array
      * @param outOff     the offset within the output array to start writing output.
+     * @return
      * @throws PacketCipherException if the transformation encounters an error.
      */
-    void processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
-                       byte[] output, int outOff) throws PacketCipherException;
+    int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
+                      byte[] output, int outOff) throws PacketCipherException;
 }
