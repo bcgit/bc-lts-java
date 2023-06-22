@@ -277,7 +277,7 @@ d2aa7eb428023f8b2bb428a3b026b275cf2c4a7acbbdd8abbb0571b6ecceeb77  core/src/test/
 e85f47e41106e602f08c96964e647fcfebec944ac465174221132a5f986d9fc9  core/src/test/java/org/bouncycastle/asn1/test/EnumeratedTest.java
 f7d2a6fa2967d5e3dfd12fae00fb64f627354d601e04442471e2f85b61724681  core/src/test/java/org/bouncycastle/asn1/test/EqualsAndHashCodeTest.java
 a5c00a66ad013673a7df4a7df76d59cd4afe53db3287bce8831a64bdd93ba29c  core/src/test/java/org/bouncycastle/asn1/test/PrivateKeyInfoTest.java
-bac2195196a97ad7fd0e5b1795fb84a91e703c61ccfe5635f6e3ee326c7ee368  core/src/test/java/org/bouncycastle/asn1/test/OIDTest.java
+5c3f1bdedb710fe0a265b0cac132f65b2f17874645b39b40d5f17906f5d53305  core/src/test/java/org/bouncycastle/asn1/test/OIDTest.java
 246e195d54183166671945d07f5c2988d037d555ed945639e623c24972b05687  core/src/test/java/org/bouncycastle/asn1/test/IssuingDistributionPointUnitTest.java
 cb956ce33bcb30846e388843550be3e654a63be16494dc218e746499ad022ae5  core/src/test/java/org/bouncycastle/asn1/test/PKCS10Test.java
 aa05a64047779442c0fc2671292aca01da19ee7488039c6c59407a3bc10ee066  core/src/test/java/org/bouncycastle/asn1/test/MonetaryValueUnitTest.java
@@ -992,7 +992,7 @@ ae08b85f4bba7884ad046ee903843e461196dd17038a7f3db1f801bf506f8768  core/src/main/
 4671f1b5b831b358326f89ecfd9443b22afb89f9151e0ff935b7bf48e29a6240  core/src/main/java/org/bouncycastle/asn1/ASN1Enumerated.java
 58e22f129da2c66531f1a38be8f5fd6317087fac1d91347d785d72b0d0f738f2  core/src/main/java/org/bouncycastle/asn1/DLTaggedObjectParser.java
 6bcc1172acc257fb6a24699776b0f2b48f73eed06ccbd4ca11371ec347add7ed  core/src/main/java/org/bouncycastle/asn1/BERSequence.java
-d0f9adfd9ef239a8891e615f74b661fa838524305584cd7f6e0fae315c3bb633  core/src/main/java/org/bouncycastle/asn1/ASN1ObjectIdentifier.java
+97fce3e32e6bff492c3dcf512913457419fcb58d1a899cd60d92f3160e26dfc6  core/src/main/java/org/bouncycastle/asn1/ASN1ObjectIdentifier.java
 2404f209f34ddecc2617371178eb7efc48037528d54dac0820041a289ca9c1be  core/src/main/java/org/bouncycastle/asn1/DEROctetString.java
 0bd76d883a017e5acfa1f60489e710588e55e71c79313c19abc7c9ec6ccfbbec  core/src/main/java/org/bouncycastle/asn1/ASN1InputStream.java
 cb18feb8deeed53665f7b660f14a68e13a80dd67863178df5f51692431d8e187  core/src/main/java/org/bouncycastle/asn1/InMemoryRepresentable.java
