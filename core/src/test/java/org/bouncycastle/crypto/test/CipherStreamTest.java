@@ -552,7 +552,7 @@ public class CipherStreamTest
         }
         if (blockSize == 16)
         {
-            testMode(new CCMBlockCipher(cipher1), new ParametersWithIV(key, new byte[7]));
+            testMode(CCMBlockCipher.newInstance(cipher1), new ParametersWithIV(key, new byte[7]));
             // TODO: need to have a GCM safe version of testMode.
 //            testMode(new GCMBlockCipher(cipher1), withIv);
             testMode(new OCBBlockCipher(cipher1, cipher2), new ParametersWithIV(key, new byte[15]));

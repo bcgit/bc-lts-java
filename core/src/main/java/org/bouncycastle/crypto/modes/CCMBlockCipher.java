@@ -2,11 +2,13 @@ package org.bouncycastle.crypto.modes;
 
 import java.io.ByteArrayOutputStream;
 
+
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.Mac;
+import org.bouncycastle.crypto.NativeBlockCipherProvider;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.macs.CBCBlockCipherMac;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -22,13 +24,13 @@ import org.bouncycastle.util.Arrays;
 public class CCMBlockCipher
     implements CCMModeCipher
 {
-    private BlockCipher           cipher;
+    private BlockCipher cipher;
     private int                   blockSize;
     private boolean               forEncryption;
     private byte[]                nonce;
     private byte[]                initialAssociatedText;
     private int                   macSize;
-    private CipherParameters      keyParam;
+    private CipherParameters keyParam;
     private byte[]                macBlock;
     private ExposedByteArrayOutputStream associatedText = new ExposedByteArrayOutputStream();
     private ExposedByteArrayOutputStream data = new ExposedByteArrayOutputStream();
@@ -40,6 +42,11 @@ public class CCMBlockCipher
      */
     public static CCMModeCipher newInstance(BlockCipher cipher)
     {
+        if (cipher instanceof NativeBlockCipherProvider)
+        {
+            NativeBlockCipherProvider engine = (NativeBlockCipherProvider)cipher;
+            return engine.createCCM();
+        }
         return new CCMBlockCipher(cipher);
     }
 
@@ -475,5 +482,11 @@ public class CCMBlockCipher
         {
             return this.buf;
         }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "CCM[Java](" + cipher.toString() + ")";
     }
 }

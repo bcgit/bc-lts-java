@@ -12,6 +12,7 @@ public interface NativeServices
     String AES_CBC = "AES/CBC";
     String AES_CFB = "AES/CFB";
     String AES_CTR = "AES/CTR";
+    String AES_CCM = "AES/CCM";
 
     String SHA2 = "SHA2";
     String MULACC = "MULACC";

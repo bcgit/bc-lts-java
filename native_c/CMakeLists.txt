@@ -332,6 +332,28 @@ else ()
             )
 
 
+set (CCM
+       	intel/ccm/ccm.h
+        intel/ccm/ccm.c
+        intel/ccm/ccm128.c
+        intel/jni/ccm_jni.c
+        )
+
+set(CCM_VAES
+        intel/ccm/ccm.h
+        intel/ccm/ccm.c
+        intel/ccm/ccm256.c
+        intel/jni/ccm_jni.c
+        )
+
+set (CCM_VAESF
+        intel/ccm/ccm.h
+        intel/ccm/ccm.c
+        intel/ccm/ccm512.c
+        intel/jni/ccm_jni.c
+        )
+
+
     # Probe project a simple lib for probing the CPUs features
     #
     add_library(${LIB_PROBE} SHARED ${PROBE})
@@ -358,6 +380,7 @@ else ()
             ${SHA256}
             ${GCM}
             ${MUL_AVX}
+	    ${CCM}
             )
     target_include_directories("${LIB_NATIVE}-avx" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-avx" PRIVATE $<$<COMPILE_LANGUAGE:C>:${AVX_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -377,6 +400,7 @@ else ()
             ${SHA256}
             ${GCM}
             ${MUL_AVX}
+	    ${CCM_VAES}
             )
     target_include_directories("${LIB_NATIVE}-vaes" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-vaes" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAES_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -396,6 +420,7 @@ else ()
             ${SHA256}
             ${GCM_VAESF}
             ${MUL_VAESF}
+	    ${CCM_VAESF}
             )
     target_include_directories("${LIB_NATIVE}-vaesf" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-vaesf" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAESF_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
