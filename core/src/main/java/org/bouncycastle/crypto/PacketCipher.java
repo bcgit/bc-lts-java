@@ -6,11 +6,6 @@ package org.bouncycastle.crypto;
  */
 public interface PacketCipher
 {
-    enum Direction
-    {
-        ENCRYPT,
-        DECRYPT
-    }
 
     /**
      * Returns the expected output size for direction and parameters.
@@ -20,7 +15,7 @@ public interface PacketCipher
      * @param len        the input length.
      * @return the required minimum output length in bytes.
      */
-    int getOutputSize(Direction direction, CipherParameters parameters, int len);
+    int getOutputSize(boolean direction, CipherParameters parameters, int len);
 
     /**
      * Process a packet.
@@ -34,6 +29,6 @@ public interface PacketCipher
      * @param outOff     the offset within the output array to start writing output.
      * @throws PacketCipherException if the transformation encounters an error.
      */
-    void processPacket(Direction direction, CipherParameters parameters, byte[] input, int inOff, int len,
+    void processPacket(boolean direction, CipherParameters parameters, byte[] input, int inOff, int len,
                        byte[] output, int outOff) throws PacketCipherException;
 }

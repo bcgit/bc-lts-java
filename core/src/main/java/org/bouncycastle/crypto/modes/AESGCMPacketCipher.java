@@ -17,13 +17,14 @@ public class AESGCMPacketCipher implements PacketCipher
 
 
     @Override
-    public int getOutputSize(Direction direction, CipherParameters parameters, int len)
+    public int getOutputSize(boolean direction, CipherParameters parameters, int len)
     {
         return 0;
     }
 
+
     @Override
-    public void processPacket(Direction direction, CipherParameters parameters, byte[] input, int inOff, int len,
+    public void processPacket(boolean direction, CipherParameters parameters, byte[] input, int inOff, int len,
                               byte[] output, int outOff) throws PacketCipherException
     {
 
