@@ -669,7 +669,15 @@ public final class CryptoServicesRegistrar
     // to the JVM's seed generator.
     private static EntropySourceProvider createBaseEntropySourceProvider()
     {
-        if (Security.getProperty("securerandom.source") == null)
+        String source = AccessController.doPrivileged(new PrivilegedAction<String>()
+        {
+            public String run()
+            {
+                return Security.getProperty("securerandom.source");
+            }
+        });
+
+        if (source == null)
         {
             return createInternalEntropySourceProvider();
         }
@@ -677,8 +685,6 @@ public final class CryptoServicesRegistrar
         {
             try
             {
-                String source = Security.getProperty("securerandom.source");
-
                 return new URLSeededEntropySourceProvider(new URL(source));
             }
             catch (Exception e)
