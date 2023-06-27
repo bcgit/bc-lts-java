@@ -28,6 +28,8 @@ public class JavaNativeLargeMessageTest extends SimpleTest
 {
 
 
+    private static final int largeMSG = 1024 * 1024 * 151;
+
     private static final String BCFIPS_LIB_CPU_VARIANT = "org.bouncycastle.native.cpu_variant";
 
     @Before
@@ -87,7 +89,7 @@ public class JavaNativeLargeMessageTest extends SimpleTest
 
         AEADParameterSpec ivSpec = new AEADParameterSpec(iv, macSize);
 
-        int msgSize = 1 + (257 * 1024 * 1024);
+        int msgSize = 1 + largeMSG;
         byte[] msg = new byte[msgSize];
         rand.nextBytes(msg);
 
@@ -194,7 +196,7 @@ public class JavaNativeLargeMessageTest extends SimpleTest
 
         IvParameterSpec ivSpec = new IvParameterSpec(iv);
 
-        int msgSize = 1 + (257 * 1024 * 1024);
+        int msgSize = 1 + largeMSG;
         byte[] msg = new byte[msgSize];
         rand.nextBytes(msg);
 
@@ -301,7 +303,7 @@ public class JavaNativeLargeMessageTest extends SimpleTest
 
         IvParameterSpec ivSpec = new IvParameterSpec(iv);
 
-        int msgSize = 1 + (257 * 1024 * 1024);
+        int msgSize = largeMSG +1;
         byte[] msg = new byte[msgSize];
         rand.nextBytes(msg);
 
@@ -408,7 +410,7 @@ public class JavaNativeLargeMessageTest extends SimpleTest
 
         IvParameterSpec ivSpec = new IvParameterSpec(iv);
 
-        int msgSize =  (257 * 1024 * 1024);
+        int msgSize =  largeMSG;
         byte[] msg = new byte[msgSize];
         rand.nextBytes(msg);
 
@@ -508,7 +510,7 @@ public class JavaNativeLargeMessageTest extends SimpleTest
         SecureRandom rand = new SecureRandom();
 
 
-        int msgSize =  (257 * 1024 * 1024);
+        int msgSize =  largeMSG;
         byte[] msg = new byte[msgSize];
         rand.nextBytes(msg);
 
