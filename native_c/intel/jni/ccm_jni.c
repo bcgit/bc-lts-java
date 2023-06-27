@@ -154,7 +154,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_getUpda
         return 0;
     }
 
-    return (jint) ccm_get_output_size(ctx, (size_t) len);
+    return 0;
 }
 
 /*

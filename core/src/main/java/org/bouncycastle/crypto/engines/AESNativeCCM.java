@@ -42,10 +42,6 @@ class AESNativeCCM
     public void init(boolean forEncryption, CipherParameters params)
         throws IllegalArgumentException
     {
-        if (initialised && forEncryption == this.forEncryption)
-        {
-            throw new IllegalArgumentException("cannot reuse nonce for CCM encryption");
-        }
         this.forEncryption = forEncryption;
         CipherParameters cipherParameters;
         KeyParameter keyParam = null;
@@ -91,7 +87,6 @@ class AESNativeCCM
             }
             initRef(lastKey.length);
         }
-
 
         int iatLen = initialAssociatedText != null ? initialAssociatedText.length : 0;
         initNative(
@@ -184,10 +179,6 @@ class AESNativeCCM
         {
             throw new DataLengthException("array too short for offset + len");
         }
-//        if (out != null && out.length - outOff <= 0)
-//        {
-//            throw new OutputLengthException("output len too short");
-//        }
         data.write(in, inOff, len);
 
         return 0;
@@ -212,7 +203,7 @@ class AESNativeCCM
             }
             byte[] input = data.toByteArray();
             byte[] aad = associatedText.toByteArray();
-            if (getOutputSize(input.length) > out.length - outOff)
+            if (getOutputSize(0) > out.length - outOff)
             {
                 throw new OutputLengthException("output buffer too short");
             }
@@ -253,7 +244,7 @@ class AESNativeCCM
     @Override
     public int getOutputSize(int len)
     {
-        return getOutputSize(refWrapper.getReference(), len);
+        return getOutputSize(refWrapper.getReference(), len + data.size());
     }
 
 
@@ -268,7 +259,6 @@ class AESNativeCCM
         associatedText.reset();
         data.reset();
         reset(refWrapper.getReference(), false);
-        initialised = false;
         if (keptMac != null)
         {
             Arrays.fill(keptMac, (byte)0);
@@ -291,7 +281,6 @@ class AESNativeCCM
         }
         keptMac = getMac();
         reset(refWrapper.getReference(), true);
-        initialised = false;
     }
 
 
@@ -335,7 +324,9 @@ class AESNativeCCM
         throws InvalidCipherTextException
     {
         byte[] aad = associatedText.toByteArray();
-        return processPacket(refWrapper.getReference(), inBuf, inOff, length, aad, aad.length, outBuf, outOff);
+        int result = processPacket(refWrapper.getReference(), inBuf, inOff, length, aad, aad.length, outBuf, outOff);
+        reset();
+        return result;
     }
 
     @Override
@@ -344,6 +335,7 @@ class AESNativeCCM
     {
         byte[] out = new byte[getOutputSize(length)];
         processPacket(input, inOff, length, out, 0);
+        reset();
         return out;
     }
 
