@@ -209,41 +209,115 @@ JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_g
  */
 JNIEXPORT int JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_processPacket
         (JNIEnv *env, jclass, jlong ref, jbyteArray in, jint inOff, jint inLen, jbyteArray aad_,
-         jint aadlen, jbyteArray out, jint outOff) {
+         jint aad_len, jbyteArray out, jint outOff) {
     ccm_err *err = NULL;
     size_t written = 0;
     ccm_ctx *ctx = (ccm_ctx *) ((void *) ref);
-    java_bytearray_ctx input, output, aad;
+    critical_bytearray_ctx input, output, aad;
 
-    init_bytearray_ctx(&input);
-    init_bytearray_ctx(&output);
-    init_bytearray_ctx(&aad);
+    init_critical_ctx(&input, env, in);
+    init_critical_ctx(&output, env, out);
+    init_critical_ctx(&aad, env, aad_);
 
-    if (!load_bytearray_ctx(&input, env, in)) {
+    if (in == NULL) {
+        throw_java_illegal_argument(env, "input was null");
+        goto exit;
+    }
+
+    if (inOff < 0) {
+        throw_java_illegal_argument(env, "input offset was negative");
+        goto exit;
+    }
+
+
+    if (!check_range(input.size, (size_t) inOff, (size_t) inLen)) {
+        throw_bc_data_length_exception(env, "input buffer too short");
+        goto exit;
+    }
+
+    if (out == NULL) {
+        throw_java_illegal_argument(env, "output was null");
+        goto exit;
+    }
+
+    if (outOff < 0) {
+        throw_java_illegal_argument(env, "output offset was negative");
+        goto exit;
+    }
+
+    if (outOff > output.size) {
+        throw_java_illegal_argument(env, "output buffer too short");
+        goto exit;
+    }
+
+
+    if (aad.array != NULL) {
+        // Check associated data array.
+        if (aad_len < 0) {
+            throw_java_illegal_argument(env, "aad length was negative");
+            goto exit;
+        }
+
+        if (aad_len > aad.size) {
+            throw_java_illegal_argument(env, "aad length past end of array");
+            goto exit;
+        }
+
+    }
+
+    if (aad.array == NULL && aad_len != 0) {
+        throw_java_illegal_argument(env, "aad null but length not zero");
+        goto exit;
+    }
+
+
+    //
+    // Check we have enough space for the output.
+    //
+    size_t calculated_output_size = ccm_get_output_size(ctx, (size_t) inLen);
+
+    //
+    // Check we have enough space in the output.
+    //
+    if (calculated_output_size > output.size - (size_t) outOff) {
+        throw_bc_output_length_exception(env, "output buffer too short");
+        goto exit;
+    }
+
+
+    //
+    // Load the contexts
+    //
+    if (!load_critical_ctx(&input)) {
         throw_java_invalid_state(env, "unable to obtain ptr to valid input array");
         goto exit;
     }
 
-    if (!load_bytearray_ctx(&output, env, out)) {
+    if (!load_critical_ctx(&output)) {
+        release_critical_ctx(&input);
         throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
         goto exit;
     }
 
-    if (!load_bytearray_ctx(&aad, env, aad_)) {
+    if (!load_critical_ctx(&aad)) {
+        release_critical_ctx(&output);
+        release_critical_ctx(&input);
         throw_java_invalid_state(env, "unable to obtain ptr to valid aad array");
         goto exit;
     }
 
-    uint8_t *p_in = input.bytearray + inOff;
-    uint8_t *p_out = output.bytearray + outOff;
-    ccm_process_aad_bytes(ctx, aad.bytearray, (size_t) aadlen);
+
+    uint8_t *p_in = input.critical + inOff;
+    uint8_t *p_out = output.critical + outOff;
+
+    ccm_process_aad_bytes(ctx, aad.critical, (size_t) aad_len);
 
     err = processPacket(ctx, p_in, (size_t) inLen, p_out, &written);
 
     exit:
-    release_bytearray_ctx(&output);
-    release_bytearray_ctx(&input);
-    release_bytearray_ctx(&aad);
+    release_critical_ctx(&output);
+    release_critical_ctx(&input);
+    release_critical_ctx(&aad);
 
     handle_ccm_result(env, err);
     return (jint) written;

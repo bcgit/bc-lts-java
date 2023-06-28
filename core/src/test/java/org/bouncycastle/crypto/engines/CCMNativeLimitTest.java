@@ -1,72 +1,29 @@
 package org.bouncycastle.crypto.engines;
 
-import java.security.Security;
-
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
-//import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.encoders.Hex;
 import org.junit.Before;
 import org.junit.Test;
 
 public class CCMNativeLimitTest
-    extends TestCase
+        extends TestCase
 {
-    public static void main(
-        String[]    args)
-        throws Exception
+
+    public CCMNativeLimitTest()
     {
-//        Security.addProvider(new BouncyCastleProvider());
-
-        CCMNativeLimitTest test=new CCMNativeLimitTest();
-        test.testCCMInitParamWithIV();
-        test.testCCMInitParamWithIV_1();
-        test.testCCMInitParamWithIV_2();
-        test.testCCMInitParamWithIV_3();
-        test.testCCMInitParamWithIV_4();
-        test.testCCMInitParamWithIV_5();
-        test.testCCMInitParamWithIV_6();
-        test.testCCMInitParamWithIV_7();
-        test.testCCMInitParamWithIV_8();
-//        test.testCCMInitParamWithIV_9();
-        test.testCCMInitAEADParams();
-        test.testCCMAADBytes();
-        test.testCCMProcessByte1();
-        test.testCCMProcessByte2();
-        test.testCCMProcessByte3();
-        test.testCCMProcessByte4();
-        test.testCCMProcessByte5();
-        test.testCCMProcessByte6();
-        test.testCCMProcessBytes7();
-        test.testCCMOutputVariations();
-        test.testCCMDoFinal_1();
-        test.testCCMDoFinal_2();
-        test.testCCMDoFinal_3();
-        test.testCCMDoFinal_4();
-        test.testCCMDoFinal_5();
-        test.testCCMDoFinal_6();
-        test.testCCMDoFinal_7();
-        test.testCCMDoFinal_8();
-        test.testCCMDoFinal_9();
-        test.testCCMDoFinal_10();
-        test.testCCMDoFinal_12();
-        test.testCCMDoFinal_13();
-        test.testCCMDoFinal_14();
-        test.testCCMDoFinal_15();
-        test.testCCMDoFinal_16();
-        test.testCCMDoFinal_17();
-        test.testCCMDoFinal_18();
-        test.testCCMDoFinal_19();
-
+        super();
     }
+
     @Before
     public void setUp()
     {
-//        FipsStatus.isReady();
-//        NativeLoader.setNativeEnabled(true);
+
     }
 
     static boolean skipIfNotSupported()
@@ -74,21 +31,374 @@ public class CCMNativeLimitTest
         NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
         if (!nativeServices.hasService("AES/CCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("ccm"))
+            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ccm"))
             {
                 fail("no native ccm and no skip set for it");
                 return false;
             }
-            System.out.println("Skipping CFB native limit test: " + CryptoServicesRegistrar.isNativeEnabled());
+            System.out.println("Skipping CCM native limit test: " + CryptoServicesRegistrar.isNativeEnabled());
             return true;
         }
         return false;
     }
 
 
+    /**
+     * Test the jni layer throws exceptions as required for broken input.
+     * This tests the common input validation issues by bypassing the java layer and going to the
+     * jni layer directly and passing parameters to that.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testCCMProcessPacket_1() throws Exception
+    {
+        if (skipIfNotSupported())
+        {
+            return;
+        }
+
+
+        // Null Input array
+        new AESNativeCCM()
+        {
+            {
+                long ref = makeInstance(16, true);
+                try
+                {
+                    initNative(ref, true, new byte[16], new byte[12], null, 0, 32);
+                    processPacket(ref, null, 0, 0, null, 0, new byte[16], 0);
+                    dispose(ref);
+                    fail("null input array");
+                }
+                catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("input was null"));
+                }
+                dispose(ref);
+            }
+
+        };
+
+        // Negative input offset
+        new AESNativeCCM()
+        {
+            {
+                long ref = makeInstance(16, true);
+                try
+                {
+                    initNative(ref, true, new byte[16], new byte[12], null, 0, 32);
+                    processPacket(ref, new byte[16], -1, 0, null, 0, new byte[16], 0);
+                    dispose(ref);
+                    fail("negative input offset");
+                }
+                catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("input offset was negative"));
+                }
+                dispose(ref);
+            }
+
+        };
+
+        // Input too short but zero length
+        new AESNativeCCM()
+        {
+            {
+                long ref = makeInstance(16, true);
+                try
+                {
+                    initNative(ref, true, new byte[16], new byte[12], null, 0, 32);
+                    processPacket(ref, new byte[16], 17, 0, null, 0, new byte[16], 0);
+                    dispose(ref);
+                    fail("input buffer too short 1");
+                }
+                catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("input buffer too short"));
+                }
+                dispose(ref);
+            }
+        };
+
+
+        // Input too short, with length and zero offset
+        new AESNativeCCM()
+        {
+            {
+                long ref = makeInstance(16, true);
+                try
+                {
+                    initNative(ref, true, new byte[16], new byte[12], null, 0, 32);
+                    processPacket(ref, new byte[0], 0, 1, null, 0, new byte[16], 0);
+                    dispose(ref);
+                    fail("input buffer too short with len and zero offset on zero len array");
+                }
+                catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("input buffer too short"));
+                }
+                dispose(ref);
+            }
+        };
+
+
+        // Output is null
+        new AESNativeCCM()
+        {
+            {
+                long ref = makeInstance(16, true);
+                try
+                {
+                    initNative(ref, true, new byte[16], new byte[12], null, 0, 32);
+                    processPacket(ref, new byte[16], 0, 16, null, 0, null, 0);
+                    dispose(ref);
+                    fail("output buffer is null");
+                }
+                catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("output was null"));
+                }
+                dispose(ref);
+            }
+        };
+
+        // Output offset is negative
+        new AESNativeCCM()
+        {
+            {
+                long ref = makeInstance(16, true);
+                try
+                {
+                    initNative(ref, true, new byte[16], new byte[12], null, 0, 32);
+                    processPacket(ref, new byte[16], 0, 16, null, 0, new byte[0], -1);
+                    dispose(ref);
+                    fail("output offset is negative");
+                }
+                catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("output offset was negative"));
+                }
+                dispose(ref);
+            }
+        };
+
+
+        // Output offset is too short
+        new AESNativeCCM()
+        {
+            {
+                long ref = makeInstance(16, true);
+                try
+                {
+                    initNative(ref, true, new byte[16], new byte[12], null, 0, 32);
+                    processPacket(ref, new byte[16], 0, 16, null, 0, new byte[0], 1);
+                    dispose(ref);
+                    fail("output buffer too short");
+                }
+                catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("output buffer too short"));
+                }
+                dispose(ref);
+            }
+        };
+
+
+        // AAD can be null, so we will not test that, but we can test offsets
+        new AESNativeCCM()
+        {
+            {
+                long ref = makeInstance(16, true);
+                try
+                {
+                    initNative(ref, true, new byte[16], new byte[12], null, 0, 32);
+                    processPacket(ref, new byte[16], 0, 16, new byte[0], -1, new byte[16], 0);
+                    dispose(ref);
+                    fail("aad len is negative");
+                }
+                catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("aad length was negative"));
+                }
+                dispose(ref);
+            }
+        };
+
+
+        // AAD len past end of aad array
+        new AESNativeCCM()
+        {
+            {
+                long ref = makeInstance(16, true);
+                try
+                {
+                    initNative(ref, true, new byte[16], new byte[12], null, 0, 32);
+                    processPacket(ref, new byte[16], 0, 16, new byte[0], 1, new byte[16], 0);
+                    dispose(ref);
+                    fail("aad len past end of aad array");
+                }
+                catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("aad length past end of array"));
+                }
+                dispose(ref);
+            }
+        };
+
+        // AAD array null but length defined
+        new AESNativeCCM()
+        {
+            {
+                long ref = makeInstance(16, true);
+                try
+                {
+                    initNative(ref, true, new byte[16], new byte[12], null, 0, 32);
+                    processPacket(ref, new byte[16], 0, 16, null, 1, new byte[16], 0);
+                    dispose(ref);
+                    fail("aad null but length defined");
+                }
+                catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("aad null but length not zero"));
+                }
+                dispose(ref);
+            }
+        };
+
+    }
+
+
+    /**
+     * Test the jni layer throws exceptions as required if the input is superficially
+     * valid but an error would occur while processing is underway.
+     *
+     * @throws Exception
+     */
+    public void testCCMProcessPacket_2() throws Exception
+    {
+
+        if (skipIfNotSupported())
+        {
+            return;
+        }
+
+
+        // Test where output array is less than required.
+        new AESNativeCCM()
+        {
+            {
+                long ref = makeInstance(16, true);
+                try
+                {
+                    byte[] message = new byte[32];
+                    Arrays.fill(message, (byte) 1);
+
+                    initNative(ref, true, new byte[16], new byte[12], null, 0, 32);
+
+                    int rLen = getOutputSize(ref, message.length);
+                    byte[] resp = new byte[rLen - 1];
+                    processPacket(ref, message, 0, message.length, null, 0, resp, 0);
+                    dispose(ref);
+                    fail("invalid output len -- encryption");
+                }
+                catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("output buffer too short"));
+                }
+                dispose(ref);
+            }
+
+        };
+
+
+        String ct = "6fc65eb3e3b586471fdccab9961093bb32ca67934a977dd8949e79220d21b2434684d186";
+
+        // Test in decryption where the output is too short for the plain text.
+        new AESNativeCCM()
+        {
+            {
+                long ref = makeInstance(16, true);
+                try
+                {
+                    byte[] message = Hex.decode(ct);
+
+                    initNative(ref, false, new byte[16], new byte[12], null, 0, 32);
+
+                    int rLen = getOutputSize(ref, message.length);
+                    byte[] resp = new byte[rLen - 1];
+                    processPacket(ref, message, 0, message.length, null, 0, resp, 0);
+                    dispose(ref);
+                    fail("invalid output len -- decryption");
+                }
+                catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("output buffer too short"));
+                }
+                dispose(ref);
+            }
+
+        };
+
+
+        // Test in decryption where input is less than mac len
+        new AESNativeCCM()
+        {
+            {
+                long ref = makeInstance(16, true);
+                try
+                {
+                    byte[] message = Hex.decode(ct);
+
+                    initNative(ref, false, new byte[16], new byte[12], null, 0, 32);
+
+                    int rLen = getOutputSize(ref, message.length);
+                    byte[] resp = new byte[rLen - 1];
+                    processPacket(ref, message, 0, 3, null, 0, resp, 0);
+                    dispose(ref);
+                    fail("invalid output len -- decryption");
+                }
+                catch (Exception ex)
+                {
+                    assertTrue(ex.getMessage().contains("ciphertext too short"));
+                }
+                dispose(ref);
+            }
+        };
+
+
+        // Successful decryption just for sanity checking in this context
+        new AESNativeCCM()
+        {
+            {
+                long ref = makeInstance(16, true);
+                try
+                {
+                    byte[] message = Hex.decode(ct);
+                    initNative(ref, false, new byte[16], new byte[12], null, 0, 32);
+                    int rLen = getOutputSize(ref, message.length);
+                    byte[] resp = new byte[rLen];
+                    processPacket(ref, message, 0, message.length, null, 0, resp, 0);
+
+                    byte[] expected = new byte[32];
+                    Arrays.fill(expected, (byte) 1);
+                    TestCase.assertTrue(Arrays.areEqual(expected, resp));
+
+                }
+                finally
+                {
+                    dispose(ref);
+                }
+            }
+        };
+
+
+    }
+
+
     @Test
     public void testCCMInitParamWithIV()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -104,7 +414,7 @@ public class CCMNativeLimitTest
                 long ref = makeInstance(16, true);
                 try
                 {
-                    initNative(ref, true, new byte[16], new byte[12], null, 0,31);
+                    initNative(ref, true, new byte[16], new byte[12], null, 0, 31);
                     dispose(ref);
                     fail("incorrect mac size");
                 }
@@ -124,7 +434,7 @@ public class CCMNativeLimitTest
                 long ref = makeInstance(16, true);
                 try
                 {
-                    initNative(ref, true, new byte[16], new byte[14], null, 0,32);
+                    initNative(ref, true, new byte[16], new byte[14], null, 0, 32);
                     dispose(ref);
                     fail("incorrect mac size");
                 }
@@ -142,7 +452,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMInitParamWithIV_1()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -157,7 +467,7 @@ public class CCMNativeLimitTest
                 long ref = makeInstance(16, true);
                 try
                 {
-                    initNative(ref, true, new byte[15], new byte[10], null, 0,128);
+                    initNative(ref, true, new byte[15], new byte[10], null, 0, 128);
                     dispose(ref);
                     fail("incorrect key size");
                 }
@@ -174,7 +484,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMInitParamWithIV_2()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -188,7 +498,7 @@ public class CCMNativeLimitTest
                 long ref = makeInstance(16, true);
                 try
                 {
-                    initNative(ref, true, new byte[16], null, null, 0,128);
+                    initNative(ref, true, new byte[16], null, null, 0, 128);
                     dispose(ref);
                     fail("null iv");
                 }
@@ -206,7 +516,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMInitParamWithIV_3()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -246,7 +556,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMInitParamWithIV_4()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -285,7 +595,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMInitParamWithIV_5()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -317,7 +627,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMInitParamWithIV_6()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -348,7 +658,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMInitParamWithIV_7()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -376,7 +686,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMInitParamWithIV_8()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -402,55 +712,10 @@ public class CCMNativeLimitTest
 
     }
 
-//    @Test
-//    public void testCCMInitParamWithIV_9()
-//        throws Exception
-//    {
-//
-//        if (skipIfNotSupported())
-//        {
-//            return;
-//        }
-//
-//        new AESNativeCCM()
-//        {
-//            {
-//
-//                //
-//                // Key changing
-//                //
-//
-//                ParametersWithIV piv = new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]);
-//                init(true, piv);
-//                try
-//                {
-//                    init(true, new ParametersWithIV(null, new byte[12]));
-//                    fail("nonce reuse encryption");
-//                }
-//                catch (Exception ex)
-//                {
-//                    assertTrue(ex.getMessage().contains("cannot reuse nonce for CCM encryption"));
-//                }
-//
-////                try
-////                {
-////                    init(true, piv);
-////                    fail("nonce reuse encryption");
-////                }
-////                catch (Exception ex)
-////                {
-////                    assertTrue(ex.getMessage().contains("cannot reuse nonce for CCM encryption"));
-////                }
-//                piv = new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]);
-//                init(false, piv);
-//            }
-//
-//        };
-//    }
 
     @Test
     public void testCCMInitAEADParams()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -572,25 +837,6 @@ public class CCMNativeLimitTest
 
                 AEADParameters piv = new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[13]);
                 init(true, piv);
-//                try
-//                {
-//                    init(true, new AEADParameters(null, 128, new byte[13]));
-//                    fail("nonce reuse encryption");
-//                }
-//                catch (Exception ex)
-//                {
-//                    assertTrue(ex.getMessage().contains("cannot reuse nonce for CCM encryption"));
-//                }
-
-//                try
-//                {
-//                    init(true, piv);
-//                    fail("nonce reuse encryption");
-//                }
-//                catch (Exception ex)
-//                {
-//                    assertTrue(ex.getMessage().contains("cannot reuse nonce for CCM encryption"));
-//                }
 
                 // Should pass.
                 piv = new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[13]);
@@ -635,7 +881,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMAADBytes()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -704,21 +950,7 @@ public class CCMNativeLimitTest
             }
         };
 
-//        new AESNativeCCM()
-//        {
-//            {
-//                try
-//                {
-//                    processAADBytes(new byte[10], 0, 10);
-//                    fail("unitialised CCM");
-//                }
-//                catch (Exception ex)
-//                {
-//                    assertTrue(ex.getMessage().contains("CCM is uninitialized"));
-//                }
-//
-//            }
-//        };
+
     }
 
     @Test
@@ -865,26 +1097,6 @@ public class CCMNativeLimitTest
             return;
         }
 
-//        byte b = (byte) 1;
-
-//        AEADParameters piv = new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]);
-//        new AESNativeCCM()
-//        {
-//            {
-//
-//                try
-//                {
-//                    processByte(b, new byte[10], 10);
-//                    fail("not initialized");
-//                }
-//                catch (Exception ex)
-//                {
-//                    assertTrue(ex.getMessage().contains("uninitialized"));
-//                }
-//
-//            }
-//        };
-
 
     }
 
@@ -899,38 +1111,12 @@ public class CCMNativeLimitTest
         }
 
 
-
-//        {
-//            // attempt to cause write past end of buffer.
-//
-//            byte[] in = new byte[1024];
-//            byte[] out = new byte[1023];
-//
-//            AESNativeCCM nativeCCM = new AESNativeCCM();
-//            nativeCCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]));
-//
-//            int l = 0;
-//
-//            l = nativeCCM.processBytes(in, 0, in.length - 1, out, 0);
-//
-//            try
-//            {
-//                l = nativeCCM.processBytes(in, l, 1, out, l);
-//                fail("must through output length exception");
-//            }
-//            catch (Exception ex)
-//            {
-//                assertTrue(ex.getMessage().contains("output len too short"));
-//            }
-//
-//        }
-
     }
 
 
     @Test
     public void testCCMProcessBytes7()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -959,8 +1145,6 @@ public class CCMNativeLimitTest
                     assertTrue(ex instanceof NullPointerException);
                     TestCase.assertTrue(ex.getMessage().contains("input was null"));
                 }
-
-
 
 
                 //
@@ -1018,26 +1202,7 @@ public class CCMNativeLimitTest
 
             }
         };
-//        new AESNativeCCM()
-//        {
-//            {
-//                //
-//                // Valid inputs but not initialised.
-//                //
-//                try
-//                {
-//                    processBytes(new byte[16], 0, 1, new byte[16], 0);
-//                    fail("not initialized");
-//                }
-//                catch (Exception ex)
-//                {
-//                    assertTrue(ex.getMessage().contains("uninitialized"));
-//                }
-//
-//
-//            }
-//
-//        };
+
     }
 
     /**
@@ -1049,7 +1214,7 @@ public class CCMNativeLimitTest
      */
     @Test
     public void testCCMOutputVariations()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -1088,209 +1253,12 @@ public class CCMNativeLimitTest
             nativeCCM.processBytes(in, 0, in.length, out, 0);
         }
 
-        NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
-//        try
-//        { // zero length output array but output generated
-//
-//            AESNativeCCM nativeCCM = new AESNativeCCM();
-//            nativeCCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]));
-//            byte[] in;
-//            if (nativeServices.getLibraryIdent().contains("vaesf"))
-//            {
-//                in = new byte[513];
-//            }
-//            else if (nativeServices.getLibraryIdent().contains("vaes"))
-//            {
-//                in = new byte[129];
-//            }
-//            else
-//            {
-//                in = new byte[65];
-//            }
-//
-//            byte[] out = new byte[0];
-//
-//            nativeCCM.processBytes(in, 0, in.length, out, 0);
-//            fail("zero len but output");
-//        }
-//        catch (Exception ex)
-//        {
-//            assertTrue(ex.getMessage().contains("output len too short"));
-//        }
 
-
-//        try
-//        { // null output non zero offset.
-//
-//            AESNativeCCM nativeCCM = new AESNativeCCM();
-//            nativeCCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]));
-//            byte[] in;
-//            if (nativeServices.getLibraryIdent().contains("vaesf"))
-//            {
-//                in = new byte[513];
-//            }
-//            else if (nativeServices.getLibraryIdent().contains("vaes"))
-//            {
-//                in = new byte[129];
-//            }
-//            else
-//            {
-//                in = new byte[65];
-//            }
-//
-//
-//            nativeCCM.processBytes(in, 0, in.length, null, 20);
-//            fail("null array output offset");
-//        }
-//        catch (Exception ex)
-//        {
-//            assertTrue(ex.getMessage().contains("output len too short"));
-//        }
-
-
-//        try
-//        { // zero len output, positive offset
-//
-//            AESNativeCCM nativeCCM = new AESNativeCCM();
-//            nativeCCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]));
-//            byte[] in;
-//            if (nativeServices.getLibraryIdent().contains("vaesf"))
-//            {
-//                in = new byte[513];
-//            }
-//            else if (nativeServices.getLibraryIdent().contains("vaes"))
-//            {
-//                in = new byte[129];
-//            }
-//            else
-//            {
-//                in = new byte[65];
-//            }
-//
-//            nativeCCM.processBytes(in, 0, in.length, new byte[0], 20);
-//            fail("zero len but output");
-//        }
-//        catch (Exception ex)
-//        {
-//            assertTrue(ex.getMessage().contains("offset past end of array"));
-//        }
-
-
-//        try
-//        { // null output array but output generated
-//
-//            AESNativeCCM nativeCCM = new AESNativeCCM();
-//            nativeCCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]));
-//            byte[] in;
-//            if (nativeServices.getLibraryIdent().contains("vaesf"))
-//            {
-//                in = new byte[513];
-//            }
-//            else if (nativeServices.getLibraryIdent().contains("vaes"))
-//            {
-//                in = new byte[129];
-//            }
-//            else
-//            {
-//                in = new byte[65];
-//            }
-//            byte[] out = null;
-//
-//            // Passes because 32 bytes will not trigger any output.
-//            nativeCCM.processBytes(in, 0, in.length, out, 0);
-//            fail("null output");
-//        }
-//        catch (Exception ex)
-//        {
-//            assertTrue(ex.getMessage().contains("output len too short"));
-//        }
-
-//        try
-//        { // long enough output array but offset at array.len
-//
-//            AESNativeCCM nativeCCM = new AESNativeCCM();
-//            nativeCCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]));
-//            byte[] in;
-//            if (nativeServices.getLibraryIdent().contains("vaesf"))
-//            {
-//                in = new byte[513];
-//            }
-//            else if (nativeServices.getLibraryIdent().contains("vaes"))
-//            {
-//                in = new byte[129];
-//            }
-//            else
-//            {
-//                in = new byte[65];
-//            }
-//            byte[] out = new byte[65];
-//
-//            // Passes because 32 bytes will not trigger any output.
-//            nativeCCM.processBytes(in, 0, in.length, out, 65);
-//            fail("not enough output");
-//        }
-//        catch (Exception ex)
-//        {
-//            assertTrue(ex.getMessage().contains("output len too short"));
-//        }
-
-//        try
-//        { // long enough output array but offset in the middle
-//
-//            AESNativeCCM nativeCCM = new AESNativeCCM();
-//            nativeCCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]));
-//            byte[] in;
-//            if (nativeServices.getLibraryIdent().contains("vaesf"))
-//            {
-//                in = new byte[513];
-//            }
-//            else if (nativeServices.getLibraryIdent().contains("vaes"))
-//            {
-//                in = new byte[129];
-//            }
-//            else
-//            {
-//                in = new byte[65];
-//            }
-//            byte[] out = new byte[65];
-//
-//            // Passes because 32 bytes will not trigger any output.
-//            nativeCCM.processBytes(in, 0, in.length, out, 32);
-//            fail("not enough output");
-//        }
-//        catch (Exception ex)
-//        {
-//            assertTrue(ex.getMessage().contains("output len too short"));
-//        }
-
-
-//        {
-//            // Long enough input to cause loop in native processBytes but output buffer to short after
-//            // initial iterations.
-//
-//            byte[] in = new byte[1024];
-//            byte[] out = new byte[1023];
-//
-//            AESNativeCCM nativeCCM = new AESNativeCCM();
-//            nativeCCM.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]));
-//
-//            try
-//            {
-//                nativeCCM.processBytes(in, 0, in.length, out, 0);
-//                fail("must through output length exception");
-//            }
-//            catch (Exception ex)
-//            {
-//                assertTrue(ex.getMessage().contains("output len too short"));
-//            }
-//
-//        }
-//
     }
 
     @Test
     public void testCCMDoFinal_1()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -1320,7 +1288,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_2()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -1348,7 +1316,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_3()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -1376,7 +1344,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_4()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -1403,7 +1371,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_5()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -1439,7 +1407,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_6()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -1471,7 +1439,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_7()
-        throws Exception
+            throws Exception
     {
 
 
@@ -1504,7 +1472,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_8()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -1536,7 +1504,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_9()
-        throws Exception
+            throws Exception
     {
 
 
@@ -1569,7 +1537,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_10()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -1601,7 +1569,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_12()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -1633,7 +1601,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_13()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -1665,7 +1633,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_14()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -1697,7 +1665,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_15()
-        throws Exception
+            throws Exception
     {
 
 
@@ -1729,7 +1697,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_16()
-        throws Exception
+            throws Exception
     {
 
 
@@ -1761,7 +1729,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_17()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())
@@ -1792,7 +1760,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_18()
-        throws Exception
+            throws Exception
     {
 
 
@@ -1825,7 +1793,7 @@ public class CCMNativeLimitTest
 
     @Test
     public void testCCMDoFinal_19()
-        throws Exception
+            throws Exception
     {
 
         if (skipIfNotSupported())

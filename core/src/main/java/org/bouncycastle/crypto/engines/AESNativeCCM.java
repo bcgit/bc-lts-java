@@ -22,7 +22,6 @@ class AESNativeCCM
     private byte[] lastKey;
     private boolean forEncryption = false;
     private boolean initialised = false;
-//    private byte[] keptMac = null;
 
     private final ExposedByteArrayOutputStream associatedText = new ExposedByteArrayOutputStream();
     private final ExposedByteArrayOutputStream data = new ExposedByteArrayOutputStream();
@@ -95,11 +94,6 @@ class AESNativeCCM
             nonce, initialAssociatedText, iatLen, macSize * 8);
         reset();
         initialised = true;
-//        if (keptMac != null)
-//        {
-//            Arrays.fill(keptMac, (byte)0);
-//            keptMac = null;
-//        }
     }
 
 
@@ -226,10 +220,6 @@ class AESNativeCCM
     @Override
     public byte[] getMac()
     {
-//        if (keptMac != null)
-//        {
-//            return Arrays.clone(keptMac);
-//        }
         return getMac(refWrapper.getReference());
     }
 
@@ -259,11 +249,6 @@ class AESNativeCCM
         associatedText.reset();
         data.reset();
         reset(refWrapper.getReference(), false);
-//        if (keptMac != null)
-//        {
-//            Arrays.fill(keptMac, (byte)0);
-//            keptMac = null;
-//        }
     }
 
     private void resetKeepMac()
@@ -275,11 +260,6 @@ class AESNativeCCM
         }
         associatedText.reset();
         data.reset();
-//        if (keptMac != null)
-//        {
-//            Arrays.fill(keptMac, (byte)0);
-//        }
-//        keptMac = getMac();
         reset(refWrapper.getReference(), true);
     }
 
@@ -311,13 +291,13 @@ class AESNativeCCM
 
     static native void dispose(long nativeRef);
 
-    private static native int getUpdateOutputSize(long ref, int len);
+    static native int getUpdateOutputSize(long ref, int len);
 
-    private static native int getOutputSize(long ref, int len);
+    static native int getOutputSize(long ref, int len);
 
-    public static native byte[] getMac(long ref);
+    static native byte[] getMac(long ref);
 
-    private static native int processPacket(long ref, byte[] in, int inOff, int inLen, byte[] aad, int aadlen, byte[] out, int outOff);
+    static native int processPacket(long ref, byte[] in, int inOff, int inLen, byte[] aad, int aadlen, byte[] out, int outOff);
 
     @Override
     public int processPacket(byte[] inBuf, int inOff, int length, byte[] outBuf, int outOff)
