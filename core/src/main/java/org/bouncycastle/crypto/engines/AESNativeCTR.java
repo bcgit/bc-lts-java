@@ -316,7 +316,7 @@ public class AESNativeCTR
     {
         if (keyLen > 0)
         {
-            return "CTR[Native](CTR[Native](" + keyLen + "))";
+            return "CTR[Native](AES[Native](" + keyLen + "))";
         }
         return "CTR[Native](AES[Native](not initialized))";
     }

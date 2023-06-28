@@ -134,6 +134,7 @@ public class BCECPrivateKey
         this.d = params.getD();
         this.configuration = configuration;
         this.baseKey = params;
+
         if (spec == null)
         {
             ECDomainParameters dp = params.getParameters();
