@@ -46,8 +46,9 @@ void ccm_free(ccm_ctx *ctx) {
 
 void ccm_reset(ccm_ctx *ctx, bool keepMac) {
     if (ctx->aad != NULL) {
-        ctx->aadLen = 0;
+        free(ctx->aad);
         ctx->aad = NULL;
+        ctx->aadLen = 0;
     }
     memset(ctx->buf, 0, BLOCK_SIZE);
     ctx->buf_ptr = 0;
@@ -80,7 +81,7 @@ ccm_err *ccm_init(
         size_t nonceLen,
         uint8_t *initialText,
         size_t initialTextLen,
-        uint32_t macBlockLenBits) {
+        uint32_t macBlockLenBytes) {
     //
     // All assertions of correctness need to be done by this call.
     //
@@ -88,7 +89,7 @@ ccm_err *ccm_init(
     ctx->nonceLen = nonceLen;
     memset(ctx->nonce, 0, BLOCK_SIZE);
     memcpy(ctx->nonce, nonce, nonceLen);
-    ctx->macBlockLenInBytes = macBlockLenBits;
+    ctx->macBlockLenInBytes = macBlockLenBytes;
     ctx->q = 15 - nonceLen;
 
     memset(ctx->roundKeys, 0, sizeof(__m128i) * 15);
@@ -114,7 +115,7 @@ ccm_err *ccm_init(
     memset(ctx->buf, 0, BLOCK_SIZE);
 
     ctx->buf_ptr = 0;
-    ctx->macLen = macBlockLenBits;
+    ctx->macLen = macBlockLenBytes;
     memset(ctx->macBlock, 0, BLOCK_SIZE);
     ctx->macBlock[0] = (ctx->q - 1) & 0x7;
     memcpy(ctx->macBlock + 1, ctx->nonce, ctx->nonceLen);
@@ -131,10 +132,13 @@ ccm_err *ccm_init(
         ctx->initAD = NULL;
         ctx->initADLen = 0;
     }
+
     if (ctx->aad != NULL) {
+        free(ctx->aad);
         ctx->aad = NULL;
         ctx->aadLen = 0;
     }
+
     if (initialText != NULL) {
         //
         // We keep a copy as it is needed to calculate the mac
@@ -177,7 +181,7 @@ ccm_err *processPacket(ccm_ctx *ctx, uint8_t *in, size_t len, uint8_t *out, size
             return make_ccm_error("ciphertext too short", ILLEGAL_CIPHER_TEXT);
         }
         size_t outputLen = len - ctx->macBlockLenInBytes;
-        uint8_t tmp[BLOCK_SIZE] = {0};
+        uint8_t tmp[BLOCK_SIZE] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
         memcpy(ctx->macBlock, in + outputLen, ctx->macBlockLenInBytes);
         memset(ctx->macBlock + ctx->macBlockLenInBytes, 0, (BLOCK_SIZE - ctx->macBlockLenInBytes));
         ccm_ctr_process_bytes(ctx, ctx->macBlock, BLOCK_SIZE, tmp, &written);
@@ -204,7 +208,7 @@ void calculateMac(ccm_ctx *ctx, uint8_t *input, size_t len) {
         ctx->buf[0] |= 0x40;
     }
     ctx->buf[0] |= ((((ctx->macBlockLenInBytes - 2) >> 1) & 0x7) << 3) | (((15 - ctx->nonceLen) - 1) & 0x7);
-    memcpy(ctx->buf + 1, ctx->nonce, ctx->nonceLen);
+    memcpy(ctx->buf + 1, ctx->nonce, ctx->nonceLen); // nonceLen is <=13
     size_t count = 1;
     size_t q = len;
     while (q > 0) {
@@ -251,8 +255,9 @@ size_t ccm_getMac(ccm_ctx *ctx, uint8_t *destination) {
 
 void ccm_process_aad_bytes(ccm_ctx *ctx, uint8_t *in, size_t len) {
     if (in != NULL) {
+        ctx->aad = calloc(len,1);
         ctx->aadLen = len;
-        ctx->aad = in;
+        memcpy(ctx->aad,in,len);
     }
 }
 

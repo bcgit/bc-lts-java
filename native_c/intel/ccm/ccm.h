@@ -84,7 +84,7 @@ void ccm_process_aad_bytes(ccm_ctx *, uint8_t *aad, size_t len);
  * @return NULL if no error, other ptr to struct CALLER NEEDS TO FREE
  */
 ccm_err *ccm_init(ccm_ctx *ctx, bool encryption, uint8_t *key, size_t keyLen, uint8_t *nonce, size_t nonceLen,
-                  uint8_t *intialText, size_t initialTextLen, uint32_t macBlockLenBits);
+                  uint8_t *intialText, size_t initialTextLen, uint32_t macBlockLenBytes);
 
 ccm_err * processPacket(ccm_ctx *ref, uint8_t *in, size_t len, uint8_t *out, size_t *output_len);
 

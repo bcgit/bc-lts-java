@@ -22,7 +22,7 @@ class AESNativeCCM
     private byte[] lastKey;
     private boolean forEncryption = false;
     private boolean initialised = false;
-    private byte[] keptMac = null;
+//    private byte[] keptMac = null;
 
     private final ExposedByteArrayOutputStream associatedText = new ExposedByteArrayOutputStream();
     private final ExposedByteArrayOutputStream data = new ExposedByteArrayOutputStream();
@@ -95,11 +95,11 @@ class AESNativeCCM
             nonce, initialAssociatedText, iatLen, macSize * 8);
         reset();
         initialised = true;
-        if (keptMac != null)
-        {
-            Arrays.fill(keptMac, (byte)0);
-            keptMac = null;
-        }
+//        if (keptMac != null)
+//        {
+//            Arrays.fill(keptMac, (byte)0);
+//            keptMac = null;
+//        }
     }
 
 
@@ -226,10 +226,10 @@ class AESNativeCCM
     @Override
     public byte[] getMac()
     {
-        if (keptMac != null)
-        {
-            return Arrays.clone(keptMac);
-        }
+//        if (keptMac != null)
+//        {
+//            return Arrays.clone(keptMac);
+//        }
         return getMac(refWrapper.getReference());
     }
 
@@ -259,11 +259,11 @@ class AESNativeCCM
         associatedText.reset();
         data.reset();
         reset(refWrapper.getReference(), false);
-        if (keptMac != null)
-        {
-            Arrays.fill(keptMac, (byte)0);
-            keptMac = null;
-        }
+//        if (keptMac != null)
+//        {
+//            Arrays.fill(keptMac, (byte)0);
+//            keptMac = null;
+//        }
     }
 
     private void resetKeepMac()
@@ -275,11 +275,11 @@ class AESNativeCCM
         }
         associatedText.reset();
         data.reset();
-        if (keptMac != null)
-        {
-            Arrays.fill(keptMac, (byte)0);
-        }
-        keptMac = getMac();
+//        if (keptMac != null)
+//        {
+//            Arrays.fill(keptMac, (byte)0);
+//        }
+//        keptMac = getMac();
         reset(refWrapper.getReference(), true);
     }
 
@@ -399,6 +399,7 @@ class AESNativeCCM
     {
         public ExposedByteArrayOutputStream()
         {
+            super();
         }
 
         public byte[] getBuffer()
