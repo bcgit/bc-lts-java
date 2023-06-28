@@ -221,7 +221,7 @@ class NativeLoader
         if (platform == null)
         {
             nativeStatusMessage = "OS '" + os_ + "' is not supported.";
-            LOG.warning("exited with " + nativeStatusMessage);
+            LOG.fine("exited with " + nativeStatusMessage);
             return;
         }
 
@@ -239,7 +239,7 @@ class NativeLoader
         if (arch == null)
         {
             nativeStatusMessage = "architecture '" + arch_ + "' is not supported";
-            LOG.warning("exited with " + nativeStatusMessage);
+            LOG.fine("exited with " + nativeStatusMessage);
             return;
         }
 
@@ -265,7 +265,7 @@ class NativeLoader
                 {
                     nativeInstalled = false;
                     nativeStatusMessage = ioTmpDir + " did not exist";
-                    LOG.warning("exited with " + nativeStatusMessage);
+                    LOG.fine("exited with " + nativeStatusMessage);
                     return null;
                 }
 
@@ -295,7 +295,7 @@ class NativeLoader
                         nativeInstalled = false;
                         nativeStatusMessage = "unable to create directory in " + ioTmpDir + " after 1000 unique " +
                                 "attempts";
-                        LOG.warning("exited with " + nativeStatusMessage);
+                        LOG.fine("exited with " + nativeStatusMessage);
                         return null;
                     }
 
@@ -306,7 +306,7 @@ class NativeLoader
                     {
                         nativeInstalled = false;
                         nativeStatusMessage = "unable to create temp directory for jni libs: " + dir;
-                        LOG.warning("exited with " + nativeStatusMessage);
+                        LOG.fine("exited with " + nativeStatusMessage);
                         return null;
                     }
 
@@ -342,7 +342,7 @@ class NativeLoader
 
                             if (!isDeleted)
                             {
-                                LOG.warning(" failed to delete: " + tmpDir.getAbsolutePath());
+                                LOG.fine(" failed to delete: " + tmpDir.getAbsolutePath());
                             }
                             else
                             {
@@ -358,7 +358,7 @@ class NativeLoader
                     nativeInstalled = false;
                     nativeStatusMessage = "failed because it was not able to create a temporary file in 'java.io" +
                             ".tmpdir' " + ex.getMessage();
-                    LOG.warning("exited with " + nativeStatusMessage);
+                    LOG.fine("exited with " + nativeStatusMessage);
                     return null;
                 }
 
@@ -488,7 +488,7 @@ class NativeLoader
         {
             nativeStatusMessage = "probe lib failed to load " + ex.getMessage();
             nativeInstalled = false;
-            LOG.warning("exited with " + nativeStatusMessage);
+            LOG.fine("exited with " + nativeStatusMessage);
             return;
         }
 
@@ -500,7 +500,7 @@ class NativeLoader
         {
             nativeStatusMessage = "probe lib failed return a variant " + ex.getMessage();
             nativeInstalled = false;
-            LOG.warning("exited with " + nativeStatusMessage);
+            LOG.fine("exited with " + nativeStatusMessage);
             return;
         }
 
@@ -509,7 +509,7 @@ class NativeLoader
             javaSupportOnly = true;
             nativeInstalled = false;
             nativeStatusMessage = "probe returned no suitable CPU features, java support only";
-            LOG.warning("exited with " + nativeStatusMessage);
+            LOG.fine("exited with " + nativeStatusMessage);
             return;
         }
 
@@ -549,7 +549,7 @@ class NativeLoader
                 nativeStatusMessage = String.format("unexpected files in %s: %s", bcLtsLibPath.toString(),
                         sBld.toString());
                 nativeInstalled = false;
-                LOG.warning("exited with " + nativeStatusMessage);
+                LOG.fine("exited with " + nativeStatusMessage);
                 return;
             }
 
@@ -570,7 +570,7 @@ class NativeLoader
         {
             nativeStatusMessage = "native capabilities lib failed to load " + ex.getMessage();
             nativeInstalled = false;
-            LOG.warning("exited with " + nativeStatusMessage);
+            LOG.fine("exited with " + nativeStatusMessage);
             return;
         }
 
@@ -580,7 +580,7 @@ class NativeLoader
             nativeStatusMessage = String.format("loaded native library variant is %s but the requested library " +
                     "variant is %s", NativeLibIdentity.getLibraryIdent(), selectedVariant);
             nativeInstalled = false;
-            LOG.warning("exited with " + nativeStatusMessage);
+            LOG.fine("exited with " + nativeStatusMessage);
             return;
         }
 
