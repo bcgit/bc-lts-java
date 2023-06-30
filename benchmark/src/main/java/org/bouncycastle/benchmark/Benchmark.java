@@ -258,14 +258,7 @@ public class Benchmark
                 byte[] key = new byte[ks];
                 random.nextBytes(key);
                 byte[] nonce = Hex.decode("58d2240f580a31c1d24948e9");
-//                FipsAEADOperatorFactory<FipsAES.AuthParameters> fipsSymmetricFactory = new FipsAES
-//                .AEADOperatorFactory();
-//                FipsOutputAEADEncryptor<Cipher.AuthParameters> outputEncryptor = fipsSymmetricFactory
-//                .createOutputAEADEncryptor(
-//                        new SymmetricSecretKey(FipsAES.GCM, key), FipsAES.GCM.withMACSize(128).withIV(nonce));
-//                FipsOutputAEADDecryptor<FipsAES.AuthParameters> inputEncryptor = fipsSymmetricFactory
-//                .createOutputAEADDecryptor(
-//                        new SymmetricSecretKey(FipsAES.GCM, key), FipsAES.GCM.withMACSize(128).withIV(nonce));
+
                 double accumulatorEnc = 0;
                 double accumulatorDec = 0;
                 double samples = 1;
@@ -274,18 +267,16 @@ public class Benchmark
                 for (int k = 0; k < 30; k++)
                 {
                     ct.reset();
-                    //OutputStream enc = outputEncryptor.getEncryptingStream(ct);
-                    try
-                    {
+
+
                         Cipher enc = Cipher.getInstance("AES/GCM/NoPadding", "BC");
                         KeyGenerator kGen = KeyGenerator.getInstance("AES", "BC");
                         Key keys = kGen.generateKey();
                         enc.init(Cipher.ENCRYPT_MODE, keys, new AEADParameterSpec(nonce, 32));
                         long ts = System.nanoTime();
-                        byte[] c = enc.update(msg);
-                        byte[] d = enc.doFinal();
-//                    enc.write(msg);
-//                    enc.close();
+                        byte[] c = null;//  enc.update(msg);
+                        byte[] d = enc.doFinal(msg);
+
                         long te = System.nanoTime();
                         if (c != null)
                         {
@@ -307,10 +298,8 @@ public class Benchmark
                         enc.init(Cipher.DECRYPT_MODE, keys, new AEADParameterSpec(nonce, 32));
                         d = ct.toByteArray();
                         ts = System.nanoTime();
-                        enc.update(d);
-                        enc.doFinal();
-//                    os.write(d);
-//                    os.close();
+                        //  enc.update(d);
+                        enc.doFinal(d);
                         te = System.nanoTime();
 //                    if (!MessageDigest.isEqual(pt.toByteArray(), msg)) {
 //                        throw new RuntimeException("gcm pt not equal");
@@ -325,11 +314,7 @@ public class Benchmark
                         accumulatorDec = bpsMaxDec;
                         //   samples += 1;
                         msg[0] += 1;
-                    }
-                    catch (Exception e)
-                    {
-                        e.printStackTrace();
-                    }
+
 
 
                 }
@@ -394,7 +379,7 @@ public class Benchmark
                     ct.reset();
                     //OutputStream enc = outputEncryptor.getEncryptingStream(ct);
                     //try
-                    {
+
                         KeyGenerator kGen = KeyGenerator.getInstance("AES", "BC");
                         Key keys = kGen.generateKey();
                         enc.init(Cipher.ENCRYPT_MODE, keys, new IvParameterSpec(nonce));
@@ -437,7 +422,7 @@ public class Benchmark
                         accumulatorDec = bpsMaxDec;
 //                        samples += 1;
                         msg[0] += 1;
-                    }
+
 //                    catch (Exception e)
 //                    {
 //                        e.printStackTrace();
@@ -519,85 +504,80 @@ public class Benchmark
 
                 for (int k = 0; k < 100; k++)
                 {
-                    try
-                    {
-                        ct.reset();
+
+                    ct.reset();
 //                    OutputStream enc = outputEncryptor.getEncryptingStream(ct);
-                        enc.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"));
-                        long ts = System.nanoTime();
-                        byte[] c = enc.update(msg);
-                        byte[] d = enc.doFinal();
-                        long te = System.nanoTime();
+                    enc.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"));
+                    long ts = System.nanoTime();
+                    byte[] c = enc.update(msg);
+                    byte[] d = enc.doFinal();
+                    long te = System.nanoTime();
 
-                        double deltaNano = (te - ts);
-                        double deltaSecond = deltaNano / SECONDS;
-                        double bps = ((double) msg.length) / deltaSecond;
+                    double deltaNano = (te - ts);
+                    double deltaSecond = deltaNano / SECONDS;
+                    double bps = ((double) msg.length) / deltaSecond;
 
-                        if (bps > maxEnc)
-                        {
-                            maxEnc = bps;
-                        }
+                    if (bps > maxEnc)
+                    {
+                        maxEnc = bps;
+                    }
 
-                        accumulatorEnc = maxEnc;
-                        if (c != null)
-                        {
-                            ct.write(c);
-                        }
-                        ct.write(d);
-                        pt.reset();
+                    accumulatorEnc = maxEnc;
+                    if (c != null)
+                    {
+                        ct.write(c);
+                    }
+                    ct.write(d);
+                    pt.reset();
 //                    OutputStream os = inputEncryptor.getDecryptingStream(pt);
-                        dec.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"));
-                        d = ct.toByteArray();
-                        ts = System.nanoTime();
-                        c = dec.update(d);
-                        d = dec.doFinal();
+                    dec.init(Cipher.DECRYPT_MODE, new SecretKeySpec(key, "AES"));
+                    d = ct.toByteArray();
+                    ts = System.nanoTime();
+                    c = dec.update(d);
+                    d = dec.doFinal();
 //                    os.write(d);
 //                    os.close();
-                        te = System.nanoTime();
-                        if (c != null)
-                        {
-                            pt.write(c);
-                        }
-                        if (d != null)
-                        {
-                            pt.write(d);
-                        }
-                        if (!MessageDigest.isEqual(pt.toByteArray(), msg))
-                        {
-
-                            // +DM pw.printLn
-                            System.out.println(Hex.toHexString(ct.toByteArray()) + " " + ct.toByteArray().length);
-                            // +DM pw.printLn
-                            System.out.println();
-
-                            // +DM pw.printLn
-                            System.out.println(Hex.toHexString(pt.toByteArray()));
-                            // +DM pw.printLn
-                            System.out.println();
-                            // +DM pw.printLn
-                            System.out.println(Hex.toHexString(msg));
-                            // +DM pw.printLn
-                            System.out.println((pt.toByteArray().length - msg.length) / 16);
-                            //throw new RuntimeException("ecb pt not equal");
-                        }
-                        deltaNano = (te - ts);
-                        deltaSecond = deltaNano / SECONDS;
-                        bps = ((double) msg.length) / deltaSecond;
-
-                        if (bps > maxDec)
-                        {
-                            maxDec = bps;
-                        }
-
-
-                        accumulatorDec = maxDec;
-//                        samples += 1;
-                        msg[0] += 1;
-                    }
-                    catch (Exception e)
+                    te = System.nanoTime();
+                    if (c != null)
                     {
-                        e.printStackTrace();
+                        pt.write(c);
                     }
+                    if (d != null)
+                    {
+                        pt.write(d);
+                    }
+                    if (!MessageDigest.isEqual(pt.toByteArray(), msg))
+                    {
+
+                        // +DM pw.printLn
+                        System.out.println(Hex.toHexString(ct.toByteArray()) + " " + ct.toByteArray().length);
+                        // +DM pw.printLn
+                        System.out.println();
+
+                        // +DM pw.printLn
+                        System.out.println(Hex.toHexString(pt.toByteArray()));
+                        // +DM pw.printLn
+                        System.out.println();
+                        // +DM pw.printLn
+                        System.out.println(Hex.toHexString(msg));
+                        // +DM pw.printLn
+                        System.out.println((pt.toByteArray().length - msg.length) / 16);
+                        //throw new RuntimeException("ecb pt not equal");
+                    }
+                    deltaNano = (te - ts);
+                    deltaSecond = deltaNano / SECONDS;
+                    bps = ((double) msg.length) / deltaSecond;
+
+                    if (bps > maxDec)
+                    {
+                        maxDec = bps;
+                    }
+
+
+                    accumulatorDec = maxDec;
+//                        samples += 1;
+                    msg[0] += 1;
+
                 }
                 dataPoints.add(new Sample("Encrypt " + ks + " " + variant, msg.length,
                         (accumulatorEnc / samples) / 1024.0, "KB/s"));
@@ -799,60 +779,54 @@ public class Benchmark
                 {
                     ct.reset();
                     //OutputStream enc = outputEncryptor.getEncryptingStream(ct);
-                    try
-                    {
 
-                        KeyGenerator kGen = KeyGenerator.getInstance("AES", "BC");
-                        Key keys = kGen.generateKey();
-                        enc.init(Cipher.ENCRYPT_MODE, keys, new IvParameterSpec(nonce));
-                        long ts = System.nanoTime();
-                        byte[] c = enc.update(msg);
-                        byte[] d = enc.doFinal();
+
+                    KeyGenerator kGen = KeyGenerator.getInstance("AES", "BC");
+                    Key keys = kGen.generateKey();
+                    enc.init(Cipher.ENCRYPT_MODE, keys, new IvParameterSpec(nonce));
+                    long ts = System.nanoTime();
+                    byte[] c = enc.update(msg);
+                    byte[] d = enc.doFinal();
 //                    enc.write(msg);
 //                    enc.close();
-                        long te = System.nanoTime();
-                        if (c != null)
-                        {
-                            ct.write(c);
-                        }
+                    long te = System.nanoTime();
+                    if (c != null)
+                    {
+                        ct.write(c);
+                    }
 
-                        ct.write(d);
-                        double deltaNano = (te - ts);
-                        double deltaSecond = deltaNano / SECONDS;
-                        double bps = ((double) msg.length) / deltaSecond;
-                        if (bps > bpsMaxEnc)
-                        {
-                            bpsMaxEnc = bps;
-                        }
-                        accumulatorEnc = bpsMaxEnc;
-                        pt.reset();
-                        //OutputStream os = inputEncryptor.getDecryptingStream(pt);
-                        enc.init(Cipher.DECRYPT_MODE, keys, new IvParameterSpec(nonce));
-                        d = ct.toByteArray();
-                        ts = System.nanoTime();
-                        enc.update(d);
-                        enc.doFinal();
+                    ct.write(d);
+                    double deltaNano = (te - ts);
+                    double deltaSecond = deltaNano / SECONDS;
+                    double bps = ((double) msg.length) / deltaSecond;
+                    if (bps > bpsMaxEnc)
+                    {
+                        bpsMaxEnc = bps;
+                    }
+                    accumulatorEnc = bpsMaxEnc;
+                    pt.reset();
+                    //OutputStream os = inputEncryptor.getDecryptingStream(pt);
+                    enc.init(Cipher.DECRYPT_MODE, keys, new IvParameterSpec(nonce));
+                    d = ct.toByteArray();
+                    ts = System.nanoTime();
+                    enc.update(d);
+                    enc.doFinal();
 //                    os.write(d);
 //                    os.close();
-                        te = System.nanoTime();
+                    te = System.nanoTime();
 //                    if (!MessageDigest.isEqual(pt.toByteArray(), msg)) {
 //                        throw new RuntimeException("gcm pt not equal");
 //                    }
-                        deltaNano = (te - ts);
-                        deltaSecond = deltaNano / SECONDS;
-                        bps = ((double) msg.length) / deltaSecond;
-                        if (bps > bpsMaxDec)
-                        {
-                            bpsMaxDec = bps;
-                        }
-                        accumulatorDec = bpsMaxDec;
-                        //   samples += 1;
-                        msg[0] += 1;
-                    }
-                    catch (Exception e)
+                    deltaNano = (te - ts);
+                    deltaSecond = deltaNano / SECONDS;
+                    bps = ((double) msg.length) / deltaSecond;
+                    if (bps > bpsMaxDec)
                     {
-                        e.printStackTrace();
+                        bpsMaxDec = bps;
                     }
+                    accumulatorDec = bpsMaxDec;
+                    //   samples += 1;
+                    msg[0] += 1;
 
 
                 }
@@ -922,60 +896,54 @@ public class Benchmark
                 {
                     ct.reset();
                     //OutputStream enc = outputEncryptor.getEncryptingStream(ct);
-                    try
-                    {
 
-                        KeyGenerator kGen = KeyGenerator.getInstance("AES", "BC");
-                        Key keys = kGen.generateKey();
-                        enc.init(Cipher.ENCRYPT_MODE, keys, new IvParameterSpec(nonce));
-                        long ts = System.nanoTime();
-                        byte[] c = enc.update(msg);
-                        byte[] d = enc.doFinal();
+
+                    KeyGenerator kGen = KeyGenerator.getInstance("AES", "BC");
+                    Key keys = kGen.generateKey();
+                    enc.init(Cipher.ENCRYPT_MODE, keys, new IvParameterSpec(nonce));
+                    long ts = System.nanoTime();
+                    byte[] c = enc.update(msg);
+                    byte[] d = enc.doFinal();
 //                    enc.write(msg);
 //                    enc.close();
-                        long te = System.nanoTime();
-                        if (c != null)
-                        {
-                            ct.write(c);
-                        }
+                    long te = System.nanoTime();
+                    if (c != null)
+                    {
+                        ct.write(c);
+                    }
 
-                        ct.write(d);
-                        double deltaNano = (te - ts);
-                        double deltaSecond = deltaNano / SECONDS;
-                        double bps = ((double) msg.length) / deltaSecond;
-                        if (bps > bpsMaxEnc)
-                        {
-                            bpsMaxEnc = bps;
-                        }
-                        accumulatorEnc = bpsMaxEnc;
-                        pt.reset();
-                        //OutputStream os = inputEncryptor.getDecryptingStream(pt);
-                        enc.init(Cipher.DECRYPT_MODE, keys, new IvParameterSpec(nonce));
-                        d = ct.toByteArray();
-                        ts = System.nanoTime();
-                        enc.update(d);
-                        enc.doFinal();
+                    ct.write(d);
+                    double deltaNano = (te - ts);
+                    double deltaSecond = deltaNano / SECONDS;
+                    double bps = ((double) msg.length) / deltaSecond;
+                    if (bps > bpsMaxEnc)
+                    {
+                        bpsMaxEnc = bps;
+                    }
+                    accumulatorEnc = bpsMaxEnc;
+                    pt.reset();
+                    //OutputStream os = inputEncryptor.getDecryptingStream(pt);
+                    enc.init(Cipher.DECRYPT_MODE, keys, new IvParameterSpec(nonce));
+                    d = ct.toByteArray();
+                    ts = System.nanoTime();
+                    enc.update(d);
+                    enc.doFinal();
 //                    os.write(d);
 //                    os.close();
-                        te = System.nanoTime();
+                    te = System.nanoTime();
 //                    if (!MessageDigest.isEqual(pt.toByteArray(), msg)) {
 //                        throw new RuntimeException("gcm pt not equal");
 //                    }
-                        deltaNano = (te - ts);
-                        deltaSecond = deltaNano / SECONDS;
-                        bps = ((double) msg.length) / deltaSecond;
-                        if (bps > bpsMaxDec)
-                        {
-                            bpsMaxDec = bps;
-                        }
-                        accumulatorDec = bpsMaxDec;
-                        //   samples += 1;
-                        msg[0] += 1;
-                    }
-                    catch (Exception e)
+                    deltaNano = (te - ts);
+                    deltaSecond = deltaNano / SECONDS;
+                    bps = ((double) msg.length) / deltaSecond;
+                    if (bps > bpsMaxDec)
                     {
-                        e.printStackTrace();
+                        bpsMaxDec = bps;
                     }
+                    accumulatorDec = bpsMaxDec;
+                    //   samples += 1;
+                    msg[0] += 1;
 
 
                 }
