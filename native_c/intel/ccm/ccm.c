@@ -26,6 +26,7 @@ void ccm_err_free(ccm_err *err) {
 
 ccm_ctx *ccm_create_ctx() {
     ccm_ctx *ctx = calloc(1, sizeof(ccm_ctx));
+    ctx->encryption = true; // to make get output size return the longest array if init not called first.
     assert(ctx != NULL);
     return ctx;
 }
@@ -40,22 +41,13 @@ void ccm_free(ccm_ctx *ctx) {
         free(ctx->initAD);
     }
 
-    if (ctx->aad != NULL) {
-        memset(ctx->aad, 0, ctx->aadLen);
-        free(ctx->aad);
-    }
-
 //     Zero context
     memset(ctx, 0, sizeof(ccm_ctx));
     free(ctx);
 }
 
 void ccm_reset(ccm_ctx *ctx, bool keepMac) {
-    if (ctx->aad != NULL) {
-        free(ctx->aad);
-        ctx->aad = NULL;
-        ctx->aadLen = 0;
-    }
+
     memset(ctx->buf, 0, BLOCK_SIZE);
     ctx->buf_ptr = 0;
     ctx->chainblock = ctx->initialChainblock;
@@ -139,15 +131,6 @@ ccm_err *ccm_init(
         ctx->initADLen = 0;
     }
 
-
-    // We had aad that was passed in after init clear it here.
-    if (ctx->aad != NULL) {
-        memset(ctx->aad, 0, ctx->aadLen);
-        free(ctx->aad);
-        ctx->aad = NULL;
-        ctx->aadLen = 0;
-    }
-
     if (initialText != NULL) {
         //
         // We keep a copy as it is needed to calculate the mac
@@ -171,7 +154,14 @@ size_t ccm_get_output_size(ccm_ctx *ctx, size_t len) {
     return len < ctx->macBlockLenInBytes ? 0 : len - ctx->macBlockLenInBytes;
 }
 
-ccm_err *processPacket(ccm_ctx *ref, uint8_t *in, size_t to_process, uint8_t *out, size_t *output_len) {
+ccm_err *process_packet(
+        ccm_ctx *ref,
+        uint8_t *in,
+        size_t to_process,
+        uint8_t *out,
+        size_t *output_len,
+        uint8_t *aad,
+        size_t aad_len) {
 
     if (ref->q < 4) {
         int limitLen = 1 << (ref->q << 3);
@@ -182,7 +172,7 @@ ccm_err *processPacket(ccm_ctx *ref, uint8_t *in, size_t to_process, uint8_t *ou
     size_t written = 0;
 
     if (ref->encryption) {
-        calculateMac(ref, in, to_process);
+        calculateMac(ref, in, to_process, aad, aad_len);
         ccm_ctr_process_bytes(ref, ref->macBlock, BLOCK_SIZE, ref->macBlock, &written);
         ccm_ctr_process_bytes(ref, in, to_process, out, &written);
         memcpy(out + written, ref->macBlock, ref->macBlockLenInBytes);
@@ -194,12 +184,14 @@ ccm_err *processPacket(ccm_ctx *ref, uint8_t *in, size_t to_process, uint8_t *ou
         }
         size_t outputLen = to_process - ref->macBlockLenInBytes;
 
-        uint8_t tmp[BLOCK_SIZE] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+        uint8_t tmp[BLOCK_SIZE] = {
+                0, 0, 0, 0, 0, 0, 0, 0,
+                0, 0, 0, 0, 0, 0, 0, 0};
         memcpy(ref->macBlock, in + outputLen, ref->macBlockLenInBytes);
         memset(ref->macBlock + ref->macBlockLenInBytes, 0, (BLOCK_SIZE - ref->macBlockLenInBytes));
         ccm_ctr_process_bytes(ref, ref->macBlock, BLOCK_SIZE, tmp, &written);
         ccm_ctr_process_bytes(ref, in, outputLen, out, &written);
-        calculateMac(ref, out, outputLen);
+        calculateMac(ref, out, outputLen, aad, aad_len);
         uint8_t nonEqual = 0;
         for (int i = 0; i < ref->macBlockLenInBytes; i++) {
             nonEqual |= (ref->macBlock[i] ^ tmp[i]);
@@ -215,8 +207,8 @@ ccm_err *processPacket(ccm_ctx *ref, uint8_t *in, size_t to_process, uint8_t *ou
 }
 
 
-void calculateMac(ccm_ctx *ctx, uint8_t *input, size_t len) {
-    size_t textLength = ctx->initADLen + ctx->aadLen;
+void calculateMac(ccm_ctx *ctx, uint8_t *input, size_t len, uint8_t *aad, size_t aad_len) {
+    size_t textLength = ctx->initADLen + aad_len;
     if (textLength) {
         ctx->buf[0] |= 0x40;
     }
@@ -246,8 +238,8 @@ void calculateMac(ccm_ctx *ctx, uint8_t *input, size_t len) {
         if (ctx->initAD != NULL) {
             cbcmac_update(ctx, ctx->initAD, ctx->initADLen);
         }
-        if (ctx->aad != NULL) {
-            cbcmac_update(ctx, ctx->aad, ctx->aadLen);
+        if (aad != NULL) {
+            cbcmac_update(ctx, aad, aad_len);
         }
         memset(ctx->buf + ctx->buf_ptr, 0, (BLOCK_SIZE - ctx->buf_ptr));
         cbcencrypt(ctx, ctx->buf, 1, ctx->macBlock);
@@ -266,13 +258,6 @@ size_t ccm_getMac(ccm_ctx *ctx, uint8_t *destination) {
     return ctx->macBlockLenInBytes;
 }
 
-void ccm_process_aad_bytes(ccm_ctx *ctx, uint8_t *in, size_t len) {
-    if (in != NULL && len > 0) {
-        ctx->aad = calloc(len, 1);
-        ctx->aadLen = len;
-        memcpy(ctx->aad, in, len);
-    }
-}
 
 static inline void encrypt(__m128i *d0, const __m128i chainblock, __m128i *roundKeys, const uint32_t num_rounds) {
     *d0 = _mm_xor_si128(*d0, chainblock);
@@ -305,7 +290,7 @@ static inline void encrypt(__m128i *d0, const __m128i chainblock, __m128i *round
 
 
 size_t cbcencrypt(ccm_ctx *ctx, unsigned char *src, uint32_t blocks, unsigned char *dest) {
-//    assert(ctx != NULL);
+
     unsigned char *destStart = dest;
     __m128i d0;
     __m128i tmpCb = ctx->chainblock;

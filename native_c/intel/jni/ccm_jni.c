@@ -98,6 +98,23 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_initNat
         goto exit;
     }
 
+    if (adlen < 0) {
+        throw_java_illegal_argument(env, "adlen was negative");
+        goto exit;
+    }
+
+    if (ad_ != NULL) {
+        if (ad.size < adlen) {
+            throw_java_illegal_argument(env, "ad buffer too short");
+            goto exit;
+        }
+    } else {
+        if (adlen != 0) {
+            throw_java_illegal_argument(env, "ad len non zero but ad array is null");
+            goto exit;
+        }
+    }
+
 
     err = ccm_init(
             ctx,
@@ -123,7 +140,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_initNat
  * Signature: (IZ)J
  */
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_makeInstance
-        (JNIEnv *, jclass, jint, jboolean ignored) {
+        (JNIEnv *, jclass) {
     ccm_ctx *ccm = ccm_create_ctx();
     return (jlong) ccm;
 }
@@ -139,23 +156,6 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_dispose
     ccm_free(ctx);
 }
 
-
-/*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCCM
- * Method:    getUpdateOutputSize
- * Signature: (JI)I
- */
-JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_getUpdateOutputSize
-        (JNIEnv *env, jclass, jlong ref, jint len) {
-    ccm_ctx *ctx = (ccm_ctx *) ((void *) ref);
-
-    if (len < 0) {
-        throw_java_illegal_argument(env, "len is negative");
-        return 0;
-    }
-
-    return 0;
-}
 
 /*
  * Class:     org_bouncycastle_crypto_engines_AESNativeCCM
@@ -183,17 +183,21 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_getOutp
 JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_getMac
         (JNIEnv *env, jclass, jlong ref) {
     ccm_ctx *ctx = (ccm_ctx *) ((void *) ref);
+
     jbyteArray out = (*env)->NewByteArray(env, (jint) ctx->macBlockLenInBytes);
     if (out == NULL) {
         throw_java_invalid_state(env, "unable to create output array");
         return NULL;
     }
+
     java_bytearray_ctx out_ctx;
     init_bytearray_ctx(&out_ctx);
+
     if (!load_bytearray_ctx(&out_ctx, env, out)) {
         throw_java_invalid_state(env, "unable to obtain ptr to output array");
         goto exit;
     }
+
     ccm_getMac(ctx, out_ctx.bytearray);
 
     exit:
@@ -204,20 +208,23 @@ JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_g
 
 /*
  * Class:     org_bouncycastle_crypto_engines_AESNativeCCM
- * Method:    processPacket
+ * Method:    process_packet
  * Signature: (J[B[B[BI)V
  */
 JNIEXPORT int JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_processPacket
         (JNIEnv *env, jclass, jlong ref, jbyteArray in, jint inOff, jint inLen, jbyteArray aad_,
-         jint aad_len, jbyteArray out, jint outOff) {
+         jint aad_off, jint aad_len, jbyteArray out, jint outOff) {
+
     ccm_err *err = NULL;
     size_t written = 0;
     ccm_ctx *ctx = (ccm_ctx *) ((void *) ref);
+
     critical_bytearray_ctx input, output, aad;
 
     init_critical_ctx(&input, env, in);
     init_critical_ctx(&output, env, out);
     init_critical_ctx(&aad, env, aad_);
+
 
     if (in == NULL) {
         throw_java_illegal_argument(env, "input was null");
@@ -229,6 +236,10 @@ JNIEXPORT int JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_processP
         goto exit;
     }
 
+    if (inLen < 0) {
+        throw_java_illegal_argument(env, "input len was negative");
+        goto exit;
+    }
 
     if (!check_range(input.size, (size_t) inOff, (size_t) inLen)) {
         throw_bc_data_length_exception(env, "input buffer too short");
@@ -250,36 +261,46 @@ JNIEXPORT int JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_processP
         goto exit;
     }
 
+    if (aad_off < 0) {
+        throw_java_illegal_argument(env, "aad offset was negative");
+        goto exit;
+    }
+
+    if (aad_len < 0) {
+        throw_java_illegal_argument(env, "aad length was negative");
+        goto exit;
+    }
 
     if (aad.array != NULL) {
-        // Check associated data array.
-        if (aad_len < 0) {
-            throw_java_illegal_argument(env, "aad length was negative");
-            goto exit;
-        }
 
-        if (aad_len > aad.size) {
+        if (!check_range(aad.size, (size_t) aad_off, (size_t) aad_len)) {
             throw_java_illegal_argument(env, "aad length past end of array");
             goto exit;
         }
 
-    }
+    } else {
+        if (aad_len != 0) {
+            throw_java_illegal_argument(env, "aad null but length not zero");
+            goto exit;
+        }
 
-    if (aad.array == NULL && aad_len != 0) {
-        throw_java_illegal_argument(env, "aad null but length not zero");
-        goto exit;
+        if (aad_off != 0) {
+            throw_java_illegal_argument(env, "aad null but offset not zero");
+            goto exit;
+        }
     }
 
 
     //
-    // Check we have enough space for the output.
+    // Get the output size, this is exact in CCM, be careful following this approach
+    // in other transformations.
     //
     size_t calculated_output_size = ccm_get_output_size(ctx, (size_t) inLen);
 
     //
     // Check we have enough space in the output.
     //
-    if (calculated_output_size > output.size - (size_t) outOff) {
+    if (!check_range(output.size, (size_t) outOff, calculated_output_size)) {
         throw_bc_output_length_exception(env, "output buffer too short");
         goto exit;
     }
@@ -310,14 +331,20 @@ JNIEXPORT int JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_processP
     uint8_t *p_in = input.critical + inOff;
     uint8_t *p_out = output.critical + outOff;
 
-    ccm_process_aad_bytes(ctx, aad.critical, (size_t) aad_len);
 
-    err = processPacket(ctx, p_in, (size_t) inLen, p_out, &written);
+    err = process_packet(
+            ctx,
+            p_in,
+            (size_t) inLen,
+            p_out,
+            &written,
+            aad.critical, (size_t) aad_len);
 
     exit:
+    release_critical_ctx(&aad);
     release_critical_ctx(&output);
     release_critical_ctx(&input);
-    release_critical_ctx(&aad);
+
 
     handle_ccm_result(env, err);
     return (jint) written;

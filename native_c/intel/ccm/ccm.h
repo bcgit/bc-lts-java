@@ -36,8 +36,6 @@ typedef struct {
     bool encryption;
     uint8_t nonce[BLOCK_SIZE];
     size_t nonceLen;
-    uint8_t *aad;
-    size_t aadLen;
     // mac block
     uint8_t macBlock[MAC_BLOCK_LEN];
     size_t macBlockLenInBytes;
@@ -73,7 +71,7 @@ size_t ccm_getMac(ccm_ctx *, uint8_t *destination);
 
 size_t ccm_get_output_size(ccm_ctx *ctx, size_t len);
 
-void ccm_process_aad_bytes(ccm_ctx *, uint8_t *aad, size_t len);
+
 
 /**
  *
@@ -88,9 +86,16 @@ ccm_err *ccm_init(ccm_ctx *ctx, bool encryption, uint8_t *key, size_t keyLen, ui
                   uint8_t *intialText, size_t initialTextLen, uint32_t macBlockLenBytes);
 
 
-ccm_err *processPacket(ccm_ctx *ctx, uint8_t *in, size_t to_process, uint8_t *out, size_t *output_len);
+ccm_err *process_packet(
+        ccm_ctx *ref,
+        uint8_t *in,
+        size_t to_process,
+        uint8_t *out,
+        size_t *output_len,
+        uint8_t *aad,
+        size_t aad_len);
 
-void calculateMac(ccm_ctx *ctx, uint8_t *input, size_t len);
+void calculateMac(ccm_ctx *ctx, uint8_t *input, size_t len, uint8_t *aad, size_t aad_len);
 
 void cbcmac_update(ccm_ctx *ctx, uint8_t *src, size_t len);
 

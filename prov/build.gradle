@@ -142,7 +142,7 @@ test {
     testLogging.showStackTraces = true
 
 
-    jvmArgs '-Dtest.bcfips.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr', '-Dorg.bouncycastle.native.cpu_variant=java'
+    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr,ccm', '-Dorg.bouncycastle.native.cpu_variant=java'
 
 
 

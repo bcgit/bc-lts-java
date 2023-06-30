@@ -19,17 +19,20 @@ import org.junit.Test;
 public class CCMJavaAgreementTest extends TestCase
 {
     private static final String BCFIPS_LIB_CPU_VARIANT = "org.bouncycastle.native.cpu_variant";
-    public static void main(
-        String[]    args)
-        throws Exception{
-        CCMJavaAgreementTest test =new CCMJavaAgreementTest();
-        test.testInterleavedAAD();
-        test.testCCMSpreadAgreement();
-        test.testCCMJavaAgreement_128();
-        test.testCCMJavaAgreement_192();
-        test.testCCMJavaAgreement_256();
-        System.out.println("Pass the CCMJavaAgreementTest");
-    }
+
+//    public static void main(
+//            String[] args)
+//            throws Exception
+//    {
+//        CCMJavaAgreementTest test = new CCMJavaAgreementTest();
+//        test.testInterleavedAAD();
+//        test.testCCMSpreadAgreement();
+//        test.testCCMJavaAgreement_128();
+//        test.testCCMJavaAgreement_192();
+//        test.testCCMJavaAgreement_256();
+//        System.out.println("Pass the CCMJavaAgreementTest");
+//    }
+
     @Before
     public void setUp()
     {
@@ -45,8 +48,14 @@ public class CCMJavaAgreementTest extends TestCase
         String forcedVariant = System.getProperty(BCFIPS_LIB_CPU_VARIANT);
         if (forcedVariant != null)
         {
-            if (!forcedVariant.equals(CryptoServicesRegistrar.getNativeServices().getVariant()))
+            String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
+            if (variant == null) {
+                variant = "java";
+            }
+
+            if (!forcedVariant.equals(variant))
             {
+                System.out.println("Forced variant not the same as loaded variant: "+forcedVariant + " " + CryptoServicesRegistrar.getNativeServices().getVariant());
                 throw new RuntimeException("Forced variant not the same as loaded variant: " + forcedVariant + " " + CryptoServicesRegistrar.getNativeServices().getVariant());
             }
         }
@@ -61,7 +70,7 @@ public class CCMJavaAgreementTest extends TestCase
     }
 
     byte[] generateCT(byte[] message, byte[] key, byte[] iv, boolean expectNative)
-        throws Exception
+            throws Exception
     {
         CCMModeCipher ccm = CCMBlockCipher.newInstance(AESEngine.newInstance());
 
@@ -85,7 +94,7 @@ public class CCMJavaAgreementTest extends TestCase
     }
 
     byte[] generatePT(byte[] ct, byte[] key, byte[] iv, boolean expectNative)
-        throws Exception
+            throws Exception
     {
         CCMModeCipher ccm = CCMBlockCipher.newInstance(AESEngine.newInstance());
 
@@ -110,7 +119,7 @@ public class CCMJavaAgreementTest extends TestCase
     }
 
     public void doTest(int keySize)
-        throws Exception
+            throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
 
@@ -189,7 +198,7 @@ public class CCMJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/CCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ccm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ccm"))
             {
                 TestCase.fail("Skipping CCM Agreement Test: " + TestUtil.errorMsg());
             }
@@ -272,7 +281,7 @@ public class CCMJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/CCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ccm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ccm"))
             {
                 TestCase.fail("Skipping CCM Spread Agreement: " + TestUtil.errorMsg());
             }
@@ -341,6 +350,7 @@ public class CCMJavaAgreementTest extends TestCase
         }
     }
 
+
     // 36864
 
 
@@ -362,11 +372,11 @@ public class CCMJavaAgreementTest extends TestCase
 
     @Test
     public void testCCMJavaAgreement_128()
-        throws Exception
+            throws Exception
     {
         if (!TestUtil.hasNativeService("AES/CCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ccm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ccm"))
             {
                 TestCase.fail("Skipping CCM Agreement Test: " + TestUtil.errorMsg());
             }
@@ -377,11 +387,11 @@ public class CCMJavaAgreementTest extends TestCase
 
     @Test
     public void testCCMJavaAgreement_192()
-        throws Exception
+            throws Exception
     {
         if (!TestUtil.hasNativeService("AES/CCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ccm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ccm"))
             {
                 TestCase.fail("Skipping CCM Agreement Test: " + TestUtil.errorMsg());
             }
@@ -392,11 +402,11 @@ public class CCMJavaAgreementTest extends TestCase
 
     @Test
     public void testCCMJavaAgreement_256()
-        throws Exception
+            throws Exception
     {
         if (!TestUtil.hasNativeService("AES/CCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ccm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ccm"))
             {
                 TestCase.fail("Skipping CCM Agreement Test: " + TestUtil.errorMsg());
             }
@@ -404,6 +414,74 @@ public class CCMJavaAgreementTest extends TestCase
         }
         doTest(32);
     }
+
+    /**
+     * Feed the output of one call into another without reinitializing the transformation.
+     * Compare final result between both platforms.
+     */
+    @Test
+    public void testCascadedTransformation() throws Exception
+    {
+
+        if (!TestUtil.hasNativeService("AES/CCM"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ccm"))
+            {
+                TestCase.fail("Skipping CCM Agreement Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        byte[] key = new byte[16];
+        byte[] iv = new byte[12];
+        int macSize = 48;
+
+        SecureRandom rand = new SecureRandom();
+        rand.nextBytes(key);
+        rand.nextBytes(iv);
+
+        byte[] msg = new byte[16];
+        rand.nextBytes(msg);
+
+        CryptoServicesRegistrar.setNativeEnabled(false);
+        CCMModeCipher javaEnc = createOutputEncryptor(key, iv, macSize);
+        CCMModeCipher javaDec = createOutputDecryptor(key, iv, macSize);
+
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        CCMModeCipher nativeEnc = createOutputEncryptor(key, iv, macSize);
+        CCMModeCipher nativeDec = createOutputDecryptor(key, iv, macSize);
+
+        byte[] javaFeedback = Arrays.clone(msg);
+        byte[] nativeFeedback = Arrays.clone(msg);
+
+
+        //
+        // In the encrypt direction
+        //
+        for (int t = 0; t < 10; t++)
+        {
+            javaFeedback = javaEnc.processPacket(javaFeedback, 0, javaFeedback.length);
+            nativeFeedback = nativeEnc.processPacket(nativeFeedback, 0, nativeFeedback.length);
+            TestCase.assertTrue(Arrays.areEqual(nativeFeedback, javaFeedback));
+        }
+
+
+        //
+        // In the decrypt direction
+        //
+        for (int t = 0; t < 10; t++)
+        {
+            javaFeedback = javaDec.processPacket(javaFeedback, 0, javaFeedback.length);
+            nativeFeedback = nativeDec.processPacket(nativeFeedback, 0, nativeFeedback.length);
+            TestCase.assertTrue(Arrays.areEqual(nativeFeedback, javaFeedback));
+        }
+
+        TestCase.assertTrue(Arrays.areEqual(javaFeedback, msg));
+        TestCase.assertTrue(Arrays.areEqual(nativeFeedback, msg));
+
+
+    }
+
 
     private static CCMModeCipher createOutputEncryptor(byte[] key, byte[] iv, int macSize)
     {

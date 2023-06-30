@@ -37,7 +37,7 @@ public class NativeDigestTests
 
         if (!TestUtil.hasNativeService("SHA2"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
             {
                 fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
@@ -58,7 +58,7 @@ public class NativeDigestTests
     {
         if (!TestUtil.hasNativeService("SHA2"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
             {
                 fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
@@ -105,7 +105,7 @@ public class NativeDigestTests
 
         if (!TestUtil.hasNativeService("SHA2"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
             {
                 fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
@@ -149,7 +149,7 @@ public class NativeDigestTests
 
         if (!TestUtil.hasNativeService("SHA2"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
             {
                 fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
@@ -194,7 +194,7 @@ public class NativeDigestTests
 
         if (!TestUtil.hasNativeService("SHA2"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
             {
                 fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
@@ -317,7 +317,7 @@ public class NativeDigestTests
 
         if (!TestUtil.hasNativeService("SHA2"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
             {
                 fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
@@ -418,7 +418,7 @@ public class NativeDigestTests
 
         if (!TestUtil.hasNativeService("SHA2"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
             {
                 fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
@@ -541,7 +541,7 @@ public class NativeDigestTests
 
         if (!TestUtil.hasNativeService("SHA2"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
             {
                 fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
@@ -665,7 +665,7 @@ public class NativeDigestTests
     {
         if (!TestUtil.hasNativeService("SHA2"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
             {
                 fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
             }
