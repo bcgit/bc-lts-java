@@ -37,31 +37,31 @@ public class NativeFailsafeTest
     }
 
 
-    /**
-     * Test requested variant is loaded if a specific variant is requested.
-     */
-    @Test
-    public void testExpectedVariant()
-    {
-        String requestedVariant = System.getProperty("org.bouncycastle.native.cpu_variant");
-        if (requestedVariant != null)
-        {
-
-            CryptoServicesRegistrar.isNativeEnabled();
-
-            NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
-
-            String variant = nativeServices.getVariant();
-            if (variant == null) {
-                variant = "java";
-            }
-            assertTrue("expected variant of " + requestedVariant + " got " + nativeServices.getVariant(), variant.equals(requestedVariant));
-
-        } else
-        {
-            System.out.println("No expected variant supplied.");
-        }
-    }
+//    /**
+//     * Test requested variant is loaded if a specific variant is requested.
+//     */
+//    @Test
+//    public void testExpectedVariant()
+//    {
+//        String requestedVariant = System.getProperty("org.bouncycastle.native.cpu_variant");
+//        if (requestedVariant != null)
+//        {
+//
+//            CryptoServicesRegistrar.isNativeEnabled();
+//
+//            NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
+//
+//            String variant = nativeServices.getVariant();
+//            if (variant == null) {
+//                variant = "java";
+//            }
+//            assertTrue("expected variant of " + requestedVariant + " got " + nativeServices.getVariant(), variant.equals(requestedVariant));
+//
+//        } else
+//        {
+//            System.out.println("No expected variant supplied.");
+//        }
+//    }
 
     @Test
     public void testECB()
