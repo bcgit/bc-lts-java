@@ -3,22 +3,15 @@ package org.bouncycastle.crypto.modes;
 import java.security.SecureRandom;
 
 import junit.framework.TestCase;
-import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.engines.DESEngine;
-import org.bouncycastle.crypto.modes.gcm.BasicGCMMultiplier;
 import org.bouncycastle.crypto.modes.gcm.GCMMultiplier;
-import org.bouncycastle.crypto.modes.gcm.Tables4kGCMMultiplier;
-import org.bouncycastle.crypto.modes.gcm.Tables64kGCMMultiplier;
-import org.bouncycastle.crypto.modes.gcm.Tables8kGCMMultiplier;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
-import org.bouncycastle.crypto.test.AEADTestUtil;
 import org.bouncycastle.util.Arrays;
-import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.Times;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
@@ -54,6 +47,7 @@ public class AESGCMPacketCipherTest
         outputSizeTests();
         testExceptions();
         testResetBehavior();
+        System.out.println("Pass AESGCMPacketCipher Test");
     }
 
     private static final String[][] TEST_VECTORS = new String[][]{
@@ -402,7 +396,7 @@ public class AESGCMPacketCipherTest
         catch (IllegalArgumentException e)
         {
             // expected
-            isTrue("wrong message", e.getMessage().contains("invalid value for MAC size"));
+            isTrue("wrong message", e.getMessage().contains("Invalid value for MAC size"));
         }
 
         try
@@ -412,7 +406,7 @@ public class AESGCMPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains("input was null"));
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_NULL));
         }
 
         try
@@ -422,7 +416,7 @@ public class AESGCMPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains("OUTPUT_LENGTH output buffer too small"));
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
         }
 
         try
@@ -432,7 +426,7 @@ public class AESGCMPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains("OTHER offset is negative"));
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
         }
 
         try
@@ -442,7 +436,7 @@ public class AESGCMPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains("OTHER len is negative"));
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.LEN_NEGATIVE));
         }
 
         try
@@ -452,7 +446,7 @@ public class AESGCMPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains("OTHER output offset is negative"));
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
         }
 
         try
@@ -462,7 +456,7 @@ public class AESGCMPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains("INVALID_CIPHERTEXT cipher text too short"));
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_SHORT));
         }
 
         try
@@ -472,7 +466,7 @@ public class AESGCMPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains("OUTPUT_LENGTH output buffer too small"));
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
         }
 
 
