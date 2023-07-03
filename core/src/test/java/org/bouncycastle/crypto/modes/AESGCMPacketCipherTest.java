@@ -379,6 +379,17 @@ public class AESGCMPacketCipherTest
 
         try
         {
+            gcm.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), 0);
+            fail("negative value for getOutputSize");
+        }
+        catch (IllegalArgumentException e)
+        {
+            // expected
+            isTrue("wrong message", e.getMessage().equals("invalid parameters passed to GCM"));
+        }
+
+        try
+        {
             gcm.getOutputSize(false, new KeyParameter(new byte[25]), 0);
             fail("invalid key size for getOutputSize");
         }

@@ -34,9 +34,7 @@ public class AESGCMPacketCipher
     private boolean forEncryption;
 
     private int macSize;
-    private byte[] lastKey;
     private byte[] nonce;
-    private byte[] initialAssociatedText;
     private byte[] H;
     private byte[] J0;
 
@@ -66,6 +64,10 @@ public class AESGCMPacketCipher
     @Override
     public int getOutputSize(boolean forEncryption, CipherParameters parameters, int len)
     {
+        if (len < 0)
+        {
+            throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
+        }
         int macSize;
         if (parameters instanceof AEADParameters)
         {
@@ -132,6 +134,7 @@ public class AESGCMPacketCipher
             KeyParameter keyParam;
             byte[] newNonce;
 
+            byte[] initialAssociatedText;
             if (params instanceof AEADParameters)
             {
                 AEADParameters param = (AEADParameters)params;
@@ -190,7 +193,7 @@ public class AESGCMPacketCipher
             nonce = newNonce;
             if (keyParam != null)
             {
-                lastKey = keyParam.getKey();
+                byte[] lastKey = keyParam.getKey();
             }
 
             // TODO Restrict macSize to 16 if nonce length not 12?
