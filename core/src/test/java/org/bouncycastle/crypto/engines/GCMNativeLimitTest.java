@@ -26,7 +26,7 @@ public class GCMNativeLimitTest extends TestCase
         NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
         if (!nativeServices.hasService("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("gcm"))
+            if (!System.getProperty("test.bclts.ignore.native","").contains("gcm"))
             {
                 fail("no native gcm and no skip set for it");
                 return false;

@@ -110,7 +110,7 @@ public class ECBJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/ECB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ecb"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ecb"))
             {
                 TestCase.fail("Skipping ECB Agreement Test: " + TestUtil.errorMsg());
             }
@@ -125,7 +125,7 @@ public class ECBJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/ECB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ecb"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ecb"))
             {
                 TestCase.fail("Skipping ECB Agreement Test: " + TestUtil.errorMsg());
             }
@@ -140,7 +140,7 @@ public class ECBJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/ECB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ecb"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ecb"))
             {
                 TestCase.fail("Skipping ECB Agreement Test: " + TestUtil.errorMsg());
             }
@@ -162,7 +162,7 @@ public class ECBJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/ECB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ecb"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ecb"))
             {
                 TestCase.fail("Skipping ECB Spread test: " + TestUtil.errorMsg());
             }

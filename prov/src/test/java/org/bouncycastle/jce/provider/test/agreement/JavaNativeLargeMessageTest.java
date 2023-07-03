@@ -72,7 +72,7 @@ public class JavaNativeLargeMessageTest extends SimpleTest
 
         if (!hasNativeService("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
                 TestCase.fail("Skipping GCM Agreement Test: " + errorMsg());
             }
@@ -179,7 +179,7 @@ public class JavaNativeLargeMessageTest extends SimpleTest
 
         if (!hasNativeService("AES/CTR"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ctr"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
             {
                 TestCase.fail("Skipping CTR Agreement Test: " + errorMsg());
             }
@@ -286,7 +286,7 @@ public class JavaNativeLargeMessageTest extends SimpleTest
 
         if (!hasNativeService("AES/CFB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cfb"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cfb"))
             {
                 TestCase.fail("Skipping CFB Agreement Test: " + errorMsg());
             }
@@ -393,7 +393,7 @@ public class JavaNativeLargeMessageTest extends SimpleTest
 
         if (!hasNativeService("AES/CBC"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {
                 TestCase.fail("Skipping CBC Agreement Test: " + errorMsg());
             }
@@ -500,7 +500,7 @@ public class JavaNativeLargeMessageTest extends SimpleTest
 
         if (!hasNativeService("AES/ECB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ecb"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ecb"))
             {
                 TestCase.fail("Skipping ECB Agreement Test: " + errorMsg());
             }

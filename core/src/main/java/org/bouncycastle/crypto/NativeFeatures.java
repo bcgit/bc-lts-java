@@ -105,6 +105,28 @@ class NativeFeatures
     private static native boolean nativeGCM();
 
 
+
+
+    static boolean hasCCMHardwareSupport()
+    {
+        try
+        {
+            return nativeCCM();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native ccm exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+    private static native boolean nativeCCM();
+
+
+
     static boolean hasHardwareRand()
     {
         try

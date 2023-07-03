@@ -28,12 +28,14 @@ public class AllTests
         suite.addTestSuite(ECBJavaAgreementTest.class);
         suite.addTestSuite(GCMJavaAgreementTest.class);
         suite.addTestSuite(SHA256JavaAgreementTest.class);
+        suite.addTestSuite(CCMJavaAgreementTest.class);
 
        suite.addTestSuite(CBCNativeLimitTest.class);
         suite.addTestSuite(CFBNativeLimitTest.class);
         suite.addTestSuite(CTRNativeLimitTest.class);
         suite.addTestSuite(ECBNativeLimitTest.class);
         suite.addTestSuite(GCMNativeLimitTest.class);
+        suite.addTestSuite(CCMNativeLimitTest.class);
         suite.addTestSuite(NativeDigestTests.class);
 
         suite.addTestSuite(NativeEntropyTests.class);

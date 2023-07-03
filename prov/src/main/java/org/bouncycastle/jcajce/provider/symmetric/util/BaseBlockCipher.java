@@ -485,7 +485,7 @@ public class BaseBlockCipher
             }
             else
             {
-                cipher = new AEADGenericBlockCipher(new CCMBlockCipher(baseEngine));
+                cipher = new AEADGenericBlockCipher( CCMBlockCipher.newInstance(baseEngine));
             }
         }
         else if (modeName.equals("OCB"))
