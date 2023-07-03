@@ -1,0 +1,78 @@
+<project name="Test21" default="test" basedir=".">
+    <description>
+        Java 21 tests
+    </description>
+    <!-- set global properties for this build -->
+    <property file="bc-build.user.properties" />
+    <property file="bc-build.properties" />
+    <property file="gradle.properties" />
+    <property environment="env"/>
+
+    <property name="src" location="src"/>
+    <property name="report.dir" location="build/artifacts/jdk21/reports"/>
+
+    <path id="project.classpath">
+        <pathelement location="${mail.jar.home}" />
+        <pathelement location="${activation.jar.home}" />
+        <pathelement location="${jmail.jar.home}" />
+        <pathelement location="${jactivation.jar.home}" />
+        <pathelement location="${junit.jar.home}" />
+        <pathelement location="${ldap.jar.home}" />
+    </path>
+
+    <target name="test">
+        <mkdir dir="${report.dir}/xml"/>
+        <mkdir dir="${report.dir}/html"/>
+        <junit printsummary="yes" fork="yes" failureProperty="test.failed" jvm="${env.LTS_JDK21}/bin/java">
+            <jvmarg value="-Dtest.bcfips.ignore.native=ecb,sha,gcm,cbc,es,cfb,ctr"/>
+            <classpath>
+                <path refid="project.classpath" />
+                <fileset dir="prov/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="prov/build/classes/java/test" />
+                <dirset dir="prov/build/resources/test" />
+                <fileset dir="util/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="util/build/classes/java/test" />
+                <dirset dir="util/build/resources/test" />
+                <fileset dir="pkix/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="pkix/build/classes/java/test" />
+                <dirset dir="pkix/build/resources/test" />
+                <fileset dir="tls/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="tls/build/classes/java/test" />
+                <dirset dir="tls/build/resources/test" />
+            </classpath>
+
+            <formatter type="xml"/>
+            <batchtest todir="${report.dir}/xml" unless="testcase">
+                <fileset dir="prov/build/classes/java/test">
+                        <include name="**/**AllTests.class"/>
+                </fileset>
+                <fileset dir="pkix/build/classes/java/test">
+                        <include name="**/**AllTests.class"/>
+                </fileset>
+                <fileset dir="tls/build/classes/java/test">
+                        <include name="**/**AllTests.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+
+        <junitreport todir="${report.dir}/xml">
+            <fileset dir="${report.dir}/xml">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report format="frames" todir="${report.dir}/html" />
+        </junitreport>
+
+        <fail if="test.failed"/>
+
+    </target>
+
+
+</project>

@@ -9,13 +9,7 @@ import org.bouncycastle.crypto.NativeBlockCipherProvider;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.SkippingStreamCipher;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
-import org.bouncycastle.crypto.modes.CBCBlockCipher;
-import org.bouncycastle.crypto.modes.CBCModeCipher;
-import org.bouncycastle.crypto.modes.CFBBlockCipher;
-import org.bouncycastle.crypto.modes.CFBModeCipher;
-import org.bouncycastle.crypto.modes.GCMBlockCipher;
-import org.bouncycastle.crypto.modes.GCMModeCipher;
-import org.bouncycastle.crypto.modes.SICBlockCipher;
+import org.bouncycastle.crypto.modes.*;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
@@ -190,6 +184,17 @@ class AESNativeEngine
         }
 
         return new SICBlockCipher(AESEngine.newInstance());
+    }
+
+    @Override
+    public CCMModeCipher createCCM()
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CCM))
+        {
+            return new AESNativeCCM();
+        }
+
+        return new CCMBlockCipher(AESEngine.newInstance());
     }
 
     private static class Disposer

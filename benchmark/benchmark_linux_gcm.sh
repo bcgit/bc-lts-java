@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export fipsLib="../jars/bcprov-lts8on-2.73.0-SNAPSHOT.jar"
+export fipsLib="../../bc-lts-java-jars/2.73.2/bcprov-lts8on-2.73.2.jar"
 
 ../gradlew clean build
 

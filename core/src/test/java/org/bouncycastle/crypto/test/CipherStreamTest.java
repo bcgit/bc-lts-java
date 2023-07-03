@@ -9,7 +9,7 @@ import java.security.SecureRandom;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DefaultBufferedMultiBlockCipher;
+import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.BlowfishEngine;
@@ -511,7 +511,7 @@ public class CipherStreamTest
         testMode(new ChaChaEngine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[8]));
         testMode(new Grainv1Engine(), new ParametersWithIV(new KeyParameter(new byte[10]), new byte[8]));
         testMode(new Grain128Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]));
-        testMode(new HC128Engine(), new KeyParameter(new byte[16]));
+        testMode(new HC128Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
         testMode(new HC256Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
 
         testSkipping(new Salsa20Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[8]));
@@ -531,9 +531,9 @@ public class CipherStreamTest
 
             testMode(new PaddedBufferedBlockCipher(new CBCBlockCipher(cipher1), new PKCS7Padding()), withIv);
 
-            testMode(new DefaultBufferedMultiBlockCipher(new OFBBlockCipher(cipher1, blockSize)), withIv);
-            testMode(new DefaultBufferedMultiBlockCipher(new CFBBlockCipher(cipher1, blockSize)), withIv);
-            testMode(new DefaultBufferedMultiBlockCipher(new SICBlockCipher(cipher1)), withIv);
+            testMode(new DefaultBufferedBlockCipher(new OFBBlockCipher(cipher1, blockSize)), withIv);
+            testMode(new DefaultBufferedBlockCipher(new CFBBlockCipher(cipher1, blockSize)), withIv);
+            testMode(new DefaultBufferedBlockCipher(new SICBlockCipher(cipher1)), withIv);
         }
         // CTS requires at least one block
         if (blockSize <= 16 && streamSize >= blockSize)
@@ -552,7 +552,7 @@ public class CipherStreamTest
         }
         if (blockSize == 16)
         {
-            testMode(new CCMBlockCipher(cipher1), new ParametersWithIV(key, new byte[7]));
+            testMode(CCMBlockCipher.newInstance(cipher1), new ParametersWithIV(key, new byte[7]));
             // TODO: need to have a GCM safe version of testMode.
 //            testMode(new GCMBlockCipher(cipher1), withIv);
             testMode(new OCBBlockCipher(cipher1, cipher2), new ParametersWithIV(key, new byte[15]));

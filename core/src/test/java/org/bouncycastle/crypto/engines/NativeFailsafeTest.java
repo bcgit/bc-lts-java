@@ -10,7 +10,7 @@ import org.junit.Test;
 
 public class NativeFailsafeTest
 {
-    public static final String NATIVE_FAILSAFE_TEST = "test.bcfips.ignore.native";
+    public static final String NATIVE_FAILSAFE_TEST = "test.bclts.ignore.native";
 
 
     @Before
@@ -25,7 +25,7 @@ public class NativeFailsafeTest
      * To disable the test, set NATIVE_FAILSAFE_TEST in the
      * jvmArgs value of the test stanza in the build.gradle
      * <p>
-     * -Dtest.bcfips.ignore.native=ecb, etc
+     * -Dtest.bclts.ignore.native=ecb, etc
      */
     @Test
     public void testAesEcb()
@@ -41,7 +41,7 @@ public class NativeFailsafeTest
                 System.out.println("Native Features: " + TestUtil.getNativeFeatureString());
                 return;
             }
-            TestCase.fail("native not supported for AES ECB' and 'test.bcfips.ignore.native' does not contain 'ecb'. See README.md " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
+            TestCase.fail("native not supported for AES ECB' and 'test.bclts.ignore.native' does not contain 'ecb'. See README.md " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
         }
 
     }
@@ -52,7 +52,7 @@ public class NativeFailsafeTest
      * To disable the test, set NATIVE_FAILSAFE_TEST in the
      * jvmArgs value of the test stanza in the build.gradle
      * <p>
-     * -Dtest.bcfips.ignore.native=cbc, etc
+     * -Dtest.bclts.ignore.native=cbc, etc
      */
     @Test
     public void testAesCBC()
@@ -66,7 +66,7 @@ public class NativeFailsafeTest
                 return;
             }
 
-            TestCase.fail("native not supported for AES CBC' and 'test.bcfips.ignore.native' does not contain 'cbc'. See README.md " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
+            TestCase.fail("native not supported for AES CBC' and 'test.bclts.ignore.native' does not contain 'cbc'. See README.md " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
         }
 
     }
@@ -76,7 +76,7 @@ public class NativeFailsafeTest
      * To disable the test, set NATIVE_FAILSAFE_TEST in the
      * jvmArgs value of the test stanza in the build.gradle
      * <p>
-     * -Dtest.bcfips.ignore.native=gcm, etc
+     * -Dtest.bclts.ignore.native=gcm, etc
      */
     @Test
     public void testAesGCM()
@@ -90,7 +90,7 @@ public class NativeFailsafeTest
                 return;
             }
 
-            TestCase.fail("native not supported for AES GCM' and 'test.bcfips.ignore.native' does not contain 'gcm'. See README.md " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
+            TestCase.fail("native not supported for AES GCM' and 'test.bclts.ignore.native' does not contain 'gcm'. See README.md " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
         }
 
     }
@@ -101,7 +101,7 @@ public class NativeFailsafeTest
      * To disable the test, set NATIVE_FAILSAFE_TEST in the
      * jvmArgs value of the test stanza in the build.gradle
      * <p>
-     * -Dtest.bcfips.ignore.native=ctr, etc
+     * -Dtest.bclts.ignore.native=ctr, etc
      */
     @Test
     public void testAesCTR()
@@ -115,7 +115,7 @@ public class NativeFailsafeTest
                 return;
             }
 
-            TestCase.fail("native not supported for AES GCM' and 'test.bcfips.ignore.native' does not contain 'ctr'. See README.md " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
+            TestCase.fail("native not supported for AES GCM' and 'test.bclts.ignore.native' does not contain 'ctr'. See README.md " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
         }
 
     }
@@ -126,7 +126,7 @@ public class NativeFailsafeTest
      * To disable the test, set NATIVE_FAILSAFE_TEST in the
      * jvmArgs value of the test stanza in the build.gradle
      * <p>
-     * -Dtest.bcfips.ignore.native=sha, etc
+     * -Dtest.bclts.ignore.native=sha, etc
      */
     @Test
     public void testSHA()
@@ -140,7 +140,7 @@ public class NativeFailsafeTest
                 return;
             }
 
-            TestCase.fail("native not supported for SHA x' and 'test.bcfips.ignore.native' does not contain 'sha'. See README.md  " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
+            TestCase.fail("native not supported for SHA x' and 'test.bclts.ignore.native' does not contain 'sha'. See README.md  " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
         }
     }
 
@@ -150,7 +150,7 @@ public class NativeFailsafeTest
      * To disable the test, set NATIVE_FAILSAFE_TEST in the
      * jvmArgs value of the test stanza in the build.gradle
      * <p>
-     * -Dtest.bcfips.ignore.native=cfb, etc
+     * -Dtest.bclts.ignore.native=cfb, etc
      */
     @Test
     public void testAesCFB()
@@ -164,7 +164,7 @@ public class NativeFailsafeTest
                 return;
             }
 
-            TestCase.fail("native not supported for AES CFB' and 'test.bcfips.ignore.native' does not contain 'ctr'. See README.md " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
+            TestCase.fail("native not supported for AES CFB' and 'test.bclts.ignore.native' does not contain 'ctr'. See README.md " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
         }
 
     }
@@ -175,7 +175,7 @@ public class NativeFailsafeTest
      * To disable the test, set NATIVE_FAILSAFE_TEST in the
      * jvmArgs value of the test stanza in the build.gradle
      * <p>
-     * -Dtest.bcfips.ignore.native=rand, etc
+     * -Dtest.bclts.ignore.native=rand, etc
      */
     @Test
     public void testRdRand()
@@ -190,7 +190,7 @@ public class NativeFailsafeTest
                 return;
             }
 
-            TestCase.fail("native not supported for HW Rand' and 'test.bcfips.ignore.native' does not contain 'rand'. See README.md  " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
+            TestCase.fail("native not supported for HW Rand' and 'test.bclts.ignore.native' does not contain 'rand'. See README.md  " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
         }
 
     }
@@ -201,7 +201,7 @@ public class NativeFailsafeTest
      * To disable the test, set NATIVE_FAILSAFE_TEST in the
      * jvmArgs value of the test stanza in the build.gradle
      * <p>
-     * -Dtest.bcfips.ignore.native=seed, etc
+     * -Dtest.bclts.ignore.native=seed, etc
      */
     @Test
     public void testRdSeed()
@@ -215,7 +215,7 @@ public class NativeFailsafeTest
                 return;
             }
 
-            TestCase.fail("native not supported for HW Seed' and property 'test.bcfips.ignore.native' does not contain 'seed'. See README.md " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
+            TestCase.fail("native not supported for HW Seed' and property 'test.bclts.ignore.native' does not contain 'seed'. See README.md " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
         }
 
     }

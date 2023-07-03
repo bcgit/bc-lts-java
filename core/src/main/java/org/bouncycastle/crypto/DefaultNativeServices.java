@@ -139,6 +139,17 @@ class DefaultNativeServices
             {
                 set.add(SHA2);
             }
+
+            if (NativeFeatures.hasCCMHardwareSupport())
+            {
+                set.add(AES_CCM);
+            }
+
+            if (NativeFeatures.hasMultiplyAcc())
+            {
+                set.add(MULACC);
+            }
+
         }
 
         if (set.isEmpty())
