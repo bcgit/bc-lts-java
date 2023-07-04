@@ -27,7 +27,6 @@ println("Environment setup:")
 
 
 
-
 if (JavaVersion.current().isJava8Compatible())
 {
   allprojects {
@@ -161,7 +160,7 @@ subprojects {
     filter {
       includeTestsMatching "AllTest*"
     }
-    jvmArgs '-Dtest.bcfips.ignore.native=sha,cbc,es,cfb,ctr', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=neon-le'
+    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bcfips.ignore.native=sha,cbc,es,cfb,ctr,ccm', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=neon-le'
 
   }
 
@@ -178,7 +177,7 @@ subprojects {
     filter {
       includeTestsMatching "AllTest*"
     }
-    jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=vaesf'
+    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=vaesf'
 
   }
 
@@ -195,7 +194,7 @@ subprojects {
     filter {
       includeTestsMatching "AllTest*"
     }
-    jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=vaes'
+    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=vaes'
 
 
   }
@@ -217,7 +216,7 @@ subprojects {
       }
     }
 
-     jvmArgs '-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=avx'
+     jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=avx'
 
   }
 

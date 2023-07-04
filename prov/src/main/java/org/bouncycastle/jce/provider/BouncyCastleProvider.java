@@ -51,7 +51,8 @@ import org.bouncycastle.util.Strings;
  * <p>Note: JCE algorithm names should be upper-case only so the case-insensitive
  * test for getInstance works.
  */
-public final class BouncyCastleProvider extends Provider
+public final class BouncyCastleProvider
+    extends Provider
     implements ConfigurableProvider
 {
     private static final Logger LOG = Logger.getLogger(BouncyCastleProvider.class.getName());
@@ -72,29 +73,29 @@ public final class BouncyCastleProvider extends Provider
     private static final String SYMMETRIC_PACKAGE = "org.bouncycastle.jcajce.provider.symmetric.";
 
     private static final String[] SYMMETRIC_GENERIC =
-    {
-        "PBEPBKDF1", "PBEPBKDF2", "PBEPKCS12", "TLSKDF", "SCRYPT"
-    };
+        {
+            "PBEPBKDF1", "PBEPBKDF2", "PBEPKCS12", "TLSKDF", "SCRYPT"
+        };
 
     private static final String[] SYMMETRIC_MACS =
-    {
-        "SipHash", "SipHash128", "Poly1305"
-    };
+        {
+            "SipHash", "SipHash128", "Poly1305"
+        };
 
     private static final CryptoServiceProperties[] SYMMETRIC_CIPHERS =
-    {
-        // TODO: these numbers need a bit more work, we cap at 256 bits.
-        service("AES", 256), service("ARC4", 20), service("ARIA", 256), service("Blowfish", 128), service("Camellia", 256),
-        service("CAST5", 128), service("CAST6", 256), service("ChaCha", 128), service("DES", 56),  service("DESede", 112),
-        service("GOST28147", 128), service("Grainv1", 128), service("Grain128", 128), service("HC128", 128), service("HC256", 256),
-        service("IDEA", 128), service("Noekeon", 128), service("RC2", 128), service("RC5", 128), service("RC6", 256),
-        service("Rijndael", 256), service("Salsa20", 128), service("SEED", 128), service("Serpent", 256), service("Shacal2", 128),
-        service("Skipjack", 80), service("SM4", 128), service("TEA", 128), service("Twofish", 256), service("Threefish", 128),
-        service("VMPC", 128), service("VMPCKSA3", 128), service("XTEA", 128), service("XSalsa20", 128), service("OpenSSLPBKDF", 128),
-        service("DSTU7624", 256), service("GOST3412_2015", 256), service("Zuc", 128)
-    };
+        {
+            // TODO: these numbers need a bit more work, we cap at 256 bits.
+            service("AES", 256), service("ARC4", 20), service("ARIA", 256), service("Blowfish", 128), service("Camellia", 256),
+            service("CAST5", 128), service("CAST6", 256), service("ChaCha", 128), service("DES", 56), service("DESede", 112),
+            service("GOST28147", 128), service("Grainv1", 128), service("Grain128", 128), service("HC128", 128), service("HC256", 256),
+            service("IDEA", 128), service("Noekeon", 128), service("RC2", 128), service("RC5", 128), service("RC6", 256),
+            service("Rijndael", 256), service("Salsa20", 128), service("SEED", 128), service("Serpent", 256), service("Shacal2", 128),
+            service("Skipjack", 80), service("SM4", 128), service("TEA", 128), service("Twofish", 256), service("Threefish", 128),
+            service("VMPC", 128), service("VMPCKSA3", 128), service("XTEA", 128), service("XSalsa20", 128), service("OpenSSLPBKDF", 128),
+            service("DSTU7624", 256), service("GOST3412_2015", 256), service("Zuc", 128)
+        };
 
-     /*
+    /*
      * Configurable asymmetric ciphers
      */
     private static final String ASYMMETRIC_PACKAGE = "org.bouncycastle.jcajce.provider.asymmetric.";
@@ -102,43 +103,43 @@ public final class BouncyCastleProvider extends Provider
     // this one is required for GNU class path - it needs to be loaded first as the
     // later ones configure it.
     private static final String[] ASYMMETRIC_GENERIC =
-    {
-        "X509", "IES", "COMPOSITE", "EXTERNAL"
-    };
+        {
+            "X509", "IES", "COMPOSITE", "EXTERNAL"
+        };
 
     private static final String[] ASYMMETRIC_CIPHERS =
-    {
-        "DSA", "DH", "EC", "RSA", "GOST", "ECGOST", "ElGamal", "DSTU4145", "GM", "EdEC"
-    };
+        {
+            "DSA", "DH", "EC", "RSA", "GOST", "ECGOST", "ElGamal", "DSTU4145", "GM", "EdEC"
+        };
 
     /*
      * Configurable digests
      */
     private static final String DIGEST_PACKAGE = "org.bouncycastle.jcajce.provider.digest.";
     private static final String[] DIGESTS =
-    {
-        "GOST3411", "Keccak", "MD2", "MD4", "MD5", "SHA1", "RIPEMD128", "RIPEMD160", "RIPEMD256", "RIPEMD320", "SHA224",
-        "SHA256", "SHA384", "SHA512", "SHA3", "Skein", "SM3", "Tiger", "Whirlpool", "Blake2b", "Blake2s", "DSTU7564",
-        "Haraka", "Blake3"
-    };
+        {
+            "GOST3411", "Keccak", "MD2", "MD4", "MD5", "SHA1", "RIPEMD128", "RIPEMD160", "RIPEMD256", "RIPEMD320", "SHA224",
+            "SHA256", "SHA384", "SHA512", "SHA3", "Skein", "SM3", "Tiger", "Whirlpool", "Blake2b", "Blake2s", "DSTU7564",
+            "Haraka", "Blake3"
+        };
 
     /*
      * Configurable keystores
      */
     private static final String KEYSTORE_PACKAGE = "org.bouncycastle.jcajce.provider.keystore.";
     private static final String[] KEYSTORES =
-    {
-        "BC", "BCFKS", "PKCS12"
-    };
+        {
+            "BC", "BCFKS", "PKCS12"
+        };
 
     /*
      * Configurable secure random
      */
     private static final String SECURE_RANDOM_PACKAGE = "org.bouncycastle.jcajce.provider.drbg.";
     private static final String[] SECURE_RANDOMS =
-    {
-        "DRBG"
-    };
+        {
+            "DRBG"
+        };
 
     private Map<String, Service> serviceMap = new ConcurrentHashMap<String, Service>();
 
@@ -180,7 +181,7 @@ public final class BouncyCastleProvider extends Provider
         loadAlgorithms(SECURE_RANDOM_PACKAGE, SECURE_RANDOMS);
 
         loadPQCKeys();  // so we can handle certificates containing them.
-        
+
         // Certification Path API
         if (revChkClass != null)
         {
@@ -209,37 +210,46 @@ public final class BouncyCastleProvider extends Provider
     }
 
     public final Service getService(String type, String algorithm)
+    {
+        String upperCaseAlgName = Strings.toUpperCase(algorithm);
+        final String key = type + "." + upperCaseAlgName;
+
+        Service service = serviceMap.get(key);
+
+        if (service == null)
         {
-            String upperCaseAlgName = Strings.toUpperCase(algorithm);
-            String key = type + "." + upperCaseAlgName;
-
-            Service service = serviceMap.get(key);
-
-            if (service == null)
+            synchronized (this)
             {
-                synchronized (this)
+                if (!serviceMap.containsKey(key))
                 {
-                    if (!serviceMap.containsKey(key))
+                    service = AccessController.doPrivileged(new PrivilegedAction<Service>()
                     {
-                        service = super.getService(type, algorithm);
-                        if (service == null)
+                        @Override
+                        public Service run()
                         {
-                            return null;
+                            Service service = BouncyCastleProvider.super.getService(type, algorithm);
+                            if (service == null)
+                            {
+                                return null;
+                            }
+                            serviceMap.put(key, service);
+                            // remove legacy entry and swap to service entry
+                            BouncyCastleProvider.super.remove(service.getType() + "." + service.getAlgorithm());
+                            BouncyCastleProvider.super.putService(service);
+
+                            return service;
                         }
-                        serviceMap.put(key, service);
-                        // remove legacy entry and swap to service entry
-                        super.remove(service.getType() + "." + service.getAlgorithm());
-                        super.putService(service);
-                    }
-                    else
-                    {
-                        service = serviceMap.get(key);
-                    }
+                    });
+                }
+                else
+                {
+                    service = serviceMap.get(key);
                 }
             }
-
-            return service;
         }
+
+        return service;
+    }
 
     private void loadAlgorithms(String packageName, String[] names)
     {
@@ -290,7 +300,7 @@ public final class BouncyCastleProvider extends Provider
 
     private void loadPQCKeys()
     {
-  // none for now
+        // none for now
     }
 
     public void setParameter(String parameterName, Object parameter)
@@ -334,7 +344,7 @@ public final class BouncyCastleProvider extends Provider
         addAttributes(type + "." + oid, attributes);
         addAttributes(type + ".OID." + oid, attributes);
     }
-    
+
     public void addKeyInfoConverter(ASN1ObjectIdentifier oid, AsymmetricKeyInfoConverter keyInfoConverter)
     {
         synchronized (keyInfoConverters)
@@ -352,7 +362,7 @@ public final class BouncyCastleProvider extends Provider
     {
         put(key + " ImplementedIn", "Software");
 
-        for (Iterator it = attributeMap.keySet().iterator(); it.hasNext();)
+        for (Iterator it = attributeMap.keySet().iterator(); it.hasNext(); )
         {
             String attributeName = (String)it.next();
             String attributeKey = key + " " + attributeName;

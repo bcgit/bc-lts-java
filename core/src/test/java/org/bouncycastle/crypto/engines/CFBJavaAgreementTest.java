@@ -236,7 +236,7 @@ public class CFBJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/CFB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {
                 Assert.fail("Skipping CFB Agreement Test: " + TestUtil.errorMsg());
             }
@@ -252,7 +252,7 @@ public class CFBJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/CFB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {
                 Assert.fail("Skipping CFB Agreement Test: " + TestUtil.errorMsg());
             }
@@ -268,7 +268,7 @@ public class CFBJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/CFB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {
                 Assert.fail("Skipping CFB Agreement Test: " + TestUtil.errorMsg());
             }
@@ -289,7 +289,7 @@ public class CFBJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/CFB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {
                 Assert.fail("Skipping CFB streaming monte Test: " + TestUtil.errorMsg());
             }
@@ -386,7 +386,7 @@ public class CFBJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/CFB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {
                 Assert.fail("Skipping CFB spread test: " + TestUtil.errorMsg());
             }
@@ -475,7 +475,7 @@ public class CFBJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/CFB"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {
                 Assert.fail("Skipping CFB spread test: " + TestUtil.errorMsg());
             }

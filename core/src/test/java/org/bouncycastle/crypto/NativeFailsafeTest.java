@@ -7,7 +7,7 @@ public class NativeFailsafeTest
         extends TestCase
 {
 
-    public static final String NATIVE_FAILSAFE_TEST = "test.bcfips.ignore.native";
+    public static final String NATIVE_FAILSAFE_TEST = "test.bclts.ignore.native";
 
 
     /**

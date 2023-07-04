@@ -128,7 +128,7 @@ public class CBCJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/CBC"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {
                 TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
             }
@@ -143,7 +143,7 @@ public class CBCJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/CBC"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {
                 TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
             }
@@ -158,7 +158,7 @@ public class CBCJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/CBC"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {
                 TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
             }
@@ -180,7 +180,7 @@ public class CBCJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/CBC"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {
                 TestCase.fail("Skipping CBC Spread Test: " + TestUtil.errorMsg());
             }
