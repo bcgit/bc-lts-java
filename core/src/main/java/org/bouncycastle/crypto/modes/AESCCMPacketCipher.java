@@ -90,17 +90,26 @@ public class AESCCMPacketCipher
         if (params instanceof AEADParameters)
         {
             AEADParameters param = (AEADParameters)params;
+            try
+            {
+                macSize = getMacSize(forEncryption, param.getMacSize());
+            }
+            catch (IllegalArgumentException e)
+            {
+                throw PacketCipherException.from(e);
+            }
             nonce = param.getNonce();
             initialAssociatedText = param.getAssociatedText();
-            macSize = getMacSize(forEncryption, param.getMacSize());
+
+
             cipherParameters = param.getKey();
         }
         else if (params instanceof ParametersWithIV)
         {
             ParametersWithIV param = (ParametersWithIV)params;
+            macSize = getMacSize(forEncryption, 64);
             nonce = param.getIV();
             initialAssociatedText = null;
-            macSize = getMacSize(forEncryption, 64);
             cipherParameters = param.getParameters();
         }
         else
@@ -111,18 +120,18 @@ public class AESCCMPacketCipher
         {
             if (output.length - outOff < inLen + macSize)
             {
-                throw new OutputLengthException(ExceptionMessage.OUTPUT_LENGTH);
+                throw PacketCipherException.from(new OutputLengthException(ExceptionMessage.OUTPUT_LENGTH));
             }
         }
         else
         {
             if (output.length - outOff < inLen - macSize)
             {
-                throw new OutputLengthException(ExceptionMessage.OUTPUT_LENGTH);
+                throw PacketCipherException.from(new OutputLengthException(ExceptionMessage.OUTPUT_LENGTH));
             }
             if (in.length - inOff < macSize)
             {
-                throw new DataLengthException(ExceptionMessage.INPUT_SHORT);
+                throw PacketCipherException.from(new DataLengthException(ExceptionMessage.INPUT_SHORT));
             }
         }
         // NOTE: Very basic support for key re-use, but no performance gain from it

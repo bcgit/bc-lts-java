@@ -191,10 +191,6 @@ public class AESGCMPacketCipher
             }
 
             nonce = newNonce;
-            if (keyParam != null)
-            {
-                byte[] lastKey = keyParam.getKey();
-            }
 
             // TODO Restrict macSize to 16 if nonce length not 12?
 
@@ -278,7 +274,13 @@ public class AESGCMPacketCipher
         if (cipher != null)
         {
             cipher.reset();
+        }
+        if (nonce != null)
+        {
             Arrays.fill(nonce, (byte)0);
+        }
+        if (S != null)
+        {
             Arrays.fill(S, (byte)0);
             Arrays.fill(S_at, (byte)0);
             Arrays.fill(S_atPre, (byte)0);

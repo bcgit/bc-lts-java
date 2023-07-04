@@ -368,7 +368,7 @@ public class AESGCMPacketCipherTest
 
         try
         {
-            gcm.getOutputSize(false, new KeyParameter(new byte[16]), -1);
+            gcm.getOutputSize(false, new KeyParameter(new byte[16]), 0);
             fail("negative value for getOutputSize");
         }
         catch (IllegalArgumentException e)
@@ -379,32 +379,32 @@ public class AESGCMPacketCipherTest
 
         try
         {
-            gcm.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), 0);
+            gcm.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), -1);
             fail("negative value for getOutputSize");
         }
         catch (IllegalArgumentException e)
         {
             // expected
-            isTrue("wrong message", e.getMessage().equals("invalid parameters passed to GCM"));
+            isTrue("wrong message", e.getMessage().equals(ExceptionMessage.LEN_NEGATIVE));
         }
 
         try
         {
-            gcm.getOutputSize(false, new KeyParameter(new byte[25]), 0);
-            fail("invalid key size for getOutputSize");
+            gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[28]), 128, new byte[16]), new byte[16], 0, 16, new byte[32], 0);
+            fail("invalid key size for processPacket");
         }
-        catch (IllegalArgumentException e)
+        catch (PacketCipherException e)
         {
             // expected
-            isTrue("wrong message", e.getMessage().equals("invalid parameters passed to GCM"));
+            isTrue("wrong message", e.getMessage().contains("Key length not 128/192/256 bits."));
         }
 
         try
         {
-            gcm.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 127, new byte[16]), 0);
-            fail("invalid mac size for getOutputSize");
+            gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 127, new byte[16]), new byte[16], 0, 16, new byte[32], 0);
+            fail("invalid mac size for processPacket");
         }
-        catch (IllegalArgumentException e)
+        catch (PacketCipherException e)
         {
             // expected
             isTrue("wrong message", e.getMessage().contains("Invalid value for MAC size"));

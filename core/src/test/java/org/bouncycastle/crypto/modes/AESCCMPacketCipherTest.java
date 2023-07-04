@@ -76,7 +76,7 @@ public class AESCCMPacketCipherTest
         // long data test
         //
         checkVectors(4, ccm, K4, 112, N4, A4, A4, T5, C5);
-
+        testExceptions();
 
     }
 
@@ -120,12 +120,126 @@ public class AESCCMPacketCipherTest
         AESCCMPacketCipher ccm = AESCCMPacketCipher.newInstance();
         try
         {
-            ccm.getOutputSize(false, new KeyParameter(new byte[16]), -1);
+            ccm.getOutputSize(false, new KeyParameter(new byte[16]), 0);
             fail("negative value for getOutputSize");
         }
         catch (IllegalArgumentException e)
         {
+            isTrue("wrong message", e.getMessage().contains("invalid parameters passed to CCM"));
+        }
+
+        try
+        {
+            ccm.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), -1);
+            fail("negative value for getOutputSize");
+        }
+        catch (IllegalArgumentException e)
+        {
+            // expected
+            isTrue("wrong message", e.getMessage().equals(ExceptionMessage.LEN_NEGATIVE));
+        }
+
+        try
+        {
+            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[18]), 128, new byte[12]), new byte[16], 0, 16, new byte[32], 0);
+            fail("invalid key size for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            // expected
+            isTrue("wrong message", e.getMessage().contains("Key length not 128/192/256 bits"));
+        }
+
+        try
+        {
+            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[14]), new byte[16], 0, 16, new byte[32], 0);
+            fail("invalid key size for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            // expected
+            isTrue("wrong message", e.getMessage().contains("nonce must have length from 7 to 13 octets"));
+        }
+
+        try
+        {
+            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 127, new byte[16]), new byte[16], 0, 16, new byte[32], 0);
+            fail("invalid mac size for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            // expected
+            isTrue("wrong message", e.getMessage().contains("tag length in octets must be one of {4,6,8,10,12,14,16}"));
+        }
+
+        try
+        {
+            ccm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), null, 0, 0, new byte[16], 0);
+            fail("input was null for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_NULL));
+        }
+
+        try
+        {
+            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[16], 0, 16, new byte[31], 0);
+            fail("output buffer too small for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+        }
+
+        try
+        {
+            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[16], -1, 16, new byte[32], 0);
+            fail("offset is negative for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
+        }
+
+        try
+        {
+            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[16], 0, -1, new byte[32], 0);
+            fail("len is negative for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
             isTrue("wrong message", e.getMessage().contains(ExceptionMessage.LEN_NEGATIVE));
+        }
+
+        try
+        {
+            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[16], 0, 16, new byte[32], -1);
+            fail("output offset is negative for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
+        }
+
+        try
+        {
+            ccm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[15], 0, 15, new byte[0], 0);
+            fail("input buffer too small for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_SHORT));
+        }
+
+        try
+        {
+            ccm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[17], 0, 17, new byte[0], 0);
+            fail("output buffer too small for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
         }
     }
 
