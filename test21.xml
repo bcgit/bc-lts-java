@@ -24,7 +24,7 @@
         <mkdir dir="${report.dir}/xml"/>
         <mkdir dir="${report.dir}/html"/>
         <junit printsummary="yes" fork="yes" failureProperty="test.failed" jvm="${env.LTS_JDK21}/bin/java">
-            <jvmarg value="-Dtest.bcfips.ignore.native=ecb,sha,gcm,cbc,es,cfb,ctr"/>
+            <jvmarg value="-Dtest.bclts.ignore.native=ecb,sha,gcm,cbc,es,cfb,ctr,ccm"/>
             <classpath>
                 <path refid="project.classpath" />
                 <fileset dir="prov/build/libs">
