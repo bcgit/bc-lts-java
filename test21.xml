@@ -24,29 +24,38 @@
         <mkdir dir="${report.dir}/xml"/>
         <mkdir dir="${report.dir}/html"/>
         <junit printsummary="yes" fork="yes" failureProperty="test.failed" jvm="${env.LTS_JDK21}/bin/java">
-            <jvmarg value="-Dtest.bcfips.ignore.native=ecb,sha,gcm,cbc,es,cfb,ctr"/>
+            <jvmarg value="-Dtest.bclts.ignore.native=ecb,sha,gcm,cbc,es,cfb,ctr,ccm"/>
+            <jvmarg value="-Dorg.bouncycastle.bks.enable_v1=true"/>
             <classpath>
                 <path refid="project.classpath" />
                 <fileset dir="prov/build/libs">
                     <include name="*${version}.jar"/>
                 </fileset>
                 <dirset dir="prov/build/classes/java/test" />
-                <dirset dir="prov/build/resources/test" />
+                <dirset dir="prov/build/resources/test" erroronmissingdir="false"/>
+                <dirset dir="prov/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="prov/src/test/resources" erroronmissingdir="false"/>
                 <fileset dir="util/build/libs">
                     <include name="*${version}.jar"/>
                 </fileset>
                 <dirset dir="util/build/classes/java/test" />
-                <dirset dir="util/build/resources/test" />
+                <dirset dir="util/build/resources/test" erroronmissingdir="false" />
+                <dirset dir="util/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="util/src/test/resources" erroronmissingdir="false"/>
                 <fileset dir="pkix/build/libs">
                     <include name="*${version}.jar"/>
                 </fileset>
                 <dirset dir="pkix/build/classes/java/test" />
-                <dirset dir="pkix/build/resources/test" />
+                <dirset dir="pkix/build/resources/test" erroronmissingdir="false" />
+                <dirset dir="pkix/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="pkix/src/test/resources" erroronmissingdir="false"/>
                 <fileset dir="tls/build/libs">
                     <include name="*${version}.jar"/>
                 </fileset>
                 <dirset dir="tls/build/classes/java/test" />
-                <dirset dir="tls/build/resources/test" />
+                <dirset dir="tls/build/resources/test" erroronmissingdir="false"/>
+                <dirset dir="tls/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="tls/src/test/resources" erroronmissingdir="false"/>
             </classpath>
 
             <formatter type="xml"/>
