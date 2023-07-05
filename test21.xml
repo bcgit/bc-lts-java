@@ -31,22 +31,22 @@
                     <include name="*${version}.jar"/>
                 </fileset>
                 <dirset dir="prov/build/classes/java/test" />
-                <dirset dir="prov/build/resources/test" />
+                <dirset dir="prov/build/resources/test" erroronmissingdir="false"/>
                 <fileset dir="util/build/libs">
                     <include name="*${version}.jar"/>
                 </fileset>
                 <dirset dir="util/build/classes/java/test" />
-                <dirset dir="util/build/resources/test" />
+                <dirset dir="util/build/resources/test" erroronmissingdir="false" />
                 <fileset dir="pkix/build/libs">
                     <include name="*${version}.jar"/>
                 </fileset>
                 <dirset dir="pkix/build/classes/java/test" />
-                <dirset dir="pkix/build/resources/test" />
+                <dirset dir="pkix/build/resources/test" erroronmissingdir="false" />
                 <fileset dir="tls/build/libs">
                     <include name="*${version}.jar"/>
                 </fileset>
                 <dirset dir="tls/build/classes/java/test" />
-                <dirset dir="tls/build/resources/test" />
+                <dirset dir="tls/build/resources/test" erroronmissingdir="false"/>
             </classpath>
 
             <formatter type="xml"/>
