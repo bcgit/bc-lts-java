@@ -65,6 +65,8 @@ test-java21-code:
   script:
      - "apply_overlay bc-java ./"
      - "sh gettestdata.sh"
-     - . cienv-21.sh
-     - "./gradlew clean cleanNative withNative build"
+     - . cienv-11.sh
+     - "./gradlew clean build compileTestJava  -x test"
+     - . cienv-21
+     - ant -f test21.xml
 
