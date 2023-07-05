@@ -69,4 +69,8 @@ test-java21-code:
      - "./gradlew clean build compileTestJava  -x test"
      - . cienv-21
      - ant -f test21.xml
+  artifacts:
+    when: always
+    reports:
+      junit: build/artifacts/jdk21/reports/xml/**/TEST-*.xml
 
