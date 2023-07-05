@@ -18,14 +18,7 @@ import org.bouncycastle.util.Arrays;
 public class AESCCMPacketCipher
     implements PacketCipher
 {
-    private BlockCipher cipher;
-    private int blockSize = 16;
-    private boolean forEncryption;
-    private byte[] nonce;
-    private byte[] initialAssociatedText;
-    private int macSize;
-    private CipherParameters keyParam;
-    private byte[] macBlock;
+    private static final int BLOCK_SIZE = 16;
 
     public static AESCCMPacketCipher newInstance()
     {
@@ -34,7 +27,7 @@ public class AESCCMPacketCipher
 
     private AESCCMPacketCipher()
     {
-        cipher = new AESEngine();
+
     }
 
     @Override
@@ -66,7 +59,7 @@ public class AESCCMPacketCipher
     }
 
     @Override
-    public int processPacket(boolean encryption, CipherParameters params, byte[] in, int inOff, int inLen, byte[] output, int outOff)
+    public int processPacket(boolean forEncryption, CipherParameters params, byte[] in, int inOff, int inLen, byte[] output, int outOff)
         throws PacketCipherException
     {
         if (in == null)
@@ -85,8 +78,13 @@ public class AESCCMPacketCipher
         {
             throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE));
         }
-        this.forEncryption = encryption;
+        BlockCipher cipher = new AESEngine();
         CipherParameters cipherParameters;
+        byte[] nonce;
+        byte[] initialAssociatedText;
+        int macSize;
+        CipherParameters keyParam = null;
+        byte[] macBlock;
         if (params instanceof AEADParameters)
         {
             AEADParameters param = (AEADParameters)params;
@@ -154,7 +152,7 @@ public class AESCCMPacketCipher
         int q = 15 - n;
         if (q < 4)
         {
-            int limitLen = 1 << (8 * q);
+            int limitLen = 1 << (q << 3);
             if (inLen >= limitLen)
             {
                 throw PacketCipherException.from(new IllegalStateException("CCM packet too large for choice of q."));
@@ -164,7 +162,7 @@ public class AESCCMPacketCipher
         int outputLen = 0;
         try
         {
-            byte[] iv = new byte[blockSize];
+            byte[] iv = new byte[BLOCK_SIZE];
             iv[0] = (byte)((q - 1) & 0x7);
             System.arraycopy(nonce, 0, iv, 1, nonce.length);
 
@@ -173,26 +171,26 @@ public class AESCCMPacketCipher
 
             int inIndex = inOff;
             int outIndex = outOff;
-            macBlock = new byte[blockSize];
+            macBlock = new byte[BLOCK_SIZE];
             if (forEncryption)
             {
                 outputLen = inLen + macSize;
 
 
-                calculateMac(in, inOff, inLen, macBlock);
+                calculateMac(in, inOff, inLen, macBlock, cipher, macSize, keyParam, initialAssociatedText, nonce);
 
-                byte[] encMac = new byte[blockSize];
+                byte[] encMac = new byte[BLOCK_SIZE];
 
                 ctrCipher.processBlock(macBlock, 0, encMac, 0);   // S0
 
-                while (inIndex < (inOff + inLen - blockSize))                 // S1...
+                while (inIndex < (inOff + inLen - BLOCK_SIZE))                 // S1...
                 {
                     ctrCipher.processBlock(in, inIndex, output, outIndex);
-                    outIndex += blockSize;
-                    inIndex += blockSize;
+                    outIndex += BLOCK_SIZE;
+                    inIndex += BLOCK_SIZE;
                 }
 
-                byte[] block = new byte[blockSize];
+                byte[] block = new byte[BLOCK_SIZE];
 
                 System.arraycopy(in, inIndex, block, 0, inLen + inOff - inIndex);
 
@@ -212,14 +210,14 @@ public class AESCCMPacketCipher
                     macBlock[i] = 0;
                 }
 
-                while (inIndex < (inOff + outputLen - blockSize))
+                while (inIndex < (inOff + outputLen - BLOCK_SIZE))
                 {
                     ctrCipher.processBlock(in, inIndex, output, outIndex);
-                    outIndex += blockSize;
-                    inIndex += blockSize;
+                    outIndex += BLOCK_SIZE;
+                    inIndex += BLOCK_SIZE;
                 }
 
-                byte[] block = new byte[blockSize];
+                byte[] block = new byte[BLOCK_SIZE];
 
                 System.arraycopy(in, inIndex, block, 0, outputLen - (inIndex - inOff));
 
@@ -227,9 +225,9 @@ public class AESCCMPacketCipher
 
                 System.arraycopy(block, 0, output, outIndex, outputLen - (inIndex - inOff));
 
-                byte[] calculatedMacBlock = new byte[blockSize];
+                byte[] calculatedMacBlock = new byte[BLOCK_SIZE];
 
-                calculateMac(output, outOff, outputLen, calculatedMacBlock);
+                calculateMac(output, outOff, outputLen, calculatedMacBlock, cipher, macSize, keyParam, initialAssociatedText, nonce);
 
                 if (!Arrays.constantTimeAreEqual(macBlock, calculatedMacBlock))
                 {
@@ -250,7 +248,8 @@ public class AESCCMPacketCipher
         return outputLen;
     }
 
-    private int calculateMac(byte[] data, int dataOff, int dataLen, byte[] macBlock)
+    private int calculateMac(byte[] data, int dataOff, int dataLen, byte[] macBlock, BlockCipher cipher, int macSize,
+                             CipherParameters keyParam, byte[] initialAssociatedText, byte[] nonce)
     {
         Mac cMac = new CBCBlockCipherMac(cipher, macSize * 8);
 
