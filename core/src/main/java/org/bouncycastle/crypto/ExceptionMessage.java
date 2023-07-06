@@ -8,4 +8,6 @@ public class ExceptionMessage
     public static final String OUTPUT_OFFSET_NEGATIVE = "output offset is negative";
     public static final String LEN_NEGATIVE = "len is negative";
     public static final String INPUT_SHORT = "data too short";
+
+    public static final String AES_KEY_LENGTH = "Key length not 128/192/256 bits.";
 }

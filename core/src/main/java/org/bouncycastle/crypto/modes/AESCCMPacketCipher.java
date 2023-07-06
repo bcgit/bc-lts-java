@@ -140,7 +140,7 @@ public class AESCCMPacketCipher
         int keyLen = keyParam.getKey().length;
         if (keyLen < 16 || keyLen > 32 || (keyLen & 7) != 0)
         {
-            throw PacketCipherException.from(new IllegalArgumentException("Key length not 128/192/256 bits."));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.AES_KEY_LENGTH));
         }
         int KC = keyLen >>> 2;
         int ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
@@ -213,8 +213,13 @@ public class AESCCMPacketCipher
         {
             exception = PacketCipherException.from(ex);
         }
+        for (int[] ints : workingKey)
+        {
+            Arrays.fill(ints, 0);
+        }
         if (exception != null)
         {
+            Arrays.fill(output, (byte)0);
             throw exception;
         }
         return outputLen;

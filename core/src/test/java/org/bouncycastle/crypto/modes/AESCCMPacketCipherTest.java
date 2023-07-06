@@ -147,7 +147,7 @@ public class AESCCMPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            isTrue("wrong message", e.getMessage().contains("Key length not 128/192/256 bits"));
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_KEY_LENGTH));
         }
 
         try
