@@ -115,9 +115,9 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            if (LOG.isLoggable(Level.WARNING))
+            if (LOG.isLoggable(Level.FINE))
             {
-                LOG.log(Level.WARNING, "native ccm exception: " + ule.getMessage(), ule);
+                LOG.log(Level.FINE, "native ccm exception: " + ule.getMessage(), ule);
             }
             return false;
         }

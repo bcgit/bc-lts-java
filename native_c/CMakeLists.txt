@@ -97,7 +97,8 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
     set(COMMON_NEON
             arm/aes/aes_common_neon.h
             arm/aes/aes_key.c
-            arm/aes/schedule.h)
+            arm/aes/schedule.h
+            )
 
     set(ECB arm/jni/ecb_jni.c arm/ecb/ecb.h arm/ecb/ecb_neon.c jniutil/variant_selector.h)
 
@@ -110,6 +111,19 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             arm/gcm/gcm_neon.c
             )
 
+    set(ARM_CBC
+            arm/cbc/cbc.h
+            arm/cbc/cbc.c
+            arm/cbc/cbc_neon.c
+            arm/jni/cbc_jni.c
+            )
+
+    set(ARM_CFB
+            arm/cfb/cfb.h
+            arm/cfb/cfb.c
+            arm/cfb/cfb_neon.c
+            arm/jni/cfb_jni.c
+            )
 
     add_library(${LIB_PROBE}-le SHARED ${PROBE})
     target_include_directories(${LIB_PROBE}-le PUBLIC ${JNI_INCLUDES})
@@ -127,6 +141,8 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             ${COMMON_NEON}
             ${ECB}
             ${GCM}
+            ${ARM_CBC}
+            ${ARM_CFB}
             )
     target_include_directories("${LIB_NATIVE}-neon-le" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-neon-le" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -148,13 +164,14 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
         install(TARGETS "${LIB_PROBE}-be" LIBRARY DESTINATION ${PLATFORM_TARGET}/probe)
 
 
-
         add_library(${LIB_NATIVE}-neon-be SHARED
                 ${JNI_UTIL}
                 ${COMMON}
                 ${COMMON_NEON}
                 ${ECB}
                 ${GCM}
+                ${ARM_CBC}
+                ${ARM_CFB}
                 )
         target_include_directories("${LIB_NATIVE}-neon-be" PUBLIC ${JNI_INCLUDES})
         target_compile_options("${LIB_NATIVE}-neon-be" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS} ${ARM_BE}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -338,26 +355,26 @@ else ()
             )
 
 
-set (CCM
-       	intel/ccm/ccm.h
-        intel/ccm/ccm.c
-        intel/ccm/ccm128.c
-        intel/jni/ccm_jni.c
-        )
+    set(CCM
+            intel/ccm/ccm.h
+            intel/ccm/ccm.c
+            intel/ccm/ccm128.c
+            intel/jni/ccm_jni.c
+            )
 
-set(CCM_VAES
-        intel/ccm/ccm.h
-        intel/ccm/ccm.c
-        intel/ccm/ccm256.c
-        intel/jni/ccm_jni.c
-        )
+    set(CCM_VAES
+            intel/ccm/ccm.h
+            intel/ccm/ccm.c
+            intel/ccm/ccm256.c
+            intel/jni/ccm_jni.c
+            )
 
-set (CCM_VAESF
-        intel/ccm/ccm.h
-        intel/ccm/ccm.c
-        intel/ccm/ccm512.c
-        intel/jni/ccm_jni.c
-        )
+    set(CCM_VAESF
+            intel/ccm/ccm.h
+            intel/ccm/ccm.c
+            intel/ccm/ccm512.c
+            intel/jni/ccm_jni.c
+            )
 
 
     # Probe project a simple lib for probing the CPUs features
@@ -386,7 +403,7 @@ set (CCM_VAESF
             ${SHA256}
             ${GCM}
             ${MUL_AVX}
-	    ${CCM}
+            ${CCM}
             )
     target_include_directories("${LIB_NATIVE}-avx" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-avx" PRIVATE $<$<COMPILE_LANGUAGE:C>:${AVX_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -406,7 +423,7 @@ set (CCM_VAESF
             ${SHA256}
             ${GCM}
             ${MUL_AVX}
-	    ${CCM_VAES}
+            ${CCM_VAES}
             )
     target_include_directories("${LIB_NATIVE}-vaes" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-vaes" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAES_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -426,7 +443,7 @@ set (CCM_VAESF
             ${SHA256}
             ${GCM_VAESF}
             ${MUL_VAESF}
-	    ${CCM_VAESF}
+            ${CCM_VAESF}
             )
     target_include_directories("${LIB_NATIVE}-vaesf" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-vaesf" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAESF_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)

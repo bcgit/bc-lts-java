@@ -446,7 +446,7 @@ unsigned char cfb_decrypt_byte(cfb_ctx *cfb, unsigned char b) {
     }
 
     //
-    // incrementally mask becomes the last block of cipher text
+    // incrementally mask becomes the last block of plain text
     //
 
     unsigned char pt = ((unsigned char *) &cfb->mask)[cfb->buf_index] ^ b;

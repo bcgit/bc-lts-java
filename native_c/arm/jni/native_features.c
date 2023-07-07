@@ -94,7 +94,8 @@ void probe_system() {
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCBC
         (JNIEnv *env, jclass cl) {
     probe_system();
-    return JNI_FALSE;
+
+    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
 }
 
 
@@ -106,7 +107,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCFB
         (JNIEnv *env, jclass cl) {
     probe_system();
-    return JNI_FALSE;
+    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
 }
 
 
@@ -131,7 +132,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
         (JNIEnv *env, jclass cl) {
 
     probe_system();
-    return cpu_info.aes ? JNI_TRUE : JNI_FALSE;
+    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
 
 }
 
@@ -145,7 +146,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 
     probe_system();
 
-    return cpu_info.aes ? JNI_TRUE : JNI_FALSE;
+    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
 
 }
 

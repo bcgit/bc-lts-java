@@ -9,6 +9,10 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#define ROUNDS_128 10
+#define ROUNDS_192 12
+#define ROUNDS_256 14
+
 typedef struct aes_key {
     uint8x16_t round_keys[15];
     size_t rounds;

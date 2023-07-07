@@ -230,6 +230,7 @@ public class CBCJavaAgreementTest extends TestCase
 
                 nativeEngineEnc.processBlocks(msg, 0, msgSize / 16, nativeCT, 0);
 
+
                 TestCase.assertTrue(pFix + "Cipher texts the same", Arrays.areEqual(nativeCT, javaCT));
 
 
