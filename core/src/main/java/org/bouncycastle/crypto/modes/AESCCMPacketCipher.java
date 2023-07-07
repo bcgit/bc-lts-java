@@ -283,17 +283,16 @@ public class AESCCMPacketCipher
         //
         // add the text
         //
-        bufOff = cbcmacUpdate(buf, mac, bufOff, data, dataOff, dataLen, workingkey, s, ROUNDS);
-        while (bufOff < BLOCK_SIZE)
+        if (dataLen != 0)
         {
-            buf[bufOff] = 0;
-            bufOff++;
+            bufOff = cbcmacUpdate(buf, mac, bufOff, data, dataOff, dataLen, workingkey, s, ROUNDS);
+            for (int i = 0; i < bufOff; ++i)
+            {
+                mac[i] ^= buf[i];
+            }
+            encryptBlock(mac, mac, workingkey, s, ROUNDS);
         }
-        for (int i = 0; i < BLOCK_SIZE; ++i)
-        {
-            mac[i] ^= buf[i];
-        }
-        encryptBlock(mac, mac, workingkey, s, ROUNDS);
+
         System.arraycopy(mac, 0, macBlock, 0, macSize);
         return BLOCK_SIZE;
     }

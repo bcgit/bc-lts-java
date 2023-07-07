@@ -93,14 +93,13 @@ public class AESCCMPacketCipherTest
             AESCCMPacketCipher ccm2 = AESCCMPacketCipher.newInstance();
             for (int t = 0; t < 4000; t++)
             {
-                //byte[] javaPT = new byte[secureRandom.nextInt(2048)];
-                byte[] javaPT = new byte[0];
+                byte[] javaPT = new byte[secureRandom.nextInt(2048)];
                 secureRandom.nextBytes(javaPT);
                 byte[] key = new byte[keySize];
-                //secureRandom.nextBytes(key);
+                secureRandom.nextBytes(key);
 
                 byte[] iv = new byte[13];
-                //secureRandom.nextBytes(iv);
+                secureRandom.nextBytes(iv);
                 CCMBlockCipher ccm1 = new CCMBlockCipher(new AESEngine());
                 ParametersWithIV parameters = new ParametersWithIV(new KeyParameter(key), iv);
                 ccm1.init(true, parameters);
