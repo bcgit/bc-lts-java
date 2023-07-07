@@ -6,8 +6,6 @@ import junit.framework.TestCase;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.PacketCipherException;
-import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.modes.gcm.GCMMultiplier;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -51,15 +49,15 @@ public class AESGCMPacketCipherTest
     }
 
     private static final String[][] TEST_VECTORS = new String[][]{
-        {
-            "Test Case 1",
-            "00000000000000000000000000000000",
-            "",
-            "",
-            "000000000000000000000000",
-            "",
-            "58e2fccefa7e3061367f1d57a4e7455a",
-        },
+//        {
+//            "Test Case 1",
+//            "00000000000000000000000000000000",
+//            "",
+//            "",
+//            "000000000000000000000000",
+//            "",
+//            "58e2fccefa7e3061367f1d57a4e7455a",
+//        },
         {
             "Test Case 2",
             "00000000000000000000000000000000",

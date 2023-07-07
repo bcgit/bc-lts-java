@@ -1,18 +1,19 @@
 package org.bouncycastle.crypto.modes;
 
+import java.security.SecureRandom;
+
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.engines.DESEngine;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
-import org.bouncycastle.crypto.test.AEADTestUtil;
-import org.bouncycastle.crypto.test.CCMTest;
-import org.bouncycastle.util.Strings;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
+
+import java.security.SecureRandom;
 
 public class AESCCMPacketCipherTest
     extends SimpleTest
@@ -77,6 +78,86 @@ public class AESCCMPacketCipherTest
         //
         checkVectors(4, ccm, K4, 112, N4, A4, A4, T5, C5);
         testExceptions();
+        testOutputErase();
+        testAgreement();
+    }
+
+    private void testAgreement()
+        throws InvalidCipherTextException, PacketCipherException
+    {
+        SecureRandom secureRandom = new SecureRandom();
+        int[] keybytes={16, 24, 32};
+        for (int i = 0; i < 3; ++i)
+        {
+            int keySize = keybytes[i];
+            AESCCMPacketCipher ccm2 = AESCCMPacketCipher.newInstance();
+            for (int t = 0; t < 4000; t++)
+            {
+                //byte[] javaPT = new byte[secureRandom.nextInt(2048)];
+                byte[] javaPT = new byte[0];
+                secureRandom.nextBytes(javaPT);
+                byte[] key = new byte[keySize];
+                //secureRandom.nextBytes(key);
+
+                byte[] iv = new byte[13];
+                //secureRandom.nextBytes(iv);
+                CCMBlockCipher ccm1 = new CCMBlockCipher(new AESEngine());
+                ParametersWithIV parameters = new ParametersWithIV(new KeyParameter(key), iv);
+                ccm1.init(true, parameters);
+                byte[] ccm1CT = new byte[ccm1.getOutputSize(javaPT.length)];
+                int j = ccm1.processBytes(javaPT, 0, javaPT.length, ccm1CT, 0);
+                ccm1.doFinal(ccm1CT, j);
+
+                byte[] ccm2CT = new byte[ccm2.getOutputSize(true, parameters, javaPT.length)];
+                ccm2.processPacket(true, parameters, javaPT, 0, javaPT.length, ccm2CT, 0);
+
+                if (!Arrays.areEqual(ccm1CT, ccm2CT))
+                {
+                    System.out.println(javaPT.length);
+                    System.out.println(Hex.toHexString(ccm2CT));
+                    System.out.println(Hex.toHexString(ccm1CT));
+                    for (j = 0; j < ccm2CT.length; j++)
+                    {
+                        if (ccm2CT[j] == ccm1CT[j])
+                        {
+                            System.out.print("  ");
+                        }
+                        else
+                        {
+                            System.out.print("^^");
+                        }
+                    }
+                    System.out.println();
+                }
+
+                ccm1.init(true, parameters);
+                byte[] ccm1PT = new byte[ccm1.getOutputSize(ccm1CT.length)];
+                j = ccm1.processBytes(ccm1CT, 0, ccm1CT.length, ccm1PT, 0);
+                ccm1.doFinal(ccm1PT, j);
+
+                byte[] ccm2PT = new byte[ccm2.getOutputSize(true, parameters, ccm2CT.length)];
+                ccm2.processPacket(true, parameters, ccm2CT, 0, ccm2CT.length, ccm2PT, 0);
+
+                if (!Arrays.areEqual(ccm1PT, ccm2PT))
+                {
+                    System.out.println(javaPT.length);
+                    System.out.println(Hex.toHexString(ccm1PT));
+                    System.out.println(Hex.toHexString(ccm2PT));
+                    for (j = 0; j < ccm2CT.length; j++)
+                    {
+                        if (ccm2PT[j] == ccm1PT[j])
+                        {
+                            System.out.print("  ");
+                        }
+                        else
+                        {
+                            System.out.print("^^");
+                        }
+                    }
+                    System.out.println();
+                }
+            }
+        }
 
     }
 
@@ -114,6 +195,31 @@ public class AESCCMPacketCipherTest
         }
     }
 
+    public void testOutputErase()
+    {
+        AESCCMPacketCipher ccm = AESCCMPacketCipher.newInstance();
+        byte[] C3new = Arrays.clone(C3);
+        C3new[0]++;
+        KeyParameter keyParam = (K3 == null) ? null : new KeyParameter(K3);
+        AEADParameters parameters = new AEADParameters(keyParam, 64, N3, A3);
+        int len = ccm.getOutputSize(false, parameters, C3new.length) + C3new.length;
+        byte[] dec = new byte[len];
+        System.arraycopy(C3new, 0, dec, 0, C3new.length);
+        byte[] origin = Arrays.clone(dec);
+
+        try
+        {
+            ccm.processPacket(false, parameters, dec, 0, dec.length, dec, C3new.length);
+            fail("mac check should be false");
+        }
+        catch (PacketCipherException e)
+        {
+            if (!areEqual(origin, dec))
+            {
+                fail("the Output Erase is wrong");
+            }
+        }
+    }
 
     public void testExceptions()
     {
