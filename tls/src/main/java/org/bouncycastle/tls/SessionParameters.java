@@ -30,11 +30,9 @@ public final class SessionParameters
         public SessionParameters build()
         {
             validate(this.cipherSuite >= 0, "cipherSuite");
-            validate(this.compressionAlgorithm >= 0, "compressionAlgorithm");
             validate(this.masterSecret != null, "masterSecret");
-            return new SessionParameters(cipherSuite, compressionAlgorithm, localCertificate, masterSecret,
-                negotiatedVersion, peerCertificate, pskIdentity, srpIdentity, encodedServerExtensions,
-                extendedMasterSecret);
+            return new SessionParameters(cipherSuite, localCertificate, masterSecret, negotiatedVersion,
+                peerCertificate, pskIdentity, srpIdentity, encodedServerExtensions, extendedMasterSecret, compressionAlgorithm);
         }
 
         public Builder setCipherSuite(int cipherSuite)
@@ -43,6 +41,9 @@ public final class SessionParameters
             return this;
         }
 
+        /**
+         * @deprecated setting now ignored.
+         */
         public Builder setCompressionAlgorithm(short compressionAlgorithm)
         {
             this.compressionAlgorithm = compressionAlgorithm;
@@ -126,12 +127,11 @@ public final class SessionParameters
     private byte[] encodedServerExtensions;
     private boolean extendedMasterSecret;
 
-    private SessionParameters(int cipherSuite, short compressionAlgorithm, Certificate localCertificate,
-        TlsSecret masterSecret, ProtocolVersion negotiatedVersion, Certificate peerCertificate, byte[] pskIdentity,
-        byte[] srpIdentity, byte[] encodedServerExtensions, boolean extendedMasterSecret)
+    private SessionParameters(int cipherSuite, Certificate localCertificate, TlsSecret masterSecret,
+        ProtocolVersion negotiatedVersion, Certificate peerCertificate, byte[] pskIdentity, byte[] srpIdentity,
+        byte[] encodedServerExtensions, boolean extendedMasterSecret, short compressionAlgorithm)
     {
         this.cipherSuite = cipherSuite;
-        this.compressionAlgorithm = compressionAlgorithm;
         this.localCertificate = localCertificate;
         this.masterSecret = masterSecret;
         this.negotiatedVersion = negotiatedVersion;
@@ -140,6 +140,7 @@ public final class SessionParameters
         this.srpIdentity = Arrays.clone(srpIdentity);
         this.encodedServerExtensions = encodedServerExtensions;
         this.extendedMasterSecret = extendedMasterSecret;
+        this.compressionAlgorithm = compressionAlgorithm;
     }
 
     public void clear()
@@ -152,9 +153,8 @@ public final class SessionParameters
 
     public SessionParameters copy()
     {
-        return new SessionParameters(cipherSuite, compressionAlgorithm, localCertificate, masterSecret,
-            negotiatedVersion, peerCertificate, pskIdentity, srpIdentity, encodedServerExtensions,
-            extendedMasterSecret);
+        return new SessionParameters(cipherSuite, localCertificate, masterSecret, negotiatedVersion, peerCertificate,
+            pskIdentity, srpIdentity, encodedServerExtensions, extendedMasterSecret, compressionAlgorithm);
     }
 
     public int getCipherSuite()
@@ -162,6 +162,9 @@ public final class SessionParameters
         return cipherSuite;
     }
 
+    /**
+     * @deprecated field value meaningless.
+     */
     public short getCompressionAlgorithm()
     {
         return compressionAlgorithm;
