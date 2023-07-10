@@ -100,9 +100,9 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             arm/aes/schedule.h
             )
 
-    set(ECB arm/jni/ecb_jni.c arm/ecb/ecb.h arm/ecb/ecb_neon.c jniutil/variant_selector.h)
+    set(ARM_ECB arm/jni/ecb_jni.c arm/ecb/ecb.h arm/ecb/ecb_neon.c jniutil/variant_selector.h)
 
-    set(GCM
+    set(ARM_GCM
             arm/jni/gcm_jni.c
             arm/gcm/gcm.h
             arm/gcm/gcm.c
@@ -125,6 +125,20 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             arm/jni/cfb_jni.c
             )
 
+    set(ARM_CTR
+            arm/jni/ctr_jni.c
+            arm/ctr/ctr.h
+            arm/ctr/ctr.c
+            arm/ctr/ctr_neon.c
+            )
+
+    set(ARM_CCM
+            arm/jni/ccm_jni.c
+            arm/ccm/ccm.h
+            arm/ccm/ccm.c
+            arm/ccm/ccm_neon.c
+            )
+
     add_library(${LIB_PROBE}-le SHARED ${PROBE})
     target_include_directories(${LIB_PROBE}-le PUBLIC ${JNI_INCLUDES})
     target_compile_options(${LIB_PROBE}-le PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${PROBE_OPTIONS}>)
@@ -139,10 +153,12 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             ${JNI_UTIL}
             ${COMMON}
             ${COMMON_NEON}
-            ${ECB}
-            ${GCM}
+            ${ARM_ECB}
+            ${ARM_GCM}
             ${ARM_CBC}
             ${ARM_CFB}
+            ${ARM_CTR}
+            ${ARM_CCM}
             )
     target_include_directories("${LIB_NATIVE}-neon-le" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-neon-le" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -168,10 +184,12 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
                 ${JNI_UTIL}
                 ${COMMON}
                 ${COMMON_NEON}
-                ${ECB}
-                ${GCM}
+                ${ARM_ECB}
+                ${ARM_GCM}
                 ${ARM_CBC}
                 ${ARM_CFB}
+                ${ARM_CTR}
+                ${ARM_CCM}
                 )
         target_include_directories("${LIB_NATIVE}-neon-be" PUBLIC ${JNI_INCLUDES})
         target_compile_options("${LIB_NATIVE}-neon-be" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS} ${ARM_BE}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -179,11 +197,11 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
         target_compile_definitions("${LIB_NATIVE}-neon-be" PUBLIC BC_NEON BC_VARIANT=\"neon\" BUILD_TS=\"${BUILD_TS}\")
     endif ()
 
-    #
-    # Main method for testing.
-    #
-    add_executable("tryit" arm/main.c arm/debug_neon.h)
-    target_link_libraries("tryit" ${LIB_NATIVE}-neon-le)
+#    #
+#    # Main method for testing.
+#    #
+#    add_executable("tryit" arm/main.c arm/debug_neon.h)
+#    target_link_libraries("tryit" ${LIB_NATIVE}-neon-le)
 
 
 else ()

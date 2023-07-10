@@ -5,6 +5,7 @@
 
 #include <arm_neon.h>
 #include <stdio.h>
+#include <string.h>
 
 unsigned char *from_hex_len(const char *str, uint32_t len);
 

@@ -160,7 +160,8 @@ subprojects {
     filter {
       includeTestsMatching "AllTest*"
     }
-    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha,es,ctr,ccm', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=neon-le'
+
+    jvmArgs  '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha,es', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=neon-le'
 
   }
 
