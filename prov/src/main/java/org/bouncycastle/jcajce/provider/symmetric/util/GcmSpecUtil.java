@@ -1,13 +1,12 @@
 package org.bouncycastle.jcajce.provider.symmetric.util;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.InvalidAlgorithmParameterException;
-import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.InvalidParameterSpecException;
+
+import javax.crypto.spec.GCMParameterSpec;
 
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -17,75 +16,75 @@ import org.bouncycastle.util.Integers;
 
 public class GcmSpecUtil
 {
-    static final Class gcmSpecClass;
-    private static final Constructor constructor;
-    private static final Method tLen;
-    private static final Method iv;
+    static final Class gcmSpecClass = GCMParameterSpec.class;
+//    private static final Constructor constructor;
+//    private static final Method tLen;
+//    private static final Method iv;
 
     static
     {
-        gcmSpecClass = ClassUtil.loadClass(GcmSpecUtil.class, "javax.crypto.spec.GCMParameterSpec");
+ //       gcmSpecClass = ClassUtil.loadClass(GcmSpecUtil.class, "javax.crypto.spec.GCMParameterSpec");
 
-        if (gcmSpecClass != null)
-        {
-            constructor = extractConstructor();
-            tLen = extractMethod("getTLen");
-            iv = extractMethod("getIV");
-        }
-        else
-        {
-            constructor = null;
-            tLen = null;
-            iv = null;
-        }
+//        if (gcmSpecClass != null)
+//        {
+//            constructor = extractConstructor();
+//            tLen = extractMethod("getTLen");
+//            iv = extractMethod("getIV");
+//        }
+//        else
+//        {
+//            constructor = null;
+//            tLen = null;
+//            iv = null;
+//        }
     }
 
-    private static Constructor extractConstructor()
-    {
-        try
-        {
-            return (Constructor)AccessController.doPrivileged(new PrivilegedExceptionAction()
-            {
-                public Object run()
-                    throws Exception
-                {
-                    return gcmSpecClass.getConstructor(new Class[]{ Integer.TYPE, byte[].class });
-                }
-            });
-        }
-        catch (PrivilegedActionException e)
-        {
-            return null;
-        }
-    }
-
-    private static Method extractMethod(final String name)
-    {
-        try
-        {
-            return (Method)AccessController.doPrivileged(new PrivilegedExceptionAction()
-            {
-                public Object run()
-                    throws Exception
-                {
-                    return gcmSpecClass.getDeclaredMethod(name, new Class[0]);
-                }
-            });
-        }
-        catch (PrivilegedActionException e)
-        {
-            return null;
-        }
-    }
+//    private static Constructor extractConstructor()
+//    {
+//        try
+//        {
+//            return (Constructor)AccessController.doPrivileged(new PrivilegedExceptionAction()
+//            {
+//                public Object run()
+//                    throws Exception
+//                {
+//                    return gcmSpecClass.getConstructor(new Class[]{ Integer.TYPE, byte[].class });
+//                }
+//            });
+//        }
+//        catch (PrivilegedActionException e)
+//        {
+//            return null;
+//        }
+//    }
+//
+//    private static Method extractMethod(final String name)
+//    {
+//        try
+//        {
+//            return (Method)AccessController.doPrivileged(new PrivilegedExceptionAction()
+//            {
+//                public Object run()
+//                    throws Exception
+//                {
+//                    return gcmSpecClass.getDeclaredMethod(name, new Class[0]);
+//                }
+//            });
+//        }
+//        catch (PrivilegedActionException e)
+//        {
+//            return null;
+//        }
+//    }
 
     public static boolean gcmSpecExists()
     {
-        return gcmSpecClass != null;
+        return true;
     }
 
     public static boolean gcmSpecExtractable()
     {
-        return constructor != null;
+        return true;
     }
 
     public static boolean isGcmSpec(AlgorithmParameterSpec paramSpec)
@@ -105,7 +104,7 @@ public class GcmSpecUtil
         {
             GCMParameters gcmParams = GCMParameters.getInstance(spec);
 
-            return (AlgorithmParameterSpec)constructor.newInstance(new Object[] { Integers.valueOf(gcmParams.getIcvLen() * 8), gcmParams.getNonce() });
+            return new GCMParameterSpec(Integers.valueOf(gcmParams.getIcvLen() * 8), gcmParams.getNonce());
         }
         catch (Exception e)
         {
@@ -123,7 +122,8 @@ public class GcmSpecUtil
                 public Object run()
                     throws Exception
                 {
-                    return new AEADParameters(keyParam, ((Integer)tLen.invoke(params, new Object[0])).intValue(), (byte[])iv.invoke(params, new Object[0]));
+                    GCMParameterSpec spec = (GCMParameterSpec)params;
+                    return new AEADParameters(keyParam, spec.getTLen(), spec.getIV());
                 }
             });
         }
@@ -143,7 +143,8 @@ public class GcmSpecUtil
                 public Object run()
                     throws Exception
                 {
-                    return new GCMParameters((byte[])iv.invoke(paramSpec, new Object[0]), ((Integer)tLen.invoke(paramSpec, new Object[0])).intValue() / 8);
+                    GCMParameterSpec spec = (GCMParameterSpec)paramSpec;
+                    return new GCMParameters(spec.getIV(), spec.getTLen() / 8);
                 }
             });
         }
