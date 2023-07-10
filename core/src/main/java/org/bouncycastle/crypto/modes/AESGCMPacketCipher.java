@@ -476,7 +476,7 @@ public class AESGCMPacketCipher
 
         if (exceptionThrown != null)
         {
-            Arrays.fill(output, (byte)0);
+            Arrays.fill(output, outOff, output.length, (byte)0);
             throw PacketCipherException.from(exceptionThrown);
         }
         return written;
@@ -533,21 +533,18 @@ public class AESGCMPacketCipher
     {
         GCMUtil.xor(Y, b);
         multiplyH(Y, T);
-        //multiplier.multiplyH(Y);
     }
 
     private void gHASHBlock(byte[] Y, byte[] b, int off, long[][] T)
     {
         GCMUtil.xor(Y, b, off);
         multiplyH(Y, T);
-        //multiplier.multiplyH(Y);
     }
 
     private void gHASHPartial(byte[] Y, byte[] b, int off, int len, long[][] T)
     {
         GCMUtil.xor(Y, b, off, len);
         multiplyH(Y, T);
-        //multiplier.multiplyH(Y);
     }
 
     private int getNextCTRBlock(byte[] block, int blocksRemaining, byte[] counter, int[][] workingkey, byte[] s, int ROUNDS)
@@ -571,7 +568,6 @@ public class AESGCMPacketCipher
         c += counter[12] & 0xFF;
         counter[12] = (byte)c;
 
-        //cipher.processBlock(counter, 0, block, 0);
         encryptBlock(counter, block, workingkey, s, ROUNDS);
         return blocksRemaining;
     }

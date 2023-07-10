@@ -2,10 +2,12 @@ package org.bouncycastle.crypto.modes;
 
 import java.security.SecureRandom;
 
+import junit.framework.TestCase;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -80,17 +82,19 @@ public class AESCCMPacketCipherTest
         testExceptions();
         testOutputErase();
         testAgreement();
+        testCCMSpreadAgreement();
     }
 
     private void testAgreement()
         throws InvalidCipherTextException, PacketCipherException
     {
         SecureRandom secureRandom = new SecureRandom();
+        AESCCMPacketCipher ccm2 = AESCCMPacketCipher.newInstance();
         int[] keybytes={16, 24, 32};
         for (int i = 0; i < 3; ++i)
         {
             int keySize = keybytes[i];
-            AESCCMPacketCipher ccm2 = AESCCMPacketCipher.newInstance();
+
             for (int t = 0; t < 4000; t++)
             {
                 byte[] javaPT = new byte[secureRandom.nextInt(2048)];
@@ -158,6 +162,76 @@ public class AESCCMPacketCipherTest
             }
         }
 
+    }
+
+    public void testCCMSpreadAgreement() throws Exception
+    {
+
+        if (!TestUtil.hasNativeService("AES/CCM"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ccm"))
+            {
+                TestCase.fail("Skipping CCM Spread Agreement: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        SecureRandom rand = new SecureRandom();
+        SecureRandom secureRandom = new SecureRandom();
+        AESCCMPacketCipher ccm2 = AESCCMPacketCipher.newInstance();
+        for (int ks : new int[]{16, 24, 32})
+        {
+            byte[] key = new byte[ks];
+            rand.nextBytes(key);
+
+            for (int ivLen = 7; ivLen <= 13; ivLen++)
+            {
+                byte[] iv = new byte[ivLen];
+                rand.nextBytes(iv);
+
+
+                for (int macSize = 32; macSize <= 128; macSize += 16)
+                {
+
+                    for (int msgSize = 0; msgSize < 515; msgSize++)
+                    {
+
+                        byte[] javaPT = new byte[secureRandom.nextInt(msgSize)];
+
+                        CCMBlockCipher ccm1 = new CCMBlockCipher(new AESEngine());
+                        AEADParameters parameters = new AEADParameters(new KeyParameter(key), macSize, iv);
+                        ccm1.init(true, parameters);
+                        byte[] ccm1CT = new byte[ccm1.getOutputSize(javaPT.length)];
+                        int j = ccm1.processBytes(javaPT, 0, javaPT.length, ccm1CT, 0);
+                        ccm1.doFinal(ccm1CT, j);
+
+                        byte[] ccm2CT = new byte[ccm2.getOutputSize(true, parameters, javaPT.length)];
+                        ccm2.processPacket(true, parameters, javaPT, 0, javaPT.length, ccm2CT, 0);
+
+                        if (!Arrays.areEqual(ccm1CT, ccm2CT))
+                        {
+                            System.out.println(javaPT.length);
+                            System.out.println(Hex.toHexString(ccm2CT));
+                            System.out.println(Hex.toHexString(ccm1CT));
+                            for (j = 0; j < ccm2CT.length; j++)
+                            {
+                                if (ccm2CT[j] == ccm1CT[j])
+                                {
+                                    System.out.print("  ");
+                                }
+                                else
+                                {
+                                    System.out.print("^^");
+                                }
+                            }
+                            System.out.println();
+                        }
+
+                    }
+                }
+            }
+
+        }
     }
 
     private void checkVectors(

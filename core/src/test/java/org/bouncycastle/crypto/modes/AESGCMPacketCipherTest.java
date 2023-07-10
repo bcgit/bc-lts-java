@@ -6,6 +6,8 @@ import junit.framework.TestCase;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -45,6 +47,9 @@ public class AESGCMPacketCipherTest
         outputSizeTests();
         testExceptions();
         testResetBehavior();
+        testOutputErase();
+        testAgreement();
+        testGCMSpreadAgreement();
         System.out.println("Pass AESGCMPacketCipher Test");
     }
 
@@ -360,7 +365,6 @@ public class AESGCMPacketCipherTest
     }
 
     private void testExceptions()
-        throws InvalidCipherTextException
     {
         AESGCMPacketCipher gcm = AESGCMPacketCipher.newInstance();
 
@@ -477,12 +481,57 @@ public class AESGCMPacketCipherTest
         {
             isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
         }
+    }
 
+    public void testOutputErase()
+    {
+        String testVector[] = {
+            "Test Case 3",
+            "feffe9928665731c6d6a8f9467308308",
+            "d9313225f88406e5a55909c5aff5269a"
+                + "86a7a9531534f7da2e4c303d8a318a72"
+                + "1c3c0c95956809532fcf0e2449a6b525"
+                + "b16aedf5aa0de657ba637b391aafd255",
+            "",
+            "cafebabefacedbaddecaf888",
+            "42831ec2217774244b7221b784d0d49c"
+                + "e3aa212f2c02a4e035c17e2329aca12e"
+                + "21d514b25466931c7d8f6a5aac84aa05"
+                + "1ba30b396a0aac973d58e091473f5985",
+            "4d5c2af327cd64a62cf35abd2ba6fab4",
+        };
+        String testName = testVector[0];
+        byte[] K = Hex.decode(testVector[1]);
+        byte[] P = Hex.decode(testVector[2]);
+        byte[] A = Hex.decode(testVector[3]);
+        byte[] IV = Hex.decode(testVector[4]);
+        byte[] C = Hex.decode(testVector[5]);
+        AESGCMPacketCipher GCMgcm = AESGCMPacketCipher.newInstance();
+        byte[] C3new = Arrays.clone(C);
+        C3new[0]++;
+        KeyParameter keyParam = (K == null) ? null : new KeyParameter(K);
+        AEADParameters parameters = new AEADParameters(keyParam, 64, IV, A);
+        int len = GCMgcm.getOutputSize(false, parameters, C3new.length) + C3new.length;
+        byte[] dec = new byte[len];
+        System.arraycopy(C3new, 0, dec, 0, C3new.length);
+        byte[] origin = Arrays.clone(dec);
 
+        try
+        {
+            GCMgcm.processPacket(false, parameters, dec, 0, dec.length, dec, C3new.length);
+            fail("mac check should be false");
+        }
+        catch (PacketCipherException e)
+        {
+            if (!areEqual(origin, dec))
+            {
+                fail("the Output Erase is wrong");
+            }
+        }
     }
 
     private void runTestCase(String[] testVector)
-        throws InvalidCipherTextException, PacketCipherException
+        throws PacketCipherException
     {
         for (int macLength = 12; macLength <= 16; ++macLength)
         {
@@ -491,7 +540,7 @@ public class AESGCMPacketCipherTest
     }
 
     private void runTestCase(String[] testVector, int macLength)
-        throws InvalidCipherTextException, PacketCipherException
+        throws PacketCipherException
     {
         int pos = 0;
         String testName = testVector[pos++];
@@ -634,6 +683,164 @@ public class AESGCMPacketCipherTest
         if (cipher.getOutputSize(false, parameters, 16) != 0)
         {
             fail("incorrect getOutputSize for initial MAC-size bytes decryption");
+        }
+    }
+
+    private void testAgreement()
+        throws InvalidCipherTextException, PacketCipherException
+    {
+        SecureRandom secureRandom = new SecureRandom();
+        AESGCMPacketCipher GCMgcm2 = AESGCMPacketCipher.newInstance();
+        int[] keybytes = {16, 24, 32};
+        for (int i = 0; i < 3; ++i)
+        {
+            int keySize = keybytes[i];
+
+            for (int t = 0; t < 4000; t++)
+            {
+                byte[] javaPT = new byte[secureRandom.nextInt(2048)];
+                secureRandom.nextBytes(javaPT);
+                byte[] key = new byte[keySize];
+                secureRandom.nextBytes(key);
+
+                byte[] iv = new byte[13];
+                secureRandom.nextBytes(iv);
+                GCMBlockCipher GCMgcm1 = new GCMBlockCipher(new AESEngine());
+                ParametersWithIV parameters = new ParametersWithIV(new KeyParameter(key), iv);
+                GCMgcm1.init(true, parameters);
+                byte[] GCMgcm1CT = new byte[GCMgcm1.getOutputSize(javaPT.length)];
+                int j = GCMgcm1.processBytes(javaPT, 0, javaPT.length, GCMgcm1CT, 0);
+                GCMgcm1.doFinal(GCMgcm1CT, j);
+
+                byte[] GCMgcm2CT = new byte[GCMgcm2.getOutputSize(true, parameters, javaPT.length)];
+                GCMgcm2.processPacket(true, parameters, javaPT, 0, javaPT.length, GCMgcm2CT, 0);
+
+                if (!Arrays.areEqual(GCMgcm1CT, GCMgcm2CT))
+                {
+                    System.out.println(javaPT.length);
+                    System.out.println(Hex.toHexString(GCMgcm2CT));
+                    System.out.println(Hex.toHexString(GCMgcm1CT));
+                    for (j = 0; j < GCMgcm2CT.length; j++)
+                    {
+                        if (GCMgcm2CT[j] == GCMgcm1CT[j])
+                        {
+                            System.out.print("  ");
+                        }
+                        else
+                        {
+                            System.out.print("^^");
+                        }
+                    }
+                    System.out.println();
+                }
+                GCMgcm1 = new GCMBlockCipher(new AESEngine());
+                GCMgcm1.init(true, parameters);
+                byte[] GCMgcm1PT = new byte[GCMgcm1.getOutputSize(GCMgcm1CT.length)];
+                j = GCMgcm1.processBytes(GCMgcm1CT, 0, GCMgcm1CT.length, GCMgcm1PT, 0);
+                GCMgcm1.doFinal(GCMgcm1PT, j);
+
+                byte[] GCMgcm2PT = new byte[GCMgcm2.getOutputSize(true, parameters, GCMgcm2CT.length)];
+                GCMgcm2.processPacket(true, parameters, GCMgcm2CT, 0, GCMgcm2CT.length, GCMgcm2PT, 0);
+
+                if (!Arrays.areEqual(GCMgcm1PT, GCMgcm2PT))
+                {
+                    System.out.println(javaPT.length);
+                    System.out.println(Hex.toHexString(GCMgcm1PT));
+                    System.out.println(Hex.toHexString(GCMgcm2PT));
+                    for (j = 0; j < GCMgcm2CT.length; j++)
+                    {
+                        if (GCMgcm2PT[j] == GCMgcm1PT[j])
+                        {
+                            System.out.print("  ");
+                        }
+                        else
+                        {
+                            System.out.print("^^");
+                        }
+                    }
+                    System.out.println();
+                }
+            }
+        }
+
+    }
+
+    public void testGCMSpreadAgreement()
+        throws Exception
+    {
+
+        if (!TestUtil.hasNativeService("AES/GCM"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("GCMgcm"))
+            {
+                TestCase.fail("Skipping GCM Spread Agreement: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        SecureRandom rand = new SecureRandom();
+        SecureRandom secureRandom = new SecureRandom();
+        AESGCMPacketCipher GCMgcm2 = AESGCMPacketCipher.newInstance();
+        byte[] javaPT;
+        for (int ks : new int[]{16, 24, 32})
+        {
+            byte[] key = new byte[ks];
+            rand.nextBytes(key);
+
+            for (int ivLen = 12; ivLen <= 20; ivLen++)
+            {
+                byte[] iv = new byte[ivLen];
+                rand.nextBytes(iv);
+
+
+                for (int macSize = 32; macSize <= 128; macSize += 16)
+                {
+
+                    for (int msgSize = 0; msgSize < 515; msgSize++)
+                    {
+                        if (msgSize != 0)
+                        {
+                            javaPT = new byte[secureRandom.nextInt(msgSize)];
+                        }
+                        else
+                        {
+                            javaPT = new byte[0];
+                        }
+
+
+                        GCMBlockCipher GCMgcm1 = new GCMBlockCipher(new AESEngine());
+                        AEADParameters parameters = new AEADParameters(new KeyParameter(key), macSize, iv);
+                        GCMgcm1.init(true, parameters);
+                        byte[] GCMgcm1CT = new byte[GCMgcm1.getOutputSize(javaPT.length)];
+                        int j = GCMgcm1.processBytes(javaPT, 0, javaPT.length, GCMgcm1CT, 0);
+                        GCMgcm1.doFinal(GCMgcm1CT, j);
+
+                        byte[] GCMgcm2CT = new byte[GCMgcm2.getOutputSize(true, parameters, javaPT.length)];
+                        GCMgcm2.processPacket(true, parameters, javaPT, 0, javaPT.length, GCMgcm2CT, 0);
+
+                        if (!Arrays.areEqual(GCMgcm1CT, GCMgcm2CT))
+                        {
+                            System.out.println(javaPT.length);
+                            System.out.println(Hex.toHexString(GCMgcm2CT));
+                            System.out.println(Hex.toHexString(GCMgcm1CT));
+                            for (j = 0; j < GCMgcm2CT.length; j++)
+                            {
+                                if (GCMgcm2CT[j] == GCMgcm1CT[j])
+                                {
+                                    System.out.print("  ");
+                                }
+                                else
+                                {
+                                    System.out.print("^^");
+                                }
+                            }
+                            System.out.println();
+                        }
+
+                    }
+                }
+            }
+
         }
     }
 
