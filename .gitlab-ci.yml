@@ -1,8 +1,9 @@
 stages:
-  - test
+  - test21
   - testAVX
   - testVAES
   - testVAESF
+  - test
 
 
 test-java-code:
@@ -58,3 +59,18 @@ test-code-vaesf:
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
     - "java -Dorg.bouncycastle.native.cpu_variant=vaesf -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo"
     - "./gradlew -Pskip.pqc.tests testVAESF  -x test"
+
+test-java21-code:
+  stage: test21
+  script:
+     - "apply_overlay bc-java ./"
+     - "sh gettestdata.sh"
+     - . cienv-11.sh
+     - "./gradlew clean build compileTestJava  -x test"
+     - . cienv-21
+     - ant -f test21.xml
+  artifacts:
+    when: always
+    reports:
+      junit: build/artifacts/jdk21/reports/xml/**/TEST-*.xml
+
