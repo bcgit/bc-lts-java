@@ -15,7 +15,6 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
 
-import java.security.SecureRandom;
 
 public class AESCCMPacketCipherTest
     extends SimpleTest
@@ -90,7 +89,7 @@ public class AESCCMPacketCipherTest
     {
         SecureRandom secureRandom = new SecureRandom();
         AESCCMPacketCipher ccm2 = AESCCMPacketCipher.newInstance();
-        int[] keybytes={16, 24, 32};
+        int[] keybytes = {16, 24, 32};
         for (int i = 0; i < 3; ++i)
         {
             int keySize = keybytes[i];
@@ -164,7 +163,8 @@ public class AESCCMPacketCipherTest
 
     }
 
-    public void testCCMSpreadAgreement() throws Exception
+    public void testCCMSpreadAgreement()
+        throws Exception
     {
 
         if (!TestUtil.hasNativeService("AES/CCM"))
@@ -196,7 +196,16 @@ public class AESCCMPacketCipherTest
                     for (int msgSize = 0; msgSize < 515; msgSize++)
                     {
 
-                        byte[] javaPT = new byte[secureRandom.nextInt(msgSize)];
+                        byte[] javaPT;
+                        if (msgSize != 0)
+                        {
+                            javaPT = new byte[secureRandom.nextInt(msgSize)];
+                        }
+                        else
+                        {
+                            javaPT = new byte[0];
+                        }
+
 
                         CCMBlockCipher ccm1 = new CCMBlockCipher(new AESEngine());
                         AEADParameters parameters = new AEADParameters(new KeyParameter(key), macSize, iv);
