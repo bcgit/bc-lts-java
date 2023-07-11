@@ -30,7 +30,7 @@ public class CFBNativeLimitTest extends TestCase
         NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
         if (!nativeServices.hasService("AES/CFB"))
         {
-            if (!System.getProperty("test.bclts.ignore.native","").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native","").contains("cfb"))
             {
                 fail("no native cfb and no skip set for it");
                 return;
@@ -341,7 +341,7 @@ public class CFBNativeLimitTest extends TestCase
         NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
         if (!nativeServices.hasService("AES/CFB"))
         {
-            if (!System.getProperty("test.bclts.ignore.native","").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native","").contains("cfb"))
             {
                 fail("no native cfb and no skip set for it");
                 return;
@@ -534,7 +534,7 @@ public class CFBNativeLimitTest extends TestCase
         NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
         if (!nativeServices.hasService("AES/CFB"))
         {
-            if (!System.getProperty("test.bclts.ignore.native","").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native","").contains("cfb"))
             {
                 fail("no native cfb and no skip set for it");
                 return;
@@ -744,7 +744,7 @@ public class CFBNativeLimitTest extends TestCase
         NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
         if (!nativeServices.hasService("AES/CFB"))
         {
-            if (!System.getProperty("test.bclts.ignore.native","").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native","").contains("cfb"))
             {
                 fail("no native cfb and no skip set for it");
                 return;
