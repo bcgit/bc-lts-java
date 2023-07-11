@@ -90,7 +90,7 @@ e88f72d802f7e37f1d2801e1663b4a37e21b3aed2c651c751e1d70d97e74fada  tls/src/test/j
 e2ce30a7def39a01b8c5f2ca11e2731cadebf9055caa67c7a7e3653ab428b153  tls/src/test/java/org/bouncycastle/tls/test/PSKTls13ServerTest.java
 dd830d7bce32ab87a3375bd2124843eb5fbc041b1e599e44eee9a1c32800b33e  tls/src/test/java/org/bouncycastle/tls/test/ByteQueueInputStreamTest.java
 3190867125f41445df0223316abf52ba320de539ec5d70a82098168533452480  tls/src/test/java/org/bouncycastle/tls/test/TlsClientRawKeysTest.java
-69bc340cc7e8759078c70ad3acced817165eed76865f6fa25fbba6972638100a  tls/src/main/jdk1.9/org/bouncycastle/tls/crypto/impl/jcajce/GCMUtil.java
+15f48bc68e855514520c88c287f4a4d78c19a06b6ddc8788959591e9503f2f4a  tls/src/main/jdk1.9/org/bouncycastle/tls/crypto/impl/jcajce/GCMUtil.java
 69bc340cc7e8759078c70ad3acced817165eed76865f6fa25fbba6972638100a  tls/src/main/jdk1.9/org/bouncycastle/jsse/provider/JsseUtils_9.java
 bac0fdf2cf22b379902f68c723e263a2fd58a1be329f8778bce88f824bd880b9  tls/src/main/jdk1.9/org/bouncycastle/jsse/provider/KeyStoreUtil.java
 330eabbc5233c7870d5f74377337e56202793dacd280f8a556dd06daaf71f94b  tls/src/main/jdk1.9/org/bouncycastle/jsse/provider/ProvSSLEngine_9.java
@@ -226,7 +226,7 @@ bd9b5b55ded4ce52c7e1d4e1a267616ab7b8606edb1b694678a7e316eeb161fd  tls/src/main/j
 87e443bc5d89862118d82b60202000e7295405e7dc0b1a2bc15c3fce84f7e1cf  tls/src/main/java/org/bouncycastle/tls/SRPTlsClient.java
 cd6309b30b6744777f16bd64aaacc79ccf0e66dc9fa33cfb8f952f688f9520c5  tls/src/main/java/org/bouncycastle/tls/ByteQueue.java
 22e0b58a7711f2c8447371809a29a0655f59488facc26622cdbc6aecb83e7cef  tls/src/main/java/org/bouncycastle/tls/SimulatedTlsSRPIdentityManager.java
-ad8fe37c53bb9968cd5e829f7a98dc2f0d19da1cce551a4f639dfc8017b51338  tls/src/main/java/org/bouncycastle/tls/DTLSClientProtocol.java
+2de8cbd5f7e477059432d1a128b4ab0c0407eeb5bad3c142688c45f9b47d3cc7  tls/src/main/java/org/bouncycastle/tls/DTLSClientProtocol.java
 08dc4aa51158b233f14a32cf510189a7bee20857398341386d6b679f4e1de514  tls/src/main/java/org/bouncycastle/tls/ChangeCipherSpec.java
 b4eaefd2dccc5eb27590da93461bd8ffadbeec124cea53d0c1372b711453e12e  tls/src/main/java/org/bouncycastle/tls/DigestInputBuffer.java
 4ae9df6387b716119235b222128d573b0ee2f35ffdfdb8e9f658534a2ea8b7c8  tls/src/main/java/org/bouncycastle/tls/CertificateStatusRequestItemV2.java
@@ -433,7 +433,7 @@ fc98afe005821852717023d9b0b22372cf9b40d4edca2eec4c6ac5b3ef72c3a6  tls/src/main/j
 3712e4e5a2fdc9b3fa3db43818f88ecbbc972b681651400cc6ff4b57a7d2993d  tls/src/main/java/org/bouncycastle/tls/ECPointFormat.java
 3b54498429c09b0f8a32242b53feb7015d907eb0c08e1f64f740b84c2b4a1668  tls/src/main/java/org/bouncycastle/tls/SignatureScheme.java
 bbac2998015dc143a971f1156a60a0341a0f0277f292fd12b592e9538953e403  tls/src/main/java/org/bouncycastle/tls/AbstractTlsServer.java
-a05cdfef9d5363d05ffd12d7e56e7dd7e8ca1b20fb2f0103149edb310ad1f6ed  tls/src/main/java/org/bouncycastle/tls/DTLSServerProtocol.java
+d5e7182539ec6713f228eaec48fc5a86c80a8eef4343ba60c4e40b4f87266017  tls/src/main/java/org/bouncycastle/tls/DTLSServerProtocol.java
 37637277c4fd1d998a4a68d1a1cd8a88a39e7b7847c6775d8b886567b784d58b  tls/src/main/java/org/bouncycastle/tls/TlsDHUtils.java
 089979fdafcd93e10c954ff384b3ae00099b8a5cc096d25f32b9d94d60d193d9  tls/src/main/java/org/bouncycastle/tls/CertificateCompressionAlgorithm.java
 0b4e240e618cf77bb504b2b4a428e39613b9c20e3f4bfa169bb3077b39f771c4  tls/src/main/java/org/bouncycastle/tls/OfferedPsks.java
@@ -462,7 +462,7 @@ ec7db80b691a08246dedb64cec799d97f6f77d8e8a347eae79e85ffd2da0ac80  tls/src/main/j
 90f3c79aef214c1af2b9556dbc54e1f1472ccca12e8f6fe265bf0fc8d1e783a4  tls/src/main/java/org/bouncycastle/tls/ServerSRPParams.java
 47eab019a014126a115c7e15e88caa4c8a546bab8505e8907511d553a6d2a99a  tls/src/main/java/org/bouncycastle/tls/DatagramReceiver.java
 aa933843be00c6d3266839bc5da0934a890bb8170c9b13d4bc2531ca48a761e7  tls/src/main/java/org/bouncycastle/tls/CertificateStatusType.java
-3ff9bc9a7d28c57d69c0213151ec1ab3cdfca0e4abf857c5127ed9d2f2a92983  tls/src/main/java/org/bouncycastle/tls/TlsServerProtocol.java
+0244b027043410828f95c45c95cfda75657f41a5bbdafd34777c81f3123a0670  tls/src/main/java/org/bouncycastle/tls/TlsServerProtocol.java
 1adfb42ef4ace3a0a21b44d82d25b2b444d3fb27ca015d8c2047fdeec4449797  tls/src/main/java/org/bouncycastle/tls/CertificateEntry.java
 b0e61fd2f5a68f71f17c2865bc329a3920510151848b77385a2cb343627c4026  tls/src/main/java/org/bouncycastle/tls/CipherType.java
 9cc7352866b5c88b66aaf82775e21e2889414890c336bb23fe45cfb54d0c06c9  tls/src/main/java/org/bouncycastle/tls/TlsECDHanonKeyExchange.java
@@ -510,7 +510,7 @@ e8653f26e744d16f6b05a8ee0796197f3c9d02a5affc2620bb064300dc37d35c  tls/src/main/j
 ae78c94c5ee9fc614fd57b0ceb8e24df9e64a5617a9aefb20111c6c480264eaa  tls/src/main/java/org/bouncycastle/tls/TlsNoCloseNotifyException.java
 6df7e18d01af3e484eaac77ef90a4f5ef945e8184cf7214fcc12a045f7321df4  tls/src/main/java/org/bouncycastle/tls/BasicTlsSRPIdentity.java
 239a554008974ca26a5bb8e3652ba14b90180bed9fda958229e8796521fff888  tls/src/main/java/org/bouncycastle/tls/ContentType.java
-5e8033f1b738aff626a33d8dbbcdf00d35907a97fa3b2e2304e5bb958f3c731a  tls/src/main/java/org/bouncycastle/tls/TlsClientProtocol.java
+be56e3d0d0afd393f77a9f064404cffb83d9a9daa014b81ef95b1f14b91257e2  tls/src/main/java/org/bouncycastle/tls/TlsClientProtocol.java
 c65af2e8d5c4f926cba1e3f026dc5d3400db0d3460cfc926b887e289c2d185b7  tls/src/main/java/org/bouncycastle/tls/DTLSRecordCallback.java
 66552251990afffcf87b8554cb3daa00e95f4fb952a2e6eb6a384a3543edd9c1  tls/src/main/java/org/bouncycastle/tls/NewSessionTicket.java
 4e398d8d486844ea19932501077eccf16cf88c13d4c412d2216df4a7fa0acf1f  tls/src/main/java/org/bouncycastle/tls/TlsServerContext.java
