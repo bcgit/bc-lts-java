@@ -1,12 +1,10 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.PacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
-import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
@@ -45,11 +43,8 @@ public class AESCBCPacketCipher
     public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len, byte[] output, int outOff)
         throws PacketCipherException
     {
-        BlockCipher cipher = new AESEngine();
-        int blockSize = cipher.getBlockSize();
-        byte[] IV = new byte[blockSize];
-        byte[] cbcV = new byte[blockSize];
-        byte[] cbcNextV = new byte[blockSize];
+        byte[] cbcV = new byte[BLOCK_SIZE];
+        byte[] cbcNextV = new byte[BLOCK_SIZE];
         int[][] workingKey = null;
         byte[] s;
         int ROUNDS;
@@ -58,23 +53,21 @@ public class AESCBCPacketCipher
             ParametersWithIV ivParam = (ParametersWithIV)parameters;
             byte[] iv = ivParam.getIV();
 
-            if (iv.length != blockSize)
+            if (iv.length != BLOCK_SIZE)
             {
                 throw new IllegalArgumentException("initialisation vector must be the same length as block size");
             }
-            System.arraycopy(iv, 0, IV, 0, iv.length);
-            System.arraycopy(IV, 0, cbcV, 0, IV.length);
+            System.arraycopy(iv, 0, cbcV, 0, iv.length);
             Arrays.fill(cbcNextV, (byte)0);
             KeyParameter params = (KeyParameter)ivParam.getParameters();
             // if null it's an IV changed only.
             if (params != null)
             {
-                cipher.init(encryption, ivParam.getParameters());
                 byte[] key = params.getKey();
                 int keyLen = key.length;
                 int KC = keyLen >>> 2;
                 ROUNDS = KC + 6;
-                workingKey = generateWorkingKey(key, KC, ROUNDS);
+                workingKey = generateWorkingKey(key, KC, ROUNDS, encryption);
                 if (encryption)
                 {
                     s = Arrays.clone(S);
@@ -101,60 +94,38 @@ public class AESCBCPacketCipher
         {
             if (encryption)
             {
-                if ((inOff + blockSize) > input.length)
+                if ((inOff + BLOCK_SIZE) > input.length)
                 {
                     throw new DataLengthException("input buffer too short");
                 }
-                /*
-                 * XOR the cbcV and the input,
-                 * then encrypt the cbcV
-                 */
-                for (int j = 0; j < blockSize; j++)
+                for (int j = 0; j < BLOCK_SIZE; j++)
                 {
                     cbcV[j] ^= input[inOff + j];
                 }
-
                 encryptBlock(cbcV, 0, output, outOff + resultLen, workingKey, s, ROUNDS);
-                //int length = cipher.processBlock(cbcV, 0, output, outOff + resultLen);
-
-                /*
-                 * copy ciphertext to cbcV
-                 */
                 System.arraycopy(output, outOff + resultLen, cbcV, 0, cbcV.length);
                 resultLen += BLOCK_SIZE;
             }
             else
             {
-                if ((inOff + blockSize) > input.length)
+                if ((inOff + BLOCK_SIZE) > input.length)
                 {
                     throw new DataLengthException("input buffer too short");
                 }
-
-                System.arraycopy(input, inOff, cbcNextV, 0, blockSize);
-
-                int length = cipher.processBlock(input, inOff, output, outOff + resultLen);
+                System.arraycopy(input, inOff, cbcNextV, 0, BLOCK_SIZE);
                 decryptBlock(input, inOff, output, outOff + resultLen, workingKey, s, ROUNDS);
-                /*
-                 * XOR the cbcV and the output
-                 */
-                for (int j = 0; j < blockSize; j++)
+                for (int j = 0; j < BLOCK_SIZE; j++)
                 {
                     output[outOff + resultLen + j] ^= cbcV[j];
                 }
-
-                /*
-                 * swap the back up buffer into next position
-                 */
                 byte[] tmp;
-
                 tmp = cbcV;
                 cbcV = cbcNextV;
                 cbcNextV = tmp;
                 resultLen += BLOCK_SIZE;
             }
-            inOff += blockSize;
+            inOff += BLOCK_SIZE;
         }
-
         return resultLen;
     }
 

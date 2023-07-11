@@ -7,6 +7,16 @@ public abstract class PacketCipherEngine
 {
     protected static final int BLOCK_SIZE = 16;
 
+    protected int[][] generateWorkingKey(byte[] key, int KC, int ROUNDS, boolean forEncryption)
+    {
+        int[][] KW = generateWorkingKey(key, KC, ROUNDS);
+        if (!forEncryption)
+        {
+            inverseWorkingKey(KW, ROUNDS);
+        }
+        return KW;
+    }
+
     protected int[][] generateWorkingKey(byte[] key, int KC, int ROUNDS)
     {
         int[][] W = new int[ROUNDS + 1][4];   // 4 words in a block
@@ -131,6 +141,41 @@ public abstract class PacketCipherEngine
         }
         }
         return W;
+    }
+
+    private void inverseWorkingKey(int[][] W, int ROUNDS)
+    {
+        for (int j = 1; j < ROUNDS; j++)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                W[j][i] = inv_mcol(W[j][i]);
+            }
+        }
+    }
+
+    private static int inv_mcol(int x)
+    {
+        int t0, t1;
+        t0 = x;
+        t1 = t0 ^ shift(t0, 8);
+        t0 ^= FFmulX(t1);
+        t1 ^= FFmulX2(t0);
+        t0 ^= t1 ^ shift(t1, 16);
+        return t0;
+    }
+
+    private static int FFmulX(int x)
+    {
+        return (((x & 0x7f7f7f7f) << 1) ^ (((x & 0x80808080) >>> 7) * 0x0000001b));
+    }
+
+    private static int FFmulX2(int x)
+    {
+        int t0 = (x & 0x3f3f3f3f) << 2;
+        int t1 = (x & 0xC0C0C0C0);
+        t1 ^= (t1 >>> 1);
+        return t0 ^ (t1 >>> 2) ^ (t1 >>> 5);
     }
 
     protected static final byte[] S = {
