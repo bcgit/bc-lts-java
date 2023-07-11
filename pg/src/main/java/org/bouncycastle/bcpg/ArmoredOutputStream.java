@@ -116,7 +116,8 @@ public class ArmoredOutputStream
     String          footerStart = "-----END PGP ";
     String          footerTail = "-----";
 
-    String          version = "BCPG v@RELEASE_NAME@";
+    // TODO make this a substitution off gradle.properties
+    String          version = "BCPG v2.73.3"; //  was "BCPG v@RELEASE_NAME@";
 
     Hashtable<String, List<String>> headers = new Hashtable<String, List<String>>();
 
