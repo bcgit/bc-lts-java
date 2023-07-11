@@ -29,6 +29,30 @@ public class NativeDigestTests
         CryptoServicesRegistrar.setNativeEnabled(true);
     }
 
+    @Test
+    public void testReturnLen() throws Exception
+    {
+        if (!TestUtil.hasNativeService("SHA2"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
+            {
+                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        SHA256Digest jdig = new SHA256Digest();
+
+        SHA256NativeDigest ndig = new SHA256NativeDigest();
+        TestCase.assertEquals(jdig.getByteLength(), ndig.getByteLength());
+        TestCase.assertEquals(jdig.getDigestSize(), ndig.getDigestSize());
+
+        // digest result tested elsewhere
+        byte[] z = new byte[32];
+        TestCase.assertEquals(jdig.doFinal(z, 0), ndig.doFinal(z, 0));
+
+    }
+
 
     @Test
     public void testSHA256Empty()
@@ -46,7 +70,7 @@ public class NativeDigestTests
 
         SavableDigest dig = SHA256Digest.newInstance();
         byte[] res = new byte[dig.getDigestSize()];
-        dig.doFinal(res, 0);
+        TestCase.assertEquals(32,dig.doFinal(res, 0));
         TestCase.assertTrue("Empty Digest result",
                 Arrays.areEqual(res, Hex.decode("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")));
 
@@ -79,18 +103,18 @@ public class NativeDigestTests
             byte[] state = dig.getEncodedState();
 
             byte[] resAfterStateExtraction = new byte[dig.getDigestSize()];
-            dig.doFinal(resAfterStateExtraction, 0);
+            TestCase.assertEquals(32,dig.doFinal(resAfterStateExtraction, 0));
 
             SavableDigest dig2 =  SHA256Digest.newInstance(state,0);
             byte[] resStateRecreated = new byte[dig2.getDigestSize()];
-            dig2.doFinal(resStateRecreated, 0);
+            TestCase.assertEquals(32, dig2.doFinal(resStateRecreated, 0));
 
 
             SHA256Digest javaDigest = new SHA256Digest();
             javaDigest.update(msg, 0, t);
 
             byte[] resJava = new byte[javaDigest.getDigestSize()];
-            javaDigest.doFinal(resJava, 0);
+            TestCase.assertEquals(32, javaDigest.doFinal(resJava, 0));
 
 
             TestCase.assertTrue("Java = native post state extraction", Arrays.areEqual(resJava, resAfterStateExtraction));
@@ -126,10 +150,10 @@ public class NativeDigestTests
         }
 
         byte[] resJava = new byte[javaDigest.getDigestSize()];
-        javaDigest.doFinal(resJava, 0);
+        TestCase.assertEquals(32, javaDigest.doFinal(resJava, 0));
 
         byte[] nativeDigest = new byte[dig.getDigestSize()];
-        dig.doFinal(nativeDigest, 0);
+        TestCase.assertEquals(32, dig.doFinal(nativeDigest, 0));
 
         TestCase.assertTrue("Java = native byte by byte", Arrays.areEqual(resJava, nativeDigest));
 
@@ -179,9 +203,9 @@ public class NativeDigestTests
         byte[] d2Result = new byte[dig2.getDigestSize()];
         byte[] javaResult = new byte[javaDigest.getDigestSize()];
 
-        dig.doFinal(d1Result, 0);
-        dig2.doFinal(d2Result, 0);
-        javaDigest.doFinal(javaResult, 0);
+        TestCase.assertEquals(32,dig.doFinal(d1Result, 0));
+        TestCase.assertEquals(32,dig2.doFinal(d2Result, 0));
+        TestCase.assertEquals(32,javaDigest.doFinal(javaResult, 0));
 
         TestCase.assertTrue(Arrays.areEqual(javaResult, d1Result) && Arrays.areEqual(javaResult, d2Result));
 
@@ -276,7 +300,7 @@ public class NativeDigestTests
 
                 byte[] res = new byte[getDigestSize()];
                 update(new byte[20], 19, 0);
-                doFinal(res, 0);
+                TestCase.assertEquals(32,doFinal(res, 0));
 
                 TestCase.assertTrue("Empty Digest result",
                         Arrays.areEqual(
@@ -298,7 +322,7 @@ public class NativeDigestTests
 
                 byte[] res = new byte[getDigestSize()];
                 update(new byte[20], 0, 0);
-                doFinal(res, 0);
+                TestCase.assertEquals(32, doFinal(res, 0));
 
                 TestCase.assertTrue("Empty Digest result",
                         Arrays.areEqual(
@@ -400,7 +424,7 @@ public class NativeDigestTests
                 //
 
                 byte[] res = new byte[getDigestSize() + 1];
-                doFinal(res, 1);
+                TestCase.assertEquals(32, doFinal(res, 1));
                 TestCase.assertTrue(
                         Arrays.areEqual(
                                 Hex.decode("00e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"),
@@ -686,9 +710,9 @@ public class NativeDigestTests
         byte[] r2 = new byte[dig2.getDigestSize()];
         byte[] j1 = new byte[jig1.getDigestSize()];
 
-        dig1.doFinal(r1, 0);
-        dig2.doFinal(r2, 0);
-        jig1.doFinal(j1, 0);
+        TestCase.assertEquals(32, dig1.doFinal(r1, 0));
+        TestCase.assertEquals(32,dig2.doFinal(r2, 0));
+        TestCase.assertEquals(32, jig1.doFinal(j1, 0));
 
         TestCase.assertTrue(Arrays.areEqual(j1, r1));
         TestCase.assertTrue(Arrays.areEqual(j1, r2));
