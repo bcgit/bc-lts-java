@@ -48,7 +48,7 @@ public class NativeDigestTests
         TestCase.assertEquals(jdig.getDigestSize(), ndig.getDigestSize());
 
         // digest result tested elsewhere
-        byte[] z = new byte[32];
+        byte[] z = new byte[jdig.getDigestSize() * 2];
         TestCase.assertEquals(jdig.doFinal(z, 0), ndig.doFinal(z, 0));
 
     }
