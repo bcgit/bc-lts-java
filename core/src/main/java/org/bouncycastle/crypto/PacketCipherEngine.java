@@ -621,9 +621,13 @@ public abstract class PacketCipherEngine
         {
             throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE));
         }
-        if (input.length - inOff < len)
+        if (inOff + len > input.length)
         {
             throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.INPUT_LENGTH));
+        }
+        if (outOff + len > output.length)
+        {
+            throw PacketCipherException.from(new DataLengthException(ExceptionMessage.OUTPUT_LENGTH));
         }
     }
 }

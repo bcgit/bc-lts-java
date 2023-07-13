@@ -157,4 +157,9 @@ public class AESCBCPacketCipher
         Arrays.fill(C, 0);
         return blockCount << 4;
     }
+    @Override
+    public String toString()
+    {
+        return "CBC Packet Cipher";
+    }
 }

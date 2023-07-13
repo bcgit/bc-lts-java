@@ -554,4 +554,10 @@ public class AESGCMPacketCipher
         encryptBlock(counter, block, workingkey, s, ROUNDS);
         return blocksRemaining;
     }
+
+    @Override
+    public String toString()
+    {
+        return "GCM Packet Cipher";
+    }
 }

@@ -14,7 +14,7 @@ import org.bouncycastle.util.encoders.Hex;
  * to generate prime numbers from that are repeatable.
  * -- Do not use this in production. Do not copy this and use it as an example. --
  */
-class StreamingFixedSecureRandom
+public class StreamingFixedSecureRandom
     extends SecureRandom
 {
     private static java.math.BigInteger REGULAR = new java.math.BigInteger("01020304ffffffff0506070811111111", 16);

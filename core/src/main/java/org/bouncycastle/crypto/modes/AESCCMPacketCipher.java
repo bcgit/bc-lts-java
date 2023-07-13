@@ -344,4 +344,10 @@ public class AESCCMPacketCipher
         bufOff += len;
         return bufOff;
     }
+
+    @Override
+    public String toString()
+    {
+        return "CCM Packet Cipher";
+    }
 }
