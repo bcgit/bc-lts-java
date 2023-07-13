@@ -8,10 +8,13 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import junit.framework.TestCase;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.NativeBlockCipherProvider;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.TestUtil;
+import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
@@ -22,7 +25,7 @@ import org.junit.Test;
 public class AESCBCPacketCipherTest
     extends SimpleTest
 {
-    private static ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public static void main(
         String[] args)
@@ -34,7 +37,12 @@ public class AESCBCPacketCipherTest
     public void performTest()
         throws Exception
     {
+        testExceptions();
         testCBC();
+        testAgreement();
+        testCBCJavaAgreement_128();
+        testCBCJavaAgreement_192();
+        testCBCJavaAgreement_256();
         System.out.println("AESCBCPacketCipherTest pass");
     }
 
@@ -68,31 +76,20 @@ public class AESCBCPacketCipherTest
             List<Map<String, Object>> rspTests = (List<Map<String, Object>>)rspGroup.get("tests");
 
             String testType = (String)reqGroup.get("testType");
-            if (gi == 39)
-            {
-                System.out.println("break");
-            }
+
 
             for (int ti = 0; ti < reqTests.size(); ti++)
             {
-
-
                 Map<String, Object> reqTest = reqTests.get(ti);
                 Map<String, Object> rspTest = rspTests.get(ti);
-
-
                 if ("MCT".equals(testType))
                 {
-
-
                     List<Map<String, Object>> expected = (List<Map<String, Object>>)rspTest.get("resultsArray");
                     {
                         //
                         // Native CBC.
                         //
                         List<Map<String, Object>> results = performMonteCarloCBCTest(packetCBC, reqGroup, reqTest);
-
-
                         //TestCase.assertEquals(expected.size(), results.size());
                         for (int t = 0; t < expected.size(); t++)
                         {
@@ -101,10 +98,6 @@ public class AESCBCPacketCipherTest
 
                             for (String key : right.keySet())
                             {
-                                if (!Arrays.areEqual(Hex.decode(left.get(key).toString()), (byte[])right.get(key)))
-                                {
-                                    System.out.println("break");
-                                }
                                 TestCase.assertTrue("native " + t + " - " + key, Arrays.areEqual(Hex.decode(left.get(key).toString()), (byte[])right.get(key)));
                             }
                         }
@@ -146,7 +139,8 @@ public class AESCBCPacketCipherTest
 
                     int nrl = packetCBC.processPacket(encryption, params, msg, 0, msg.length, nativeResult, 0);
                     int jrl = javaCBC.processBlocks(msg, 0, msg.length / javaCBC.getBlockSize(), javaResult, 0);
-                    if(!Arrays.areEqual(nativeResult, expected)){
+                    if (!Arrays.areEqual(nativeResult, expected))
+                    {
                         packetCBC.processPacket(encryption, params, msg, 0, msg.length, nativeResult, 0);
                     }
                     TestCase.assertEquals("native output len matches java output len", nrl, jrl);
@@ -387,7 +381,7 @@ public class AESCBCPacketCipherTest
         throws InvalidCipherTextException, PacketCipherException
     {
         SecureRandom secureRandom = new SecureRandom();
-        AESCCMPacketCipher ccm2 = AESCCMPacketCipher.newInstance();
+        AESCBCPacketCipher cbc2 = AESCBCPacketCipher.newInstance();
         int[] keybytes = {16, 24, 32};
         for (int i = 0; i < 3; ++i)
         {
@@ -395,31 +389,30 @@ public class AESCBCPacketCipherTest
 
             for (int t = 0; t < 4000; t++)
             {
-                byte[] javaPT = new byte[secureRandom.nextInt(2048)];
+                byte[] javaPT = new byte[(t + 1) << 4];
                 secureRandom.nextBytes(javaPT);
                 byte[] key = new byte[keySize];
                 secureRandom.nextBytes(key);
 
-                byte[] iv = new byte[13];
+                byte[] iv = new byte[16];
                 secureRandom.nextBytes(iv);
-                CCMBlockCipher ccm1 = new CCMBlockCipher(new AESEngine());
+                CBCBlockCipher cbc1 = new CBCBlockCipher(new AESEngine());
                 ParametersWithIV parameters = new ParametersWithIV(new KeyParameter(key), iv);
-                ccm1.init(true, parameters);
-                byte[] ccm1CT = new byte[ccm1.getOutputSize(javaPT.length)];
-                int j = ccm1.processBytes(javaPT, 0, javaPT.length, ccm1CT, 0);
-                ccm1.doFinal(ccm1CT, j);
+                cbc1.init(true, parameters);
+                byte[] cbc1CT = new byte[javaPT.length];
+                cbc1.processBlocks(javaPT, 0, javaPT.length / 16, cbc1CT, 0);
 
-                byte[] ccm2CT = new byte[ccm2.getOutputSize(true, parameters, javaPT.length)];
-                ccm2.processPacket(true, parameters, javaPT, 0, javaPT.length, ccm2CT, 0);
+                byte[] cbc2CT = new byte[cbc2.getOutputSize(true, parameters, javaPT.length)];
+                cbc2.processPacket(true, parameters, javaPT, 0, javaPT.length, cbc2CT, 0);
 
-                if (!Arrays.areEqual(ccm1CT, ccm2CT))
+                if (!Arrays.areEqual(cbc1CT, cbc2CT))
                 {
                     System.out.println(javaPT.length);
-                    System.out.println(Hex.toHexString(ccm2CT));
-                    System.out.println(Hex.toHexString(ccm1CT));
-                    for (j = 0; j < ccm2CT.length; j++)
+                    System.out.println(Hex.toHexString(cbc2CT));
+                    System.out.println(Hex.toHexString(cbc1CT));
+                    for (int j = 0; j < cbc2CT.length; j++)
                     {
-                        if (ccm2CT[j] == ccm1CT[j])
+                        if (cbc2CT[j] == cbc1CT[j])
                         {
                             System.out.print("  ");
                         }
@@ -431,22 +424,21 @@ public class AESCBCPacketCipherTest
                     System.out.println();
                 }
 
-                ccm1.init(true, parameters);
-                byte[] ccm1PT = new byte[ccm1.getOutputSize(ccm1CT.length)];
-                j = ccm1.processBytes(ccm1CT, 0, ccm1CT.length, ccm1PT, 0);
-                ccm1.doFinal(ccm1PT, j);
+                cbc1.init(true, parameters);
+                byte[] cbc1PT = new byte[cbc1CT.length];
+                cbc1.processBlocks(cbc1CT, 0, cbc1CT.length / 16, cbc1PT, 0);
 
-                byte[] ccm2PT = new byte[ccm2.getOutputSize(true, parameters, ccm2CT.length)];
-                ccm2.processPacket(true, parameters, ccm2CT, 0, ccm2CT.length, ccm2PT, 0);
+                byte[] cbc2PT = new byte[cbc2.getOutputSize(true, parameters, cbc2CT.length)];
+                cbc2.processPacket(true, parameters, cbc2CT, 0, cbc2CT.length, cbc2PT, 0);
 
-                if (!Arrays.areEqual(ccm1PT, ccm2PT))
+                if (!Arrays.areEqual(cbc1PT, cbc2PT))
                 {
                     System.out.println(javaPT.length);
-                    System.out.println(Hex.toHexString(ccm1PT));
-                    System.out.println(Hex.toHexString(ccm2PT));
-                    for (j = 0; j < ccm2CT.length; j++)
+                    System.out.println(Hex.toHexString(cbc1PT));
+                    System.out.println(Hex.toHexString(cbc2PT));
+                    for (int j = 0; j < cbc2CT.length; j++)
                     {
-                        if (ccm2PT[j] == ccm1PT[j])
+                        if (cbc2PT[j] == cbc1PT[j])
                         {
                             System.out.print("  ");
                         }
@@ -468,5 +460,352 @@ public class AESCBCPacketCipherTest
         return null;
     }
 
+    byte[] generateCT(byte[] message, byte[] key, byte[] iv, boolean expectNative)
+        throws Exception
+    {
 
+
+        CBCModeCipher cbc = CBCBlockCipher.newInstance(AESEngine.newInstance());
+        cbc.init(true, new ParametersWithIV(new KeyParameter(key), iv));
+
+
+        if (expectNative)
+        {
+            TestCase.assertTrue("Native implementation expected", cbc.toString().contains("CBC[Native](AES[Native]"));
+        }
+        else
+        {
+            TestCase.assertTrue("Java implementation expected", cbc.toString().contains("CBC[Java](AES[Java]"));
+        }
+
+        byte[] out = new byte[message.length];
+
+        cbc.processBlocks(message, 0, message.length / 16, out, 0);
+        return out;
+
+    }
+
+    byte[] generatePT(byte[] ct, byte[] key, byte[] iv, boolean expectNative)
+        throws Exception
+    {
+        CBCModeCipher cbc = CBCBlockCipher.newInstance(AESEngine.newInstance());
+        cbc.init(false, new ParametersWithIV(new KeyParameter(key), iv));
+
+        if (expectNative)
+        {
+            TestCase.assertTrue("Native implementation expected", cbc.toString().contains("CBC[Native]"));
+        }
+        else
+        {
+            TestCase.assertTrue("Java implementation expected", cbc.toString().contains("CBC[Java]"));
+        }
+
+        byte[] pt = new byte[ct.length];
+
+        cbc.processBlocks(ct, 0, ct.length / 16, pt, 0);
+        return pt;
+
+
+    }
+
+
+    public void doTest(int keySize)
+        throws Exception
+    {
+        SecureRandom secureRandom = new SecureRandom();
+        byte[] javaPT = new byte[16 * 4];
+        secureRandom.nextBytes(javaPT);
+
+        byte[] key = new byte[keySize];
+        secureRandom.nextBytes(key);
+
+        byte[] iv = new byte[16];
+        secureRandom.nextBytes(iv);
+
+        //
+        // Generate expected result from Java API.
+        //
+        CryptoServicesRegistrar.setNativeEnabled(false);
+        byte[] javaCT = generateCT(javaPT, key, iv, false);
+        TestCase.assertFalse(CryptoServicesRegistrar.getNativeServices().isEnabled());
+
+        //
+        // Turn on native
+        //
+
+        CryptoServicesRegistrar.setNativeEnabled(true);
+
+        {
+            //
+            // Original AES-NI not AXV etc
+            //
+            byte[] ct = generateCT(javaPT, key, iv, true);
+            TestCase.assertTrue(keySize + " AES-NI CT did not match", Arrays.areEqual(ct, javaCT));
+
+            byte[] pt = generatePT(javaCT, key, iv, true);
+            TestCase.assertTrue(keySize + " AES-NI PT did not match", Arrays.areEqual(pt, javaPT));
+        }
+
+    }
+
+    @Test
+    public void testCBCJavaAgreement_128()
+        throws Exception
+    {
+        if (!TestUtil.hasNativeService("AES/CBC"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
+            {
+                TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+        doTest(16);
+    }
+
+    @Test
+    public void testCBCJavaAgreement_192()
+        throws Exception
+    {
+        if (!TestUtil.hasNativeService("AES/CBC"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
+            {
+                TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+        doTest(24);
+    }
+
+    @Test
+    public void testCBCJavaAgreement_256()
+        throws Exception
+    {
+        if (!TestUtil.hasNativeService("AES/CBC"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
+            {
+                TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+        doTest(32);
+    }
+
+
+    /**
+     * Test from one block to 64 blocks.
+     * This wil exercise multi stages of block handling from single blocks to 16 block hunks.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void testCBCSpreadNoPadding()
+        throws Exception
+    {
+
+        if (!TestUtil.hasNativeService("AES/CBC"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
+            {
+                TestCase.fail("Skipping CBC Spread Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        SecureRandom rand = new SecureRandom();
+
+        for (int keySize : new int[]{16, 24, 32})
+        {
+            CBCBlockCipher javaEngineEnc = new CBCBlockCipher(new AESEngine());
+            AESCBCPacketCipher cbcPacketCipher = AESCBCPacketCipher.newInstance();
+
+            CBCBlockCipher javaEngineDec = new CBCBlockCipher(new AESEngine());
+
+
+            byte[] key = new byte[keySize];
+            rand.nextBytes(key);
+
+            byte[] iv = new byte[16];
+            rand.nextBytes(iv);
+
+            javaEngineEnc.init(true, new ParametersWithIV(new KeyParameter(key), iv));
+            //cbcPacketCipher.init(true, new ParametersWithIV(new KeyParameter(key), iv));
+            javaEngineDec.init(false, new ParametersWithIV(new KeyParameter(key), iv));
+            //nativeEngineDec.init(false, new ParametersWithIV(new KeyParameter(key), iv));
+
+            for (int msgSize = 16; msgSize < 1024; msgSize += 16)
+            {
+
+                String pFix = String.format("Variant: %s, KeySize: %d, msgSize: %d ", CryptoServicesRegistrar.getNativeServices().getVariant(), keySize, msgSize);
+
+
+                byte[] msg = new byte[msgSize];
+                rand.nextBytes(msg);
+
+                byte[] javaCT = new byte[msgSize];
+                byte[] nativeCT = new byte[msgSize];
+
+                Arrays.fill(javaCT, (byte)1);
+                Arrays.fill(nativeCT, (byte)2);
+
+                for (int j = 0; j < msgSize / 16; j++)
+                {
+                    javaEngineEnc.processBlock(msg, j * 16, javaCT, j * 16);
+                }
+
+                cbcPacketCipher.processPacket(true, new ParametersWithIV(new KeyParameter(key), iv), msg, 0, msgSize, nativeCT, 0);
+
+                TestCase.assertTrue(pFix + "Cipher texts the same", Arrays.areEqual(nativeCT, javaCT));
+
+
+                byte[] javaPt = new byte[msgSize];
+                byte[] nativePt = new byte[msgSize];
+
+                Arrays.fill(javaPt, (byte)3);
+                Arrays.fill(nativePt, (byte)4);
+
+                for (int j = 0; j < javaCT.length / 16; j++)
+                {
+                    javaEngineDec.processBlock(javaCT, j * 16, javaPt, j * 16);
+                }
+
+                cbcPacketCipher.processPacket(true, new ParametersWithIV(new KeyParameter(key), iv), nativeCT, 0, msgSize, nativePt, 0);
+
+                if (!Arrays.areEqual(nativePt, msg))
+                {
+                    System.out.println(Hex.toHexString(msg));
+                    System.out.println(Hex.toHexString(nativePt));
+                }
+
+                TestCase.assertTrue(pFix + "Native Pt same", Arrays.areEqual(nativePt, msg));
+                TestCase.assertTrue(pFix + "Java Pt same", Arrays.areEqual(javaPt, msg));
+
+            }
+
+
+        }
+
+
+    }
+
+    public void testExceptions()
+    {
+        AESCBCPacketCipher cbc = AESCBCPacketCipher.newInstance();
+
+        try
+        {
+            cbc.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), -1);
+            fail("negative value for getOutputSize");
+        }
+        catch (IllegalArgumentException e)
+        {
+            // expected
+            isTrue("wrong message", e.getMessage().equals(ExceptionMessage.LEN_NEGATIVE));
+        }
+
+        try
+        {
+            cbc.processPacket(true, new ParametersWithIV(new KeyParameter(new byte[18]), new byte[16]), new byte[16], 0, 16, new byte[32], 0);
+            fail("invalid key size for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            // expected
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_KEY_LENGTH));
+        }
+
+        try
+        {
+            cbc.processPacket(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]), new byte[16], 0, 16, new byte[32], 0);
+            fail("invalid key size for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            // expected
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.CBC_IV_LENGTH));
+        }
+
+
+        try
+        {
+            cbc.processPacket(false, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]), null, 0, 0, new byte[16], 0);
+            fail("input was null for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_NULL));
+        }
+
+        try
+        {
+            cbc.processPacket(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]), new byte[16], 0, 16, new byte[15], 0);
+            fail("output buffer too small for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+        }
+
+        try
+        {
+            cbc.processPacket(false, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]), new byte[15], 0, 15, new byte[16], 0);
+            fail("output buffer too small for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_DECRYPTION_INPUT_LENGTH_INVALID));
+        }
+
+        try
+        {
+            cbc.processPacket(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]), new byte[16], -1, 16, new byte[32], 0);
+            fail("offset is negative for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
+        }
+
+        try
+        {
+            cbc.processPacket(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]), new byte[16], 0, -1, new byte[32], 0);
+            fail("len is negative for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.LEN_NEGATIVE));
+        }
+
+        try
+        {
+            cbc.processPacket(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]), new byte[16], 0, 16, new byte[32], -1);
+            fail("output offset is negative for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
+        }
+
+        try
+        {
+            cbc.processPacket(false, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]), new byte[16], 0, 32, new byte[32], 0);
+            fail("input buffer too small for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_LENGTH));
+        }
+
+        try
+        {
+            cbc.processPacket(false, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]), new byte[16], 0, 16, new byte[0], 0);
+            fail("output buffer too small for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+        }
+    }
 }

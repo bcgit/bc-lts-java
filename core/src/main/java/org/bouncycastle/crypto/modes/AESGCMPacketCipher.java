@@ -67,22 +67,7 @@ public class AESGCMPacketCipher
                              byte[] output, int outOff)
         throws PacketCipherException
     {
-        if (input == null)
-        {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.INPUT_NULL));
-        }
-        if (inOff < 0)
-        {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
-        }
-        if (outOff < 0)
-        {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
-        }
-        if (len < 0)
-        {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE));
-        }
+        processPacketExceptionCheck(input, inOff, len, output, outOff);
 
         // These fields are set by init and not modified by processing
         int macSize = 0;

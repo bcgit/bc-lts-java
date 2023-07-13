@@ -7,7 +7,7 @@ public abstract class PacketCipherEngine
 {
     protected static final int BLOCK_SIZE = 16;
 
-    protected int[][] generateWorkingKey(byte[] key, int KC, int ROUNDS, boolean forEncryption)
+    protected static int[][] generateWorkingKey(byte[] key, int KC, int ROUNDS, boolean forEncryption)
     {
         int[][] KW = generateWorkingKey(key, KC, ROUNDS);
         if (!forEncryption)
@@ -17,7 +17,7 @@ public abstract class PacketCipherEngine
         return KW;
     }
 
-    protected int[][] generateWorkingKey(byte[] key, int KC, int ROUNDS)
+    protected static int[][] generateWorkingKey(byte[] key, int KC, int ROUNDS)
     {
         int[][] W = new int[ROUNDS + 1][4];   // 4 words in a block
         int col0 = Pack.littleEndianToInt(key, 0);
@@ -143,7 +143,7 @@ public abstract class PacketCipherEngine
         return W;
     }
 
-    private void inverseWorkingKey(int[][] W, int ROUNDS)
+    private static void inverseWorkingKey(int[][] W, int ROUNDS)
     {
         for (int j = 1; j < ROUNDS; j++)
         {
@@ -284,7 +284,7 @@ public abstract class PacketCipherEngine
         return (S[x & 255] & 255 | ((S[(x >> 8) & 255] & 255) << 8) | ((S[(x >> 16) & 255] & 255) << 16) | S[(x >> 24) & 255] << 24);
     }
 
-    protected void encryptBlock(byte[] in, byte[] out, int[][] KW, byte[] s, int ROUNDS)
+    protected static void encryptBlock(byte[] in, byte[] out, int[][] KW, byte[] s, int ROUNDS)
     {
         int C0 = Pack.littleEndianToInt(in, 0);
         int C1 = Pack.littleEndianToInt(in, 4);
@@ -320,7 +320,63 @@ public abstract class PacketCipherEngine
         Pack.intToLittleEndian(C3, out, 12);
     }
 
-    protected void encryptBlock(byte[] in, int inOff, byte[] out, int outOff, int[][] KW, byte[] s, int ROUNDS)
+    protected static void encryptBlock(int[] C, int[][] KW, byte[] s, int ROUNDS)
+    {
+        int t0 = C[0] ^ KW[0][0];
+        int t1 = C[1] ^ KW[0][1];
+        int t2 = C[2] ^ KW[0][2];
+        int r = 1, r0, r1, r2, r3 = C[3] ^ KW[0][3];
+        while (r < ROUNDS - 1)
+        {
+            r0 = T0[t0 & 255] ^ shift(T0[(t1 >> 8) & 255], 24) ^ shift(T0[(t2 >> 16) & 255], 16) ^ shift(T0[(r3 >> 24) & 255], 8) ^ KW[r][0];
+            r1 = T0[t1 & 255] ^ shift(T0[(t2 >> 8) & 255], 24) ^ shift(T0[(r3 >> 16) & 255], 16) ^ shift(T0[(t0 >> 24) & 255], 8) ^ KW[r][1];
+            r2 = T0[t2 & 255] ^ shift(T0[(r3 >> 8) & 255], 24) ^ shift(T0[(t0 >> 16) & 255], 16) ^ shift(T0[(t1 >> 24) & 255], 8) ^ KW[r][2];
+            r3 = T0[r3 & 255] ^ shift(T0[(t0 >> 8) & 255], 24) ^ shift(T0[(t1 >> 16) & 255], 16) ^ shift(T0[(t2 >> 24) & 255], 8) ^ KW[r++][3];
+            t0 = T0[r0 & 255] ^ shift(T0[(r1 >> 8) & 255], 24) ^ shift(T0[(r2 >> 16) & 255], 16) ^ shift(T0[(r3 >> 24) & 255], 8) ^ KW[r][0];
+            t1 = T0[r1 & 255] ^ shift(T0[(r2 >> 8) & 255], 24) ^ shift(T0[(r3 >> 16) & 255], 16) ^ shift(T0[(r0 >> 24) & 255], 8) ^ KW[r][1];
+            t2 = T0[r2 & 255] ^ shift(T0[(r3 >> 8) & 255], 24) ^ shift(T0[(r0 >> 16) & 255], 16) ^ shift(T0[(r1 >> 24) & 255], 8) ^ KW[r][2];
+            r3 = T0[r3 & 255] ^ shift(T0[(r0 >> 8) & 255], 24) ^ shift(T0[(r1 >> 16) & 255], 16) ^ shift(T0[(r2 >> 24) & 255], 8) ^ KW[r++][3];
+        }
+        r0 = T0[t0 & 255] ^ shift(T0[(t1 >> 8) & 255], 24) ^ shift(T0[(t2 >> 16) & 255], 16) ^ shift(T0[(r3 >> 24) & 255], 8) ^ KW[r][0];
+        r1 = T0[t1 & 255] ^ shift(T0[(t2 >> 8) & 255], 24) ^ shift(T0[(r3 >> 16) & 255], 16) ^ shift(T0[(t0 >> 24) & 255], 8) ^ KW[r][1];
+        r2 = T0[t2 & 255] ^ shift(T0[(r3 >> 8) & 255], 24) ^ shift(T0[(t0 >> 16) & 255], 16) ^ shift(T0[(t1 >> 24) & 255], 8) ^ KW[r][2];
+        r3 = T0[r3 & 255] ^ shift(T0[(t0 >> 8) & 255], 24) ^ shift(T0[(t1 >> 16) & 255], 16) ^ shift(T0[(t2 >> 24) & 255], 8) ^ KW[r++][3];
+        // the final round's table is a simple function of S so we don't use a whole other four tables for it
+        C[0] = (S[r0 & 255] & 255) ^ ((S[(r1 >> 8) & 255] & 255) << 8) ^ ((s[(r2 >> 16) & 255] & 255) << 16) ^ (s[(r3 >> 24) & 255] << 24) ^ KW[r][0];
+        C[1] = (s[r1 & 255] & 255) ^ ((S[(r2 >> 8) & 255] & 255) << 8) ^ ((S[(r3 >> 16) & 255] & 255) << 16) ^ (s[(r0 >> 24) & 255] << 24) ^ KW[r][1];
+        C[2] = (s[r2 & 255] & 255) ^ ((S[(r3 >> 8) & 255] & 255) << 8) ^ ((S[(r0 >> 16) & 255] & 255) << 16) ^ (S[(r1 >> 24) & 255] << 24) ^ KW[r][2];
+        C[3] = (s[r3 & 255] & 255) ^ ((s[(r0 >> 8) & 255] & 255) << 8) ^ ((s[(r1 >> 16) & 255] & 255) << 16) ^ (S[(r2 >> 24) & 255] << 24) ^ KW[r][3];
+    }
+
+    protected static void encryptBlock(int[] in, int[] out, int[][] KW, byte[] s, int ROUNDS)
+    {
+        int t0 = in[0] ^ KW[0][0];
+        int t1 = in[1] ^ KW[0][1];
+        int t2 = in[2] ^ KW[0][2];
+        int r = 1, r0, r1, r2, r3 = in[3] ^ KW[0][3];
+        while (r < ROUNDS - 1)
+        {
+            r0 = T0[t0 & 255] ^ shift(T0[(t1 >> 8) & 255], 24) ^ shift(T0[(t2 >> 16) & 255], 16) ^ shift(T0[(r3 >> 24) & 255], 8) ^ KW[r][0];
+            r1 = T0[t1 & 255] ^ shift(T0[(t2 >> 8) & 255], 24) ^ shift(T0[(r3 >> 16) & 255], 16) ^ shift(T0[(t0 >> 24) & 255], 8) ^ KW[r][1];
+            r2 = T0[t2 & 255] ^ shift(T0[(r3 >> 8) & 255], 24) ^ shift(T0[(t0 >> 16) & 255], 16) ^ shift(T0[(t1 >> 24) & 255], 8) ^ KW[r][2];
+            r3 = T0[r3 & 255] ^ shift(T0[(t0 >> 8) & 255], 24) ^ shift(T0[(t1 >> 16) & 255], 16) ^ shift(T0[(t2 >> 24) & 255], 8) ^ KW[r++][3];
+            t0 = T0[r0 & 255] ^ shift(T0[(r1 >> 8) & 255], 24) ^ shift(T0[(r2 >> 16) & 255], 16) ^ shift(T0[(r3 >> 24) & 255], 8) ^ KW[r][0];
+            t1 = T0[r1 & 255] ^ shift(T0[(r2 >> 8) & 255], 24) ^ shift(T0[(r3 >> 16) & 255], 16) ^ shift(T0[(r0 >> 24) & 255], 8) ^ KW[r][1];
+            t2 = T0[r2 & 255] ^ shift(T0[(r3 >> 8) & 255], 24) ^ shift(T0[(r0 >> 16) & 255], 16) ^ shift(T0[(r1 >> 24) & 255], 8) ^ KW[r][2];
+            r3 = T0[r3 & 255] ^ shift(T0[(r0 >> 8) & 255], 24) ^ shift(T0[(r1 >> 16) & 255], 16) ^ shift(T0[(r2 >> 24) & 255], 8) ^ KW[r++][3];
+        }
+        r0 = T0[t0 & 255] ^ shift(T0[(t1 >> 8) & 255], 24) ^ shift(T0[(t2 >> 16) & 255], 16) ^ shift(T0[(r3 >> 24) & 255], 8) ^ KW[r][0];
+        r1 = T0[t1 & 255] ^ shift(T0[(t2 >> 8) & 255], 24) ^ shift(T0[(r3 >> 16) & 255], 16) ^ shift(T0[(t0 >> 24) & 255], 8) ^ KW[r][1];
+        r2 = T0[t2 & 255] ^ shift(T0[(r3 >> 8) & 255], 24) ^ shift(T0[(t0 >> 16) & 255], 16) ^ shift(T0[(t1 >> 24) & 255], 8) ^ KW[r][2];
+        r3 = T0[r3 & 255] ^ shift(T0[(t0 >> 8) & 255], 24) ^ shift(T0[(t1 >> 16) & 255], 16) ^ shift(T0[(t2 >> 24) & 255], 8) ^ KW[r++][3];
+        // the final round's table is a simple function of S so we don't use a whole other four tables for it
+        out[0] = (S[r0 & 255] & 255) ^ ((S[(r1 >> 8) & 255] & 255) << 8) ^ ((s[(r2 >> 16) & 255] & 255) << 16) ^ (s[(r3 >> 24) & 255] << 24) ^ KW[r][0];
+        out[1] = (s[r1 & 255] & 255) ^ ((S[(r2 >> 8) & 255] & 255) << 8) ^ ((S[(r3 >> 16) & 255] & 255) << 16) ^ (s[(r0 >> 24) & 255] << 24) ^ KW[r][1];
+        out[2] = (s[r2 & 255] & 255) ^ ((S[(r3 >> 8) & 255] & 255) << 8) ^ ((S[(r0 >> 16) & 255] & 255) << 16) ^ (S[(r1 >> 24) & 255] << 24) ^ KW[r][2];
+        out[3] = (s[r3 & 255] & 255) ^ ((s[(r0 >> 8) & 255] & 255) << 8) ^ ((s[(r1 >> 16) & 255] & 255) << 16) ^ (S[(r2 >> 24) & 255] << 24) ^ KW[r][3];
+    }
+
+    protected static void encryptBlock(byte[] in, int inOff, byte[] out, int outOff, int[][] KW, byte[] s, int ROUNDS)
     {
         int C0 = Pack.littleEndianToInt(in, inOff);
         int C1 = Pack.littleEndianToInt(in, inOff + 4);
@@ -362,7 +418,7 @@ public abstract class PacketCipherEngine
         Pack.intToLittleEndian(C3, out, outOff + 12);
     }
 
-    protected void decryptBlock(byte[] in, int inOff, byte[] out, int outOff, int[][] KW, byte[] s, int ROUNDS)
+    protected static void decryptBlock(byte[] in, int inOff, byte[] out, int outOff, int[][] KW, byte[] s, int ROUNDS)
     {
         int C0 = Pack.littleEndianToInt(in, inOff);
         int C1 = Pack.littleEndianToInt(in, inOff + 4);
@@ -402,6 +458,34 @@ public abstract class PacketCipherEngine
         Pack.intToLittleEndian(C1, out, outOff + 4);
         Pack.intToLittleEndian(C2, out, outOff + 8);
         Pack.intToLittleEndian(C3, out, outOff + 12);
+    }
+
+    protected static void decryptBlock(int[] C, int[] C2, int[][] KW, byte[] s, int ROUNDS)
+    {
+        int t0 = C[0] ^ KW[ROUNDS][0];
+        int t1 = C[1] ^ KW[ROUNDS][1];
+        int t2 = C[2] ^ KW[ROUNDS][2];
+        int r = ROUNDS - 1, r0, r1, r2, r3 = C[3] ^ KW[ROUNDS][3];
+        while (r > 1)
+        {
+            r0 = Tinv0[t0 & 255] ^ shift(Tinv0[(r3 >> 8) & 255], 24) ^ shift(Tinv0[(t2 >> 16) & 255], 16) ^ shift(Tinv0[(t1 >> 24) & 255], 8) ^ KW[r][0];
+            r1 = Tinv0[t1 & 255] ^ shift(Tinv0[(t0 >> 8) & 255], 24) ^ shift(Tinv0[(r3 >> 16) & 255], 16) ^ shift(Tinv0[(t2 >> 24) & 255], 8) ^ KW[r][1];
+            r2 = Tinv0[t2 & 255] ^ shift(Tinv0[(t1 >> 8) & 255], 24) ^ shift(Tinv0[(t0 >> 16) & 255], 16) ^ shift(Tinv0[(r3 >> 24) & 255], 8) ^ KW[r][2];
+            r3 = Tinv0[r3 & 255] ^ shift(Tinv0[(t2 >> 8) & 255], 24) ^ shift(Tinv0[(t1 >> 16) & 255], 16) ^ shift(Tinv0[(t0 >> 24) & 255], 8) ^ KW[r--][3];
+            t0 = Tinv0[r0 & 255] ^ shift(Tinv0[(r3 >> 8) & 255], 24) ^ shift(Tinv0[(r2 >> 16) & 255], 16) ^ shift(Tinv0[(r1 >> 24) & 255], 8) ^ KW[r][0];
+            t1 = Tinv0[r1 & 255] ^ shift(Tinv0[(r0 >> 8) & 255], 24) ^ shift(Tinv0[(r3 >> 16) & 255], 16) ^ shift(Tinv0[(r2 >> 24) & 255], 8) ^ KW[r][1];
+            t2 = Tinv0[r2 & 255] ^ shift(Tinv0[(r1 >> 8) & 255], 24) ^ shift(Tinv0[(r0 >> 16) & 255], 16) ^ shift(Tinv0[(r3 >> 24) & 255], 8) ^ KW[r][2];
+            r3 = Tinv0[r3 & 255] ^ shift(Tinv0[(r2 >> 8) & 255], 24) ^ shift(Tinv0[(r1 >> 16) & 255], 16) ^ shift(Tinv0[(r0 >> 24) & 255], 8) ^ KW[r--][3];
+        }
+        r0 = Tinv0[t0 & 255] ^ shift(Tinv0[(r3 >> 8) & 255], 24) ^ shift(Tinv0[(t2 >> 16) & 255], 16) ^ shift(Tinv0[(t1 >> 24) & 255], 8) ^ KW[r][0];
+        r1 = Tinv0[t1 & 255] ^ shift(Tinv0[(t0 >> 8) & 255], 24) ^ shift(Tinv0[(r3 >> 16) & 255], 16) ^ shift(Tinv0[(t2 >> 24) & 255], 8) ^ KW[r][1];
+        r2 = Tinv0[t2 & 255] ^ shift(Tinv0[(t1 >> 8) & 255], 24) ^ shift(Tinv0[(t0 >> 16) & 255], 16) ^ shift(Tinv0[(r3 >> 24) & 255], 8) ^ KW[r][2];
+        r3 = Tinv0[r3 & 255] ^ shift(Tinv0[(t2 >> 8) & 255], 24) ^ shift(Tinv0[(t1 >> 16) & 255], 16) ^ shift(Tinv0[(t0 >> 24) & 255], 8) ^ KW[r][3];
+        // the final round's table is a simple function of Si so we don't use a whole other four tables for it
+        C2[0] ^= (Si[r0 & 255] & 255) ^ ((s[(r3 >> 8) & 255] & 255) << 8) ^ ((s[(r2 >> 16) & 255] & 255) << 16) ^ (Si[(r1 >> 24) & 255] << 24) ^ KW[0][0];
+        C2[1] ^= (s[r1 & 255] & 255) ^ ((s[(r0 >> 8) & 255] & 255) << 8) ^ ((Si[(r3 >> 16) & 255] & 255) << 16) ^ (s[(r2 >> 24) & 255] << 24) ^ KW[0][1];
+        C2[2] ^= (s[r2 & 255] & 255) ^ ((Si[(r1 >> 8) & 255] & 255) << 8) ^ ((Si[(r0 >> 16) & 255] & 255) << 16) ^ (s[(r3 >> 24) & 255] << 24) ^ KW[0][2];
+        C2[3] ^= (Si[r3 & 255] & 255) ^ ((s[(r2 >> 8) & 255] & 255) << 8) ^ ((s[(r1 >> 16) & 255] & 255) << 16) ^ (s[(r0 >> 24) & 255] << 24) ^ KW[0][3];
     }
 
     private static final int[] Tinv0 =
@@ -493,4 +577,53 @@ public abstract class PacketCipherEngine
         (byte)23, (byte)43, (byte)4, (byte)126, (byte)186, (byte)119, (byte)214, (byte)38,
         (byte)225, (byte)105, (byte)20, (byte)99, (byte)85, (byte)33, (byte)12, (byte)125,
     };
+
+    protected void int4ToLittleEndian(int[] C, byte[] output, int outOff)
+    {
+        Pack.intToLittleEndian(C[0], output, outOff);
+        Pack.intToLittleEndian(C[1], output, outOff + 4);
+        Pack.intToLittleEndian(C[2], output, outOff + 8);
+        Pack.intToLittleEndian(C[3], output, outOff + 12);
+    }
+
+    protected void int4XorLittleEndian(int[] C, byte[] input, int inOff)
+    {
+        C[0] ^= Pack.littleEndianToInt(input, inOff);
+        C[1] ^= Pack.littleEndianToInt(input, 4 + inOff);
+        C[2] ^= Pack.littleEndianToInt(input, 8 + inOff);
+        C[3] ^= Pack.littleEndianToInt(input, 12 + inOff);
+    }
+
+    protected void littleEndianToInt4(byte[] input, int inOff, int[] output)
+    {
+        output[0] = Pack.littleEndianToInt(input, inOff);
+        output[1] = Pack.littleEndianToInt(input, inOff + 4);
+        output[2] = Pack.littleEndianToInt(input, inOff + 8);
+        output[3] = Pack.littleEndianToInt(input, inOff + 12);
+    }
+
+    protected void processPacketExceptionCheck(byte[] input, int inOff, int len, byte[] output, int outOff)
+        throws PacketCipherException
+    {
+        if (input == null)
+        {
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.INPUT_NULL));
+        }
+        if (inOff < 0)
+        {
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
+        }
+        if (outOff < 0)
+        {
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
+        }
+        if (len < 0)
+        {
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE));
+        }
+        if (input.length - inOff < len)
+        {
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.INPUT_LENGTH));
+        }
+    }
 }
