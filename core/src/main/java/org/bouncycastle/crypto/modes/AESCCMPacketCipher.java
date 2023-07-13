@@ -209,73 +209,8 @@ public class AESCCMPacketCipher
         return outputLen;
     }
 
-//    private int calculateMac(byte[] in, int inOff, int len, byte[] macBlock, int macSize,
-//                             byte[] aad, byte[] nonce, int[][] workingkey, byte[] s, int ROUNDS)
-//    {
-//        byte[] buf = new byte[BLOCK_SIZE];
-//        int[] C = new int[4];
-//        int bufOff = 0;
-//        if (aad != null && aad.length > 0)
-//        {
-//            buf[0] |= 0x40;
-//        }
-//        buf[0] |= ((((macSize - 2) >> 1) & 0x7) << 3) | (((15 - nonce.length) - 1) & 0x7);
-//        System.arraycopy(nonce, 0, buf, 1, nonce.length);
-//        int q = len;
-//        int count = 1;
-//        while (q > 0)
-//        {
-//            buf[buf.length - count++] = (byte)(q & 0xff);
-//            q >>>= 8;
-//        }
-//        littleEndianToInt4(buf, 0, C);
-//        encryptBlock(C, workingkey, s, ROUNDS);
-//        //
-//        // process associated text
-//        //
-//        if (aad != null && aad.length > 0)
-//        {
-//            int textLength = aad.length;
-//            if (textLength < ((1 << 16) - (1 << 8)))
-//            {
-//                buf[0] = (byte)(textLength >> 8);
-//                buf[1] = (byte)textLength;
-//                bufOff = 2;
-//            }
-//            else // can't go any higher than 2^32
-//            {
-//                buf[0] = (byte)0xff;
-//                buf[1] = (byte)0xfe;
-//                buf[2] = (byte)(textLength >> 24);
-//                buf[3] = (byte)(textLength >> 16);
-//                buf[4] = (byte)(textLength >> 8);
-//                buf[5] = (byte)textLength;
-//                bufOff = 6;
-//            }
-//            bufOff = cbcmacUpdate(buf, C, bufOff, aad, 0, aad.length, workingkey, s, ROUNDS);
-//            if (bufOff != 0)
-//            {
-//                Arrays.fill(buf, bufOff, BLOCK_SIZE, (byte)0);
-//                int4XorLittleEndian(C, buf, 0);
-//                encryptBlock(C, workingkey, s, ROUNDS);
-//                bufOff = 0;
-//            }
-//        }
-//        if (len != 0)
-//        {
-//            bufOff = cbcmacUpdate(buf, C, bufOff, in, inOff, len, workingkey, s, ROUNDS);
-//            Arrays.fill(buf, bufOff, BLOCK_SIZE, (byte)0);
-//            int4XorLittleEndian(C, buf, 0);
-//            encryptBlock(C, workingkey, s, ROUNDS);
-//        }
-//        int4ToLittleEndian(C, macBlock, 0);
-//        Arrays.fill(macBlock, macSize, BLOCK_SIZE, (byte)0);
-//        Arrays.fill(C, 0);
-//        return BLOCK_SIZE;
-//    }
-
-    private int calculateMac(byte[] in, int inOff, int inLen, byte[] macBlock, int macSize,
-                             byte[] aad, byte[] nonce, int[][] workingkey, byte[] s, int ROUNDS)
+    private void calculateMac(byte[] in, int inOff, int inLen, byte[] macBlock, int macSize,
+                              byte[] aad, byte[] nonce, int[][] workingkey, byte[] s, int ROUNDS)
     {
         byte[] buf = new byte[BLOCK_SIZE];
         int[] C = new int[4];
@@ -336,7 +271,6 @@ public class AESCCMPacketCipher
         int4ToLittleEndian(C, macBlock, 0);
         Arrays.fill(macBlock, macSize, BLOCK_SIZE, (byte)0);
         Arrays.fill(C, 0);
-        return BLOCK_SIZE;
     }
 
     private int getMacSize(boolean forEncryption, int requestedMacBits)
