@@ -139,6 +139,12 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             arm/ccm/ccm_neon.c
             )
 
+    set(ARM_SHA256
+            arm/sha/sha256.h
+            arm/sha/sha256.c
+            arm/jni/sha256_jni.c
+            )
+
     add_library(${LIB_PROBE}-le SHARED ${PROBE})
     target_include_directories(${LIB_PROBE}-le PUBLIC ${JNI_INCLUDES})
     target_compile_options(${LIB_PROBE}-le PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${PROBE_OPTIONS}>)
@@ -159,6 +165,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             ${ARM_CFB}
             ${ARM_CTR}
             ${ARM_CCM}
+            ${ARM_SHA256}
             )
     target_include_directories("${LIB_NATIVE}-neon-le" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-neon-le" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -190,6 +197,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
                 ${ARM_CFB}
                 ${ARM_CTR}
                 ${ARM_CCM}
+                ${ARM_SHA256}
                 )
         target_include_directories("${LIB_NATIVE}-neon-be" PUBLIC ${JNI_INCLUDES})
         target_compile_options("${LIB_NATIVE}-neon-be" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS} ${ARM_BE}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)

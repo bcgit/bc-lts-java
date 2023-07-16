@@ -180,8 +180,8 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA2
         (JNIEnv *env, jclass cl) {
-    return JNI_FALSE;
-
+    probe_system();
+    return cpu_info.neon && cpu_info.sha256 ? JNI_TRUE : JNI_FALSE;
 }
 
 /*
