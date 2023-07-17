@@ -1,13 +1,10 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.BlockCipher;
+
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.ExceptionMessage;
-import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.PacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
-import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
@@ -31,7 +28,18 @@ public class AESCFBPacketCipher
         {
             throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
         }
-        return len;
+        if (encryption)
+        {
+            return ((len >> 4) + ((len & 15) != 0 ? 1 : 0)) << 4;
+        }
+        else
+        {
+            if ((len & 15) != 0)
+            {
+                throw new IllegalArgumentException(ExceptionMessage.AES_DECRYPTION_INPUT_LENGTH_INVALID);
+            }
+            return len;
+        }
     }
 
     @Override
@@ -39,25 +47,22 @@ public class AESCFBPacketCipher
         throws PacketCipherException
     {
         processPacketExceptionCheck(input, inOff, len, output, outOff);
-        BlockCipher cipher = new AESEngine();
+        if (!encryption && ((len & 15) != 0))
+        {
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.AES_DECRYPTION_INPUT_LENGTH_INVALID));
+        }
         byte[] cfbV = new byte[BLOCK_SIZE];
-        byte[] cfbOutV = new byte[BLOCK_SIZE];
-        byte[] inBuf = new byte[BLOCK_SIZE];
         byte[] iv;
-        int[][] workingKey = null;
-        byte[] s = null;
-        int ROUNDS = 0;
-        int byteCount = 0;
+        int[][] workingKey;
+        byte[] s;
+        int ROUNDS;
+        int C[] = new int[4];
         if (parameters instanceof ParametersWithIV)
         {
             ParametersWithIV ivParam = (ParametersWithIV)parameters;
-            iv = ivParam.getIV().clone();
-            //reset
-            System.arraycopy(iv, 0, cfbV, cfbV.length - iv.length, iv.length);
             // if null it's an IV changed only.
             if (ivParam.getParameters() != null)
             {
-                cipher.init(true, ivParam.getParameters());
                 byte[] key = ((KeyParameter)ivParam.getParameters()).getKey();
                 int keyLen = key.length;
                 if (keyLen < 16 || keyLen > 32 || (keyLen & 7) != 0)
@@ -66,80 +71,69 @@ public class AESCFBPacketCipher
                 }
                 int KC = keyLen >>> 2;
                 ROUNDS = KC + 6;
-                workingKey = generateWorkingKey(key, KC, ROUNDS, encryption);
-                s = Arrays.clone(encryption ? S : Si);
+                workingKey = generateWorkingKey(key, KC, ROUNDS);
+                s = Arrays.clone(S);
             }
+            else
+            {
+                throw PacketCipherException.from(new IllegalArgumentException("CFB cipher unitialized"));
+            }
+            iv = ivParam.getIV().clone();
+            //reset
+            if (iv.length < BLOCK_SIZE)
+            {
+                System.arraycopy(iv, 0, cfbV, cfbV.length - iv.length, iv.length);
+            }
+            else
+            {
+                cfbV = iv;
+            }
+            littleEndianToInt4(cfbV, 0, C);
+        }
+        else
+        {
+            throw PacketCipherException.from(new IllegalArgumentException("invalid parameters passed to CFB"));
         }
         int inStart = inOff;
-        int inEnd = inOff + len;
         int outStart = outOff;
         int blockCount = (len >>> 4) + (((len & 15) != 0) ? 1 : 0);
         if (encryption)
         {
             for (int i = 0; i < blockCount; ++i)
             {
-                encryptBlock(cfbV, cfbV, workingKey, s, ROUNDS);
+                encryptBlock(C, workingKey, s, ROUNDS);
                 if (i != blockCount - 1)
                 {
-                    for (int j = 0; j < BLOCK_SIZE; ++j)
-                    {
-                        cfbV[j] = (byte)(cfbV[j] ^ input[inStart++]);
-                        output[outStart++] = cfbV[j];
-                    }
+                    int4XorLittleEndian(C, input, inStart);
+                    int4ToLittleEndian(C, output, outStart);
+                    inStart += BLOCK_SIZE;
+                    outStart += BLOCK_SIZE;
                 }
                 else
                 {
-                    for (int j = 0; inStart < len; ++j)
-                    {
-                        output[outStart++] = (byte)(cfbV[j] ^ input[inStart++]);
-                    }
+                    int4XorLittleEndianTail(C, input, inStart);
+                    int4ToLittleEndian(C, output, outStart);
                 }
             }
         }
         else
         {
-//            for (int i = 0; i < blockCount; ++i)
-//            {
-//                if (i == 0)
-//                {
-//                    decryptBlock(cfbV, 0, cfbV, 0, workingKey, s, ROUNDS);
-//                }
-//                else
-//                {
-//                    decryptBlock(input, inStart, cfbV, 0, workingKey, s, ROUNDS);
-//                }
-//
-//                if (i != blockCount - 1)
-//                {
-//                    for (int j = 0; j < BLOCK_SIZE; ++j)
-//                    {
-//                        output[outStart++] = (byte)(cfbV[j] ^ input[inStart++]);
-//                        output[outStart++] = cfbV[j];
-//                    }
-//                }
-//                else
-//                {
-//                    for (int j = 0; inStart < len; ++j)
-//                    {
-//                        output[outStart++] = (byte)(cfbV[j] ^ input[inStart++]);
-//                    }
-//                }
-//            }
-            while (inStart < inEnd)
+            for (int i = 0; i < blockCount; ++i)
             {
-                if (byteCount == 0)
-                {
-                    cipher.processBlock(cfbV, 0, cfbOutV, 0);
-                }
-                inBuf[byteCount] = input[inStart];
-                byte rv = (byte)(cfbOutV[byteCount++] ^ input[inStart++]);
-                if (byteCount == BLOCK_SIZE)
-                {
-                    byteCount = 0;
-                    System.arraycopy(inBuf, 0, cfbV, 0, BLOCK_SIZE);
-                }
-                output[outStart++] = rv;
+                encryptBlock(C, workingKey, s, ROUNDS);
+                int4XorLittleEndian(C, input, inStart);
+                int4ToLittleEndian(C, output, outStart);
+                littleEndianToInt4(input, inStart, C);
+                inStart += BLOCK_SIZE;
+                outStart += BLOCK_SIZE;
             }
+        }
+        Arrays.fill(cfbV, (byte)0);
+        Arrays.fill(iv, (byte)0);
+        Arrays.fill(C, 0);
+        for (int[] ints : workingKey)
+        {
+            Arrays.fill(ints, 0);
         }
 
         return len;
