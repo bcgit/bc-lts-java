@@ -24,7 +24,7 @@ ed1c2e218b3f99d19df8be877237c26ee8d39cced24dcbf4d4353768d528f738  mail/src/main/
 98146dadae56147a0fab2a5884bb6f1f988869fd663d9f4dc6efbb5ecef5395a  mail/src/main/java/org/bouncycastle/mail/smime/CMSProcessableBodyPart.java
 ba16ce9fde0ef01feeb9ebd4735ef3327c854f02cc5e39431838dd301694302a  mail/src/main/java/org/bouncycastle/mail/smime/SMIMESignedGenerator.java
 3b0693f7444f88deb05a9581aecabc24c50298a3d0d2b975759321e1327ee54e  mail/src/main/java/org/bouncycastle/mail/smime/MailcapUtil.java
-4fa9cfbba33dfab2db951448393955c1b6d283745ecc7eefef67887a911c4613  mail/src/main/java/org/bouncycastle/mail/smime/SMIMEGenerator.java
+7c8e07aa4c49ca5df69f10007bd6e39d5b623a5e9f45709baeda488874a58fa6  mail/src/main/java/org/bouncycastle/mail/smime/SMIMEGenerator.java
 758188c3445c7fe70eb233bcd88a0978c593022f053bc8ca51ff9d286817e34b  mail/src/main/java/org/bouncycastle/mail/smime/util/CRLFOutputStream.java
 c78f1d6696055a918467572785dd87df026f36f1ed2f900c62a59d0fb923ec0c  mail/src/main/java/org/bouncycastle/mail/smime/util/SharedFileInputStream.java
 2b5da60b35af84575119f3a6d3ee66ff40f6297b077d462977ff8de96ed4a421  mail/src/main/java/org/bouncycastle/mail/smime/util/FileBackedMimeBodyPart.java

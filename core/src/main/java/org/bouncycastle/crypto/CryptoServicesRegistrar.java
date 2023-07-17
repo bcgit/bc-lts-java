@@ -30,6 +30,8 @@ import org.bouncycastle.crypto.prng.EntropySource;
 import org.bouncycastle.crypto.prng.EntropySourceProvider;
 import org.bouncycastle.crypto.prng.SP800SecureRandom;
 import org.bouncycastle.crypto.prng.SP800SecureRandomBuilder;
+import org.bouncycastle.crypto.prng.drbg.HMacSP800DRBG;
+import org.bouncycastle.crypto.prng.drbg.SP80090DRBG;
 import org.bouncycastle.util.Pack;
 import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.Strings;
@@ -49,13 +51,7 @@ public final class CryptoServicesRegistrar
 
     private static final ThreadLocal<Map<String, Object[]>> threadProperties = new ThreadLocal<Map<String, Object[]>>();
     private static final Map<String, Object[]> globalProperties = Collections.synchronizedMap(new HashMap<String, Object[]>());
-    private static final SecureRandomProvider defaultRandomProviderImpl = new SecureRandomProvider()
-    {
-        public SecureRandom get()
-        {
-            return new SecureRandom();
-        }
-    };
+    private static final SecureRandomProvider defaultRandomProviderImpl = new ThreadLocalSecureRandomProvider();
 
     private static final CryptoServicesConstraints noConstraintsImpl = new CryptoServicesConstraints()
     {
@@ -153,7 +149,7 @@ public final class CryptoServicesRegistrar
 
     public static String getInfo()
     {
-        return "BouncyCastle APIs (LTS edition) v2.73.0";
+        return "BouncyCastle APIs (LTS edition) v2.73.2";
     }
 
     public static boolean isNativeEnabled()
@@ -673,7 +669,15 @@ public final class CryptoServicesRegistrar
     // to the JVM's seed generator.
     private static EntropySourceProvider createBaseEntropySourceProvider()
     {
-        if (Security.getProperty("securerandom.source") == null)
+        String source = AccessController.doPrivileged(new PrivilegedAction<String>()
+        {
+            public String run()
+            {
+                return Security.getProperty("securerandom.source");
+            }
+        });
+
+        if (source == null)
         {
             return createInternalEntropySourceProvider();
         }
@@ -681,8 +685,6 @@ public final class CryptoServicesRegistrar
         {
             try
             {
-                String source = Security.getProperty("securerandom.source");
-
                 return new URLSeededEntropySourceProvider(new URL(source));
             }
             catch (Exception e)
@@ -768,7 +770,7 @@ public final class CryptoServicesRegistrar
         private final AtomicBoolean seedAvailable = new AtomicBoolean(false);
         private final AtomicInteger samples = new AtomicInteger(0);
 
-        private final SP800SecureRandom drbg;
+        private final SP80090DRBG drbg;
         private final SignallingEntropySource entropySource;
         private final int bytesRequired;
         private final byte[] additionalInput = Pack.longToBigEndian(System.currentTimeMillis());
@@ -778,15 +780,7 @@ public final class CryptoServicesRegistrar
             bytesRequired = (bitsRequired + 7) / 8;
             // remember for the seed generator we need the correct security strength for SHA-512
             entropySource = new SignallingEntropySource(entropyDaemon, seedAvailable, entropyProvider, 256);
-            drbg = new SP800SecureRandomBuilder(new EntropySourceProvider()
-            {
-                public EntropySource get(final int bitsRequired)
-                {
-                    return entropySource;
-                }
-            })
-                .setPersonalizationString(Strings.toByteArray("Bouncy Castle Hybrid Entropy Source"))
-                .buildHMAC(new HMac(new SHA512Digest()), entropySource.getEntropy(), false);     // 32 byte nonce
+            drbg = new HMacSP800DRBG(new HMac(new SHA512Digest()), 256, entropySource, Strings.toByteArray("Bouncy Castle Hybrid Entropy Source"), entropySource.getEntropy());
         }
 
         @Override
@@ -814,7 +808,12 @@ public final class CryptoServicesRegistrar
                 }
             }
 
-            drbg.nextBytes(entropy);
+            // hard to imagine happening, can't afford it to though!
+            if (drbg.generate(entropy, null, false) < 0)
+            {
+                drbg.reseed(additionalInput);
+                drbg.generate(entropy, null, false);
+            }
 
             return entropy;
         }
@@ -1006,7 +1005,7 @@ public final class CryptoServicesRegistrar
         private final AtomicBoolean seedAvailable = new AtomicBoolean(false);
         private final AtomicInteger samples = new AtomicInteger(0);
 
-        private final SP800SecureRandom drbg;
+        private final SP80090DRBG drbg;
         private final SignallingEntropySource entropySource;
         private final int bytesRequired;
         private final byte[] additionalInput = Pack.longToBigEndian(System.currentTimeMillis());
@@ -1016,15 +1015,7 @@ public final class CryptoServicesRegistrar
             bytesRequired = (bitsRequired + 7) / 8;
             // remember for the seed generator we need the correct security strength for SHA-512
             entropySource = new SignallingEntropySource(seedAvailable, entropyProvider, 256);
-            drbg = new SP800SecureRandomBuilder(new EntropySourceProvider()
-            {
-                public EntropySource get(final int bitsRequired)
-                {
-                    return entropySource;
-                }
-            })
-                .setPersonalizationString(Strings.toByteArray("Bouncy Castle Hybrid Entropy Source"))
-                .buildHMAC(new HMac(new SHA512Digest()), entropySource.getEntropy(), false);     // 32 byte nonce
+            drbg = new HMacSP800DRBG(new HMac(new SHA512Digest()), 256, entropySource, Strings.toByteArray("Bouncy Castle One Shot Entropy Source"), entropySource.getEntropy());
         }
 
         public boolean isPredictionResistant()
@@ -1051,7 +1042,12 @@ public final class CryptoServicesRegistrar
                 }
             }
 
-            drbg.nextBytes(entropy);
+            // hard to imagine happening, can't afford it to though!
+            if (drbg.generate(entropy, null, false) < 0)
+            {
+                drbg.reseed(additionalInput);
+                drbg.generate(entropy, null, false);
+            }
 
             return entropy;
         }
@@ -1126,6 +1122,22 @@ public final class CryptoServicesRegistrar
             {
                 return byteLength * 8;
             }
+        }
+    }
+
+    private static class ThreadLocalSecureRandomProvider
+        implements SecureRandomProvider
+    {
+        final ThreadLocal<SecureRandom> defaultRandoms = new ThreadLocal<SecureRandom>();
+
+        public SecureRandom get()
+        {
+            if (defaultRandoms.get() == null)
+            {
+                defaultRandoms.set(new SecureRandom());
+            }
+
+            return defaultRandoms.get();
         }
     }
 }

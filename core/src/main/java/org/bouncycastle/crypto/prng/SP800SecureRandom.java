@@ -16,6 +16,8 @@ public class SP800SecureRandom
 
     SP800SecureRandom(SecureRandom randomSource, EntropySource entropySource, DRBGProvider drbgProvider, boolean predictionResistant)
     {
+        super(null, null);       // prevent older JVMs from instance the Default PRNG.
+        
         this.randomSource = randomSource;
         this.entropySource = entropySource;
         this.drbgProvider = drbgProvider;
@@ -48,6 +50,11 @@ public class SP800SecureRandom
     public String getAlgorithm()
     {
          return drbgProvider.getAlgorithm();
+    }
+
+    public String toString()
+    {
+        return this.getAlgorithm();
     }
 
     public void nextBytes(byte[] bytes)

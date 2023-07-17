@@ -59,7 +59,7 @@ compileJava.dependsOn(copyTask)
 
 compileJava9Java {
   javaCompiler = javaToolchains.compilerFor {
-    languageVersion = JavaLanguageVersion.of(9)
+    languageVersion = JavaLanguageVersion.of(11)
   }
   sourceCompatibility = 9
   targetCompatibility = 9
@@ -110,7 +110,7 @@ artifacts {
 }
 
 task('copyJars', type:Copy) {
-  from new File(projectDir,"build/libs")
-  into new File(rootDir,"jars")
+    from new File(projectDir,"build/libs")
+    into new File(rootDir,"../bc-lts-java-jars/${version}/")
 }
 

@@ -4,6 +4,7 @@ import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.DESEngine;
 import org.bouncycastle.crypto.modes.CCMBlockCipher;
+import org.bouncycastle.crypto.modes.CCMModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -55,7 +56,7 @@ public class CCMTest
     public void performTest()
         throws Exception
     {
-        CCMBlockCipher ccm = new CCMBlockCipher(AESEngine.newInstance());
+        CCMModeCipher ccm = CCMBlockCipher.newInstance(AESEngine.newInstance());
 
         checkVectors(0, ccm, K1, 32, N1, A1, P1, T1, C1);
         checkVectors(1, ccm, K2, 48, N2, A2, P2, T2, C2);
@@ -130,7 +131,7 @@ public class CCMTest
 
         try
         {
-            ccm = new CCMBlockCipher(new DESEngine());
+            ccm = CCMBlockCipher.newInstance(new DESEngine());
 
             fail("incorrect block size not picked up");
         }
@@ -150,11 +151,11 @@ public class CCMTest
             // expected
         }
 
-        AEADTestUtil.testReset(this, new CCMBlockCipher(AESEngine.newInstance()), new CCMBlockCipher(AESEngine.newInstance()), new AEADParameters(new KeyParameter(K1), 32, N2));
+        AEADTestUtil.testReset(this, CCMBlockCipher.newInstance(AESEngine.newInstance()), CCMBlockCipher.newInstance(AESEngine.newInstance()), new AEADParameters(new KeyParameter(K1), 32, N2));
         AEADTestUtil.testTampering(this, ccm, new AEADParameters(new KeyParameter(K1), 32, N2));
-        AEADTestUtil.testOutputSizes(this, new CCMBlockCipher(AESEngine.newInstance()), new AEADParameters(
+        AEADTestUtil.testOutputSizes(this, CCMBlockCipher.newInstance(AESEngine.newInstance()), new AEADParameters(
                 new KeyParameter(K1), 32, N2));
-        AEADTestUtil.testBufferSizeChecks(this, new CCMBlockCipher(AESEngine.newInstance()), new AEADParameters(
+        AEADTestUtil.testBufferSizeChecks(this, CCMBlockCipher.newInstance(AESEngine.newInstance()), new AEADParameters(
                 new KeyParameter(K1), 32, N2));
     }
 
@@ -173,7 +174,7 @@ public class CCMTest
 
     private void checkVectors(
         int count,
-        CCMBlockCipher ccm,
+        CCMModeCipher ccm,
         byte[] k,
         int macSize,
         byte[] n,
@@ -196,7 +197,7 @@ public class CCMTest
 
     private void checkVectors(
         int count,
-        CCMBlockCipher ccm,
+        CCMModeCipher ccm,
         String additionalDataType,
         byte[] k,
         int macSize,
@@ -259,7 +260,7 @@ public class CCMTest
 
     private void ivParamTest(
         int count,
-        CCMBlockCipher ccm,
+        CCMModeCipher ccm,
         byte[] k,
         byte[] n)
         throws InvalidCipherTextException

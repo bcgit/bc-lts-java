@@ -6,6 +6,8 @@ import java.util.Date;
 import java.util.Vector;
 
 import junit.framework.TestCase;
+
+import org.bouncycastle.asn1.ASN1BitString;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Enumerated;
 import org.bouncycastle.asn1.ASN1GeneralizedTime;
@@ -15,7 +17,6 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.ASN1UTCTime;
 import org.bouncycastle.asn1.DERBMPString;
-import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.DERGeneralString;
 import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DERNull;
@@ -31,6 +32,7 @@ import org.bouncycastle.asn1.cryptopro.ECGOST3410ParamSetParameters;
 import org.bouncycastle.asn1.cryptopro.GOST28147Parameters;
 import org.bouncycastle.asn1.cryptopro.GOST3410ParamSetParameters;
 import org.bouncycastle.asn1.cryptopro.GOST3410PublicKeyAlgParameters;
+
 import org.bouncycastle.asn1.misc.CAST5CBCParameters;
 import org.bouncycastle.asn1.misc.IDEACBCPar;
 import org.bouncycastle.asn1.mozilla.PublicKeyAndChallenge;
@@ -474,7 +476,7 @@ public class GetInstanceTest
         IssuerSerial.getInstance(null);
         IssuingDistributionPoint.getInstance(null);
         IssuingDistributionPoint.getInstance(null);
-        DERBitString.getInstance(null);
+        ASN1BitString.getInstance(null);
 
         v.clear();
         v.add(generalSubtree);

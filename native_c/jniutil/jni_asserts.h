@@ -6,12 +6,23 @@
 
 
 #include "bytearraycritical.h"
+#include "longarraycritical.h"
 #include "bytearrays.h"
 #include "exceptions.h"
 
 
 static inline bool check_range(size_t size, size_t offset, size_t len) {
     return (len <= size) && (offset <= size - len);
+}
+
+static inline bool critical_long_not_null(critical_longarray_ctx *in, const char *failMsg, JNIEnv *env) {
+
+    if (in == NULL || in->array == NULL) {
+        throw_java_NPE(env, failMsg);
+        return false;
+    }
+
+    return true;
 }
 
 static inline bool critical_not_null(critical_bytearray_ctx *in, const char *failMsg, JNIEnv *env) {
@@ -233,6 +244,40 @@ critical_offset_and_len_are_in_range(critical_bytearray_ctx *array, int offset, 
 
 
 /**
+ * Asserts that for a single critical byte array that it is not null and the offset + len are within the bounds
+ * of the critical array.
+ * @param array the array to test
+ * @param offset input offset
+ * @param len length
+ * @param env java env
+ * @param beforeThrow
+ * @return true if valid
+ */
+static inline bool
+critical_long_offset_and_len_are_in_range(critical_longarray_ctx *array, int offset, int len, JNIEnv *env) {
+    if (offset < 0) {
+        throw_java_illegal_argument(env, "offset is negative");
+        return false;
+    }
+
+    if (len < 0) {
+        throw_java_illegal_argument(env,
+                                    "len is negative");
+        return false;
+    }
+
+    if (!check_range(array->size, (size_t) offset, (size_t) len)) {
+        throw_java_illegal_argument(env,
+                                    "array too short for offset + len");
+        return false;
+    }
+
+    return true;
+}
+
+
+
+/**
  * Assert single array, inOff >=0, len >=0, inOff+len <= array len for non critical byte array.
  *
  * This method does not assert java byte array is Null, if null all comparisons will be done on
@@ -294,6 +339,36 @@ static inline bool critical_offset_is_in_range(critical_bytearray_ctx *array, in
 
     return true;
 }
+
+/**
+ * Assert single array offset for critical long array.
+ *
+ * This method does not assert java byte array is Null, if null all comparisons will be done on
+ * as if it is a zero length array which may mislead callers,
+ * java byte array is null assertion should be done before calling this.
+ *
+ * @param array  the array to test
+ * @param offset the input offset
+ * @param len the length
+ * @param env the java env
+ * @return true if ok
+ */
+static inline bool critical_long_offset_is_in_range(critical_longarray_ctx *array, int offset, JNIEnv *env) {
+    if (offset < 0) {
+        throw_java_illegal_argument(env,
+                                    "offset is negative");
+        return false;
+    }
+
+
+    if (offset > array->size) {
+        throw_java_illegal_argument(env, "offset past end of array");
+        return false;
+    }
+
+    return true;
+}
+
 
 /**
  * Assert single array offset for non critical byte array.

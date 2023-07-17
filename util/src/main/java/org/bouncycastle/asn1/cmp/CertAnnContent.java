@@ -6,6 +6,8 @@ import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
+import org.bouncycastle.asn1.BERTags;
+import org.bouncycastle.asn1.x509.AttributeCertificate;
 import org.bouncycastle.asn1.x509.Certificate;
 
 /**
@@ -14,6 +16,18 @@ import org.bouncycastle.asn1.x509.Certificate;
 public class CertAnnContent
     extends CMPCertificate
 {
+
+    /**
+     * Note: the addition of attribute certificates is a BC extension. If you use this constructor they
+     * will be added with a tag value of 1.
+     *
+     * @deprecated use (type, otherCert) constructor
+     */
+    public CertAnnContent(AttributeCertificate x509v2AttrCert)
+    {
+        super(x509v2AttrCert);
+    }
+
     public CertAnnContent(int type, ASN1Object otherCert)
     {
         super(type, otherCert);
@@ -78,13 +92,11 @@ public class CertAnnContent
 
         if (o instanceof ASN1TaggedObject)
         {
-            ASN1TaggedObject taggedObject = (ASN1TaggedObject)o;
+            ASN1TaggedObject taggedObject = ASN1TaggedObject.getInstance(o, BERTags.CONTEXT_SPECIFIC);
 
             return new CertAnnContent(taggedObject.getTagNo(), taggedObject.getExplicitBaseObject());
         }
 
         throw new IllegalArgumentException("Invalid object: " + o.getClass().getName());
     }
-
-
 }

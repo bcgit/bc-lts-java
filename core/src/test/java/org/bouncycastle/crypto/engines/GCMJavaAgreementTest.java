@@ -180,7 +180,7 @@ public class GCMJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
                 TestCase.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
             }
@@ -263,7 +263,7 @@ public class GCMJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
                 TestCase.fail("Skipping GCM Spread Agreement: " + TestUtil.errorMsg());
             }
@@ -357,7 +357,7 @@ public class GCMJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
                 TestCase.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
             }
@@ -372,7 +372,7 @@ public class GCMJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
                 TestCase.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
             }
@@ -387,7 +387,7 @@ public class GCMJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
                 TestCase.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
             }
