@@ -183,14 +183,14 @@ public class NativeFailsafeTest
 
         if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.DRBG))
         {
-            if (System.getProperty(NATIVE_FAILSAFE_TEST, "").contains("drbg"))
+            if (System.getProperty(NATIVE_FAILSAFE_TEST, "").contains("drbg") || System.getProperty(NATIVE_FAILSAFE_TEST, "").contains("es"))
             {
                 System.out.println("Native RAND skip detected in " + NATIVE_FAILSAFE_TEST + " " + System.getProperty(NATIVE_FAILSAFE_TEST, ""));
                 System.out.println("Native Features: " + TestUtil.getNativeFeatureString());
                 return;
             }
 
-            TestCase.fail("native not supported for HW Rand' and 'test.bclts.ignore.native' does not contain 'rand'. See README.md  " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
+            TestCase.fail("native not supported for HW Rand' and 'test.bclts.ignore.native' does not contain 'rand' or 'es'. See README.md  " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
         }
 
     }
@@ -208,14 +208,14 @@ public class NativeFailsafeTest
     {
         if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.NRBG))
         {
-            if (System.getProperty(NATIVE_FAILSAFE_TEST, "").contains("nrbg"))
+            if (System.getProperty(NATIVE_FAILSAFE_TEST, "").contains("nrbg") || System.getProperty(NATIVE_FAILSAFE_TEST, "").contains("es"))
             {
                 System.out.println("Native SEED skip detected in " + NATIVE_FAILSAFE_TEST + " " + System.getProperty(NATIVE_FAILSAFE_TEST, ""));
                 System.out.println("Native Features: " + TestUtil.getNativeFeatureString());
                 return;
             }
 
-            TestCase.fail("native not supported for HW Seed' and property 'test.bclts.ignore.native' does not contain 'seed'. See README.md " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
+            TestCase.fail("native not supported for HW Seed' and property 'test.bclts.ignore.native' does not contain 'nrbg' or 'es'. See README.md " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
         }
 
     }

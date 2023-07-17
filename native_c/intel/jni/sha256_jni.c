@@ -102,7 +102,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_d
 
     java_bytearray_ctx out;
     init_bytearray_ctx(&out);
-
+    jint outLen = 0;
 
     sha256_ctx *sha = (sha256_ctx *) ((void *) ref);
     int64_t remaining;
@@ -130,11 +130,12 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_d
     }
 
     sha256_digest(sha, out.bytearray + offset);
-
+    outLen = SHA256_SIZE;
 
     exit:
     release_bytearray_ctx(&out);
 
+    return outLen;
 
 }
 
@@ -157,7 +158,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_r
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_getByteLength
         (JNIEnv *env, jclass jc, jlong ref) {
     sha256_ctx *sha = (sha256_ctx *) ((void *) ref);
-    sha256_getByteLen(sha);
+    return (jint) sha256_getByteLen(sha);
 }
 
 /*
@@ -196,7 +197,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_e
         goto exit;
     }
 
-    size_t remaining =  out.size - (size_t)offset;
+    size_t remaining = out.size - (size_t) offset;
     if (remaining < size) {
         throw_java_illegal_argument(env, "array at offset too short for encoded output");
         goto exit;
@@ -244,7 +245,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_r
         goto exit;
     }
 
-    remaining =  input.size - (size_t) offset;
+    remaining = input.size - (size_t) offset;
     if (remaining < size) {
         throw_java_illegal_argument(env, "array at offset too short for encoded input");
         goto exit;

@@ -4,7 +4,7 @@
 
 #include "cfb.h"
 
-inline void aes128w_cfb128_decrypt(
+static inline void aes128w_cfb128_decrypt(
         __m128i *d0, __m128i *d1, __m128i *d2, __m128i *d3,
         __m128i *d4, __m128i *d5, __m128i *d6, __m128i *d7,
         __m128i *feedback, __m128i *roundKeys, const uint32_t blocks,
