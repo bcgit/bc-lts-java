@@ -1,7 +1,7 @@
 package org.bouncycastle.crypto.modes;
 
-
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.PacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
@@ -47,6 +47,10 @@ public class AESCFBPacketCipher
         throws PacketCipherException
     {
         processPacketExceptionCheck(input, inOff, len, output, outOff);
+        if (outOff + len > output.length)
+        {
+            throw PacketCipherException.from(new DataLengthException(ExceptionMessage.OUTPUT_LENGTH));
+        }
         if (!encryption && ((len & 15) != 0))
         {
             throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.AES_DECRYPTION_INPUT_LENGTH_INVALID));
@@ -96,24 +100,23 @@ public class AESCFBPacketCipher
         }
         int inStart = inOff;
         int outStart = outOff;
-        int blockCount = (len >>> 4) + (((len & 15) != 0) ? 1 : 0);
+        int blockCount = len >>> 4;
         if (encryption)
         {
+            boolean tail = (len & 15) != 0;
             for (int i = 0; i < blockCount; ++i)
             {
                 encryptBlock(C, workingKey, s, ROUNDS);
-                if (i != blockCount - 1)
-                {
-                    int4XorLittleEndian(C, input, inStart);
-                    int4ToLittleEndian(C, output, outStart);
-                    inStart += BLOCK_SIZE;
-                    outStart += BLOCK_SIZE;
-                }
-                else
-                {
-                    int4XorLittleEndianTail(C, input, inStart);
-                    int4ToLittleEndian(C, output, outStart);
-                }
+                int4XorLittleEndian(C, input, inStart);
+                int4ToLittleEndian(C, output, outStart);
+                inStart += BLOCK_SIZE;
+                outStart += BLOCK_SIZE;
+            }
+            if (tail)
+            {
+                encryptBlock(C, workingKey, s, ROUNDS);
+                int4XorLittleEndianTail(C, input, inStart, input.length - inStart);
+                int4ToLittleEndian(C, output, outStart);
             }
         }
         else

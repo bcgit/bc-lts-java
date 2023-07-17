@@ -594,9 +594,8 @@ public abstract class PacketCipherEngine
         C[3] ^= Pack.littleEndianToInt(input, 12 + inOff);
     }
 
-    protected void int4XorLittleEndianTail(int[] C, byte[] input, int inOff)
+    protected void int4XorLittleEndianTail(int[] C, byte[] input, int inOff, int len)
     {
-        int len = input.length - inOff;
         if (len >= BLOCK_SIZE)
         {
             int4XorLittleEndian(C, input, inOff);
@@ -630,6 +629,10 @@ public abstract class PacketCipherEngine
         {
             throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.INPUT_NULL));
         }
+        if (output == null)
+        {
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.OUTPUT_NULL));
+        }
         if (inOff < 0)
         {
             throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
@@ -645,10 +648,6 @@ public abstract class PacketCipherEngine
         if (inOff + len > input.length)
         {
             throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.INPUT_LENGTH));
-        }
-        if (outOff + len > output.length)
-        {
-            throw PacketCipherException.from(new DataLengthException(ExceptionMessage.OUTPUT_LENGTH));
         }
     }
 }

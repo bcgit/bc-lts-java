@@ -12,4 +12,5 @@ public class ExceptionMessage
     public static final String AES_KEY_LENGTH = "Key length not 128/192/256 bits.";
     public static final String AES_DECRYPTION_INPUT_LENGTH_INVALID = "the length of input should be times of 16.";
     public static final String CBC_IV_LENGTH = "initialisation vector must be the same length as block size";
+    public static final String OUTPUT_NULL = "output was null";
 }

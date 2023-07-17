@@ -58,7 +58,11 @@ public class AESGCMPacketCipher
         {
             return len + macSize;
         }
-        return len < macSize ? 0 : len - macSize;
+        else if (len < macSize)
+        {
+            throw new DataLengthException(ExceptionMessage.OUTPUT_LENGTH);
+        }
+        return len - macSize;
     }
 
 

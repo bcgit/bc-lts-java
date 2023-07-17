@@ -48,11 +48,16 @@ public class AESCBCPacketCipher
         throws PacketCipherException
     {
         processPacketExceptionCheck(input, inOff, len, output, outOff);
+        if (outOff + len > output.length)
+        {
+            throw PacketCipherException.from(new DataLengthException(ExceptionMessage.OUTPUT_LENGTH));
+        }
         if (!encryption && ((len & 15) != 0))
         {
             throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.AES_DECRYPTION_INPUT_LENGTH_INVALID));
         }
-        int blockCount = (len >> 4) + ((len & 15) != 0 ? 1 : 0);
+        boolean tail = (len & 15) != 0;
+        int blockCount = (len >> 4) + (tail ? 1 : 0);
         if ((blockCount << 4) + outOff > output.length)
         {
             throw PacketCipherException.from(new DataLengthException(ExceptionMessage.OUTPUT_LENGTH));
@@ -111,7 +116,7 @@ public class AESCBCPacketCipher
             int4ToLittleEndian(C, output, outOff);
             inOff += BLOCK_SIZE;
             outOff += BLOCK_SIZE;
-            for (i = 1; i < blockCount - 1; ++i)
+            for (i = 1; i < len >> 4; ++i)
             {
                 int4XorLittleEndian(C, input, inOff);
                 encryptBlock(C, workingKey, s, ROUNDS);
@@ -119,7 +124,7 @@ public class AESCBCPacketCipher
                 inOff += BLOCK_SIZE;
                 outOff += BLOCK_SIZE;
             }
-            if (i < blockCount)
+            if (tail)
             {
                 for (j = 0; j + inOff < len; ++j)
                 {
@@ -157,6 +162,7 @@ public class AESCBCPacketCipher
         Arrays.fill(C, 0);
         return blockCount << 4;
     }
+
     @Override
     public String toString()
     {
