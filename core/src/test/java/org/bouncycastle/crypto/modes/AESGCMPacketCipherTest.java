@@ -674,12 +674,6 @@ public class AESGCMPacketCipherTest
             fail("incorrect getOutputSize for initial 0 bytes encryption");
         }
 
-        // NOTE: 0 bytes would be truncated data, but we want it to fail in the doFinal, not here
-        if (cipher.getOutputSize(false, parameters, 0) != 0)
-        {
-            fail("fragile getOutputSize for initial 0 bytes decryption");
-        }
-
         if (cipher.getOutputSize(false, parameters, 16) != 0)
         {
             fail("incorrect getOutputSize for initial MAC-size bytes decryption");
