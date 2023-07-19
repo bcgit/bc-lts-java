@@ -586,6 +586,26 @@ public abstract class PacketCipherEngine
         Pack.intToLittleEndian(C[3], output, outOff + 12);
     }
 
+    protected void int4ToLittleEndianTail(int[] C, byte[] output, int outOff, int len)
+    {
+        if (len >= BLOCK_SIZE)
+        {
+            int4ToLittleEndian(C, output, outOff);
+            return;
+        }
+        int count = Math.min(len >>> 2, 4);
+        int i;
+        for (i = 0; i < count; ++i)
+        {
+            Pack.intToLittleEndian(C[i], output, outOff + (i << 2));
+        }
+        len = outOff + (i << 2);
+        for (int j = 0; j + len < output.length; ++j)
+        {
+            output[j + len] = (byte)(C[i] >>> (j << 3));
+        }
+    }
+
     protected void int4XorLittleEndian(int[] C, byte[] input, int inOff)
     {
         C[0] ^= Pack.littleEndianToInt(input, inOff);
@@ -607,7 +627,7 @@ public abstract class PacketCipherEngine
         {
             C[i] ^= Pack.littleEndianToInt(input, inOff + (i << 2));
         }
-        len = inOff + ((i - 1) << 2);
+        len = inOff + (i << 2);
         for (int j = 0; j + len < input.length; ++j)
         {
             C[i] ^= (input[j + len] & 0xff) << (j << 2);
