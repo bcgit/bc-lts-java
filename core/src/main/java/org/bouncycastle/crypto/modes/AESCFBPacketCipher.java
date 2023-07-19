@@ -69,10 +69,7 @@ public class AESCFBPacketCipher
             {
                 byte[] key = ((KeyParameter)ivParam.getParameters()).getKey();
                 int keyLen = key.length;
-                if (keyLen < 16 || keyLen > 32 || (keyLen & 7) != 0)
-                {
-                    throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.AES_KEY_LENGTH));
-                }
+                checkKeyLength(keyLen);
                 int KC = keyLen >>> 2;
                 ROUNDS = KC + 6;
                 workingKey = generateWorkingKey(key, KC, ROUNDS);

@@ -670,4 +670,34 @@ public abstract class PacketCipherEngine
             throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.INPUT_LENGTH));
         }
     }
+
+    protected void checkKeyLength(int keyLen)
+        throws PacketCipherException
+    {
+        if (keyLen < 16 || keyLen > 32 || (keyLen & 7) != 0)
+        {
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.AES_KEY_LENGTH));
+        }
+    }
+
+    protected void ctrProcessBlock(byte[] counter, int[] counterIn, int[] counterOut, byte[] in, int inOff, byte[] out, int outOff,
+                                 int[][] workingkeys, byte[] s, int ROUNDS)
+    {
+        encryptBlock(counterIn, counterOut, workingkeys, s, ROUNDS);
+        int i = counter.length;
+        while (--i >= 0)
+        {
+            if (++counter[i] != 0)
+            {
+                break;
+            }
+        }
+        i >>= 2;
+        for (int j = 0; j < i; ++j)
+        {
+            counterIn[3 - j] = Pack.littleEndianToInt(counter, 12 - (j << 2));
+        }
+        int4XorLittleEndian(counterOut, in, inOff);
+        int4ToLittleEndian(counterOut, out, outOff);
+    }
 }

@@ -166,10 +166,7 @@ public class AESGCMPacketCipher
             if (keyParam != null)
             {
                 int keyLen = keyParam.getKey().length;
-                if (keyLen < 16 || keyLen > 32 || (keyLen & 7) != 0)
-                {
-                    throw new IllegalArgumentException(ExceptionMessage.AES_KEY_LENGTH);
-                }
+                checkKeyLength(keyLen);
                 KC = keyLen >>> 2;
                 ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
                 workingKey = generateWorkingKey(keyParam.getKey(), KC, ROUNDS);

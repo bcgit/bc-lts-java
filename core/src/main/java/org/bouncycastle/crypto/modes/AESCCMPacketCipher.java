@@ -11,7 +11,6 @@ import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
-import org.bouncycastle.util.Pack;
 
 public class AESCCMPacketCipher
     extends PacketCipherEngine
@@ -129,12 +128,8 @@ public class AESCCMPacketCipher
         {
             throw PacketCipherException.from(new IllegalStateException("CCM cipher unitialized."));
         }
-
         int keyLen = keyParam.getKey().length;
-        if (keyLen < 16 || keyLen > 32 || (keyLen & 7) != 0)
-        {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.AES_KEY_LENGTH));
-        }
+        checkKeyLength(keyLen);
         int KC = keyLen >>> 2;
         int ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
         int[][] workingKey = generateWorkingKey(keyParam.getKey(), KC, ROUNDS);
@@ -282,27 +277,6 @@ public class AESCCMPacketCipher
             throw new IllegalArgumentException("tag length in octets must be one of {4,6,8,10,12,14,16}");
         }
         return requestedMacBits >>> 3;
-    }
-
-    private void ctrProcessBlock(byte[] counter, int[] counterIn, int[] counterOut, byte[] in, int inOff, byte[] out, int outOff,
-                                 int[][] workingkeys, byte[] s, int ROUNDS)
-    {
-        encryptBlock(counterIn, counterOut, workingkeys, s, ROUNDS);
-        int i = counter.length;
-        while (--i >= 0)
-        {
-            if (++counter[i] != 0)
-            {
-                break;
-            }
-        }
-        i >>= 2;
-        for (int j = 0; j < i; ++j)
-        {
-            counterIn[3 - j] = Pack.littleEndianToInt(counter, 12 - (j << 2));
-        }
-        int4XorLittleEndian(counterOut, in, inOff);
-        int4ToLittleEndian(counterOut, out, outOff);
     }
 
     private int cbcmacUpdate(byte[] buf, int[] C, int bufOff, byte[] in, int inOff, int len, int[][] workingkey, byte[] s, int ROUNDS)
