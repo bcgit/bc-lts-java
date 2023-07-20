@@ -6,6 +6,7 @@ import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.Mac;
 import org.bouncycastle.crypto.OutputLengthException;
+import org.bouncycastle.crypto.StreamBlockCipher;
 import org.bouncycastle.crypto.macs.CMac;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -33,7 +34,7 @@ public class EAXBlockCipher
 
     private static final byte cTAG = 0x2;
 
-    private SICBlockCipher cipher;
+    private StreamBlockCipher cipher;
 
     private boolean forEncryption;
 
@@ -64,7 +65,7 @@ public class EAXBlockCipher
         macBlock = new byte[blockSize];
         associatedTextMac = new byte[mac.getMacSize()];
         nonceMac = new byte[mac.getMacSize()];
-        this.cipher = new SICBlockCipher(cipher);
+        this.cipher = (StreamBlockCipher)SICBlockCipher.newInstance(cipher);
     }
 
     public String getAlgorithmName()
