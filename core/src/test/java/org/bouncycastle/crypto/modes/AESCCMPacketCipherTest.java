@@ -167,14 +167,14 @@ public class AESCCMPacketCipherTest
         throws Exception
     {
 
-        if (!TestUtil.hasNativeService("AES/CCM"))
-        {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("ccm"))
-            {
-                TestCase.fail("Skipping CCM Spread Agreement: " + TestUtil.errorMsg());
-            }
-            return;
-        }
+//        if (!TestUtil.hasNativeService("AES/CCM"))
+//        {
+//            if (!System.getProperty("test.bclts.ignore.native", "").contains("ccm"))
+//            {
+//                TestCase.fail("Skipping CCM Spread Agreement: " + TestUtil.errorMsg());
+//            }
+//            return;
+//        }
 
         SecureRandom rand = new SecureRandom();
         SecureRandom secureRandom = new SecureRandom();

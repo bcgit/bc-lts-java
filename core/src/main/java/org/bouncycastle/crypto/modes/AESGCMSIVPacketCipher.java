@@ -5,12 +5,14 @@ import java.io.ByteArrayOutputStream;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.PacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.gcm.GCMMultiplier;
+import org.bouncycastle.crypto.modes.gcm.GCMUtil;
 import org.bouncycastle.crypto.modes.gcm.Tables4kGCMMultiplier;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -75,14 +77,26 @@ public class AESGCMSIVPacketCipher
     @Override
     public int getOutputSize(boolean encryption, CipherParameters parameters, int len)
     {
-        return 0;
+        if (len < 0)
+        {
+            throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
+        }
+        if (encryption)
+        {
+            return len + BUFLEN;
+        }
+        else if (len < BUFLEN)
+        {
+            throw new DataLengthException(ExceptionMessage.OUTPUT_LENGTH);
+        }
+        return  len - BUFLEN ;
     }
 
     @Override
     public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len, byte[] output, int outOff)
         throws PacketCipherException
     {
-
+        processPacketExceptionCheck(input, inOff, len, output, outOff);
         final BlockCipher theCipher;
         final GCMMultiplier theMultiplier;
         final byte[] theGHash = new byte[BUFLEN];
@@ -201,7 +215,25 @@ public class AESGCMSIVPacketCipher
         /* Initialise the multiplier */
         fillReverse(myResult, 0, BUFLEN, myOut);
         mulX(myOut);
-        theMultiplier.init(myOut);
+        //theMultiplier.init(myOut);
+        T = new long[256][2];
+        byte[] H = new byte[GCMUtil.SIZE_BYTES];
+        GCMUtil.copy(H, myOut);
+
+        // T[0] = 0
+
+        // T[1] = H.p^7
+        GCMUtil.asLongs(H, T[1]);
+        GCMUtil.multiplyP7(T[1], T[1]);
+
+        for (int n = 2; n < 256; n += 2)
+        {
+            // T[2.n] = T[n].p^-1
+            GCMUtil.divideP(T[n >> 1], T[n]);
+
+            // T[2.n + 1] = T[2.n] + T[1]
+            GCMUtil.xor(T[n], T[1], T[n + 1]);
+        }
         theFlags |= INIT;
         //resetStreams();
         if (thePlain != null)

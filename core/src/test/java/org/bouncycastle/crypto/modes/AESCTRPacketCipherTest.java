@@ -10,8 +10,6 @@ import org.bouncycastle.crypto.SkippingStreamCipher;
 import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.AESNativeCTR;
-import org.bouncycastle.crypto.engines.StreamingFixedSecureRandom;
-import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
