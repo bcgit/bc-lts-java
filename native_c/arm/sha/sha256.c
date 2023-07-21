@@ -145,14 +145,14 @@ void sha256_digest(sha256_ctx *ctx, uint8_t *output) {
     hashBlock(ctx, ctx->buf);
 
 
-
-
     //
     // Save state
     //
     vst1q_u32(&ctx->state[0], ctx->s0);
     vst1q_u32(&ctx->state[4], ctx->s1);
 
+    vst1q_u32(output, ctx->s0);
+    vst1q_u32(output+16, ctx->s1);
 
 //    _mm_storeu_si128((__m128i *) output, _mm_shuffle_epi8(ctx->s0, *SWAP_ENDIAN_SHA_256));
 //    _mm_storeu_si128((__m128i *) (output + 16), _mm_shuffle_epi8(ctx->s1, *SWAP_ENDIAN_SHA_256));

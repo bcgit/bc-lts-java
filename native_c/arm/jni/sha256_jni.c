@@ -102,6 +102,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_d
 
     java_bytearray_ctx out;
     init_bytearray_ctx(&out);
+    jint outLen = 0;
 
 
     sha256_ctx *sha = (sha256_ctx *) ((void *) ref);
@@ -132,13 +133,13 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA256NativeDigest_d
     }
 
     sha256_digest(sha, out.bytearray + offset);
-
+    outLen = SHA256_SIZE;
 
     exit:
     release_bytearray_ctx(&out);
 
 
-    return (jint) sha256_getByteLen(sha);
+    return (jint) outLen;
 }
 
 /*

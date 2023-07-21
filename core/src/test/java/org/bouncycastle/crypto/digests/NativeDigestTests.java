@@ -155,6 +155,9 @@ public class NativeDigestTests
         byte[] nativeDigest = new byte[dig.getDigestSize()];
         TestCase.assertEquals(32, dig.doFinal(nativeDigest, 0));
 
+        System.out.println(Hex.toHexString(resJava));
+        System.out.println(Hex.toHexString(nativeDigest));
+
         TestCase.assertTrue("Java = native byte by byte", Arrays.areEqual(resJava, nativeDigest));
 
     }
@@ -206,6 +209,7 @@ public class NativeDigestTests
         TestCase.assertEquals(32,dig.doFinal(d1Result, 0));
         TestCase.assertEquals(32,dig2.doFinal(d2Result, 0));
         TestCase.assertEquals(32,javaDigest.doFinal(javaResult, 0));
+
 
         TestCase.assertTrue(Arrays.areEqual(javaResult, d1Result) && Arrays.areEqual(javaResult, d2Result));
 
