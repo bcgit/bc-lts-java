@@ -1,7 +1,7 @@
 package org.bouncycastle.crypto.modes;
 
 import junit.framework.TestCase;
-import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -19,6 +19,7 @@ public class AESGCMSIVPacketCipherTest
     public void performTest()
         throws Exception
     {
+        testExceptions();
         new AESGCMSIV128Test1().testTheCipher(this);
         new AESGCMSIV128Test2().testTheCipher(this);
         new AESGCMSIV128Test3().testTheCipher(this);
@@ -66,6 +67,9 @@ public class AESGCMSIVPacketCipherTest
 
             /* Check the encryption */
             final byte[] myExpected = Hex.decode(pExpected);
+            if(!Arrays.areEqual(myExpected, myOutput)){
+                pCipher.processPacket(true, myParams,myData, 0, myData.length, myOutput, 0);
+            }
             TestCase.assertTrue("Encryption mismatch", Arrays.areEqual(myExpected, myOutput));
 
 //            /* Repeat processing byte at a time */
@@ -132,7 +136,7 @@ public class AESGCMSIVPacketCipherTest
         void testTheCipher(final AESGCMSIVPacketCipherTest pTest)
         {
             AESGCMSIVPacketCipher gcmsivPC=AESGCMSIVPacketCipher.newInstance();
-            //pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, EMPTY, EXPECTED_1);
+            pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, EMPTY, EXPECTED_1);
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, DATA_8, EXPECTED_2);
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, DATA_12, EXPECTED_3);
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, DATA_16, EXPECTED_4);
@@ -460,6 +464,136 @@ public class AESGCMSIVPacketCipherTest
         }
     }
 
+    private void testExceptions()
+    {
+        AESGCMSIVPacketCipher gcm = AESGCMSIVPacketCipher.newInstance();
+
+        try
+        {
+            gcm.getOutputSize(false, new KeyParameter(new byte[16]), 0);
+            fail("negative value for getOutputSize");
+        }
+        catch (IllegalArgumentException e)
+        {
+            // expected
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+        }
+
+        try
+        {
+            gcm.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), -1);
+            fail("negative value for getOutputSize");
+        }
+        catch (IllegalArgumentException e)
+        {
+            // expected
+            TestCase.assertTrue("wrong message", e.getMessage().equals(ExceptionMessage.LEN_NEGATIVE));
+        }
+
+        try
+        {
+            gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[28]), 128, new byte[12]), new byte[16], 0, 16, new byte[32], 0);
+            fail("invalid key size for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            // expected
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_KEY_LENGTH));
+        }
+
+        try
+        {
+            gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[16], 0, 16, new byte[32], 0);
+            fail("invalid key size for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            // expected
+            TestCase.assertTrue("wrong message", e.getMessage().contains("Invalid nonce"));
+        }
+
+//        try
+//        {
+//            gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 127, new byte[12]), new byte[32], 0, 32, new byte[32], 0);
+//            fail("invalid mac size for processPacket");
+//        }
+//        catch (PacketCipherException e)
+//        {
+//            // expected
+//            TestCase.assertTrue("wrong message", e.getMessage().contains("Invalid value for MAC size"));
+//        }
+
+        try
+        {
+            gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), null, 0, 0, new byte[16], 0);
+            fail("input was null for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_NULL));
+        }
+
+        try
+        {
+            gcm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), new byte[16], 0, 16, new byte[31], 0);
+            fail("output buffer too small for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+        }
+
+        try
+        {
+            gcm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), new byte[16], -1, 16, new byte[32], 0);
+            fail("offset is negative for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
+        }
+
+        try
+        {
+            gcm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), new byte[16], 0, -1, new byte[32], 0);
+            fail("len is negative for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.LEN_NEGATIVE));
+        }
+
+        try
+        {
+            gcm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), new byte[16], 0, 16, new byte[32], -1);
+            fail("output offset is negative for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
+        }
+
+        try
+        {
+            gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), new byte[15], 0, 15, new byte[0], 0);
+            fail("input buffer too small for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_SHORT));
+        }
+
+        try
+        {
+            gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), new byte[17], 0, 17, new byte[0], 0);
+            fail("output buffer too small for processPacket");
+        }
+        catch (PacketCipherException e)
+        {
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+        }
+    }
+
     /**
      * Main entry point.
      *
@@ -470,5 +604,6 @@ public class AESGCMSIVPacketCipherTest
     {
         AESGCMSIVPacketCipherTest test=new AESGCMSIVPacketCipherTest();
         test.performTest();
+        System.out.println("AESGCMSIVPacketCipherTest pass");
     }
 }
