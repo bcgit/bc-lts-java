@@ -763,14 +763,14 @@ public class AESGCMPacketCipherTest
         throws Exception
     {
 
-        if (!TestUtil.hasNativeService("AES/GCM"))
-        {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("GCMgcm"))
-            {
-                TestCase.fail("Skipping GCM Spread Agreement: " + TestUtil.errorMsg());
-            }
-            return;
-        }
+//        if (!TestUtil.hasNativeService("AES/GCM"))
+//        {
+//            if (!System.getProperty("test.bclts.ignore.native", "").contains("GCMgcm"))
+//            {
+//                TestCase.fail("Skipping GCM Spread Agreement: " + TestUtil.errorMsg());
+//            }
+//            return;
+//        }
 
         SecureRandom rand = new SecureRandom();
         SecureRandom secureRandom = new SecureRandom();

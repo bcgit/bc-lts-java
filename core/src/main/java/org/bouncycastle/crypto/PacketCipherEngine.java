@@ -1,5 +1,6 @@
 package org.bouncycastle.crypto;
 
+import org.bouncycastle.crypto.modes.gcm.GCMUtil;
 import org.bouncycastle.util.Pack;
 
 public abstract class PacketCipherEngine
@@ -699,5 +700,37 @@ public abstract class PacketCipherEngine
         }
         int4XorLittleEndian(counterOut, in, inOff);
         int4ToLittleEndian(counterOut, out, outOff);
+    }
+
+    protected void multiplyH(byte[] x, long[][] T)
+    {
+        long[] t = T[x[15] & 0xFF];
+        long z0 = t[0], z1 = t[1];
+
+        for (int i = 14; i >= 0; --i)
+        {
+            t = T[x[i] & 0xFF];
+
+            long c = z1 << 56;
+            z1 = t[1] ^ ((z1 >>> 8) | (z0 << 56));
+            z0 = t[0] ^ (z0 >>> 8) ^ c ^ (c >>> 1) ^ (c >>> 2) ^ (c >>> 7);
+        }
+
+        Pack.longToBigEndian(z0, x, 0);
+        Pack.longToBigEndian(z1, x, 8);
+    }
+
+    protected static void GCMInitialT(long[][] t, byte[] h)
+    {
+        // T[1] = H.p^7
+        GCMUtil.asLongs(h, t[1]);
+        GCMUtil.multiplyP7(t[1], t[1]);
+        for (int n = 2; n < 256; n += 2)
+        {
+            // T[2.n] = T[n].p^-1
+            GCMUtil.divideP(t[n >> 1], t[n]);
+            // T[2.n + 1] = T[2.n] + T[1]
+            GCMUtil.xor(t[n], t[1], t[n + 1]);
+        }
     }
 }

@@ -95,9 +95,7 @@ public class AESGCMPacketCipher
         int KC, ROUNDS = 0;
         int[][] workingKey = null;
         byte[] s = null;
-        //Tables4kGCMMultiplier
-        byte[] H;
-        long[][] T = null;
+        long[][] T = new long[256][2];
         try
         {
             KeyParameter keyParam;
@@ -122,7 +120,7 @@ public class AESGCMPacketCipher
             {
                 ParametersWithIV param = (ParametersWithIV)params;
 
-                newNonce = param.getIV();
+                newNonce = param.getIV().clone();
                 initialAssociatedText = null;
                 macSize = 16;
                 keyParam = (KeyParameter)param.getParameters();
@@ -173,21 +171,6 @@ public class AESGCMPacketCipher
                 s = Arrays.clone(S);
                 HGCM = new byte[BLOCK_SIZE];
                 encryptBlock(HGCM, HGCM, workingKey, s, ROUNDS);
-
-                // GCMMultiplier tables don't change unless the key changes (and are expensive to init)
-                T = new long[256][2];
-                H = new byte[BLOCK_SIZE];
-                System.arraycopy(HGCM, 0, H, 0, BLOCK_SIZE);
-                // T[1] = H.p^7
-                GCMUtil.asLongs(H, T[1]);
-                GCMUtil.multiplyP7(T[1], T[1]);
-                for (int n = 2; n < 256; n += 2)
-                {
-                    // T[2.n] = T[n].p^-1
-                    GCMUtil.divideP(T[n >> 1], T[n]);
-                    // T[2.n + 1] = T[2.n] + T[1]
-                    GCMUtil.xor(T[n], T[1], T[n + 1]);
-                }
             }
             else
             {
@@ -493,24 +476,6 @@ public class AESGCMPacketCipher
             atLengthPre = atLength;
         }
         return atLengthPre;
-    }
-
-    private void multiplyH(byte[] x, long[][] T)
-    {
-        long[] t = T[x[15] & 0xFF];
-        long z0 = t[0], z1 = t[1];
-
-        for (int i = 14; i >= 0; --i)
-        {
-            t = T[x[i] & 0xFF];
-
-            long c = z1 << 56;
-            z1 = t[1] ^ ((z1 >>> 8) | (z0 << 56));
-            z0 = t[0] ^ (z0 >>> 8) ^ c ^ (c >>> 1) ^ (c >>> 2) ^ (c >>> 7);
-        }
-
-        Pack.longToBigEndian(z0, x, 0);
-        Pack.longToBigEndian(z1, x, 8);
     }
 
     private void gHASHBlock(byte[] Y, byte[] b, long[][] T)
