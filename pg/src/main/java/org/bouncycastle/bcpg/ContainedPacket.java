@@ -12,7 +12,17 @@ public abstract class ContainedPacket
     extends Packet
     implements Encodable
 {
-    public byte[] getEncoded() 
+    public ContainedPacket()  // binary compatibility.
+    {
+        super(RESERVED);
+    }
+
+    ContainedPacket(int packetTag)
+    {
+        super(packetTag);
+    }
+
+    public byte[] getEncoded()
         throws IOException
     {
         ByteArrayOutputStream    bOut = new ByteArrayOutputStream();

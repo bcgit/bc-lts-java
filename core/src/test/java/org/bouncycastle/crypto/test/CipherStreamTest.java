@@ -260,7 +260,6 @@ public class CipherStreamTest
      * Test CipherOutputStream in ENCRYPT_MODE, CipherInputStream in DECRYPT_MODE
      */
     private void testWriteReadEmpty(Object cipher, CipherParameters params, boolean blocks)
-        throws Exception
     {
         byte[] data = new byte[0];
 
@@ -403,7 +402,6 @@ public class CipherStreamTest
      * Test CipherInputStream in ENCRYPT_MODE, CipherOutputStream in DECRYPT_MODE
      */
     private void testReadWrite(Object cipher, CipherParameters params, boolean blocks)
-        throws Exception
     {
         String lCode = "ABCDEFGHIJKLMNOPQRSTU";
 
@@ -515,7 +513,7 @@ public class CipherStreamTest
         testMode(new HC256Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
 
         testSkipping(new Salsa20Engine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[8]));
-        testSkipping(new SICBlockCipher(AESEngine.newInstance()), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
+        testSkipping(SICBlockCipher.newInstance(AESEngine.newInstance()), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
     }
 
     private void testModes(BlockCipher cipher1, BlockCipher cipher2, int keySize)
@@ -529,11 +527,11 @@ public class CipherStreamTest
         {
             testMode(new PaddedBufferedBlockCipher(cipher1, new PKCS7Padding()), key);
 
-            testMode(new PaddedBufferedBlockCipher(new CBCBlockCipher(cipher1), new PKCS7Padding()), withIv);
+            testMode(new PaddedBufferedBlockCipher(CBCBlockCipher.newInstance(cipher1), new PKCS7Padding()), withIv);
 
             testMode(new DefaultBufferedBlockCipher(new OFBBlockCipher(cipher1, blockSize)), withIv);
-            testMode(new DefaultBufferedBlockCipher(new CFBBlockCipher(cipher1, blockSize)), withIv);
-            testMode(new DefaultBufferedBlockCipher(new SICBlockCipher(cipher1)), withIv);
+            testMode(new DefaultBufferedBlockCipher(CFBBlockCipher.newInstance(cipher1, blockSize)), withIv);
+            testMode(new DefaultBufferedBlockCipher((BlockCipher)SICBlockCipher.newInstance(cipher1)), withIv);
         }
         // CTS requires at least one block
         if (blockSize <= 16 && streamSize >= blockSize)

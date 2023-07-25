@@ -38,7 +38,7 @@ public class CTSBlockCipher
     }
 
     /**
-     * return the size of the output buffer required for an update
+     * return the size of the output buffer required for an update 
      * an input of len bytes.
      *
      * @param len the length of the input.
@@ -131,7 +131,7 @@ public class CTSBlockCipher
 
         int blockSize   = getBlockSize();
         int length      = getUpdateOutputSize(len);
-
+        
         if (length > 0)
         {
             if ((outOff + length) > out.length)
@@ -221,7 +221,6 @@ public class CTSBlockCipher
                     buf[i] ^= block[i - blockSize];
                 }
 
-
                 if (cipher instanceof CBCModeCipher)
                 {
                     BlockCipher c = ((CBCModeCipher)cipher).getUnderlyingCipher();
@@ -251,7 +250,7 @@ public class CTSBlockCipher
 
             if (bufOff > blockSize)
             {
-             if (cipher instanceof CBCModeCipher)
+                if (cipher instanceof CBCModeCipher)
                 {
                     BlockCipher c = ((CBCModeCipher)cipher).getUnderlyingCipher();
 

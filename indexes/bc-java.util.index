@@ -85,7 +85,7 @@ c6f2d989dc8e8dac27d81f86b8570216e3007b1ed0cc122c11d60f7147345824  util/src/test/
 fc1c90ca1e6d4ed6d6dedc1102db75657fb16e613e26675596bd1d5a2e47341e  util/src/main/java/org/bouncycastle/asn1/cmc/IdentityProofV2.java
 457be4f323553ea3d918563930acab4de45db4c861f8bf9a39b1182908289f27  util/src/main/java/org/bouncycastle/asn1/cmc/Utils.java
 bf0b1139bc934cf46b6d369ad9370edc15ea7e9d1f2dc44b045607a4994839a5  util/src/main/java/org/bouncycastle/asn1/cmc/PublishTrustAnchors.java
-e8346dcf826bd7189bcfce0373e2fc03bb71e39f0326f59d02c6c8cded747d7d  util/src/main/java/org/bouncycastle/asn1/cmc/CMCStatusInfoV2.java
+3073656303d197bbd7cebd08bcb9e3878999901b7e19b14d157ca4653aabf674  util/src/main/java/org/bouncycastle/asn1/cmc/CMCStatusInfoV2.java
 8213099cc4619a9f6167b7a638c7d2ece3be57743429e695d2363111bda3ce8b  util/src/main/java/org/bouncycastle/asn1/cmc/CMCStatus.java
 76eafdb11ab1735edcfb8e86a0c36e8e1a91374c5793818525b68caff4919798  util/src/main/java/org/bouncycastle/asn1/cmc/CMCUnsignedData.java
 4fe775570ebed07604a9e7c93a879796dfb030ccf69c963dd7fe5b0f71b96f53  util/src/main/java/org/bouncycastle/asn1/cmc/GetCert.java

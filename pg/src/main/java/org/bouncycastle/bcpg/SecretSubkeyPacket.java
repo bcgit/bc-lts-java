@@ -17,7 +17,7 @@ public class SecretSubkeyPacket
         BCPGInputStream    in)
         throws IOException
     { 
-        super(in);
+        super(SECRET_SUBKEY, in);
     }
     
     /**
@@ -35,7 +35,7 @@ public class SecretSubkeyPacket
         byte[]           iv,
         byte[]           secKeyData)
     {
-        super(pubKeyPacket, encAlgorithm, s2k, iv, secKeyData);
+        super(SECRET_SUBKEY, pubKeyPacket, encAlgorithm, s2k, iv, secKeyData);
     }
  
     public SecretSubkeyPacket(
@@ -46,13 +46,6 @@ public class SecretSubkeyPacket
         byte[]           iv,
         byte[]           secKeyData)
     {
-        super(pubKeyPacket, encAlgorithm, s2kUsage, s2k, iv, secKeyData);
-    }
-    
-    public void encode(
-        BCPGOutputStream    out)
-        throws IOException
-    {
-        out.writePacket(SECRET_SUBKEY, getEncodedContents());
+        super(SECRET_SUBKEY, pubKeyPacket, encAlgorithm, s2kUsage, s2k, iv, secKeyData);
     }
 }

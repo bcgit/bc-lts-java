@@ -32,6 +32,8 @@ public class SignaturePacket
         BCPGInputStream    in)
         throws IOException
     {
+        super(SIGNATURE);
+
         version = in.read();
         
         if (version == 3 || version == 2)
@@ -238,6 +240,8 @@ public class SignaturePacket
         byte[]                  fingerPrint,
         MPInteger[]             signature)
     {
+        super(SIGNATURE);
+
         this.version = version;
         this.signatureType = signatureType;
         this.keyID = keyID;
