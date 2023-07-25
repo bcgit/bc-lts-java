@@ -1,12 +1,9 @@
 package org.bouncycastle.crypto.engines;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.MultiBlockCipher;
-import org.bouncycastle.crypto.SkippingStreamCipher;
-import org.bouncycastle.crypto.StreamCipher;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
@@ -16,10 +13,24 @@ public class AESNativeCTR
 
     private CTRRefWrapper referenceWrapper = null;
     private int keyLen;
+    private byte[] lastKey;
 
     public AESNativeCTR()
     {
     }
+
+
+    public BlockCipher getUnderlyingCipher()
+    {
+        BlockCipher engine = AESEngine.newInstance();
+        if (lastKey != null)
+        {
+            engine.init(true, new KeyParameter(lastKey));
+        }
+        return engine;
+    }
+
+
 
     @Override
     public int getBlockSize()
@@ -182,6 +193,7 @@ public class AESNativeCTR
                 }
 
                 init(referenceWrapper.getReference(), key, iv);
+                lastKey = Arrays.clone(key);
                 keyLen = key.length * 8;
             }
 
