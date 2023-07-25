@@ -1,7 +1,6 @@
 package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.PacketCipherEngine;
@@ -73,38 +72,19 @@ public class AESGCMSIVPacketCipher
         throws PacketCipherException
     {
         processPacketExceptionCheck(input, inOff, len, output, outOff);
-        if (encryption)
-        {
-            if (len + outOff + BLOCK_SIZE > output.length)
-            {
-                throw PacketCipherException.from(new DataLengthException(ExceptionMessage.OUTPUT_LENGTH));
-            }
-        }
-        else
-        {
-            if (len < BLOCK_SIZE)
-            {
-                throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.INPUT_SHORT));
-            }
-            if (len + outOff - BLOCK_SIZE > output.length)
-            {
-                throw PacketCipherException.from(new DataLengthException(ExceptionMessage.OUTPUT_LENGTH));
-            }
-        }
+        AEADLengthCheck(encryption, len, output, outOff, BLOCK_SIZE);
         final byte[] theGHash = new byte[BLOCK_SIZE];
         final byte[] theReverse = new byte[BLOCK_SIZE];
         final GCMSIVHasher theAEADHasher = new GCMSIVHasher();
         final GCMSIVHasher theDataHasher = new GCMSIVHasher();
-        byte[] theInitialAEAD;
+        byte[] myInitialAEAD = null;
         byte[] myNonce;
         int KC, ROUNDS;
         int[][] workingKey;
         byte[] s;
         long[][] T = new long[256][2];
         final byte[] myResult = new byte[BLOCK_SIZE];
-        byte[] myInitialAEAD = null;
         KeyParameter myKey;
-
         /* Access parameters */
         if (parameters instanceof AEADParameters)
         {
@@ -143,79 +123,99 @@ public class AESGCMSIVPacketCipher
             workingKey = generateWorkingKey(myKey.getKey(), KC, ROUNDS);
             s = Arrays.clone(S);
         }
+
         final byte[] myEncKey = new byte[myKey.getKeyLength()];
-        /* Reset details */
-        theInitialAEAD = myInitialAEAD;
-
-        /* Prepare for encryption */
-        System.arraycopy(myNonce, 0, theGHash, BLOCK_SIZE - NONCELEN, NONCELEN);
-
-        /* Derive authentication key */
-        DeriveKey(ROUNDS, workingKey, s, theGHash, theReverse, myResult, 0);
-
-        /* Derive encryption key */
-        theGHash[0]++;
-        int myOff = DeriveKey(ROUNDS, workingKey, s, theGHash, theReverse, myEncKey, 0);
-
-        /* If we have a 32byte key */
-        if (myEncKey.length == BLOCK_SIZE << 1)
+        PacketCipherException exception = null;
+        int outputLen = 0;
+        try
         {
-            /* Derive remainder of encryption key */
+            /* Prepare for encryption */
+            System.arraycopy(myNonce, 0, theGHash, BLOCK_SIZE - NONCELEN, NONCELEN);
+
+            /* Derive authentication key */
+            DeriveKey(ROUNDS, workingKey, s, theGHash, theReverse, myResult, 0);
+
+            /* Derive encryption key */
             theGHash[0]++;
-            myOff += HALFBUFLEN;
-            DeriveKey(ROUNDS, workingKey, s, theGHash, theReverse, myEncKey, myOff);
+            int myOff = DeriveKey(ROUNDS, workingKey, s, theGHash, theReverse, myEncKey, 0);
+
+            /* If we have a 32byte key */
+            if (myEncKey.length == BLOCK_SIZE << 1)
+            {
+                /* Derive remainder of encryption key */
+                theGHash[0]++;
+                myOff += HALFBUFLEN;
+                DeriveKey(ROUNDS, workingKey, s, theGHash, theReverse, myEncKey, myOff);
+            }
+
+            /* Initialise the Cipher */
+            int keyLen = myEncKey.length;
+            checkKeyLength(keyLen);
+            KC = keyLen >>> 2;
+            ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
+            workingKey = generateWorkingKey(myEncKey, KC, ROUNDS);
+
+            /* Initialise the multiplier */
+            fillReverse(myResult, 0, BLOCK_SIZE, theReverse);
+            mulX(theReverse);
+            GCMInitialT(T, theReverse);
+            Arrays.fill(theGHash, (byte)0);
+            /* Initialise AEAD if required */
+            if (myInitialAEAD != null)
+            {
+                theAEADHasher.updateHash(myInitialAEAD, 0, myInitialAEAD.length, theReverse, theGHash, T);
+            }
+
+            /* Complete the AEAD section if this is the first data */
+            theAEADHasher.completeHash(theReverse, theGHash, T);
+            /* Make sure that we haven't breached data limit */
+            long dataLimit = MAX_DATALEN;
+            if (!encryption)
+            {
+                dataLimit += BLOCK_SIZE;
+            }
+            if ((long)len + Long.MIN_VALUE > (dataLimit - len) + Long.MIN_VALUE)
+            {
+                throw PacketCipherException.from(new IllegalStateException("byte count exceeded"));
+            }
+
+            /* If we are encrypting */
+            if (encryption)
+            {
+                theDataHasher.updateHash(input, inOff, len, theReverse, theGHash, T);
+                /* Derive the tag */
+                final byte[] myTag = calculateTag(theDataHasher, theAEADHasher, theReverse, theGHash, T, myNonce, workingKey, s, ROUNDS);
+                /* encrypt the plain text */
+                outputLen = BLOCK_SIZE + encryptPlain(input, inOff, len, myTag, output, outOff, workingKey, s, ROUNDS);
+                /* Add the tag to the output */
+                System.arraycopy(myTag, 0, output, outOff + len, BLOCK_SIZE);
+            }
+            else
+            {
+                /* decrypt to plain text */
+                decryptPlain(theDataHasher, theAEADHasher, input, inOff, len,
+                    output, outOff, myNonce, theReverse, theGHash, T, workingKey, s, ROUNDS);
+                outputLen = len - BLOCK_SIZE;
+            }
         }
-
-        /* Initialise the Cipher */
-        int keyLen = myEncKey.length;
-        checkKeyLength(keyLen);
-        KC = keyLen >>> 2;
-        ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
-        workingKey = generateWorkingKey(myEncKey, KC, ROUNDS);
-
-        /* Initialise the multiplier */
-        fillReverse(myResult, 0, BLOCK_SIZE, theReverse);
-        mulX(theReverse);
-        GCMInitialT(T, theReverse);
+        catch (Exception ex)
+        {
+            exception = PacketCipherException.from(ex);
+        }
+        for (int[] ints : workingKey)
+        {
+            Arrays.fill(ints, 0);
+        }
         Arrays.fill(theGHash, (byte)0);
-        /* Initialise AEAD if required */
-        if (theInitialAEAD != null)
+        Arrays.fill(theReverse, (byte)0);
+        Arrays.fill(myNonce, (byte)0);
+        if (myInitialAEAD != null)
         {
-            theAEADHasher.updateHash(theInitialAEAD, 0, theInitialAEAD.length, theReverse, theGHash, T);
+            Arrays.fill(myInitialAEAD, (byte)0);
         }
 
-        /* Complete the AEAD section if this is the first data */
-        theAEADHasher.completeHash(theReverse, theGHash, T);
-        /* Make sure that we haven't breached data limit */
-        long dataLimit = MAX_DATALEN;
-        if (!encryption)
-        {
-            dataLimit += BLOCK_SIZE;
-        }
-        if ((long)len + Long.MIN_VALUE > (dataLimit - len) + Long.MIN_VALUE)
-        {
-            throw PacketCipherException.from(new IllegalStateException("byte count exceeded"));
-        }
-
-        /* If we are encrypting */
-        if (encryption)
-        {
-            theDataHasher.updateHash(input, inOff, len, theReverse, theGHash, T);
-            /* Derive the tag */
-            final byte[] myTag = calculateTag(theDataHasher, theAEADHasher, theReverse, theGHash, T, myNonce, workingKey, s, ROUNDS);
-            /* encrypt the plain text */
-            final int myDataLen = BLOCK_SIZE + encryptPlain(input, inOff, len, myTag, output, outOff, workingKey, s, ROUNDS);
-            /* Add the tag to the output */
-            System.arraycopy(myTag, 0, output, outOff + len, BLOCK_SIZE);
-            return myDataLen;
-        }
-        else
-        {
-            /* decrypt to plain text */
-            decryptPlain(theDataHasher, theAEADHasher, input, inOff, len,
-                output, outOff, myNonce, theReverse, theGHash, T, workingKey, s, ROUNDS);
-            return len - BLOCK_SIZE;
-        }
+        AEADExceptionHandler(output, outOff, exception, outputLen);
+        return outputLen;
     }
 
     private int DeriveKey(int ROUNDS, int[][] workingKey, byte[] s, byte[] myIn, byte[] myOut, byte[] myEncKey, int myOff)
@@ -292,7 +292,6 @@ public class AESGCMSIVPacketCipher
                              int[][] workingKey, byte[] s, int ROUNDS)
     {
         /* Access buffer and length */
-        //final byte[] mySrc = thePlain.getBuffer();
         final byte[] myCounter = Arrays.clone(pCounter);
         myCounter[BLOCK_SIZE - 1] |= MASK;
         final byte[] myMask = new byte[BLOCK_SIZE];
@@ -552,5 +551,11 @@ public class AESGCMSIVPacketCipher
                 break;
             }
         }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "GCM-SIV Packet Cipher";
     }
 }

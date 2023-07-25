@@ -102,24 +102,7 @@ public class AESCCMPacketCipher
         {
             throw PacketCipherException.from(new IllegalArgumentException("invalid parameters passed to CCM"));
         }
-        if (forEncryption)
-        {
-            if (output.length - outOff < inLen + macSize)
-            {
-                throw PacketCipherException.from(new OutputLengthException(ExceptionMessage.OUTPUT_LENGTH));
-            }
-        }
-        else
-        {
-            if (output.length - outOff < inLen - macSize)
-            {
-                throw PacketCipherException.from(new OutputLengthException(ExceptionMessage.OUTPUT_LENGTH));
-            }
-            if (in.length - inOff < macSize)
-            {
-                throw PacketCipherException.from(new DataLengthException(ExceptionMessage.INPUT_SHORT));
-            }
-        }
+        AEADLengthCheck(forEncryption, inLen, output, outOff, macSize);
         if (nonce == null || nonce.length < 7 || nonce.length > 13)
         {
             throw PacketCipherException.from(new IllegalArgumentException("nonce must have length from 7 to 13 octets"));
@@ -198,11 +181,7 @@ public class AESCCMPacketCipher
         {
             Arrays.fill(ints, 0);
         }
-        if (exception != null)
-        {
-            Arrays.fill(output, (byte)0);
-            throw exception;
-        }
+        AEADExceptionHandler(output, outOff, exception, outputLen);
         return outputLen;
     }
 

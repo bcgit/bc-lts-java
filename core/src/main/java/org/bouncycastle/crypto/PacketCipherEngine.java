@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto;
 
 import org.bouncycastle.crypto.modes.gcm.GCMUtil;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
 
 public abstract class PacketCipherEngine
@@ -579,7 +580,7 @@ public abstract class PacketCipherEngine
         (byte)225, (byte)105, (byte)20, (byte)99, (byte)85, (byte)33, (byte)12, (byte)125,
     };
 
-    protected void int4ToLittleEndian(int[] C, byte[] output, int outOff)
+    protected static void int4ToLittleEndian(int[] C, byte[] output, int outOff)
     {
         Pack.intToLittleEndian(C[0], output, outOff);
         Pack.intToLittleEndian(C[1], output, outOff + 4);
@@ -587,7 +588,7 @@ public abstract class PacketCipherEngine
         Pack.intToLittleEndian(C[3], output, outOff + 12);
     }
 
-    protected void int4ToLittleEndianTail(int[] C, byte[] output, int outOff, int len)
+    protected static void int4ToLittleEndianTail(int[] C, byte[] output, int outOff, int len)
     {
         if (len >= BLOCK_SIZE)
         {
@@ -607,7 +608,7 @@ public abstract class PacketCipherEngine
         }
     }
 
-    protected void int4XorLittleEndian(int[] C, byte[] input, int inOff)
+    protected static void int4XorLittleEndian(int[] C, byte[] input, int inOff)
     {
         C[0] ^= Pack.littleEndianToInt(input, inOff);
         C[1] ^= Pack.littleEndianToInt(input, 4 + inOff);
@@ -635,7 +636,7 @@ public abstract class PacketCipherEngine
         }
     }
 
-    protected void littleEndianToInt4(byte[] input, int inOff, int[] output)
+    protected static void littleEndianToInt4(byte[] input, int inOff, int[] output)
     {
         output[0] = Pack.littleEndianToInt(input, inOff);
         output[1] = Pack.littleEndianToInt(input, inOff + 4);
@@ -643,7 +644,7 @@ public abstract class PacketCipherEngine
         output[3] = Pack.littleEndianToInt(input, inOff + 12);
     }
 
-    protected void processPacketExceptionCheck(byte[] input, int inOff, int len, byte[] output, int outOff)
+    protected static void processPacketExceptionCheck(byte[] input, int inOff, int len, byte[] output, int outOff)
         throws PacketCipherException
     {
         if (input == null)
@@ -672,7 +673,7 @@ public abstract class PacketCipherEngine
         }
     }
 
-    protected void checkKeyLength(int keyLen)
+    protected static void checkKeyLength(int keyLen)
         throws PacketCipherException
     {
         if (keyLen < 16 || keyLen > 32 || (keyLen & 7) != 0)
@@ -681,7 +682,7 @@ public abstract class PacketCipherEngine
         }
     }
 
-    protected void ctrProcessBlock(byte[] counter, int[] counterIn, int[] counterOut, byte[] in, int inOff, byte[] out, int outOff,
+    protected static void ctrProcessBlock(byte[] counter, int[] counterIn, int[] counterOut, byte[] in, int inOff, byte[] out, int outOff,
                                  int[][] workingkeys, byte[] s, int ROUNDS)
     {
         encryptBlock(counterIn, counterOut, workingkeys, s, ROUNDS);
@@ -702,7 +703,7 @@ public abstract class PacketCipherEngine
         int4ToLittleEndian(counterOut, out, outOff);
     }
 
-    protected void multiplyH(byte[] x, long[][] T)
+    protected static void multiplyH(byte[] x, long[][] T)
     {
         long[] t = T[x[15] & 0xFF];
         long z0 = t[0], z1 = t[1];
@@ -731,6 +732,39 @@ public abstract class PacketCipherEngine
             GCMUtil.divideP(t[n >> 1], t[n]);
             // T[2.n + 1] = T[2.n] + T[1]
             GCMUtil.xor(t[n], t[1], t[n + 1]);
+        }
+    }
+
+    protected static void AEADExceptionHandler(byte[] output, int outOff, Throwable exceptionThrown, int len)
+        throws PacketCipherException
+    {
+        if (exceptionThrown != null)
+        {
+            Arrays.fill(output, outOff, outOff + len, (byte)0);
+            throw PacketCipherException.from(exceptionThrown);
+        }
+    }
+
+    protected static void AEADLengthCheck(boolean forEncryption, int inLen, byte[] output, int outOff, int macSize)
+        throws PacketCipherException
+    {
+        if (forEncryption)
+        {
+            if (output.length - outOff < inLen + macSize)
+            {
+                throw PacketCipherException.from(new OutputLengthException(ExceptionMessage.OUTPUT_LENGTH));
+            }
+        }
+        else
+        {
+            if (inLen < macSize)
+            {
+                throw PacketCipherException.from(new DataLengthException(ExceptionMessage.INPUT_SHORT));
+            }
+            if (output.length - outOff < inLen - macSize)
+            {
+                throw PacketCipherException.from(new OutputLengthException(ExceptionMessage.OUTPUT_LENGTH));
+            }
         }
     }
 }

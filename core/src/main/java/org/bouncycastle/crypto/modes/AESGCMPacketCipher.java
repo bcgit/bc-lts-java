@@ -129,24 +129,7 @@ public class AESGCMPacketCipher
             {
                 throw new IllegalArgumentException("invalid parameters passed to GCM");
             }
-            if (forEncryption)
-            {
-                if (output.length - outOff < len + macSize)
-                {
-                    throw new OutputLengthException(ExceptionMessage.OUTPUT_LENGTH);
-                }
-            }
-            else
-            {
-                if (output.length - outOff < len - macSize)
-                {
-                    throw new OutputLengthException(ExceptionMessage.OUTPUT_LENGTH);
-                }
-                if (input.length - inOff < macSize)
-                {
-                    throw new DataLengthException(ExceptionMessage.INPUT_SHORT);
-                }
-            }
+            AEADLengthCheck(forEncryption, len, output, outOff, macSize);
             int bufLength = forEncryption ? BLOCK_SIZE : (BLOCK_SIZE + macSize);
             bufBlock = new byte[bufLength];
 
@@ -171,6 +154,7 @@ public class AESGCMPacketCipher
                 s = Arrays.clone(S);
                 HGCM = new byte[BLOCK_SIZE];
                 encryptBlock(HGCM, HGCM, workingKey, s, ROUNDS);
+                GCMInitialT(T, HGCM);
             }
             else
             {
@@ -441,13 +425,11 @@ public class AESGCMPacketCipher
             Arrays.fill(macBlock, (byte)0);
         }
 
-        if (exceptionThrown != null)
-        {
-            Arrays.fill(output, outOff, output.length, (byte)0);
-            throw PacketCipherException.from(exceptionThrown);
-        }
+        AEADExceptionHandler(output, outOff, exceptionThrown, written);
         return written;
     }
+
+
 
     private static void extracted(byte[] S, byte[] S_atPre, long atLengthPre)
     {
