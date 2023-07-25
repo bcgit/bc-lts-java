@@ -19,8 +19,8 @@ typedef struct {
     uint8_t buf[BUF_SIZE_SHA256];
     uint64_t byteCount;
     uint32_t state[8];
-    uint8x16_t s0;
-    uint8x16_t s1;
+    uint32x4_t s0;
+    uint32x4_t s1;
 } sha256_ctx;
 
 
@@ -56,6 +56,8 @@ static inline uint8x16_t swap_endian(uint8x16_t in) {
     in = vrev64q_u8(in);
     return vextq_u8(in, in, 8);
 }
+
+
 
 
 

@@ -132,7 +132,7 @@ void sha256_update_byte(sha256_ctx *ctx, uint8_t b) {
     ctx->buf[ctx->buf_index++] = b;
     ctx->byteCount++;
     if (ctx->buf_index == BUF_SIZE_SHA256) {
-        hashBlock(ctx, (uint8_t *) &ctx->buf);
+        hashBlock(ctx, ctx->buf);
         ctx->buf_index = 0;
     }
 }
@@ -151,11 +151,10 @@ void sha256_digest(sha256_ctx *ctx, uint8_t *output) {
     vst1q_u32(&ctx->state[0], ctx->s0);
     vst1q_u32(&ctx->state[4], ctx->s1);
 
-    vst1q_u32(output, ctx->s0);
-    vst1q_u32(output+16, ctx->s1);
 
-//    _mm_storeu_si128((__m128i *) output, _mm_shuffle_epi8(ctx->s0, *SWAP_ENDIAN_SHA_256));
-//    _mm_storeu_si128((__m128i *) (output + 16), _mm_shuffle_epi8(ctx->s1, *SWAP_ENDIAN_SHA_256));
+    vst1q_u32((uint32_t *) &output[0 * 16], vreinterpretq_u32_u8( vrev32q_u8(vreinterpretq_u8_u32( ctx->s0))));
+    vst1q_u32((uint32_t *) &output[1 * 16], vreinterpretq_u32_u8( vrev32q_u8(vreinterpretq_u8_u32( ctx->s1))));
+
 
     sha256_reset(ctx);
 }
@@ -200,12 +199,8 @@ void hashBlock(sha256_ctx *ctx, uint8_t *block) {
     uint32x4_t msg0, msg1, msg2, msg3;
     uint32x4_t tmp0, tmp1, tmp2;
 
-
-    s0 = vld1q_u32(&ctx->state[0]);
-    s1 = vld1q_u32(&ctx->state[4]);
-
-    abef_save = s0;
-    cdgh_save = s1;
+    s0 = abef_save = ctx->s0;
+    s1 = cdgh_save = ctx->s1;
 
     msg0 = vld1q_u32((uint32_t *) &block[0 * 16]);
     msg1 = vld1q_u32((uint32_t *) &block[1 * 16]);

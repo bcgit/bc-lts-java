@@ -2,7 +2,14 @@
 //
 
 #include <stdlib.h>
+#include <memory.h>
+
+#ifdef __APPLE__
+
 #include <libc.h>
+
+#endif
+
 #include <assert.h>
 #include "gcm.h"
 #include "gcm_hash.h"
@@ -45,10 +52,10 @@ void gcm_reset(gcm_ctx *ctx, bool keepMac) {
     ctx->bufBlockIndex = 0;
     ctx->atBlockPos = 0;
     ctx->atLengthPre = 0;
-    ctx->last_aad_block = vdupq_n_u16(0);
-    ctx->last_block = vdupq_n_u16(0);
-    ctx->S_atPre = vdupq_n_u16(0);
-    ctx->S_at = vdupq_n_u16(0);
+    ctx->last_aad_block = vdupq_n_u8(0);
+    ctx->last_block = vdupq_n_u8(0);
+    ctx->S_atPre = vdupq_n_u8(0);
+    ctx->S_at = vdupq_n_u8(0);
 
     memset(ctx->bufBlock, 0, BUF_BLK_SIZE);
 
@@ -69,8 +76,8 @@ void gcm_reset(gcm_ctx *ctx, bool keepMac) {
 
 
     //    ctx->ctr1 = _mm_shuffle_epi8(ctx->Y, *BSWAP_EPI64);
-    ctx->ctr1 = vrev64q_u8(ctx->Y);
-    ctx->ctr1 = vextq_u8(ctx->ctr1, ctx->ctr1, 8);
+    ctx->ctr1 = vreinterpretq_u32_u8( vrev64q_u8(ctx->Y));
+    ctx->ctr1 = vreinterpretq_u32_u8(vextq_u8(vreinterpretq_u8_u32(ctx->ctr1), vreinterpretq_u8_u32(ctx->ctr1), 8));
 
     ctx->blocksRemaining = BLOCKS_REMAINING_INIT;
 
@@ -120,7 +127,7 @@ void gcm_process_aad_byte(gcm_ctx *ctx, uint8_t in) {
 
         ctx->S_at = veorq_u8(ctx->S_at, ctx->last_aad_block);
         ctx->S_at = gfmul(ctx->S_at, ctx->H);
-        ctx->last_aad_block = vdupq_n_u16(0);
+        ctx->last_aad_block = vdupq_n_u8(0);
         ctx->atBlockPos = 0;
         ctx->atLength += GCM_BLOCK_SIZE;
     }
@@ -145,7 +152,7 @@ void gcm_process_aad_bytes(gcm_ctx *ctx, uint8_t *aad, size_t len) {
         ctx->last_aad_block = vextq_u8(ctx->last_aad_block, ctx->last_aad_block, 8);
         ctx->S_at = veorq_u8(ctx->S_at, ctx->last_aad_block);
         ctx->S_at = gfmul(ctx->S_at, ctx->H);
-        ctx->last_aad_block = vdupq_n_u16(0);
+        ctx->last_aad_block = vdupq_n_u8(0);
 
         aad += GCM_BLOCK_SIZE;
         ctx->atLength += GCM_BLOCK_SIZE;
@@ -181,8 +188,8 @@ gcm_err *gcm_init(
     ctx->totalBytes = 0;
     ctx->atBlockPos = 0;
     ctx->atLengthPre = 0;
-    ctx->last_aad_block = vdupq_n_u64(0); // holds partial block of associated text.
-    ctx->last_block = vdupq_n_u64(0);
+    ctx->last_aad_block = vdupq_n_u8(0); // holds partial block of associated text.
+    ctx->last_block = vdupq_n_u8(0);
 
     // We had old initial text drop it here.
     if (ctx->initAD != NULL) {
@@ -219,13 +226,13 @@ gcm_err *gcm_init(
     // TODO change for multi-block
     ctx->bufBlockLen = encryption ? FOUR_BLOCKS : (FOUR_BLOCKS + ctx->macBlockLen);
 
-    ctx->S_at = vdupq_n_u64(0);
-    ctx->S_atPre = vdupq_n_u64(0);
+    ctx->S_at = vdupq_n_u8(0);
+    ctx->S_atPre = vdupq_n_u8(0);
 
-    ctx->X = vdupq_n_u64(0);
-    ctx->Y = vdupq_n_u64(0);
-    ctx->T = vdupq_n_u64(0);
-    ctx->H = vdupq_n_u64(0);
+    ctx->X = vdupq_n_u8(0);
+    ctx->Y = vdupq_n_u8(0);
+    ctx->T = vdupq_n_u8(0);
+    ctx->H = vdupq_n_u8(0);
 
     uint8x16_t tmp1, tmp2;
 
@@ -259,7 +266,7 @@ gcm_err *gcm_init(
 
         int i;
         for (i = 0; i < nonceLen / 16; i++) {
-            tmp1 = vld1q_u8(&nonce[i*16]);
+            tmp1 = vld1q_u8(&nonce[i * 16]);
             swap_endian_inplace(&tmp1);
 
 //            tmp1 = vrev64q_u8(tmp1);
@@ -280,13 +287,14 @@ gcm_err *gcm_init(
             ctx->Y = gfmul(ctx->Y, ctx->H);
         }
 
-         //        tmp1 = _mm_insert_epi64(tmp1, (long long) nonceLen * 8, 0);
-        const uint32x4_t nlen = {(uint32_t)nonceLen * 8, 0, 0, 0}; // TODO look for intrinsic that can set u32 into a single lane
-        tmp1 = nlen;
+        //        tmp1 = _mm_insert_epi64(tmp1, (long long) nonceLen * 8, 0);
+        const uint32x4_t nlen = {(uint32_t) nonceLen * 8, 0, 0,
+                                 0}; // TODO look for intrinsic that can set u32 into a single lane
+        tmp1 = vreinterpretq_u8_u32(nlen);
 
 //        tmp1 = _mm_insert_epi64(tmp1, 0, 1);
 
-        ctx->Y = veorq_u8(ctx->Y,tmp1);
+        ctx->Y = veorq_u8(ctx->Y, tmp1);
         ctx->Y = gfmul(ctx->Y, ctx->H);
         swap_endian_inplace(&ctx->Y);
 //        ctx->Y = _mm_xor_si128(ctx->Y, tmp1);
@@ -294,9 +302,7 @@ gcm_err *gcm_init(
 //        ctx->Y = _mm_shuffle_epi8(ctx->Y, *BSWAP_MASK);
         // E(K,Y0)
 
-        single_block(&ctx->aesKey,ctx->Y, &ctx->T);
-
-
+        single_block(&ctx->aesKey, ctx->Y, &ctx->T);
 
 
     }
@@ -316,11 +322,11 @@ gcm_err *gcm_init(
         gcm_process_aad_bytes(ctx, ctx->initAD, ctx->initADLen);
     }
 
-    ctx->last_block = vdupq_n_u64(0);
+    ctx->last_block = vdupq_n_u8(0);
 
     // BSWAP_EPI64 = vrev64q_u8(tmp1);
 
-    ctx->ctr1 = vrev64q_u8(ctx->Y);
+    ctx->ctr1 = vreinterpretq_u32_u8(vrev64q_u8(ctx->Y));
     ctx->blocksRemaining = BLOCKS_REMAINING_INIT;
 
     ctx->hashKeys[HASHKEY_0] = ctx->H;
@@ -383,7 +389,7 @@ gcm_err *gcm_process_bytes(gcm_ctx *ctx, uint8_t *input, size_t len, unsigned ch
                            size_t *written) {
 
 
-    if (ctx->totalBytes == 0 && len >0) {
+    if (ctx->totalBytes == 0 && len > 0) {
         gcm__initBytes(ctx);
     }
 

@@ -67,7 +67,8 @@ typedef struct {
     size_t atLengthPre;
 
 
-    uint8x16_t ctr1, X, H, Y, T, S_at, S_atPre, last_aad_block;
+    uint8x16_t  X, H, Y, T, S_at, S_atPre, last_aad_block;
+    uint32x4_t ctr1;
 
     // AD
 

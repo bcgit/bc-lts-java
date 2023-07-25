@@ -1,6 +1,11 @@
 
 #include <assert.h>
+#ifdef __APPLE__
 #include <libc.h>
+#else
+#include <stdlib.h>
+#include <memory.h>
+#endif
 #include "cbc.h"
 #include "../aes/aes_common_neon.h"
 

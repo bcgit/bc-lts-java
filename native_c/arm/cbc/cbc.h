@@ -14,8 +14,8 @@ typedef struct cbc_ctx {
     aes_key key;
     size_t num_rounds;
     bool encryption;
-    uint16x8_t initial_chain_block;
-    uint16x8_t chain_block;
+    uint8x16_t initial_chain_block;
+    uint8x16_t chain_block;
 } cbc_ctx;
 
 cbc_ctx * cbc_create_ctx();

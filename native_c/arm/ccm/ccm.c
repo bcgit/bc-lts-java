@@ -48,7 +48,7 @@ void ccm_reset(ccm_ctx *ctx, bool keepMac) {
     memset(ctx->buf, 0, BLOCK_SIZE);
     ctx->buf_ptr = 0;
     ctx->chainblock = ctx->initialChainblock;
-    ctx->partialBlock = vdupq_n_u64(0);
+    ctx->partialBlock = vdupq_n_u8(0);
     ctx->buf_pos = 0;
     ctx->ctr = ctx->initialCTR;
     ctx->ctrAtEnd = false;
@@ -89,7 +89,7 @@ ccm_err *ccm_init(
 
     init_aes_key(&ctx->key,key,keyLen,true);
 
-    ctx->initialChainblock = vdupq_n_u64(0);//_mm_loadu_si128((__m128i *) ctx->macBlock);
+    ctx->initialChainblock = vdupq_n_u8(0);//_mm_loadu_si128((__m128i *) ctx->macBlock);
     ctx->chainblock = ctx->initialChainblock;
 
     memset(ctx->buf, 0, BLOCK_SIZE);
@@ -102,7 +102,7 @@ ccm_err *ccm_init(
     ctx->ctrMask = 0xFFFFFFFFFFFFFFFF;
     ctx->IV_le =  vld1q_u8(ctx->macBlock);  //   _mm_loadu_si128((__m128i *) ctx->macBlock);
     swap_endian_inplace(&ctx->IV_le) ; //  ctx->IV_le =  _mm_shuffle_epi8(ctx->IV_le, *SWAP_ENDIAN_128);
-    ctx->ctr = (uint64_t) vget_low_u64(ctx->IV_le); // _mm_extract_epi64(ctx->IV_le, 0);
+    ctx->ctr = (uint64_t) vget_low_u64(vreinterpretq_u64_u8( ctx->IV_le)); // _mm_extract_epi64(ctx->IV_le, 0);
     ctx->initialCTR = ctx->ctr;
     ctx->IV_le = vandq_u8(ctx->IV_le, minus_one); // _mm_and_si128(ctx->IV_le, _mm_set_epi64x(-1, 0));
     // We had old initial text drop it here.
@@ -181,7 +181,7 @@ void cbcmac_update(ccm_ctx *ctx, uint8_t *src, size_t len) {
 
 void ccm_generate_partial_block(ccm_ctx *pCtr) {
 
-    uint8x16_t c = veorq_u8(pCtr->IV_le, vsetq_lane_u64(pCtr->ctr, vdupq_n_u64(0), 0));
+    uint8x16_t c = veorq_u8(pCtr->IV_le, vreinterpretq_u8_u64(vsetq_lane_u64(pCtr->ctr, vdupq_n_u64(0), 0)));
 
     //  __m128i c = _mm_xor_si128(pCtr->IV_le, _mm_set_epi64x(0, (long long) pCtr->ctr));
     uint8x16_t j = swap_endian(c);

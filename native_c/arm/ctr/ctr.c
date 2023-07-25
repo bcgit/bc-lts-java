@@ -20,7 +20,7 @@ void ctr_free_ctx(ctr_ctx *ctx) {
 }
 
 void ctr_reset(ctr_ctx *ctx) {
-    ctx->partialBlock = vdupq_n_u64(0);
+    ctx->partialBlock = vdupq_n_u8(0);
     ctx->buf_pos = 0;
     ctx->ctr = ctx->initialCTR;
     ctx->ctrAtEnd = false;
@@ -82,7 +82,7 @@ void ctr_init(ctr_ctx *pCtx, unsigned char *key, size_t keyLen, unsigned char *i
 
 
     if (ivLen < 16) {
-        pCtx->IV_le = vdupq_n_u64(0);
+        pCtx->IV_le = vdupq_n_u8(0);
         for (int t = 0; t < ivLen; t++) {
             ((unsigned char *) &pCtx->IV_le)[15 - t] = iv[t]; // endian
         }
@@ -95,7 +95,8 @@ void ctr_init(ctr_ctx *pCtx, unsigned char *key, size_t keyLen, unsigned char *i
         pCtx->IV_le = vld1q_u8(iv);
         swap_endian_inplace(&pCtx->IV_le); //  pCtx->IV_le = _mm_shuffle_epi8(pCtx->IV_le, *SWAP_ENDIAN_128);
 
-        pCtx->ctr = (uint64_t) vget_low_u64(pCtx->IV_le); //uint64_t) _mm_extract_epi64(pCtx->IV_le, 0);
+        pCtx->ctr = (uint64_t) vget_low_u64(
+                vreinterpretq_u64_u8(pCtx->IV_le)); //uint64_t) _mm_extract_epi64(pCtx->IV_le, 0);
         pCtx->initialCTR = pCtx->ctr;
 
         pCtx->IV_le = vandq_u8(pCtx->IV_le, minus_one);//   _mm_and_si128(pCtx->IV_le, _mm_set_epi64x(-1, 0));
@@ -139,7 +140,9 @@ bool ctr_shift_counter(ctr_ctx *pCtr, uint64_t magnitude, bool positive) {
 
 void ctr_generate_partial_block(ctr_ctx *pCtr) {
 
-    uint8x16_t c = veorq_u8(pCtr->IV_le, vsetq_lane_u64(pCtr->ctr, vdupq_n_u64(0), 0));
+    uint8x16_t c = veorq_u8(pCtr->IV_le,
+                            vreinterpretq_u8_u64(
+                                    vsetq_lane_u64(pCtr->ctr, vreinterpretq_u64_u8(vdupq_n_u8(0)), 0)));
 
     //  __m128i c = _mm_xor_si128(pCtr->IV_le, _mm_set_epi64x(0, (long long) pCtr->ctr));
     uint8x16_t j = swap_endian(c);

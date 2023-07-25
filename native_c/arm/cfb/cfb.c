@@ -2,7 +2,13 @@
 //
 
 #include <assert.h>
+#ifdef __APPLE__
 #include <libc.h>
+#else
+#include <stdlib.h>
+#include <memory.h>
+#endif
+
 #include "cfb.h"
 #include "arm_neon.h"
 
@@ -20,7 +26,7 @@ void cfb_free_ctx(cfb_ctx *ctx) {
 void cfb_reset(cfb_ctx *ctx) {
     ctx->feedback = ctx->initialFeedback;
     ctx->buf_index = 0;
-    ctx->mask = vdupq_n_u64(0);
+    ctx->mask = vdupq_n_u8(0);
 }
 
 void cfb_init(cfb_ctx *pCtx, unsigned char *key, unsigned char *iv) {

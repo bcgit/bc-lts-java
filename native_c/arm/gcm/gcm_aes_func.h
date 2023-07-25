@@ -307,7 +307,7 @@ static inline void quad_block(
     if (key->encryption) {
         size_t r = 0;
         for (r = 0; r < rounds - 1; r++) {
-            const uint16x8_t k = rk[r];
+            const uint8x16_t k = rk[r];
             in1 = vaeseq_u8(in1, k);
             in1 = vaesmcq_u8(in1);
             in2 = vaeseq_u8(in2, k);
@@ -339,7 +339,7 @@ static inline void quad_block(
 
         size_t r = rounds;
         for (; r > 1; r--) {
-            const uint16x8_t k = rk[r];
+            const uint8x16_t k = rk[r];
             in1 = vaesdq_u8(in1, k);
             in1 = vaesimcq_u8(in1);
             in2 = vaesdq_u8(in2, k);

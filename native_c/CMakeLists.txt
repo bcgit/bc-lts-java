@@ -187,22 +187,22 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
         install(TARGETS "${LIB_PROBE}-be" LIBRARY DESTINATION ${PLATFORM_TARGET}/probe)
 
 
-        add_library(${LIB_NATIVE}-neon-be SHARED
-                ${JNI_UTIL}
-                ${COMMON}
-                ${COMMON_NEON}
-                ${ARM_ECB}
-                ${ARM_GCM}
-                ${ARM_CBC}
-                ${ARM_CFB}
-                ${ARM_CTR}
-                ${ARM_CCM}
-                ${ARM_SHA256}
-                )
-        target_include_directories("${LIB_NATIVE}-neon-be" PUBLIC ${JNI_INCLUDES})
-        target_compile_options("${LIB_NATIVE}-neon-be" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS} ${ARM_BE}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
-        install(TARGETS "${LIB_NATIVE}-neon-be" LIBRARY DESTINATION ${PLATFORM_TARGET}/neon-be)
-        target_compile_definitions("${LIB_NATIVE}-neon-be" PUBLIC BC_NEON BC_VARIANT=\"neon\" BUILD_TS=\"${BUILD_TS}\")
+#        add_library(${LIB_NATIVE}-neon-be SHARED
+#                ${JNI_UTIL}
+#                ${COMMON}
+#                ${COMMON_NEON}
+#                ${ARM_ECB}
+#                ${ARM_GCM}
+#                ${ARM_CBC}
+#                ${ARM_CFB}
+#                ${ARM_CTR}
+#                ${ARM_CCM}
+#                ${ARM_SHA256}
+#                )
+#        target_include_directories("${LIB_NATIVE}-neon-be" PUBLIC ${JNI_INCLUDES})
+#        target_compile_options("${LIB_NATIVE}-neon-be" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS} ${ARM_BE}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
+#        install(TARGETS "${LIB_NATIVE}-neon-be" LIBRARY DESTINATION ${PLATFORM_TARGET}/neon-be)
+#        target_compile_definitions("${LIB_NATIVE}-neon-be" PUBLIC BC_NEON BC_VARIANT=\"neon\" BUILD_TS=\"${BUILD_TS}\")
     endif ()
 
 #    #

@@ -18,9 +18,9 @@ static inline void aes_ctr128_wide(
     uint8x16_t t0, t1, t2, t3;
 
     if (blocks == 4) {
-        t1 = vaddq_u64(ctr, one);
-        t2 = vaddq_u64(ctr, two);
-        t3 = vaddq_u64(ctr, three);
+        t1 = vreinterpretq_u8_u64(vaddq_u64(vreinterpretq_u64_u8( ctr), vreinterpretq_u64_u8(one)));
+        t2 = vreinterpretq_u8_u64(vaddq_u64(vreinterpretq_u64_u8(ctr), vreinterpretq_u64_u8(two)));
+        t3 = vreinterpretq_u8_u64( vaddq_u64(vreinterpretq_u64_u8(ctr), vreinterpretq_u64_u8(three)));
 
         t0 = swap_endian(ctr);
         t1 = swap_endian(t1);
@@ -58,8 +58,8 @@ static inline void aes_ctr128_wide(
         *d3 = veorq_u8(*d3, t3);
 
     } else if (blocks == 3) {
-        t1 = vaddq_u64(ctr, one);
-        t2 = vaddq_u64(ctr, two);
+        t1 = vreinterpretq_u8_u64(vaddq_u64(vreinterpretq_u64_u8(ctr), vreinterpretq_u64_u8( one)));
+        t2 = vreinterpretq_u8_u64(vaddq_u64(vreinterpretq_u64_u8(ctr), vreinterpretq_u64_u8(two)));
 
         t0 = swap_endian(ctr);
         t1 = swap_endian(t1);
@@ -95,7 +95,7 @@ static inline void aes_ctr128_wide(
         *d2 = veorq_u8(*d2, t2);
 
     } else if (blocks == 2) {
-        t1 = vaddq_u64(ctr, one);
+        t1 = vreinterpretq_u8_u64( vaddq_u64(vreinterpretq_u64_u8(ctr), vreinterpretq_u64_u8( one)));
 
         t0 = swap_endian(ctr);
         t1 = swap_endian(t1);
@@ -161,7 +161,7 @@ bool ccm_ctr_process_bytes(ccm_ctx *pCtr, unsigned char *src, size_t len, unsign
                     //throw exceptions::CounterException("Counter in CTR mode out of range.");
                 }
 
-                const uint8x16_t c0 = veorq_u8(pCtr->IV_le, vsetq_lane_u64(ctr, vdupq_n_u64(0), 0));
+                const uint8x16_t c0 = veorq_u8(pCtr->IV_le, vreinterpretq_u8_u64(vsetq_lane_u64(ctr, vdupq_n_u64(0), 0)));
                 //  _mm_xor_si128(pCtr->IV_le, _mm_set_epi64x(0, (int64_t) ctr));
 
                 uint8x16_t d0 = vld1q_u8(&src[0 * 16]);
@@ -190,7 +190,7 @@ bool ccm_ctr_process_bytes(ccm_ctx *pCtr, unsigned char *src, size_t len, unsign
                     //throw exceptions::CounterException("Counter in CTR mode out of range.");
                 }
 
-                const uint8x16_t c0 = veorq_u8(pCtr->IV_le, vsetq_lane_u64(ctr, vdupq_n_u64(0), 0));
+                const uint8x16_t c0 = veorq_u8(pCtr->IV_le, vreinterpretq_u8_u64(vsetq_lane_u64(ctr, vdupq_n_u64(0), 0)));
                 //  _mm_xor_si128(pCtr->IV_le, _mm_set_epi64x(0, (int64_t) ctr));
 
                 uint8x16_t d0 = vld1q_u8(&src[0 * 16]);
@@ -217,7 +217,7 @@ bool ccm_ctr_process_bytes(ccm_ctx *pCtr, unsigned char *src, size_t len, unsign
                     //throw exceptions::CounterException("Counter in CTR mode out of range.");
                 }
 
-                const uint8x16_t c0 = veorq_u8(pCtr->IV_le, vsetq_lane_u64(ctr, vdupq_n_u64(0), 0));
+                const uint8x16_t c0 = veorq_u8(pCtr->IV_le, vreinterpretq_u8_u64(vsetq_lane_u64(ctr, vdupq_n_u64(0), 0)));
                 //  _mm_xor_si128(pCtr->IV_le, _mm_set_epi64x(0, (int64_t) ctr));
 
                 uint8x16_t d0 = vld1q_u8(&src[0 * 16]);
@@ -242,7 +242,7 @@ bool ccm_ctr_process_bytes(ccm_ctx *pCtr, unsigned char *src, size_t len, unsign
                     //throw exceptions::CounterException("Counter in CTR mode out of range.");
                 }
 
-                const uint8x16_t c0 = veorq_u8(pCtr->IV_le, vsetq_lane_u64(ctr, vdupq_n_u64(0), 0));
+                const uint8x16_t c0 = veorq_u8(pCtr->IV_le, vreinterpretq_u8_u64( vsetq_lane_u64(ctr, vdupq_n_u64(0), 0)));
 
                 //  _mm_xor_si128(pCtr->IV_le, _mm_set_epi64x(0, (int64_t) ctr));
 

@@ -71,6 +71,7 @@ public class NativeDigestTests
         SavableDigest dig = SHA256Digest.newInstance();
         byte[] res = new byte[dig.getDigestSize()];
         TestCase.assertEquals(32,dig.doFinal(res, 0));
+
         TestCase.assertTrue("Empty Digest result",
                 Arrays.areEqual(res, Hex.decode("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")));
 
@@ -154,9 +155,6 @@ public class NativeDigestTests
 
         byte[] nativeDigest = new byte[dig.getDigestSize()];
         TestCase.assertEquals(32, dig.doFinal(nativeDigest, 0));
-
-        System.out.println(Hex.toHexString(resJava));
-        System.out.println(Hex.toHexString(nativeDigest));
 
         TestCase.assertTrue("Java = native byte by byte", Arrays.areEqual(resJava, nativeDigest));
 
