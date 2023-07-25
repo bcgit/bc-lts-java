@@ -7,6 +7,8 @@ import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.Mac;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.StreamBlockCipher;
+import org.bouncycastle.crypto.StreamCipher;
+import org.bouncycastle.crypto.engines.AESNativeCTR;
 import org.bouncycastle.crypto.macs.CMac;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -34,7 +36,7 @@ public class EAXBlockCipher
 
     private static final byte cTAG = 0x2;
 
-    private StreamBlockCipher cipher;
+    private BlockCipher cipher;
 
     private boolean forEncryption;
 
@@ -65,17 +67,20 @@ public class EAXBlockCipher
         macBlock = new byte[blockSize];
         associatedTextMac = new byte[mac.getMacSize()];
         nonceMac = new byte[mac.getMacSize()];
-        this.cipher = (StreamBlockCipher)SICBlockCipher.newInstance(cipher);
+        this.cipher = (BlockCipher)SICBlockCipher.newInstance(cipher);
     }
 
     public String getAlgorithmName()
     {
-        return cipher.getUnderlyingCipher().getAlgorithmName() + "/EAX";
+        return cipher instanceof AESNativeCTR ?
+            "AES/EAX" : ((SICBlockCipher)cipher).getUnderlyingCipher().getAlgorithmName() + "/EAX";
     }
 
     public BlockCipher getUnderlyingCipher()
     {
-        return cipher.getUnderlyingCipher();
+        return cipher instanceof AESNativeCTR ?
+                      ((AESNativeCTR)cipher).getUnderlyingCipher()
+                    : ((SICBlockCipher)cipher).getUnderlyingCipher();
     }
 
     public int getBlockSize()
