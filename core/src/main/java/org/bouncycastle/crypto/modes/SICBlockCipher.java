@@ -23,9 +23,9 @@ public class SICBlockCipher
 
 
     /**
-     * Return a new CBC mode cipher based on the passed in base cipher
+     * Return a new SIC/CTR mode cipher based on the passed in base cipher
      *
-     * @param cipher the base cipher for the CBC mode.
+     * @param cipher the base cipher for the SIC/CTR mode.
      */
     public static StreamCipher newInstance(BlockCipher cipher)
     {
