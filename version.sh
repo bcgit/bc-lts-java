@@ -1,9 +1,6 @@
-#!/bin/sh
-export script_loc=$(dirname -- $(readlink -f - "$0"))
+#!/bin/bash
+export script_loc=$( cd -- "$( dirname -- "$0" )" &> /dev/null && pwd )
 
-echo "Script Location: ${script_loc}"
-
-ls "${script_loc}"
 
 fgrep version "$script_loc/gradle.properties" | sed -e "s/version=//"
 
