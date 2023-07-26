@@ -1,4 +1,4 @@
-<project name="Test21" default="test" basedir=".">
+<project name="Test17" default="test" basedir=".">
     <description>
         Java 15 tests
     </description>
@@ -7,10 +7,10 @@
     <property file="bc-build.properties" />
     <property file="gradle.properties" />
     <property environment="env"/>
-    <property name="target_jvm" value="${env.LTS_JDK21}"/>
+    <property name="target_jvm" value="${env.LTS_JDK17}"/>
 
     <property name="src" location="src"/>
-    <property name="report.dir" location="build/artifacts/jdk21/reports"/>
+    <property name="report.dir" location="build/artifacts/jdk15/reports"/>
 
     <path id="project.classpath">
         <pathelement location="${mail.jar.home}" />
@@ -35,9 +35,11 @@
         <contains string="${os.arch}" substring="aarch64"/>
     </condition>
 
-    <target name="test">
+
+    <target name="test" >
         <ant antfile="jvm_tests.xml" dir="." inheritall="true" inheritrefs="true"/>
     </target>
+
 
 
 
