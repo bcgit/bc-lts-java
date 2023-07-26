@@ -7,6 +7,7 @@
 #include "../../jniutil/bytearrays.h"
 #include "../../jniutil/exceptions.h"
 #include <immintrin.h>
+#include <string.h>
 
 
 #define RAND_MOD 8
