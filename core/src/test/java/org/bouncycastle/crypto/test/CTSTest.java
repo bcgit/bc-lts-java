@@ -149,7 +149,7 @@ public class CTSTest
 
         try 
         {
-            new CTSBlockCipher((StreamBlockCipher)SICBlockCipher.newInstance(AESEngine.newInstance()));
+            new CTSBlockCipher((BlockCipher) SICBlockCipher.newInstance(AESEngine.newInstance()));
             fail("Expected CTS construction error - only ECB/CBC supported.");
         } catch(IllegalArgumentException e)
         {

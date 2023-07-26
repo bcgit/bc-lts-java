@@ -1,11 +1,6 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.OutputLengthException;
-import org.bouncycastle.crypto.StreamBlockCipher;
+import org.bouncycastle.crypto.*;
 
 /**
  * A Cipher Text Stealing (CTS) mode cipher. CTS allows block ciphers to
@@ -24,7 +19,7 @@ public class CTSBlockCipher
     public CTSBlockCipher(
         BlockCipher     cipher)
     {
-        if (cipher instanceof StreamBlockCipher)
+        if (cipher instanceof StreamCipher)
         {
             throw new IllegalArgumentException("CTSBlockCipher can only accept ECB, or CBC ciphers");
         }
