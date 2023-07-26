@@ -2,9 +2,9 @@
 //
 
 
+#include <arm_neon.h>
 #include "../aes/aes_common_neon.h"
 #include "ecb.h"
-#include "../debug_neon.h"
 
 
 static inline void
@@ -295,6 +295,6 @@ size_t ecb_process_blocks(aes_key *key, uint8_t *src, uint32_t blocks, uint8_t *
             dest += blocks * ECB_BLOCK_SIZE;
     }
 
-    return dest - destStart;
+    return (size_t) (dest - destStart);
 
 }

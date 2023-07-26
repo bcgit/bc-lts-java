@@ -1,5 +1,4 @@
 //
-// Created by gefei on 19/06/23.
 //
 #ifndef BC_AES_CCM128_H
 #define BC_AES_CCM128_H

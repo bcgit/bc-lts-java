@@ -97,8 +97,8 @@ task withNative() {
             copyDirContent("$rootDir/native_c/target/darwin/arm64/probe", "$projectDir/src/main/resources/native/darwin/arm64/probe")
         }
 
-        if (directoryExists("$rootDir/native_c/target/darwin/arm64/neon")) {
-            copyDirContent("$rootDir/native_c/target/darwin/arm64/neon", "$projectDir/src/main/resources/native/darwin/arm64/neon")
+        if (directoryExists("$rootDir/native_c/target/darwin/arm64/neon-le")) {
+            copyDirContent("$rootDir/native_c/target/darwin/arm64/neon-le", "$projectDir/src/main/resources/native/darwin/arm64/neon-le")
         }
 
         // ARM - linux
@@ -106,8 +106,8 @@ task withNative() {
             copyDirContent("$rootDir/native_c/target/linux/arm64/probe", "$projectDir/src/main/resources/native/linux/arm64/probe")
         }
 
-        if (directoryExists("$rootDir/native_c/target/linux/arm64/neon")) {
-            copyDirContent("$rootDir/native_c/target/linux/arm64/neon", "$projectDir/src/main/resources/native/linux/arm64/neon")
+        if (directoryExists("$rootDir/native_c/target/linux/arm64/neon-le")) {
+            copyDirContent("$rootDir/native_c/target/linux/arm64/neon-le", "$projectDir/src/main/resources/native/linux/arm64/neon-le")
         }
 
 

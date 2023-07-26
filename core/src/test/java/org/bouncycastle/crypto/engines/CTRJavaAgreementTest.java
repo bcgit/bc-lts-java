@@ -1027,6 +1027,12 @@ public class CTRJavaAgreementTest extends TestCase
             nativeEnc.processBlock(msg, 0, nct, 0);
             javaEnc.processBlock(msg, 0, jct, 0);
 
+            if (!Arrays.areEqual(nct,jct)) {
+                System.out.println(Hex.toHexString(nct));
+                System.out.println(Hex.toHexString(jct));
+            }
+
+
             TestCase.assertTrue(Arrays.areEqual(nct, jct));
 
 
@@ -1200,6 +1206,8 @@ public class CTRJavaAgreementTest extends TestCase
 
                     if (!Arrays.areEqual(jct, nct))
                     {
+                        System.out.println("KeySize: "+key.length);
+                        System.out.println("IVLEn: "+iv.length);
                         System.out.println(Hex.toHexString(jct));
                         System.out.println(Hex.toHexString(nct));
                     }

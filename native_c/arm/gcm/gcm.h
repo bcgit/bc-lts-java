@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <arm_neon.h>
-#include "gcm_hash.h"
+#include "gcm_aes_func.h"
 #include "../aes/aes_common_neon.h"
 
 
@@ -48,7 +48,7 @@ gcm_err *make_gcm_error(const char *msg, int type);
 
 void gcm_err_free(gcm_err *err);
 
-#define BUF_BLK_SIZE (17 * 16) // 17 blocks because we need to hold the potential tag on decryption.
+#define BUF_BLK_SIZE (5 * 16) // ARM implementation does not go past four blocks
 
 typedef struct {
 
@@ -67,7 +67,8 @@ typedef struct {
     size_t atLengthPre;
 
 
-    uint8x16_t ctr1, X, H, Y, T, S_at, S_atPre, last_aad_block;
+    uint8x16_t  X, H, Y, T, S_at, S_atPre, last_aad_block;
+    uint32x4_t ctr1;
 
     // AD
 
@@ -173,5 +174,7 @@ gcm_err *process_buffer_dec(gcm_ctx *ctx,
 void gcm_variant_init(gcm_ctx *ctx);
 
 void gcm_exponentiate(uint8x16_t H, uint64_t pow, uint8x16_t *output);
+
+
 
 #endif //BC_LTS_C_GCM_H

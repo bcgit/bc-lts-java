@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.test;
 
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.Mac;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.macs.GMac;
@@ -172,6 +173,7 @@ public class GMacTest extends SimpleTest
 
     public static void main(String[] args)
     {
+        CryptoServicesRegistrar.getInfo();
         runTest(new GMacTest());
     }
 }

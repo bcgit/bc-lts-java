@@ -94,7 +94,8 @@ void probe_system() {
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCBC
         (JNIEnv *env, jclass cl) {
     probe_system();
-    return JNI_FALSE;
+
+    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
 }
 
 
@@ -106,7 +107,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCFB
         (JNIEnv *env, jclass cl) {
     probe_system();
-    return JNI_FALSE;
+    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
 }
 
 
@@ -118,7 +119,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCTR
         (JNIEnv *env, jclass cl) {
     probe_system();
-    return JNI_FALSE;
+    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
 }
 
 
@@ -131,7 +132,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
         (JNIEnv *env, jclass cl) {
 
     probe_system();
-    return cpu_info.aes ? JNI_TRUE : JNI_FALSE;
+    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
 
 }
 
@@ -143,7 +144,9 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCM
         (JNIEnv *env, jclass cl) {
 
-    return JNI_FALSE;
+    probe_system();
+
+    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
 
 }
 
@@ -177,8 +180,8 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA2
         (JNIEnv *env, jclass cl) {
-    return JNI_FALSE;
-
+    probe_system();
+    return cpu_info.neon && cpu_info.sha256 ? JNI_TRUE : JNI_FALSE;
 }
 
 /*
@@ -188,9 +191,19 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeMulAcc
         (JNIEnv *env, jclass cl) {
-
     return JNI_FALSE;
-
 }
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeCCM
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCCM
+        (JNIEnv *env, jclass cl) {
+    probe_system();
+    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
+}
+
 
 
