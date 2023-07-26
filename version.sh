@@ -1,5 +1,5 @@
 #!/bin/sh
-export script_loc=$(dirname -- $(readlink -f - "$0")) | xargs
+export script_loc=$(dirname -- $(readlink -f - "$0"))
 
 echo "Script Location: ${script_loc}"
 
