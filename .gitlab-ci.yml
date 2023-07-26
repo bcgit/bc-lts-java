@@ -69,6 +69,8 @@ test-java21-code:
      - "./gradlew clean core:compileJava; cd native_c; ./build_linux.sh;  cd .."
      - "./gradlew clean cleanNative withNative build compileTestJava  -x test"
      - . cienv-21
+     - ant -f test11.xml
+     - ant -f test17.xml
      - ant -f test21.xml
   artifacts:
     when: always
