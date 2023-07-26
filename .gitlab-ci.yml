@@ -26,6 +26,7 @@ test-code-avx:
     - "./gradlew clean core:compileJava; cd native_c; ./build_linux.sh;  cd .."
     - "./gradlew clean cleanNative withNative build -x test"
     - "ls -al"
+    - 'pwd'
     - "./version.sh"
     - "java -Dorg.bouncycastle.native.cpu_variant=avx -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo"
     - "./gradlew -Pskip.pqc.tests testAVX  -x test"
