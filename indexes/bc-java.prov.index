@@ -263,7 +263,7 @@ efe8e8e2f6eecd881a062c010d7dc3db7fc2715bde1f8ce3857d17d2be4c74f0  prov/src/main/
 a2f31731a0c53c9ffbfd6592347d6bb97f9e8505bb25ab4fe9d34b17d7cd46c3  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/BaseWrapCipher.java
 3c20d40ed4b4aac28c705cd9af45189b37ed4de34dcb25a8587d187983711bc2  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/IvAlgorithmParameters.java
 b3e2854cfd5febbf305ceedf6413fb1eff2d19ccb30b8bb236fedbc97dbaa65b  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/PBE.java
-95257a15373dfe38bd746c9486b349fc897e31808e1baf7e27a603a4a7561c00  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/BaseBlockCipher.java
+ac7fb607bc5d95e8ec21bfd64e552e5ddf2b9725c165fac420b1552c9432286c  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/BaseBlockCipher.java
 a729bbbd22baa90f8c83cf660650155e412bb4c8ab60d0e54a337bebac306122  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/BCPBEKey.java
 6c803ec9c98fd968f157a2c3008ddf80afaa59b06f3c463024e0739e12dfbd22  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/PBEPBKDF1.java
 3d81bddca4832beae29144ac9ccea265b14d3d3ee823be0a32d94d06496624a7  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/Skipjack.java
@@ -322,7 +322,7 @@ df2722fd04bb1fa11b672eb5816d35e95fb3c907ac7ef736eb1bb745dc5ad4ed  prov/src/main/
 9b1e0b59d2e80c1f912e480d3a3a66441b8d1556091e8731b60ee5f835fdc39d  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/edec/EdECUtil.java
 872190c717ebbc11075433ff1ed0e166a4c9296149468e84f4195ec305cfbbbe  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/edec/KeyAgreementSpi.java
 b8de716a289ded15944bf1e967f2f9d3750e638e8f17ffb91454afff6e6edf51  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/edec/IESCipher.java
-4fd51a1476c4a6fbd9405ed981ad60d80bb079fac7431269eecac7511adb471d  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/edec/BCXDHPrivateKey.java
+291fb9627a87aebde1265447ffa530823b3a7cd14f3196d1e5dd323eb6d3519d  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/edec/BCXDHPrivateKey.java
 ad585535b1b8fa59f84ff4b2f3352434c66216dfe74279a570beba2ca5de4852  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/edec/KeyPairGeneratorSpi.java
 3af34bfcdd44c2f60052609238b97f7bc8b090280e044d9eccf722aee473acad  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/edec/KeyFactorySpi.java
 0c1f04ff09ae5e0981cec70817e281901a9114c7ead018f7e6aee5f6c8607839  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/edec/BCEdDSAPublicKey.java
@@ -352,7 +352,7 @@ f1ef4c366832871e7bc4df5021e514bcc16a49b2604322cb620cfd41e977da89  prov/src/main/
 c1f95729b07ec9443c84041b5f4434a4adf56f8445934889326fa122bb5d07e8  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/gost/GOSTUtil.java
 4c9bf11ae86efe668d61dd8b661bedb0759a0bc52df1a9a31693eac04ab5719b  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/gost/AlgorithmParameterGeneratorSpi.java
 61c98cc55df1ab2231f27195e293ff23a311bb5fdae530892e0092e90a681c9a  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/gost/SignatureSpi.java
-7b6d44f74fc347a4f48b1546dda150f4a6e1b5005e788f1ebbf22ce438a40fba  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/COMPOSITE.java
+aff8c863553c77466111b55f4d6516b36bb80aaa513954b7ceeec68fbf8e7476  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/COMPOSITE.java
 b98c48fd68c477229200abfc6114be0ce2f5e6135f16784b9320ceb9fab2911f  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/DSTU4145.java
 aa87bd6677408f5a910e07687e65c88f0c1bb20b121b2d43c72509064bd5e3f8  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/dh/BCDHPublicKey.java
 7bf7f32ea4338e25338277e27108ce0d07bd30ab0ccacff8496679b728403b09  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/dh/AlgorithmParametersSpi.java

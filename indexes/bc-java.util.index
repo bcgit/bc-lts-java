@@ -303,7 +303,7 @@ d89991f31f2a82407163daf1ebc40a8a7a50ee09b718e39ae66d09925ed2f7ea  util/src/main/
 f7a8ac0405a6c446e3bb93680e58aeebc7087f7f342cee9aad868e8e39dd3ee6  util/src/main/java/org/bouncycastle/asn1/cms/RecipientInfo.java
 d479b73097cbf21d9118a3311185b9d5dede293c50c0bb532cd7d25f997cb3b3  util/src/main/java/org/bouncycastle/asn1/cms/CMSObjectIdentifiers.java
 989ab14bbac86a555d13aadb1288558de8687c2b72b25c89c7b01161d341736c  util/src/main/java/org/bouncycastle/asn1/cms/EnvelopedDataParser.java
-e15f5f42a88851fc779a6eb5f02b61bfbf29855159d2073e16a1f86f6cf5b304  util/src/main/java/org/bouncycastle/asn1/cms/OriginatorPublicKey.java
+1cc0747233181637ed0ce6c78a5819f5252b22833afdfcf3e9dce75e07e39364  util/src/main/java/org/bouncycastle/asn1/cms/OriginatorPublicKey.java
 800a27107d51a32c8b8d98983ca77787a9493d10e1091b2d00829fec984b77d5  util/src/main/java/org/bouncycastle/asn1/cms/SignedDataParser.java
 7c756ca40631cfc919a00c785da43109e63e1c9bcb7672d3e8b5b5e33c2b5533  util/src/main/java/org/bouncycastle/asn1/cms/Attribute.java
 e8c053382e1f72085c2e90b0b90266bf453b61fa353ea770157550c8b13fe148  util/src/main/java/org/bouncycastle/asn1/cms/AuthenticatedDataParser.java
