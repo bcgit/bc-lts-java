@@ -3,7 +3,6 @@
 //
 #include <assert.h>
 #include <memory.h>
-#include <printf.h>
 #include "aes_common_neon.h"
 #include "schedule.h"
 
