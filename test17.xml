@@ -1,6 +1,6 @@
 <project name="Test17" default="test" basedir=".">
     <description>
-        Java 15 tests
+        Java 17 tests
     </description>
     <!-- set global properties for this build -->
     <property file="bc-build.user.properties" />
