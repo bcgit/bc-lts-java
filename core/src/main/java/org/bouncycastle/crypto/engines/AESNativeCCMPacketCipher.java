@@ -4,13 +4,24 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.PacketCipher;
 import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.modes.AESCCMModePacketCipher;
+import org.bouncycastle.crypto.modes.AESCCMPacketCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
 public class AESNativeCCMPacketCipher
-    implements PacketCipher
+    implements PacketCipher, AESCCMModePacketCipher
 {
+    public static AESCCMModePacketCipher newInstance()
+    {
+        return new AESNativeCCMPacketCipher();
+    }
+
+    private AESNativeCCMPacketCipher()
+    {
+    }
+
     @Override
     public int getOutputSize(boolean encryption, CipherParameters params, int len)
     {
@@ -77,9 +88,17 @@ public class AESNativeCCMPacketCipher
         }
         int iatLen = initialAssociatedText != null ? initialAssociatedText.length : 0;
         int outLen = output != null ? output.length : 0;
-        int resultLen = processPacket(forEncryption, key, key.length, nonce, nonce.length, initialAssociatedText, iatLen,
-            macSize, input, inOff, len, output, outOff, outLen);
-        return resultLen;
+        int result;
+        try
+        {
+            result = processPacket(forEncryption, key, key.length, nonce, nonce.length, initialAssociatedText, iatLen,
+                macSize, input, inOff, len, output, outOff, outLen);
+        }
+        catch (Exception e)
+        {
+            throw PacketCipherException.from(e);
+        }
+        return result;
     }
 
     static native int getOutputSize(boolean encryption, int len, int macSize);

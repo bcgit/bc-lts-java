@@ -14,8 +14,8 @@ import org.bouncycastle.util.Arrays;
 
 public class AESCCMPacketCipher
     extends PacketCipherEngine
+    implements AESCCMModePacketCipher
 {
-
     public static AESCCMPacketCipher newInstance()
     {
         return new AESCCMPacketCipher();

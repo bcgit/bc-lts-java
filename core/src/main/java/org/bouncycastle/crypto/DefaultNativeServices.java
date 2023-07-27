@@ -145,6 +145,36 @@ class DefaultNativeServices
                 set.add(AES_CCM);
             }
 
+            if (NativeFeatures.hasCBCPCHardwareSupport())
+            {
+                set.add(AES_CBC_PC);
+            }
+
+            if (NativeFeatures.hasCCMPCHardwareSupport())
+            {
+                set.add(AES_CCM_PC);
+            }
+
+            if (NativeFeatures.hasCFBPCHardwareSupport())
+            {
+                set.add(AES_CFB_PC);
+            }
+
+            if (NativeFeatures.hasCTRPCHardwareSupport())
+            {
+                set.add(AES_CTR_PC);
+            }
+
+            if (NativeFeatures.hasGCMPCHardwareSupport())
+            {
+                set.add(AES_GCM_PC);
+            }
+
+            if (NativeFeatures.hasGCMSIVPCHardwareSupport())
+            {
+                set.add(AES_GCMSIV_PC);
+            }
+
             if (NativeFeatures.hasMultiplyAcc())
             {
                 set.add(MULACC);

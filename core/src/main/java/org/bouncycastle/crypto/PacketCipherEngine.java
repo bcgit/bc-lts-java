@@ -1,5 +1,8 @@
 package org.bouncycastle.crypto;
 
+import org.bouncycastle.crypto.engines.AESNativeCCMPacketCipher;
+import org.bouncycastle.crypto.modes.AESCCMModePacketCipher;
+import org.bouncycastle.crypto.modes.AESCCMPacketCipher;
 import org.bouncycastle.crypto.modes.gcm.GCMUtil;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
@@ -683,7 +686,7 @@ public abstract class PacketCipherEngine
     }
 
     protected static void ctrProcessBlock(byte[] counter, int[] counterIn, int[] counterOut, byte[] in, int inOff, byte[] out, int outOff,
-                                 int[][] workingkeys, byte[] s, int ROUNDS)
+                                          int[][] workingkeys, byte[] s, int ROUNDS)
     {
         encryptBlock(counterIn, counterOut, workingkeys, s, ROUNDS);
         int i = counter.length;
@@ -766,5 +769,14 @@ public abstract class PacketCipherEngine
                 throw PacketCipherException.from(new OutputLengthException(ExceptionMessage.OUTPUT_LENGTH));
             }
         }
+    }
+
+    public static AESCCMModePacketCipher createCCMPacketCipher()
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CCM))
+        {
+            return  AESNativeCCMPacketCipher.newInstance();
+        }
+        return AESCCMPacketCipher.newInstance();
     }
 }

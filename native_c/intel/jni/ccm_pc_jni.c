@@ -170,5 +170,5 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCMPacketCi
     if (result < 0) {
         throw_bc_data_length_exception(env, EM_OUTPUT_LENGTH);
     }
-    return 0;
+    return result;
 }

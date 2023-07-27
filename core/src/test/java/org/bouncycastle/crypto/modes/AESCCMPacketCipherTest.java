@@ -3,8 +3,10 @@ package org.bouncycastle.crypto.modes;
 import java.security.SecureRandom;
 
 import junit.framework.TestCase;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.PacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.TestUtil;
@@ -56,7 +58,8 @@ public class AESCCMPacketCipherTest
     public void performTest()
         throws Exception
     {
-        AESCCMPacketCipher ccm = AESCCMPacketCipher.newInstance();
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        AESCCMModePacketCipher ccm = PacketCipherEngine.createCCMPacketCipher();
 
         checkVectors(0, ccm, K1, 32, N1, A1, P1, T1, C1);
         checkVectors(1, ccm, K2, 48, N2, A2, P2, T2, C2);
@@ -245,7 +248,7 @@ public class AESCCMPacketCipherTest
 
     private void checkVectors(
         int count,
-        AESCCMPacketCipher ccm,
+        AESCCMModePacketCipher ccm,
         byte[] k,
         int macSize,
         byte[] n,
