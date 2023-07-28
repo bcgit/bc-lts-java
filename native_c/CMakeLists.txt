@@ -75,7 +75,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
 
         set(JNI_INCLUDE_PLATFORM ${JNI_INCLUDE}/darwin)
         set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/darwin/arm64)
-        set(OPTIONS -Wconversion)
+        set(OPTIONS -Wconversion -Werror=return-type)
         set(PROBE_OPTIONS ${OPTIMISE_FLAG})
         set(ARM64_NEON_OPTIONS ${OPTIONS} ${OPTIMISE_FLAG})
 
@@ -83,7 +83,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
         message("Detected Linux")
         set(JNI_INCLUDE_PLATFORM ${JNI_INCLUDE}/linux)
         set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/linux/arm64)
-        set(OPTIONS -Wconversion)
+        set(OPTIONS -Wconversion -Werror=return-type)
         set(PROBE_OPTIONS ${OPTIMISE_FLAG})
         set(ARM64_NEON_OPTIONS ${OPTIONS} -march=armv8.4-a+crypto ${OPTIMISE_FLAG})
         set(ARM_BE -mbig-endian)
