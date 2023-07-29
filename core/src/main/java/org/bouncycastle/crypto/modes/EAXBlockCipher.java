@@ -28,7 +28,7 @@ import org.bouncycastle.util.Arrays;
  * Of course, this implementations is NOT thread-safe.
  */
 public class EAXBlockCipher
-    implements AEADBlockCipher
+    implements EAXModeCipher
 {
     private static final byte nTAG = 0x0;
 

@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.modes.CTRModeCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
@@ -8,7 +9,7 @@ import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 public class AESNativeCTR
-    implements StreamCipher, SkippingStreamCipher, MultiBlockCipher
+    implements CTRModeCipher, MultiBlockCipher
 {
 
     private CTRRefWrapper referenceWrapper = null;

@@ -11,7 +11,7 @@ import org.bouncycastle.util.Pack;
  */
 public class SICBlockCipher
     extends StreamBlockCipher
-    implements SkippingStreamCipher
+    implements CTRModeCipher
 {
     private final BlockCipher     cipher;
     private final int             blockSize;
@@ -21,13 +21,12 @@ public class SICBlockCipher
     private byte[]          counterOut;
     private int             byteCount;
 
-
     /**
      * Return a new SIC/CTR mode cipher based on the passed in base cipher
      *
      * @param cipher the base cipher for the SIC/CTR mode.
      */
-    public static StreamCipher newInstance(BlockCipher cipher)
+    public static CTRModeCipher newInstance(BlockCipher cipher)
     {
         if (cipher instanceof NativeBlockCipherProvider)
         {
