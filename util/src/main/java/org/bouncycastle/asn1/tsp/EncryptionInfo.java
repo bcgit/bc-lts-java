@@ -45,15 +45,7 @@ public class EncryptionInfo
      * The value of EncryptionInfo
      */
     private ASN1Encodable encryptionInfoValue;
-
-    /**
-     * @deprecated Use {@link EncryptionInfo#getInstance(Object)} instead.
-     */
-    public static EncryptionInfo getInstance(final ASN1Object obj)
-    {
-        return getInstance((Object)obj);
-    }
-
+    
     public static EncryptionInfo getInstance(final Object obj)
     {
         if (obj instanceof EncryptionInfo)
@@ -72,7 +64,7 @@ public class EncryptionInfo
         ASN1TaggedObject obj,
         boolean explicit)
     {
-        return getInstance((Object)ASN1Sequence.getInstance(obj, explicit));
+        return getInstance(ASN1Sequence.getInstance(obj, explicit));
     }
 
     private EncryptionInfo(ASN1Sequence sequence)

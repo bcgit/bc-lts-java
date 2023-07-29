@@ -9,7 +9,7 @@ import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 public class AESNativeCTR
-    implements CTRModeCipher, MultiBlockCipher
+    implements CTRModeCipher
 {
 
     private CTRRefWrapper referenceWrapper = null;
