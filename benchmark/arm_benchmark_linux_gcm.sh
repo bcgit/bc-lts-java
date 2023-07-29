@@ -1,5 +1,5 @@
 #!/bin/bash
-export script_loc=$(dirname -- $(readlink -f - "$0"))
+export script_loc=$( cd -- "$( dirname -- "$0" )" &> /dev/null && pwd )
 echo $script_loc
 
 version=`bash $script_loc/../version.sh`

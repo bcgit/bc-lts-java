@@ -1,0 +1,342 @@
+<project name="jvm_tests" default="test" basedir=".">
+
+    <target name="test" depends="test-java, test-avx, test-vaes, test-vaesf, test-neon-le"/>
+
+    <condition property="cpu.intel">
+        <and>
+            <or>
+                <contains string="${os.arch}" substring="x86"/>
+                <contains string="${os.arch}" substring="amd"/>
+            </or>
+            <contains string="${os.arch}" substring="64"/>
+        </and>
+    </condition>
+
+    <condition property="cpu.arm">
+        <contains string="${os.arch}" substring="aarch64"/>
+    </condition>
+
+
+    <target name="test-java">
+        <mkdir dir="${report.dir}/xml"/>
+        <mkdir dir="${report.dir}/html"/>
+        <junit printsummary="yes" fork="yes" failureProperty="test.failed" jvm="${target_jvm}/bin/java">
+            <jvmarg value="-Dorg.bouncycastle.native.cpu_variant=java"/>
+            <jvmarg value="-Dtest.bclts.ignore.native=ecb,sha,gcm,cbc,es,cfb,ctr,ccm"/>
+            <jvmarg value="-Dorg.bouncycastle.bks.enable_v1=true"/>
+
+            <classpath>
+                <path refid="project.classpath" />
+                <fileset dir="prov/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="prov/build/classes/java/test" />
+                <dirset dir="prov/build/resources/test" erroronmissingdir="false"/>
+                <dirset dir="prov/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="prov/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="util/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="util/build/classes/java/test" />
+                <dirset dir="util/build/resources/test" erroronmissingdir="false" />
+                <dirset dir="util/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="util/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="pkix/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="pkix/build/classes/java/test" />
+                <dirset dir="pkix/build/resources/test" erroronmissingdir="false" />
+                <dirset dir="pkix/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="pkix/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="tls/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="tls/build/classes/java/test" />
+                <dirset dir="tls/build/resources/test" erroronmissingdir="false"/>
+                <dirset dir="tls/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="tls/src/test/resources" erroronmissingdir="false"/>
+            </classpath>
+
+            <formatter type="xml"/>
+            <batchtest todir="${report.dir}/xml" unless="testcase">
+                <fileset dir="prov/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+                <fileset dir="pkix/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+                <fileset dir="tls/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+
+        <junitreport todir="${report.dir}/xml">
+            <fileset dir="${report.dir}/xml">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report format="frames" todir="${report.dir}/html" />
+        </junitreport>
+
+        <fail if="test.failed"/>
+
+    </target>
+
+    <target name="test-avx" if="cpu.intel">
+        <mkdir dir="${report.dir}/xml"/>
+        <mkdir dir="${report.dir}/html"/>
+        <junit printsummary="yes" fork="yes" failureProperty="test.failed" jvm="${target_jvm}/bin/java">
+            <jvmarg value="-Dorg.bouncycastle.native.cpu_variant=avx"/>
+            <jvmarg value="-Dorg.bouncycastle.bks.enable_v1=true"/>
+            <jvmarg value="--add-opens=java.base/javax.crypto=ALL-UNNAMED"/>
+            <classpath>
+                <path refid="project.classpath" />
+                <fileset dir="prov/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="prov/build/classes/java/test" />
+                <dirset dir="prov/build/resources/test" erroronmissingdir="false"/>
+                <dirset dir="prov/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="prov/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="util/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="util/build/classes/java/test" />
+                <dirset dir="util/build/resources/test" erroronmissingdir="false" />
+                <dirset dir="util/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="util/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="pkix/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="pkix/build/classes/java/test" />
+                <dirset dir="pkix/build/resources/test" erroronmissingdir="false" />
+                <dirset dir="pkix/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="pkix/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="tls/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="tls/build/classes/java/test" />
+                <dirset dir="tls/build/resources/test" erroronmissingdir="false"/>
+                <dirset dir="tls/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="tls/src/test/resources" erroronmissingdir="false"/>
+            </classpath>
+
+            <formatter type="xml"/>
+            <batchtest todir="${report.dir}/xml" unless="testcase">
+                <fileset dir="prov/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+                <fileset dir="pkix/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+                <fileset dir="tls/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+
+        <junitreport todir="${report.dir}/xml">
+            <fileset dir="${report.dir}/xml">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report format="frames" todir="${report.dir}/html" />
+        </junitreport>
+
+        <fail if="test.failed"/>
+
+    </target>
+
+    <target name="test-vaes" if="cpu.intel">
+        <mkdir dir="${report.dir}/xml"/>
+        <mkdir dir="${report.dir}/html"/>
+        <junit printsummary="yes" fork="yes" failureProperty="test.failed" jvm="${target_jvm}/bin/java">
+            <jvmarg value="-Dorg.bouncycastle.native.cpu_variant=vaes"/>
+            <jvmarg value="-Dorg.bouncycastle.bks.enable_v1=true"/>
+            <jvmarg value="--add-opens=java.base/javax.crypto=ALL-UNNAMED"/>
+            <classpath>
+                <path refid="project.classpath" />
+                <fileset dir="prov/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="prov/build/classes/java/test" />
+                <dirset dir="prov/build/resources/test" erroronmissingdir="false"/>
+                <dirset dir="prov/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="prov/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="util/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="util/build/classes/java/test" />
+                <dirset dir="util/build/resources/test" erroronmissingdir="false" />
+                <dirset dir="util/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="util/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="pkix/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="pkix/build/classes/java/test" />
+                <dirset dir="pkix/build/resources/test" erroronmissingdir="false" />
+                <dirset dir="pkix/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="pkix/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="tls/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="tls/build/classes/java/test" />
+                <dirset dir="tls/build/resources/test" erroronmissingdir="false"/>
+                <dirset dir="tls/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="tls/src/test/resources" erroronmissingdir="false"/>
+            </classpath>
+
+            <formatter type="xml"/>
+            <batchtest todir="${report.dir}/xml" unless="testcase">
+                <fileset dir="prov/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+                <fileset dir="pkix/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+                <fileset dir="tls/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+
+        <junitreport todir="${report.dir}/xml">
+            <fileset dir="${report.dir}/xml">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report format="frames" todir="${report.dir}/html" />
+        </junitreport>
+
+        <fail if="test.failed"/>
+
+    </target>
+
+    <target name="test-vaesf" if="cpu.intel">
+        <mkdir dir="${report.dir}/xml"/>
+        <mkdir dir="${report.dir}/html"/>
+        <junit printsummary="yes" fork="yes" failureProperty="test.failed" jvm="${target_jvm}/bin/java">
+            <jvmarg value="-Dorg.bouncycastle.native.cpu_variant=vaesf"/>
+            <jvmarg value="-Dorg.bouncycastle.bks.enable_v1=true"/>
+            <jvmarg value="--add-opens=java.base/javax.crypto=ALL-UNNAMED"/>
+            <classpath>
+                <path refid="project.classpath" />
+                <fileset dir="prov/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="prov/build/classes/java/test" />
+                <dirset dir="prov/build/resources/test" erroronmissingdir="false"/>
+                <dirset dir="prov/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="prov/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="util/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="util/build/classes/java/test" />
+                <dirset dir="util/build/resources/test" erroronmissingdir="false" />
+                <dirset dir="util/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="util/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="pkix/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="pkix/build/classes/java/test" />
+                <dirset dir="pkix/build/resources/test" erroronmissingdir="false" />
+                <dirset dir="pkix/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="pkix/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="tls/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="tls/build/classes/java/test" />
+                <dirset dir="tls/build/resources/test" erroronmissingdir="false"/>
+                <dirset dir="tls/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="tls/src/test/resources" erroronmissingdir="false"/>
+            </classpath>
+
+            <formatter type="xml"/>
+            <batchtest todir="${report.dir}/xml" unless="testcase">
+                <fileset dir="prov/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+                <fileset dir="pkix/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+                <fileset dir="tls/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+
+        <junitreport todir="${report.dir}/xml">
+            <fileset dir="${report.dir}/xml">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report format="frames" todir="${report.dir}/html" />
+        </junitreport>
+
+        <fail if="test.failed"/>
+
+    </target>
+
+
+    <target name="test-neon-le" if="cpu.arm">
+        <mkdir dir="${report.dir}/xml"/>
+        <mkdir dir="${report.dir}/html"/>
+        <junit printsummary="yes" fork="yes" failureProperty="test.failed" jvm="${target_jvm}/bin/java">
+            <jvmarg value="-Dorg.bouncycastle.native.cpu_variant=neon-le"/>
+            <jvmarg value="-Dorg.bouncycastle.bks.enable_v1=true"/>
+            <jvmarg value="--add-opens=java.base/javax.crypto=ALL-UNNAMED"/>
+            <classpath>
+                <path refid="project.classpath" />
+                <fileset dir="prov/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="prov/build/classes/java/test" />
+                <dirset dir="prov/build/resources/test" erroronmissingdir="false"/>
+                <dirset dir="prov/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="prov/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="util/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="util/build/classes/java/test" />
+                <dirset dir="util/build/resources/test" erroronmissingdir="false" />
+                <dirset dir="util/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="util/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="pkix/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="pkix/build/classes/java/test" />
+                <dirset dir="pkix/build/resources/test" erroronmissingdir="false" />
+                <dirset dir="pkix/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="pkix/src/test/resources" erroronmissingdir="false"/>
+                <fileset dir="tls/build/libs">
+                    <include name="*${version}.jar"/>
+                </fileset>
+                <dirset dir="tls/build/classes/java/test" />
+                <dirset dir="tls/build/resources/test" erroronmissingdir="false"/>
+                <dirset dir="tls/src/main/resources" erroronmissingdir="false"/>
+                <dirset dir="tls/src/test/resources" erroronmissingdir="false"/>
+            </classpath>
+
+            <formatter type="xml"/>
+            <batchtest todir="${report.dir}/xml" unless="testcase">
+                <fileset dir="prov/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+                <fileset dir="pkix/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+                <fileset dir="tls/build/classes/java/test">
+                    <include name="**/**AllTests.class"/>
+                </fileset>
+            </batchtest>
+        </junit>
+
+        <junitreport todir="${report.dir}/xml">
+            <fileset dir="${report.dir}/xml">
+                <include name="TEST-*.xml" />
+            </fileset>
+            <report format="frames" todir="${report.dir}/html" />
+        </junitreport>
+
+        <fail if="test.failed"/>
+
+    </target>
+
+</project>

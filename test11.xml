@@ -1,24 +1,24 @@
 <project name="Test21" default="test" basedir=".">
     <description>
-        Java 21 tests
+        Java 11 tests
     </description>
     <!-- set global properties for this build -->
-    <property file="bc-build.user.properties" />
-    <property file="bc-build.properties" />
-    <property file="gradle.properties" />
+    <property file="bc-build.user.properties"/>
+    <property file="bc-build.properties"/>
+    <property file="gradle.properties"/>
     <property environment="env"/>
-    <property name="target_jvm" value="${env.LTS_JDK21}"/>
+    <property name="target_jvm" value="${env.LTS_JDK11}"/>
 
     <property name="src" location="src"/>
-    <property name="report.dir" location="build/artifacts/jdk21/reports"/>
+    <property name="report.dir" location="build/artifacts/jdk11/reports"/>
 
     <path id="project.classpath">
-        <pathelement location="${mail.jar.home}" />
-        <pathelement location="${activation.jar.home}" />
-        <pathelement location="${jmail.jar.home}" />
-        <pathelement location="${jactivation.jar.home}" />
-        <pathelement location="${junit.jar.home}" />
-        <pathelement location="${ldap.jar.home}" />
+        <pathelement location="${mail.jar.home}"/>
+        <pathelement location="${activation.jar.home}"/>
+        <pathelement location="${jmail.jar.home}"/>
+        <pathelement location="${jactivation.jar.home}"/>
+        <pathelement location="${junit.jar.home}"/>
+        <pathelement location="${ldap.jar.home}"/>
     </path>
 
     <condition property="cpu.intel">
@@ -35,12 +35,10 @@
         <contains string="${os.arch}" substring="aarch64"/>
     </condition>
 
+
     <target name="test">
         <ant antfile="jvm_tests.xml" dir="." inheritall="true" inheritrefs="true"/>
     </target>
-
-
-
 
 
 </project>
