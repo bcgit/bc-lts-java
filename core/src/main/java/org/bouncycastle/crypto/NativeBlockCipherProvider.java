@@ -7,17 +7,9 @@ public interface NativeBlockCipherProvider
 {
     GCMModeCipher createGCM();
 
-    GCMSIVModeCipher createGCMSIV();
-
     CBCModeCipher createCBC();
 
     CFBModeCipher createCFB(int bitSize);
 
     CTRModeCipher createCTR();
-
-    CCMModeCipher createCCM();
-
-    EAXModeCipher createEAX();
-
-    OCBModeCipher createOCB();
 }

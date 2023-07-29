@@ -21,6 +21,10 @@ import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.modes.GCMSIVBlockCipher;
 import org.bouncycastle.crypto.modes.GCMSIVModeCipher;
+import org.bouncycastle.crypto.modes.NativeCCMProvider;
+import org.bouncycastle.crypto.modes.NativeEAXProvider;
+import org.bouncycastle.crypto.modes.NativeGCMSIVProvider;
+import org.bouncycastle.crypto.modes.NativeOCBProvider;
 import org.bouncycastle.crypto.modes.OCBBlockCipher;
 import org.bouncycastle.crypto.modes.OCBModeCipher;
 import org.bouncycastle.crypto.modes.SICBlockCipher;
@@ -30,7 +34,7 @@ import org.bouncycastle.util.dispose.NativeReference;
 
 class AESNativeEngine
     extends DefaultMultiBlockCipher
-    implements NativeBlockCipherProvider
+    implements NativeBlockCipherProvider, NativeCCMProvider, NativeEAXProvider, NativeOCBProvider, NativeGCMSIVProvider
 {
     protected NativeReference wrapper = null;
     private int keyLen = 0;

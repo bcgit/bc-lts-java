@@ -42,9 +42,9 @@ public class CCMBlockCipher
      */
     public static CCMModeCipher newInstance(BlockCipher cipher)
     {
-        if (cipher instanceof NativeBlockCipherProvider)
+        if (cipher instanceof NativeCCMProvider)
         {
-            NativeBlockCipherProvider engine = (NativeBlockCipherProvider)cipher;
+            NativeCCMProvider engine = (NativeCCMProvider)cipher;
             return engine.createCCM();
         }
         return new CCMBlockCipher(cipher);
