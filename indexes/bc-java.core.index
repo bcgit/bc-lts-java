@@ -1078,7 +1078,7 @@ f7fec8c4b4e15bbd9ada542ecae5fcb9aaa8d39cfa1832364d52cdfa05089304  core/src/main/
 1a4be4c044baa419dbfa6fc8a1bfd8266345ab15d0d24b1b1b79e31d5ca0b482  core/src/main/java/org/bouncycastle/asn1/x509/BasicConstraints.java
 735e547aa5dc776fdcb6ca16dfe45700399d33651a16d90e84473cb20ec05577  core/src/main/java/org/bouncycastle/asn1/x509/V2Form.java
 a0798971cc7e9ac1368f4eeacf6b4e22967abb96db8ee6665038594d8123d90c  core/src/main/java/org/bouncycastle/asn1/x509/UserNotice.java
-497179c56a26b59fb8575aadd24b67335dfc71069ae488b95fbbc43c3f4e19f0  core/src/main/java/org/bouncycastle/asn1/x509/Extensions.java
+b0037354d9a7faee3ed6f3df52586098ac273ae1fc64f1554ceaeb5112978aff  core/src/main/java/org/bouncycastle/asn1/x509/Extensions.java
 05fc8e10107d0017dce2f3fedb170565223f6614f9ba7dc456a983d660a769db  core/src/main/java/org/bouncycastle/asn1/x509/PolicyQualifierId.java
 625d68829cc2e137ea8de456fb2d18c5a50ee6982506c5cb9148552cb3161438  core/src/main/java/org/bouncycastle/asn1/x509/V2TBSCertListGenerator.java
 92851e09d98e0b25d2238658a693342e66ebf642f02e2ab3c36fa253cbf4f528  core/src/main/java/org/bouncycastle/asn1/x509/SubjectPublicKeyInfo.java
@@ -1286,7 +1286,7 @@ a039c062ae56cc9521c5801dafedba5816ff7ee66b7f1a64f04314b027189f85  core/src/main/
 5a26dad65df80e385fc12589ac60fe22ccc69eb814ba1e4c83c7646e597c6d84  core/src/main/java/org/bouncycastle/asn1/ASN1OctetString.java
 bc7fa53e222ae24bfc0dba28b415e8e275da2176e530b54ee210969769dd1a98  core/src/main/java/org/bouncycastle/asn1/DLSet.java
 5d67507e44b7cbf935d12b9e62933fbe06df7d031043230581192ebf18bba147  core/src/main/java/org/bouncycastle/asn1/BERBitStringParser.java
-5bbfa17fd1743bb6e956ed96f28a95b490d3da9d3eab6b22afdefbc36dcd7026  core/src/main/java/org/bouncycastle/asn1/BERSequenceParser.java
+bf8a8ef331605792ac2352193ffa3cc3972ede79a720e0a3a6b390a3b9475316  core/src/main/java/org/bouncycastle/asn1/BERSequenceParser.java
 6db9f9a84c1164c9259bf275c938286a410b0b633602dc2b8b4e56bfe1dbc6b5  core/src/main/java/org/bouncycastle/asn1/BERSequenceGenerator.java
 5309bb1d101edcb6b17de670b37d48db8ee62d51e403bcbd23f81108f8e0e1a6  core/src/main/java/org/bouncycastle/math/raw/Interleave.java
 eb84e312ba311e12a3ba36cb5fe85de59e069942e3b7e8f924c160cdca9084cf  core/src/main/java/org/bouncycastle/math/raw/Nat384.java
