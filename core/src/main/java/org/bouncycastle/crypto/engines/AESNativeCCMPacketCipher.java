@@ -115,4 +115,10 @@ public class AESNativeCCMPacketCipher
 
         return requestedMacBits >>> 3;
     }
+
+    @Override
+    public String toString()
+    {
+        return "CCM Packet Cipher (Native)";
+    }
 }

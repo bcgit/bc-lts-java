@@ -9,17 +9,16 @@ import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.PacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
-import org.bouncycastle.util.test.SimpleTest;
+
 
 
 public class AESCCMPacketCipherTest
-    extends SimpleTest
+    extends TestCase
 {
     private byte[] K1 = Hex.decode("404142434445464748494a4b4c4d4e4f");
     private byte[] N1 = Hex.decode("10111213141516");
@@ -55,10 +54,11 @@ public class AESCCMPacketCipherTest
     private byte[] C5 = Hex.decode("49b17d8d3ea4e6174a48e2b65e6d8b417ac0dd3f8ee46ce4a4a2a509661cef52528c1cd9805333a5cfd482fa3f095a3c2fdd1cc47771c5e55fddd60b5c8d6d3fa5c8dd79d08b16242b6642106e7c0c28bd1064b31e6d7c9800c8397dbc3fa8071e6a38278b386c18d65d39c6ad1ef9501a5c8f68d38eb6474799f3cc898b4b9b97e87f9c95ce5c51bc9d758f17119586663a5684e0a0daf6520ec572b87473eb141d10471e4799ded9e607655402eca5176bbf792ef39dd135ac8d710da8e9e854fd3b95c681023f36b5ebe2fb213d0b62dd6e9e3cfe190b792ccb20c53423b2dca128f861a61d306910e1af418839467e466f0ec361d2539eedd99d4724f1b51c07beb40e875a87491ec8b27cd1");
     private byte[] T5 = Hex.decode("5c768856796b627b13ec8641581b");
 
+
     public void performTest()
         throws Exception
     {
-        CryptoServicesRegistrar.setNativeEnabled(true);
+
         AESCCMModePacketCipher ccm = PacketCipherEngine.createCCMPacketCipher();
 
         checkVectors(0, ccm, K1, 32, N1, A1, P1, T1, C1);
@@ -91,7 +91,7 @@ public class AESCCMPacketCipherTest
         throws InvalidCipherTextException, PacketCipherException
     {
         SecureRandom secureRandom = new SecureRandom();
-        AESCCMPacketCipher ccm2 = AESCCMPacketCipher.newInstance();
+        AESCCMModePacketCipher ccm2 = PacketCipherEngine.createCCMPacketCipher();
         int[] keybytes = {16, 24, 32};
         for (int i = 0; i < 3; ++i)
         {
@@ -181,7 +181,7 @@ public class AESCCMPacketCipherTest
 
         SecureRandom rand = new SecureRandom();
         SecureRandom secureRandom = new SecureRandom();
-        AESCCMPacketCipher ccm2 = AESCCMPacketCipher.newInstance();
+        AESCCMModePacketCipher ccm2 = PacketCipherEngine.createCCMPacketCipher();
         for (int ks : new int[]{16, 24, 32})
         {
             byte[] key = new byte[ks];
@@ -264,8 +264,15 @@ public class AESCCMPacketCipherTest
         byte[] enc = new byte[len];
         ccm.processPacket(true, parameters, p, 0, p.length, enc, 0);
 
-        if (!areEqual(c, enc))
+        if (!Arrays.areEqual(c, enc))
         {
+            for (int i = 0; i < c.length; ++i)
+            {
+                if (c[i] != enc[i])
+                {
+                    System.out.println(i + " " + c[i] + enc[i]);
+                }
+            }
             fail("encrypted stream fails to match in test " + count);
         }
 
@@ -273,16 +280,12 @@ public class AESCCMPacketCipherTest
         byte[] dec = new byte[len];
         ccm.processPacket(false, parameters, enc, 0, enc.length, dec, 0);
 
-        if (!areEqual(p, dec))
-        {
-            fail("decrypted stream fails to match in test " + count,
-                new String(Hex.encode(p)), new String(Hex.encode(dec)));
-        }
+        TestCase.assertTrue("decrypted stream fails to match in test " + count, Arrays.areEqual(p, dec));
     }
 
     public void testOutputErase()
     {
-        AESCCMPacketCipher ccm = AESCCMPacketCipher.newInstance();
+        AESCCMModePacketCipher ccm = PacketCipherEngine.createCCMPacketCipher();
         byte[] C3new = Arrays.clone(C3);
         C3new[0]++;
         KeyParameter keyParam = (K3 == null) ? null : new KeyParameter(K3);
@@ -299,7 +302,7 @@ public class AESCCMPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            if (!areEqual(origin, dec))
+            if (!Arrays.areEqual(origin, dec))
             {
                 fail("the Output Erase is wrong");
             }
@@ -308,7 +311,7 @@ public class AESCCMPacketCipherTest
 
     public void testExceptions()
     {
-        AESCCMPacketCipher ccm = AESCCMPacketCipher.newInstance();
+        AESCCMModePacketCipher ccm = PacketCipherEngine.createCCMPacketCipher();
         try
         {
             ccm.getOutputSize(false, new KeyParameter(new byte[16]), 0);
@@ -316,7 +319,7 @@ public class AESCCMPacketCipherTest
         }
         catch (IllegalArgumentException e)
         {
-            isTrue("wrong message", e.getMessage().contains("invalid parameters passed to CCM"));
+            TestCase.assertTrue("wrong message", e.getMessage().contains("invalid parameters passed to CCM"));
         }
 
         try
@@ -327,7 +330,7 @@ public class AESCCMPacketCipherTest
         catch (IllegalArgumentException e)
         {
             // expected
-            isTrue("wrong message", e.getMessage().equals(ExceptionMessage.LEN_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().equals(ExceptionMessage.LEN_NEGATIVE));
         }
 
         try
@@ -338,7 +341,7 @@ public class AESCCMPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_KEY_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_KEY_LENGTH));
         }
 
         try
@@ -349,7 +352,7 @@ public class AESCCMPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            isTrue("wrong message", e.getMessage().contains("nonce must have length from 7 to 13 octets"));
+            TestCase.assertTrue("wrong message", e.getMessage().contains("nonce must have length from 7 to 13 octets"));
         }
 
         try
@@ -360,77 +363,77 @@ public class AESCCMPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            isTrue("wrong message", e.getMessage().contains("tag length in octets must be one of {4,6,8,10,12,14,16}"));
+            TestCase.assertTrue("wrong message", e.getMessage().contains("tag length in octets must be one of {4,6,8,10,12,14,16}"));
         }
 
         try
         {
-            ccm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), null, 0, 0, new byte[16], 0);
+            ccm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), null, 0, 0, new byte[16], 0);
             fail("input was null for processPacket");
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_NULL));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_NULL));
         }
 
         try
         {
-            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[16], 0, 16, new byte[31], 0);
+            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), new byte[16], 0, 16, new byte[17], 0);
             fail("output buffer too small for processPacket");
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
         }
 
         try
         {
-            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[16], -1, 16, new byte[32], 0);
+            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), new byte[16], -1, 16, new byte[32], 0);
             fail("offset is negative for processPacket");
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
         }
 
         try
         {
-            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[16], 0, -1, new byte[32], 0);
+            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), new byte[16], 0, -1, new byte[32], 0);
             fail("len is negative for processPacket");
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.LEN_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.LEN_NEGATIVE));
         }
 
         try
         {
-            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[16], 0, 16, new byte[32], -1);
+            ccm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), new byte[16], 0, 16, new byte[32], -1);
             fail("output offset is negative for processPacket");
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
         }
 
         try
         {
-            ccm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[15], 0, 15, new byte[0], 0);
+            ccm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), new byte[15], 0, 15, new byte[0], 0);
             fail("input buffer too small for processPacket");
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_SHORT));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_SHORT));
         }
 
         try
         {
-            ccm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[17], 0, 17, new byte[0], 0);
+            ccm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), new byte[17], 0, 17, new byte[0], 0);
             fail("output buffer too small for processPacket");
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
         }
     }
 
@@ -441,7 +444,13 @@ public class AESCCMPacketCipherTest
 
     public static void main(
         String[] args)
+        throws Exception
     {
-        runTest(new AESCCMPacketCipherTest());
+        AESCCMPacketCipherTest test = new AESCCMPacketCipherTest();
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        test.performTest();
+        CryptoServicesRegistrar.setNativeEnabled(false);
+        test.performTest();
+        System.out.println("AESCCMPacketCipher Test pass");
     }
 }

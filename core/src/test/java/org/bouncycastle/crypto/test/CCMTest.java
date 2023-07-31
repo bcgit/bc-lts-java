@@ -57,7 +57,7 @@ public class CCMTest
     public void performTest()
         throws Exception
     {
-        CryptoServicesRegistrar.setNativeEnabled(true);
+
         CCMModeCipher ccm = CCMBlockCipher.newInstance(AESEngine.newInstance());
 
         checkVectors(0, ccm, K1, 32, N1, A1, P1, T1, C1);
@@ -303,6 +303,9 @@ public class CCMTest
     public static void main(
         String[]    args)
     {
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        runTest(new CCMTest());
+        CryptoServicesRegistrar.setNativeEnabled(false);
         runTest(new CCMTest());
     }
 }

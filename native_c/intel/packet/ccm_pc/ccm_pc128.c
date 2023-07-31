@@ -323,8 +323,9 @@ bool ccm_pc_ctr_process_bytes(unsigned char *src, size_t len, unsigned char *des
                               __m128i *roundKeys, uint32_t num_rounds, __m128i *partialBlock) {
     unsigned char *destStart = dest;
     if (*buf_pos == 0 && len >= 16) {
-        uint64_t const_ctr = *ctr;
+
         while (len >= BLOCK_SIZE) {
+            uint64_t const_ctr = *ctr;
             if (len >= 8 * BLOCK_SIZE) {
                 if (!ccm_pc_incCtr(8, ctr, initialCTR, ctrMast, ctrAtEnd)) {
                     return false;

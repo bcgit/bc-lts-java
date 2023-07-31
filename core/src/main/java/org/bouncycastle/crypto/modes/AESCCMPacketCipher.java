@@ -4,7 +4,6 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.PacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -285,6 +284,6 @@ public class AESCCMPacketCipher
     @Override
     public String toString()
     {
-        return "CCM Packet Cipher";
+        return "CCM Packet Cipher (Java)";
     }
 }

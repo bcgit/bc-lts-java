@@ -67,9 +67,6 @@ public class AESGCMSIVPacketCipherTest
 
             /* Check the encryption */
             final byte[] myExpected = Hex.decode(pExpected);
-            if(!Arrays.areEqual(myExpected, myOutput)){
-                pCipher.processPacket(true, myParams,myData, 0, myData.length, myOutput, 0);
-            }
             TestCase.assertTrue("Encryption mismatch", Arrays.areEqual(myExpected, myOutput));
 
 //            /* Repeat processing byte at a time */

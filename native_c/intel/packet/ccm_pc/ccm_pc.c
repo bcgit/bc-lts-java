@@ -19,7 +19,7 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
     uint64_t ctrMask;
     bool ctrAtEnd = false;
 
-    uint32_t num_rounds = generate_key(encryption, key, roundKeys, keysize);
+    uint32_t num_rounds = generate_key(true, key, roundKeys, keysize);
     __m128i chainblock = _mm_setzero_si128();//_mm_loadu_si128((__m128i *) macBlock);
 
     memset(buf, 0, BLOCK_SIZE);
@@ -35,19 +35,6 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
     initialCTR = ctr;
     IV_le = _mm_and_si128(IV_le, _mm_set_epi64x(-1, 0));
 
-    // Zero out mac block
-    memset(macBlock, 0, BLOCK_SIZE);
-
-//    if (aad != NULL) {
-//        //
-//        // We keep a copy as it is needed to calculate the mac
-//        // the same state it was before the first data is processed.
-//        //
-//        initAD = malloc(initialTextLen * sizeof(uint8_t));
-//        assert(initAD != NULL);
-//        initADLen = initialTextLen;
-//        memcpy(initAD, aad, initialTextLen);
-//    }
     // Zero out mac block
     memset(macBlock, 0, BLOCK_SIZE);
 
