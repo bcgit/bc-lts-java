@@ -6,7 +6,7 @@ import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.math.raw.Mul;
 import org.junit.Test;
 
-public class MulLimitTest
+public class MulLimitTest extends TestCase
 {
 
     private boolean skip()
