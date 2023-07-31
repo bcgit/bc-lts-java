@@ -2,6 +2,7 @@ package org.bouncycastle.math;
 
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.math.raw.Mul;
 import org.junit.Assert;
 import org.junit.Before;
@@ -14,6 +15,12 @@ public class MulTest extends TestCase
 
     @Before
     public void before()
+    {
+        CryptoServicesRegistrar.getNativeServices();
+    }
+
+    @Override
+    protected void setUp() throws Exception
     {
         CryptoServicesRegistrar.getNativeServices();
     }
@@ -227,10 +234,20 @@ public class MulTest extends TestCase
 
     }
 
+    private boolean skip()
+    {
+        return !CryptoServicesRegistrar.getNativeServices().hasService(NativeServices.MULACC);
+    }
 
     @Test
     public void testMul()
     {
+
+        if (skip())
+        {
+            return;
+        }
+
 
         for (int i = 0; i < vecs.size(); i++)
         {
