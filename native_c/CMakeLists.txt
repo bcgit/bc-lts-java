@@ -191,7 +191,7 @@ else ()
             set(CMAKE_C_FLAGS "-std=c99")
             set(OPTIONS -Wconversion -Werror=return-type -static-libgcc -z noexecstack)
             set(PROBE_OPTIONS ${OPTIMISE_FLAG} -msse4.1 ${OPTIONS})
-            set(AVX_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS})
+            set(AVX_OPTIONS -g -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS})
             set(VAES_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS})
             set(VAESF_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f -mavx512bw -mvpclmulqdq ${OPTIONS})
             set(ASM_OPTIONS -f elf64)
@@ -353,6 +353,32 @@ set (CCM_VAESF
         intel/jni/ccm_jni.c
         )
 
+    set(CCM_PC
+         intel/packet/ccm_pc/ccm_pc.h
+         intel/packet/ccm_pc/ccm_pc.c
+         intel/packet/ccm_pc/ccm_pc128.c
+         intel/jni/ccm_pc_jni.c
+         intel/packet/packet_utils.h
+         intel/packet/packet_utils.c
+            )
+
+    set(CCM_PC_VAES
+            intel/packet/ccm_pc/ccm_pc.h
+            intel/packet/ccm_pc/ccm_pc.c
+            intel/packet/ccm_pc/ccm_pc256.c
+            intel/jni/ccm_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
+    set(CCM_PC_VAESF
+            intel/packet/ccm_pc/ccm_pc.h
+            intel/packet/ccm_pc/ccm_pc.c
+            intel/packet/ccm_pc/ccm_pc512.c
+            intel/jni/ccm_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
 
     # Probe project a simple lib for probing the CPUs features
     #
@@ -381,6 +407,7 @@ set (CCM_VAESF
             ${GCM}
             ${MUL_AVX}
 	    ${CCM}
+            ${CCM_PC}
             )
     target_include_directories("${LIB_NATIVE}-avx" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-avx" PRIVATE $<$<COMPILE_LANGUAGE:C>:${AVX_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -401,6 +428,7 @@ set (CCM_VAESF
             ${GCM}
             ${MUL_AVX}
 	    ${CCM_VAES}
+            ${CCM_PC_VAES}
             )
     target_include_directories("${LIB_NATIVE}-vaes" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-vaes" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAES_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -421,18 +449,19 @@ set (CCM_VAESF
             ${GCM_VAESF}
             ${MUL_VAESF}
 	    ${CCM_VAESF}
+            ${CCM_PC_VAESF}
             )
     target_include_directories("${LIB_NATIVE}-vaesf" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-vaesf" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAESF_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
     install(TARGETS "${LIB_NATIVE}-vaesf" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaesf)
     target_compile_definitions("${LIB_NATIVE}-vaesf" PUBLIC BC_VAESF BC_VARIANT=\"vaesf\" BUILD_TS=\"${BUILD_TS}\")
 
-#    # Uncomment to enable test project
-#    add_executable(tryit main.c debug.h)
-#    target_link_libraries(tryit "${LIB_NATIVE}-avx")
-#    target_compile_options("tryit" PRIVATE
-#            $<$<COMPILE_LANGUAGE:C>: -g -Wpsabi -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mvpclmulqdq -mavx512f -mavx512bw ${OPTIONS}>
-#            )
+    # Uncomment to enable test project
+    add_executable(tryit main.c debug.h)
+    target_link_libraries(tryit "${LIB_NATIVE}-vaes")
+    target_compile_options("tryit" PRIVATE
+            $<$<COMPILE_LANGUAGE:C>: -g -Wpsabi -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mvpclmulqdq -mavx512f -mavx512bw ${OPTIONS}>
+            )
 
 
 endif ()

@@ -25,7 +25,7 @@ packet_err *make_packet_error(const char *msg, int type) {
 }
 
 uint32_t generate_key(bool encryption, uint8_t* key, __m128i* roundKeys, size_t keyLen){
-    size_t num_rounds;
+    uint32_t num_rounds;
     memset(roundKeys, 0, sizeof(__m128i) * 15);
     switch (keyLen) {
         case 16:
