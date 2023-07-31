@@ -39,12 +39,14 @@ void packet_err_free(packet_err *err);
 
 int get_aead_output_size(bool encryption, int len, int macSize);
 
+int get_output_size(bool encryption, int len);
+
 uint32_t generate_key(bool encryption, uint8_t* key, __m128i* roundKeys, size_t keyLen);
 
 packet_err *make_packet_error(const char *msg, int type);
 
 
-        static const int8_t __attribute__ ((aligned(16))) _swap_endian[16] = {
+static const int8_t __attribute__ ((aligned(16))) _swap_endian[16] = {
         15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
 };
 static const __m128i *SWAP_ENDIAN_128 = ((__m128i *) _swap_endian);

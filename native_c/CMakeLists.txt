@@ -263,6 +263,32 @@ else ()
             intel/jni/cbc_jni.c
             )
 
+    set(CBC_PC
+            intel/packet/cbc_pc/cbc_pc.h
+            intel/packet/cbc_pc/cbc_pc.c
+            intel/packet/cbc_pc/cbc_pc128.c
+            intel/jni/cbc_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
+    set(CBC_PC_VAES
+            intel/packet/cbc_pc/cbc_pc.h
+            intel/packet/cbc_pc/cbc_pc.c
+            intel/packet/cbc_pc/cbc_pc256.c
+            intel/jni/cbc_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
+    set(CBC_PC_VAESF
+            intel/packet/cbc_pc/cbc_pc.h
+            intel/packet/cbc_pc/cbc_pc.c
+            intel/packet/cbc_pc/cbc_pc512.c
+            intel/jni/cbc_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
 
     set(CFB
             intel/cfb/cfb.h
@@ -400,6 +426,7 @@ set (CCM_VAESF
             ${IDENT_IMPL}
             ${ECB}
             ${CBC}
+            ${CBC_PC}
             ${CFB}
             ${CTR}
             ${RAND}
@@ -421,6 +448,7 @@ set (CCM_VAESF
             ${IDENT_IMPL}
             ${ECB_VAES}
             ${CBC_VAES}
+            ${CBC_PC_VAES}
             ${CFB_VAES}
             ${CTR_VAES}
             ${RAND}
@@ -442,6 +470,7 @@ set (CCM_VAESF
             ${IDENT_IMPL}
             ${ECB_VAESF}
             ${CBC_VAESF}
+            ${CBC_PC_VAESF}
             ${CFB_VAESF}
             ${CTR_VAESF}
             ${RAND}
@@ -458,7 +487,7 @@ set (CCM_VAESF
 
     # Uncomment to enable test project
     add_executable(tryit main.c debug.h)
-    target_link_libraries(tryit "${LIB_NATIVE}-vaes")
+    target_link_libraries(tryit "${LIB_NATIVE}-avx")
     target_compile_options("tryit" PRIVATE
             $<$<COMPILE_LANGUAGE:C>: -g -Wpsabi -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mvpclmulqdq -mavx512f -mavx512bw ${OPTIONS}>
             )

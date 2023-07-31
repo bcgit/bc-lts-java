@@ -10,6 +10,16 @@ int get_aead_output_size(bool encryption, int len, int macSize) {
     }
 }
 
+int get_output_size(bool encryption, int len) {
+    if (encryption) {
+        return len + ((len & 15) ? BLOCK_SIZE : 0);
+    } else if (len & 15) {
+        return -1;
+    } else {
+        return len;
+    }
+}
+
 void packet_err_free(packet_err *err) {
     if (err != NULL) {
         free(err);
@@ -24,7 +34,7 @@ packet_err *make_packet_error(const char *msg, int type) {
     return err;
 }
 
-uint32_t generate_key(bool encryption, uint8_t* key, __m128i* roundKeys, size_t keyLen){
+uint32_t generate_key(bool encryption, uint8_t *key, __m128i *roundKeys, size_t keyLen) {
     uint32_t num_rounds;
     memset(roundKeys, 0, sizeof(__m128i) * 15);
     switch (keyLen) {
