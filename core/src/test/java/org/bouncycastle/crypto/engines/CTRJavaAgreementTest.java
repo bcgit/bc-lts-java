@@ -59,7 +59,7 @@ public class CTRJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/CTR"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ctr"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
             {
                 TestCase.fail("Skipping CTR testSeekingIntoFirstInvalidBlock: " + TestUtil.errorMsg());
             }
@@ -132,7 +132,7 @@ public class CTRJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/CTR"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ctr"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
             {
                 TestCase.fail("Skipping CTR spread test: " + TestUtil.errorMsg());
             }
@@ -229,7 +229,7 @@ public class CTRJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/CTR"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ctr"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
             {
                 TestCase.fail("Skipping CTR spread test: " + TestUtil.errorMsg());
             }
@@ -319,7 +319,7 @@ public class CTRJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/CTR"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ctr"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
             {
                 TestCase.fail("Skipping CTR spread streaming test: " + TestUtil.errorMsg());
             }
@@ -410,7 +410,7 @@ public class CTRJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/CTR"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ctr"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
             {
                 TestCase.fail("Skipping CTR spread test: " + TestUtil.errorMsg());
             }
@@ -545,7 +545,7 @@ public class CTRJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/CTR"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ctr"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
             {
                 TestCase.fail("Skipping CTR stream overflow block test: " + TestUtil.errorMsg());
             }
@@ -683,7 +683,7 @@ public class CTRJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/CTR"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ctr"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
             {
                 TestCase.fail("normal underflow test: " + TestUtil.errorMsg());
             }
@@ -751,7 +751,7 @@ public class CTRJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/CTR"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ctr"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
             {
                 TestCase.fail("Skipping CTR stream overflow block test: " + TestUtil.errorMsg());
             }
@@ -844,7 +844,7 @@ public class CTRJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/CTR"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ctr"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
             {
                 TestCase.fail("Skipping CTR spread test: " + TestUtil.errorMsg());
             }
@@ -981,7 +981,7 @@ public class CTRJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/CTR"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ctr"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
             {
                 TestCase.fail("Skipping CTR spread test: " + TestUtil.errorMsg());
             }
@@ -1027,6 +1027,12 @@ public class CTRJavaAgreementTest extends TestCase
             nativeEnc.processBlock(msg, 0, nct, 0);
             javaEnc.processBlock(msg, 0, jct, 0);
 
+            if (!Arrays.areEqual(nct,jct)) {
+                System.out.println(Hex.toHexString(nct));
+                System.out.println(Hex.toHexString(jct));
+            }
+
+
             TestCase.assertTrue(Arrays.areEqual(nct, jct));
 
 
@@ -1050,7 +1056,7 @@ public class CTRJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/CTR"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ctr"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
             {
                 TestCase.fail("Skipping CTR spread test: " + TestUtil.errorMsg());
             }
@@ -1140,7 +1146,7 @@ public class CTRJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/CTR"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("ctr"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
             {
                 TestCase.fail("Skipping CTR spread test: " + TestUtil.errorMsg());
             }
@@ -1200,6 +1206,8 @@ public class CTRJavaAgreementTest extends TestCase
 
                     if (!Arrays.areEqual(jct, nct))
                     {
+                        System.out.println("KeySize: "+key.length);
+                        System.out.println("IVLEn: "+iv.length);
                         System.out.println(Hex.toHexString(jct));
                         System.out.println(Hex.toHexString(nct));
                     }

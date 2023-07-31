@@ -63,6 +63,7 @@ import org.bouncycastle.tls.crypto.impl.jcajce.JcaDefaultTlsCredentialedSigner;
 import org.bouncycastle.tls.crypto.impl.jcajce.JcaTlsCertificate;
 import org.bouncycastle.tls.crypto.impl.jcajce.JcaTlsCrypto;
 import org.bouncycastle.tls.crypto.impl.jcajce.JceDefaultTlsCredentialedDecryptor;
+import org.bouncycastle.util.encoders.Hex;
 
 abstract class JsseUtils
 {
@@ -76,6 +77,9 @@ abstract class JsseUtils
         PropertyUtils.getIntegerSystemProperty("jdk.tls.maxHandshakeMessageSize", 32768, 1024, Integer.MAX_VALUE);
     private static final boolean provTlsRequireCloseNotify =
         PropertyUtils.getBooleanSystemProperty("com.sun.net.ssl.requireCloseNotify", true);
+    private static final boolean provTlsUseCompatibilityMode =
+        PropertyUtils.getBooleanSystemProperty("jdk.tls.client.useCompatibilityMode", true);
+    // TODO SunJSSE additionally checks KeyGenerator.getInstance("SunTlsExtendedMasterSecret")
     private static final boolean provTlsUseExtendedMasterSecret =
         PropertyUtils.getBooleanSystemProperty("jdk.tls.useExtendedMasterSecret", true);
 
@@ -105,6 +109,29 @@ abstract class JsseUtils
     static boolean allowLegacyResumption()
     {
         return provTlsAllowLegacyResumption;
+    }
+
+    static void appendCipherSuiteDetail(StringBuilder sb, ProvSSLContextSpi context, int cipherSuite)
+    {
+        // TODO Efficiency: precalculate "cipherSuiteID" and make context.getCipherSuiteName faster
+
+        sb.append("{0x");   // -DM Hex.toHexString
+        sb.append(Hex.toHexString(new byte[]{ (byte)(cipherSuite >> 8) }));
+        sb.append(",0x");   // -DM Hex.toHexString
+        sb.append(Hex.toHexString(new byte[]{ (byte)cipherSuite }));
+        sb.append('}');
+
+        String name = context.getCipherSuiteName(cipherSuite);
+        if (name == null)
+        {
+            sb.append('?');
+        }
+        else
+        {
+            sb.append('(');
+            sb.append(name);
+            sb.append(')');
+        }
     }
 
     static String getPeerID(String root, ProvTlsManager manager)
@@ -891,6 +918,11 @@ abstract class JsseUtils
             }
         }
         return s;
+    }
+
+    static boolean useCompatibilityMode()
+    {
+        return provTlsUseCompatibilityMode;
     }
 
     static boolean useExtendedMasterSecret()

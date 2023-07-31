@@ -36,11 +36,11 @@ import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1IA5String;
 import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1String;
-import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.misc.MiscObjectIdentifiers;
@@ -66,7 +66,7 @@ import org.bouncycastle.util.encoders.Hex;
 /**
  * @deprecated Do not use this class directly - either use org.bouncycastle.cert (bcpkix) or CertificateFactory.
  */
-class X509CertificateObject
+public class X509CertificateObject
     extends X509Certificate
     implements PKCS12BagAttributeCarrier
 {
@@ -103,7 +103,7 @@ class X509CertificateObject
             byte[] bytes = this.getExtensionBytes("2.5.29.15");
             if (bytes != null)
             {
-                ASN1BitString bits = DERBitString.getInstance(ASN1Primitive.fromByteArray(bytes));
+                ASN1BitString bits = ASN1BitString.getInstance(ASN1Primitive.fromByteArray(bytes));
 
                 bytes = bits.getBytes();
                 int length = (bytes.length * 8) - bits.getPadBits();
@@ -360,26 +360,18 @@ class X509CertificateObject
     
     public int getBasicConstraints()
     {
-        if (basicConstraints != null)
+        if (basicConstraints == null || !basicConstraints.isCA())
         {
-            if (basicConstraints.isCA())
-            {
-                if (basicConstraints.getPathLenConstraint() == null)
-                {
-                    return Integer.MAX_VALUE;
-                }
-                else
-                {
-                    return basicConstraints.getPathLenConstraint().intValue();
-                }
-            }
-            else
-            {
-                return -1;
-            }
+            return -1;
         }
 
-        return -1;
+        ASN1Integer pathLenConstraint = basicConstraints.getPathLenConstraintInteger();
+        if (pathLenConstraint == null)
+        {
+            return Integer.MAX_VALUE;
+        }
+
+        return pathLenConstraint.intPositiveValueExact();
     }
 
     public Collection getSubjectAlternativeNames()
@@ -697,7 +689,7 @@ class X509CertificateObject
                         }
                         else if (oid.equals(MiscObjectIdentifiers.netscapeCertType))
                         {
-                            buf.append(new NetscapeCertType((DERBitString)dIn.readObject())).append(nl);
+                            buf.append(new NetscapeCertType((ASN1BitString)dIn.readObject())).append(nl);
                         }
                         else if (oid.equals(MiscObjectIdentifiers.netscapeRevocationURL))
                         {

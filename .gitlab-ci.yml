@@ -1,8 +1,9 @@
 stages:
-  - test
   - testAVX
+  - test21
   - testVAES
   - testVAESF
+  - test
 
 
 test-java-code:
@@ -11,7 +12,7 @@ test-java-code:
     - "apply_overlay bc-java ./"
     - "sh gettestdata.sh"
     - . cienv-11.sh
-    - "./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build"
+    - "./gradlew clean cleanNative withNative build"
 
 
 test-code-avx:
@@ -23,10 +24,8 @@ test-code-avx:
     - "mkdir -p /tmp/bcfipslibs"
     - . cienv-11.sh
     - "./gradlew clean core:compileJava; cd native_c; ./build_linux.sh;  cd .."
-    - "./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
-    - "tmpLibDir=$(mktemp -d -t bc-jni-libs-XXXXXXXXXX)"
-    - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
-    - "java -Dorg.bouncycastle.native.cpu_variant=avx -cp jars/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo"
+    - "./gradlew clean cleanNative withNative build -x test"
+    - "java -Dorg.bouncycastle.native.cpu_variant=avx -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo"
     - "./gradlew -Pskip.pqc.tests testAVX  -x test"
 
 test-code-vaes:
@@ -38,10 +37,10 @@ test-code-vaes:
     - "mkdir -p /tmp/bcfipslibs"
     - . cienv-11.sh
     - "./gradlew clean core:compileJava; cd native_c; ./build_linux.sh; cd .."
-    - "./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
+    - "./gradlew clean cleanNative withNative build -x test"
     - "tmpLibDir=$(mktemp -d -t bc-jni-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
-    - "java -Dorg.bouncycastle.native.cpu_variant=vaes -cp jars/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo"
+    - "java -Dorg.bouncycastle.native.cpu_variant=vaes -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo"
     - "./gradlew -Pskip.pqc.tests testVAES  -x test"
 
 test-code-vaesf:
@@ -53,8 +52,26 @@ test-code-vaesf:
     - "mkdir -p /tmp/bcfipslibs"
     - . cienv-11.sh
     - "./gradlew clean core:compileJava;  cd native_c; ./build_linux.sh; cd .."
-    - "./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test"
+    - "./gradlew clean cleanNative withNative build -x test"
     - "tmpLibDir=$(mktemp -d -t bc-jni-libs-XXXXXXXXXX)"
     - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
-    - "java -Dorg.bouncycastle.native.cpu_variant=vaesf -cp jars/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo"
+    - "java -Dorg.bouncycastle.native.cpu_variant=vaesf -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo"
     - "./gradlew -Pskip.pqc.tests testVAESF  -x test"
+
+test-java21-code:
+  stage: test21
+  script:
+     - "apply_overlay bc-java ./"
+     - "sh gettestdata.sh"
+     - . cienv-11.sh
+     - "./gradlew clean core:compileJava; cd native_c; ./build_linux.sh;  cd .."
+     - "./gradlew clean cleanNative withNative build compileTestJava  -x test"
+     - . cienv-21
+     - ant -f test11.xml
+     - ant -f test17.xml
+     - ant -f test21.xml
+  artifacts:
+    when: always
+    reports:
+      junit: build/artifacts/jdk21/reports/xml/**/TEST-*.xml
+

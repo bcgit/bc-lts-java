@@ -49,6 +49,14 @@ public class SubjectPublicKeyInfo
 
     public SubjectPublicKeyInfo(
         AlgorithmIdentifier algId,
+        ASN1BitString publicKey)
+    {
+        this.keyData = publicKey;
+        this.algId = algId;
+    }
+
+    public SubjectPublicKeyInfo(
+        AlgorithmIdentifier algId,
         ASN1Encodable       publicKey)
         throws IOException
     {
@@ -73,10 +81,10 @@ public class SubjectPublicKeyInfo
                     + seq.size());
         }
 
-        Enumeration         e = seq.getObjects();
+        Enumeration e = seq.getObjects();
 
         this.algId = AlgorithmIdentifier.getInstance(e.nextElement());
-        this.keyData = DERBitString.getInstance(e.nextElement());
+        this.keyData = ASN1BitString.getInstance(e.nextElement());
     }
 
     public AlgorithmIdentifier getAlgorithm()

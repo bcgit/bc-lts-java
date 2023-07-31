@@ -25,7 +25,7 @@ import org.bouncycastle.util.Arrays;
  * Of course, this implementations is NOT thread-safe.
  */
 public class EAXBlockCipher
-    implements AEADBlockCipher
+    implements EAXModeCipher
 {
     private static final byte nTAG = 0x0;
 
@@ -33,7 +33,7 @@ public class EAXBlockCipher
 
     private static final byte cTAG = 0x2;
 
-    private SICBlockCipher cipher;
+    private CTRModeCipher cipher;
 
     private boolean forEncryption;
 
@@ -64,7 +64,7 @@ public class EAXBlockCipher
         macBlock = new byte[blockSize];
         associatedTextMac = new byte[mac.getMacSize()];
         nonceMac = new byte[mac.getMacSize()];
-        this.cipher = new SICBlockCipher(cipher);
+        this.cipher = SICBlockCipher.newInstance(cipher);
     }
 
     public String getAlgorithmName()

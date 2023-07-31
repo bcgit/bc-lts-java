@@ -93,6 +93,22 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 
 }
 
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeCCM
+ * Signature: ()Z
+ */
+__attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCCM
+        (JNIEnv *env, jclass cl) {
+
+    cpuid_t info;
+    cpuid(&info, 1, 0);
+
+    return (info.ecx & (1 << 25)) != 0 ? JNI_TRUE : JNI_FALSE;
+
+}
+
+
 
 /*
  * Class:     org_bouncycastle_util_NativeFeatures

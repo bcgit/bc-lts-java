@@ -34,7 +34,10 @@ public class CFBBlockCipher
     {
         if (cipher instanceof NativeBlockCipherProvider)
         {
-            return ((NativeBlockCipherProvider)cipher).createCFB(bitSize);
+            if (bitSize == 128) // native cfb only supports 128 bits
+            {
+                return ((NativeBlockCipherProvider) cipher).createCFB(bitSize);
+            }
         }
 
         return new CFBBlockCipher(cipher, bitSize);

@@ -519,7 +519,7 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
 //                            switch(o.getTagNo())            TODO - move resources to PKIXNameConstraints
 //                            {
 //                            case 1:
-//                                String email = DERIA5String.getInstance(o, true).getString();
+//                                String email = ASN1IA5String.getInstance(o, true).getString();
 //
 //                                try
 //                                {
@@ -700,26 +700,19 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
                 bc = null;
             }
 
-            if (bc != null)
+            if (bc != null && bc.isCA())
             {
-                BigInteger _pathLengthConstraint = bc.getPathLenConstraint();
-
-                if (_pathLengthConstraint != null)
+                ASN1Integer pathLenConstraint = bc.getPathLenConstraintInteger();
+                if (pathLenConstraint != null)
                 {
-                    int _plc = _pathLengthConstraint.intValue();
-
-                    if (_plc < maxPathLength)
-                    {
-                        maxPathLength = _plc;
-                    }
+                    maxPathLength = Math.min(maxPathLength, pathLenConstraint.intPositiveValueExact());
                 }
             }
-
         }
 
         ErrorBundle msg = new ErrorBundle(RESOURCE_NAME,"CertPathReviewer.totalPathLength",
                 new Object[]{Integers.valueOf(totalPathLength)});
-        
+
         addNotification(msg);
     }
 

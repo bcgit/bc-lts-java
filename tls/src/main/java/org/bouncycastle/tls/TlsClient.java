@@ -48,6 +48,11 @@ public interface TlsClient
      */
     Vector getEarlyKeyShareGroups();
 
+    default boolean shouldUseCompatibilityMode()
+    {
+        return true;
+    }
+
     void notifyServerVersion(ProtocolVersion selectedVersion)
         throws IOException;
 

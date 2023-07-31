@@ -9,7 +9,6 @@ import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
-import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERTaggedObject;
 
@@ -27,8 +26,8 @@ public class PKIMessage
 {
     private final PKIHeader header;
     private final PKIBody body;
-    private ASN1BitString protection;
-    private ASN1Sequence extraCerts;
+    private final ASN1BitString protection;
+    private final ASN1Sequence extraCerts;
 
     private PKIMessage(ASN1Sequence seq)
     {
@@ -37,19 +36,25 @@ public class PKIMessage
         header = PKIHeader.getInstance(en.nextElement());
         body = PKIBody.getInstance(en.nextElement());
 
+        ASN1BitString protection = null;
+        ASN1Sequence extraCerts = null;
+
         while (en.hasMoreElements())
         {
             ASN1TaggedObject tObj = (ASN1TaggedObject)en.nextElement();
 
             if (tObj.getTagNo() == 0)
             {
-                protection = DERBitString.getInstance(tObj, true);
+                protection = ASN1BitString.getInstance(tObj, true);
             }
             else
             {
                 extraCerts = ASN1Sequence.getInstance(tObj, true);
             }
         }
+
+        this.protection = protection;
+        this.extraCerts = extraCerts;
     }
 
     /**
@@ -72,6 +77,10 @@ public class PKIMessage
         if (extraCerts != null)
         {
             this.extraCerts = new DERSequence(extraCerts);
+        }
+        else
+        {
+            this.extraCerts = null;
         }
     }
 

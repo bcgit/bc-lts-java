@@ -25,7 +25,7 @@ public class NativeEntropyTests
             && !CryptoServicesRegistrar.hasEnabledService(NativeServices.NRBG))
         {
 
-            if (System.getProperty("test.bcfips.ignore.native","").contains("es")) {
+            if (System.getProperty("test.bclts.ignore.native","").contains("es")) {
                 System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
                 return;
             }
@@ -52,7 +52,7 @@ public class NativeEntropyTests
                 && !CryptoServicesRegistrar.hasEnabledService(NativeServices.NRBG))
         {
 
-            if (System.getProperty("test.bcfips.ignore.native","").contains("es")) {
+            if (System.getProperty("test.bclts.ignore.native","").contains("es")) {
                 System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
                 return;
             }
@@ -85,7 +85,7 @@ public class NativeEntropyTests
                 && !CryptoServicesRegistrar.hasEnabledService(NativeServices.NRBG))
         {
 
-            if (System.getProperty("test.bcfips.ignore.native","").contains("es")) {
+            if (System.getProperty("test.bclts.ignore.native","").contains("es")) {
                 System.out.println("Skipping testESBasic, no native random: " + NativeLoader.getNativeStatusMessage());
                 return;
             }

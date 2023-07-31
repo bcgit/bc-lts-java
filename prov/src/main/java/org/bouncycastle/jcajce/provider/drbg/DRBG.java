@@ -13,6 +13,7 @@ import org.bouncycastle.crypto.prng.SP800SecureRandomBuilder;
 import org.bouncycastle.jcajce.provider.config.ConfigurableProvider;
 import org.bouncycastle.jcajce.provider.symmetric.util.ClassUtil;
 import org.bouncycastle.jcajce.provider.util.AsymmetricAlgorithmProvider;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
 import org.bouncycastle.util.Properties;
@@ -53,7 +54,9 @@ public class DRBG
 
         public void configure(ConfigurableProvider provider)
         {
+            ((BouncyCastleProvider)provider).setProperty("SecureRandom.DEFAULT ThreadSafe", "true");
             provider.addAlgorithm("SecureRandom.DEFAULT", PREFIX + "$Default");
+            ((BouncyCastleProvider)provider).setProperty("SecureRandom.NONCEANDIV ThreadSafe", "true");
             provider.addAlgorithm("SecureRandom.NONCEANDIV", PREFIX + "$NonceAndIV");
         }
     }
@@ -61,7 +64,7 @@ public class DRBG
     public static class Default
         extends SecureRandomSpi
     {
-        private static final SecureRandom random = createBaseRandom(true);
+        private final SecureRandom random = createBaseRandom(true);
 
         public Default()
         {
@@ -86,7 +89,7 @@ public class DRBG
     public static class NonceAndIV
         extends SecureRandomSpi
     {
-        private static final SecureRandom random = createBaseRandom(false);
+        private final SecureRandom random = createBaseRandom(false);
 
         public NonceAndIV()
         {

@@ -13,7 +13,7 @@ test {
     testLogging.showStackTraces = true
 
 
-   jvmArgs '-Dtest.bcfips.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr', '-Dorg.bouncycastle.native.cpu_variant=java'
+   jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr,ccm', '-Dorg.bouncycastle.native.cpu_variant=java'
 
     filter {
         includeTestsMatching "AllTest*"
@@ -62,14 +62,16 @@ task cleanNative(type: Delete) {
     delete("$projectDir/src/main/resources/META-INF/DRIVERS");
 }
 
+
 task('copyJars', type:Copy) {
     from new File(projectDir,"build/libs")
-    into new File(rootDir,"jars")
+    into new File(rootDir,"../bc-lts-java-jars/${version}/")
 }
 
 task withNative() {
     doLast {
 
+        // Intel -- Linux
         if (directoryExists("$rootDir/native_c/target/linux/x86_64/probe")) {
             copyDirContent("$rootDir/native_c/target/linux/x86_64/probe", "$projectDir/src/main/resources/native/linux/x86_64/probe")
         }
@@ -89,6 +91,25 @@ task withNative() {
         if (directoryExists("$rootDir/native_c/target/linux/x86_64/vaesf")) {
             copyDirContent("$rootDir/native_c/target/linux/x86_64/vaesf", "$projectDir/src/main/resources/native/linux/x86_64/vaesf")
         }
+
+        // ARM - darwin
+        if (directoryExists("$rootDir/native_c/target/darwin/arm64/probe")) {
+            copyDirContent("$rootDir/native_c/target/darwin/arm64/probe", "$projectDir/src/main/resources/native/darwin/arm64/probe")
+        }
+
+        if (directoryExists("$rootDir/native_c/target/darwin/arm64/neon-le")) {
+            copyDirContent("$rootDir/native_c/target/darwin/arm64/neon-le", "$projectDir/src/main/resources/native/darwin/arm64/neon-le")
+        }
+
+        // ARM - linux
+        if (directoryExists("$rootDir/native_c/target/linux/arm64/probe")) {
+            copyDirContent("$rootDir/native_c/target/linux/arm64/probe", "$projectDir/src/main/resources/native/linux/arm64/probe")
+        }
+
+        if (directoryExists("$rootDir/native_c/target/linux/arm64/neon-le")) {
+            copyDirContent("$rootDir/native_c/target/linux/arm64/neon-le", "$projectDir/src/main/resources/native/linux/arm64/neon-le")
+        }
+
 
     }
 }

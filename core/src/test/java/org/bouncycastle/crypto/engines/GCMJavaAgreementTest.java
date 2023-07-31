@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 
+import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -180,7 +181,7 @@ public class GCMJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
                 TestCase.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
             }
@@ -263,7 +264,7 @@ public class GCMJavaAgreementTest extends TestCase
 
         if (!TestUtil.hasNativeService("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
                 TestCase.fail("Skipping GCM Spread Agreement: " + TestUtil.errorMsg());
             }
@@ -318,10 +319,32 @@ public class GCMJavaAgreementTest extends TestCase
 
 
                         ByteArrayOutputStream nativePt = new ByteArrayOutputStream();
-                        writeAllAndClose(nativeCt.toByteArray(), nativePt, nativeDec);
+                        try
+                        {
+                            writeAllAndClose(nativeCt.toByteArray(), nativePt, nativeDec);
 
-                        TestCase.assertTrue(Arrays.areEqual(nativeCt.toByteArray(), javaCt.toByteArray()));
-                        TestCase.assertTrue(Arrays.areEqual(nativePt.toByteArray(), javaPt.toByteArray()));
+                        } catch (Exception ex) {
+
+                            System.out.println(Hex.toHexString(key));
+                            System.out.println(Hex.toHexString(iv));
+
+                            System.out.println(Hex.toHexString(nativeCt.toByteArray()));
+                            System.out.println(Hex.toHexString(javaCt.toByteArray()));
+
+                            System.out.println(Hex.toHexString(msg));
+
+                            throw ex;
+                        }
+
+                        TestCase.assertTrue("cipher text", Arrays.areEqual(nativeCt.toByteArray(), javaCt.toByteArray()));
+
+                        if (!Arrays.areEqual(javaPt.toByteArray(), nativePt.toByteArray()))
+                        {
+                            System.out.println("Java:   " + Hex.toHexString(javaPt.toByteArray()));
+                            System.out.println("Native: " + Hex.toHexString(nativePt.toByteArray()));
+                        }
+
+                        TestCase.assertTrue("plain text", Arrays.areEqual(nativePt.toByteArray(), javaPt.toByteArray()));
 
                         TestCase.assertTrue(Arrays.areEqual(msg, nativePt.toByteArray()));
 
@@ -344,7 +367,6 @@ public class GCMJavaAgreementTest extends TestCase
         j = os.processBytes(data, 0, data.length, output, j);
 
         os.doFinal(output, j);
-
         bos.write(output);
 
 
@@ -357,7 +379,7 @@ public class GCMJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
                 TestCase.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
             }
@@ -372,7 +394,7 @@ public class GCMJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
                 TestCase.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
             }
@@ -387,7 +409,7 @@ public class GCMJavaAgreementTest extends TestCase
     {
         if (!TestUtil.hasNativeService("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
                 TestCase.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
             }

@@ -31,6 +31,7 @@ public class SimpleTestTest
                 {
                     result.getException().printStackTrace();
                 }
+                System.out.println(tests[i].getClass());
                 fail("index " + i + " " + result.toString());
             }
         }

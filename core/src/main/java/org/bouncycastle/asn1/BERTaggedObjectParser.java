@@ -4,8 +4,6 @@ import java.io.IOException;
 
 /**
  * Parser for indefinite-length tagged objects.
- * 
- * Test for and use only {@link ASN1TaggedObjectParser}.
  */
 class BERTaggedObjectParser
     implements ASN1TaggedObjectParser
@@ -31,6 +29,11 @@ class BERTaggedObjectParser
         return _tagNo;
     }
 
+    public boolean hasContextTag()
+    {
+        return this._tagClass == BERTags.CONTEXT_SPECIFIC;
+    }
+
     public boolean hasContextTag(int tagNo)
     {
         return this._tagClass == BERTags.CONTEXT_SPECIFIC && this._tagNo == tagNo;
@@ -41,16 +44,11 @@ class BERTaggedObjectParser
         return this._tagClass == tagClass && this._tagNo == tagNo;
     }
 
-    /**
-     * Return true if this tagged object is marked as constructed.
-     *
-     * @return true if constructed, false otherwise.
-     */
-    public boolean isConstructed()
+    public boolean hasTagClass(int tagClass)
     {
-        return true;
+        return this._tagClass == tagClass;
     }
-    
+
     /**
      * Return an in-memory, encodable, representation of the tagged object.
      *

@@ -16,12 +16,14 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.jsse.BCSNIHostName;
 import org.bouncycastle.jsse.BCSNIServerName;
 import org.bouncycastle.jsse.BCX509Key;
+import org.bouncycastle.jsse.provider.SignatureSchemeInfo.PerConnection;
 import org.bouncycastle.tls.AlertDescription;
 import org.bouncycastle.tls.AlertLevel;
 import org.bouncycastle.tls.CertificateRequest;
 import org.bouncycastle.tls.CertificateStatusRequest;
 import org.bouncycastle.tls.CertificateStatusRequestItemV2;
 import org.bouncycastle.tls.CertificateStatusType;
+import org.bouncycastle.tls.CompressionMethod;
 import org.bouncycastle.tls.DefaultTlsClient;
 import org.bouncycastle.tls.IdentifierType;
 import org.bouncycastle.tls.OCSPStatusRequest;
@@ -213,16 +215,7 @@ class ProvTlsClient
     @Override
     protected Vector<SignatureAndHashAlgorithm> getSupportedSignatureAlgorithms()
     {
-        ContextData contextData = manager.getContextData();
-        ProtocolVersion[] activeProtocolVersions = getProtocolVersions();
-
-        List<SignatureSchemeInfo> signatureSchemes = contextData.getActiveCertsSignatureSchemes(false, sslParameters,
-            activeProtocolVersions, jsseSecurityParameters.namedGroups);
-
-        jsseSecurityParameters.localSigSchemes = signatureSchemes;
-        jsseSecurityParameters.localSigSchemesCert = signatureSchemes;
-
-        return SignatureSchemeInfo.getSignatureAndHashAlgorithms(jsseSecurityParameters.localSigSchemes);
+        return jsseSecurityParameters.signatureSchemes.getLocalSignatureAndHashAlgorithms();
     }
 
     @Override
@@ -306,20 +299,26 @@ class ProvTlsClient
                      * (if any) of these should be constrained by locally enabled schemes (especially once
                      * jdk.tls.signatureSchemes support added).
                      */
-                    jsseSecurityParameters.peerSigSchemes = contextData.getSignatureSchemes(serverSigAlgs);
-                    jsseSecurityParameters.peerSigSchemesCert = (serverSigAlgs == serverSigAlgsCert)
-                        ?   jsseSecurityParameters.peerSigSchemes
-                        :   contextData.getSignatureSchemes(serverSigAlgsCert);
+                    List<SignatureSchemeInfo> peerSigSchemes = contextData.getSignatureSchemes(serverSigAlgs);
+                    List<SignatureSchemeInfo> peerSigSchemesCert = null;
+                    if (serverSigAlgsCert != serverSigAlgs)
+                    {
+                        peerSigSchemesCert = contextData.getSignatureSchemes(serverSigAlgsCert);
+                    }
+
+                    jsseSecurityParameters.signatureSchemes.notifyPeerData(peerSigSchemes, peerSigSchemesCert);
 
                     if (LOG.isLoggable(Level.FINEST))
                     {
-                        LOG.finest(JsseUtils.getSignatureAlgorithmsReport(clientID + " peer signature_algorithms",
-                            jsseSecurityParameters.peerSigSchemes));
-
-                        if (jsseSecurityParameters.peerSigSchemesCert != jsseSecurityParameters.peerSigSchemes)
                         {
-                            LOG.finest(JsseUtils.getSignatureAlgorithmsReport(clientID + " peer signature_algorithms_cert",
-                                jsseSecurityParameters.peerSigSchemesCert));
+                            String title = clientID + " peer signature_algorithms";
+                            LOG.finest(JsseUtils.getSignatureAlgorithmsReport(title, peerSigSchemes));
+                        }
+
+                        if (peerSigSchemesCert != null)
+                        {
+                            String title = clientID + " peer signature_algorithms_cert";
+                            LOG.finest(JsseUtils.getSignatureAlgorithmsReport(title, peerSigSchemesCert));
                         }
                     }
                 }
@@ -493,7 +492,10 @@ class ProvTlsClient
         ContextData contextData = manager.getContextData();
         ProtocolVersion[] activeProtocolVersions = getProtocolVersions();
 
-        jsseSecurityParameters.namedGroups = contextData.getNamedGroups(sslParameters, activeProtocolVersions);
+        jsseSecurityParameters.namedGroups = contextData.getNamedGroupsClient(sslParameters, activeProtocolVersions);
+
+        jsseSecurityParameters.signatureSchemes = contextData.getSignatureSchemesClient(sslParameters,
+            activeProtocolVersions, jsseSecurityParameters.namedGroups);
     }
 
     @Override
@@ -650,6 +652,12 @@ class ProvTlsClient
     }
 
     @Override
+    public boolean shouldUseCompatibilityMode()
+    {
+        return JsseUtils.useCompatibilityMode();
+    }
+
+    @Override
     public boolean shouldUseExtendedMasterSecret()
     {
         return JsseUtils.useExtendedMasterSecret();
@@ -679,14 +687,19 @@ class ProvTlsClient
 
         {
             if (null == sessionParameters ||
-                !ProtocolVersion.contains(getProtocolVersions(), sessionParameters.getNegotiatedVersion()) ||
                 !Arrays.contains(getCipherSuites(), sessionParameters.getCipherSuite()))
             {
                 return null;
             }
 
+            ProtocolVersion sessionVersion = sessionParameters.getNegotiatedVersion();
+            if (!ProtocolVersion.contains(getProtocolVersions(), sessionVersion))
+            {
+                return null;
+            }
+
             // TODO[tls13] Resumption/PSK 
-            if (TlsUtils.isTLSv13(sessionParameters.getNegotiatedVersion()))
+            if (TlsUtils.isTLSv13(sessionVersion))
             {
                 return null;
             }
@@ -722,8 +735,10 @@ class ProvTlsClient
          * with some hash/signature algorithm pair in supported_signature_algorithms.
          */
 
+        PerConnection signatureSchemes = jsseSecurityParameters.signatureSchemes;
+
         LinkedHashMap<String, SignatureSchemeInfo> keyTypeMap = new LinkedHashMap<String, SignatureSchemeInfo>();
-        for (SignatureSchemeInfo signatureSchemeInfo : jsseSecurityParameters.peerSigSchemes)
+        for (SignatureSchemeInfo signatureSchemeInfo : signatureSchemes.getPeerSigSchemes())
         {
             String keyType = signatureSchemeInfo.getKeyType();
             if (keyTypeMap.containsKey(keyType))
@@ -738,7 +753,7 @@ class ProvTlsClient
                 continue;
             }
 
-            if (!jsseSecurityParameters.localSigSchemes.contains(signatureSchemeInfo))
+            if (!signatureSchemes.hasLocalSignatureScheme(signatureSchemeInfo))
             {
                 continue;
             }
@@ -791,11 +806,13 @@ class ProvTlsClient
     protected TlsCredentials selectClientCredentials13(Principal[] issuers, byte[] certificateRequestContext)
         throws IOException
     {
+        PerConnection signatureSchemes = jsseSecurityParameters.signatureSchemes;
+
         LinkedHashMap<String, SignatureSchemeInfo> keyTypeMap = new LinkedHashMap<String, SignatureSchemeInfo>();
-        for (SignatureSchemeInfo signatureSchemeInfo : jsseSecurityParameters.peerSigSchemes)
+        for (SignatureSchemeInfo signatureSchemeInfo : signatureSchemes.getPeerSigSchemes())
         {
             if (!signatureSchemeInfo.isSupportedPost13() ||
-                !jsseSecurityParameters.localSigSchemes.contains(signatureSchemeInfo))
+                !signatureSchemes.hasLocalSignatureScheme(signatureSchemeInfo))
             {
                 continue;
             }

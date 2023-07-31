@@ -45,8 +45,8 @@ public class EncryptionInfo
      * The value of EncryptionInfo
      */
     private ASN1Encodable encryptionInfoValue;
-
-    public static EncryptionInfo getInstance(final ASN1Object obj)
+    
+    public static EncryptionInfo getInstance(final Object obj)
     {
         if (obj instanceof EncryptionInfo)
         {
@@ -83,6 +83,16 @@ public class EncryptionInfo
     {
         this.encryptionInfoType = encryptionInfoType;
         this.encryptionInfoValue = encryptionInfoValue;
+    }
+
+    public ASN1ObjectIdentifier getEncryptionInfoType()
+    {
+        return encryptionInfoType;
+    }
+
+    public ASN1Encodable getEncryptionInfoValue()
+    {
+        return encryptionInfoValue;
     }
 
     public ASN1Primitive toASN1Primitive()

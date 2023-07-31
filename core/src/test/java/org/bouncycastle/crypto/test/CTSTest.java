@@ -5,6 +5,7 @@ import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.StreamBlockCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.DESEngine;
 import org.bouncycastle.crypto.engines.SkipjackEngine;
@@ -148,7 +149,7 @@ public class CTSTest
 
         try 
         {
-            new CTSBlockCipher(new SICBlockCipher(AESEngine.newInstance()));
+            new CTSBlockCipher((BlockCipher) SICBlockCipher.newInstance(AESEngine.newInstance()));
             fail("Expected CTS construction error - only ECB/CBC supported.");
         } catch(IllegalArgumentException e)
         {

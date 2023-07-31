@@ -31,7 +31,7 @@ import org.bouncycastle.util.Pack;
  * form of <b>ByteArrayInputStream</b> could be used to deliver the data.</p>
  */
 public class GCMSIVBlockCipher
-         implements AEADBlockCipher
+    implements GCMSIVModeCipher
 {
      /**
       * The buffer length.
@@ -136,6 +136,21 @@ public class GCMSIVBlockCipher
 
      // defined fixed
      private byte[]      macBlock = new byte[16];
+
+    /**
+     * Return a new GCM/SIV mode cipher based on the passed in base cipher
+     *
+     * @param cipher the base cipher for the GCM/SIV mode.
+     */
+    public static GCMSIVModeCipher newInstance(BlockCipher cipher)
+    {
+//        if (cipher instanceof NativeBlockCipherProvider)
+//        {
+//            return ((NativeBlockCipherProvider)cipher).createCTR();
+//        }
+
+        return new GCMSIVBlockCipher(cipher);
+    }
 
      /**
       * Constructor.

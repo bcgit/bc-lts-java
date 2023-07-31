@@ -26,9 +26,9 @@ public class BcPGPDataEncryptorBuilder
     implements PGPDataEncryptorBuilder
 {
     private SecureRandom random;
-    private boolean withIntegrityPacket;
+    private boolean withIntegrityPacket = true;
     private int encAlgorithm;
-    private boolean isV5StyleAEAD = false;
+    private boolean isV5StyleAEAD = true; // TODO: change to false in 1.75
     private int aeadAlgorithm = -1;
     private int chunkSize;
 

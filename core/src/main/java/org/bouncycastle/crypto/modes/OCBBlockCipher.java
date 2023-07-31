@@ -32,7 +32,7 @@ import org.bouncycastle.util.Longs;
  * </blockquote>
  */
 public class OCBBlockCipher
-    implements AEADBlockCipher
+    implements OCBModeCipher
 {
     private static final int BLOCK_SIZE = 16;
 

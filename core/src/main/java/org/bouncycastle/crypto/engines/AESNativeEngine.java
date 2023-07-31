@@ -7,14 +7,26 @@ import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultMultiBlockCipher;
 import org.bouncycastle.crypto.NativeBlockCipherProvider;
 import org.bouncycastle.crypto.NativeServices;
-import org.bouncycastle.crypto.SkippingStreamCipher;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.CBCModeCipher;
+import org.bouncycastle.crypto.modes.CCMBlockCipher;
+import org.bouncycastle.crypto.modes.CCMModeCipher;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
 import org.bouncycastle.crypto.modes.CFBModeCipher;
+import org.bouncycastle.crypto.modes.CTRModeCipher;
+import org.bouncycastle.crypto.modes.EAXBlockCipher;
+import org.bouncycastle.crypto.modes.EAXModeCipher;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.modes.GCMModeCipher;
+import org.bouncycastle.crypto.modes.GCMSIVBlockCipher;
+import org.bouncycastle.crypto.modes.GCMSIVModeCipher;
+import org.bouncycastle.crypto.modes.NativeCCMProvider;
+import org.bouncycastle.crypto.modes.NativeEAXProvider;
+import org.bouncycastle.crypto.modes.NativeGCMSIVProvider;
+import org.bouncycastle.crypto.modes.NativeOCBProvider;
+import org.bouncycastle.crypto.modes.OCBBlockCipher;
+import org.bouncycastle.crypto.modes.OCBModeCipher;
 import org.bouncycastle.crypto.modes.SICBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.dispose.NativeDisposer;
@@ -22,7 +34,7 @@ import org.bouncycastle.util.dispose.NativeReference;
 
 class AESNativeEngine
     extends DefaultMultiBlockCipher
-    implements NativeBlockCipherProvider
+    implements NativeBlockCipherProvider, NativeCCMProvider, NativeEAXProvider, NativeOCBProvider, NativeGCMSIVProvider
 {
     protected NativeReference wrapper = null;
     private int keyLen = 0;
@@ -144,6 +156,7 @@ class AESNativeEngine
 
     static native void init(long nativeRef, byte[] key);
 
+    @Override
     public GCMModeCipher createGCM()
     {
         if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM))
@@ -152,6 +165,12 @@ class AESNativeEngine
         }
 
         return new GCMBlockCipher(new AESEngine());
+    }
+
+    @Override
+    public GCMSIVModeCipher createGCMSIV()
+    {
+        return new GCMSIVBlockCipher(AESEngine.newInstance());
     }
 
     @Override
@@ -182,7 +201,7 @@ class AESNativeEngine
 
 
     @Override
-    public SkippingStreamCipher createCTR()
+    public CTRModeCipher createCTR()
     {
         if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CTR))
         {
@@ -190,6 +209,29 @@ class AESNativeEngine
         }
 
         return new SICBlockCipher(AESEngine.newInstance());
+    }
+
+    @Override
+    public CCMModeCipher createCCM()
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CCM))
+        {
+            return new AESNativeCCM();
+        }
+
+        return new CCMBlockCipher(AESEngine.newInstance());
+    }
+
+    @Override
+    public EAXModeCipher createEAX()
+    {
+        return new EAXBlockCipher(AESEngine.newInstance());
+    }
+
+    @Override
+    public OCBModeCipher createOCB()
+    {
+        return new OCBBlockCipher(AESEngine.newInstance(), AESEngine.newInstance());
     }
 
     private static class Disposer

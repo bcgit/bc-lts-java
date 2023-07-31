@@ -1,11 +1,6 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.OutputLengthException;
-import org.bouncycastle.crypto.StreamBlockCipher;
+import org.bouncycastle.crypto.*;
 
 /**
  * A Cipher Text Stealing (CTS) mode cipher. CTS allows block ciphers to
@@ -24,7 +19,7 @@ public class CTSBlockCipher
     public CTSBlockCipher(
         BlockCipher     cipher)
     {
-        if (cipher instanceof StreamBlockCipher)
+        if (cipher instanceof StreamCipher)
         {
             throw new IllegalArgumentException("CTSBlockCipher can only accept ECB, or CBC ciphers");
         }
@@ -38,7 +33,7 @@ public class CTSBlockCipher
     }
 
     /**
-     * return the size of the output buffer required for an update
+     * return the size of the output buffer required for an update 
      * an input of len bytes.
      *
      * @param len the length of the input.
@@ -131,7 +126,7 @@ public class CTSBlockCipher
 
         int blockSize   = getBlockSize();
         int length      = getUpdateOutputSize(len);
-
+        
         if (length > 0)
         {
             if ((outOff + length) > out.length)
@@ -221,7 +216,6 @@ public class CTSBlockCipher
                     buf[i] ^= block[i - blockSize];
                 }
 
-
                 if (cipher instanceof CBCModeCipher)
                 {
                     BlockCipher c = ((CBCModeCipher)cipher).getUnderlyingCipher();
@@ -251,7 +245,7 @@ public class CTSBlockCipher
 
             if (bufOff > blockSize)
             {
-             if (cipher instanceof CBCModeCipher)
+                if (cipher instanceof CBCModeCipher)
                 {
                     BlockCipher c = ((CBCModeCipher)cipher).getUnderlyingCipher();
 

@@ -1,0 +1,44 @@
+<project name="Test17" default="test" basedir=".">
+    <description>
+        Java 17 tests
+    </description>
+    <!-- set global properties for this build -->
+    <property file="bc-build.user.properties"/>
+    <property file="bc-build.properties"/>
+    <property file="gradle.properties"/>
+    <property environment="env"/>
+    <property name="target_jvm" value="${env.LTS_JDK17}"/>
+
+    <property name="src" location="src"/>
+    <property name="report.dir" location="build/artifacts/jdk17/reports"/>
+
+    <path id="project.classpath">
+        <pathelement location="${mail.jar.home}"/>
+        <pathelement location="${activation.jar.home}"/>
+        <pathelement location="${jmail.jar.home}"/>
+        <pathelement location="${jactivation.jar.home}"/>
+        <pathelement location="${junit.jar.home}"/>
+        <pathelement location="${ldap.jar.home}"/>
+    </path>
+
+    <condition property="cpu.intel">
+        <and>
+            <or>
+                <contains string="${os.arch}" substring="x86"/>
+                <contains string="${os.arch}" substring="amd"/>
+            </or>
+            <contains string="${os.arch}" substring="64"/>
+        </and>
+    </condition>
+
+    <condition property="cpu.arm">
+        <contains string="${os.arch}" substring="aarch64"/>
+    </condition>
+
+
+    <target name="test">
+        <ant antfile="jvm_onjar_tests.xml" dir="." inheritall="true" inheritrefs="true"/>
+    </target>
+
+
+</project>

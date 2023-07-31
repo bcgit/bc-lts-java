@@ -20,8 +20,9 @@ dependencies {
 
   implementation files("$lts_prov")
   implementation files("$lts_util")
+    implementation project(path: ':core')
 
-  java9Implementation project(':prov')
+    java9Implementation project(':prov')
   java9Implementation project(':util')
   java9Implementation files(sourceSets.main.output.classesDirs) {
      builtBy compileJava
@@ -36,7 +37,7 @@ compileJava {
 
 compileJava9Java {
   javaCompiler = javaToolchains.compilerFor {
-    languageVersion = JavaLanguageVersion.of(9)
+    languageVersion = JavaLanguageVersion.of(11)
   }
   sourceCompatibility = 9
   targetCompatibility = 9
@@ -84,6 +85,6 @@ artifacts {
 
 task('copyJars', type:Copy) {
   from new File(projectDir,"build/libs")
-  into new File(rootDir,"jars")
+  into new File(rootDir,"../bc-lts-java-jars/${version}/")
 }
 

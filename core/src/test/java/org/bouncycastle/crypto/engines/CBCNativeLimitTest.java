@@ -31,7 +31,7 @@ public class CBCNativeLimitTest extends TestCase
         NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
         if (!nativeServices.hasService("AES/CBC"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native","").contains("cbc"))
             {
                fail("no native cbc and no skip set for it");
                 return;
@@ -322,7 +322,7 @@ public class CBCNativeLimitTest extends TestCase
         NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
         if (!nativeServices.hasService("AES/CBC"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native","").contains("cbc"))
             {
                 fail("no native cbc and no skip set for it");
                 return;
@@ -528,7 +528,7 @@ public class CBCNativeLimitTest extends TestCase
         NativeServices nativeServices = CryptoServicesRegistrar.getNativeServices();
         if (!nativeServices.hasService("AES/CBC"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native","").contains("cbc"))
+            if (!System.getProperty("test.bclts.ignore.native","").contains("cbc"))
             {
                 fail("no native cbc and no skip set for it");
                 return;

@@ -649,6 +649,10 @@ public class TlsUtils
         {
             throw new IllegalArgumentException("'buf' cannot be null");
         }
+        if (buf.length < 1)
+        {
+            throw new TlsFatalAlert(AlertDescription.decode_error);
+        }
 
         int count = readUint8(buf, 0);
         if (buf.length != (count + 1))
@@ -1087,6 +1091,18 @@ public class TlsUtils
         return result;
     }
 
+    /** @deprecated Will be removed. Use readASN1Object in combination with requireDEREncoding instead */
+    public static ASN1Primitive readDERObject(byte[] encoding) throws IOException
+    {
+        /*
+         * NOTE: The current ASN.1 parsing code can't enforce DER-only parsing, but since DER is
+         * canonical, we can check it by re-encoding the result and comparing to the original.
+         */
+        ASN1Primitive result = readASN1Object(encoding);
+        requireDEREncoding(result, encoding);
+        return result;
+    }
+
     public static void requireDEREncoding(ASN1Object asn1, byte[] encoding) throws IOException
     {
         /*
@@ -1223,6 +1239,16 @@ public class TlsUtils
         return result;
     }
 
+    /**
+     * @deprecated Will be removed
+     */
+    public static SignatureAndHashAlgorithm getSignatureAndHashAlgorithm(TlsContext context,
+        TlsCredentialedSigner signerCredentials)
+        throws IOException
+    {
+        return getSignatureAndHashAlgorithm(context.getServerVersion(), signerCredentials);
+    }
+
     static SignatureAndHashAlgorithm getSignatureAndHashAlgorithm(ProtocolVersion negotiatedVersion,
         TlsCredentialedSigner credentialedSigner) throws IOException
     {
@@ -1266,17 +1292,28 @@ public class TlsUtils
         return new TlsSessionImpl(sessionID, sessionParameters);
     }
 
-    static boolean isExtendedMasterSecretOptionalDTLS(ProtocolVersion[] activeProtocolVersions)
+    static boolean isExtendedMasterSecretOptional(ProtocolVersion protocolVersion)
     {
-        return ProtocolVersion.contains(activeProtocolVersions, ProtocolVersion.DTLSv12)
-            || ProtocolVersion.contains(activeProtocolVersions, ProtocolVersion.DTLSv10);
+        ProtocolVersion tlsVersion = protocolVersion.getEquivalentTLSVersion();
+
+        return ProtocolVersion.TLSv12.equals(tlsVersion)
+            || ProtocolVersion.TLSv11.equals(tlsVersion)
+            || ProtocolVersion.TLSv10.equals(tlsVersion);
     }
 
-    static boolean isExtendedMasterSecretOptionalTLS(ProtocolVersion[] activeProtocolVersions)
+    static boolean isExtendedMasterSecretOptional(ProtocolVersion[] protocolVersions)
     {
-        return ProtocolVersion.contains(activeProtocolVersions, ProtocolVersion.TLSv12)
-            || ProtocolVersion.contains(activeProtocolVersions, ProtocolVersion.TLSv11)
-            || ProtocolVersion.contains(activeProtocolVersions, ProtocolVersion.TLSv10);
+        if (protocolVersions != null)
+        {
+            for (int i = 0; i < protocolVersions.length; ++i)
+            {
+                if (isExtendedMasterSecretOptional(protocolVersions[i]))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static boolean isNullOrContainsNull(Object[] array)
@@ -1554,6 +1591,14 @@ public class TlsUtils
         int length)
     {
         return secret.deriveUsingPRF(securityParameters.getPRFAlgorithm(), asciiLabel, seed, length);
+    }
+
+    /**
+     * @deprecated Use {@link #PRF(SecurityParameters, TlsSecret, String, byte[], int)} instead.
+     */
+    public static TlsSecret PRF(TlsContext context, TlsSecret secret, String asciiLabel, byte[] seed, int length)
+    {
+        return PRF(context.getSecurityParametersHandshake(), secret, asciiLabel, seed, length);
     }
 
     public static byte[] clone(byte[] data)
@@ -1912,6 +1957,30 @@ public class TlsUtils
     {
         return TlsCryptoUtils.hkdfExpandLabel(secret, securityParameters.getPRFCryptoHashAlgorithm(), "traffic upd",
             EMPTY_BYTES, securityParameters.getPRFHashLength());
+    }
+
+    /**
+     * @deprecated Will be removed. {@link TlsCryptoUtils#getHashForPRF(int)} should be a useful alternative.
+     */
+    public static short getHashAlgorithmForPRFAlgorithm(int prfAlgorithm)
+    {
+        switch (prfAlgorithm)
+        {
+        case PRFAlgorithm.ssl_prf_legacy:
+        case PRFAlgorithm.tls_prf_legacy:
+            throw new IllegalArgumentException("legacy PRF not a valid algorithm");
+        case PRFAlgorithm.tls_prf_sha256:
+        case PRFAlgorithm.tls13_hkdf_sha256:
+            return HashAlgorithm.sha256;
+        case PRFAlgorithm.tls_prf_sha384:
+        case PRFAlgorithm.tls13_hkdf_sha384:
+            return HashAlgorithm.sha384;
+        // TODO[RFC 8998]
+//        case PRFAlgorithm.tls13_hkdf_sm3:
+//            return HashAlgorithm.sm3;
+        default:
+            throw new IllegalArgumentException("unknown PRFAlgorithm: " + PRFAlgorithm.getText(prfAlgorithm));
+        }
     }
 
     public static ASN1ObjectIdentifier getOIDForHashAlgorithm(short hashAlgorithm)
@@ -4016,6 +4085,14 @@ public class TlsUtils
         return false;
     }
 
+    /**
+     * @deprecated Use {@link #isValidVersionForCipherSuite(int, ProtocolVersion)} instead.
+     */
+    public static boolean isValidCipherSuiteForVersion(int cipherSuite, ProtocolVersion version)
+    {
+        return isValidVersionForCipherSuite(cipherSuite, version);
+    }
+
     static boolean isValidCipherSuiteSelection(int[] offeredCipherSuites, int cipherSuite)
     {
         return null != offeredCipherSuites
@@ -4251,6 +4328,14 @@ public class TlsUtils
     public static int[] getSupportedCipherSuites(TlsCrypto crypto, int[] suites)
     {
         return getSupportedCipherSuites(crypto, suites, 0, suites.length);
+    }
+
+    /**
+     * @deprecated Use {@link #getSupportedCipherSuites(TlsCrypto, int[], int, int)} instead.
+     */
+    public static int[] getSupportedCipherSuites(TlsCrypto crypto, int[] suites, int suitesCount)
+    {
+        return getSupportedCipherSuites(crypto, suites, 0, suitesCount);
     }
 
     public static int[] getSupportedCipherSuites(TlsCrypto crypto, int[] suites, int suitesOff, int suitesCount)
@@ -4858,7 +4943,7 @@ public class TlsUtils
             certificateRequest.getCertificateAuthorities());
     }
 
-    static boolean contains(short[] buf, int off, int len, int value)
+    static boolean contains(short[] buf, int off, int len, short value)
     {
         for (int i = 0; i < len; ++i)
         {
@@ -4892,6 +4977,18 @@ public class TlsUtils
             }
         }
         return true;
+    }
+
+    static boolean containsNot(short[] buf, int off, int len, short value)
+    {
+        for (int i = 0; i < len; ++i)
+        {
+            if (value != buf[off + i])
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     static short[] retainAll(short[] retainer, short[] elements)
@@ -5077,7 +5174,7 @@ public class TlsUtils
         ByteArrayOutputStream endPointHash = new ByteArrayOutputStream();
 
         Certificate.ParseOptions options = new Certificate.ParseOptions()
-            .setCertificateType(TlsExtensionsUtils.getServerCertificateTypeExtensionServer(serverExtensions, CertificateType.X509))            
+            .setCertificateType(securityParameters.getServerCertificateType())            
             .setMaxChainLength(client.getMaxCertificateChainLength());
 
         Certificate serverCertificate = Certificate.parse(options, clientContext, buf, endPointHash);
@@ -5118,7 +5215,7 @@ public class TlsUtils
         }
 
         Certificate.ParseOptions options = new Certificate.ParseOptions()
-            .setCertificateType(TlsExtensionsUtils.getServerCertificateTypeExtensionServer(serverExtensions, CertificateType.X509))            
+            .setCertificateType(securityParameters.getServerCertificateType())            
             .setMaxChainLength(client.getMaxCertificateChainLength());
 
         Certificate serverCertificate = Certificate.parse(options, clientContext, buf, null);
@@ -5522,7 +5619,7 @@ public class TlsUtils
             int prfCryptoHashAlgorithm = TlsCryptoUtils.getHashForPRF(prfAlgorithm);
 
             securityParameters.prfCryptoHashAlgorithm = prfCryptoHashAlgorithm;
-            securityParameters.prfHashAlgorithm = (short)TlsCryptoUtils.getHashForPRF(prfAlgorithm);
+            securityParameters.prfHashAlgorithm = getHashAlgorithmForPRFAlgorithm(prfAlgorithm);
             securityParameters.prfHashLength = TlsCryptoUtils.getHashOutputSize(prfCryptoHashAlgorithm);
             break;
         }
@@ -6031,5 +6128,101 @@ public class TlsUtils
             }
         }
         return v;
+    }
+
+    static short processMaxFragmentLengthExtension(Hashtable clientExtensions, Hashtable serverExtensions,
+        short alertDescription)
+        throws IOException
+    {
+        short maxFragmentLength = TlsExtensionsUtils.getMaxFragmentLengthExtension(serverExtensions);
+        if (maxFragmentLength >= 0)
+        {
+            if (!MaxFragmentLength.isValid(maxFragmentLength) ||
+                (clientExtensions != null &&
+                    maxFragmentLength != TlsExtensionsUtils.getMaxFragmentLengthExtension(clientExtensions)))
+            {
+                throw new TlsFatalAlert(alertDescription);
+            }
+        }
+        return maxFragmentLength;
+    }
+
+    static short processClientCertificateTypeExtension(Hashtable clientExtensions, Hashtable serverExtensions,
+        short alertDescription)
+        throws IOException
+    {
+        short serverValue = TlsExtensionsUtils.getClientCertificateTypeExtensionServer(serverExtensions);
+        if (serverValue < 0)
+        {
+            return CertificateType.X509;
+        }
+
+        if (!CertificateType.isValid(serverValue))
+        {
+            throw new TlsFatalAlert(alertDescription, "Unknown value for client_certificate_type");
+        }
+
+        short[] clientValues = TlsExtensionsUtils.getClientCertificateTypeExtensionClient(clientExtensions);
+        if (clientValues == null || !contains(clientValues, 0, clientValues.length, serverValue))
+        {
+            throw new TlsFatalAlert(alertDescription, "Invalid selection for client_certificate_type");
+        }
+
+        return serverValue;
+    }
+
+    static short processClientCertificateTypeExtension13(Hashtable clientExtensions, Hashtable serverExtensions,
+        short alertDescription)
+        throws IOException
+    {
+        short certificateType = processClientCertificateTypeExtension(clientExtensions, serverExtensions,
+            alertDescription);
+
+        return validateCertificateType13(certificateType, alertDescription);
+    }
+
+    static short processServerCertificateTypeExtension(Hashtable clientExtensions, Hashtable serverExtensions,
+        short alertDescription)
+        throws IOException
+    {
+        short serverValue = TlsExtensionsUtils.getServerCertificateTypeExtensionServer(serverExtensions);
+        if (serverValue < 0)
+        {
+            return CertificateType.X509;
+        }
+
+        if (!CertificateType.isValid(serverValue))
+        {
+            throw new TlsFatalAlert(alertDescription, "Unknown value for server_certificate_type");
+        }
+
+        short[] clientValues = TlsExtensionsUtils.getServerCertificateTypeExtensionClient(clientExtensions);
+        if (clientValues == null || !contains(clientValues, 0, clientValues.length, serverValue))
+        {
+            throw new TlsFatalAlert(alertDescription, "Invalid selection for server_certificate_type");
+        }
+
+        return serverValue;
+    }
+
+    static short processServerCertificateTypeExtension13(Hashtable clientExtensions, Hashtable serverExtensions,
+        short alertDescription)
+        throws IOException
+    {
+        short certificateType = processServerCertificateTypeExtension(clientExtensions, serverExtensions,
+            alertDescription);
+
+        return validateCertificateType13(certificateType, alertDescription);
+    }
+
+    private static short validateCertificateType13(short certificateType, short alertDescription)
+        throws IOException
+    {
+        if (CertificateType.OpenPGP == certificateType)
+        {
+            throw new TlsFatalAlert(alertDescription, "The OpenPGP certificate type MUST NOT be used with TLS 1.3");
+        }
+
+        return certificateType;
     }
 }

@@ -19,9 +19,9 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            if (LOG.isLoggable(Level.WARNING))
+            if (LOG.isLoggable(Level.FINE))
             {
-                LOG.log(Level.WARNING, "native ctr exception: " + ule.getMessage(), ule);
+                LOG.log(Level.FINE, "native ctr exception: " + ule.getMessage(), ule);
             }
             return false;
         }
@@ -38,9 +38,9 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            if (LOG.isLoggable(Level.WARNING))
+            if (LOG.isLoggable(Level.FINE))
             {
-                LOG.log(Level.WARNING, "native cfb exception: " + ule.getMessage(), ule);
+                LOG.log(Level.FINE, "native cfb exception: " + ule.getMessage(), ule);
             }
             return false;
         }
@@ -56,9 +56,9 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            if (LOG.isLoggable(Level.WARNING))
+            if (LOG.isLoggable(Level.FINE))
             {
-                LOG.log(Level.WARNING, "native cbc exception: " + ule.getMessage(), ule);
+                LOG.log(Level.FINE, "native cbc exception: " + ule.getMessage(), ule);
             }
             return false;
         }
@@ -75,9 +75,9 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            if (LOG.isLoggable(Level.WARNING))
+            if (LOG.isLoggable(Level.FINE))
             {
-                LOG.log(Level.WARNING, "native aes exception: " + ule.getMessage(), ule);
+                LOG.log(Level.FINE, "native aes exception: " + ule.getMessage(), ule);
             }
             return false;
         }
@@ -94,15 +94,37 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            if (LOG.isLoggable(Level.WARNING))
+            if (LOG.isLoggable(Level.FINE))
             {
-                LOG.log(Level.WARNING, "native gcm exception: " + ule.getMessage(), ule);
+                LOG.log(Level.FINE, "native gcm exception: " + ule.getMessage(), ule);
             }
             return false;
         }
     }
 
     private static native boolean nativeGCM();
+
+
+
+
+    static boolean hasCCMHardwareSupport()
+    {
+        try
+        {
+            return nativeCCM();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.log(Level.FINE, "native ccm exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+    private static native boolean nativeCCM();
+
 
 
     static boolean hasHardwareRand()
@@ -113,9 +135,9 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            if (LOG.isLoggable(Level.WARNING))
+            if (LOG.isLoggable(Level.FINE))
             {
-                LOG.log(Level.WARNING, "native rand exception: " + ule.getMessage(), ule);
+                LOG.log(Level.FINE, "native rand exception: " + ule.getMessage(), ule);
             }
             return false;
         }
@@ -131,9 +153,9 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            if (LOG.isLoggable(Level.WARNING))
+            if (LOG.isLoggable(Level.FINE))
             {
-                LOG.log(Level.WARNING, "native seed exception: " + ule.getMessage(), ule);
+                LOG.log(Level.FINE, "native seed exception: " + ule.getMessage(), ule);
             }
             return false;
         }
@@ -149,9 +171,9 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            if (LOG.isLoggable(Level.WARNING))
+            if (LOG.isLoggable(Level.FINE))
             {
-                LOG.log(Level.WARNING, "native sha exception: " + ule.getMessage(), ule);
+                LOG.log(Level.FINE, "native sha exception: " + ule.getMessage(), ule);
             }
             return false;
         }
@@ -165,9 +187,9 @@ class NativeFeatures
         }
         catch (UnsatisfiedLinkError ule)
         {
-            if (LOG.isLoggable(Level.WARNING))
+            if (LOG.isLoggable(Level.FINE))
             {
-                LOG.log(Level.WARNING, "native multiply and accumulate exception: " + ule.getMessage(), ule);
+                LOG.log(Level.FINE, "native multiply and accumulate exception: " + ule.getMessage(), ule);
             }
             return false;
         }
