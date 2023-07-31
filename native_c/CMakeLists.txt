@@ -180,11 +180,11 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
         # Big Endian compile targets
         #
 
-        add_library(${LIB_PROBE}-be SHARED ${PROBE})
-        target_include_directories(${LIB_PROBE}-be PUBLIC ${JNI_INCLUDES})
-        target_compile_options(${LIB_PROBE}-be PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${PROBE_OPTIONS} -mbig-endian>)
-        target_compile_definitions(${LIB_PROBE}-be PUBLIC BUILD_TS=\"${BUILD_TS}\")
-        install(TARGETS "${LIB_PROBE}-be" LIBRARY DESTINATION ${PLATFORM_TARGET}/probe)
+#        add_library(${LIB_PROBE}-be SHARED ${PROBE})
+#        target_include_directories(${LIB_PROBE}-be PUBLIC ${JNI_INCLUDES})
+#        target_compile_options(${LIB_PROBE}-be PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${PROBE_OPTIONS} -mbig-endian>)
+#        target_compile_definitions(${LIB_PROBE}-be PUBLIC BUILD_TS=\"${BUILD_TS}\")
+#        install(TARGETS "${LIB_PROBE}-be" LIBRARY DESTINATION ${PLATFORM_TARGET}/probe)
 
 
 #        add_library(${LIB_NATIVE}-neon-be SHARED

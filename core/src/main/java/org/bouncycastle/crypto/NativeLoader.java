@@ -433,7 +433,11 @@ class NativeLoader
             }
             else
             {
-                probeLibPrefix = "bc-probe-be";
+                nativeStatusMessage = String.format("ARM big-endian is not supported", platform,
+                        arch);
+                nativeInstalled = false;
+                LOG.fine("exited with " + nativeStatusMessage);
+                return;
             }
         }
         else
