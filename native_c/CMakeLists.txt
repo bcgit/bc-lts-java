@@ -145,6 +145,12 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             arm/jni/sha256_jni.c
             )
 
+    set(ARM_MUL
+            arm/mul/cmul.h
+            arm/mul/cmul128.c
+            arm/jni/cmul_jni.c
+            )
+
     add_library(${LIB_PROBE}-le SHARED ${PROBE})
     target_include_directories(${LIB_PROBE}-le PUBLIC ${JNI_INCLUDES})
     target_compile_options(${LIB_PROBE}-le PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${PROBE_OPTIONS}>)
@@ -166,6 +172,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             ${ARM_CTR}
             ${ARM_CCM}
             ${ARM_SHA256}
+            ${ARM_MUL}
             )
     target_include_directories("${LIB_NATIVE}-neon-le" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-neon-le" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -208,7 +215,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
 #    #
 #    # Main method for testing.
 #    #
-#    add_executable("tryit" arm/main.c arm/debug_neon.h)
+#    add_executable("tryit" main.c debug_neon.h)
 #    target_link_libraries("tryit" ${LIB_NATIVE}-neon-le)
 
 
@@ -385,8 +392,7 @@ else ()
             intel/ccm/ccm.h
             intel/ccm/ccm.c
             intel/ccm/ccm128.c
-            intel/jni/ccm_jni.c
-            )
+            intel/jni/ccm_jni.c)
 
     set(CCM_VAES
             intel/ccm/ccm.h
