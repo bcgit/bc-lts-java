@@ -16,6 +16,7 @@ import org.bouncycastle.util.Pack;
 
 public class AESGCMPacketCipher
     extends PacketCipherEngine
+    implements AESGCMModePacketCipher
 {
     public static AESGCMPacketCipher newInstance()
     {

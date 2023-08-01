@@ -10,7 +10,7 @@
 
 static inline void aes_cbc_dec_blocks_256b(unsigned char *in, unsigned char *out,
                                            __m256i *fb256, const __m128i *roundKeys,
-                                           const int num_rounds, const uint32_t num_blocks) {
+                                           const uint32_t num_rounds, const uint32_t num_blocks) {
 
 
     if (num_blocks >= 16) {
@@ -459,20 +459,20 @@ static inline void aes_cbc_dec_blocks_256b(unsigned char *in, unsigned char *out
 // VAES or 256b single block implementation.
 //
 
-size_t cbc_decrypt(cbc_ctx *cbc, unsigned char *src, uint32_t blocks, unsigned char *dest) {
-    assert(cbc != NULL);
+size_t cbc_pc_decrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
+                      uint32_t num_rounds) {
     unsigned char *destStart = dest;
 
-    __m256i fb256 = _mm256_broadcastsi128_si256(cbc->chainblock);
+    __m256i fb256 = _mm256_broadcastsi128_si256(*chainblock);
     while (blocks >= 16) {
-        aes_cbc_dec_blocks_256b(src, dest, &fb256, cbc->roundKeys, cbc->num_rounds, 16);
+        aes_cbc_dec_blocks_256b(src, dest, &fb256, roundKeys, num_rounds, 16);
         blocks -= 16;
-        src += CBC_BLOCK_SIZE * 16;
-        dest += CBC_BLOCK_SIZE * 16;
+        src += BLOCK_SIZE * 16;
+        dest += BLOCK_SIZE * 16;
     }
-    aes_cbc_dec_blocks_256b(src, dest, &fb256, cbc->roundKeys, cbc->num_rounds, blocks);
-    cbc->chainblock = _mm256_extracti128_si256(fb256, 1);
-    dest += blocks * CBC_BLOCK_SIZE;
+    aes_cbc_dec_blocks_256b(src, dest, &fb256, roundKeys, num_rounds, blocks);
+    *chainblock = _mm256_extracti128_si256(fb256, 1);
+    dest += blocks * BLOCK_SIZE;
     return (size_t) (dest - destStart);
 }
 

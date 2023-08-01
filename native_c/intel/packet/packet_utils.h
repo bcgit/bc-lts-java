@@ -1,5 +1,6 @@
 #ifndef BC_LTS_C_PACKET_UTILS_H
 #define BC_LTS_C_PACKET_UTILS_H
+
 #include <stdbool.h>
 #include <stdint.h>
 #include <immintrin.h>
@@ -41,10 +42,15 @@ int get_aead_output_size(bool encryption, int len, int macSize);
 
 int get_output_size(bool encryption, int len);
 
-uint32_t generate_key(bool encryption, uint8_t* key, __m128i* roundKeys, size_t keyLen);
+uint32_t generate_key(bool encryption, uint8_t *key, __m128i *roundKeys, size_t keyLen);
 
 packet_err *make_packet_error(const char *msg, int type);
 
+static inline void
+packet_encrypt(__m128i *d0, const __m128i chainblock, __m128i *roundKeys, const uint32_t num_rounds);
+
+size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
+                      uint32_t num_rounds);
 
 static const int8_t __attribute__ ((aligned(16))) _swap_endian[16] = {
         15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0

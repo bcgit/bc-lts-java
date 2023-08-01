@@ -132,23 +132,6 @@ void ccm_pc_calculateMac(uint8_t *input, size_t len, uint8_t *initAD, size_t ini
     memset(macBlock + mac_size, 0, BLOCK_SIZE - mac_size);
 }
 
-size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
-                      uint32_t num_rounds) {
-    unsigned char *destStart = dest;
-    __m128i d0;
-    __m128i tmpCb = *chainblock;
-    while (blocks > 0) {
-        d0 = _mm_loadu_si128((__m128i *) src);
-        packet_encrypt(&d0, tmpCb, roundKeys, num_rounds);
-        _mm_storeu_si128((__m128i *) dest, d0);
-        blocks--;
-        src += BLOCK_SIZE;
-        dest += BLOCK_SIZE;
-        tmpCb = d0;
-    }
-    *chainblock = tmpCb;
-    return (size_t) (dest - destStart);
-}
 
 void cbc_pc_mac_update(uint8_t *src, size_t len, uint8_t *buf, size_t *buf_ptr, uint8_t *macBlock, __m128i *chainblock,
                        __m128i *roundKeys, uint32_t num_rounds) {
@@ -214,32 +197,3 @@ bool ccm_pc_ctr_process_byte(unsigned char *io, uint32_t *buf_pos, uint64_t *ctr
     return true;
 }
 
-static inline void
-packet_encrypt(__m128i *d0, const __m128i chainblock, __m128i *roundKeys, const uint32_t num_rounds) {
-    *d0 = _mm_xor_si128(*d0, chainblock);
-    *d0 = _mm_xor_si128(*d0, roundKeys[0]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[1]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[2]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[3]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[4]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[5]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[6]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[7]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[8]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[9]);
-    if (num_rounds == ROUNDS_128) {
-        *d0 = _mm_aesenclast_si128(*d0, roundKeys[10]);
-    } else if (num_rounds == ROUNDS_192) {
-        *d0 = _mm_aesenc_si128(*d0, roundKeys[10]);
-        *d0 = _mm_aesenc_si128(*d0, roundKeys[11]);
-        *d0 = _mm_aesenclast_si128(*d0, roundKeys[12]);
-    } else if (num_rounds == ROUNDS_256) {
-        *d0 = _mm_aesenc_si128(*d0, roundKeys[10]);
-        *d0 = _mm_aesenc_si128(*d0, roundKeys[11]);
-        *d0 = _mm_aesenc_si128(*d0, roundKeys[12]);
-        *d0 = _mm_aesenc_si128(*d0, roundKeys[13]);
-        *d0 = _mm_aesenclast_si128(*d0, roundKeys[14]);
-    } else {
-        assert(0);
-    }
-}

@@ -291,17 +291,17 @@ static inline void aes_cbc_dec_blocks_128b(unsigned char *in, unsigned char *out
 
 
 
-size_t cbc_decrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
-                   int num_rounds) {
+size_t cbc_pc_decrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
+                      uint32_t num_rounds) {
     unsigned char *destStart = dest;
 
     while (blocks >= 8) {
-        aes_cbc_dec_blocks_128b(src, dest, chainblock, roundKeys, num_rounds, 8);
+        aes_cbc_dec_blocks_128b(src, dest, chainblock, roundKeys, (int) num_rounds, 8);
         blocks -= 8;
         src += BLOCK_SIZE * 8;
         dest += BLOCK_SIZE * 8;
     }
-    aes_cbc_dec_blocks_128b(src, dest, chainblock, roundKeys, num_rounds, blocks);
+    aes_cbc_dec_blocks_128b(src, dest, chainblock, roundKeys,  (int) num_rounds, blocks);
     dest += blocks * BLOCK_SIZE;
     return (size_t) (dest - destStart);
 }

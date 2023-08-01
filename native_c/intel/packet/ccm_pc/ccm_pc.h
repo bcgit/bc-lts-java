@@ -25,10 +25,10 @@ bool ccm_pc_ctr_process_bytes(unsigned char *src, size_t len, unsigned char *des
                               uint64_t* ctr, uint64_t initialCTR, uint64_t ctrMast, bool* ctrAtEnd, __m128i* IV_le,
                               __m128i* roundKeys, uint32_t num_rounds, __m128i* partialBlock);
 
-static inline void packet_encrypt(__m128i *d0, const __m128i chainblock, __m128i *roundKeys, const uint32_t num_rounds);
-
-size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i* chainblock, __m128i *roundKeys,
-                      uint32_t num_rounds);
+//static inline void packet_encrypt(__m128i *d0, const __m128i chainblock, __m128i *roundKeys, const uint32_t num_rounds);
+//
+//size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i* chainblock, __m128i *roundKeys,
+//                      uint32_t num_rounds);
 
 void cbc_pc_mac_update(uint8_t *src, size_t len, uint8_t *buf, size_t *buf_ptr, uint8_t *macBlock, __m128i* chainblock,
                        __m128i *roundKeys, uint32_t num_rounds);

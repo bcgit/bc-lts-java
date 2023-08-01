@@ -11,6 +11,7 @@ import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.PacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.TestUtil;
@@ -19,22 +20,33 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
-import org.bouncycastle.util.test.SimpleTest;
 import org.junit.Test;
 
 public class AESCBCPacketCipherTest
-    extends SimpleTest
+    extends TestCase
 {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public static void main(
         String[] args)
+        throws Exception
     {
-        runTest(new AESCBCPacketCipherTest());
+        AESCBCPacketCipherTest test= new AESCBCPacketCipherTest();
+        test.performTest();
     }
 
-    @Override
+
     public void performTest()
+        throws Exception
+    {
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        tests();
+        CryptoServicesRegistrar.setNativeEnabled(false);
+        tests();
+        System.out.println("AESCBCPacketCipherTest pass");
+    }
+
+    private void tests()
         throws Exception
     {
         testExceptions();
@@ -43,7 +55,7 @@ public class AESCBCPacketCipherTest
         testCBCJavaAgreement_128();
         testCBCJavaAgreement_192();
         testCBCJavaAgreement_256();
-        System.out.println("AESCBCPacketCipherTest pass");
+
     }
 
     @Test
@@ -66,7 +78,7 @@ public class AESCBCPacketCipherTest
 
 
         CBCBlockCipher javaCBC = new CBCBlockCipher(new AESEngine());
-        AESCBCPacketCipher packetCBC = AESCBCPacketCipher.newInstance();
+        AESCBCModePacketCipher packetCBC = PacketCipherEngine.createCBCPacketCipher();
         for (int gi = 0; gi < reqGroups.size(); gi++)
         {
             Map<String, Object> reqGroup = reqGroups.get(gi);
@@ -252,7 +264,7 @@ public class AESCBCPacketCipherTest
         return results;
     }
 
-    static List<Map<String, Object>> performMonteCarloCBCTest(AESCBCPacketCipher driver, Map<String, Object> testGroup, Map<String, Object> test)
+    static List<Map<String, Object>> performMonteCarloCBCTest(AESCBCModePacketCipher driver, Map<String, Object> testGroup, Map<String, Object> test)
         throws Exception
     {
         List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
@@ -381,7 +393,7 @@ public class AESCBCPacketCipherTest
         throws InvalidCipherTextException, PacketCipherException
     {
         SecureRandom secureRandom = new SecureRandom();
-        AESCBCPacketCipher cbc2 = AESCBCPacketCipher.newInstance();
+        AESCBCModePacketCipher cbc2 = PacketCipherEngine.createCBCPacketCipher();
         int[] keybytes = {16, 24, 32};
         for (int i = 0; i < 3; ++i)
         {
@@ -463,8 +475,6 @@ public class AESCBCPacketCipherTest
     byte[] generateCT(byte[] message, byte[] key, byte[] iv, boolean expectNative)
         throws Exception
     {
-
-
         CBCModeCipher cbc = CBCBlockCipher.newInstance(AESEngine.newInstance());
         cbc.init(true, new ParametersWithIV(new KeyParameter(key), iv));
 
@@ -619,7 +629,7 @@ public class AESCBCPacketCipherTest
         for (int keySize : new int[]{16, 24, 32})
         {
             CBCBlockCipher javaEngineEnc = new CBCBlockCipher(new AESEngine());
-            AESCBCPacketCipher cbcPacketCipher = AESCBCPacketCipher.newInstance();
+            AESCBCModePacketCipher cbcPacketCipher = PacketCipherEngine.createCBCPacketCipher();
 
             CBCBlockCipher javaEngineDec = new CBCBlockCipher(new AESEngine());
 
@@ -692,7 +702,7 @@ public class AESCBCPacketCipherTest
 
     public void testExceptions()
     {
-        AESCBCPacketCipher cbc = AESCBCPacketCipher.newInstance();
+        AESCBCModePacketCipher cbc = PacketCipherEngine.createCBCPacketCipher();
 
         try
         {
@@ -702,7 +712,7 @@ public class AESCBCPacketCipherTest
         catch (IllegalArgumentException e)
         {
             // expected
-            isTrue("wrong message", e.getMessage().equals(ExceptionMessage.LEN_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().equals(ExceptionMessage.LEN_NEGATIVE));
         }
 
         try
@@ -713,7 +723,7 @@ public class AESCBCPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_KEY_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_KEY_LENGTH));
         }
 
         try
@@ -724,7 +734,7 @@ public class AESCBCPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.CBC_IV_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.CBC_IV_LENGTH));
         }
 
 
@@ -735,7 +745,7 @@ public class AESCBCPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_NULL));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_NULL));
         }
 
         try
@@ -745,7 +755,7 @@ public class AESCBCPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
         }
 
         try
@@ -755,7 +765,7 @@ public class AESCBCPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_DECRYPTION_INPUT_LENGTH_INVALID));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_DECRYPTION_INPUT_LENGTH_INVALID));
         }
 
         try
@@ -765,7 +775,7 @@ public class AESCBCPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
         }
 
         try
@@ -775,17 +785,17 @@ public class AESCBCPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.LEN_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.LEN_NEGATIVE));
         }
 
         try
         {
-            cbc.processPacket(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]), new byte[16], 0, 16, new byte[32], -1);
+            cbc.processPacket(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]), new byte[16], 0, 16, new byte[16], -1);
             fail("output offset is negative for processPacket");
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
         }
 
         try
@@ -795,7 +805,7 @@ public class AESCBCPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_LENGTH));
         }
 
         try
@@ -805,7 +815,7 @@ public class AESCBCPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
         }
     }
 }

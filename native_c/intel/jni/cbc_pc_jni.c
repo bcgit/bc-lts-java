@@ -65,12 +65,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
         goto exit;
     }
 
-    if (!bytearray_not_null(&iv, "iv was null", env)) {
-        goto exit;
-    }
-
-    if (iv.size < 7 || iv.size > 13) {
-        throw_java_illegal_argument(env, "nonce must have length from 7 to 13 octets");
+    if (!ivlen_is_16_and_not_null(env, &iv)) {
         goto exit;
     }
 
@@ -95,17 +90,8 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
         goto exit;
     }
 
-    //
-    // Load the contexts
-    //
-    if (!load_critical_ctx(&input)) {
-        throw_java_invalid_state(env, "unable to obtain ptr to valid input array");
-        goto exit;
-    }
-
-    if (!load_critical_ctx(&output)) {
-        release_critical_ctx(&input);
-        throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
+    if (encryption != JNI_TRUE && (inLen & 15)) {
+        throw_bc_data_length_exception(env, EM_AES_DECRYPTION_INPUT_LENGTH_INVALID);
         goto exit;
     }
 
@@ -119,6 +105,25 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
         goto exit;
     }
 
+    if (!check_range(output.size, (size_t) outOff, (size_t) (((inLen >> 4) << 4) + (inLen & 15 ? 16 : 0)))) {
+        throw_bc_data_length_exception(env, EM_OUTPUT_LENGTH);
+        goto exit;
+    }
+
+    //
+    // Load the contexts
+    //
+    if (!load_critical_ctx(&input)) {
+        throw_java_invalid_state(env, "unable to obtain ptr to valid input array");
+        goto exit;
+    }
+
+    if (!load_critical_ctx(&output)) {
+        release_critical_ctx(&input);
+        throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
+        goto exit;
+    }
+    
 
     if (outOff > output.size) {
         throw_java_illegal_argument(env, EM_OUTPUT_LENGTH);
@@ -132,7 +137,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
             key.bytearray,
             (size_t) keyLen,
             iv.bytearray,
-            (size_t) nonLen,
             p_in,
             (size_t) inLen,
             p_out,

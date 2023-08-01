@@ -12,7 +12,7 @@ import org.bouncycastle.util.Pack;
 
 public class AESCBCPacketCipher
     extends PacketCipherEngine
-    implements AESCCMModePacketCipher
+    implements AESCBCModePacketCipher
 {
     public static AESCBCPacketCipher newInstance()
     {

@@ -1,8 +1,20 @@
 package org.bouncycastle.crypto;
 
+import org.bouncycastle.crypto.engines.AESNativeCBCPacketCipher;
 import org.bouncycastle.crypto.engines.AESNativeCCMPacketCipher;
+import org.bouncycastle.crypto.engines.AESNativeCTRPacketCipher;
+import org.bouncycastle.crypto.engines.AESNativeGCMPacketCipher;
+import org.bouncycastle.crypto.engines.AESNativeGCMSIVPacketCipher;
+import org.bouncycastle.crypto.modes.AESCBCModePacketCipher;
+import org.bouncycastle.crypto.modes.AESCBCPacketCipher;
 import org.bouncycastle.crypto.modes.AESCCMModePacketCipher;
 import org.bouncycastle.crypto.modes.AESCCMPacketCipher;
+import org.bouncycastle.crypto.modes.AESCTRModePacketCipher;
+import org.bouncycastle.crypto.modes.AESCTRPacketCipher;
+import org.bouncycastle.crypto.modes.AESGCMModePacketCipher;
+import org.bouncycastle.crypto.modes.AESGCMPacketCipher;
+import org.bouncycastle.crypto.modes.AESGCMSIVModePacketCipher;
+import org.bouncycastle.crypto.modes.AESGCMSIVPacketCipher;
 import org.bouncycastle.crypto.modes.gcm.GCMUtil;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
@@ -773,10 +785,42 @@ public abstract class PacketCipherEngine
 
     public static AESCCMModePacketCipher createCCMPacketCipher()
     {
-        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CCM))
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CCM_PC))
         {
             return  AESNativeCCMPacketCipher.newInstance();
         }
         return AESCCMPacketCipher.newInstance();
+    }
+
+    public static AESCBCModePacketCipher createCBCPacketCipher(){
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CBC_PC))
+        {
+            return  AESNativeCBCPacketCipher.newInstance();
+        }
+        return AESCBCPacketCipher.newInstance();
+    }
+
+    public static AESCTRModePacketCipher createCTRPacketCipher(){
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CTR_PC))
+        {
+            return  AESNativeCTRPacketCipher.newInstance();
+        }
+        return AESCTRPacketCipher.newInstance();
+    }
+
+    public static AESGCMModePacketCipher createGCMPacketCipher(){
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM_PC))
+        {
+            return  AESNativeGCMPacketCipher.newInstance();
+        }
+        return AESGCMPacketCipher.newInstance();
+    }
+
+    public static AESGCMSIVModePacketCipher createGCMSIVPacketCipher(){
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCMSIV_PC))
+        {
+            return  AESNativeGCMSIVPacketCipher.newInstance();
+        }
+        return AESGCMSIVPacketCipher.newInstance();
     }
 }

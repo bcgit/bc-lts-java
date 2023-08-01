@@ -24,7 +24,7 @@ static inline __m128i set_feedback(const __m512i in_cipher_blocks, const uint32_
 
 static inline void aes_cbc_dec_blocks_512b(unsigned char *in, unsigned char *out,
                                            __m512i *fb512, __m128i *feedback, const __m128i *roundKeys,
-                                           const int num_rounds, const uint32_t num_blocks) {
+                                           const uint32_t num_rounds, const uint32_t num_blocks) {
 
     if (num_blocks == 16) {
         __m512i d0 = _mm512_loadu_si512((__m512i *) &in[0 * 64]);
@@ -136,24 +136,24 @@ static inline void aes_cbc_dec_blocks_512b(unsigned char *in, unsigned char *out
 // VAES or 512b single block implementation.
 //
 
-size_t cbc_decrypt(cbc_ctx *cbc, unsigned char *src, uint32_t blocks, unsigned char *dest) {
-    assert(cbc != NULL);
+size_t cbc_pc_decrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
+                      uint32_t num_rounds) {
     unsigned char *destStart = dest;
 
 
-    __m512i fb512 = _mm512_broadcast_i32x4(cbc->chainblock);
+    __m512i fb512 = _mm512_broadcast_i32x4(*chainblock);
 
-    __m128i fb = cbc->chainblock;
+    __m128i fb = *chainblock;
 
     while (blocks >= 16) {
-        aes_cbc_dec_blocks_512b(src, dest, &fb512, &fb, cbc->roundKeys, cbc->num_rounds, 16);
+        aes_cbc_dec_blocks_512b(src, dest, &fb512, &fb, roundKeys, num_rounds, 16);
         blocks -= 16;
-        src += CBC_BLOCK_SIZE * 16;
-        dest += CBC_BLOCK_SIZE * 16;
+        src += BLOCK_SIZE * 16;
+        dest += BLOCK_SIZE * 16;
     }
-    aes_cbc_dec_blocks_512b(src, dest, &fb512, &fb, cbc->roundKeys, cbc->num_rounds, blocks);
-    dest += blocks * CBC_BLOCK_SIZE;
-    cbc->chainblock = fb;
+    aes_cbc_dec_blocks_512b(src, dest, &fb512, &fb, roundKeys, num_rounds, blocks);
+    dest += blocks * BLOCK_SIZE;
+    *chainblock = fb;
     return (size_t) (dest - destStart);
 }
 

@@ -11,6 +11,7 @@ import org.bouncycastle.util.Arrays;
 
 public class AESCTRPacketCipher
     extends PacketCipherEngine
+    implements AESCTRModePacketCipher
 {
     public static AESCTRPacketCipher newInstance()
     {
