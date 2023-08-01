@@ -1,5 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 
+
+FILE(TO_CMAKE_PATH "$ENV{JAVA_HOME}/include" JNI_INCLUDE)
+
+FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/../core" FIPS_JAVA_ROOT)
+
+message("JNI Include directory:  ${JNI_INCLUDE}")
+message("FIPS_JAVA_ROOT  ${FIPS_JAVA_ROOT}")
+
 message("Looking for either JAVA_HOME or LTS_JDK8 env vars. ")
 
 if (DEFINED ENV{JAVA_HOME})
@@ -32,6 +40,59 @@ string(TIMESTAMP BUILD_TS "%Y-%m-%dT%H:%M:%S")
 
 
 project(${CORE_NATIVE} LANGUAGES C)
+
+enable_language(ASM_NASM)
+set(NATIVE_INSTALL_ROOT ${CMAKE_SOURCE_DIR}/target)
+
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    if (${CMAKE_SYSTEM_PROCESSOR} STREQUAL "x86_64")
+        MESSAGE("Building for Linux Intel")
+
+        set(OPTIMISE_FLAG -O3)
+        # Test for dev environment.
+        # If dev environment variable LTS_DEV exists then turn off optimisations and switch on debugging
+        #
+        if (DEFINED ENV{LTS_DEV})
+            set(OPTIMISE_FLAG -g)
+            MESSAGE("DEBUG BUILD --- NOT OPTIMISED")
+        else ()
+            MESSAGE("RELEASE BUILD --- OPTIMISED")
+        endif ()
+
+
+        set(JNI_INCLUDE_PLATFORM ${JNI_INCLUDE}/linux)
+        set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/linux/x86_64)
+        set(CMAKE_C_FLAGS "-std=c99")
+        set(OPTIONS -Wconversion -static-libgcc -z noexecstack)
+        set(PROBE_OPTIONS ${OPTIMISE_FLAG} -msse4.1 ${OPTIONS})
+        set(AVX_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS})
+        set(VAES_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS})
+        set(VAESF_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f -mavx512bw -mvpclmulqdq ${OPTIONS})
+        set(ASM_OPTIONS -f elf64)
+        set(COMMON_ASM intel/common_sysV.asm)
+    endif ()
+else ()
+    MESSAGE("Building for Windows Intel")
+    FILE(TO_CMAKE_PATH "${JNI_INCLUDE}/win32" JNI_INCLUDE_PLATFORM)
+    set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/windows/x86_64)
+    set(CMAKE_C_FLAGS "-std=c99")
+    set(OPTIONS /Wall)
+    set(PROBE_OPTIONS ${OPTIONS})
+    set(SSE_OPTIONS ${OPTIONS})
+    set(AVX_OPTIONS ${OPTIONS})
+    set(VAES_OPTIONS /arch:AVX2 ${OPTIONS})
+    set(VAESF_OPTIONS /arch:AVX512 ${OPTIONS})
+
+endif ()
+
+MESSAGE("JNI_INCLUDE_PLATFORM" ${JNI_INCLUDE_PLATFORM})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${JNI_INCLUDE} ${JNI_INCLUDE_PLATFORM} ${FIPS_JAVA_HEADERS})
+
+
+set(PROBE intel/jni/variant_selector_intel.c)
+set(IDENT_IMPL intel/jni/ident_jni.c intel/jni/native_features.c)
+set(COMMON intel/common.c intel/common.h ${COMMON_ASM})
+
 
 set(NATIVE_INSTALL_ROOT ${CMAKE_SOURCE_DIR}/target)
 
@@ -75,18 +136,17 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
 
         set(JNI_INCLUDE_PLATFORM ${JNI_INCLUDE}/darwin)
         set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/darwin/arm64)
-        set(OPTIONS -Wconversion)
+        set(OPTIONS -Wconversion -Werror=return-type)
         set(PROBE_OPTIONS ${OPTIMISE_FLAG})
-        set(ARM64_NEON_OPTIONS ${OPTIMISE_FLAG})
-
+        set(ARM64_NEON_OPTIONS ${OPTIONS} ${OPTIMISE_FLAG})
 
     elseif (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         message("Detected Linux")
         set(JNI_INCLUDE_PLATFORM ${JNI_INCLUDE}/linux)
         set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/linux/arm64)
-        set(OPTIONS -Wconversion)
+        set(OPTIONS -Wconversion -Werror=return-type)
         set(PROBE_OPTIONS ${OPTIMISE_FLAG})
-        set(ARM64_NEON_OPTIONS -Wconversion -march=armv8.4-a+crypto ${OPTIMISE_FLAG})
+        set(ARM64_NEON_OPTIONS ${OPTIONS} -march=armv8.4-a+crypto ${OPTIMISE_FLAG})
         set(ARM_BE -mbig-endian)
     endif ()
 
@@ -98,12 +158,59 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
     set(COMMON_NEON
             arm/aes/aes_common_neon.h
             arm/aes/aes_key.c
-            arm/aes/schedule.h)
+            arm/aes/schedule.h
+            )
 
-    set(ECB arm/jni/ecb_jni.c arm/ecb/ecb.h arm/ecb/ecb_neon.c jniutil/variant_selector.h)
+    set(ARM_ECB arm/jni/ecb_jni.c arm/ecb/ecb.h arm/ecb/ecb_neon.c jniutil/variant_selector.h)
 
-    set(GCM arm/jni/gcm_jni.c arm/gcm/gcm.h arm/gcm/gcm.c arm/gcm/gcm_hash.h)
+    set(ARM_GCM
+            arm/jni/gcm_jni.c
+            arm/gcm/gcm.h
+            arm/gcm/gcm.c
+            arm/gcm/gcm_hash.h
+            arm/gcm/gcm_aes_func.h
+            arm/gcm/gcm_neon.c
+            )
 
+    set(ARM_CBC
+            arm/cbc/cbc.h
+            arm/cbc/cbc.c
+            arm/cbc/cbc_neon.c
+            arm/jni/cbc_jni.c
+            )
+
+    set(ARM_CFB
+            arm/cfb/cfb.h
+            arm/cfb/cfb.c
+            arm/cfb/cfb_neon.c
+            arm/jni/cfb_jni.c
+            )
+
+    set(ARM_CTR
+            arm/jni/ctr_jni.c
+            arm/ctr/ctr.h
+            arm/ctr/ctr.c
+            arm/ctr/ctr_neon.c
+            )
+
+    set(ARM_CCM
+            arm/jni/ccm_jni.c
+            arm/ccm/ccm.h
+            arm/ccm/ccm.c
+            arm/ccm/ccm_neon.c
+            )
+
+    set(ARM_SHA256
+            arm/sha/sha256.h
+            arm/sha/sha256.c
+            arm/jni/sha256_jni.c
+            )
+
+    set(ARM_MUL
+            arm/mul/cmul.h
+            arm/mul/cmul128.c
+            arm/jni/cmul_jni.c
+            )
 
     add_library(${LIB_PROBE}-le SHARED ${PROBE})
     target_include_directories(${LIB_PROBE}-le PUBLIC ${JNI_INCLUDES})
@@ -119,12 +226,18 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             ${JNI_UTIL}
             ${COMMON}
             ${COMMON_NEON}
-            ${ECB}
-            ${GCM}
+            ${ARM_ECB}
+            ${ARM_GCM}
+            ${ARM_CBC}
+            ${ARM_CFB}
+            ${ARM_CTR}
+            ${ARM_CCM}
+            ${ARM_SHA256}
+            ${ARM_MUL}
             )
     target_include_directories("${LIB_NATIVE}-neon-le" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-neon-le" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
-    install(TARGETS "${LIB_NATIVE}-neon-le" LIBRARY DESTINATION ${PLATFORM_TARGET}/neon)
+    install(TARGETS "${LIB_NATIVE}-neon-le" LIBRARY DESTINATION ${PLATFORM_TARGET}/neon-le)
     target_compile_definitions("${LIB_NATIVE}-neon-le" PUBLIC BC_NEON BC_VARIANT=\"neon-le\" BUILD_TS=\"${BUILD_TS}\")
 
 
@@ -135,32 +248,36 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
         # Big Endian compile targets
         #
 
-        add_library(${LIB_PROBE}-be SHARED ${PROBE})
-        target_include_directories(${LIB_PROBE}-be PUBLIC ${JNI_INCLUDES})
-        target_compile_options(${LIB_PROBE}-be PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${PROBE_OPTIONS} -mbig-endian>)
-        target_compile_definitions(${LIB_PROBE}-be PUBLIC BUILD_TS=\"${BUILD_TS}\")
-        install(TARGETS "${LIB_PROBE}-be" LIBRARY DESTINATION ${PLATFORM_TARGET}/probe)
+#        add_library(${LIB_PROBE}-be SHARED ${PROBE})
+#        target_include_directories(${LIB_PROBE}-be PUBLIC ${JNI_INCLUDES})
+#        target_compile_options(${LIB_PROBE}-be PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${PROBE_OPTIONS} -mbig-endian>)
+#        target_compile_definitions(${LIB_PROBE}-be PUBLIC BUILD_TS=\"${BUILD_TS}\")
+#        install(TARGETS "${LIB_PROBE}-be" LIBRARY DESTINATION ${PLATFORM_TARGET}/probe)
 
 
-
-        add_library(${LIB_NATIVE}-neon-be SHARED
-                ${JNI_UTIL}
-                ${COMMON}
-                ${COMMON_NEON}
-                ${ECB}
-                ${GCM}
-                )
-        target_include_directories("${LIB_NATIVE}-neon-be" PUBLIC ${JNI_INCLUDES})
-        target_compile_options("${LIB_NATIVE}-neon-be" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS} ${ARM_BE}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
-        install(TARGETS "${LIB_NATIVE}-neon-be" LIBRARY DESTINATION ${PLATFORM_TARGET}/neon)
-        target_compile_definitions("${LIB_NATIVE}-neon-be" PUBLIC BC_NEON BC_VARIANT=\"neon\" BUILD_TS=\"${BUILD_TS}\")
+#        add_library(${LIB_NATIVE}-neon-be SHARED
+#                ${JNI_UTIL}
+#                ${COMMON}
+#                ${COMMON_NEON}
+#                ${ARM_ECB}
+#                ${ARM_GCM}
+#                ${ARM_CBC}
+#                ${ARM_CFB}
+#                ${ARM_CTR}
+#                ${ARM_CCM}
+#                ${ARM_SHA256}
+#                )
+#        target_include_directories("${LIB_NATIVE}-neon-be" PUBLIC ${JNI_INCLUDES})
+#        target_compile_options("${LIB_NATIVE}-neon-be" PRIVATE $<$<COMPILE_LANGUAGE:C>:${ARM64_NEON_OPTIONS} ${ARM_BE}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
+#        install(TARGETS "${LIB_NATIVE}-neon-be" LIBRARY DESTINATION ${PLATFORM_TARGET}/neon-be)
+#        target_compile_definitions("${LIB_NATIVE}-neon-be" PUBLIC BC_NEON BC_VARIANT=\"neon\" BUILD_TS=\"${BUILD_TS}\")
     endif ()
 
-    #
-    # Main method for testing.
-    #
-    add_executable("tryit" arm/main.c arm/debug_neon.h)
-    target_link_libraries("tryit" ${LIB_NATIVE}-neon-le)
+#    #
+#    # Main method for testing.
+#    #
+#    add_executable("tryit" main.c debug_neon.h)
+#    target_link_libraries("tryit" ${LIB_NATIVE}-neon-le)
 
 
 else ()
@@ -191,7 +308,7 @@ else ()
             set(CMAKE_C_FLAGS "-std=c99")
             set(OPTIONS -Wconversion -Werror=return-type -static-libgcc -z noexecstack)
             set(PROBE_OPTIONS ${OPTIMISE_FLAG} -msse4.1 ${OPTIONS})
-            set(AVX_OPTIONS -g -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS})
+            set(AVX_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS})
             set(VAES_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS})
             set(VAESF_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f -mavx512bw -mvpclmulqdq ${OPTIONS})
             set(ASM_OPTIONS -f elf64)
@@ -358,26 +475,25 @@ else ()
             )
 
 
-set (CCM
-       	intel/ccm/ccm.h
-        intel/ccm/ccm.c
-        intel/ccm/ccm128.c
-        intel/jni/ccm_jni.c
-        )
+    set(CCM
+            intel/ccm/ccm.h
+            intel/ccm/ccm.c
+            intel/ccm/ccm128.c
+            intel/jni/ccm_jni.c)
 
-set(CCM_VAES
-        intel/ccm/ccm.h
-        intel/ccm/ccm.c
-        intel/ccm/ccm256.c
-        intel/jni/ccm_jni.c
-        )
+    set(CCM_VAES
+            intel/ccm/ccm.h
+            intel/ccm/ccm.c
+            intel/ccm/ccm256.c
+            intel/jni/ccm_jni.c
+            )
 
-set (CCM_VAESF
-        intel/ccm/ccm.h
-        intel/ccm/ccm.c
-        intel/ccm/ccm512.c
-        intel/jni/ccm_jni.c
-        )
+    set(CCM_VAESF
+            intel/ccm/ccm.h
+            intel/ccm/ccm.c
+            intel/ccm/ccm512.c
+            intel/jni/ccm_jni.c
+            )
 
     set(CCM_PC
          intel/packet/ccm_pc/ccm_pc.h
@@ -433,7 +549,7 @@ set (CCM_VAESF
             ${SHA256}
             ${GCM}
             ${MUL_AVX}
-	    ${CCM}
+            ${CCM}
             ${CCM_PC}
             )
     target_include_directories("${LIB_NATIVE}-avx" PUBLIC ${JNI_INCLUDES})
@@ -455,8 +571,8 @@ set (CCM_VAESF
             ${SHA256}
             ${GCM}
             ${MUL_AVX}
-	    ${CCM_VAES}
             ${CCM_PC_VAES}
+            ${CCM_VAES}
             )
     target_include_directories("${LIB_NATIVE}-vaes" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-vaes" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAES_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -477,7 +593,7 @@ set (CCM_VAESF
             ${SHA256}
             ${GCM_VAESF}
             ${MUL_VAESF}
-	    ${CCM_VAESF}
+            ${CCM_VAESF}
             ${CCM_PC_VAESF}
             )
     target_include_directories("${LIB_NATIVE}-vaesf" PUBLIC ${JNI_INCLUDES})
@@ -485,12 +601,13 @@ set (CCM_VAESF
     install(TARGETS "${LIB_NATIVE}-vaesf" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaesf)
     target_compile_definitions("${LIB_NATIVE}-vaesf" PUBLIC BC_VAESF BC_VARIANT=\"vaesf\" BUILD_TS=\"${BUILD_TS}\")
 
-    # Uncomment to enable test project
-    add_executable(tryit main.c debug.h)
-    target_link_libraries(tryit "${LIB_NATIVE}-avx")
-    target_compile_options("tryit" PRIVATE
-            $<$<COMPILE_LANGUAGE:C>: -g -Wpsabi -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mvpclmulqdq -mavx512f -mavx512bw ${OPTIONS}>
-            )
+#    # Uncomment to enable test project
+#    add_executable(tryit main.c debug.h)
+#    target_link_libraries(tryit "${LIB_NATIVE}-avx")
+#    target_compile_options("tryit" PRIVATE
+#            $<$<COMPILE_LANGUAGE:C>: -g -Wpsabi -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mvpclmulqdq -mavx512f -mavx512bw ${OPTIONS}>
+#            )
 
 
 endif ()
+

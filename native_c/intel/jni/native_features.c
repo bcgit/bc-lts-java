@@ -58,6 +58,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
     return (info.ecx & (1 << 25)) != 0 ? JNI_TRUE : JNI_FALSE;
 }
 
+
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
  * Method:    nativeCFBPC
@@ -240,6 +241,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 
 }
 
+
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
  * Method:    nativeMulAcc
@@ -256,5 +258,6 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeMul
     return (pclmulqdq) ? JNI_TRUE : JNI_FALSE;
 
 }
+
 
 

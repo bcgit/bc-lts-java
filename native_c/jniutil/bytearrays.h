@@ -4,8 +4,6 @@
 #define BC_FIPS_BYTEARRAYS_H
 
 #include <stdbool.h>
-#include <stdlib.h>
-#include <memory.h>
 #include "jni.h"
 #include <stdint.h>
 

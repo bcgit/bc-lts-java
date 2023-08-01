@@ -433,7 +433,11 @@ class NativeLoader
             }
             else
             {
-                probeLibPrefix = "bc-probe-be";
+                nativeStatusMessage = String.format("ARM big-endian is not supported", platform,
+                        arch);
+                nativeInstalled = false;
+                LOG.fine("exited with " + nativeStatusMessage);
+                return;
             }
         }
         else
@@ -527,6 +531,7 @@ class NativeLoader
             // Derive the suffix it is the last part of the variant name
             // eg: linux-x86_64-sse has a suffix of "sse"
             //
+
 
             final File lib = installLib("bc-lts-" + selectedVariant, variantPathInJar, jarDir, bcLtsLibPath,
                     filesInInstallLocation);

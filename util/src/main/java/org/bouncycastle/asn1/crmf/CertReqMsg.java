@@ -88,6 +88,14 @@ public class CertReqMsg
         return certReq;
     }
 
+    public ProofOfPossession getPop()
+    {
+        return pop;
+    }
+
+    /**
+     * @deprecated use getPop
+     */
     public ProofOfPossession getPopo()
     {
         return pop;

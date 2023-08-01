@@ -149,9 +149,10 @@ subprojects {
   sourceCompatibility = "$vm_source"
   targetCompatibility = "$vm_target"
 
-  task('testNEON', type: Test) {
+  task('testNEON_LE', type: Test) {
     systemProperty 'bc.test.data.home', bcTestDataHome
-    maxHeapSize = "2048m"
+    maxHeapSize = "4096m"
+    minHeapSize = "2048m"
     testLogging.showStandardStreams = true
     testLogging.showCauses = true
     testLogging.showExceptions = true
@@ -160,7 +161,8 @@ subprojects {
     filter {
       includeTestsMatching "AllTest*"
     }
-    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bcfips.ignore.native=sha,gcm,cbc,es,cfb,ctr', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=neon'
+
+    jvmArgs  '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=es',  '-Dorg.bouncycastle.native.cpu_variant=neon-le'
 
   }
 
@@ -168,7 +170,8 @@ subprojects {
 
   task('testVAESF', type: Test) {
     systemProperty 'bc.test.data.home', bcTestDataHome
-    maxHeapSize = "2048m"
+    maxHeapSize = "4096m"
+    minHeapSize = "2048m"
     testLogging.showStandardStreams = true
     testLogging.showCauses = true
     testLogging.showExceptions = true
@@ -177,7 +180,7 @@ subprojects {
     filter {
       includeTestsMatching "AllTest*"
     }
-    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=vaesf'
+    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=noskip',  '-Dorg.bouncycastle.native.cpu_variant=vaesf'
 
   }
 
@@ -185,7 +188,8 @@ subprojects {
 
   task('testVAES', type: Test) {
     systemProperty 'bc.test.data.home', bcTestDataHome
-    maxHeapSize = "2048m"
+    maxHeapSize = "4096m"
+    minHeapSize = "2048m"
     testLogging.showStandardStreams = true
     testLogging.showCauses = true
     testLogging.showExceptions = true
@@ -194,14 +198,15 @@ subprojects {
     filter {
       includeTestsMatching "AllTest*"
     }
-    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=vaes'
+    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=noskip',  '-Dorg.bouncycastle.native.cpu_variant=vaes'
 
 
   }
 
   task('testAVX', type: Test) {
     systemProperty 'bc.test.data.home', bcTestDataHome
-    maxHeapSize = "2048m"
+    maxHeapSize = "4096m"
+    minHeapSize = "2048m"
     testLogging.showStandardStreams = true
     testLogging.showCauses = true
     testLogging.showExceptions = true
@@ -216,7 +221,7 @@ subprojects {
       }
     }
 
-     jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bcfips.ignore.native=noskip', '-Dorg.bouncycastle.native.library_path=/tmp/bc-jni-libs', '-Dorg.bouncycastle.native.cpu_variant=avx'
+     jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=noskip', '-Dorg.bouncycastle.native.cpu_variant=avx'
 
   }
 
@@ -234,7 +239,8 @@ subprojects {
             'test.full'        : 'true'
     ]
     systemProperty 'bc.test.data.home', bcTestDataHome
-    maxHeapSize = "1536m"
+    maxHeapSize = "4096m"
+    minHeapSize = "2048m"
 
     finalizedBy jacocoTestReport
 
@@ -245,7 +251,8 @@ subprojects {
 
   test {
     systemProperty 'bc.test.data.home', bcTestDataHome
-    maxHeapSize = "1536m"
+    maxHeapSize = "4096m"
+    minHeapSize = "2048m"
     testLogging.showStandardStreams = true
     testLogging.showCauses = true
     testLogging.showExceptions = true

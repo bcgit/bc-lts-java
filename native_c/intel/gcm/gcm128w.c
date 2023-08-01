@@ -759,7 +759,6 @@ gcm_err *gcm_doFinal(gcm_ctx *ctx, unsigned char *output, size_t outLen, size_t 
     gcm_reset(ctx, true);
     *written = (size_t) (outPtr - start);
 
-
     return NULL;
 }
 

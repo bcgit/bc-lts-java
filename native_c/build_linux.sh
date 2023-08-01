@@ -57,9 +57,21 @@ make install
 #
 
 if [ -x "$(command -v execstack)" ]; then
-execstack -c target/linux/x86_64/avx/libbc-lts-avx.so
-execstack -c target/linux/x86_64/vaes/libbc-lts-vaes.so
-execstack -c target/linux/x86_64/vaesf/libbc-lts-vaesf.so
+
+echo "Execstack:"
+
+targets=( "target/linux/x86_64/avx/libbc-lts-avx.so" "target/linux/x86_64/vaes/libbc-lts-vaes.so" "target/linux/x86_64/vaesf/libbc-lts-vaesf.so" )
+
+for target in "${targets[@]}"
+do
+  if [[ -f "$target" ]]; then
+     execstack -c "$target"
+  else
+    echo "Skipping: $target"
+  fi
+
+done
+
 else
 echo ""
 echo "!! WARNING !!"

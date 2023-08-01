@@ -787,39 +787,43 @@ public abstract class PacketCipherEngine
     {
         if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CCM_PC))
         {
-            return  AESNativeCCMPacketCipher.newInstance();
+            return AESNativeCCMPacketCipher.newInstance();
         }
         return AESCCMPacketCipher.newInstance();
     }
 
-    public static AESCBCModePacketCipher createCBCPacketCipher(){
+    public static AESCBCModePacketCipher createCBCPacketCipher()
+    {
         if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CBC_PC))
         {
-            return  AESNativeCBCPacketCipher.newInstance();
+            return AESNativeCBCPacketCipher.newInstance();
         }
         return AESCBCPacketCipher.newInstance();
     }
 
-    public static AESCTRModePacketCipher createCTRPacketCipher(){
+    public static AESCTRModePacketCipher createCTRPacketCipher()
+    {
         if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CTR_PC))
         {
-            return  AESNativeCTRPacketCipher.newInstance();
+            return AESNativeCTRPacketCipher.newInstance();
         }
         return AESCTRPacketCipher.newInstance();
     }
 
-    public static AESGCMModePacketCipher createGCMPacketCipher(){
+    public static AESGCMModePacketCipher createGCMPacketCipher()
+    {
         if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM_PC))
         {
-            return  AESNativeGCMPacketCipher.newInstance();
+            return AESNativeGCMPacketCipher.newInstance();
         }
         return AESGCMPacketCipher.newInstance();
     }
 
-    public static AESGCMSIVModePacketCipher createGCMSIVPacketCipher(){
+    public static AESGCMSIVModePacketCipher createGCMSIVPacketCipher()
+    {
         if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCMSIV_PC))
         {
-            return  AESNativeGCMSIVPacketCipher.newInstance();
+            return AESNativeGCMSIVPacketCipher.newInstance();
         }
         return AESGCMSIVPacketCipher.newInstance();
     }

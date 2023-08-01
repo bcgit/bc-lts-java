@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+export script_loc=$( cd -- "$( dirname -- "$0" )" &> /dev/null && pwd )
 
-fgrep version gradle.properties | sed -e "s/version=//"
+
+fgrep version "$script_loc/gradle.properties" | sed -e "s/version=//"
 

@@ -10,7 +10,7 @@
 
 static inline void aes_cbc_dec_blocks_256b(unsigned char *in, unsigned char *out,
                                            __m256i *fb256, const __m128i *roundKeys,
-                                           const uint32_t num_rounds, const uint32_t num_blocks) {
+                                           const int num_rounds, const uint32_t num_blocks) {
 
 
     if (num_blocks >= 16) {
