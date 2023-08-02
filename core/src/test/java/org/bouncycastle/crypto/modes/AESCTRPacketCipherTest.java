@@ -5,6 +5,7 @@ import java.security.SecureRandom;
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.PacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.SkippingStreamCipher;
 import org.bouncycastle.crypto.StreamCipher;
@@ -26,13 +27,29 @@ public class AESCTRPacketCipherTest
         throws Exception
     {
         AESCTRPacketCipherTest test = new AESCTRPacketCipherTest();
-        test.testExceptions();
-        test.testSpreadArray();
-        test.testSpreadProcessBlocks();
-        test.testSpreadArrayWithOffsets();
-
+        test.performTest();
         System.out.println("AESCTRPacketCipherTest Pass");
     }
+
+    @Test
+    public void performTest()
+        throws Exception
+    {
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        Tests();
+        CryptoServicesRegistrar.setNativeEnabled(false);
+        Tests();
+    }
+
+    public void Tests()
+        throws Exception
+    {
+        testExceptions();
+        testSpreadArray();
+        testSpreadProcessBlocks();
+        testSpreadArrayWithOffsets();
+    }
+
 
     @Before
     public void setUp()
@@ -157,7 +174,7 @@ public class AESCTRPacketCipherTest
 //            return;
 //        }
 
-        AESCTRPacketCipher ctrPC = AESCTRPacketCipher.newInstance();
+        AESCTRModePacketCipher ctrPC = PacketCipherEngine.createCTRPacketCipher();
         SecureRandom rand = new SecureRandom();
 
         for (int ks : new int[]{16, 24, 32})
@@ -257,8 +274,7 @@ public class AESCTRPacketCipherTest
 
 
         SecureRandom rand = new SecureRandom();
-        AESCTRPacketCipher ctrPC = AESCTRPacketCipher.newInstance();
-
+        AESCTRModePacketCipher ctrPC = PacketCipherEngine.createCTRPacketCipher();
         for (int ks : new int[]{16, 24, 32})
         {
             byte[] key = new byte[ks];
@@ -349,7 +365,7 @@ public class AESCTRPacketCipherTest
 
 
         SecureRandom rand = new SecureRandom();
-        AESCTRPacketCipher ctrPC = AESCTRPacketCipher.newInstance();
+        AESCTRModePacketCipher ctrPC = PacketCipherEngine.createCTRPacketCipher();
         for (int ks : new int[]{16, 24, 32})
         {
             byte[] key = new byte[ks];
@@ -424,8 +440,7 @@ public class AESCTRPacketCipherTest
     @Test
     public void testExceptions()
     {
-        AESCTRPacketCipher ctr = AESCTRPacketCipher.newInstance();
-
+        AESCTRModePacketCipher ctr = PacketCipherEngine.createCTRPacketCipher();
         try
         {
             ctr.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), -1);

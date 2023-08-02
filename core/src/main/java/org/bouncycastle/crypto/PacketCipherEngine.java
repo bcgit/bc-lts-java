@@ -2,6 +2,7 @@ package org.bouncycastle.crypto;
 
 import org.bouncycastle.crypto.engines.AESNativeCBCPacketCipher;
 import org.bouncycastle.crypto.engines.AESNativeCCMPacketCipher;
+import org.bouncycastle.crypto.engines.AESNativeCFBPacketCipher;
 import org.bouncycastle.crypto.engines.AESNativeCTRPacketCipher;
 import org.bouncycastle.crypto.engines.AESNativeGCMPacketCipher;
 import org.bouncycastle.crypto.engines.AESNativeGCMSIVPacketCipher;
@@ -9,6 +10,8 @@ import org.bouncycastle.crypto.modes.AESCBCModePacketCipher;
 import org.bouncycastle.crypto.modes.AESCBCPacketCipher;
 import org.bouncycastle.crypto.modes.AESCCMModePacketCipher;
 import org.bouncycastle.crypto.modes.AESCCMPacketCipher;
+import org.bouncycastle.crypto.modes.AESCFBModePacketCipher;
+import org.bouncycastle.crypto.modes.AESCFBPacketCipher;
 import org.bouncycastle.crypto.modes.AESCTRModePacketCipher;
 import org.bouncycastle.crypto.modes.AESCTRPacketCipher;
 import org.bouncycastle.crypto.modes.AESGCMModePacketCipher;
@@ -801,6 +804,14 @@ public abstract class PacketCipherEngine
         return AESCBCPacketCipher.newInstance();
     }
 
+    public static AESCFBModePacketCipher createCFBPacketCipher()
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CFB_PC))
+        {
+            return AESNativeCFBPacketCipher.newInstance();
+        }
+        return AESCFBPacketCipher.newInstance();
+    }
     public static AESCTRModePacketCipher createCTRPacketCipher()
     {
         if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CTR_PC))

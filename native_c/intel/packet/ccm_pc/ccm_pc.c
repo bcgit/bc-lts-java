@@ -49,10 +49,10 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
     if (encryption) {
         ccm_pc_calculateMac(p_in, inLen, initAD, initADLen, mac_size, nonce, nonceLen, buf, macBlock, &chainblock,
                             roundKeys, num_rounds, &buf_ptr);
-        ccm_pc_ctr_process_bytes(macBlock, BLOCK_SIZE, macBlock, &written, &buf_pos, &ctr, initialCTR, ctrMask,
+        ctr_pc_process_bytes(macBlock, BLOCK_SIZE, macBlock, &written, &buf_pos, &ctr, initialCTR, ctrMask,
                                  &ctrAtEnd,
                                  &IV_le, roundKeys, num_rounds, &partialBlock);
-        ccm_pc_ctr_process_bytes(p_in, inLen, p_out, &written, &buf_pos, &ctr, initialCTR, ctrMask, &ctrAtEnd,
+        ctr_pc_process_bytes(p_in, inLen, p_out, &written, &buf_pos, &ctr, initialCTR, ctrMask, &ctrAtEnd,
                                  &IV_le, roundKeys, num_rounds, &partialBlock);
         memcpy(p_out + written, macBlock, mac_size);
         *outputLen = inLen + mac_size;
@@ -68,9 +68,9 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
                 0, 0, 0, 0, 0, 0, 0, 0};
         memcpy(macBlock, p_in + *outputLen, mac_size);
         memset(macBlock + mac_size, 0, (BLOCK_SIZE - mac_size));
-        ccm_pc_ctr_process_bytes(macBlock, BLOCK_SIZE, tmp, &written, &buf_pos, &ctr, initialCTR, ctrMask, &ctrAtEnd,
+        ctr_pc_process_bytes(macBlock, BLOCK_SIZE, tmp, &written, &buf_pos, &ctr, initialCTR, ctrMask, &ctrAtEnd,
                                  &IV_le, roundKeys, num_rounds, &partialBlock);
-        ccm_pc_ctr_process_bytes(p_in, *outputLen, p_out, &written, &buf_pos, &ctr, initialCTR, ctrMask, &ctrAtEnd,
+        ctr_pc_process_bytes(p_in, *outputLen, p_out, &written, &buf_pos, &ctr, initialCTR, ctrMask, &ctrAtEnd,
                                  &IV_le, roundKeys, num_rounds, &partialBlock);
         ccm_pc_calculateMac(p_out, *outputLen, initAD, initADLen, mac_size, nonce, nonceLen, buf, macBlock, &chainblock,
                             roundKeys, num_rounds, &buf_ptr);
@@ -154,46 +154,4 @@ void cbc_pc_mac_update(uint8_t *src, size_t len, uint8_t *buf, size_t *buf_ptr, 
     }
 }
 
-void ccm_pc_generate_partial_block(__m128i *IV_le, uint64_t ctr, __m128i *roundKeys, uint32_t num_rounds,
-                                   __m128i *partialBlock) {
-    __m128i c = _mm_xor_si128(*IV_le, _mm_set_epi64x(0, (long long) ctr));
-    __m128i j = _mm_shuffle_epi8(c, *SWAP_ENDIAN_128);
-    c = _mm_xor_si128(j, roundKeys[0]);
-    int r;
-    for (r = 1; r < num_rounds; r++) {
-        c = _mm_aesenc_si128(c, roundKeys[r]);
-    }
-    *partialBlock = _mm_aesenclast_si128(c, roundKeys[r]);
-}
-
-bool ccm_pc_incCtr(uint64_t magnitude, uint64_t *ctr, uint64_t initialCTR, uint64_t ctrMask, bool *ctrAtEnd) {
-    uint64_t blockIndex = (*ctr - initialCTR) & ctrMask;
-    uint64_t lastBlockIndex = ctrMask;
-    if (*ctrAtEnd || magnitude - 1 > lastBlockIndex - blockIndex) {
-        return false;
-    }
-    *ctrAtEnd = magnitude > lastBlockIndex - blockIndex;
-    *ctr += magnitude;
-    *ctr &= ctrMask;
-    return true;
-}
-
-bool ccm_pc_ctr_process_byte(unsigned char *io, uint32_t *buf_pos, uint64_t *ctr, uint64_t initialCTR, uint64_t ctrMast,
-                             bool *ctrAtEnd, __m128i *IV_le, __m128i *roundKeys, uint32_t num_rounds,
-                             __m128i *partialBlock) {
-    if (*buf_pos == 0) {
-        if (*ctrAtEnd) {
-            return false;
-        }
-        ccm_pc_generate_partial_block(IV_le, *ctr, roundKeys, num_rounds, partialBlock);
-        *io = ((unsigned char *) partialBlock)[(*buf_pos)++] ^ *io;
-        return true;
-    }
-    *io = ((unsigned char *) partialBlock)[(*buf_pos)++] ^ *io;
-    if (*buf_pos == BLOCK_SIZE) {
-        *buf_pos = 0;
-        return ccm_pc_incCtr(1, ctr, initialCTR, ctrMast, ctrAtEnd);
-    }
-    return true;
-}
 

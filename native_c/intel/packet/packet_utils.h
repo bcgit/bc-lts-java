@@ -52,54 +52,5 @@ packet_encrypt(__m128i *d0, const __m128i chainblock, __m128i *roundKeys, const 
 size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
                       uint32_t num_rounds);
 
-static const int8_t __attribute__ ((aligned(16))) _swap_endian[16] = {
-        15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
-};
-static const __m128i *SWAP_ENDIAN_128 = ((__m128i *) _swap_endian);
 
-static const int8_t __attribute__ ((aligned(16))) _one[16] = {
-        1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-static __m128i *ONE = (__m128i *) _one;
-
-
-static const int8_t __attribute__ ((aligned(16))) _two[16] = {
-        2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
-static __m128i *TWO = (__m128i *) _two;
-
-
-static const int8_t __attribute__ ((aligned(16))) _three[16] = {
-        3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
-static __m128i *THREE = (__m128i *) _three;
-
-
-static const int8_t __attribute__ ((aligned(16))) _four[16] = {
-        4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
-static __m128i *FOUR = (__m128i *) _four;
-
-
-static const int8_t __attribute__ ((aligned(16))) _five[16] = {
-        5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
-static __m128i *FIVE = (__m128i *) _five;
-
-
-static const int8_t __attribute__ ((aligned(16))) _six[16] = {
-        6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
-static __m128i *SIX = (__m128i *) _six;
-
-static const int8_t __attribute__ ((aligned(16))) _seven[16] = {
-        7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-};
-
-static __m128i *SEVEN = (__m128i *) _seven;
 #endif //BC_LTS_C_PACKET_UTILS_H

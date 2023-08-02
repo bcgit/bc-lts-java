@@ -450,6 +450,39 @@ else ()
             intel/jni/ctr_jni.c
             )
 
+    set(CTR_PC
+            intel/packet/ctr_pc/ctr_pc.h
+            intel/packet/ctr_pc/ctr_pc.c
+            intel/packet/ctr_pc/ctr_pc128w.c
+            intel/jni/ctr_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.h
+    )
+
+    set(CTR_PC_VAES
+            intel/packet/ctr_pc/ctr_pc.h
+            intel/packet/ctr_pc/ctr_pc.c
+            intel/packet/ctr_pc/ctr_pc256w.c
+            intel/jni/ctr_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.h
+    )
+
+    set(CTR_PC_VAESF
+            intel/packet/ctr_pc/ctr_pc.h
+            intel/packet/ctr_pc/ctr_pc.c
+            intel/packet/ctr_pc/ctr_pc512w.c
+            intel/jni/ctr_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.h
+    )
+
     set(RAND intel/jni/rand_jni.c)
 
     set(SHA256
@@ -496,30 +529,36 @@ else ()
             )
 
     set(CCM_PC
-         intel/packet/ccm_pc/ccm_pc.h
-         intel/packet/ccm_pc/ccm_pc.c
-         intel/packet/ccm_pc/ccm_pc128.c
-         intel/jni/ccm_pc_jni.c
-         intel/packet/packet_utils.h
-         intel/packet/packet_utils.c
+             intel/packet/ccm_pc/ccm_pc.h
+             intel/packet/ccm_pc/ccm_pc.c
+             intel/packet/ctr_pc/ctr_pc128w.c
+             intel/jni/ccm_pc_jni.c
+             intel/packet/packet_utils.h
+             intel/packet/packet_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.h
             )
 
     set(CCM_PC_VAES
             intel/packet/ccm_pc/ccm_pc.h
             intel/packet/ccm_pc/ccm_pc.c
-            intel/packet/ccm_pc/ccm_pc256.c
+            intel/packet/ctr_pc/ctr_pc256w.c
             intel/jni/ccm_pc_jni.c
             intel/packet/packet_utils.h
             intel/packet/packet_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.h
     )
 
     set(CCM_PC_VAESF
             intel/packet/ccm_pc/ccm_pc.h
             intel/packet/ccm_pc/ccm_pc.c
-            intel/packet/ccm_pc/ccm_pc512.c
+            intel/packet/ctr_pc/ctr_pc512w.c
             intel/jni/ccm_pc_jni.c
             intel/packet/packet_utils.h
             intel/packet/packet_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.h
     )
 
     # Probe project a simple lib for probing the CPUs features
@@ -545,6 +584,7 @@ else ()
             ${CBC_PC}
             ${CFB}
             ${CTR}
+            ${CTR_PC}
             ${RAND}
             ${SHA256}
             ${GCM}
@@ -567,6 +607,7 @@ else ()
             ${CBC_PC_VAES}
             ${CFB_VAES}
             ${CTR_VAES}
+            ${CTR_PC_VAES}
             ${RAND}
             ${SHA256}
             ${GCM}
@@ -589,6 +630,7 @@ else ()
             ${CBC_PC_VAESF}
             ${CFB_VAESF}
             ${CTR_VAESF}
+            ${CTR_PC_VAESF}
             ${RAND}
             ${SHA256}
             ${GCM_VAESF}
@@ -601,12 +643,12 @@ else ()
     install(TARGETS "${LIB_NATIVE}-vaesf" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaesf)
     target_compile_definitions("${LIB_NATIVE}-vaesf" PUBLIC BC_VAESF BC_VARIANT=\"vaesf\" BUILD_TS=\"${BUILD_TS}\")
 
-#    # Uncomment to enable test project
-#    add_executable(tryit main.c debug.h)
-#    target_link_libraries(tryit "${LIB_NATIVE}-avx")
-#    target_compile_options("tryit" PRIVATE
-#            $<$<COMPILE_LANGUAGE:C>: -g -Wpsabi -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mvpclmulqdq -mavx512f -mavx512bw ${OPTIONS}>
-#            )
+    # Uncomment to enable test project
+    add_executable(tryit main.c debug.h)
+    target_link_libraries(tryit "${LIB_NATIVE}-avx")
+    target_compile_options("tryit" PRIVATE
+            $<$<COMPILE_LANGUAGE:C>: -g -Wpsabi -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mvpclmulqdq -mavx512f -mavx512bw ${OPTIONS}>
+            )
 
 
 endif ()

@@ -9,6 +9,15 @@ public class AESNativeCFBPacketCipher
     extends PacketCipherEngine
     implements AESCFBModePacketCipher
 {
+    public static AESCFBModePacketCipher newInstance()
+    {
+        return new AESNativeCFBPacketCipher();
+    }
+
+    private AESNativeCFBPacketCipher()
+    {
+    }
+
     @Override
     public int getOutputSize(boolean encryption, CipherParameters parameters, int len)
     {
