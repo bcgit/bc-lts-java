@@ -65,7 +65,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         set(CMAKE_C_FLAGS "-std=c99")
         set(OPTIONS -Wconversion -static-libgcc -z noexecstack)
         set(PROBE_OPTIONS ${OPTIMISE_FLAG} -msse4.1 ${OPTIONS})
-        set(AVX_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS})
+        set(AVX_OPTIONS -g -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt ${OPTIONS})
         set(VAES_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS})
         set(VAESF_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f -mavx512bw -mvpclmulqdq ${OPTIONS})
         set(ASM_OPTIONS -f elf64)
@@ -428,6 +428,33 @@ else ()
             intel/jni/cfb_jni.c
             )
 
+    set(CFB_PC
+            intel/packet/cfb_pc/cfb_pc.h
+            intel/packet/cfb_pc/cfb_pc.c
+            intel/packet/cfb_pc/cfb_pc128.c
+            intel/jni/cfb_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
+    set(CFB_PC_VAES
+            intel/packet/cfb_pc/cfb_pc.h
+            intel/packet/cfb_pc/cfb_pc.c
+            intel/packet/cfb_pc/cfb_pc256.c
+            intel/jni/cfb_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
+    set(CFB_PC_VAESF
+            intel/packet/cfb_pc/cfb_pc.h
+            intel/packet/cfb_pc/cfb_pc.c
+            intel/packet/cfb_pc/cfb_pc512.c
+            intel/jni/cfb_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
     set(CTR
             intel/ctr/ctr.h
             intel/ctr/ctr.c
@@ -583,6 +610,7 @@ else ()
             ${CBC}
             ${CBC_PC}
             ${CFB}
+            ${CFB_PC}
             ${CTR}
             ${CTR_PC}
             ${RAND}
@@ -606,6 +634,7 @@ else ()
             ${CBC_VAES}
             ${CBC_PC_VAES}
             ${CFB_VAES}
+            ${CFB_PC_VAES}
             ${CTR_VAES}
             ${CTR_PC_VAES}
             ${RAND}
@@ -629,6 +658,7 @@ else ()
             ${CBC_VAESF}
             ${CBC_PC_VAESF}
             ${CFB_VAESF}
+            ${CFB_PC_VAESF}
             ${CTR_VAESF}
             ${CTR_PC_VAESF}
             ${RAND}

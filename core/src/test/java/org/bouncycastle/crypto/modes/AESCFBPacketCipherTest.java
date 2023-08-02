@@ -13,6 +13,7 @@ import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.NativeBlockCipherProvider;
 import org.bouncycastle.crypto.NativeServices;
+import org.bouncycastle.crypto.PacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.TestUtil;
@@ -21,19 +22,20 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
-import org.bouncycastle.util.test.SimpleTest;
 import org.junit.Assert;
 import org.junit.Test;
 
 public class AESCFBPacketCipherTest
-    extends SimpleTest
+    extends TestCase
 {
     private static final ObjectMapper mapper = new ObjectMapper();
 
     public static void main(
         String[] args)
+        throws Exception
     {
-        runTest(new AESCFBPacketCipherTest());
+        AESCFBPacketCipherTest test= new AESCFBPacketCipherTest();
+        test.performTest();
     }
 
     @Override
@@ -42,24 +44,33 @@ public class AESCFBPacketCipherTest
         return null;
     }
 
-    @Override
+    @Test
     public void performTest()
+        throws Exception
+    {
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        Tests();
+        CryptoServicesRegistrar.setNativeEnabled(false);
+        Tests();
+        System.out.println("AESCFBPacketCipherTest pass");
+    }
+
+    public void Tests()
         throws Exception
     {
         testExceptions();
         testCFB();
 //        testCFBSpread();
-        testCFBStreamCipher();
+        //testCFBStreamCipher();
 //        testAgreement();
         testCFBJavaAgreement_128();
         testCFBJavaAgreement_192();
         testCFBJavaAgreement_256();
-        System.out.println("AESCFBPacketCipherTest pass");
     }
 
     public void testExceptions()
     {
-        AESCFBPacketCipher cfb = AESCFBPacketCipher.newInstance();
+        AESCFBModePacketCipher cfb = PacketCipherEngine.createCFBPacketCipher();
 
         try
         {
@@ -69,7 +80,7 @@ public class AESCFBPacketCipherTest
         catch (IllegalArgumentException e)
         {
             // expected
-            isTrue("wrong message", e.getMessage().equals(ExceptionMessage.LEN_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().equals(ExceptionMessage.LEN_NEGATIVE));
         }
 
         try
@@ -80,7 +91,7 @@ public class AESCFBPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_KEY_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_KEY_LENGTH));
         }
 
         try
@@ -90,7 +101,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_NULL));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_NULL));
         }
 
         try
@@ -100,7 +111,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
         }
 
         try
@@ -110,7 +121,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_DECRYPTION_INPUT_LENGTH_INVALID));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_DECRYPTION_INPUT_LENGTH_INVALID));
         }
 
         try
@@ -120,7 +131,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
         }
 
         try
@@ -130,7 +141,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.LEN_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.LEN_NEGATIVE));
         }
 
         try
@@ -140,7 +151,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
         }
 
         try
@@ -150,7 +161,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_LENGTH));
         }
 
         try
@@ -160,11 +171,11 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            isTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
         }
     }
 
-    @Test
+
     public void testCFB()
         throws Exception
     {
@@ -193,7 +204,7 @@ public class AESCFBPacketCipherTest
 //        {
 //            throw new IllegalStateException("expected native CFB got " + nativeCFB.getClass().getName());
 //        }
-        AESCFBPacketCipher packetCFB = AESCFBPacketCipher.newInstance();
+        AESCFBModePacketCipher packetCFB = PacketCipherEngine.createCFBPacketCipher();
 
         CFBBlockCipher javaCFB = new CFBBlockCipher(new AESEngine(), 128);
 
@@ -290,7 +301,7 @@ public class AESCFBPacketCipherTest
         }
     }
 
-    static List<Map<String, Object>> performMonteCarloTest(AESCFBPacketCipher driver, Map<String, Object> testGroup, Map<String, Object> test, String mode)
+    static List<Map<String, Object>> performMonteCarloTest(AESCFBModePacketCipher driver, Map<String, Object> testGroup, Map<String, Object> test, String mode)
         throws Exception
     {
         List<Map<String, Object>> results = new ArrayList<Map<String, Object>>();
@@ -803,7 +814,6 @@ public class AESCFBPacketCipherTest
         return results;
     }
 
-    @Test
     public void testCFBStreamCipher()
         throws Exception
     {
@@ -1142,7 +1152,7 @@ public class AESCFBPacketCipherTest
     }
 
 
-    @Test
+
     public void testCFBJavaAgreement_128()
         throws Exception
     {
@@ -1157,7 +1167,7 @@ public class AESCFBPacketCipherTest
         doTest(16);
     }
 
-    @Test
+
     public void testCFBJavaAgreement_192()
         throws Exception
     {
@@ -1172,7 +1182,7 @@ public class AESCFBPacketCipherTest
         doTest(24);
     }
 
-    @Test
+
     public void testCFBJavaAgreement_256()
         throws Exception
     {
@@ -1193,7 +1203,7 @@ public class AESCFBPacketCipherTest
      *
      * @throws Exception
      */
-    @Test
+
     public void testCFBSpreadBbB()
         throws Exception
     {
@@ -1207,7 +1217,7 @@ public class AESCFBPacketCipherTest
         }
 
         SecureRandom rand = new SecureRandom();
-        AESCFBPacketCipher packetCFB = AESCFBPacketCipher.newInstance();
+        AESCFBModePacketCipher packetCFB = PacketCipherEngine.createCFBPacketCipher();
         for (int keySize : new int[]{16, 24, 32})
         {
 

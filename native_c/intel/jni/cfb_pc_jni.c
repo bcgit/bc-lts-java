@@ -1,12 +1,12 @@
+#include "org_bouncycastle_crypto_engines_AESNativeCFBPacketCipher.h"
 
-#include "org_bouncycastle_crypto_engines_AESNativeCTRPacketCipher.h"
-#include "../packet/ctr_pc/ctr_pc.h"
-#include "../../jniutil/exceptions.h"
-#include "../../jniutil/bytearrays.h"
+
+#include "../../jniutil/bytearraycritical.h"
 #include "../../jniutil/jni_asserts.h"
+#include "../packet/cfb_pc/cfb_pc.h"
+#include "../common.h"
 
-
-void handle_ctr_pc_result(JNIEnv *env, packet_err *err) {
+void handle_cfb_pc_result(JNIEnv *env, packet_err *err) {
     if (err == NULL) {
         return;
     }
@@ -24,18 +24,18 @@ void handle_ctr_pc_result(JNIEnv *env, packet_err *err) {
             throw_bc_output_length_exception(env, err->msg);
             break;
         default:
-            throw_java_invalid_state(env, "unknown error from ctr");
+            throw_java_invalid_state(env, "unknown error from cfb");
             break;
     }
     packet_err_free(err);
 }
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCTRPacketCipher
+ * Class:     org_bouncycastle_crypto_engines_AESNativeCFBPacketCipher
  * Method:    processPacket
  * Signature: (Z[BI[BI[BII[BII[BII)I
  */
-JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTRPacketCipher_processPacket
+JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFBPacketCipher_processPacket
         (JNIEnv *env, jclass, jboolean encryption, jbyteArray key_, jint keyLen, jbyteArray nonce_,
          jbyteArray in, jint inOff, jint inLen, jbyteArray out, jint outOff) {
     java_bytearray_ctx key, iv, ad;
@@ -140,7 +140,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTRPacketCi
     uint8_t *p_in = input.critical + inOff;
     uint8_t *p_out = output.critical + outOff;
     size_t outputLen = 0;
-    err = ctr_pc_process_packet(
+    err = cfb_pc_process_packet(
             encryption == JNI_TRUE,
             key.bytearray,
             (size_t) keyLen,
@@ -156,21 +156,25 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTRPacketCi
     release_bytearray_ctx(&ad);
     release_critical_ctx(&output);
     release_critical_ctx(&input);
-    handle_ctr_pc_result(env, err);
+    handle_cfb_pc_result(env, err);
     return (jint) outputLen;
 }
 
 
 /*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCTRPacketCipher
+ * Class:     org_bouncycastle_crypto_engines_AESNativeCFBPacketCipher
  * Method:    getOutputSize
  * Signature: (ZII)I
  */
-JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTRPacketCipher_getOutputSize
-        (JNIEnv *env, jclass, jint len) {
+JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFBPacketCipher_getOutputSize
+        (JNIEnv *env, jclass, jboolean encryption, jint len) {
     if (len < 0) {
         throw_java_illegal_argument(env, EM_LEN_NEGATIVE);
         return 0;
     }
-    return len;
+    int result = get_output_size(encryption == JNI_TRUE, (int) len);
+    if (result < 0) {
+        throw_bc_data_length_exception(env, EM_OUTPUT_LENGTH);
+    }
+    return result;
 }
