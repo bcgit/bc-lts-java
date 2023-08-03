@@ -61,7 +61,7 @@ public class AESCFBPacketCipherTest
         testExceptions();
         testCFB();
 //        testCFBSpread();
-        //testCFBStreamCipher();
+        testCFBStreamCipher();
 //        testAgreement();
         testCFBJavaAgreement_128();
         testCFBJavaAgreement_192();
@@ -835,7 +835,7 @@ public class AESCFBPacketCipherTest
 
         List<Map<String, Object>> rspGroups = ((List<Map<String, Object>>)(rsp.get(1)).get("testGroups"));
 
-
+        CryptoServicesRegistrar.setNativeEnabled(true);
         CFBModeCipher nativeCFB = ((NativeBlockCipherProvider)AESEngine.newInstance()).createCFB(128);
         if (!(nativeCFB.toString().contains("CFB[Native]")))
         {
@@ -843,6 +843,7 @@ public class AESCFBPacketCipherTest
         }
 
         CFBModeCipher nativeCFBByte = ((NativeBlockCipherProvider)AESEngine.newInstance()).createCFB(128);
+        CryptoServicesRegistrar.setNativeEnabled(false);
         CFBBlockCipher javaCFB = new CFBBlockCipher(new AESEngine(), 128);
 
         for (int gi = 0; gi < reqGroups.size(); gi++)
