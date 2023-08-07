@@ -52,5 +52,6 @@ packet_encrypt(__m128i *d0, const __m128i chainblock, __m128i *roundKeys, const 
 size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
                       uint32_t num_rounds);
 
+bool tag_verification(const uint8_t *left, const uint8_t *right, size_t len);
 
 #endif //BC_LTS_C_PACKET_UTILS_H

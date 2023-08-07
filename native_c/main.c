@@ -5,7 +5,8 @@
 
 #include <stdio.h>
 #include "intel/common.h"
-#include "intel/ccm/ccm.h"
+
+#include "intel/packet/gcm_pc/gcm_pc.h"
 #include <immintrin.h>
 #include <assert.h>
 #include <memory.h>
@@ -13,6 +14,7 @@
 #include <stdbool.h>
 #include <stdbool.h>
 #include <stdint-gcc.h>
+
 unsigned char *from_hex(unsigned char *str, size_t len) {
 
 //    if ((str.length() & 1) == 1) {
@@ -53,7 +55,7 @@ unsigned char *from_hex(unsigned char *str, size_t len) {
 void print_bytes(unsigned char *src, size_t len) {
     while (len-- > 0) {
 //        printf("%02X", *src);
-        printf("%d, ", (*src > 127) ? *src- 256: *src);
+        printf("%d, ", (*src > 127) ? *src - 256 : *src);
         src++;
     }
     printf("\n");
@@ -64,94 +66,6 @@ void print_bytes_128(__m128i *src) {
     print_bytes((unsigned char *) (src), 16);
 }
 
-//#include "intel/ctr/ctr.h"
-//static inline __m128i AES_128_ASSIST(__m128i temp1, __m128i temp2) {
-//    __m128i temp3;
-//    temp2 = _mm_shuffle_epi32(temp2, 0xff);
-//    temp3 = _mm_slli_si128(temp1, 0x4);
-//    temp1 = _mm_xor_si128(temp1, temp3);
-//    temp3 = _mm_slli_si128(temp3, 0x4);
-//    temp1 = _mm_xor_si128(temp1, temp3);
-//    temp3 = _mm_slli_si128(temp3, 0x4);
-//    temp1 = _mm_xor_si128(temp1, temp3);
-//    temp1 = _mm_xor_si128(temp1, temp2);
-//
-//    memset(&temp2, 0, sizeof(__m128i));
-//    memset(&temp3, 0, sizeof(__m128i));
-//    return temp1;
-//}
-//
-//void init_128(__m128i *rk, unsigned char *uk, bool enc) {
-//    __m128i temp1;
-//    __m128i temp2;
-//    printf("test\n");
-//    temp1 = _mm_loadu_si128((__m128i *) uk);
-//    rk[0] = temp1;
-//    print_bytes_128(&rk[0]);
-//    temp2 = _mm_aeskeygenassist_si128(temp1, 0x1);
-//    temp1 = AES_128_ASSIST(temp1, temp2);
-//    rk[1] = temp1;
-//    print_bytes_128(&rk[1]);
-//    temp2 = _mm_aeskeygenassist_si128(temp1, 0x2);
-//    temp1 = AES_128_ASSIST(temp1, temp2);
-//    rk[2] = temp1;
-//    print_bytes_128(&temp1);
-//    temp2 = _mm_aeskeygenassist_si128(temp1, 0x4);
-//    temp1 = AES_128_ASSIST(temp1, temp2);
-//    rk[3] = temp1;
-//    print_bytes_128(&temp1);
-//    temp2 = _mm_aeskeygenassist_si128(temp1, 0x8);
-//    temp1 = AES_128_ASSIST(temp1, temp2);
-//    rk[4] = temp1;
-//    print_bytes_128(&temp1);
-//    temp2 = _mm_aeskeygenassist_si128(temp1, 0x10);
-//    temp1 = AES_128_ASSIST(temp1, temp2);
-//    rk[5] = temp1;
-//    print_bytes_128(&temp1);
-//    temp2 = _mm_aeskeygenassist_si128(temp1, 0x20);
-//    temp1 = AES_128_ASSIST(temp1, temp2);
-//    rk[6] = temp1;
-//    print_bytes_128(&temp1);
-//    temp2 = _mm_aeskeygenassist_si128(temp1, 0x40);
-//    temp1 = AES_128_ASSIST(temp1, temp2);
-//    rk[7] = temp1;
-//    print_bytes_128(&temp1);
-//    temp2 = _mm_aeskeygenassist_si128(temp1, 0x80);
-//    temp1 = AES_128_ASSIST(temp1, temp2);
-//    rk[8] = temp1;
-//    print_bytes_128(&temp1);
-//    temp2 = _mm_aeskeygenassist_si128(temp1, 0x1b);
-//    temp1 = AES_128_ASSIST(temp1, temp2);
-//    rk[9] = temp1;
-//    print_bytes_128(&temp1);
-//    temp2 = _mm_aeskeygenassist_si128(temp1, 0x36);
-//    temp1 = AES_128_ASSIST(temp1, temp2);
-//    rk[10] = temp1;
-//    print_bytes_128(&temp1);
-//
-//    if (!enc) {
-//        __m128i s[11];
-//        s[0] = rk[10];
-//        s[1] = _mm_aesimc_si128(rk[9]);
-//        s[2] = _mm_aesimc_si128(rk[8]);
-//        s[3] = _mm_aesimc_si128(rk[7]);
-//        s[4] = _mm_aesimc_si128(rk[6]);
-//        s[5] = _mm_aesimc_si128(rk[5]);
-//        s[6] = _mm_aesimc_si128(rk[4]);
-//        s[7] = _mm_aesimc_si128(rk[3]);
-//        s[8] = _mm_aesimc_si128(rk[2]);
-//        s[9] = _mm_aesimc_si128(rk[1]);
-//        s[10] = rk[0];
-//
-//        memcpy(rk, s, sizeof(__m128i) * 11);
-//        memset(s, 0, sizeof(__m128i) * 11);
-//    }
-//
-//    memset(&temp1, 0, sizeof(__m128i));
-//    memset(&temp2, 0, sizeof(__m128i));
-//}
-
-
 
 int main() {
     printf("hello world!\n");
@@ -160,150 +74,20 @@ int main() {
 //    uint8_t *key = from_hex("abfd13f758cbe63489b579e5076ddfc2f16db58fabfd13f7", 49);
 //    uint8_t *iv = from_hex("aafd12f659cae634", 17);
     size_t outputLen;
-//
-//    uint8_t *K1 = from_hex("404142434445464748494a4b4c4d4e4f", 33);
-//    uint8_t *N1 = from_hex("10111213141516", 15);
-//    uint8_t *A1 = from_hex("0001020304050607", 17);
-//    uint8_t *P1 = from_hex("20212223", 9);
-//    uint8_t *T1 = from_hex("6084341b", 9);
-//    uint8_t *C1 = from_hex("7162015b4dac255d", 17);
-    ccm_ctx *ctx = ccm_create_ctx();
-//    printf("sizeof: %d\n", sizeof(ccm_ctx));
-//    uint8_t C2[22];
-//    uint8_t P2[16];
-//    ccm_init(ctx, true, K1, 16, N1, 7, A1, 8, 4);
-////    ctx->aad = A1;
-////    ctx->aadLen = 8;
-//    process_packet(ctx, P1, 4, C2, &outputLen, NULL, 0);
-//    printf("output\n");
-//    print_bytes(C2, 8);
-//    ccm_reset(ctx, false);
-////    ccm_ctx *ctx_dec = ccm_create_ctx();
-//    ccm_init(ctx, false, K1, 16, N1, 7, A1, 8, 4);
-//    print_bytes(ctx->nonce, 15);
-//    process_packet(ctx, C1, 8, P2, &outputLen,  NULL, 0);
-//    printf("output\n");
-//    print_bytes(P2, 4);
-//    printf("sizeof: %d\n", sizeof(ccm_ctx));
-//    ccm_free(ctx);
-//    printf("done\n");
-////    ctx = NULL;
-////    uint8_t *K2 = from_hex("404142434445464748494a4b4c4d4e4f", 33);
-//    uint8_t *N2 = from_hex("1011121314151617", 17);
-//    uint8_t *A2 = from_hex("000102030405060708090a0b0c0d0e0f", 33);
-//    uint8_t *P2 = from_hex("202122232425262728292a2b2c2d2e2f", 33);
-//    uint8_t *T2 = from_hex("7f479ffca464", 9);
-//    uint8_t *C2 = from_hex("d2a1f0e051ea5f62081a7792073d593d1fc64fbfaccd", 45);
-//    uint8_t Cnew[22];
-//    uint8_t Pnew[16];
-//    ccm_ctx *ctx = ccm_create_ctx();
-//    ccm_init(ctx, true, K2, 16, N2, 8, A2, 16, 6);
-//    processPacket(ctx, P2, 16, Cnew, &outputLen);
-//    printf("output\n");
-//    print_bytes(Cnew, 22);
-//    ccm_ctx *ctx_dec = ccm_create_ctx();
-//    ccm_init(ctx_dec, false, K2, 16, N2, 8, A2, 16, 6);
-//    print_bytes(ctx_dec->nonce, 15);
-//    for (size_t i = 0; i < 10; ++i) {
-//        print_bytes_128(&(ctx_dec->roundKeys[i]));
-//    }
-//    processPacket(ctx_dec, C2, 22, Pnew, &outputLen);
-//    printf("output\n");
-//    print_bytes(Pnew, 16);
+    uint8_t *K1 = from_hex("feffe9928665731c6d6a8f9467308308", 33);
+    uint8_t *N1 = from_hex("cafebabefacedbaddecaf888", 25);
+    uint8_t *A1 = from_hex("feedfacedeadbeeffeedfacedeadbeefabaddad2", 41);
+    uint8_t *P1 = from_hex("d9313225f88406e5a55909c5aff5269a86a7a9531534f7da2e4c303d8a318a721c3c0c95956809532fcf0e2449a6b525b16aedf5aa0de657ba637b39", 121);
+    uint8_t *T1 = from_hex("5bc94fbc3221a5db94fae95ae7121a47", 33);
+    uint8_t *C1 = from_hex("42831ec2217774244b7221b784d0d49ce3aa212f2c02a4e035c17e2329aca12e21d514b25466931c7d8f6a5aac84aa051ba30b396a0aac973d58e091", 121);
 
-//    uint8_t *K3 = from_hex("404142434445464748494a4b4c4d4e4f", 33);
-//    uint8_t *N3 = from_hex("101112131415161718191a1b", 25);
-//    uint8_t *A3 = from_hex("000102030405060708090a0b0c0d0e0f10111213", 41);
-//    uint8_t *P3 = from_hex("202122232425262728292a2b2c2d2e2f3031323334353637", 49);
-//    uint8_t *T3 = from_hex("67c99240c7d51048", 17);
-//    uint8_t *C3 = from_hex("e3b201a9f5b71a7a9b1ceaeccd97e70b6176aad9a4428aa5484392fbc1b09951", 65);
-//    uint8_t Cnew[32];
-//    uint8_t Pnew[24];
-//    ccm_ctx *ctx = ccm_create_ctx();
-//    //ccm_init(ctx, true, K3, 16, N3, 12, A3, 20, 8);
-//    ccm_init(ctx, true, K3, 16, N3, 12, NULL, 0, 8);
-//    ctx->aad = A3;
-//    ctx->aadLen = 20;
-//    processPacket(ctx, P3, 24, Cnew, &outputLen);
-//    printf("output\n");
-//    print_bytes(Cnew, 32);
-//    ccm_ctx *ctx_dec = ccm_create_ctx();
-//    ccm_init(ctx_dec, false, K3, 16, N3, 12, A3, 20, 8);
-//    print_bytes(ctx_dec->nonce, 15);
-//    for (size_t i = 0; i < 10; ++i) {
-//        print_bytes_128(&(ctx_dec->roundKeys[i]));
-//    }
-//    processPacket(ctx_dec, C3, 32, Pnew, &outputLen);
-//    printf("output\n");
-//    print_bytes(Pnew, 24);
+    uint8_t Cout[76];
+    size_t written = 0;
+    gcm_pc_process_packet(true, K1, 16, N1, 12, 12, A1, 20, P1, 60, Cout, &written);
 
-    uint8_t *K4 = from_hex("404142434445464748494a4b4c4d4e4f", 33);
-    uint8_t *N4 = from_hex("101112131415161718191a1b1c", 27);
-    uint8_t *A4 = from_hex(
-            "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff",
-            513);
-    uint8_t *P4 = from_hex("202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f", 65);
-    uint8_t *T4 = from_hex("f4dd5d0ee404617225ffe34fce91", 29);
-    uint8_t *C4 = from_hex(
-            "69915dad1e84c6376a68c2967e4dab615ae0fd1faec44cc484828529463ccf72b4ac6bec93e8598e7f0dadbcea5b", 93);
-    uint8_t Cnew[270];
-    uint8_t Pnew[32];
-    uint8_t A5[65536];
-//    for (size_t i = 0; i < 256; ++i) {
-//        memcpy(A5+256*i, A4, 256);
-//    }
-//    ccm_ctx *ctx = ccm_create_ctx();
-//    ccm_init(ctx, true, K4, 16, N4, 13, A5, 65536, 14);
-////    ctx->aad=A4;
-////    ctx->aadLen=256;
-//    processPacket(ctx, P4, 32, Cnew, &outputLen);
-//    printf("output\n");
-//    print_bytes(Cnew, outputLen);
-//    ccm_ctx *ctx_dec = ccm_create_ctx();
-//    ccm_init(ctx_dec, false, K4, 16, N4, 13, A5, 65536, 14);
-//    ctx_dec->aad=A4;
-//    ctx_dec->aadLen=256;
-//
-//    processPacket(ctx_dec, C4, 46, Pnew, &outputLen);
-//    printf("output\n");
-//    print_bytes(Pnew, 32);
 
-//    uint8_t P4[1000];
-//    uint8_t P41[1000];
-////    uint8_t C4[1004];
-//    uint8_t tampered[1004];
-//    for (size_t i = 0; i < 1000; ++i) {
-//        P4[i] = i;
-//    }
-//    uint8_t Cnew[1014];
-    //ctx = ccm_create_ctx();
+    print_bytes(Cout, 76);
 
-    ccm_init(ctx, true, K4, 16, N4, 13, A4, 256, 14);
-//    ctx->aad=A4;
-//    ctx->aadLen=256;
-    process_packet(ctx, A4, 256, Cnew, &outputLen, NULL, 0);
-    printf("output\n");
-    print_bytes(Cnew, outputLen);
-//    memcpy(tampered, C4, 1004);
-//    tampered[0]+=1;
-    ccm_ctx *ctx_dec = ccm_create_ctx();
-//    ccm_init(ctx_dec, false, K1, 16, N2, 8, NULL, 0, 4);
-    //processPacket(ctx_dec, tampered, 1004, P41, &outputLen);
-    ccm_free(ctx);
-//
-//
-//    uint8_t *input = from_hex("000102030405060708090a0b0c0d0e0fff0102030405060708090a0b0c0d0e0f");
-//    uint8_t *output = from_hex("d66f91b79b39e3abb6af2e3b3fb08846d7314b72cdc9aa7d1133ff4289507336");
-//
-//    ctr_ctx *ctr = ctr_create_ctx();
-//    ctr_init(ctr, key, 24, iv, 8);
-//
-//    uint8_t ctext[64];
-//
-//    size_t written;
-//    ctr_process_bytes(ctr, input, 32, ctext, &written);
-//
-//    print_bytes(ctext, 32);
     return 0;
 }
 

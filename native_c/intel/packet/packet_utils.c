@@ -103,3 +103,13 @@ size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, 
     *chainblock = tmpCb;
     return (size_t) (dest - destStart);
 }
+
+bool tag_verification(const uint8_t *left, const uint8_t *right, size_t len) {
+    assert(left != NULL);
+    assert(right != NULL);
+    uint32_t nonEqual = 0;
+    for (int i = 0; i != len; i++) {
+        nonEqual |= (left[i] ^ right[i]);
+    }
+    return nonEqual == 0;
+}

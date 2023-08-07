@@ -533,6 +533,25 @@ else ()
             intel/gcm/gcm512w.c
             intel/jni/gcm_jni.c
             )
+    set(GCM_PC
+            intel/packet/gcm_pc/gcm_pc.h
+            intel/packet/gcm_pc/gcm_pc.c
+            intel/packet/gcm_pc/gcm_pcHash128.h
+            intel/packet/gcm_pc/gcm_pc128w.c
+            intel/jni/gcm_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
+    set(GCM_PC_VAESF
+            intel/packet/gcm_pc/gcm_pc.h
+            intel/packet/gcm_pc/gcm_pc.c
+            intel/packet/gcm_pc/gcm_pcHash512.h
+            intel/packet/gcm_pc/gcm_pc512w.c
+            intel/jni/gcm_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
 
 
     set(CCM
@@ -616,6 +635,7 @@ else ()
             ${RAND}
             ${SHA256}
             ${GCM}
+            ${GCM_PC}
             ${MUL_AVX}
             ${CCM}
             ${CCM_PC}
@@ -640,6 +660,7 @@ else ()
             ${RAND}
             ${SHA256}
             ${GCM}
+            ${GCM_PC}
             ${MUL_AVX}
             ${CCM_PC_VAES}
             ${CCM_VAES}
@@ -664,6 +685,7 @@ else ()
             ${RAND}
             ${SHA256}
             ${GCM_VAESF}
+            ${GCM_PC_VAESF}
             ${MUL_VAESF}
             ${CCM_VAESF}
             ${CCM_PC_VAESF}
