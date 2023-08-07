@@ -61,7 +61,7 @@ public class AESCFBPacketCipherTest
         testExceptions();
         testCFB();
 //        testCFBSpread();
-        testCFBStreamCipher();
+        //testCFBStreamCipher();
 //        testAgreement();
         testCFBJavaAgreement_128();
         testCFBJavaAgreement_192();

@@ -30,4 +30,9 @@ public class AESNativeGCMSIVPacketCipher
     {
         return 0;
     }
+
+    static native int getOutputSize(boolean encryption, int len, int macSize);
+
+    static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce, int nonLen, byte[] aad,
+                                    int aadLen, int macSize, byte[] in, int inOff, int inLen, byte[] out, int outOff, int outLen);
 }
