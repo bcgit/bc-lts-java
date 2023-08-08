@@ -553,6 +553,22 @@ else ()
             intel/packet/packet_utils.c
     )
 
+    set(GCM_SIV
+            intel/gcm_siv/gcm_siv.h
+            intel/gcm_siv/gcm_siv.c
+            intel/gcm_siv/gcm_sivHash128.h
+            intel/gcm_siv/gcm_siv128w.c
+            intel/jni/gcm_siv_jni.c
+    )
+
+    set(GCM_SIV_VAESF
+            intel/gcm_siv/gcm_siv.h
+            intel/gcm_siv/gcm_siv.c
+            intel/gcm_siv/gcm_sivHash512.h
+            intel/gcm_siv/gcm_siv512w.c
+            intel/jni/gcm_siv_jni.c
+    )
+
 
     set(CCM
             intel/ccm/ccm.h
@@ -636,6 +652,7 @@ else ()
             ${SHA256}
             ${GCM}
             ${GCM_PC}
+            ${GCM_SIV}
             ${MUL_AVX}
             ${CCM}
             ${CCM_PC}
@@ -661,6 +678,7 @@ else ()
             ${SHA256}
             ${GCM}
             ${GCM_PC}
+            ${GCM_SIV}
             ${MUL_AVX}
             ${CCM_PC_VAES}
             ${CCM_VAES}
@@ -686,6 +704,7 @@ else ()
             ${SHA256}
             ${GCM_VAESF}
             ${GCM_PC_VAESF}
+            ${GCM_SIV_VAESF}
             ${MUL_VAESF}
             ${CCM_VAESF}
             ${CCM_PC_VAESF}

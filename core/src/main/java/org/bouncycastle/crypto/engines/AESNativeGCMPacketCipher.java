@@ -51,7 +51,7 @@ public class AESNativeGCMPacketCipher
     public int processPacket(boolean encryption, CipherParameters params, byte[] input, int inOff, int len, byte[] output, int outOff)
         throws PacketCipherException
     {
-        int macSize = 0;
+        int macSize;
         byte[] nonce;
         byte[] initialAssociatedText;
         byte[] key;
