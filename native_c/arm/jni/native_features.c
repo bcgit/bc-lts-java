@@ -191,7 +191,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeMulAcc
         (JNIEnv *env, jclass cl) {
-    return JNI_FALSE;
+    return JNI_TRUE;
 }
 
 /*
