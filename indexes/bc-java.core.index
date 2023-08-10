@@ -237,7 +237,7 @@ c08198c0d8bb4d5df25b336437b1cadb32b1a698a8c5aa69cc92e3c07101f17d  core/src/test/
 e16464a07d1a46eb4c0bbe7399bdbe49860306886079c54970f3167b503d4882  core/src/test/java/org/bouncycastle/util/encoders/test/Base32Test.java
 affddc29f4fc6a50bca2af41e957f5344fa6ce63215e1fcf6ca67b57bea069ba  core/src/test/java/org/bouncycastle/util/encoders/test/AbstractCoderTest.java
 59452d4ef6fb78bf440bce1fc5c6b8feecdcd7bde4e9769f08523a03acc39b81  core/src/test/java/org/bouncycastle/util/utiltest/AllTests.java
-f0e426a3ea4427ea2813ea02319e824eb7878bd1210ca228ecc56413ce83c1c0  core/src/test/java/org/bouncycastle/util/utiltest/ArraysTest.java
+be51d53da5dc5e59f1e04cd2fbe778255e901b0651ae15f345dc249a2b5e61c5  core/src/test/java/org/bouncycastle/util/utiltest/ArraysTest.java
 101242d25161d370092fccc61607e646bd0c4203a96e21983f14a7ef6308b356  core/src/test/java/org/bouncycastle/util/utiltest/IPTest.java
 7808770f20a2f39dfa85fac36fe05e9c6ba8c6f17490752cceba0d47bc624d2d  core/src/test/java/org/bouncycastle/util/utiltest/LongsTest.java
 43647088d4abb55ee7cc183dc19ff71960deb68a6407a79b44c52fdf900d4174  core/src/test/java/org/bouncycastle/util/utiltest/IntegersTest.java
@@ -937,7 +937,7 @@ c1b6114bfcb4450513f6bf965fe7b82e757798d801b30085a8eaa385854ff643  core/src/main/
 dd1c8b31a52e2645d6161b718112441710d274f7e152ce82b8530361b4dbfac0  core/src/main/java/org/bouncycastle/util/Shorts.java
 25f641b4201d15f925aba7a62a1e5017768d985218b1816da229a0bb1c7b5f6b  core/src/main/java/org/bouncycastle/util/Bytes.java
 37b2b197611260a9def36aeb7a05358dbdab4987edff59726fbde8659e506620  core/src/main/java/org/bouncycastle/util/StreamParsingException.java
-e9af51286d1336ee226facbada993de848ed139f0e187480e7628ac2e1e71b23  core/src/main/java/org/bouncycastle/util/Arrays.java
+77e9c106989e0275fc8a2b93b3f1b183a9c9263d13210b7ffb9f045f0a9967bb  core/src/main/java/org/bouncycastle/util/Arrays.java
 46950467de7467715cc01689e26bbe0391d6854e7c52df087b0b4abb43e84520  core/src/main/java/org/bouncycastle/util/Properties.java
 fb81274afed0e24edc4ad0c15119888ef8c25fa4d8c82845fc92af8874eb7d0e  core/src/main/java/org/bouncycastle/util/Encodable.java
 1678286a097fa6d539ebf3b549a392ba3d118202c25daac0e06d3fee17091954  core/src/main/java/org/bouncycastle/util/Characters.java
