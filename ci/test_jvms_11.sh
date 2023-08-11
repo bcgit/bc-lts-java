@@ -22,7 +22,5 @@ export PATH=$PATH:`ant-bin-1-10`
 ./gradlew clean cleanNative withNative build compileTestJava -x test
 
 ant -f test11.xml
-ant -f test17.xml
-ant -f test21.xml
 
 
