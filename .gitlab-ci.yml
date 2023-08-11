@@ -15,7 +15,7 @@ test-java-code:
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "docker run -i -u $HOST_UID:$HOST_GID --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_java.sh\""
+    - "docker run -i -u $(id -u):$(id -g) --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_java.sh\""
   artifacts:
     when: always
     paths:
@@ -33,14 +33,14 @@ test-code-avx:
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "docker run -i -u $HOST_UID:$HOST_GID --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_avx.sh\""
+    - "docker run -i -u $(id -u):$(id -g) --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_avx.sh\""
 
 test-code-vaes:
   stage: testVAES
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "docker run -i -u $HOST_UID:$HOST_GID --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_vaes.sh\""
+    - "docker run -i -u $(id -u):$(id -g) --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_vaes.sh\""
 
 
 test-code-vaesf:
@@ -48,7 +48,7 @@ test-code-vaesf:
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "docker run -i -u $HOST_UID:$HOST_GID --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_vaesf.sh\""
+    - "docker run -i -u $(id -u):$(id -g) --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_vaesf.sh\""
 
 
 test-java11-code:
@@ -56,7 +56,7 @@ test-java11-code:
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "docker run -i -u $HOST_UID:$HOST_GID --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_jvms_11.sh\""
+    - "docker run -i -u $(id -u):$(id -g) --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_jvms_11.sh\""
 
   artifacts:
     when: always
@@ -69,7 +69,7 @@ test-java17-code:
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "docker run -i -u $HOST_UID:$HOST_GID --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_jvms_17.sh\""
+    - "docker run -i -u $(id -u):$(id -g) --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_jvms_17.sh\""
 
   artifacts:
     when: always
@@ -82,7 +82,7 @@ test-java21-code:
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "docker run -i -u $HOST_UID:$HOST_GID --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_jvms_21.sh\""
+    - "docker run -i -u $(id -u):$(id -g) --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_jvms_21.sh\""
 
   artifacts:
     when: always
