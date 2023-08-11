@@ -1,6 +1,13 @@
+
+
 stages:
-  - testAVX
   - test
+  - testAVX
+  - testVAES
+  - testVAESF
+  - test11
+  - test17
+  - test21
 
 
 test-java-code:
@@ -17,50 +24,58 @@ test-code-avx:
     - "ecr_pull vm_base_intel latest"
     - "docker run -i  --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_avx.sh\""
 
-# test-code-vaes:
-#   stage: testVAES
-#   script:
-#     # - "apply_overlay bc-java ./"
-#     # - "sh gettestdata.sh"
-#     # - "rm -rf /tmp/bcfipslibs"
-#     # - "mkdir -p /tmp/bcfipslibs"
-#     # - . cienv-11.sh
-#     # - "./gradlew clean core:compileJava; cd native_c; ./build_linux.sh; cd .."
-#     # - "./gradlew clean cleanNative withNative build -x test"
-#     # - "tmpLibDir=$(mktemp -d -t bc-jni-libs-XXXXXXXXXX)"
-#     # - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
-#     # - "java -Dorg.bouncycastle.native.cpu_variant=vaes -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo"
-#     # - "./gradlew -Pskip.pqc.tests testVAES  -x test"
+test-code-vaes:
+  stage: testVAES
+  script:
+    - "ecr_login"
+    - "ecr_pull vm_base_intel latest"
+    - "docker run -i  --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_vaes.sh\""
 
-# test-code-vaesf:
-#   stage: testVAESF
-#   script:
-#     # - "apply_overlay bc-java ./"
-#     # - "sh gettestdata.sh"
-#     # - "rm -rf /tmp/bcfipslibs"
-#     # - "mkdir -p /tmp/bcfipslibs"
-#     # - . cienv-11.sh
-#     # - "./gradlew clean core:compileJava;  cd native_c; ./build_linux.sh; cd .."
-#     # - "./gradlew clean cleanNative withNative build -x test"
-#     # - "tmpLibDir=$(mktemp -d -t bc-jni-libs-XXXXXXXXXX)"
-#     # - "export LD_LIBRARY_PATH=\"$LD_LIBRARY_PATH:$tmpLibDir\""
-#     # - "java -Dorg.bouncycastle.native.cpu_variant=vaesf -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo"
-#     # - "./gradlew -Pskip.pqc.tests testVAESF  -x test"
 
-# test-java21-code:
-#   stage: test21
-#   script:
-#      - "apply_overlay bc-java ./"
-#      - "sh gettestdata.sh"
-#      - . cienv-11.sh
-#      - "./gradlew clean core:compileJava; cd native_c; ./build_linux.sh;  cd .."
-#      - "./gradlew clean cleanNative withNative build compileTestJava  -x test"
-#      - . cienv-21
-#      - ant -f test11.xml
-#      - ant -f test17.xml
-#      - ant -f test21.xml
-#   artifacts:
-#     when: always
-#     reports:
-#       junit: build/artifacts/jdk21/reports/xml/**/TEST-*.xml
+test-code-vaesf:
+  stage: testVAESF
+  script:
+    - "ecr_login"
+    - "ecr_pull vm_base_intel latest"
+    - "docker run -i  --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_vaesf.sh\""
+
+
+test-java11-code:
+  stage: test11
+  script:
+    - "ecr_login"
+    - "ecr_pull vm_base_intel latest"
+    - "docker run -i --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_jvms_11.sh\""
+
+  artifacts:
+    when: always
+    reports:
+      junit: build/artifacts/jdk11/reports/xml/**/TEST-*.xml
+
+
+test-java17-code:
+  stage: test17
+  script:
+    - "ecr_login"
+    - "ecr_pull vm_base_intel latest"
+    - "docker run -i  --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_jvms_17.sh\""
+
+  artifacts:
+    when: always
+    reports:
+      junit: build/artifacts/jdk17/reports/xml/**/TEST-*.xml
+
+
+test-java21-code:
+  stage: test21
+  script:
+    - "ecr_login"
+    - "ecr_pull vm_base_intel latest"
+    - "docker run -i  --rm --pull=missing --cpus=1.5 -v `pwd`:/workspace/bc-lts-java \"489290151264.dkr.ecr.ap-southeast-2.amazonaws.com/vm_base_intel:latest\" /bin/bash \"/workspace/bc-lts-java/ci/test_jvms_21.sh\""
+
+  artifacts:
+    when: always
+    reports:
+      junit: build/artifacts/jdk21/reports/xml/**/TEST-*.xml
+  
 
