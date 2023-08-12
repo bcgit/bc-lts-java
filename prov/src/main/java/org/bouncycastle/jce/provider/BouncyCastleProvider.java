@@ -109,7 +109,7 @@ public final class BouncyCastleProvider
 
     private static final String[] ASYMMETRIC_CIPHERS =
         {
-            "DSA", "DH", "EC", "RSA", "GOST", "ECGOST", "ElGamal", "DSTU4145", "GM", "EdEC"
+            "DSA", "DH", "EC", "RSA", "GOST", "ECGOST", "ElGamal", "DSTU4145", "GM", "EdEC", "LMS"
         };
 
     /*
@@ -150,7 +150,7 @@ public final class BouncyCastleProvider
      */
     public BouncyCastleProvider()
     {
-        super(PROVIDER_NAME, 2.7302, info);
+        super(PROVIDER_NAME, 2.7304, info);
 
         AccessController.doPrivileged(new PrivilegedAction()
         {
