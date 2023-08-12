@@ -223,7 +223,7 @@ aca73dbf7c17fd41da02513ef63f3f2a8fe801204ce736e5381195fc34fe4eec  util/src/main/
 e33f06b168a990449ff61e8b6b5a9ad92427ef0968988138028bf0f3ab63d3f0  util/src/main/java/org/bouncycastle/asn1/cmp/PKIHeader.java
 049102c3e911a86accd27e121bce5304417a38f2d54c104f622c5e9eeedbe495  util/src/main/java/org/bouncycastle/asn1/cmp/PKIFailureInfo.java
 3c1e00f1a1f44c6e87d169f9eee78de9dd4e5383b180e2ae0ec572eaa5f6cfa8  util/src/main/java/org/bouncycastle/asn1/cmp/PollRepContent.java
-c488f8d1085e637efd3b1ca167a881f9cf2d1f2e7854bb51152d57595892f6e2  util/src/main/java/org/bouncycastle/asn1/cmp/CMPObjectIdentifiers.java
+776212d6b07901d1c3a4a56df0df61388c0352445d235ac7d8cb960891c53020  util/src/main/java/org/bouncycastle/asn1/cmp/CMPObjectIdentifiers.java
 128da405197de27ade36ce165af03254d5085c0b68e1b928188b08963f47319c  util/src/main/java/org/bouncycastle/asn1/cmp/PKIMessage.java
 52375dbc238ad6f704f6ca1ccb0d20797499aeb9c1f73bb70016bcfa37220cf5  util/src/main/java/org/bouncycastle/asn1/cmp/RootCaKeyUpdateContent.java
 58ab7fc3efd565f08bc53b1912cf7971634a91f72e12cb0294b68abe63cc0cd5  util/src/main/java/org/bouncycastle/asn1/cmp/CertifiedKeyPair.java
