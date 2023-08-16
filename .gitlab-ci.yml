@@ -15,7 +15,7 @@ test-java-code:
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "ci_docker_run \"vm_base_intel:latest\" \"/workspace/bc-lts-java/ci/test_java.sh\""
+    - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java  \"/workspace/bc-lts-java/ci/test_java.sh\""
   artifacts:
     when: always
     paths:
@@ -33,14 +33,14 @@ test-code-avx:
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "ci_docker_run \"vm_base_intel:latest\" \"/workspace/bc-lts-java/ci/test_avx.sh\""
+    - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java \"/workspace/bc-lts-java/ci/test_avx.sh\""
 
 test-code-vaes:
   stage: testVAES
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "ci_docker_run \"vm_base_intel:latest\" \"/workspace/bc-lts-java/ci/test_vaes.sh\""
+    - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java \"/workspace/bc-lts-java/ci/test_vaes.sh\""
 
 
 test-code-vaesf:
@@ -48,7 +48,7 @@ test-code-vaesf:
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "ci_docker_run \"vm_base_intel:latest\" \"/workspace/bc-lts-java/ci/test_vaesf.sh\""
+    - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java \"/workspace/bc-lts-java/ci/test_vaesf.sh\""
 
 
 test-java11-code:
@@ -56,7 +56,7 @@ test-java11-code:
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "ci_docker_run \"vm_base_intel:latest\" \"/workspace/bc-lts-java/ci/test_jvms_11.sh\""
+    - "ci_docker_run \"vm_base_intel:latest\"  bc-lts-java \"/workspace/bc-lts-java/ci/test_jvms_11.sh\""
 
   artifacts:
     when: always
@@ -69,7 +69,7 @@ test-java17-code:
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "ci_docker_run \"vm_base_intel:latest\" \"/workspace/bc-lts-java/ci/test_jvms_17.sh\""
+    - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java \"/workspace/bc-lts-java/ci/test_jvms_17.sh\""
 
   artifacts:
     when: always
@@ -82,7 +82,7 @@ test-java21-code:
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "ci_docker_run \"vm_base_intel:latest\" \"/workspace/bc-lts-java/ci/test_jvms_21.sh\""
+    - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java \"/workspace/bc-lts-java/ci/test_jvms_21.sh\""
 
   artifacts:
     when: always
