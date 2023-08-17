@@ -25,7 +25,8 @@ dependencies {
 
   implementation files("$lts_prov")
   implementation files("$lts_util")
-  testImplementation project(':pkix')
+    implementation project(path: ':core')
+    testImplementation project(':pkix')
 
 
   java9Implementation files("$lts_prov")

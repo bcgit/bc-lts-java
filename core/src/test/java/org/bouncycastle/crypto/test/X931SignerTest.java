@@ -85,7 +85,7 @@ public class X931SignerTest
         byte[] sig = Hex.decode("39fbbd1804c689a533b0043f84da0f06081038c0fbf31e443e46a05e58f50de5198bbca40522afefaba3aed7082a6cb93b1da39f1f5a42246bf64930781948d300549bef0f8d554ecfca60a1b1ecba95a7014ee4545ad4f0c4e3a31942c6738b4ccd6244b6a21267dadf0826a5f713f13b1f5a9ab8501d957a26d4948278ac67851071a315674bdab173bfef2c2690c8373da6bf3d69f30c0e5da8883de872f59521b40793854085641adf98d13db991c5d0a8aaa0222934fa33332e90ef0b954e195cb267d6ffb36c96e14d1ec7b915a87598b4461a3146566354dc2ae748c84ee0cd46543b53ebff8cdf47725b280a1f799fb6ebb4a31ad2bdd5178250f83a");
 
         RSAKeyParameters rsaPublic = new RSAKeyParameters(false, n, e);
-        X931Signer signer = new X931Signer(new RSAEngine(), new SHA224Digest());
+        X931Signer signer = new X931Signer(new RSAEngine(), SHA224Digest.newInstance());
 
         signer.init(false, rsaPublic);
 

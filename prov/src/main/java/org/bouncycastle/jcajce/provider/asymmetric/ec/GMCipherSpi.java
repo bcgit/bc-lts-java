@@ -372,7 +372,7 @@ public class GMCipherSpi
     {
         public SM2withSha224()
         {
-            super(new SM2Engine(new SHA224Digest()));
+            super(new SM2Engine(SHA224Digest.newInstance()));
         }
     }
 

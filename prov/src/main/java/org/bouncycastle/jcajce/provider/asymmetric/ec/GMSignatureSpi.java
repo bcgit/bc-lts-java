@@ -188,7 +188,7 @@ public class GMSignatureSpi
 //    {
 //        public sha224WithSM2()
 //        {
-//            super(new SM2Signer(new SHA224Digest()));
+//            super(new SM2Signer(SHA224Digest.newInstance()));
 //        }
 //    }
 

@@ -152,7 +152,7 @@ public class DigestConstraintsTest
 
         try
         {
-            new SHA224Digest();
+            SHA224Digest.newInstance();
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -160,7 +160,7 @@ public class DigestConstraintsTest
             isEquals("service does not provide 192 bits of security only 112", e.getMessage());
         }
 
-        new SHA224Digest(CryptoServicePurpose.PRF);
+         SHA224Digest.newInstance(CryptoServicePurpose.PRF);
 
         CryptoServicesRegistrar.setServicesConstraints(null);
     }

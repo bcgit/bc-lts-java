@@ -31,7 +31,7 @@ public class SHA224DigestTest
 
     SHA224DigestTest()
     {
-        super(new SHA224Digest(), messages, digests);
+        super(SHA224Digest.newInstance(), messages, digests);
     }
 
     public void performTest()
@@ -43,12 +43,12 @@ public class SHA224DigestTest
 
     protected Digest cloneDigest(Digest digest)
     {
-        return new SHA224Digest((SHA224Digest)digest);
+        return SHA224Digest.newInstance(digest);
     }
 
     protected Digest cloneDigest(byte[] encodedState)
     {
-        return new SHA224Digest(encodedState);
+        return SHA224Digest.newInstance(encodedState, 0);
     }
 
     public static void main(

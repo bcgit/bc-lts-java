@@ -40,7 +40,7 @@ public class SHA224Digest
 
     public static SavableDigest newInstance(CryptoServicePurpose purpose)
     {
-        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA224))
         {
             return new SHA224NativeDigest(purpose);
         }
@@ -57,7 +57,7 @@ public class SHA224Digest
 
         if (digest instanceof SHA224NativeDigest)
         {
-            if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
+            if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA224))
             {
                 return new SHA224NativeDigest((SHA224NativeDigest) digest);
             }
@@ -69,7 +69,7 @@ public class SHA224Digest
 
     public static SavableDigest newInstance(byte[] encoded, int offset)
     {
-        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA224))
         {
             SHA224NativeDigest sha224 = new SHA224NativeDigest();
 

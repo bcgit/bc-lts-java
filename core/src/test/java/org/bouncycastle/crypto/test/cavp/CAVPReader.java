@@ -124,7 +124,7 @@ public class CAVPReader
         }
         else if (config.getProperty("PRF").matches("HMAC_SHA224"))
         {
-            Digest digest = new SHA224Digest();
+            Digest digest = SHA224Digest.newInstance();
             prf = new HMac(digest);
         }
         else if (config.getProperty("PRF").matches("HMAC_SHA256"))

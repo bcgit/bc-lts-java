@@ -49,7 +49,7 @@ public class RSADigestSignerTest
         checkDigest(rsaPublic, rsaPrivate, new SHA1Digest(), X509ObjectIdentifiers.id_SHA1);
         checkNullDigest(rsaPublic, rsaPrivate, new SHA1Digest(), X509ObjectIdentifiers.id_SHA1);
 
-        checkDigest(rsaPublic, rsaPrivate, new SHA224Digest(), NISTObjectIdentifiers.id_sha224);
+        checkDigest(rsaPublic, rsaPrivate, SHA224Digest.newInstance(), NISTObjectIdentifiers.id_sha224);
         checkDigest(rsaPublic, rsaPrivate, SHA256Digest.newInstance(), NISTObjectIdentifiers.id_sha256);
         checkNullDigest(rsaPublic, rsaPrivate, SHA256Digest.newInstance(), NISTObjectIdentifiers.id_sha256);
         checkDigest(rsaPublic, rsaPrivate, new SHA384Digest(), NISTObjectIdentifiers.id_sha384);

@@ -55,7 +55,7 @@ class BcImplProvider
         case HashAlgorithmTags.SHA1:
             return new SHA1Digest();
         case HashAlgorithmTags.SHA224:
-            return new SHA224Digest();
+            return SHA224Digest.newInstance();
         case HashAlgorithmTags.SHA256:
             return new SHA256Digest();
         case HashAlgorithmTags.SHA384:

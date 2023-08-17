@@ -157,8 +157,8 @@ void sha224_digest(sha224_ctx *ctx, uint8_t *output) {
     const uint32x4_t v1 =  vreinterpretq_u32_u8( vrev32q_u8(vreinterpretq_u8_u32( ctx->s1)));
 
     vst1q_u32((uint32_t *) &output[0 * 16], v0);
-    vst1q_lane_u64(&output[1 * 16], vreinterpretq_u64_u32( v1), 0);
-    vst1q_lane_u32(&output[ (1 * 16)+8 ], v1, 2);
+    vst1q_lane_u64((uint64_t *)  &output[1 * 16], vreinterpretq_u64_u32( v1), 0);
+    vst1q_lane_u32((uint32_t *) &output[ (1 * 16)+8 ], v1, 2);
 
     //vst1q_u32((uint32_t *) &output[1 * 16], vreinterpretq_u32_u8( vrev32q_u8(vreinterpretq_u8_u32( ctx->s1))));
 

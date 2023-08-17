@@ -22,14 +22,14 @@ public class SHA224
     {
         public Digest()
         {
-            super(new SHA224Digest());
+            super(SHA224Digest.newInstance());
         }
 
         public Object clone()
             throws CloneNotSupportedException
         {
             Digest d = (Digest)super.clone();
-            d.digest = new SHA224Digest((SHA224Digest)digest);
+            d.digest = SHA224Digest.newInstance(digest);
 
             return d;
         }
@@ -40,7 +40,7 @@ public class SHA224
     {
         public HashMac()
         {
-            super(new HMac(new SHA224Digest()));
+            super(new HMac(SHA224Digest.newInstance()));
         }
     }
 

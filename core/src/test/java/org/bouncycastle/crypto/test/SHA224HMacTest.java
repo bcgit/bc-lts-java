@@ -52,7 +52,7 @@ public class SHA224HMacTest
 
     public TestResult perform()
     {
-        HMac hmac = new HMac(new SHA224Digest());
+        HMac hmac = new HMac(SHA224Digest.newInstance());
         byte[] resBuf = new byte[hmac.getMacSize()];
 
         for (int i = 0; i < messages.length; i++)

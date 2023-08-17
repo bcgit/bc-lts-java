@@ -323,7 +323,7 @@ public class DSATest
         {
             byte[] seed = Hex.decode("5AFCC1EFFC079A9CCA6ECA86D6E3CC3B18642D9BE1CC6207C84002A9");
 
-            DSAParametersGenerator pGen = new DSAParametersGenerator(new SHA224Digest());
+            DSAParametersGenerator pGen = new DSAParametersGenerator(SHA224Digest.newInstance());
 
             pGen.init(new DSAParameterGenerationParameters(2048, 224, 80, new DSATestSecureRandom(seed)));
 
