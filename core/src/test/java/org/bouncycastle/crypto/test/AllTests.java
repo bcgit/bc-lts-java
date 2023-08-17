@@ -6,7 +6,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.bouncycastle.crypto.NativeEntropyTests;
 import org.bouncycastle.crypto.NativeFailsafeTest;
-import org.bouncycastle.crypto.digests.NativeDigestTests;
+import org.bouncycastle.crypto.digests.SHA256NativeDigestTests;
 import org.bouncycastle.test.PrintTestResult;
 
 public class AllTests
@@ -29,7 +29,7 @@ public class AllTests
         {
             suite.addTestSuite(NativeFailsafeTest.class);
             suite.addTestSuite(NativeEntropyTests.class);
-            suite.addTestSuite(NativeDigestTests.class);
+            suite.addTestSuite(SHA256NativeDigestTests.class);
         } catch (NoClassDefFoundError ignored) {
         }
 

@@ -163,11 +163,11 @@ class NativeFeatures
 
     private static native boolean nativeSeed();
 
-    static boolean hasHardwareSHA()
+    static boolean hasHardwareSHA256()
     {
         try
         {
-            return nativeSHA2();
+            return nativeSHA256();
         }
         catch (UnsatisfiedLinkError ule)
         {
@@ -178,6 +178,23 @@ class NativeFeatures
             return false;
         }
     }
+
+    static boolean hasHardwareSHA224()
+    {
+        try
+        {
+            return nativeSHA224();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.log(Level.FINE, "native sha exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
 
     static boolean hasMultiplyAcc()
     {
@@ -196,7 +213,9 @@ class NativeFeatures
     }
 
 
-    private static native boolean nativeSHA2();
+    private static native boolean nativeSHA256();
+
+    private static native boolean nativeSHA224();
 
     private static native boolean nativeMulAcc();
 

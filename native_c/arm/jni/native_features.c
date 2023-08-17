@@ -178,11 +178,23 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
  * Method:    nativeSHA2
  * Signature: ()Z
  */
-__attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA2
+__attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA256
         (JNIEnv *env, jclass cl) {
     probe_system();
     return cpu_info.neon && cpu_info.sha256 ? JNI_TRUE : JNI_FALSE;
 }
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeSHA2
+ * Signature: ()Z
+ */
+__attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA224
+        (JNIEnv *env, jclass cl) {
+    probe_system();
+    return cpu_info.neon && cpu_info.sha256 ? JNI_TRUE : JNI_FALSE;
+}
+
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures

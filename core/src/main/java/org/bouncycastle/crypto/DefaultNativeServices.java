@@ -135,9 +135,15 @@ class DefaultNativeServices
                 set.add(AES_CTR); // Only AES is needed for CTR mode.
             }
 
-            if (NativeFeatures.hasHardwareSHA())
+            if (NativeFeatures.hasHardwareSHA256())
             {
                 set.add(SHA2);
+                set.add(SHA256);
+            }
+
+            if (NativeFeatures.hasHardwareSHA224())
+            {
+                set.add(SHA224);
             }
 
             if (NativeFeatures.hasCCMHardwareSupport())

@@ -15,6 +15,11 @@ public interface NativeServices
     String AES_CCM = "AES/CCM";
 
     String SHA2 = "SHA2";
+
+    String SHA256 = "SHA256";
+
+    String SHA224 = "SHA224";
+
     String MULACC = "MULACC";
 
     String NONE = "NONE";

@@ -35,7 +35,7 @@ public class SHA256Digest
 
     public static SavableDigest newInstance()
     {
-        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA256))
         {
             return new SHA256NativeDigest();
         }

@@ -6,7 +6,7 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.bouncycastle.crypto.NativeEntropyTests;
 import org.bouncycastle.crypto.NativeFailsafeTest;
-import org.bouncycastle.crypto.digests.NativeDigestTests;
+import org.bouncycastle.crypto.digests.SHA256NativeDigestTests;
 import org.bouncycastle.crypto.digests.SHA256JavaAgreementTest;
 import org.bouncycastle.test.PrintTestResult;
 
@@ -36,7 +36,7 @@ public class AllTests
         suite.addTestSuite(ECBNativeLimitTest.class);
         suite.addTestSuite(GCMNativeLimitTest.class);
         suite.addTestSuite(CCMNativeLimitTest.class);
-        suite.addTestSuite(NativeDigestTests.class);
+        suite.addTestSuite(SHA256NativeDigestTests.class);
 
         suite.addTestSuite(NativeEntropyTests.class);
         suite.addTestSuite(NativeFailsafeTest.class);

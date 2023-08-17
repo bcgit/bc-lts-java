@@ -1,9 +1,7 @@
 package org.bouncycastle.crypto.digests;
 
 
-import org.bouncycastle.crypto.CryptoServiceProperties;
-import org.bouncycastle.crypto.CryptoServicePurpose;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.util.Memoable;
 import org.bouncycastle.util.Pack;
 
@@ -21,7 +19,7 @@ import org.bouncycastle.util.Pack;
  */
 public class SHA224Digest
     extends GeneralDigest
-    implements EncodableDigest
+    implements EncodableDigest, SavableDigest
 {
     private static final int    DIGEST_LENGTH = 28;
 
@@ -29,6 +27,60 @@ public class SHA224Digest
 
     private int[]   X = new int[64];
     private int     xOff;
+
+
+    public static SavableDigest newInstance()
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA224))
+        {
+            return new SHA224NativeDigest();
+        }
+        return new SHA224Digest();
+    }
+
+    public static SavableDigest newInstance(CryptoServicePurpose purpose)
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
+        {
+            return new SHA224NativeDigest(purpose);
+        }
+        return new SHA224Digest(purpose);
+    }
+
+    public static SavableDigest newInstance(Digest digest)
+    {
+
+        if (digest instanceof SHA224Digest)
+        {
+            return new SHA224Digest((SHA224Digest) digest);
+        }
+
+        if (digest instanceof SHA224NativeDigest)
+        {
+            if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
+            {
+                return new SHA224NativeDigest((SHA224NativeDigest) digest);
+            }
+        }
+
+        throw new IllegalArgumentException("receiver digest not available for input type " + (digest != null ? digest.getClass() : "null"));
+    }
+
+
+    public static SavableDigest newInstance(byte[] encoded, int offset)
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
+        {
+            SHA224NativeDigest sha224 = new SHA224NativeDigest();
+
+            sha224.restoreFullState(encoded, offset);
+
+            return sha224;
+        }
+
+        return new SHA224Digest(encoded);
+    }
+
 
     /**
      * Standard constructor
@@ -372,6 +424,12 @@ public class SHA224Digest
     protected CryptoServiceProperties cryptoServiceProperties()
     {
         return Utils.getDefaultProperties(this, 192, purpose);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "SHA224[Java]()";
     }
 }
 

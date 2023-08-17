@@ -145,6 +145,18 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             arm/jni/sha256_jni.c
             )
 
+    set(ARM_SHA256
+            arm/sha/sha256.h
+            arm/sha/sha256.c
+            arm/jni/sha256_jni.c
+            )
+
+    set(ARM_SHA224
+            arm/sha/sha224.h
+            arm/sha/sha224.c
+            arm/jni/sha224_jni.c
+            )
+
     set(ARM_MUL
             arm/mul/cmul.h
             arm/mul/cmul128.c
@@ -172,6 +184,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             ${ARM_CTR}
             ${ARM_CCM}
             ${ARM_SHA256}
+            ${ARM_SHA224}
             ${ARM_MUL}
             )
     target_include_directories("${LIB_NATIVE}-neon-le" PUBLIC ${JNI_INCLUDES})
