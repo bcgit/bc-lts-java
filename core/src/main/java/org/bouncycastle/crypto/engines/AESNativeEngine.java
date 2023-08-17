@@ -170,7 +170,11 @@ class AESNativeEngine
     @Override
     public GCMSIVModeCipher createGCMSIV()
     {
-        return new GCMSIVBlockCipher(AESEngine.newInstance());
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCMSIV))
+        {
+            return new AESNativeGCMSIV();
+        }
+        return new GCMSIVBlockCipher(new AESNativeEngine());
     }
 
     @Override

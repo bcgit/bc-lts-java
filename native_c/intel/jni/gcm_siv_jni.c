@@ -35,6 +35,53 @@ void handle_gcm_siv_result(JNIEnv *env, gcm_siv_err *err) {
 
 }
 
+bool checkAEADStatus(JNIEnv *env, gcm_siv_ctx *ctx, int pLen) {
+    /* Check we are initialised */
+    if ((ctx->theFlags & INIT) == 0) {
+        throw_java_invalid_state(env, "Cipher is not initialised");
+        return true;
+    }
+
+    /* Check AAD is allowed */
+    if ((ctx->theFlags & AEAD_COMPLETE) != 0) {
+        throw_java_invalid_state(env, "AEAD data cannot be processed after ordinary data");
+        return true;
+    }
+
+    /* Make sure that we haven't breached AEAD data limit */
+    if (ctx->theAEADHasher.numHashed > (MAX_DATALEN - pLen)) {
+        throw_java_invalid_state(env, "AEAD byte count exceeded");
+        return true;
+    }
+    return false;
+}
+
+bool checkStatus(JNIEnv *env, gcm_siv_ctx *ctx, int pLen, int theEncDataSize) {
+    /* Check we are initialised */
+    if ((ctx->theFlags & INIT) == 0) {
+        throw_java_invalid_state(env, "Cipher is not initialised");
+        return true;
+    }
+
+    /* Complete the AEAD section if this is the first data */
+    if ((ctx->theFlags & AEAD_COMPLETE) == 0) {
+        gcm_siv_hasher_completeHash(&ctx->theAEADHasher, ctx->theReverse, &ctx->theMultiplier, ctx->theGHash);
+        ctx->theFlags |= AEAD_COMPLETE;
+    }
+
+    /* Make sure that we haven't breached data limit */
+    long dataLimit = MAX_DATALEN;
+    long currBytes = theEncDataSize;
+    if (!ctx->encryption) {
+        dataLimit += BUFLEN;
+    }
+    if (currBytes > dataLimit - pLen) {
+        throw_java_invalid_state(env, "byte count exceeded");
+        return true;
+    }
+    return false;
+}
+
 
 /*
  * Class:     org_bouncycastle_crypto_engines_AESNativeGCMSIV
@@ -55,8 +102,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_rese
  * Signature: (JZ[B[B[BI)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_initNative
-        (JNIEnv *env, jclass cl, jlong ref, jboolean encryption, jbyteArray key_, jbyteArray iv_, jbyteArray ad_,
-         jint macSizeInBits) {
+        (JNIEnv *env, jclass cl, jlong ref, jboolean encryption, jbyteArray key_, jbyteArray iv_, jbyteArray ad_) {
 
     gcm_siv_err *err = NULL;
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
@@ -65,11 +111,6 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_init
     init_bytearray_ctx(&key);
     init_bytearray_ctx(&iv);
     init_bytearray_ctx(&ad);
-
-    if (macSizeInBits < 32 || macSizeInBits > 128 || macSizeInBits % 8 != 0) {
-        throw_java_illegal_argument(env, "invalid value for MAC size");
-        goto exit;
-    }
 
 
     if (!load_bytearray_ctx(&key, env, key_)) {
@@ -87,7 +128,6 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_init
         goto exit;
     }
 
-
     if (!aes_keysize_is_valid_and_not_null(env, &key)) {
         goto exit;
     }
@@ -96,11 +136,10 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_init
         goto exit;
     }
 
-    if (iv.size < 12) {
+    if (iv.size != 12) {
         throw_java_illegal_argument(env, "IV must be at least 12 bytes");
         goto exit;
     }
-
 
     err = gcm_siv_init(
             ctx,
@@ -110,9 +149,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_init
             iv.bytearray,
             iv.size,
             ad.bytearray,
-            ad.size,
-            (uint32_t) macSizeInBits);
-
+            ad.size);
 
     exit:
     release_bytearray_ctx(&key);
@@ -153,8 +190,9 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
         (JNIEnv *env, jclass cl, jlong ref, jbyte aadByte) {
 
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
-    gcm_siv_process_aad_byte(ctx, (uint8_t) aadByte);
-
+    checkAEADStatus(env, ctx, 1);
+    uint8_t theByte = (uint8_t) aadByte;
+    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->theMultiplier, &theByte, 1, ctx->theReverse, ctx->theGHash);
 }
 
 /*
@@ -174,15 +212,15 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
         goto exit;
     }
 
-
     if (!bytearray_not_null(&aad, "aad was null", env)) {
         goto exit;
     }
     if (!bytearray_offset_and_len_are_in_range(&aad, offset, len, env)) {
         goto exit;
     }
-
-    gcm_siv_process_aad_bytes(ctx, aad.bytearray + offset, (size_t) len);
+    checkAEADStatus(env, ctx, len);
+    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->theMultiplier, aad.bytearray + offset, len, ctx->theReverse,
+                              ctx->theGHash);
 
     exit:
     release_bytearray_ctx(&aad);
@@ -195,52 +233,27 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
  * Signature: (JB[BI)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_processByte
-        (JNIEnv *env, jclass cl, jlong ref, jbyte byte, jbyteArray out, jint offset) {
-
-    gcm_siv_err *err = NULL;
-    critical_bytearray_ctx output;
-    init_critical_ctx(&output, env, out);
-
+        (JNIEnv *env, jclass cl, jlong ref, jbyte byte, jbyteArray out, jint offset,
+         jint theEndDataSize) {
     size_t written = 0;
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
-
-
 
     if (offset < 0) {
         throw_java_illegal_argument(env, "offset is negative");
         goto exit;
     }
 
-    if (output.array != NULL) {
-        if (!critical_offset_is_in_range(&output, offset, env)) {
-            goto exit;
-        }
-    }
-
-    if (!load_critical_ctx(&output)) {
-        throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
+    if (checkStatus(env, ctx, 1, theEndDataSize)) {
         goto exit;
     }
-
-
     // NULL is a valid destination if the caller is not expecting any output
     // GCMSIV will return an error if there is a decryption result is generated.
 
-    uint8_t *dest = output.critical == NULL ? NULL : output.critical + offset;
-    size_t outputLen = output.array == NULL ? 0 : output.size - (size_t) offset;
-
-    err = gcm_siv_process_byte(
-            ctx,
-            (uint8_t) byte,
-            dest,
-            outputLen, &written);
-
+    uint8_t input = (uint8_t) byte;
+    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->theMultiplier, &input, 1, ctx->theReverse,
+                              ctx->theGHash);
     exit:
-    release_critical_ctx(&output);
-
-    handle_gcm_siv_result(env, err);
-
-    return (jint) written;
+    return 0;
 }
 
 /*
@@ -249,14 +262,12 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
  * Signature: (J[BII[BI)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_processBytes
-        (JNIEnv *env, jclass cl, jlong ref, jbyteArray in, jint inOff, jint len, jbyteArray out, jint outoff) {
-
-    gcm_siv_err *err = NULL;
+        (JNIEnv *env, jclass cl, jlong ref, jbyteArray in, jint inOff, jint len, jbyteArray out, jint outoff,
+         jint theEndDataSize) {
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
     size_t written = 0;
 
-    critical_bytearray_ctx input, output;
-    init_critical_ctx(&output, env, out);
+    critical_bytearray_ctx input;
     init_critical_ctx(&input, env, in);
 
 
@@ -269,53 +280,25 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
         goto exit;
     }
 
-
-    if (output.array != NULL) {
-        if (!critical_offset_is_in_range(&output, outoff, env)) {
-            goto exit;
-        }
-    }
-
     if (!critical_offset_and_len_are_in_range(&input, inOff, len, env)) {
         goto exit;
     }
 
-
-    if (!load_critical_ctx(&output)) {
-        throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
-        goto exit;
-    }
-
     if (!load_critical_ctx(&input)) {
-        release_critical_ctx(&output);
         throw_java_invalid_state(env, "unable to obtain ptr to valid input array");
         goto exit;
     }
 
-
+    if (checkStatus(env, ctx, len, theEndDataSize)) {
+        goto exit;
+    }
     // NULL is a valid destination if the caller is not expecting any output
     // GCMSIV will return an error if there is a decryption result is generated.
-
-    uint8_t *dest = output.critical == NULL ? NULL : output.critical + outoff;
-    size_t outLen = output.array == NULL ? 0 : output.size - (size_t) outoff;
-
     uint8_t *src = input.critical + inOff;
-
-
-    err = gcm_siv_process_bytes(ctx,
-                            src,
-                            (size_t) len,
-                            dest,
-                            outLen,
-                            &written);
-
-
+    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->theMultiplier, src, len, ctx->theReverse,
+                              ctx->theGHash);
     exit:
     release_critical_ctx(&input);
-    release_critical_ctx(&output);
-
-
-    handle_gcm_siv_result(env, err);
 
     return (jint) written;
 }
@@ -326,21 +309,23 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
  * Signature: (J[BI)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_doFinal
-        (JNIEnv *env, jclass cl, jlong ref, jbyteArray out, jint offset) {
+        (JNIEnv *env, jclass cl, jlong ref, jbyteArray out, jint offset, jbyteArray in, jint theEndDataSize) {
 
     gcm_siv_err *err = NULL;
     size_t written = 0;
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
-    critical_bytearray_ctx output;
+    critical_bytearray_ctx input, output;
 
     init_critical_ctx(&output, env, out);
-
-
+    init_critical_ctx(&input, env, in);
 
     if (!critical_not_null(&output, "output was null", env)) {
         goto exit;
     }
 
+    if (!critical_not_null(&input, "input was null", env)) {
+        goto exit;
+    }
 
     if (!critical_offset_is_in_range(&output, offset, env)) {
         goto exit;
@@ -351,10 +336,14 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_doFi
         goto exit;
     }
 
+    if (checkStatus(env, ctx, 0, theEndDataSize)) {
+        goto exit;
+    }
+
     uint8_t *dest = output.critical + offset;
     size_t len = output.size - (size_t) offset;
 
-    err = gcm_siv_doFinal(ctx, dest, len, &written);
+    err = gcm_siv_doFinal(ctx, input.critical, (size_t) theEndDataSize, dest, &written);
 
     exit:
     release_critical_ctx(&output);
@@ -371,7 +360,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_doFi
  * Signature: (JI)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_getUpdateOutputSize
-        (JNIEnv *env, jclass cl, jlong ref, jint len) {
+        (JNIEnv *env, jclass cl, jlong ref, jint len, jint stream_len) {
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
 
     if (len < 0) {
@@ -379,7 +368,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_getU
         return 0;
     }
 
-    return (jint) gcm_siv_get_update_output_size(ctx, (size_t) len);
+    return (jint) gcm_siv_get_output_size(ctx->encryption, (size_t) len);
 }
 
 /*
@@ -397,7 +386,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_getO
         return 0;
     }
 
-    return (jint) gcm_siv_get_output_size(ctx, (size_t) len);
+    return (jint) gcm_siv_get_output_size(ctx->encryption, (size_t) len);
 }
 
 /*
@@ -435,34 +424,3 @@ JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSI
     return out;
 }
 
-/*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCMSIV
- * Method:    setBlocksRemainingDown
- * Signature: (JJ)V
- */
-JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_setBlocksRemainingDown
-        (JNIEnv *env, jobject oj, jlong ref, jlong downValue) {
-
-    //
-    // This method is not part of the public api, it is used in testing.
-    //
-
-    gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
-
-    if (downValue < 0) {
-        throw_java_illegal_argument(env, "attempt to increment blocks remaining");
-        return;
-    }
-
-    if (ctx->totalBytes > 0) {
-        throw_java_illegal_argument(env, "data has been written");
-        return;
-    }
-
-    if (ctx->blocksRemaining - downValue > ctx->blocksRemaining) {
-        throw_java_illegal_argument(env, "attempt to increment blocks remaining");
-        return;
-    }
-
-    ctx->blocksRemaining -= downValue;
-}

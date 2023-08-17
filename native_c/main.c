@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include "intel/common.h"
 
-#include "intel/packet/gcm_pc/gcm_pc.h"
+#include "intel/gcm_siv/gcm_siv.h"
 #include <immintrin.h>
 #include <assert.h>
 #include <memory.h>
@@ -74,19 +74,41 @@ int main() {
 //    uint8_t *key = from_hex("abfd13f758cbe63489b579e5076ddfc2f16db58fabfd13f7", 49);
 //    uint8_t *iv = from_hex("aafd12f659cae634", 17);
     size_t outputLen;
-    uint8_t *K1 = from_hex("feffe9928665731c6d6a8f9467308308", 33);
-    uint8_t *N1 = from_hex("cafebabefacedbaddecaf888", 25);
-    uint8_t *A1 = from_hex("feedfacedeadbeeffeedfacedeadbeefabaddad2", 41);
-    uint8_t *P1 = from_hex("d9313225f88406e5a55909c5aff5269a86a7a9531534f7da2e4c303d8a318a721c3c0c95956809532fcf0e2449a6b525b16aedf5aa0de657ba637b39", 121);
-    uint8_t *T1 = from_hex("5bc94fbc3221a5db94fae95ae7121a47", 33);
-    uint8_t *C1 = from_hex("42831ec2217774244b7221b784d0d49ce3aa212f2c02a4e035c17e2329aca12e21d514b25466931c7d8f6a5aac84aa051ba30b396a0aac973d58e091", 121);
+    uint8_t *EMPTY = from_hex("", 0);
+    uint8_t *KEY_1 = from_hex("01000000000000000000000000000000", 33);
+    uint8_t *NONCE_1 = from_hex("030000000000000000000000", 25);
+    uint8_t *DATA_8 = from_hex("0100000000000000", 17);
+    uint8_t *DATA_12 = from_hex("010000000000000000000000", 25);
+    uint8_t *DATA_16 = from_hex("01000000000000000000000000000000", 33);
+    uint8_t *DATA_32 = from_hex("0100000000000000000000000000000002000000000000000000000000000000", 65);
+    uint8_t *DATA_48 = from_hex(
+            "010000000000000000000000000000000200000000000000000000000000000003000000000000000000000000000000", 97);
+    uint8_t *DATA_64 = from_hex(
+            "01000000000000000000000000000000020000000000000000000000000000000300000000000000000000000000000004000000000000000000000000000000",
+            129);
+    uint8_t *EXPECTED_1 = from_hex("dc20e2d83f25705bb49e439eca56de25", 33);
+    uint8_t *EXPECTED_2 = from_hex("b5d839330ac7b786578782fff6013b815b287c22493a364c", 49);
+    uint8_t *EXPECTED_3 = from_hex("7323ea61d05932260047d942a4978db357391a0bc4fdec8b0d106639", 57);
+    uint8_t *EXPECTED_4 = from_hex("743f7c8077ab25f8624e2e948579cf77303aaf90f6fe21199c6068577437a0c4", 65);
+    uint8_t *EXPECTED_5 = from_hex(
+            "84e07e62ba83a6585417245d7ec413a9fe427d6315c09b57ce45f2e3936a94451a8e45dcd4578c667cd86847bf6155ff", 97);
+    uint8_t *EXPECTED_6 = from_hex(
+            "3fd24ce1f5a67b75bf2351f181a475c7b800a5b4d3dcf70106b1eea82fa1d64df42bf7226122fa92e17a40eeaac1201b5e6e311dbf395d35b0fe39c2714388f8",
+            129);
+    uint8_t *EXPECTED_7 = from_hex(
+            "2433668f1058190f6d43e360f4f35cd8e475127cfca7028ea8ab5c20f7ab2af02516a2bdcbc08d521be37ff28c152bba36697f25b4cd169c6590d1dd39566d3f8a263dd317aa88d56bdf3936dba75bb8",
+            161);
 
     uint8_t Cout[76];
     size_t written = 0;
-    gcm_pc_process_packet(true, K1, 16, N1, 12, 12, A1, 20, P1, 60, Cout, &written);
+//    gcm_pc_process_packet(true, K1, 16, N1, 12, 12, A1, 20, P1, 60, Cout, &written);
+    gcm_siv_ctx *ctx = gcm_siv_create_ctx();
+    print_bytes(NONCE_1, 12);
+    gcm_siv_init(ctx, false, KEY_1, 16, NONCE_1, 12, NULL, 0);
+    gcm_siv_hasher_updateHash(&ctx->theDataHasher, &ctx->theMultiplier, EXPECTED_2,  8, ctx->theReverse, ctx->theGHash);
+    gcm_siv_doFinal(ctx, EXPECTED_2, 24, Cout, &written);
 
-
-    print_bytes(Cout, 76);
+    print_bytes(Cout, written);
 
     return 0;
 }

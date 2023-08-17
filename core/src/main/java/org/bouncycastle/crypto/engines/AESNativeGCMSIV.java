@@ -1,10 +1,13 @@
 package org.bouncycastle.crypto.engines;
 
+import java.io.ByteArrayOutputStream;
+
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.modes.GCMSIVBlockCipher;
 import org.bouncycastle.crypto.modes.GCMSIVModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -19,70 +22,10 @@ public class AESNativeGCMSIV
     private GCMSIVRefWrapper refWrapper;
     private byte[] keptMac;
 
-//    /**
-//     * The buffer length.
-//     */
-//    private static final int BUFLEN = 16;
-
-//    /**
-//     * The halfBuffer length.
-//     */
-//    private static final int HALFBUFLEN = BUFLEN >> 1;
-//
-//    /**
-//     * The nonce length.
-//     */
-//    private static final int NONCELEN = 12;
-//
-//    /**
-//     * The maximum data length (AEAD/PlainText). Due to implementation constraints this is restricted to the maximum
-//     * array length (https://programming.guide/java/array-maximum-length.html) minus the BUFLEN to allow for the MAC
-//     */
-//    private static final int MAX_DATALEN = Integer.MAX_VALUE - 8 - BUFLEN;
-//
-//    /**
-//     * The top bit mask.
-//     */
-//    private static final byte MASK = (byte)0x80;
-//
-//    /**
-//     * The addition constant.
-//     */
-//    private static final byte ADD = (byte)0xE1;
-//
-//    /**
-//     * The initialisation flag.
-//     */
-//    private static final int INIT = 1;
-//
-//    /**
-//     * The aeadComplete flag.
-//     */
-//    private static final int AEAD_COMPLETE = 2;
-//
-//
-//
-//    /**
-//     * The gHash buffer.
-//     */
-//    private final byte[] theGHash = new byte[BUFLEN];
-//
-//    /**
-//     * The reverse buffer.
-//     */
-//    private final byte[] theReverse = new byte[BUFLEN];
-//
-//
-//
-//    /**
-//     * The plainDataStream.
-//     */
-//    private GCMSIVBlockCipher.GCMSIVCache thePlain;
-//
-//    /**
-//     * The encryptedDataStream (decryption only).
-//     */
-//    private GCMSIVBlockCipher.GCMSIVCache theEncData;
+    /**
+     * The encryptedDataStream
+     */
+    private GCMSIVCache theEncData;
 
     /**
      * Are we encrypting?
@@ -99,13 +42,8 @@ public class AESNativeGCMSIV
      */
     private byte[] theNonce;
     private boolean initialised = false;
-    //    /**
-//     * The flags.
-//     */
-//    private int theFlags;
-//
-//    // defined fixed
-//    private byte[] macBlock = new byte[macSize];
+
+    private byte[] macBlock = new byte[macSize];
     private static int macSize = 16;
 
     private byte[] lastKey;
@@ -126,13 +64,12 @@ public class AESNativeGCMSIV
         throws IllegalArgumentException
     {
         this.forEncryption = forEncryption;
-        KeyParameter keyParam;
         keptMac = null;
 
         /* Set defaults */
         byte[] myInitialAEAD = null;
-        byte[] myNonce = null;
-        KeyParameter myKey = null;
+        byte[] myNonce;
+        KeyParameter myKey;
 
         /* Access parameters */
         if (cipherParameters instanceof AEADParameters)
@@ -152,20 +89,6 @@ public class AESNativeGCMSIV
         {
             throw new IllegalArgumentException("invalid parameters passed to GCM-SIV");
         }
-
-//        /* Check nonceSize */
-//        if (myNonce == null || myNonce.length != NONCELEN)
-//        {
-//            throw new IllegalArgumentException("Invalid nonce");
-//        }
-
-        /* Check keysize */
-//        if (myKey == null
-//            || (myKey.getKeyLength() != BUFLEN
-//            && myKey.getKeyLength() != (BUFLEN << 1)))
-//        {
-//            throw new IllegalArgumentException("Invalid key");
-//        }
 
         /* Reset details */
         theInitialAEAD = myInitialAEAD;
@@ -187,11 +110,9 @@ public class AESNativeGCMSIV
         initNative(
             refWrapper.getReference(),
             forEncryption, lastKey,
-            theNonce, theInitialAEAD, macSize);
+            theNonce, theInitialAEAD);
         initialised = true;
-        /* Initialise the keys */
-//        deriveKeys(myKey);
-//        resetStreams();
+        resetStreams();
     }
 
     private void initRef(int keySize)
@@ -230,8 +151,8 @@ public class AESNativeGCMSIV
         {
             throw new IllegalStateException(ExceptionMessage.GCM_SIV_UNINITIALIZED);
         }
-
-        return processByte(refWrapper.getReference(), in, out, outOff);
+        theEncData.write(in);
+        return processByte(refWrapper.getReference(), in, out, outOff, theEncData.size());
     }
 
     @Override
@@ -242,8 +163,8 @@ public class AESNativeGCMSIV
         {
             throw new IllegalStateException(ExceptionMessage.GCM_SIV_UNINITIALIZED);
         }
-
-        return processBytes(refWrapper.getReference(), in, inOff, len, out, outOff);
+        theEncData.write(in, inOff, len);
+        return processBytes(refWrapper.getReference(), in, inOff, len, out, outOff, theEncData.size());
     }
 
     @Override
@@ -258,7 +179,8 @@ public class AESNativeGCMSIV
             }
             throw new IllegalStateException("GCM cipher needs to be initialised");
         }
-        int len = doFinal(refWrapper.getReference(), out, outOff);
+        byte[] mySrc = theEncData.getBuffer();
+        int len = doFinal(refWrapper.getReference(), out, outOff, mySrc, theEncData.size());
         //resetKeepMac
         keptMac = getMac();
         reset(refWrapper.getReference());
@@ -279,13 +201,18 @@ public class AESNativeGCMSIV
     @Override
     public int getUpdateOutputSize(int len)
     {
-        return getUpdateOutputSize(refWrapper.getReference(), len);
+        return getUpdateOutputSize(refWrapper.getReference(), len, theEncData.size());
     }
 
     @Override
     public int getOutputSize(int len)
     {
         return getOutputSize(refWrapper.getReference(), len);
+    }
+
+    private void resetStreams()
+    {
+        theEncData = new GCMSIVCache();
     }
 
     @Override
@@ -339,8 +266,7 @@ public class AESNativeGCMSIV
         boolean forEncryption,
         byte[] keyParam,
         byte[] nonce,
-        byte[] initialAssociatedText,
-        int macSizeBits);
+        byte[] initialAssociatedText);
 
     static native long makeInstance(int keySize, boolean forEncryption);
 
@@ -350,16 +276,48 @@ public class AESNativeGCMSIV
 
     private static native void processAADBytes(long ref, byte[] in, int inOff, int len);
 
-    private static native int processByte(long ref, byte in, byte[] out, int outOff);
+    private static native int processByte(long ref, byte in, byte[] out, int outOff, int theEndDataSize);
 
-    private static native int processBytes(long ref, byte[] in, int inOff, int len, byte[] out, int outOff);
+    private static native int processBytes(long ref, byte[] in, int inOff, int len, byte[] out, int outOff, int theEndDataSize);
 
-    private static native int doFinal(long ref, byte[] out, int outOff);
+    private static native int doFinal(long ref, byte[] out, int outOff, byte[] theEndData, int theEndDataSize);
 
-    private static native int getUpdateOutputSize(long ref, int len);
+    private static native int getUpdateOutputSize(long ref, int len, int streamLen);
 
     private static native int getOutputSize(long ref, int len);
 
     public static native byte[] getMac(long ref);
+
+    /**
+     * GCMSIVCache.
+     */
+    private static class GCMSIVCache
+        extends ByteArrayOutputStream
+    {
+        /**
+         * Constructor.
+         */
+        GCMSIVCache()
+        {
+        }
+
+        /**
+         * Obtain the buffer.
+         *
+         * @return the buffer
+         */
+        byte[] getBuffer()
+        {
+            return this.buf;
+        }
+
+        /**
+         * Clear the buffer.
+         */
+        void clearBuffer()
+        {
+            Arrays.fill(getBuffer(), (byte)0);
+        }
+    }
 
 }

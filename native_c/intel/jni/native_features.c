@@ -133,6 +133,24 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeGCM
+ * Signature: ()Z
+ */
+__attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCMSIV
+        (JNIEnv *env, jclass cl) {
+
+    cpuid_t info;
+    cpuid(&info, 1, 0);
+
+    bool aes = (info.ecx & (1 << 25)) != 0;
+    bool pclmulqdq = (info.ecx & (1 << 1)) != 0;
+
+    return (aes && pclmulqdq) ? JNI_TRUE : JNI_FALSE;
+
+}
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
  * Method:    nativeGCMPC
  * Signature: ()Z
  */

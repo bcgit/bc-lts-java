@@ -104,6 +104,24 @@ class NativeFeatures
 
     private static native boolean nativeGCM();
 
+    static boolean hasGCMSIVHardwareSupport()
+    {
+        try
+        {
+            return nativeGCMSIV();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.log(Level.FINE, "native gcm-siv exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+    private static native boolean nativeGCMSIV();
+
 
 
 

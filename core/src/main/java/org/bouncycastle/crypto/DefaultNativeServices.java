@@ -120,6 +120,11 @@ class DefaultNativeServices
                 set.add(AES_GCM);
             }
 
+            if (NativeFeatures.hasGCMSIVHardwareSupport())
+            {
+                set.add(AES_GCMSIV);
+            }
+
             if (NativeFeatures.hasCBCHardwareSupport())
             {
                 set.add(AES_CBC);

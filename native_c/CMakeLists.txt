@@ -556,16 +556,14 @@ else ()
     set(GCM_SIV
             intel/gcm_siv/gcm_siv.h
             intel/gcm_siv/gcm_siv.c
-            intel/gcm_siv/gcm_sivHash128.h
-            intel/gcm_siv/gcm_siv128w.c
+
             intel/jni/gcm_siv_jni.c
     )
 
     set(GCM_SIV_VAESF
             intel/gcm_siv/gcm_siv.h
             intel/gcm_siv/gcm_siv.c
-            intel/gcm_siv/gcm_sivHash512.h
-            intel/gcm_siv/gcm_siv512w.c
+
             intel/jni/gcm_siv_jni.c
     )
 

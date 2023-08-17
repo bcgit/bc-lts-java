@@ -9,6 +9,7 @@ public interface NativeServices
 
     String AES_ECB = "AES/ECB";
     String AES_GCM = "AES/GCM";
+    String AES_GCMSIV = "AES/GCM-SIV";
     String AES_CBC = "AES/CBC";
     String AES_CFB = "AES/CFB";
     String AES_CTR = "AES/CTR";
