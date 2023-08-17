@@ -109,7 +109,6 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 }
 
 
-
 /*
  * Class:     org_bouncycastle_util_NativeFeatures
  * Method:    nativeRand
@@ -157,8 +156,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
     cpuid_t info;
     cpuid(&info, 7, 0);
 
-    return JNI_FALSE;
-   // return (info.ebx & (1 << 29)) != 0 ? JNI_TRUE : JNI_FALSE;
+    return (info.ebx & (1 << 29)) != 0 ? JNI_TRUE : JNI_FALSE;
 
 }
 
