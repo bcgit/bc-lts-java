@@ -227,81 +227,80 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
 
 }
 
-/*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCMSIV
- * Method:    processByte
- * Signature: (JB[BI)I
- */
-JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_processByte
-        (JNIEnv *env, jclass cl, jlong ref, jbyte byte, jbyteArray out, jint offset,
-         jint theEndDataSize) {
-    size_t written = 0;
-    gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
+///*
+// * Class:     org_bouncycastle_crypto_engines_AESNativeGCMSIV
+// * Method:    processByte
+// * Signature: (JB[BI)I
+// */
+//JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_processByte
+//        (JNIEnv *env, jclass cl, jlong ref, jbyte byte, jint theEndDataSize) {
+//    size_t written = 0;
+//    gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
+//
+////    if (offset < 0) {
+////        throw_java_illegal_argument(env, "offset is negative");
+////        goto exit;
+////    }
+//
+//    if (checkStatus(env, ctx, 1, theEndDataSize)) {
+//        goto exit;
+//    }
+//    // NULL is a valid destination if the caller is not expecting any output
+//    // GCMSIV will return an error if there is a decryption result is generated.
+//
+//    uint8_t input = (uint8_t) byte;
+//    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->theMultiplier, &input, 1, ctx->theReverse,
+//                              ctx->theGHash);
+//    exit:
+//    return 0;
+//}
 
-    if (offset < 0) {
-        throw_java_illegal_argument(env, "offset is negative");
-        goto exit;
-    }
-
-    if (checkStatus(env, ctx, 1, theEndDataSize)) {
-        goto exit;
-    }
-    // NULL is a valid destination if the caller is not expecting any output
-    // GCMSIV will return an error if there is a decryption result is generated.
-
-    uint8_t input = (uint8_t) byte;
-    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->theMultiplier, &input, 1, ctx->theReverse,
-                              ctx->theGHash);
-    exit:
-    return 0;
-}
-
-/*
- * Class:     org_bouncycastle_crypto_engines_AESNativeGCMSIV
- * Method:    processBytes
- * Signature: (J[BII[BI)I
- */
-JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_processBytes
-        (JNIEnv *env, jclass cl, jlong ref, jbyteArray in, jint inOff, jint len, jbyteArray out, jint outoff,
-         jint theEndDataSize) {
-    gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
-    size_t written = 0;
-
-    critical_bytearray_ctx input;
-    init_critical_ctx(&input, env, in);
-
-
-    if (!critical_not_null(&input, "input was null", env)) {
-        goto exit;
-    }
-
-    if (outoff < 0) {
-        throw_java_illegal_argument(env, "output offset is negative");
-        goto exit;
-    }
-
-    if (!critical_offset_and_len_are_in_range(&input, inOff, len, env)) {
-        goto exit;
-    }
-
-    if (!load_critical_ctx(&input)) {
-        throw_java_invalid_state(env, "unable to obtain ptr to valid input array");
-        goto exit;
-    }
-
-    if (checkStatus(env, ctx, len, theEndDataSize)) {
-        goto exit;
-    }
-    // NULL is a valid destination if the caller is not expecting any output
-    // GCMSIV will return an error if there is a decryption result is generated.
-    uint8_t *src = input.critical + inOff;
-    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->theMultiplier, src, len, ctx->theReverse,
-                              ctx->theGHash);
-    exit:
-    release_critical_ctx(&input);
-
-    return (jint) written;
-}
+///*
+// * Class:     org_bouncycastle_crypto_engines_AESNativeGCMSIV
+// * Method:    processBytes
+// * Signature: (J[BII[BI)I
+// */
+//JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_processBytes
+//        (JNIEnv *env, jclass cl, jlong ref, jbyteArray in, jint inOff, jint len,
+//         jint theEndDataSize) {
+//    gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
+//    size_t written = 0;
+//
+//    critical_bytearray_ctx input;
+//    init_critical_ctx(&input, env, in);
+//
+//
+//    if (!critical_not_null(&input, "input was null", env)) {
+//        goto exit;
+//    }
+//
+////    if (outoff < 0) {
+////        throw_java_illegal_argument(env, "output offset is negative");
+////        goto exit;
+////    }
+//
+//    if (!critical_offset_and_len_are_in_range(&input, inOff, len, env)) {
+//        goto exit;
+//    }
+//
+//    if (!load_critical_ctx(&input)) {
+//        throw_java_invalid_state(env, "unable to obtain ptr to valid input array");
+//        goto exit;
+//    }
+//
+//    if (checkStatus(env, ctx, len, theEndDataSize)) {
+//        goto exit;
+//    }
+//    // NULL is a valid destination if the caller is not expecting any output
+//    // GCMSIV will return an error if there is a decryption result is generated.
+//    uint8_t *src = input.critical + inOff;
+//    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->theMultiplier, src, len, ctx->theReverse,
+//                              ctx->theGHash);
+//    exit:
+//    release_critical_ctx(&input);
+//
+//    return (jint) written;
+//}
 
 /*
  * Class:     org_bouncycastle_crypto_engines_AESNativeGCMSIV
@@ -333,6 +332,11 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_doFi
 
     if (!load_critical_ctx(&output)) {
         throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
+        goto exit;
+    }
+
+    if (!load_critical_ctx(&input)) {
+        throw_java_invalid_state(env, "unable to obtain ptr to valid input array");
         goto exit;
     }
 

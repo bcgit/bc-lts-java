@@ -152,7 +152,7 @@ public class AESNativeGCMSIV
             throw new IllegalStateException(ExceptionMessage.GCM_SIV_UNINITIALIZED);
         }
         theEncData.write(in);
-        return processByte(refWrapper.getReference(), in, out, outOff, theEncData.size());
+        return 0;
     }
 
     @Override
@@ -164,7 +164,7 @@ public class AESNativeGCMSIV
             throw new IllegalStateException(ExceptionMessage.GCM_SIV_UNINITIALIZED);
         }
         theEncData.write(in, inOff, len);
-        return processBytes(refWrapper.getReference(), in, inOff, len, out, outOff, theEncData.size());
+        return 0;
     }
 
     @Override
@@ -275,10 +275,6 @@ public class AESNativeGCMSIV
     private static native void processAADByte(long ref, byte in);
 
     private static native void processAADBytes(long ref, byte[] in, int inOff, int len);
-
-    private static native int processByte(long ref, byte in, byte[] out, int outOff, int theEndDataSize);
-
-    private static native int processBytes(long ref, byte[] in, int inOff, int len, byte[] out, int outOff, int theEndDataSize);
 
     private static native int doFinal(long ref, byte[] out, int outOff, byte[] theEndData, int theEndDataSize);
 

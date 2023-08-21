@@ -260,7 +260,7 @@ deriveKeys(tables4kGCMMultiplier *theMultiplier, __m128i *roundKeys, uint8_t *ke
     uint8_t myIn[BUFLEN];
     uint8_t myOut[BUFLEN];
     uint8_t myResult[BUFLEN];
-    uint8_t myEncKey[BUFLEN];
+    uint8_t myEncKey[BUFLEN << 1];
 
     /* Prepare for encryption */
     *num_rounds = (int) generate_key(true, key, roundKeys, key_len);
@@ -405,7 +405,7 @@ gcm_siv_process_packet(const uint8_t *mySrc, int myRemaining, uint8_t *pCounter,
             myMask[i] ^= mySrc[i + myOff];
         }
         /* Copy encrypted data to output */
-        memcpy(output, myMask, (unsigned long) myLen);
+        memcpy(output + myOff, myMask, (unsigned long) myLen);
 
         /* Adjust counters */
         myRemaining -= myLen;
@@ -425,6 +425,8 @@ void incrementCounter(uint8_t *pCounter) {
 
 gcm_siv_err *gcm_siv_doFinal(gcm_siv_ctx *ctx, uint8_t *input, size_t len, uint8_t *output, size_t *written) {
     if (ctx->encryption) {
+        gcm_siv_hasher_updateHash(&ctx->theDataHasher, &ctx->theMultiplier, input,
+                                  (int) len, ctx->theReverse, ctx->theGHash);
         calculateTag(&ctx->theDataHasher, &ctx->theAEADHasher, ctx->theReverse, &ctx->theMultiplier, ctx->roundKeys,
                      ctx->num_rounds, ctx->theGHash, ctx->nonce, ctx->macBlock);
         gcm_siv_process_packet(input, (int) len, ctx->macBlock, ctx->roundKeys, ctx->num_rounds, output);
@@ -435,11 +437,26 @@ gcm_siv_err *gcm_siv_doFinal(gcm_siv_ctx *ctx, uint8_t *input, size_t len, uint8
     } else {
         size_t outputLen = len - BLOCK_SIZE;
         gcm_siv_process_packet(input, (int) outputLen, input + outputLen, ctx->roundKeys, ctx->num_rounds, output);
+        gcm_siv_hasher_updateHash(&ctx->theDataHasher, &ctx->theMultiplier, output,
+                                  (int) outputLen, ctx->theReverse, ctx->theGHash);
         calculateTag(&ctx->theDataHasher, &ctx->theAEADHasher, ctx->theReverse, &ctx->theMultiplier, ctx->roundKeys,
                      ctx->num_rounds, ctx->theGHash, ctx->nonce, ctx->macBlock);
         *written = len - BLOCK_SIZE;
         if (!tag_verification(input + outputLen, ctx->macBlock, BLOCK_SIZE)) {
-            return make_gcm_siv_error("mac check  failed", ILLEGAL_CIPHER_TEXT);
+            char str[200]; // Adjust the size as needed
+            // Convert the array of integers to a comma-separated string
+            int offset = 0;
+            for (int i = 0; i < BLOCK_SIZE; ++i) {
+                int n = snprintf(str + offset, (unsigned long) (200 - offset), "%d",
+                                 (ctx->macBlock[i] > 127) ? ctx->macBlock[i] - 256 : ctx->macBlock[i]);
+                offset += n;
+                if (i < BLOCK_SIZE - 1) {
+                    n = snprintf(str + offset, (unsigned long) (200 - offset), ",");
+                    offset += n;
+                }
+            }
+            printf("tag: %s\n", str);
+            return make_gcm_siv_error(str, ILLEGAL_CIPHER_TEXT);//"mac check  failed"
         }
     }
     return NULL;
