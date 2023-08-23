@@ -25,22 +25,17 @@
 #define GCM_BLOCK_SIZE 16
 #define BLOCK_SIZE 16
 #define FOUR_BLOCKS 64
-#define EIGHT_BLOCKS 128
 #define SIXTEEN_BLOCKS 256
 
 #define BLOCKS_REMAINING_INIT ((1L << 32) - 2L)
 #define MAC_BLOCK_LEN 16
 
 
-//#ifdef BC_AVX
-//#define HASHKEY_1 2
-//#define HASHKEY_0 3
-//#define HASHKEY_LEN 4
-//#else
+
 #define HASHKEY_1 14
 #define HASHKEY_0 15
 #define HASHKEY_LEN 16
-//#endif
+
 
 #define BUFLEN 16
 #define HALFBLOCK_SIZE 8
@@ -82,6 +77,7 @@ typedef struct {
     int num_rounds;
     bool encryption;
     uint8_t nonce[NONCELEN];
+    __m128i theNonce;
     uint8_t macBlock[MAC_BLOCK_LEN];
     uint8_t *initAD;
     size_t initADLen;
@@ -144,7 +140,7 @@ void gcm_siv_hasher_completeHash(gcm_siv_hasher *p_gsh, uint8_t *theReverse, tab
 
 void multiplyH(tables4kGCMMultiplier *p_multipler, const uint8_t *x);
 
-void gHASH(tables4kGCMMultiplier *p_multiplier, const uint8_t *theGHash, const uint8_t *pNext);
+void gHASH(tables4kGCMMultiplier *p_multiplier, const uint8_t *theGHash, __m128i *pNext);
 
 uint8_t
 deriveKeys(tables4kGCMMultiplier *theMultiplier, __m128i *roundKeys, uint8_t *key, char *theNonce, int *num_rounds,

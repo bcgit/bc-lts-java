@@ -35,7 +35,8 @@ typedef struct {
 #define ILLEGAL_ARGUMENT 2
 #define ILLEGAL_CIPHER_TEXT 3
 #define OUTPUT_LENGTH 4
-#define E1L  ((0xe1000000L& 0xFFFFFFFFL) << 32)
+//E1L=((0xe1000000L& 0xFFFFFFFFL) << 32)
+#define E1L  (-2233785415175766016L)
 
 void packet_err_free(packet_err *err);
 
@@ -55,10 +56,13 @@ size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, 
 
 bool tag_verification(const uint8_t *left, const uint8_t *right, size_t len);
 
+bool tag_verification_16(const uint8_t *left, const uint8_t *right);
+
 uint8_t areEqual(const uint8_t *x, const uint8_t *y, const size_t len);
 
 void divideP(__m128i *x, __m128i *z);
 
 __m128i createBigEndianM128i(const uint8_t *input);
 
+void reverse_bytes(__m128i* input, __m128i* output);
 #endif //BC_LTS_C_PACKET_UTILS_H

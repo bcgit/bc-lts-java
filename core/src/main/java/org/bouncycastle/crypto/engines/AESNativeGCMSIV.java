@@ -65,7 +65,7 @@ public class AESNativeGCMSIV
     {
         this.forEncryption = forEncryption;
         keptMac = null;
-
+        theEncData = new GCMSIVCache();
         /* Set defaults */
         byte[] myInitialAEAD = null;
         byte[] myNonce;
@@ -112,7 +112,7 @@ public class AESNativeGCMSIV
             forEncryption, lastKey,
             theNonce, theInitialAEAD);
         initialised = true;
-        resetStreams();
+//        resetStreams();
     }
 
     private void initRef(int keySize)
@@ -183,8 +183,7 @@ public class AESNativeGCMSIV
         int len = doFinal(refWrapper.getReference(), out, outOff, mySrc, theEncData.size());
         //resetKeepMac
         keptMac = getMac();
-        reset(refWrapper.getReference());
-        initialised = false;
+        resetStreams();
         return len;
     }
 
@@ -213,6 +212,7 @@ public class AESNativeGCMSIV
     private void resetStreams()
     {
         theEncData = new GCMSIVCache();
+        reset(refWrapper.getReference());
     }
 
     @Override

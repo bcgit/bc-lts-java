@@ -107,7 +107,7 @@ gcm_siv_err *gcm_siv_init(
     memset(ctx->macBlock, 0, MAC_BLOCK_LEN);
     memcpy(ctx->nonce, nonce, NONCELEN);
 
-    ctx->theFlags = deriveKeys(&ctx->theMultiplier, ctx->roundKeys, key, ctx->nonce, &ctx->num_rounds, keyLen,
+    ctx->theFlags = deriveKeys(&ctx->theMultiplier, ctx->roundKeys, key, (char *) ctx->nonce, &ctx->num_rounds, keyLen,
                                ctx->theFlags);
 
     resetStreams(ctx);
@@ -124,14 +124,10 @@ size_t gcm_siv_get_output_size(bool encryption, size_t len) {
 
 void fillReverse(const uint8_t *pInput, int pLength, uint8_t *pOutput) {
     /* Loop through the buffer */
-
-
     for (int i = 0, j = BLOCK_SIZE - 1; i < pLength; i++, j--) {
         /* Copy byte */
         pOutput[j] = pInput[i];
     }
-
-
 }
 
 void gcm_siv_hasher_reset(gcm_siv_hasher *p_gsh) {
@@ -147,36 +143,33 @@ gcm_siv_hasher_updateHash(gcm_siv_hasher *p_gsh, tables4kGCMMultiplier *p_multip
     const int mySpace = BLOCK_SIZE - p_gsh->numActive;
     int numProcessed = 0;
     int myRemaining = pLen;
+    __m128i d0;
     if (p_gsh->numActive > 0 && pLen >= mySpace) {
         /* Copy data into the cache and hash it */
         memcpy(p_gsh->theBuffer + p_gsh->numActive, pBuffer, (size_t) mySpace);
-        fillReverse(p_gsh->theBuffer, BLOCK_SIZE, theReverse);
+        reverse_bytes((__m128i *) p_gsh->theBuffer, (__m128i *) theReverse);
         gHASH(p_multiplier, theGHash, theReverse);
-
         /* Adjust counters */
         numProcessed += mySpace;
         myRemaining -= mySpace;
         p_gsh->numActive = 0;
     }
-
     /* While we have full blocks */
     while (myRemaining >= BLOCK_SIZE) {
         /* Access the next data */
-        fillReverse(pBuffer + numProcessed, BLOCK_SIZE, theReverse);
-        gHASH(p_multiplier, theGHash, theReverse);
-
+        d0 = _mm_loadu_si128((__m128i *) (pBuffer + numProcessed));
+        reverse_bytes(&d0, &d0);
+        gHASH(p_multiplier, theGHash, &d0);
         /* Adjust counters */
         numProcessed += BLOCK_SIZE;
         myRemaining -= BLOCK_SIZE;
     }
-
     /* If we have remaining data */
     if (myRemaining > 0) {
         /* Copy data into the cache */
         memcpy(p_gsh->theBuffer + p_gsh->numActive, pBuffer + numProcessed, (size_t) myRemaining);
         p_gsh->numActive += myRemaining;
     }
-
     /* Adjust the number of bytes processed */
     p_gsh->numHashed += pLen;
 }
@@ -200,10 +193,9 @@ void tables4kGCMMultiplier_init(tables4kGCMMultiplier *p_multiplier, uint8_t *H)
     memcpy(p_multiplier->H, H, BLOCK_SIZE);
     p_multiplier->T[0] = _mm_setzero_si128();
     __m128i d0 = createBigEndianM128i(p_multiplier->H);
-    //multiplyP7
     uint64_t c = ((uint64_t) d0[1]) << 57;
-    p_multiplier->T[1][0] = (long long int) (((uint64_t) d0[0] >> 7) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7));
-    p_multiplier->T[1][1] = (long long int) (((uint64_t) d0[1] >> 7) | ((uint64_t) d0[0] << 57));
+    p_multiplier->T[1][0] = (int64_t) (((uint64_t) d0[0] >> 7) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7));
+    p_multiplier->T[1][1] = (int64_t) (((uint64_t) d0[1] >> 7) | ((uint64_t) d0[0] << 57));
     size_t n;
     for (n = 2; n < 256; n += 2) {
         divideP((__m128i *) (p_multiplier->T + (n >> 1)), (__m128i *) (p_multiplier->T + n));
@@ -217,7 +209,6 @@ void multiplyH(tables4kGCMMultiplier *p_multiplier, const uint8_t *x) {
 
     for (int i = 14; i >= 0; --i) {
         t = p_multiplier->T[x[i] & 0xFF];
-
         uint64_t c = z1 << 56;
         z1 = (uint64_t) t[1] ^ ((z1 >> 8) | (z0 << 56));
         z0 = (uint64_t) t[0] ^ (z0 >> 8) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
@@ -226,8 +217,8 @@ void multiplyH(tables4kGCMMultiplier *p_multiplier, const uint8_t *x) {
     _mm_storeu_si128((__m128i *) x, z);
 }
 
-void gHASH(tables4kGCMMultiplier *p_multiplier, const uint8_t *theGHash, const uint8_t *pNext) {
-    _mm_storeu_si128((__m128i *) theGHash, _mm_xor_si128(*(__m128i *) theGHash, *(__m128i *) pNext));
+void gHASH(tables4kGCMMultiplier *p_multiplier, const uint8_t *theGHash, __m128i  *pNext) {
+    _mm_storeu_si128((__m128i *) theGHash, _mm_xor_si128(*(__m128i *) theGHash, *pNext));
     multiplyH(p_multiplier, theGHash);
 }
 
@@ -291,65 +282,53 @@ uint8_t
 deriveKeys(tables4kGCMMultiplier *theMultiplier, __m128i *roundKeys, uint8_t *key, char *theNonce, int *num_rounds,
            size_t key_len, uint8_t theFlags) {
     /* Create the buffers */
-    uint8_t myOut[BLOCK_SIZE];
-    uint8_t myResult[BLOCK_SIZE];
-    uint8_t myEncKey[BLOCK_SIZE << 1];
-
     /* Prepare for encryption */
     *num_rounds = (int) generate_key(true, key, roundKeys, key_len);
-
     /* Derive authentication key */
-    int myOff = 0;
-    __m128i d1;
+    uint8_t myResult[BLOCK_SIZE << 1];
+    __m128i *myResult1 = (__m128i *) myResult, *myResult2 = (__m128i *) (myResult + BLOCK_SIZE);
     __m128i d0 = _mm_set_epi8(theNonce[11], theNonce[10], theNonce[9], theNonce[8], theNonce[7],
                               theNonce[6], theNonce[5], theNonce[4], theNonce[3], theNonce[2], theNonce[1], theNonce[0],
                               0, 0, 0, 0);
-    encrypt_key(&d0, (__m128i *) myResult, roundKeys, *num_rounds);
-
+    encrypt_key(&d0, myResult1, roundKeys, *num_rounds);
     d0[0]++;
-    myOff += HALFBLOCK_SIZE;
-    encrypt_key(&d0, &d1, roundKeys, *num_rounds);
-    _mm_storeu_si64((__m128i *) (myResult + myOff), d1);
-
-    /* Derive encryption key */
-    d0[0]++;
-    myOff = 0;
-    encrypt_key(&d0, (__m128i *) myEncKey, roundKeys, *num_rounds);
-
-    d0[0]++;
-    myOff += HALFBLOCK_SIZE;
-    encrypt_key(&d0, &d1, roundKeys, *num_rounds);
-    _mm_storeu_si64((__m128i *) (myEncKey + myOff), d1);
-
-    /* If we have a 32byte key */
-    if (key_len == BLOCK_SIZE << 1) {
-        /* Derive remainder of encryption key */
-        d0[0]++;
-        myOff += HALFBLOCK_SIZE;
-        encrypt_key(&d0, &d1, roundKeys, *num_rounds);
-        _mm_storeu_si64((__m128i *) (myEncKey + myOff), d1);
-
-        d0[0]++;
-        myOff += HALFBLOCK_SIZE;
-        encrypt_key(&d0, &d1, roundKeys, *num_rounds);
-        _mm_storeu_si64((__m128i *) (myEncKey + myOff), d1);
-    }
-    /* Initialise the Cipher */
-    generate_key(true, myEncKey, roundKeys, key_len);
+    encrypt_key(&d0, myResult2, roundKeys, *num_rounds);
+    (*myResult1)[1] = (*myResult2)[0];
     /* Initialise the multiplier */
-    fillReverse(myResult, BLOCK_SIZE, myOut);
+    reverse_bytes(myResult1, myResult2);
+    uint8_t *myOut = (uint8_t *) myResult2;
     uint8_t myMask = 0;
     for (int i = 0; i < BLOCK_SIZE; i++) {
         uint8_t myValue = myOut[i];
         myOut[i] = (((myValue >> 1) & ~MASK) | myMask);
         myMask = (myValue & 1) == 0 ? 0 : MASK;
     }
-
     /* Xor in addition if last bit was set */
     if (myMask != 0) {
         myOut[0] ^= ADD;
     }
     tables4kGCMMultiplier_init(theMultiplier, myOut);
+
+    /* Derive encryption key */
+    d0[0]++;
+    encrypt_key(&d0, myResult1, roundKeys, *num_rounds);
+
+    d0[0]++;
+    encrypt_key(&d0, myResult2, roundKeys, *num_rounds);
+    (*myResult1)[1] = (*myResult2)[0];
+
+    /* If we have a 32byte key */
+    if (key_len == BLOCK_SIZE << 1) {
+        /* Derive remainder of encryption key */
+        d0[0]++;
+        encrypt_key(&d0, myResult2, roundKeys, *num_rounds);
+
+        d0[0]++;
+        encrypt_key(&d0, &d0, roundKeys, *num_rounds);
+        (*myResult2)[1] = d0[0];
+    }
+    /* Initialise the Cipher */
+    generate_key(true, myResult, roundKeys, key_len);
     return theFlags | INIT;
 }
 
@@ -371,71 +350,48 @@ void calculateTag(gcm_siv_hasher *theDataHasher, gcm_siv_hasher *theAEADHasher, 
                   const uint8_t *theNonce, uint8_t *macBlock) {
     /* Complete the hash */
     gcm_siv_hasher_completeHash(theDataHasher, theReverse, theMultiplier, theGHash);
-    uint8_t myPolyVal[BLOCK_SIZE];
-    __m128i d0;
-    d0[0] = _bswap64(theDataHasher->numHashed << 3);
-    d0[1] = _bswap64(theAEADHasher->numHashed << 3);
-    _mm_storeu_si128((__m128i *) myPolyVal, d0);
-    gHASH(theMultiplier, theGHash, myPolyVal);
-    fillReverse(theGHash, BLOCK_SIZE, myPolyVal);
-    /* calculate polyVal */
-    /* Fold in the nonce */
-    for (int i = 0; i < NONCELEN; i++) {
-        myPolyVal[i] ^= theNonce[i];
-    }
-
-    /* Clear top bit */
-    myPolyVal[BLOCK_SIZE - 1] &= (MASK - 1);
-
-    /* Calculate tag and return it */
-    d0 = _mm_loadu_si128((__m128i *) myPolyVal);
-    encrypt(&d0, roundKeys, num_rounds);
-    _mm_storeu_si128((__m128i *) macBlock, d0);
+    __m128i myPolyVal = _mm_set_epi64x(_bswap64(theAEADHasher->numHashed << 3),
+                                       _bswap64(theDataHasher->numHashed << 3));
+    gHASH(theMultiplier, theGHash, &myPolyVal);
+    reverse_bytes((__m128i *) theGHash, &myPolyVal);
+    __m128i d1 = _mm_set_epi8(0, 0, 0, 0, theNonce[11], theNonce[10], theNonce[9], theNonce[8], theNonce[7],
+                              theNonce[6], theNonce[5], theNonce[4], theNonce[3], theNonce[2], theNonce[1],
+                              theNonce[0]);
+    myPolyVal = _mm_xor_si128(myPolyVal, d1);
+    ((uint8_t *) &myPolyVal)[BLOCK_SIZE - 1] &= 0x7f;
+    encrypt(&myPolyVal, roundKeys, num_rounds);
+    _mm_storeu_si128((__m128i *) macBlock, myPolyVal);
 }
 
 void
 gcm_siv_process_packet(const uint8_t *mySrc, int myRemaining, uint8_t *pCounter, __m128i *roundKeys, int num_rounds,
                        uint8_t *output) {
     /* Access buffer and length */
-    uint8_t myCounter[BLOCK_SIZE];
-    memcpy(myCounter, pCounter, BLOCK_SIZE);
-    myCounter[BLOCK_SIZE - 1] |= MASK;
+    __m128i counter = _mm_loadu_si128((__m128i *) pCounter);
+    counter[1] |= 1L << 63;
     uint8_t myMask[BLOCK_SIZE];
     int myOff = 0, i;
     __m128i d0;
-    __m128i *p_out = (__m128i *) output;
+    __m128i buffer;
     /* While we have data to process */
     while (myRemaining > 0) {
         /* Generate the next mask */
-        d0 = _mm_loadu_si128((__m128i *) myCounter);
+        d0 = _mm_loadu_si128(&counter);
         encrypt(&d0, roundKeys, num_rounds);
-        _mm_storeu_si128((__m128i *) myMask, d0);
-        /* Xor data into mask */
-        int myLen = BLOCK_SIZE > myRemaining ? myRemaining : BLOCK_SIZE;
-        for (i = 0; i < myLen; ++i) {
-            myMask[i] ^= mySrc[i + myOff];
+        if (BLOCK_SIZE > myRemaining) {
+            _mm_storeu_si128((__m128i *) myMask, d0);
+            for (i = 0; i < myRemaining; ++i) {
+                output[i + myOff] = mySrc[i + myOff] ^ myMask[i];
+            }
+            break;
+        } else {
+            buffer = _mm_loadu_si128((__m128i *) (mySrc + myOff));
+            buffer = _mm_xor_si128(buffer, d0);
+            _mm_storeu_si128((__m128i *) (output + myOff), buffer);
+            myOff += BLOCK_SIZE;
+            incrementCounter((uint8_t *) &counter);
+            myRemaining -= BLOCK_SIZE;
         }
-        /* Copy encrypted data to output */
-        memcpy(output + myOff, myMask, (unsigned long) myLen);
-//        if (BLOCK_SIZE <= myRemaining) {
-//            *p_out = _mm_xor_si128(*(__m128i *) (mySrc + myOff), d0);
-//            myRemaining -= BLOCK_SIZE;
-//            incrementCounter(myCounter);
-//            output += BLOCK_SIZE;
-//            myOff += BLOCK_SIZE;
-//            p_out = (__m128i *) output;
-//        } else {
-//            _mm_storeu_si128((__m128i *) myCounter, d0);
-//            for (i = 0; i < myRemaining; ++i) {
-//                output[i] = myCounter[i] ^ mySrc[i + myOff];
-//            }
-//            break;
-//        }
-
-        /* Adjust counters */
-        myRemaining -= myLen;
-        myOff += myLen;
-        incrementCounter(myCounter);
     }
 }
 
@@ -468,7 +424,7 @@ gcm_siv_err *gcm_siv_doFinal(gcm_siv_ctx *ctx, uint8_t *input, size_t len, uint8
         calculateTag(&ctx->theDataHasher, &ctx->theAEADHasher, ctx->theReverse, &ctx->theMultiplier, ctx->roundKeys,
                      ctx->num_rounds, ctx->theGHash, ctx->nonce, ctx->macBlock);
         *written = len - BLOCK_SIZE;
-        if (!tag_verification(input + outputLen, ctx->macBlock, BLOCK_SIZE)) {
+        if (!tag_verification_16(ctx->macBlock, input + outputLen)) {
             return make_gcm_siv_error("mac check  failed", ILLEGAL_CIPHER_TEXT);
         }
     }
