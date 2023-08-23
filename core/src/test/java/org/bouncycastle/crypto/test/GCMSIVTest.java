@@ -45,7 +45,7 @@ public class GCMSIVTest
      * @param pData     the data to test
      * @param pExpected the expected results
      */
-    void testSIVCipher(final GCMSIVModeCipher pCipher,
+    void testSIVCipher(GCMSIVModeCipher pCipher,
                        final String pKey,
                        final String pNonce,
                        final String pAEAD,
@@ -475,7 +475,9 @@ public class GCMSIVTest
      * @param args the argyments
      */
     public static void main(String[] args)
+        throws Exception
     {
-        runTest(new GCMSIVTest());
+        GCMSIVTest test= new GCMSIVTest();
+        test.performTest();
     }
 }

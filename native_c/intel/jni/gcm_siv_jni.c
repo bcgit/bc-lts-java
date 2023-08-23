@@ -64,10 +64,10 @@ bool checkStatus(JNIEnv *env, gcm_siv_ctx *ctx, int pLen, int theEncDataSize) {
     }
 
     /* Complete the AEAD section if this is the first data */
-    if ((ctx->theFlags & AEAD_COMPLETE) == 0) {
-        gcm_siv_hasher_completeHash(&ctx->theAEADHasher, ctx->theReverse, &ctx->theMultiplier, ctx->theGHash);
-        ctx->theFlags |= AEAD_COMPLETE;
-    }
+//    if ((ctx->theFlags & AEAD_COMPLETE) == 0) {
+//        gcm_siv_hasher_completeHash(&ctx->theAEADHasher, ctx->theReverse, &ctx->theMultiplier, ctx->theGHash);
+//        ctx->theFlags |= AEAD_COMPLETE;
+//    }
 
     /* Make sure that we haven't breached data limit */
     long dataLimit = MAX_DATALEN;
@@ -269,8 +269,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_doFi
     }
 
     uint8_t *dest = output.critical + offset;
-    size_t len = output.size - (size_t) offset;
-
     err = gcm_siv_doFinal(ctx, input.critical, (size_t) theEndDataSize, dest, &written);
 
     exit:

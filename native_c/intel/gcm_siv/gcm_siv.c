@@ -43,9 +43,13 @@ void gcm_siv_reset(gcm_siv_ctx *ctx, bool keepMac) {
     if (!keepMac) {
         memset(ctx->macBlock, 0, 16);
     }
-
+    gcm_siv_hasher_reset(&ctx->theAEADHasher);
+    gcm_siv_hasher_reset(&ctx->theDataHasher);
+    /* Initialise AEAD if required */
+    ctx->theFlags &= ~AEAD_COMPLETE;
+    memset(ctx->theGHash, 0, BLOCK_SIZE);
     if (ctx->initAD != NULL) {
-        gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->theMultiplier, ctx->initAD, (int) ctx->initADLen,
+        gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->theMultiplier, ctx->initAD, ctx->initADLen,
                                   ctx->theReverse, ctx->theGHash);
     }
 }
@@ -122,11 +126,10 @@ void fillReverse(const uint8_t *pInput, int pLength, uint8_t *pOutput) {
     /* Loop through the buffer */
 
 
-        for (int i = 0, j = BLOCK_SIZE - 1; i < pLength; i++, j--) {
-            /* Copy byte */
-            pOutput[j] = pInput[i];
-        }
-
+    for (int i = 0, j = BLOCK_SIZE - 1; i < pLength; i++, j--) {
+        /* Copy byte */
+        pOutput[j] = pInput[i];
+    }
 
 
 }
@@ -446,6 +449,7 @@ void incrementCounter(uint8_t *pCounter) {
 }
 
 gcm_siv_err *gcm_siv_doFinal(gcm_siv_ctx *ctx, uint8_t *input, size_t len, uint8_t *output, size_t *written) {
+    gcm_siv_hasher_completeHash(&ctx->theAEADHasher, ctx->theReverse, &ctx->theMultiplier, ctx->theGHash);
     if (ctx->encryption) {
         gcm_siv_hasher_updateHash(&ctx->theDataHasher, &ctx->theMultiplier, input,
                                   (int) len, ctx->theReverse, ctx->theGHash);
