@@ -20,7 +20,7 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
     bool ctrAtEnd = false;
 
     uint32_t num_rounds = generate_key(true, key, roundKeys, keysize);
-    __m128i chainblock = _mm_setzero_si128();//_mm_loadu_si128((__m128i *) macBlock);
+    __m128i chainblock = _mm_setzero_si128();
 
     memset(buf, 0, BLOCK_SIZE);
 
@@ -29,8 +29,8 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
     macBlock[0] = (q - 1) & 0x7;
     memcpy(macBlock + 1, nonce, nonceLen);
     ctrMask = 0xFFFFFFFFFFFFFFFF;
-    IV_le = _mm_loadu_si128((__m128i *) macBlock);
-    IV_le = _mm_shuffle_epi8(IV_le, *SWAP_ENDIAN_128);
+
+    IV_le = _mm_shuffle_epi8(*(__m128i *) macBlock, *SWAP_ENDIAN_128);
     ctr = (uint64_t) _mm_extract_epi64(IV_le, 0);
     initialCTR = ctr;
     IV_le = _mm_and_si128(IV_le, _mm_set_epi64x(-1, 0));

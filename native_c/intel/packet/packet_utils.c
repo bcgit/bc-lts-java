@@ -120,35 +120,19 @@ bool tag_verification_16(const uint8_t *macblock, const uint8_t *ciphertext) {
     return (d0[0] | d0[1]) == 0;
 }
 
-uint8_t areEqual(const uint8_t *x, const uint8_t *y, const size_t len) {
-    uint8_t d = 0;
-    for (int i = 0; i < len; ++i) {
-        d |= x[i] ^ y[i];
-    }
-    d = (d >> 1) | (d & 1);
-    return ((d - 1) >> 31);
-}
-
 void divideP(__m128i *x, __m128i *z) {
     int64_t x0 = (*x)[0];
-    uint64_t x1 = (*x)[1];
+    uint64_t x1 = (uint64_t)(*x)[1];
     int64_t m = x0 >> 63;
     x0 ^= (m & E1L);
     (*z)[0] = (x0 << 1) | (int64_t) (x1 >> 63);
     (*z)[1] = (int64_t) (x1 << 1) | -m;
 }
 
-__m128i createBigEndianM128i(const uint8_t *input) {
-    __m128i d0 = _mm_load_si128((__m128i *) input);
-    d0[0] = _bswap64(d0[0]);
-    d0[1] = _bswap64(d0[1]);
-    return d0;
+ __m128i createBigEndianM128i(long q1, long q0) {
+    return _mm_set_epi64x(_bswap64(q1), _bswap64(q0));
 }
 
 void reverse_bytes(__m128i *input, __m128i *output) {
-//    _mm_set_epi64x(283686952306183L, 579005069656919567L)  = _mm_setr_epi8(
-//            15, 14, 13, 12, 11, 10, 9, 8,
-//            7, 6, 5, 4, 3, 2, 1, 0
-//    );
-    *output = _mm_shuffle_epi8(*input, _mm_set_epi64x(283686952306183L, 579005069656919567L));
+    *output = _mm_shuffle_epi8(*input, *SWAP_ENDIAN_128);
 }

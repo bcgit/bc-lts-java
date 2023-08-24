@@ -38,6 +38,12 @@ typedef struct {
 //E1L=((0xe1000000L& 0xFFFFFFFFL) << 32)
 #define E1L  (-2233785415175766016L)
 
+static const int8_t __attribute__ ((aligned(16))) _swap_endian[16] = {
+        15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+};
+static const __m128i *SWAP_ENDIAN_128 = ((__m128i *) _swap_endian);
+
+
 void packet_err_free(packet_err *err);
 
 int get_aead_output_size(bool encryption, int len, int macSize);
@@ -58,11 +64,9 @@ bool tag_verification(const uint8_t *left, const uint8_t *right, size_t len);
 
 bool tag_verification_16(const uint8_t *left, const uint8_t *right);
 
-uint8_t areEqual(const uint8_t *x, const uint8_t *y, const size_t len);
-
 void divideP(__m128i *x, __m128i *z);
 
-__m128i createBigEndianM128i(const uint8_t *input);
+ __m128i createBigEndianM128i(long q1, long q0);
 
 void reverse_bytes(__m128i* input, __m128i* output);
 #endif //BC_LTS_C_PACKET_UTILS_H

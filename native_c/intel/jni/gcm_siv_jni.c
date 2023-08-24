@@ -73,7 +73,7 @@ bool checkStatus(JNIEnv *env, gcm_siv_ctx *ctx, int pLen, int theEncDataSize) {
     long dataLimit = MAX_DATALEN;
     long currBytes = theEncDataSize;
     if (!ctx->encryption) {
-        dataLimit += BUFLEN;
+        dataLimit += BLOCK_SIZE;
     }
     if (currBytes > dataLimit - pLen) {
         throw_java_invalid_state(env, "byte count exceeded");
@@ -147,7 +147,6 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_init
             key.bytearray,
             key.size,
             iv.bytearray,
-            iv.size,
             ad.bytearray,
             ad.size);
 
@@ -192,7 +191,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
     checkAEADStatus(env, ctx, 1);
     uint8_t theByte = (uint8_t) aadByte;
-    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->theMultiplier, &theByte, 1, ctx->theReverse, ctx->theGHash);
+    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, ctx->T, &theByte, 1, &ctx->theGHash);
 }
 
 /*
@@ -219,8 +218,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
         goto exit;
     }
     checkAEADStatus(env, ctx, len);
-    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->theMultiplier, aad.bytearray + offset, len, ctx->theReverse,
-                              ctx->theGHash);
+    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, ctx->T, aad.bytearray + offset, len, &ctx->theGHash);
 
     exit:
     release_bytearray_ctx(&aad);

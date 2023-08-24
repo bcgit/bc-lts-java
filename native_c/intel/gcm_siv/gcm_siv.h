@@ -11,34 +11,6 @@
 #ifndef BC_FIPS_C_GCM_H
 #define BC_FIPS_C_GCM_H
 
-
-//
-// Exponentiator
-//
-
-#define ILLEGAL_STATE 1
-#define ILLEGAL_ARGUMENT 2
-#define ILLEGAL_CIPHER_TEXT 3
-#define OUTPUT_LENGTH 4
-
-
-#define GCM_BLOCK_SIZE 16
-#define BLOCK_SIZE 16
-#define FOUR_BLOCKS 64
-#define SIXTEEN_BLOCKS 256
-
-#define BLOCKS_REMAINING_INIT ((1L << 32) - 2L)
-#define MAC_BLOCK_LEN 16
-
-
-
-#define HASHKEY_1 14
-#define HASHKEY_0 15
-#define HASHKEY_LEN 16
-
-
-#define BUFLEN 16
-#define HALFBLOCK_SIZE 8
 #define NONCELEN 12
 // MAX_DATALEN=2^31-1-8-BUFLEN
 #define MAX_DATALEN 2147483623
@@ -46,7 +18,6 @@
 #define ADD 0xE1
 #define INIT 1
 #define AEAD_COMPLETE 2
-
 
 
 typedef struct {
@@ -59,38 +30,30 @@ gcm_siv_err *make_gcm_siv_error(const char *msg, int type);
 
 void gcm_siv_err_free(gcm_siv_err *err);
 
-#define BUF_BLK_SIZE (17 * 16) // 17 blocks because we need to hold the potential tag on decryption.
+
 typedef struct {
-    uint8_t theBuffer[16];
-    uint8_t theByte;
+    uint8_t theBuffer[BLOCK_SIZE];
     int numActive;
     long numHashed;
 } gcm_siv_hasher;
 
 typedef struct {
-    uint8_t H[16];
-    __m128i T[256];
-} tables4kGCMMultiplier;
-
-typedef struct {
     __m128i roundKeys[15];
+    __m128i theGHash;
+    uint8_t theBuffer[BLOCK_SIZE];
+    __m128i H;
     int num_rounds;
     bool encryption;
     uint8_t nonce[NONCELEN];
     __m128i theNonce;
-    uint8_t macBlock[MAC_BLOCK_LEN];
+    uint8_t macBlock[BLOCK_SIZE];
     uint8_t *initAD;
     size_t initADLen;
 
+    __m128i T[256];
     gcm_siv_hasher theAEADHasher;
     gcm_siv_hasher theDataHasher;
     uint8_t theFlags;
-    tables4kGCMMultiplier theMultiplier;
-    uint8_t theGHash[BLOCK_SIZE];
-    uint8_t theBuffer[BLOCK_SIZE];
-    uint8_t theReverse[BLOCK_SIZE];
-
-    __m128i REVERSE_MASK;
 } gcm_siv_ctx;
 
 
@@ -110,7 +73,6 @@ size_t gcm_siv_getMac(gcm_siv_ctx *, uint8_t *destination);
 
 size_t gcm_siv_get_output_size(bool encryption, size_t len);
 
-
 /**
  *
  * @param encryption
@@ -121,36 +83,25 @@ size_t gcm_siv_get_output_size(bool encryption, size_t len);
  * @return NULL if no error, other ptr to struct CALLER NEEDS TO FREE
  */
 gcm_siv_err *
-gcm_siv_init(gcm_siv_ctx *ctx, bool encryption, uint8_t *key, size_t keyLen, uint8_t *nonce, size_t nonceLen,
+gcm_siv_init(gcm_siv_ctx *ctx, bool encryption, uint8_t *key, size_t keyLen, uint8_t *nonce,
              uint8_t *intialText, size_t initialTextLen);
-
-
-void fillReverse(const uint8_t *pInput, int pLength, uint8_t *pOutput);
 
 void gcm_siv_hasher_reset(gcm_siv_hasher *p_gsh);
 
-void
-gcm_siv_hasher_updateHash(gcm_siv_hasher *p_gsh, tables4kGCMMultiplier *p_multiplier, uint8_t *pBuffer,
-                          int pLen, uint8_t *theReverse, uint8_t *theGHash);
+void gcm_siv_hasher_updateHash(gcm_siv_hasher *p_gsh, __m128i *T, uint8_t *pBuffer, int pLen, __m128i *theGHash);
 
-void tables4kGCMMultiplier_init(tables4kGCMMultiplier *p_multipler, uint8_t *H);
+void gcm_siv_hasher_completeHash(gcm_siv_hasher *p_gsh, __m128i *T, __m128i *theGHash);
 
-void gcm_siv_hasher_completeHash(gcm_siv_hasher *p_gsh, uint8_t *theReverse, tables4kGCMMultiplier *p_multiplier,
-                                 const uint8_t *theGHash);
-
-void multiplyH(tables4kGCMMultiplier *p_multipler, const uint8_t *x);
-
-void gHASH(tables4kGCMMultiplier *p_multiplier, const uint8_t *theGHash, __m128i *pNext);
+void gHASH(__m128i *T, __m128i *theGHash, __m128i *pNext);
 
 uint8_t
-deriveKeys(tables4kGCMMultiplier *theMultiplier, __m128i *roundKeys, uint8_t *key, char *theNonce, int *num_rounds,
+deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, int *num_rounds,
            size_t key_len, uint8_t theFlags);
 
 void resetStreams(gcm_siv_ctx *ctx);
 
-void calculateTag(gcm_siv_hasher *theDataHasher, gcm_siv_hasher *theAEADHasher, uint8_t *theReverse,
-                  tables4kGCMMultiplier *theMultiplier, __m128i *roundKeys, int num_rounds, uint8_t *theGHash,
-                  const uint8_t *theNonce, uint8_t *macBlock);
+void calculateTag(gcm_siv_hasher *theDataHasher, gcm_siv_hasher *theAEADHasher, __m128i *T, __m128i *roundKeys,
+                  int num_rounds, __m128i *theGHash, const int8_t *theNonce, uint8_t *macBlock);
 
 void incrementCounter(uint8_t *pCounter);
 
