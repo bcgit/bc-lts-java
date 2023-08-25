@@ -4,9 +4,9 @@
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
-#include "sha256.h"
+#include "sha224.h"
 
-void hashBlock256(sha256_ctx *ctx, uint8_t *block);
+void hashBlock224(sha224_ctx *ctx, uint8_t *block);
 
 
 static const uint8_t padBlock[64] = {
@@ -20,7 +20,7 @@ static const uint8_t padBlock[64] = {
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-static inline int processLength(sha256_ctx *ctx, size_t length) {
+static inline int processLength(sha224_ctx *ctx, size_t length) {
     ctx->buf[63] = (uint8_t) (length & 0xFF);
     ctx->buf[62] = (uint8_t) ((length >> 8) & 0xFF);
     ctx->buf[61] = (uint8_t) ((length >> 16) & 0xFF);
@@ -32,32 +32,32 @@ static inline int processLength(sha256_ctx *ctx, size_t length) {
     return 8;
 }
 
-sha256_ctx *sha256_create_ctx() {
-    sha256_ctx *ptr = calloc(1, sizeof(sha256_ctx));
+sha224_ctx *sha224_create_ctx() {
+    sha224_ctx *ptr = calloc(1, sizeof(sha224_ctx));
     assert(ptr != NULL);
-    sha256_reset(ptr);
+    sha224_reset(ptr);
     return ptr;
 }
 
-void sha256_free_ctx(sha256_ctx *ctx) {
-    memset(ctx, 0, sizeof(sha256_ctx));
+void sha224_free_ctx(sha224_ctx *ctx) {
+    memset(ctx, 0, sizeof(sha224_ctx));
     free(ctx);
 }
 
-void sha256_reset(sha256_ctx *ctx) {
+void sha224_reset(sha224_ctx *ctx) {
 
-    memset(ctx->buf, 0, BUF_SIZE_SHA256);
-    ctx->ident = SHA256_MAGIC;
+    memset(ctx->buf, 0, BUF_SIZE_SHA224);
+    ctx->ident = SHA224_MAGIC;
     ctx->buf_index = 0;
     ctx->byteCount = 0;
-    ctx->state[0] = 0x6a09e667;
-    ctx->state[1] = 0xbb67ae85;
-    ctx->state[2] = 0x3c6ef372;
-    ctx->state[3] = 0xa54ff53a;
-    ctx->state[4] = 0x510e527f;
-    ctx->state[5] = 0x9b05688c;
-    ctx->state[6] = 0x1f83d9ab;
-    ctx->state[7] = 0x5be0cd19;
+    ctx->state[0] = 0xc1059ed8;
+    ctx->state[1] = 0x367cd507;
+    ctx->state[2] = 0x3070dd17;
+    ctx->state[3] = 0xf70e5939;
+    ctx->state[4] = 0xffc00b31;
+    ctx->state[5] = 0x68581511;
+    ctx->state[6] = 0x64f98fa7;
+    ctx->state[7] = 0xbefa4fa4;
 
     __m128i tmp = _mm_loadu_si128((const __m128i *) &ctx->state[0]);
     ctx->s1 = _mm_loadu_si128((const __m128i *) &ctx->state[4]);
@@ -68,7 +68,7 @@ void sha256_reset(sha256_ctx *ctx) {
     ctx->s1 = _mm_blend_epi16(ctx->s1, tmp, 0xF0); /* CDGH */
 }
 
-void sha256_update(sha256_ctx *ctx, uint8_t *input, size_t len) {
+void sha224_update(sha224_ctx *ctx, uint8_t *input, size_t len) {
     if (input == NULL || len == 0) {
         return;
     }
@@ -76,15 +76,15 @@ void sha256_update(sha256_ctx *ctx, uint8_t *input, size_t len) {
     uint8_t *end = input + len;
 
     if (ctx->buf_index != 0) {
-        size_t rem = BUF_SIZE_SHA256 - ctx->buf_index;
+        size_t rem = BUF_SIZE_SHA224 - ctx->buf_index;
         size_t toCopy = len < rem ? len : rem;
         memcpy(&ctx->buf[ctx->buf_index], input, toCopy);
         ctx->buf_index += toCopy;
         input += toCopy;
         ctx->byteCount += toCopy;
 
-        if (ctx->buf_index == BUF_SIZE_SHA256) {
-            hashBlock256(ctx, ctx->buf);
+        if (ctx->buf_index == BUF_SIZE_SHA224) {
+            hashBlock224(ctx, ctx->buf);
             ctx->buf_index = 0;
         }
     }
@@ -93,17 +93,17 @@ void sha256_update(sha256_ctx *ctx, uint8_t *input, size_t len) {
     // Directly process block
     //
     uint8_t *ptr = input;
-    while (end - ptr >= BUF_SIZE_SHA256) {
-        hashBlock256(ctx, ptr);
-        ptr += BUF_SIZE_SHA256;
-        ctx->byteCount += BUF_SIZE_SHA256;
+    while (end - ptr >= BUF_SIZE_SHA224) {
+        hashBlock224(ctx, ptr);
+        ptr += BUF_SIZE_SHA224;
+        ctx->byteCount += BUF_SIZE_SHA224;
     }
 
     //
     // Copy in any trailing bytes that do not fill a block.
     //
     if (end - ptr > 0) {
-        size_t rem = BUF_SIZE_SHA256 - ctx->buf_index;
+        size_t rem = BUF_SIZE_SHA224 - ctx->buf_index;
         size_t toCopy = end - ptr < rem ? (size_t) (end - ptr) : rem;
         memcpy(&ctx->buf[ctx->buf_index], ptr, toCopy);
         ctx->buf_index += toCopy;
@@ -113,21 +113,21 @@ void sha256_update(sha256_ctx *ctx, uint8_t *input, size_t len) {
 
 }
 
-void sha256_update_byte(sha256_ctx *ctx, uint8_t b) {
+void sha224_update_byte(sha224_ctx *ctx, uint8_t b) {
     ctx->buf[ctx->buf_index++] = b;
     ctx->byteCount++;
-    if (ctx->buf_index == BUF_SIZE_SHA256) {
-        hashBlock256(ctx, (uint8_t *) &ctx->buf);
+    if (ctx->buf_index == BUF_SIZE_SHA224) {
+        hashBlock224(ctx, (uint8_t *) &ctx->buf);
         ctx->buf_index = 0;
     }
 }
 
-void sha256_digest(sha256_ctx *ctx, uint8_t *output) {
+void sha224_digest(sha224_ctx *ctx, uint8_t *output) {
     size_t bitLen = ctx->byteCount << 3;
     size_t padLen = ctx->buf_index < 56 ? 56 - ctx->buf_index : 64 + 56 - ctx->buf_index;
-    sha256_update(ctx, (uint8_t *) padBlock, padLen);
+    sha224_update(ctx, (uint8_t *) padBlock, padLen);
     processLength(ctx, bitLen);
-    hashBlock256(ctx, ctx->buf);
+    hashBlock224(ctx, ctx->buf);
 
 
     __m128i tmp = _mm_shuffle_epi32(ctx->s0, 0x1B);       /* FEBA */
@@ -142,30 +142,40 @@ void sha256_digest(sha256_ctx *ctx, uint8_t *output) {
     _mm_storeu_si128((__m128i *) &ctx->state[4], ctx->s1);
 
 
-    _mm_storeu_si128((__m128i *) output, _mm_shuffle_epi8(ctx->s0, *SWAP_ENDIAN_SHA_256));
-    _mm_storeu_si128((__m128i *) (output + 16), _mm_shuffle_epi8(ctx->s1, *SWAP_ENDIAN_SHA_256));
+    _mm_storeu_si128((__m128i *) output, _mm_shuffle_epi8(ctx->s0, *SWAP_ENDIAN_SHA_224));
 
-    sha256_reset(ctx);
+    const __m128i last = _mm_shuffle_epi8(ctx->s1, *SWAP_ENDIAN_SHA_224);
+
+
+#ifdef BC_AVX
+    uint32_t *p = (uint32_t *) (output + 16);
+    p[0] = ((uint32_t *) &last)[0];
+    p[1] = ((uint32_t *) &last)[1];
+    p[2] = ((uint32_t *) &last)[2];
+#else
+    _mm_maskstore_epi32((int *)  (output + 16), _mm_set_epi32(0, -1, -1, -1), last);
+#endif
+    sha224_reset(ctx);
 }
 
-uint32_t sha256_getSize(sha256_ctx *ctx) {
-    return SHA256_SIZE;
+uint32_t sha224_getSize(sha224_ctx *ctx) {
+    return SHA224_SIZE;
 }
 
-uint32_t sha256_getByteLen(sha256_ctx *ctx) {
-    return BUF_SIZE_SHA256;
+uint32_t sha224_getByteLen(sha224_ctx *ctx) {
+    return BUF_SIZE_SHA224;
 }
 
-bool sha256_restoreFullState(sha256_ctx *ctx, const uint8_t *oldState) {
+bool sha224_restoreFullState(sha224_ctx *ctx, const uint8_t *oldState) {
 
-    sha256_ctx newState;
-    memcpy(&newState, oldState, sizeof(sha256_ctx));
+    sha224_ctx newState;
+    memcpy(&newState, oldState, sizeof(sha224_ctx));
 
-    if (newState.ident != SHA256_MAGIC) {
+    if (newState.ident != SHA224_MAGIC) {
         return false;
     }
 
-    if (newState.buf_index >= BUF_SIZE_SHA256) {
+    if (newState.buf_index >= BUF_SIZE_SHA224) {
         return false;
     }
 
@@ -174,13 +184,13 @@ bool sha256_restoreFullState(sha256_ctx *ctx, const uint8_t *oldState) {
     return true;
 }
 
-size_t sha256_encodeFullState(const sha256_ctx *ctx, uint8_t *output) {
-    memcpy(output, ctx, sizeof(sha256_ctx));
-    return sizeof(sha256_ctx);
+size_t sha224_encodeFullState(const sha224_ctx *ctx, uint8_t *output) {
+    memcpy(output, ctx, sizeof(sha224_ctx));
+    return sizeof(sha224_ctx);
 }
 
 
-void hashBlock256(sha256_ctx *ctx, uint8_t *block) {
+void hashBlock224(sha224_ctx *ctx, uint8_t *block) {
     //
     // Adapted on code from Intel and Jeffrey Walton
     //

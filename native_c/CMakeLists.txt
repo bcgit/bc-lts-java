@@ -391,6 +391,12 @@ else ()
             intel/jni/sha256_jni.c
             )
 
+    set(SHA224
+            intel/sha/sha224.c
+            intel/sha/sha224.h
+            intel/jni/sha224_jni.c
+            )
+
     set(GCM
             intel/gcm/gcm.h
             intel/gcm/gcm.c
@@ -456,6 +462,7 @@ else ()
             ${GCM}
             ${MUL_AVX}
             ${CCM}
+            ${SHA224}
             )
     target_include_directories("${LIB_NATIVE}-avx" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-avx" PRIVATE $<$<COMPILE_LANGUAGE:C>:${AVX_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -476,6 +483,7 @@ else ()
             ${GCM}
             ${MUL_AVX}
             ${CCM_VAES}
+            ${SHA224}
             )
     target_include_directories("${LIB_NATIVE}-vaes" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-vaes" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAES_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -496,6 +504,7 @@ else ()
             ${GCM_VAESF}
             ${MUL_VAESF}
             ${CCM_VAESF}
+            ${SHA224}
             )
     target_include_directories("${LIB_NATIVE}-vaesf" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-vaesf" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAESF_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
