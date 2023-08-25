@@ -162,7 +162,7 @@ public class TLSKDF
     {
         public TLS12withSHA512()
         {
-            super("TLS12withSHA512KDF", new HMac(new SHA512Digest()));
+            super("TLS12withSHA512KDF", new HMac(SHA512Digest.newInstance()));
         }
     }
 

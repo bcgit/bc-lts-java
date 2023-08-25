@@ -35,8 +35,8 @@ public class ShortenedDigestTest
         //
         sd.doFinal(new byte[10], 0);
         
-        d = new SHA512Digest();
-        sd = new ShortenedDigest(new SHA512Digest(), 20);
+        d = SHA512Digest.newInstance();
+        sd = new ShortenedDigest(SHA512Digest.newInstance(), 20);
         
         if (sd.getDigestSize() != 20)
         {

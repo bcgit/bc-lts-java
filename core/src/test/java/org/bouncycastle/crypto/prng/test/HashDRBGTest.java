@@ -170,7 +170,7 @@ public class HashDRBGTest
                             }
                     ),
                 new DRBGTestVector(
-                            new SHA512Digest(),
+                            SHA512Digest.newInstance(),
                             new SHA512EntropyProvider().get(888),
                             false,
                             "202122232425262728292A2B2C2D2E2F",
@@ -210,7 +210,7 @@ public class HashDRBGTest
                         "DFE0E1E2E3E4E5E6E7E8E9EAEBECEDEEEFF0F1F2F3F4F5F6" +
                         "F7F8F9FAFBFCFDFEFF000102030405060708090A0B0C0D0E"),
                 new DRBGTestVector(
-                        new SHA512Digest(),
+                        SHA512Digest.newInstance(),
                         new SHA512EntropyProvider().get(888),
                         true,
                         "202122232425262728292A2B2C2D2E2F",
@@ -232,7 +232,7 @@ public class HashDRBGTest
                         }
                     ),
                 new DRBGTestVector(
-                        new SHA512Digest(),
+                        SHA512Digest.newInstance(),
                         new SHA512EntropyProvider().get(888),
                         true,
                         "202122232425262728292A2B2C2D2E2F",
@@ -266,7 +266,7 @@ public class HashDRBGTest
                     "DFE0E1E2E3E4E5E6E7E8E9EAEBECEDEEEFF0F1F2F3F4F5F6" +
                     "F7F8F9FAFBFCFDFEFF000102030405060708090A0B0C0D0E"),
                 new DRBGTestVector(
-                            new SHA512Digest(),
+                            SHA512Digest.newInstance(),
                             new SHA512EntropyProvider().get(888),
                             true,
                             "202122232425262728292A2B2C2D2E2F",
@@ -294,7 +294,7 @@ public class HashDRBGTest
                             "7F808182838485868788898A8B8C8D8E8F90919293949596" +
                             "9798999A9B9C9D9E9FA0A1A2A3A4A5A6A7A8A9AAABACADAE"),
                 new DRBGTestVector(
-                            new SHA512Digest(),
+                            SHA512Digest.newInstance(),
                             new SHA512EntropyProvider().get(888),
                             true,
                             "202122232425262728292A2B2C2D2E2F",

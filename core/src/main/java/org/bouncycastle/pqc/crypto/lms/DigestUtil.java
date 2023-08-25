@@ -63,7 +63,7 @@ class DigestUtil
         }
         if (oid.equals(NISTObjectIdentifiers.id_sha512))
         {
-            return new SHA512Digest();
+            return SHA512Digest.newInstance();
         }
         if (oid.equals(NISTObjectIdentifiers.id_shake128))
         {

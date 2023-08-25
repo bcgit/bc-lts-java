@@ -525,14 +525,14 @@ public class ECIESTest
         int myKeyLen = 256 / 8;
 
         /* Create agreement */
-        ECIESKEMGenerator kemGen = new ECIESKEMGenerator(myKeyLen, new KDF2BytesGenerator(new SHA512Digest()), myRandom, newCofactorMode, oldCofactorMode, false);
+        ECIESKEMGenerator kemGen = new ECIESKEMGenerator(myKeyLen, new KDF2BytesGenerator(SHA512Digest.newInstance()), myRandom, newCofactorMode, oldCofactorMode, false);
 
         SecretWithEncapsulation secEnc = kemGen.generateEncapsulated(myPair.getPublic());
         KeyParameter mySender = new KeyParameter(secEnc.getSecret());
         byte[] mySenderKey = mySender.getKey();
 
         /* Accept agreement */
-        ECIESKEMExtractor kemExt = new ECIESKEMExtractor((ECPrivateKeyParameters)myPair.getPrivate(), myKeyLen, new KDF2BytesGenerator(new SHA512Digest()), newCofactorMode, oldCofactorMode, false);
+        ECIESKEMExtractor kemExt = new ECIESKEMExtractor((ECPrivateKeyParameters)myPair.getPrivate(), myKeyLen, new KDF2BytesGenerator(SHA512Digest.newInstance()), newCofactorMode, oldCofactorMode, false);
 
         KeyParameter myReceiver = new KeyParameter(kemExt.extractSecret(secEnc.getEncapsulation()));
         byte[] myReceiverKey = myReceiver.getKey();

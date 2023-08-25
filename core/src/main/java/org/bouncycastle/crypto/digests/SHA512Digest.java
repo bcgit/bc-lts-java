@@ -1,8 +1,6 @@
 package org.bouncycastle.crypto.digests;
 
-import org.bouncycastle.crypto.CryptoServiceProperties;
-import org.bouncycastle.crypto.CryptoServicePurpose;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.util.Memoable;
 import org.bouncycastle.util.Pack;
 
@@ -19,14 +17,67 @@ import org.bouncycastle.util.Pack;
  * </pre>
  */
 public class SHA512Digest
-    extends LongDigest
+        extends LongDigest
 {
-    private static final int    DIGEST_LENGTH = 64;
+    private static final int DIGEST_LENGTH = 64;
+
+
+    public static SavableDigest newInstance()
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA512))
+        {
+            return new SHA512NativeDigest();
+        }
+        return new SHA512Digest();
+    }
+
+    public static SavableDigest newInstance(CryptoServicePurpose purpose)
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA512))
+        {
+            return new SHA512NativeDigest(purpose);
+        }
+        return new SHA512Digest(purpose);
+    }
+
+    public static SavableDigest newInstance(Digest digest)
+    {
+
+        if (digest instanceof SHA512Digest)
+        {
+            return new SHA512Digest((SHA512Digest) digest);
+        }
+
+        if (digest instanceof SHA512NativeDigest)
+        {
+            if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA512))
+            {
+                return new SHA512NativeDigest((SHA512NativeDigest) digest);
+            }
+        }
+
+        throw new IllegalArgumentException("receiver digest not available for input type " + (digest != null ? digest.getClass() : "null"));
+    }
+
+    public static SavableDigest newInstance(byte[] encoded, int offset)
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
+        {
+            SHA512NativeDigest sha512 = new SHA512NativeDigest();
+
+            sha512.restoreFullState(encoded, offset);
+
+            return sha512;
+        }
+
+        return new SHA512Digest(encoded);
+    }
+
 
     /**
      * Standard constructor
      */
-    public SHA512Digest()
+     public SHA512Digest()
     {
         this(CryptoServicePurpose.ANY);
     }
@@ -59,7 +110,7 @@ public class SHA512Digest
      *
      * @param encodedState the encoded state from the originating digest.
      */
-    public SHA512Digest(byte[] encodedState)
+    public  SHA512Digest(byte[] encodedState)
     {
         super(CryptoServicePurpose.values()[encodedState[encodedState.length - 1]]);
 
@@ -79,8 +130,8 @@ public class SHA512Digest
     }
 
     public int doFinal(
-        byte[]  out,
-        int     outOff)
+            byte[] out,
+            int outOff)
     {
         finish();
 
@@ -126,7 +177,7 @@ public class SHA512Digest
 
     public void reset(Memoable other)
     {
-        SHA512Digest d = (SHA512Digest)other;
+        SHA512Digest d = (SHA512Digest) other;
 
         copyIn(d);
     }
@@ -136,7 +187,7 @@ public class SHA512Digest
         byte[] encoded = new byte[getEncodedStateSize() + 1];
         super.populateState(encoded);
 
-        encoded[encoded.length - 1] = (byte)purpose.ordinal();
+        encoded[encoded.length - 1] = (byte) purpose.ordinal();
 
         return encoded;
     }
@@ -144,6 +195,12 @@ public class SHA512Digest
     protected CryptoServiceProperties cryptoServiceProperties()
     {
         return Utils.getDefaultProperties(this, 256, purpose);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "SHA512[Java]()";
     }
 }
 

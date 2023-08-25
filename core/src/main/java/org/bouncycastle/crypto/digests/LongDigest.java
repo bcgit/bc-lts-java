@@ -3,6 +3,7 @@ package org.bouncycastle.crypto.digests;
 import org.bouncycastle.crypto.CryptoServiceProperties;
 import org.bouncycastle.crypto.CryptoServicePurpose;
 import org.bouncycastle.crypto.ExtendedDigest;
+import org.bouncycastle.crypto.SavableDigest;
 import org.bouncycastle.util.Memoable;
 import org.bouncycastle.util.Pack;
 
@@ -10,7 +11,7 @@ import org.bouncycastle.util.Pack;
  * Base class for SHA-384 and SHA-512.
  */
 public abstract class LongDigest
-    implements ExtendedDigest, Memoable, EncodableDigest
+    implements SavableDigest
 {
     private static final int BYTE_LENGTH = 128;
 

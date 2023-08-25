@@ -146,6 +146,10 @@ class DefaultNativeServices
                 set.add(SHA224);
             }
 
+            if (NativeFeatures.hasHardwareSHA512()) {
+                set.add(SHA512);
+            }
+
             if (NativeFeatures.hasCCMHardwareSupport())
             {
                 set.add(AES_CCM);

@@ -23,14 +23,14 @@ public class SHA512
     {
         public Digest()
         {
-            super(new SHA512Digest());
+            super(SHA512Digest.newInstance());
         }
 
         public Object clone()
             throws CloneNotSupportedException
         {
             Digest d = (Digest)super.clone();
-            d.digest = new SHA512Digest((SHA512Digest)digest);
+            d.digest = SHA512Digest.newInstance((SHA512Digest)digest);
 
             return d;
         }
@@ -78,7 +78,7 @@ public class SHA512
     {
         public HashMac()
         {
-            super(new HMac(new SHA512Digest()));
+            super(new HMac(SHA512Digest.newInstance()));
         }
     }
 

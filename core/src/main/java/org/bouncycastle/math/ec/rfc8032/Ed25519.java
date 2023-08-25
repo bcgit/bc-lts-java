@@ -271,7 +271,7 @@ public abstract class Ed25519
 
     private static Digest createDigest()
     {
-        Digest d = new SHA512Digest();
+        Digest d = SHA512Digest.newInstance();
         if (d.getDigestSize() != 64)
         {
             throw new IllegalStateException();

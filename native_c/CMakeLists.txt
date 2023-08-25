@@ -157,6 +157,12 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             arm/jni/sha224_jni.c
             )
 
+    set(ARM_SHA512
+            arm/sha/sha512.h
+            arm/sha/sha512.c
+            arm/jni/sha512_jni.c
+            )
+
     set(ARM_MUL
             arm/mul/cmul.h
             arm/mul/cmul128.c
@@ -185,6 +191,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             ${ARM_CCM}
             ${ARM_SHA256}
             ${ARM_SHA224}
+            ${ARM_SHA512}
             ${ARM_MUL}
             )
     target_include_directories("${LIB_NATIVE}-neon-le" PUBLIC ${JNI_INCLUDES})
@@ -225,11 +232,11 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
 #        target_compile_definitions("${LIB_NATIVE}-neon-be" PUBLIC BC_NEON BC_VARIANT=\"neon\" BUILD_TS=\"${BUILD_TS}\")
     endif ()
 
-#    #
-#    # Main method for testing.
-#    #
-#    add_executable("tryit" main.c debug_neon.h)
-#    target_link_libraries("tryit" ${LIB_NATIVE}-neon-le)
+    #
+    # Main method for testing.
+    #
+    add_executable("tryit" main.c debug_neon.h)
+    target_link_libraries("tryit" ${LIB_NATIVE}-neon-le)
 
 
 else ()

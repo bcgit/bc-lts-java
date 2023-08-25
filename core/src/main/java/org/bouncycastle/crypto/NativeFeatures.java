@@ -105,8 +105,6 @@ class NativeFeatures
     private static native boolean nativeGCM();
 
 
-
-
     static boolean hasCCMHardwareSupport()
     {
         try
@@ -124,7 +122,6 @@ class NativeFeatures
     }
 
     private static native boolean nativeCCM();
-
 
 
     static boolean hasHardwareRand()
@@ -195,6 +192,22 @@ class NativeFeatures
         }
     }
 
+    static boolean hasHardwareSHA512()
+    {
+        try
+        {
+            return nativeSHA512();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.log(Level.FINE, "native sha exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
 
     static boolean hasMultiplyAcc()
     {
@@ -216,6 +229,8 @@ class NativeFeatures
     private static native boolean nativeSHA256();
 
     private static native boolean nativeSHA224();
+
+    private static native boolean nativeSHA512();
 
     private static native boolean nativeMulAcc();
 

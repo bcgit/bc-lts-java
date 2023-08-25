@@ -20,7 +20,7 @@ class JcaNonceGenerator
 
         this.random = new SP800SecureRandomBuilder(entropySource, false)
             .setPersonalizationString(additionalData)
-            .buildHash(new SHA512Digest(), nonce, false);
+            .buildHash(SHA512Digest.newInstance(), nonce, false);
     }
 
     public byte[] generateNonce(int size)

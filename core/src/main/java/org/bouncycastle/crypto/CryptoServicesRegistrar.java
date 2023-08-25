@@ -780,7 +780,7 @@ public final class CryptoServicesRegistrar
             bytesRequired = (bitsRequired + 7) / 8;
             // remember for the seed generator we need the correct security strength for SHA-512
             entropySource = new SignallingEntropySource(entropyDaemon, seedAvailable, entropyProvider, 256);
-            drbg = new HMacSP800DRBG(new HMac(new SHA512Digest()), 256, entropySource, Strings.toByteArray("Bouncy Castle Hybrid Entropy Source"), entropySource.getEntropy());
+            drbg = new HMacSP800DRBG(new HMac(SHA512Digest.newInstance()), 256, entropySource, Strings.toByteArray("Bouncy Castle Hybrid Entropy Source"), entropySource.getEntropy());
         }
 
         @Override
@@ -1015,7 +1015,7 @@ public final class CryptoServicesRegistrar
             bytesRequired = (bitsRequired + 7) / 8;
             // remember for the seed generator we need the correct security strength for SHA-512
             entropySource = new SignallingEntropySource(seedAvailable, entropyProvider, 256);
-            drbg = new HMacSP800DRBG(new HMac(new SHA512Digest()), 256, entropySource, Strings.toByteArray("Bouncy Castle One Shot Entropy Source"), entropySource.getEntropy());
+            drbg = new HMacSP800DRBG(new HMac(SHA512Digest.newInstance()), 256, entropySource, Strings.toByteArray("Bouncy Castle One Shot Entropy Source"), entropySource.getEntropy());
         }
 
         public boolean isPredictionResistant()

@@ -28,7 +28,7 @@ class HKDF
             hash = new SHA384Digest();
             break;
         case HPKE.kdf_HKDF_SHA512:
-            hash = new SHA512Digest();
+            hash = SHA512Digest.newInstance();
             break;
         default:
             throw new IllegalArgumentException("invalid kdf id");

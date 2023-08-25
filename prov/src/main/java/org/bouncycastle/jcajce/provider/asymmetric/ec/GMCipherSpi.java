@@ -399,7 +399,7 @@ public class GMCipherSpi
     {
         public SM2withSha512()
         {
-            super(new SM2Engine(new SHA512Digest()));
+            super(new SM2Engine(SHA512Digest.newInstance()));
         }
     }
 

@@ -125,7 +125,7 @@ public class DRBG
 
             return new SP800SecureRandomBuilder(entropyProvider)
                 .setPersonalizationString(personalisationString)
-                .buildHash(new SHA512Digest(), initSource.getEntropy(), isPredictionResistant);
+                .buildHash(SHA512Digest.newInstance(), initSource.getEntropy(), isPredictionResistant);
         }
         else
         {
@@ -145,7 +145,7 @@ public class DRBG
                 }
             })
                 .setPersonalizationString(personalisationString)
-                .buildHash(new SHA512Digest(), source.getEntropy(), isPredictionResistant);
+                .buildHash(SHA512Digest.newInstance(), source.getEntropy(), isPredictionResistant);
         }
     }
 

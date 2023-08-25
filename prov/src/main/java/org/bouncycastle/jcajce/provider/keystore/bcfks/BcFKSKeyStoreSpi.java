@@ -756,7 +756,7 @@ class BcFKSKeyStoreSpi
 
             if (pbkdf2Params.getPrf().getAlgorithm().equals(PKCSObjectIdentifiers.id_hmacWithSHA512))
             {
-                PKCS5S2ParametersGenerator pGen = new PKCS5S2ParametersGenerator(new SHA512Digest());
+                PKCS5S2ParametersGenerator pGen = new PKCS5S2ParametersGenerator(SHA512Digest.newInstance());
 
                 pGen.init(Arrays.concatenate(encPassword, differentiator), pbkdf2Params.getSalt(), pbkdf2Params.getIterationCount().intValue());
 

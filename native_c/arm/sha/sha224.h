@@ -11,7 +11,7 @@
 
 #define BUF_SIZE_SHA224 64
 #define SHA224_SIZE 28
-#define SHA224_MAGIC 0x00020001
+#define SHA224_MAGIC 0x00020002
 
 typedef struct {
     uint32_t ident;
