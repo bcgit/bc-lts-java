@@ -556,15 +556,19 @@ else ()
     set(GCM_SIV
             intel/gcm_siv/gcm_siv.h
             intel/gcm_siv/gcm_siv.c
-
             intel/jni/gcm_siv_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
     )
 
-    set(GCM_SIV_VAESF
+    set(GCM_SIV_PC
             intel/gcm_siv/gcm_siv.h
             intel/gcm_siv/gcm_siv.c
-
-            intel/jni/gcm_siv_jni.c
+            intel/packet/gcm_siv_pc/gcm_siv_pc.h
+            intel/packet/gcm_siv_pc/gcm_siv_pc.c
+            intel/jni/gcm_siv_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
     )
 
 
@@ -651,6 +655,7 @@ else ()
             ${GCM}
             ${GCM_PC}
             ${GCM_SIV}
+            ${GCM_SIV_PC}
             ${MUL_AVX}
             ${CCM}
             ${CCM_PC}
@@ -677,6 +682,7 @@ else ()
             ${GCM}
             ${GCM_PC}
             ${GCM_SIV}
+            ${GCM_SIV_PC}
             ${MUL_AVX}
             ${CCM_PC_VAES}
             ${CCM_VAES}
@@ -702,7 +708,8 @@ else ()
             ${SHA256}
             ${GCM_VAESF}
             ${GCM_PC_VAESF}
-            ${GCM_SIV_VAESF}
+            ${GCM_SIV}
+            ${GCM_SIV_PC}
             ${MUL_VAESF}
             ${CCM_VAESF}
             ${CCM_PC_VAESF}
