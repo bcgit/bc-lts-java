@@ -111,6 +111,7 @@ size_t gcm_siv_get_output_size(bool encryption, size_t len) {
 void gcm_siv_hasher_reset(gcm_siv_hasher *p_gsh) {
     p_gsh->numActive = 0;
     p_gsh->numHashed = 0;
+    memset(p_gsh->theBuffer, 0, BLOCK_SIZE);
 }
 
 
@@ -347,13 +348,12 @@ gcm_siv_err *gcm_siv_doFinal(gcm_siv_ctx *ctx, uint8_t *input, size_t len, uint8
         memcpy(output + len, ctx->macBlock, BLOCK_SIZE);
         *written = len + BLOCK_SIZE;
     } else {
-        size_t outputLen = len - BLOCK_SIZE;
-        gcm_siv_process_packet(input, (int) outputLen, input + outputLen, ctx->roundKeys, ctx->num_rounds, output);
-        gcm_siv_hasher_updateHash(&ctx->theDataHasher, ctx->T, output, (int) outputLen, &ctx->theGHash);
+        *written = len - BLOCK_SIZE;
+        gcm_siv_process_packet(input, (int) *written, input + *written, ctx->roundKeys, ctx->num_rounds, output);
+        gcm_siv_hasher_updateHash(&ctx->theDataHasher, ctx->T, output, (int) *written, &ctx->theGHash);
         calculateTag(&ctx->theDataHasher, &ctx->theAEADHasher, ctx->T, ctx->roundKeys,
                      ctx->num_rounds, &ctx->theGHash, (int8_t *) ctx->nonce, ctx->macBlock);
-        *written = len - BLOCK_SIZE;
-        if (!tag_verification_16(ctx->macBlock, input + outputLen)) {
+        if (!tag_verification_16(ctx->macBlock, input + *written)) {
             return make_gcm_siv_error("mac check  failed", ILLEGAL_CIPHER_TEXT);
         }
     }

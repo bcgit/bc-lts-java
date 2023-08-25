@@ -8,8 +8,8 @@
 #include <stdio.h>
 #include "../packet/packet_utils.h"
 
-#ifndef BC_FIPS_C_GCM_H
-#define BC_FIPS_C_GCM_H
+#ifndef BC_LTS_C_GCM_SIV_H
+#define BC_LTS_C_GCM_SIV_H
 
 #define NONCELEN 12
 // MAX_DATALEN=2^31-1-8-BUFLEN
@@ -40,7 +40,6 @@ typedef struct {
 typedef struct {
     __m128i roundKeys[15];
     __m128i theGHash;
-    uint8_t theBuffer[BLOCK_SIZE];
     __m128i H;
     int num_rounds;
     bool encryption;
@@ -49,7 +48,6 @@ typedef struct {
     uint8_t macBlock[BLOCK_SIZE];
     uint8_t *initAD;
     size_t initADLen;
-
     __m128i T[256];
     gcm_siv_hasher theAEADHasher;
     gcm_siv_hasher theDataHasher;

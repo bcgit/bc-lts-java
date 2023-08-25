@@ -19,10 +19,7 @@ bool ctr_pc_process_bytes(unsigned char *src, size_t len, unsigned char *dest, s
                           uint64_t* ctr, uint64_t initialCTR, uint64_t ctrMast, bool* ctrAtEnd, __m128i* IV_le,
                           __m128i* roundKeys, uint32_t num_rounds, __m128i* partialBlock);
 
-static const int8_t __attribute__ ((aligned(16))) _swap_endian[16] = {
-        15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
-};
-static const __m128i *SWAP_ENDIAN_128 = ((__m128i *) _swap_endian);
+
 
 static const int8_t __attribute__ ((aligned(16))) _one[16] = {
         1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -67,6 +64,5 @@ static __m128i *SIX = (__m128i *) _six;
 static const int8_t __attribute__ ((aligned(16))) _seven[16] = {
         7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 };
-
 static __m128i *SEVEN = (__m128i *) _seven;
 #endif //BC_LTS_C_CTR_PC_UTILS_H

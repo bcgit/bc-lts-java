@@ -6,7 +6,6 @@
 #include "../../jniutil/exceptions.h"
 #include "../../jniutil/bytearrays.h"
 #include "../../jniutil/jni_asserts.h"
-#include "../../jniutil/bytearraycritical.h"
 
 
 void handle_gcm_siv_result(JNIEnv *env, gcm_siv_err *err) {
