@@ -160,6 +160,12 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 
 }
 
+__attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA512
+        (JNIEnv *env, jclass cl) {
+    return JNI_FALSE;
+
+}
+
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
  * Method:    nativeMulAcc

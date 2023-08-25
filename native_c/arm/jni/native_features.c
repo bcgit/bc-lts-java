@@ -202,7 +202,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA512
-        (JNIEnv *, jclass) {
+        (JNIEnv *env, jclass cl) {
     probe_system();
     return cpu_info.neon && cpu_info.sha512 ? JNI_TRUE : JNI_FALSE;
 }

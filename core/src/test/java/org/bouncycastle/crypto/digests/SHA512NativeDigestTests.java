@@ -32,18 +32,18 @@ public class SHA512NativeDigestTests
     @Test
     public void testReturnLen() throws Exception
     {
-        if (!TestUtil.hasNativeService("SHA2"))
+        if (!TestUtil.hasNativeService("SHA512"))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha512"))
             {
-                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA512 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
 
-        SHA256Digest jdig = new SHA256Digest();
+        SHA512Digest jdig = new SHA512Digest();
 
-        SHA256NativeDigest ndig = new SHA256NativeDigest();
+        SHA512NativeDigest ndig = new SHA512NativeDigest();
         TestCase.assertEquals(jdig.getByteLength(), ndig.getByteLength());
         TestCase.assertEquals(jdig.getDigestSize(), ndig.getDigestSize());
 
@@ -55,7 +55,7 @@ public class SHA512NativeDigestTests
 
 
     @Test
-    public void testSHA256Empty()
+    public void testSHA512Empty()
             throws Exception
     {
 
@@ -68,17 +68,17 @@ public class SHA512NativeDigestTests
             return;
         }
 
-        SavableDigest dig = SHA256Digest.newInstance();
+        SavableDigest dig = SHA512Digest.newInstance();
         byte[] res = new byte[dig.getDigestSize()];
-        TestCase.assertEquals(32,dig.doFinal(res, 0));
+        TestCase.assertEquals(64,dig.doFinal(res, 0));
 
         TestCase.assertTrue("Empty Digest result",
-                Arrays.areEqual(res, Hex.decode("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")));
+                Arrays.areEqual(res, Hex.decode("cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e")));
 
     }
 
     @Test
-    public void testSHA256FullStateEncoding()
+    public void testSHA512FullStateEncoding()
             throws Exception
     {
         if (!TestUtil.hasNativeService("SHA2"))
@@ -99,23 +99,23 @@ public class SHA512NativeDigestTests
         for (int t = 0; t < 256; t++)
         {
 
-            SavableDigest dig = SHA256Digest.newInstance();
+            SavableDigest dig = SHA512Digest.newInstance();
             dig.update(msg, 0, t);
             byte[] state = dig.getEncodedState();
 
             byte[] resAfterStateExtraction = new byte[dig.getDigestSize()];
-            TestCase.assertEquals(32,dig.doFinal(resAfterStateExtraction, 0));
+            TestCase.assertEquals(64,dig.doFinal(resAfterStateExtraction, 0));
 
-            SavableDigest dig2 =  SHA256Digest.newInstance(state,0);
+            SavableDigest dig2 =  SHA512Digest.newInstance(state,0);
             byte[] resStateRecreated = new byte[dig2.getDigestSize()];
-            TestCase.assertEquals(32, dig2.doFinal(resStateRecreated, 0));
+            TestCase.assertEquals(64, dig2.doFinal(resStateRecreated, 0));
 
 
-            SHA256Digest javaDigest = new SHA256Digest();
+            SHA512Digest javaDigest = new SHA512Digest();
             javaDigest.update(msg, 0, t);
 
             byte[] resJava = new byte[javaDigest.getDigestSize()];
-            TestCase.assertEquals(32, javaDigest.doFinal(resJava, 0));
+            TestCase.assertEquals(64, javaDigest.doFinal(resJava, 0));
 
 
             TestCase.assertTrue("Java = native post state extraction", Arrays.areEqual(resJava, resAfterStateExtraction));
@@ -124,7 +124,7 @@ public class SHA512NativeDigestTests
     }
 
 
-    public void testSHA256ByteByByte()
+    public void testSHA512ByteByByte()
             throws Exception
     {
 
@@ -141,8 +141,8 @@ public class SHA512NativeDigestTests
         SecureRandom rand = new SecureRandom();
         rand.nextBytes(msg);
 
-        SavableDigest dig = SHA256Digest.newInstance();
-        SHA256Digest javaDigest = new SHA256Digest();
+        SavableDigest dig = SHA512Digest.newInstance();
+        SHA512Digest javaDigest = new SHA512Digest();
 
         for (int t = 0; t < 256; t++)
         {
@@ -151,10 +151,10 @@ public class SHA512NativeDigestTests
         }
 
         byte[] resJava = new byte[javaDigest.getDigestSize()];
-        TestCase.assertEquals(32, javaDigest.doFinal(resJava, 0));
+        TestCase.assertEquals(64, javaDigest.doFinal(resJava, 0));
 
         byte[] nativeDigest = new byte[dig.getDigestSize()];
-        TestCase.assertEquals(32, dig.doFinal(nativeDigest, 0));
+        TestCase.assertEquals(64, dig.doFinal(nativeDigest, 0));
 
         TestCase.assertTrue("Java = native byte by byte", Arrays.areEqual(resJava, nativeDigest));
 
@@ -168,7 +168,7 @@ public class SHA512NativeDigestTests
      * @throws Exception
      */
     @Test
-    public void testSHA256FullStateEncodingExtraData()
+    public void testSHA512FullStateEncodingExtraData()
             throws Exception
     {
 
@@ -187,26 +187,26 @@ public class SHA512NativeDigestTests
         rand.nextBytes(msg);
 
 
-        SavableDigest dig =  SHA256Digest.newInstance();
+        SavableDigest dig =  SHA512Digest.newInstance();
         dig.update(msg, 0, 12);
         byte[] state = dig.getEncodedState();
 
 
-        SavableDigest dig2 = SHA256Digest.newInstance(state, 0);
+        SavableDigest dig2 = SHA512Digest.newInstance(state, 0);
 
         dig.update(msg, 12, msg.length - 12);
         dig2.update(msg, 12, msg.length - 12);
 
-        SHA256Digest javaDigest = new SHA256Digest();
+        SHA512Digest javaDigest = new SHA512Digest();
         javaDigest.update(msg, 0, msg.length);
 
         byte[] d1Result = new byte[dig.getDigestSize()];
         byte[] d2Result = new byte[dig2.getDigestSize()];
         byte[] javaResult = new byte[javaDigest.getDigestSize()];
 
-        TestCase.assertEquals(32,dig.doFinal(d1Result, 0));
-        TestCase.assertEquals(32,dig2.doFinal(d2Result, 0));
-        TestCase.assertEquals(32,javaDigest.doFinal(javaResult, 0));
+        TestCase.assertEquals(64,dig.doFinal(d1Result, 0));
+        TestCase.assertEquals(64,dig2.doFinal(d2Result, 0));
+        TestCase.assertEquals(64,javaDigest.doFinal(javaResult, 0));
 
 
         TestCase.assertTrue(Arrays.areEqual(javaResult, d1Result) && Arrays.areEqual(javaResult, d2Result));
@@ -228,7 +228,7 @@ public class SHA512NativeDigestTests
         }
 
 
-        new SHA256NativeDigest()
+        new SHA512NativeDigest()
         {
             {
                 try
@@ -244,7 +244,7 @@ public class SHA512NativeDigestTests
         };
 
 
-        new SHA256NativeDigest()
+        new SHA512NativeDigest()
         {
             {
                 try
@@ -260,7 +260,7 @@ public class SHA512NativeDigestTests
         };
 
 
-        new SHA256NativeDigest()
+        new SHA512NativeDigest()
         {
             {
                 try
@@ -275,7 +275,7 @@ public class SHA512NativeDigestTests
             }
         };
 
-        new SHA256NativeDigest()
+        new SHA512NativeDigest()
         {
             {
                 try
@@ -291,7 +291,7 @@ public class SHA512NativeDigestTests
         };
 
 
-        new SHA256NativeDigest()
+        new SHA512NativeDigest()
         {
             {
 
@@ -302,18 +302,18 @@ public class SHA512NativeDigestTests
 
                 byte[] res = new byte[getDigestSize()];
                 update(new byte[20], 19, 0);
-                TestCase.assertEquals(32,doFinal(res, 0));
+                TestCase.assertEquals(64,doFinal(res, 0));
 
                 TestCase.assertTrue("Empty Digest result",
                         Arrays.areEqual(
                                 res,
-                                Hex.decode("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+                                Hex.decode("cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e")
                         ));
             }
         };
 
 
-        new SHA256NativeDigest()
+        new SHA512NativeDigest()
         {
             {
 
@@ -324,12 +324,12 @@ public class SHA512NativeDigestTests
 
                 byte[] res = new byte[getDigestSize()];
                 update(new byte[20], 0, 0);
-                TestCase.assertEquals(32, doFinal(res, 0));
+                TestCase.assertEquals(64, doFinal(res, 0));
 
                 TestCase.assertTrue("Empty Digest result",
                         Arrays.areEqual(
                                 res,
-                                Hex.decode("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
+                                Hex.decode("cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e")
                         ));
             }
         };
@@ -351,7 +351,7 @@ public class SHA512NativeDigestTests
         }
 
 
-        new SHA256NativeDigest()
+        new SHA512NativeDigest()
         {
             {
                 try
@@ -367,7 +367,7 @@ public class SHA512NativeDigestTests
         };
 
 
-        new SHA256NativeDigest()
+        new SHA512NativeDigest()
         {
             {
                 try
@@ -383,7 +383,7 @@ public class SHA512NativeDigestTests
         };
 
 
-        new SHA256NativeDigest()
+        new SHA512NativeDigest()
         {
             {
                 try
@@ -398,7 +398,7 @@ public class SHA512NativeDigestTests
             }
         };
 
-        new SHA256NativeDigest()
+        new SHA512NativeDigest()
         {
             {
                 try
@@ -417,7 +417,7 @@ public class SHA512NativeDigestTests
 
 
 
-        new SHA256NativeDigest()
+        new SHA512NativeDigest()
         {
             {
                 //
@@ -426,10 +426,10 @@ public class SHA512NativeDigestTests
                 //
 
                 byte[] res = new byte[getDigestSize() + 1];
-                TestCase.assertEquals(32, doFinal(res, 1));
+                TestCase.assertEquals(64, doFinal(res, 1));
                 TestCase.assertTrue(
                         Arrays.areEqual(
-                                Hex.decode("00e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"),
+                                Hex.decode("00cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"),
                                 res)
                 );
 
@@ -457,7 +457,7 @@ public class SHA512NativeDigestTests
         //
         final byte[] saneState;
 
-        SHA256NativeDigest dig = new SHA256NativeDigest()
+        SHA512NativeDigest dig = new SHA512NativeDigest()
         {
             {
                 update((byte) 1);
@@ -471,7 +471,7 @@ public class SHA512NativeDigestTests
 
         try
         {
-            new SHA256NativeDigest().restoreState(null, 0);
+            new SHA512NativeDigest().restoreState(null, 0);
             fail("too short");
         }
         catch (Exception ex)
@@ -483,7 +483,7 @@ public class SHA512NativeDigestTests
 
         try
         {
-            new SHA256NativeDigest().restoreState(new byte[saneState.length - 2], 0);
+            new SHA512NativeDigest().restoreState(new byte[saneState.length - 2], 0);
             fail("too short");
         }
         catch (Exception ex)
@@ -494,7 +494,7 @@ public class SHA512NativeDigestTests
 
         try
         {
-            new SHA256NativeDigest().restoreState(new byte[saneState.length], 0);
+            new SHA512NativeDigest().restoreState(new byte[saneState.length], 0);
             fail("bad id");
         }
         catch (Exception ex)
@@ -521,12 +521,12 @@ public class SHA512NativeDigestTests
             {
                 if (state[t] == 4)
                 {
-                    state[t] = 64;
+                    state[t] = (byte)128;
                     break;
                 }
             }
 
-            new SHA256NativeDigest().restoreState(state, 0);
+            new SHA512NativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value exceeding 64");
         }
         catch (Exception ex)
@@ -547,11 +547,11 @@ public class SHA512NativeDigestTests
             {
                 if (state[t] == 4)
                 {
-                    state[t] = 65;
+                    state[t] = (byte) 129;
                 }
             }
 
-            new SHA256NativeDigest().restoreFullState(state, 0);
+            new SHA512NativeDigest().restoreFullState(state, 0);
             fail("should fail on bufPtr value exceeding 64");
         }
         catch (Exception ex)
@@ -580,7 +580,7 @@ public class SHA512NativeDigestTests
         //
         final byte[] saneState;
 
-        SHA256NativeDigest dig = new SHA256NativeDigest()
+        SHA512NativeDigest dig = new SHA512NativeDigest()
         {
             {
                 update((byte) 1);
@@ -593,7 +593,7 @@ public class SHA512NativeDigestTests
 
         try
         {
-            new SHA256NativeDigest().restoreState(null, 0);
+            new SHA512NativeDigest().restoreState(null, 0);
             fail("accepted null");
         }
         catch (Exception ex)
@@ -604,7 +604,7 @@ public class SHA512NativeDigestTests
 
         try
         {
-            new SHA256NativeDigest().restoreState(new byte[saneState.length - 2], 0);
+            new SHA512NativeDigest().restoreState(new byte[saneState.length - 2], 0);
             fail("too short");
         }
         catch (Exception ex)
@@ -616,7 +616,7 @@ public class SHA512NativeDigestTests
         try
         {
             // All zeroes.
-            new SHA256NativeDigest().restoreFullState(new byte[saneState.length], 0);
+            new SHA512NativeDigest().restoreFullState(new byte[saneState.length], 0);
             fail("bad id");
         }
         catch (Exception ex)
@@ -643,11 +643,11 @@ public class SHA512NativeDigestTests
             {
                 if (state[t] == 4)
                 {
-                    state[t] = 64;
+                    state[t] = (byte)128;
                 }
             }
 
-            new SHA256NativeDigest().restoreState(state, 0);
+            new SHA512NativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value exceeding 64");
         }
         catch (Exception ex)
@@ -668,11 +668,11 @@ public class SHA512NativeDigestTests
             {
                 if (state[t] == 4)
                 {
-                    state[t] = 65;
+                    state[t] = (byte)129;
                 }
             }
 
-            new SHA256NativeDigest().restoreState(state, 0);
+            new SHA512NativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value exceeding 64");
         }
         catch (Exception ex)
@@ -700,21 +700,21 @@ public class SHA512NativeDigestTests
 
         // There are other tests for memoable, this is more of a sanity test
 
-        SHA256NativeDigest dig1 = new SHA256NativeDigest();
+        SHA512NativeDigest dig1 = new SHA512NativeDigest();
         dig1.update((byte) 1);
 
-        SHA256NativeDigest dig2 = new SHA256NativeDigest(dig1);
+        SHA512NativeDigest dig2 = new SHA512NativeDigest(dig1);
 
-        SHA256Digest jig1 = new SHA256Digest();
+        SHA512Digest jig1 = new SHA512Digest();
         jig1.update((byte) 1);
 
         byte[] r1 = new byte[dig1.getDigestSize()];
         byte[] r2 = new byte[dig2.getDigestSize()];
         byte[] j1 = new byte[jig1.getDigestSize()];
 
-        TestCase.assertEquals(32, dig1.doFinal(r1, 0));
-        TestCase.assertEquals(32,dig2.doFinal(r2, 0));
-        TestCase.assertEquals(32, jig1.doFinal(j1, 0));
+        TestCase.assertEquals(64, dig1.doFinal(r1, 0));
+        TestCase.assertEquals(64,dig2.doFinal(r2, 0));
+        TestCase.assertEquals(64, jig1.doFinal(j1, 0));
 
         TestCase.assertTrue(Arrays.areEqual(j1, r1));
         TestCase.assertTrue(Arrays.areEqual(j1, r2));
