@@ -34,6 +34,17 @@ test-code-avx:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
     - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java \"/workspace/bc-lts-java/ci/test_avx.sh\""
+  artifacts:
+    when: always
+    paths:
+      - "core/build/reports"
+      - "prov/build/reports"
+      - "jmail/build/reports"
+      - "pg/build/reports"
+      - "pkix/build/reports"
+      - "mail/build/reports"
+      - "util/build/reports"
+      - "tls/build/reports"
 
 test-code-vaes:
   stage: testVAES
@@ -41,6 +52,17 @@ test-code-vaes:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
     - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java \"/workspace/bc-lts-java/ci/test_vaes.sh\""
+  artifacts:
+    when: always
+    paths:
+      - "core/build/reports"
+      - "prov/build/reports"
+      - "jmail/build/reports"
+      - "pg/build/reports"
+      - "pkix/build/reports"
+      - "mail/build/reports"
+      - "util/build/reports"
+      - "tls/build/reports"
 
 
 test-code-vaesf:
@@ -49,6 +71,17 @@ test-code-vaesf:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
     - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java \"/workspace/bc-lts-java/ci/test_vaesf.sh\""
+  artifacts:
+    when: always
+    paths:
+      - "core/build/reports"
+      - "prov/build/reports"
+      - "jmail/build/reports"
+      - "pg/build/reports"
+      - "pkix/build/reports"
+      - "mail/build/reports"
+      - "util/build/reports"
+      - "tls/build/reports"
 
 
 test-java11-code:
