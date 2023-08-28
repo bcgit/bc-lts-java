@@ -292,7 +292,7 @@ static inline void aes_cbc_dec_blocks_128b(unsigned char *in, unsigned char *out
 
 
 size_t cbc_pc_decrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
-                      uint32_t num_rounds) {
+                      int num_rounds) {
     unsigned char *destStart = dest;
 
     while (blocks >= 8) {

@@ -460,12 +460,12 @@ static inline void aes_cbc_dec_blocks_256b(unsigned char *in, unsigned char *out
 //
 
 size_t cbc_pc_decrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
-                      uint32_t num_rounds) {
+                      int num_rounds) {
     unsigned char *destStart = dest;
 
     __m256i fb256 = _mm256_broadcastsi128_si256(*chainblock);
     while (blocks >= 16) {
-        aes_cbc_dec_blocks_256b(src, dest, &fb256, roundKeys, num_rounds, 16);
+        aes_cbc_dec_blocks_256b(src, dest, &fb256, roundKeys, (int) num_rounds, 16);
         blocks -= 16;
         src += BLOCK_SIZE * 16;
         dest += BLOCK_SIZE * 16;

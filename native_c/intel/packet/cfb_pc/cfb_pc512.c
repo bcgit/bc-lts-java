@@ -4,7 +4,7 @@
 
 
 static inline void aes256_trailing(__m256i *d0, __m128i *feedback, __m128i *roundKeys, const uint32_t blocks,
-                                   const uint32_t max_rounds) {
+                                   const int max_rounds) {
     __m256i tmp0;
     tmp0 = _mm256_set_m128i(_mm256_extracti128_si256(*d0, 0), *feedback);
     *feedback = _mm256_extracti128_si256(*d0, 1);
@@ -25,7 +25,7 @@ static inline void aes256_trailing(__m256i *d0, __m128i *feedback, __m128i *roun
 static inline void aes128_trailing(
         __m128i *d0,
         __m128i *feedback, __m128i *roundKeys, const uint32_t blocks,
-        const uint32_t max_rounds) {
+        const int max_rounds) {
 
     __m128i tmp0;
     tmp0 = _mm_xor_si128(*feedback, roundKeys[0]);
@@ -69,7 +69,7 @@ static inline __m128i set_feedback(const __m512i in_cipher_blocks, const uint32_
 static inline void aes512w_cfb_decrypt(
         __m512i *d0, __m512i *d1, __m512i *d2, __m512i *d3,
         __m128i *feedback, __m128i *roundKeys, const uint32_t blocks,
-        const uint32_t max_rounds) {
+        const int max_rounds) {
 
     __m512i tmp0, tmp1, tmp2, tmp3;
 
@@ -179,7 +179,7 @@ static inline void aes512w_cfb_decrypt(
 
 
 size_t cfb_pc_decrypt(uint8_t *src, size_t len, unsigned char *dest, __m128i *roundKeys, __m128i *mask,
-                      __m128i *feedback, uint32_t *buf_index, uint32_t num_rounds) {
+                      __m128i *feedback, uint32_t *buf_index, int num_rounds) {
     unsigned char *destStart = dest;
 
     //
@@ -298,7 +298,7 @@ size_t cfb_pc_decrypt(uint8_t *src, size_t len, unsigned char *dest, __m128i *ro
 
 unsigned char
 cfb_pc_decrypt_byte(unsigned char b, __m128i *roundKeys, __m128i *mask, __m128i *feedback, uint32_t *buf_index,
-                    uint32_t num_rounds) {
+                    int num_rounds) {
     if (buf_index == 0) {
         // We need to generate a new encrypted feedback block to xor into the data.
 

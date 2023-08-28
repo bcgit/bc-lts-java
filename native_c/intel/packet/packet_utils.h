@@ -50,15 +50,15 @@ int get_aead_output_size(bool encryption, int len, int macSize);
 
 int get_output_size(bool encryption, int len);
 
-uint32_t generate_key(bool encryption, uint8_t *key, __m128i *roundKeys, size_t keyLen);
+int generate_key(bool encryption, uint8_t *key, __m128i *roundKeys, size_t keyLen);
 
 packet_err *make_packet_error(const char *msg, int type);
 
 static inline void
-packet_encrypt(__m128i *d0, const __m128i chainblock, __m128i *roundKeys, const uint32_t num_rounds);
+packet_encrypt(__m128i *d0, const __m128i chainblock, __m128i *roundKeys, const int num_rounds);
 
 size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
-                      uint32_t num_rounds);
+                      int num_rounds);
 
 bool tag_verification(const uint8_t *left, const uint8_t *right, size_t len);
 

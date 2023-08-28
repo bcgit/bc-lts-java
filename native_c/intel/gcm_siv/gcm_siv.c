@@ -28,7 +28,7 @@ gcm_siv_ctx *gcm_siv_create_ctx() {
 
 void gcm_siv_free(gcm_siv_ctx *ctx) {
     if (ctx->initAD != NULL) {
-        memset(ctx->initAD, 0, ctx->initADLen);
+        memset(ctx->initAD, 0, (size_t) ctx->initADLen);
         free(ctx->initAD);
     }
     memset(ctx, 0, sizeof(gcm_siv_ctx));
@@ -66,13 +66,13 @@ gcm_siv_err *gcm_siv_init(
         size_t keyLen,
         uint8_t *nonce,
         uint8_t *initialText,
-        size_t initialTextLen) {
+        int initialTextLen) {
     ctx->encryption = encryption;
-    ctx->theFlags = 0;
+    //ctx->theFlags = 0;
 
     // We had old initial text drop it here.
     if (ctx->initAD != NULL) {
-        memset(ctx->initAD, 0, ctx->initADLen);
+        memset(ctx->initAD, 0, (size_t)ctx->initADLen);
         free(ctx->initAD);
         ctx->initAD = NULL;
         ctx->initADLen = 0;
@@ -83,17 +83,18 @@ gcm_siv_err *gcm_siv_init(
         // We keep a copy so that if the instances is reset it can be returned to
         // the same state it was before the first data is processed.
         //
-        ctx->initAD = malloc(initialTextLen);
+        ctx->initAD = malloc((size_t)initialTextLen);
         ctx->initADLen = initialTextLen;
-        memcpy(ctx->initAD, initialText, initialTextLen);
+        memcpy(ctx->initAD, initialText, (size_t)initialTextLen);
     }
 
     // Zero out mac block
     memset(ctx->macBlock, 0, BLOCK_SIZE);
     memcpy(ctx->nonce, nonce, NONCELEN);
 
-    ctx->theFlags = deriveKeys(ctx->T, &ctx->H, ctx->roundKeys, key, (char *) ctx->nonce, &ctx->num_rounds, keyLen,
-                               ctx->theFlags);
+//    ctx->theFlags = deriveKeys(ctx->T, &ctx->H, ctx->roundKeys, key, (char *) ctx->nonce, &ctx->num_rounds, keyLen,
+//                               ctx->theFlags);
+    deriveKeys(ctx->T, &ctx->H, ctx->roundKeys, key, (char *) ctx->nonce, &ctx->num_rounds, keyLen);
 
     resetStreams(ctx);
     return NULL;// All good
@@ -161,7 +162,7 @@ void gcm_siv_hasher_completeHash(gcm_siv_hasher *p_gsh, __m128i *T, __m128i *the
 }
 
 void gHASH(__m128i *T, __m128i *theGHash, __m128i *pNext) {
-    _mm_storeu_si128( theGHash, _mm_xor_si128(*theGHash, *pNext));
+    _mm_storeu_si128(theGHash, _mm_xor_si128(*theGHash, *pNext));
     uint8_t *p = (uint8_t *) theGHash;
     __m128i t = T[p[15] & 0xFF];
     uint64_t z0 = (uint64_t) t[0], z1 = (uint64_t) t[1];
@@ -203,9 +204,11 @@ static inline void encrypt(__m128i *d0, __m128i *d1, __m128i *roundKeys, const i
     }
 }
 
-uint8_t
-deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, int *num_rounds,
-           size_t key_len, uint8_t theFlags) {
+//uint8_t
+//deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, int *num_rounds,
+//           size_t key_len, uint8_t theFlags) {
+void
+deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, int *num_rounds, size_t key_len) {
     /* Create the buffers */
     uint8_t myResult[BLOCK_SIZE << 1];
     __m128i *myResult1 = (__m128i *) myResult, *myResult2 = (__m128i *) (myResult + BLOCK_SIZE);
@@ -224,7 +227,7 @@ deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNo
 
     for (int i = 0; i < BLOCK_SIZE; i++) {
         uint8_t myValue = myOut[i];
-        myOut[i] = (((myValue >> 1) & ~MASK) | myMask);
+        myOut[i] = (uint8_t) (((myValue >> 1) & ~MASK) | myMask);
         myMask = (myValue & 1) == 0 ? 0 : MASK;
     }
     /* Xor in addition if last bit was set */
@@ -266,7 +269,7 @@ deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNo
     }
     /* Initialise the Cipher */
     generate_key(true, myResult, roundKeys, key_len);
-    return theFlags | INIT;
+//    return theFlags | INIT;
 }
 
 void resetStreams(gcm_siv_ctx *ctx) {
@@ -274,7 +277,7 @@ void resetStreams(gcm_siv_ctx *ctx) {
     gcm_siv_hasher_reset(&ctx->theAEADHasher);
     gcm_siv_hasher_reset(&ctx->theDataHasher);
     /* Initialise AEAD if required */
-    ctx->theFlags &= ~AEAD_COMPLETE;
+    //ctx->theFlags &= ~AEAD_COMPLETE;
     ctx->theGHash = _mm_setzero_si128();
     if (ctx->initAD != NULL) {
         gcm_siv_hasher_updateHash(&ctx->theAEADHasher, ctx->T, ctx->initAD, ctx->initADLen,

@@ -36,16 +36,16 @@ void handle_gcm_siv_result(JNIEnv *env, gcm_siv_err *err) {
 
 bool checkAEADStatus(JNIEnv *env, gcm_siv_ctx *ctx, int pLen) {
     /* Check we are initialised */
-    if ((ctx->theFlags & INIT) == 0) {
-        throw_java_invalid_state(env, "Cipher is not initialised");
-        return true;
-    }
-
-    /* Check AAD is allowed */
-    if ((ctx->theFlags & AEAD_COMPLETE) != 0) {
-        throw_java_invalid_state(env, "AEAD data cannot be processed after ordinary data");
-        return true;
-    }
+//    if ((ctx->theFlags & INIT) == 0) {
+//        throw_java_invalid_state(env, "Cipher is not initialised");
+//        return true;
+//    }
+//
+//    /* Check AAD is allowed */
+//    if ((ctx->theFlags & AEAD_COMPLETE) != 0) {
+//        throw_java_invalid_state(env, "AEAD data cannot be processed after ordinary data");
+//        return true;
+//    }
 
     /* Make sure that we haven't breached AEAD data limit */
     if (ctx->theAEADHasher.numHashed > (MAX_DATALEN - pLen)) {
@@ -57,10 +57,10 @@ bool checkAEADStatus(JNIEnv *env, gcm_siv_ctx *ctx, int pLen) {
 
 bool checkStatus(JNIEnv *env, gcm_siv_ctx *ctx, int pLen, int theEncDataSize) {
     /* Check we are initialised */
-    if ((ctx->theFlags & INIT) == 0) {
-        throw_java_invalid_state(env, "Cipher is not initialised");
-        return true;
-    }
+//    if ((ctx->theFlags & INIT) == 0) {
+//        throw_java_invalid_state(env, "Cipher is not initialised");
+//        return true;
+//    }
 
     /* Complete the AEAD section if this is the first data */
 //    if ((ctx->theFlags & AEAD_COMPLETE) == 0) {
@@ -147,7 +147,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_init
             key.size,
             iv.bytearray,
             ad.bytearray,
-            ad.size);
+            (int)ad.size);
 
     exit:
     release_bytearray_ctx(&key);

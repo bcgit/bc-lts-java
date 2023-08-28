@@ -15,7 +15,7 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
     int64_t blocksRemaining;
     __m128i X;
     __m128i ctr1;
-    uint32_t num_rounds;
+    int num_rounds;
     // mac block
     uint8_t macBlock[MAC_BLOCK_LEN];
     uint32_t atBlockPos = 0;

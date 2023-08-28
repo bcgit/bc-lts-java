@@ -1,8 +1,6 @@
-
-#include <assert.h>
 #include <memory.h>
 #include "cfb_pc.h"
-#include "../../common.h"
+
 
 packet_err *
 cfb_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *iv, size_t ivLen, uint8_t *p_in,
@@ -11,7 +9,7 @@ cfb_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *iv
     __m128i mask = _mm_setzero_si128();
     __m128i feedback = _mm_loadu_si128((__m128i *) iv);
     uint32_t buf_index = 0;
-    uint32_t num_rounds = generate_key(true, key, roundKeys, keysize);
+    int num_rounds = generate_key(true, key, roundKeys, keysize);
     if (encryption) {
         *outputLen = cfb_pc_encrypt(p_in, inLen, p_out, roundKeys, &mask, &feedback, &buf_index, num_rounds);
     } else {
@@ -25,7 +23,7 @@ cfb_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *iv
 
 
 static inline void
-aes128w_cfb128_encrypt(__m128i *d, __m128i *feedback, __m128i *roundKeys, const uint32_t max_rounds) {
+aes128w_cfb128_encrypt(__m128i *d, __m128i *feedback, __m128i *roundKeys, const int max_rounds) {
 
 //
 // Not possible to optimise CFB mode as the need to feedback ciphertexts forces
@@ -60,15 +58,8 @@ aes128w_cfb128_encrypt(__m128i *d, __m128i *feedback, __m128i *roundKeys, const 
 
 size_t
 cfb_pc_encrypt(unsigned char *src, size_t len, unsigned char *dest, __m128i *roundKeys, __m128i *mask,
-               __m128i *feedback,
-               uint32_t *buf_index, uint32_t num_rounds) {
+               __m128i *feedback, uint32_t *buf_index, int num_rounds) {
     unsigned char *destStart = dest;
-//    while (buf_index > 0 && len > 0) {
-//        *dest = cfb_pc_encrypt_byte(cfb, *src);
-//        len--;
-//        dest++;
-//        src++;
-//    }
 
     // Bulk round.
     while (len >= 16) {
@@ -98,7 +89,7 @@ cfb_pc_encrypt(unsigned char *src, size_t len, unsigned char *dest, __m128i *rou
 
 unsigned char
 cfb_pc_encrypt_byte(unsigned char b, __m128i *roundKeys, __m128i *mask, __m128i *feedback, uint32_t *buf_index,
-                    uint32_t num_rounds) {
+                    int num_rounds) {
     if (*buf_index == 0) {
         // We need to generate a new encrypted feedback block to xor into the data
         *mask = _mm_xor_si128(*feedback, roundKeys[0]);

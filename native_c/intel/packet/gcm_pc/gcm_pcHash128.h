@@ -184,7 +184,7 @@ static inline void gfmul_multi_reduce(
 static inline void apply_aes_no_reduction(
         __m128i *io0, __m128i *io1, __m128i *io2, __m128i *io3,
         __m128i ctr0s, __m128i ctr1s, __m128i ctr2s, __m128i ctr3s, __m128i *roundKeys,
-        const uint32_t num_rounds) {
+        const int num_rounds) {
 
 
     int rounds;
@@ -229,7 +229,7 @@ static inline void apply_aes_with_reduction(__m128i *io0, __m128i *io1, __m128i 
                                      const __m128i i0, const __m128i i1, const __m128i i2, const __m128i i3,
                                      const __m128i h0, const __m128i h1, const __m128i h2, const __m128i h3,
                                      __m128i ctr0s, __m128i ctr1s, __m128i ctr2s, __m128i ctr3s, __m128i *roundKeys,
-                                     __m128i *X, const uint32_t num_rounds) {
+                                     __m128i *X, const int num_rounds) {
 
     __m128i high, med, low, tee, high2, med2, low2, tee2;
 

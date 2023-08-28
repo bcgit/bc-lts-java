@@ -18,7 +18,7 @@ packet_err *gcm_pc_process_buffer_enc(
         __m128i *hashKeys,
         __m128i *ctr1,
         __m128i *roundKeys,
-        uint32_t num_rounds,
+        int num_rounds,
         size_t *totalBytes,
         __m128i *X,
         size_t bufBlockLen,
@@ -192,7 +192,7 @@ packet_err *gcm_pc_process_buffer_enc(
         const __m128i h2 = hashKeys[(HASHKEY_0 - 2)];
         const __m128i h1 = hashKeys[(HASHKEY_0 - 3)];
 
-        const uint32_t rounds = num_rounds;
+        const int rounds = num_rounds;
 
         *ctr1 = _mm_add_epi32(*ctr1, *ONE);
         __m128i ctr2 = _mm_add_epi32(*ctr1, *ONE);
@@ -250,7 +250,7 @@ packet_err *gcm_pc_process_buffer_enc(
 
 
 packet_err *gcm_pc_processFourBlocks_dec(uint8_t *in, uint8_t *out, int64_t *blocksRemaining, __m128i *hashKeys,
-                                  const uint32_t num_rounds, __m128i *ctr1, __m128i *roundKeys, __m128i *X) {
+                                  const int num_rounds, __m128i *ctr1, __m128i *roundKeys, __m128i *X) {
 
     if (out == NULL) {
         //
@@ -308,7 +308,7 @@ packet_err *gcm_pc_processFourBlocks_dec(uint8_t *in, uint8_t *out, int64_t *blo
 
 packet_err *gcm_pc_process_buffer_dec(uint8_t *in, size_t inlen, uint8_t *out, size_t outputLen, size_t *read,
                                size_t *written, size_t *bufBlockIndex, int64_t *blocksRemaining, __m128i *hashKeys,
-                               __m128i *ctr1, __m128i *roundKeys, uint32_t num_rounds, size_t *totalBytes, __m128i *X,
+                               __m128i *ctr1, __m128i *roundKeys, int num_rounds, size_t *totalBytes, __m128i *X,
                                size_t bufBlockLen, uint8_t *bufBlock, size_t macBlockLen) {
 
     *read = *written = 0;

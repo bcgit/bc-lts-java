@@ -332,7 +332,7 @@ static inline __m128i reduce(__m128i tee, __m128i high) {
 static inline void apply_aes_no_reduction(
         __m512i *io0, __m512i *io1, __m512i *io2, __m512i *io3,
         __m512i ctr0s, __m512i ctr1s, __m512i ctr2s, __m512i ctr3s, __m128i *roundKeys,
-        const uint32_t num_rounds) {
+        const int num_rounds) {
 
 
     int rounds;
@@ -377,7 +377,7 @@ static inline void apply_aes_with_reduction(__m512i *io0, __m512i *io1, __m512i 
                                      const __m512i *i0, const __m512i *i1, const __m512i *i2, const __m512i *i3,
                                      const __m512i h0, const __m512i h1, const __m512i h2, const __m512i h3,
                                      __m512i ctr0s, __m512i ctr1s, __m512i ctr2s, __m512i ctr3s, __m128i *roundKeys,
-                                     __m128i *X, const uint32_t num_rounds) {
+                                     __m128i *X, const int num_rounds) {
 
     __m512i high, med, low, tee, high1, med1, low1, tee1, high2, med2, low2, tee2;
 
@@ -578,7 +578,7 @@ static inline void apply_aes_with_reduction(__m512i *io0, __m512i *io1, __m512i 
 static inline void apply_aes_with_reduction_dec(__m512i *io0, __m512i *io1, __m512i *io2, __m512i *io3,
                                          const __m512i h0, const __m512i h1, const __m512i h2, const __m512i h3,
                                          __m512i ctr0s, __m512i ctr1s, __m512i ctr2s, __m512i ctr3s, __m128i *roundKeys,
-                                         __m128i *X, const uint32_t num_rounds) {
+                                         __m128i *X, const int num_rounds) {
 
     __m512i high, med, low, tee, high1, med1, low1, tee1, high2, med2, low2, tee2, i0;
 

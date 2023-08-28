@@ -4,7 +4,7 @@
 #include <memory.h>
 
 packet_err *
-gcm_siv_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *nonce, uint8_t *aad, size_t aadLen,
+gcm_siv_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *nonce, uint8_t *aad, int aadLen,
                           uint8_t *p_in, size_t inLen, uint8_t *p_out, size_t *outputLen) {
     __m128i roundKeys[15];
     __m128i theGHash = _mm_setzero_si128();
@@ -13,10 +13,9 @@ gcm_siv_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t
     gcm_siv_hasher theAEADHasher;
     gcm_siv_hasher theDataHasher;
     uint8_t macBlock[BLOCK_SIZE];
-    uint8_t theFlags = 0;
     int num_rounds;
     memset(macBlock, 0, BLOCK_SIZE);
-    deriveKeys(T, &H, roundKeys, key, (char *) nonce, &num_rounds, keysize, theFlags);
+    deriveKeys(T, &H, roundKeys, key, (char *) nonce, &num_rounds, keysize);
     gcm_siv_hasher_reset(&theAEADHasher);
     gcm_siv_hasher_reset(&theDataHasher);
     if (aad != NULL) {

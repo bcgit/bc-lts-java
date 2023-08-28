@@ -47,11 +47,11 @@ typedef struct {
     __m128i theNonce;
     uint8_t macBlock[BLOCK_SIZE];
     uint8_t *initAD;
-    size_t initADLen;
+    int initADLen;
     __m128i T[256];
     gcm_siv_hasher theAEADHasher;
     gcm_siv_hasher theDataHasher;
-    uint8_t theFlags;
+    //uint8_t theFlags;
 } gcm_siv_ctx;
 
 
@@ -82,7 +82,7 @@ size_t gcm_siv_get_output_size(bool encryption, size_t len);
  */
 gcm_siv_err *
 gcm_siv_init(gcm_siv_ctx *ctx, bool encryption, uint8_t *key, size_t keyLen, uint8_t *nonce,
-             uint8_t *intialText, size_t initialTextLen);
+             uint8_t *intialText, int initialTextLen);
 
 void gcm_siv_hasher_reset(gcm_siv_hasher *p_gsh);
 
@@ -92,9 +92,12 @@ void gcm_siv_hasher_completeHash(gcm_siv_hasher *p_gsh, __m128i *T, __m128i *the
 
 void gHASH(__m128i *T, __m128i *theGHash, __m128i *pNext);
 
-uint8_t
-deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, int *num_rounds,
-           size_t key_len, uint8_t theFlags);
+//uint8_t
+//deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, int *num_rounds,
+//           size_t key_len, uint8_t theFlags);
+
+void
+deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, int *num_rounds, size_t key_len);
 
 void resetStreams(gcm_siv_ctx *ctx);
 

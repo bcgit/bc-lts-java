@@ -6,7 +6,7 @@ cbc_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *iv
                       size_t inLen, uint8_t *p_out, size_t *outputLen) {
     __m128i roundKeys[15];
     __m128i chainblock = _mm_loadu_si128((__m128i *) iv);
-    uint32_t num_rounds = generate_key(encryption, key, roundKeys, keysize);
+    int num_rounds = generate_key(encryption, key, roundKeys, keysize);
     if (encryption) {
         *outputLen = cbc_pc_encrypt(p_in, (uint32_t) (inLen >> 4), p_out, &chainblock, roundKeys, num_rounds);
         if (inLen & 15) {

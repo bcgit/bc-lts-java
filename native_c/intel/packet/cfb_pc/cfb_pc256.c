@@ -24,7 +24,7 @@ static inline void aes256w_cfb_decrypt(
         __m256i *d0, __m256i *d1, __m256i *d2, __m256i *d3,
         __m256i *d4, __m256i *d5, __m256i *d6, __m256i *d7,
         __m128i *feedback, __m128i *roundKeys, const uint32_t blocks,
-        const uint32_t max_rounds) {
+        const int max_rounds) {
 
     __m256i tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
 
@@ -320,19 +320,8 @@ static inline void aes256w_cfb_decrypt(
 
 
 size_t cfb_pc_decrypt(unsigned char *src, size_t len, unsigned char *dest, __m128i *roundKeys, __m128i *mask, __m128i *feedback, uint32_t *buf_index,
-                   uint32_t num_rounds) {
+                   int num_rounds) {
     unsigned char *destStart = dest;
-
-    //
-    // Round out buffer.
-    //
-//    while (buf_index > 0 && len > 0) {
-//        *dest = cfb_decrypt_byte(cfb, *src);
-//        len--;
-//        dest++;
-//        src++;
-//    }
-
     while (len >= 16 * CFB_BLOCK_SIZE) {
         __m256i d0 = _mm256_loadu_si256((__m256i *) &src[0 * 32]);
         __m256i d1 = _mm256_loadu_si256((__m256i *) &src[1 * 32]);
@@ -527,7 +516,7 @@ size_t cfb_pc_decrypt(unsigned char *src, size_t len, unsigned char *dest, __m12
 
 unsigned char
 cfb_pc_decrypt_byte(unsigned char b, __m128i *roundKeys, __m128i *mask, __m128i *feedback, uint32_t *buf_index,
-                 uint32_t num_rounds) {
+                 int num_rounds) {
     if (*buf_index == 0) {
 
         // We need to generate a new encrypted feedback block to xor into the data.,

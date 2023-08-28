@@ -8,7 +8,7 @@ static inline void aes128w_cfb128_decrypt(
         __m128i *d0, __m128i *d1, __m128i *d2, __m128i *d3,
         __m128i *d4, __m128i *d5, __m128i *d6, __m128i *d7,
         __m128i *feedback, __m128i *roundKeys, const uint32_t blocks,
-        const uint32_t num_rounds) {
+        const int num_rounds) {
 
     __m128i tmp0, tmp1, tmp2, tmp3, tmp4, tmp5, tmp6, tmp7;
 
@@ -245,8 +245,7 @@ static inline void aes128w_cfb128_decrypt(
 
 size_t
 cfb_pc_decrypt(unsigned char *src, size_t len, unsigned char *dest, __m128i *roundKeys, __m128i *mask,
-               __m128i *feedback,
-               uint32_t *buf_index, uint32_t num_rounds) {
+               __m128i *feedback, uint32_t *buf_index, int num_rounds) {
     unsigned char *destStart = dest;
 
     //
@@ -436,7 +435,7 @@ cfb_pc_decrypt(unsigned char *src, size_t len, unsigned char *dest, __m128i *rou
 
 unsigned char
 cfb_pc_decrypt_byte(unsigned char b, __m128i *roundKeys, __m128i *mask, __m128i *feedback, uint32_t *buf_index,
-                 uint32_t num_rounds) {
+                    int num_rounds) {
     if (*buf_index == 0) {
 
         // We need to generate a new encrypted feedback block to xor into the data.,

@@ -58,13 +58,13 @@ typedef struct {
 
 packet_err *gcm_pc_process_buffer_enc(uint8_t *in, size_t inlen, uint8_t *out, size_t outputLen, size_t *read, size_t *written,
                                bool encryption, size_t *bufBlockIndex, int64_t *blocksRemaining, __m128i *hashKeys,
-                               __m128i *ctr1, __m128i *roundKeys, uint32_t num_rounds, size_t *totalBytes, __m128i *X,
+                               __m128i *ctr1, __m128i *roundKeys, int num_rounds, size_t *totalBytes, __m128i *X,
                                size_t bufBlockLen, uint8_t *bufBlock);
 
 
 packet_err *gcm_pc_process_buffer_dec(uint8_t *in, size_t inlen, uint8_t *out, size_t outputLen, size_t *read,
                                size_t *written,  size_t *bufBlockIndex, int64_t *blocksRemaining,
-                               __m128i *hashKeys, __m128i *ctr1, __m128i *roundKeys, uint32_t num_rounds,
+                               __m128i *hashKeys, __m128i *ctr1, __m128i *roundKeys, int num_rounds,
                                size_t *totalBytes, __m128i *X, size_t bufBlockLen, uint8_t *bufBlock, size_t macBlockLen);
 
 void gcm_pc_exponentiate(__m128i H, uint64_t pow, __m128i *output);

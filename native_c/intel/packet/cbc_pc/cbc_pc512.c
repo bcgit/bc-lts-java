@@ -24,7 +24,7 @@ static inline __m128i set_feedback(const __m512i in_cipher_blocks, const uint32_
 
 static inline void aes_cbc_dec_blocks_512b(unsigned char *in, unsigned char *out,
                                            __m512i *fb512, __m128i *feedback, const __m128i *roundKeys,
-                                           const uint32_t num_rounds, const uint32_t num_blocks) {
+                                           const int num_rounds, const uint32_t num_blocks) {
 
     if (num_blocks == 16) {
         __m512i d0 = _mm512_loadu_si512((__m512i *) &in[0 * 64]);
@@ -38,7 +38,7 @@ static inline void aes_cbc_dec_blocks_512b(unsigned char *in, unsigned char *out
         const __m512i iv3 = _mm512_alignr_epi64(d3, d2, 6);
 
         *fb512 = d3; // keep as feedback for the next iteration, 'feedback' not used in this case
-        aesdec_16_blocks_512b(&d0, &d1, &d2, &d3, roundKeys, num_rounds, 16);
+        aesdec_16_blocks_512b(&d0, &d1, &d2, &d3, roundKeys,  num_rounds, 16);
 
         d0 = _mm512_xor_si512(d0, iv0);
         d1 = _mm512_xor_si512(d1, iv1);
@@ -63,7 +63,7 @@ static inline void aes_cbc_dec_blocks_512b(unsigned char *in, unsigned char *out
 
         *feedback = set_feedback(d3, partial_blocks); // keep as feedback for the next time
 
-        aesdec_16_blocks_512b(&d0, &d1, &d2, &d3, roundKeys, num_rounds, 16);
+        aesdec_16_blocks_512b(&d0, &d1, &d2, &d3, roundKeys,  num_rounds, 16);
 
         d0 = _mm512_xor_si512(d0, iv0);
         d1 = _mm512_xor_si512(d1, iv1);
@@ -137,7 +137,7 @@ static inline void aes_cbc_dec_blocks_512b(unsigned char *in, unsigned char *out
 //
 
 size_t cbc_pc_decrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
-                      uint32_t num_rounds) {
+                      int num_rounds) {
     unsigned char *destStart = dest;
 
 

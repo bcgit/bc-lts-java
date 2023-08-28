@@ -34,8 +34,8 @@ packet_err *make_packet_error(const char *msg, int type) {
     return err;
 }
 
-uint32_t generate_key(bool encryption, uint8_t *key, __m128i *roundKeys, size_t keyLen) {
-    uint32_t num_rounds;
+int generate_key(bool encryption, uint8_t *key, __m128i *roundKeys, size_t keyLen) {
+    int num_rounds;
     memset(roundKeys, 0, sizeof(__m128i) * 15);
     switch (keyLen) {
         case 16:
@@ -57,7 +57,7 @@ uint32_t generate_key(bool encryption, uint8_t *key, __m128i *roundKeys, size_t 
 }
 
 static inline void
-packet_encrypt(__m128i *d0, const __m128i chainblock, __m128i *roundKeys, const uint32_t num_rounds) {
+packet_encrypt(__m128i *d0, const __m128i chainblock, __m128i *roundKeys, const int num_rounds) {
     *d0 = _mm_xor_si128(*d0, chainblock);
     *d0 = _mm_xor_si128(*d0, roundKeys[0]);
     *d0 = _mm_aesenc_si128(*d0, roundKeys[1]);
@@ -87,7 +87,7 @@ packet_encrypt(__m128i *d0, const __m128i chainblock, __m128i *roundKeys, const 
 }
 
 size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
-                      uint32_t num_rounds) {
+                      int num_rounds) {
     unsigned char *destStart = dest;
     __m128i d0;
     __m128i tmpCb = *chainblock;

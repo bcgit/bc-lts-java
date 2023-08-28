@@ -14,7 +14,7 @@
  * @param out  the plain text
  */
 packet_err *
-gcm_pc_process16Blocks_dec(uint8_t *in, uint8_t *out, int64_t *blocksRemaining, const uint32_t num_rounds, __m128i *hashKeys,
+gcm_pc_process16Blocks_dec(uint8_t *in, uint8_t *out, int64_t *blocksRemaining, const int num_rounds, __m128i *hashKeys,
                     __m128i *ctr1, __m128i *roundKeys, __m128i *X) {
 
     if (out == NULL) {
@@ -32,7 +32,7 @@ gcm_pc_process16Blocks_dec(uint8_t *in, uint8_t *out, int64_t *blocksRemaining, 
 
     *blocksRemaining -= 16;
 
-    const uint32_t aes_round_max = num_rounds;
+    const int aes_round_max = num_rounds;
     const __m512i h4 = _mm512_loadu_si512((__m512i *) &hashKeys[12]);
     const __m512i h3 = _mm512_loadu_si512((__m512i *) &hashKeys[8]);
     const __m512i h2 = _mm512_loadu_si512((__m512i *) &hashKeys[4]);
@@ -82,7 +82,7 @@ gcm_pc_process16Blocks_dec(uint8_t *in, uint8_t *out, int64_t *blocksRemaining, 
  * @param out  the plain text
  */
 packet_err *
-gcm_pc_process16Blocks_enc(uint8_t *in, uint8_t *out, int64_t *blocksRemaining, const uint32_t num_rounds, __m128i *hashKeys,
+gcm_pc_process16Blocks_enc(uint8_t *in, uint8_t *out, int64_t *blocksRemaining, const int num_rounds, __m128i *hashKeys,
                     __m128i *ctr1, __m128i *roundKeys, __m128i *X) {
     if (out == NULL) {
         //
@@ -98,7 +98,7 @@ gcm_pc_process16Blocks_enc(uint8_t *in, uint8_t *out, int64_t *blocksRemaining, 
     }
     *blocksRemaining -= 16;
 
-    const uint32_t aes_round_max = num_rounds;
+    const int aes_round_max = num_rounds;
     const __m512i h4 = _mm512_loadu_si512((__m512i *) &hashKeys[12]);
     const __m512i h3 = _mm512_loadu_si512((__m512i *) &hashKeys[8]);
     const __m512i h2 = _mm512_loadu_si512((__m512i *) &hashKeys[4]);
@@ -174,7 +174,7 @@ gcm_pc_process16Blocks_enc(uint8_t *in, uint8_t *out, int64_t *blocksRemaining, 
 
 packet_err *gcm_pc_process_buffer_dec(uint8_t *in, size_t inlen, uint8_t *out, size_t outputLen, size_t *read, size_t *written,
                                size_t *bufBlockIndex, int64_t *blocksRemaining, __m128i *hashKeys, __m128i *ctr1,
-                               __m128i *roundKeys, uint32_t num_rounds, size_t *totalBytes, __m128i *X,
+                               __m128i *roundKeys, int num_rounds, size_t *totalBytes, __m128i *X,
                                size_t bufBlockLen, uint8_t *bufBlock, size_t macBlockLen) {
 
     *read = *written = 0;
@@ -344,7 +344,7 @@ packet_err *gcm_pc_process_buffer_dec(uint8_t *in, size_t inlen, uint8_t *out, s
 packet_err *
 gcm_pc_process_buffer_enc(unsigned char *in, size_t inlen, unsigned char *out, size_t outputLen, size_t *read,
                    size_t *written, bool encryption, size_t *bufBlockIndex, int64_t *blocksRemaining, __m128i *hashKeys,
-                   __m128i *ctr1, __m128i *roundKeys, uint32_t num_rounds, size_t *totalBytes, __m128i *X,
+                   __m128i *ctr1, __m128i *roundKeys, int num_rounds, size_t *totalBytes, __m128i *X,
                    size_t bufBlockLen, uint8_t *bufBlock) {
 
 
