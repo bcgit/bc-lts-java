@@ -6,13 +6,12 @@ import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import org.bouncycastle.crypto.NativeEntropyTests;
 import org.bouncycastle.crypto.NativeFailsafeTest;
-import org.bouncycastle.crypto.digests.SHA256NativeDigestTests;
-import org.bouncycastle.crypto.digests.SHA256JavaAgreementTest;
+import org.bouncycastle.crypto.digests.*;
 import org.bouncycastle.test.PrintTestResult;
 
 
 public class AllTests
-    extends TestCase
+        extends TestCase
 {
     public static void main(String[] args)
     {
@@ -29,14 +28,20 @@ public class AllTests
         suite.addTestSuite(GCMJavaAgreementTest.class);
         suite.addTestSuite(SHA256JavaAgreementTest.class);
         suite.addTestSuite(CCMJavaAgreementTest.class);
+        suite.addTestSuite(SHA224JavaAgreementTest.class);
+        suite.addTestSuite(SHA512JavaAgreementTest.class);
+        suite.addTestSuite(SHA384JavaAgreementTest.class);
 
-       suite.addTestSuite(CBCNativeLimitTest.class);
+        suite.addTestSuite(CBCNativeLimitTest.class);
         suite.addTestSuite(CFBNativeLimitTest.class);
         suite.addTestSuite(CTRNativeLimitTest.class);
         suite.addTestSuite(ECBNativeLimitTest.class);
         suite.addTestSuite(GCMNativeLimitTest.class);
         suite.addTestSuite(CCMNativeLimitTest.class);
         suite.addTestSuite(SHA256NativeDigestTests.class);
+        suite.addTestSuite(SHA224NativeDigestTests.class);
+        suite.addTestSuite(SHA512NativeDigestTests.class);
+        suite.addTestSuite(SHA384NativeDigestTests.class);
 
         suite.addTestSuite(NativeEntropyTests.class);
         suite.addTestSuite(NativeFailsafeTest.class);
@@ -44,7 +49,7 @@ public class AllTests
     }
 
     static class BCTestSetup
-        extends TestSetup
+            extends TestSetup
     {
         public BCTestSetup(Test test)
         {

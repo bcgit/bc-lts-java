@@ -61,7 +61,7 @@ public final class DigestFactory
         {
             public Digest createClone(Digest original)
             {
-                return new SHA384Digest((SHA384Digest)original);
+                return SHA384Digest.newInstance(original);
             }
         });
         cloneMap.put(createSHA512().getAlgorithmName(), new Cloner()
@@ -159,12 +159,12 @@ public final class DigestFactory
 
     public static Digest createSHA384()
     {
-        return new SHA384Digest();
+        return SHA384Digest.newInstance();
     }
 
     public static Digest createSHA384PRF()
     {
-        return new SHA384Digest(CryptoServicePurpose.PRF);
+        return SHA384Digest.newInstance(CryptoServicePurpose.PRF);
     }
 
     public static Digest createSHA512()

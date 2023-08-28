@@ -11,14 +11,14 @@ import org.bouncycastle.util.dispose.NativeReference;
 /**
  * SHA256 implementation.
  */
-class SHA512NativeDigest
+class SHA384NativeDigest
         implements SavableDigest
 {
     private final CryptoServicePurpose purpose;
 
     protected DigestRefWrapper nativeRef = null;
 
-    SHA512NativeDigest(CryptoServicePurpose purpose)
+    SHA384NativeDigest(CryptoServicePurpose purpose)
     {
         this.purpose = purpose;
         nativeRef = new DigestRefWrapper(makeNative());
@@ -26,12 +26,12 @@ class SHA512NativeDigest
         CryptoServicesRegistrar.checkConstraints(cryptoServiceProperties());
     }
 
-    SHA512NativeDigest()
+    SHA384NativeDigest()
     {
         this(CryptoServicePurpose.ANY);
     }
 
-    SHA512NativeDigest(SHA512NativeDigest src)
+    SHA384NativeDigest(SHA384NativeDigest src)
     {
 
         this(CryptoServicePurpose.ANY);
@@ -45,7 +45,7 @@ class SHA512NativeDigest
     // From BC-LTS, used for testing in FIPS api only.
     // ----------------------- Start Testing only methods.
 
-    SHA512NativeDigest restoreState(byte[] state, int offset)
+    SHA384NativeDigest restoreState(byte[] state, int offset)
     {
         restoreFullState(nativeRef.getReference(), state, offset);
         return this;
@@ -58,7 +58,7 @@ class SHA512NativeDigest
     @Override
     public String getAlgorithmName()
     {
-        return "SHA-512";
+        return "SHA-384";
     }
 
     @Override
@@ -107,13 +107,13 @@ class SHA512NativeDigest
     @Override
     public Memoable copy()
     {
-        return new SHA512NativeDigest(this);
+        return new SHA384NativeDigest(this);
     }
 
     @Override
     public void reset(Memoable other)
     {
-        SHA512NativeDigest dig = (SHA512NativeDigest) other;
+        SHA384NativeDigest dig = (SHA384NativeDigest) other;
         restoreFullState(nativeRef.getReference(), dig.getEncodedState(), 0);
     }
 
@@ -139,7 +139,7 @@ class SHA512NativeDigest
     @Override
     public String toString()
     {
-        return "SHA512[Native]()";
+        return "SHA384[Native]()";
     }
 
     static native long makeNative();
@@ -190,7 +190,7 @@ class SHA512NativeDigest
 
         public DigestRefWrapper(long reference)
         {
-            super(reference,"SHA512");
+            super(reference,"SHA384");
         }
 
         @Override

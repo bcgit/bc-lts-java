@@ -192,6 +192,23 @@ class NativeFeatures
         }
     }
 
+    static boolean hasHardwareSHA384()
+    {
+        try
+        {
+            return nativeSHA384();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.log(Level.FINE, "native sha exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+
     static boolean hasHardwareSHA512()
     {
         try
@@ -229,6 +246,8 @@ class NativeFeatures
     private static native boolean nativeSHA256();
 
     private static native boolean nativeSHA224();
+
+    private static native boolean nativeSHA384();
 
     private static native boolean nativeSHA512();
 

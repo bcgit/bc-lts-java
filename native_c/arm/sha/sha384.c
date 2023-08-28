@@ -4,9 +4,9 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <memory.h>
-#include "sha512.h"
+#include "sha384.h"
 
-void hashBlock512(sha512_ctx *ctx, uint8_t *block);
+void hashBlock384(sha384_ctx *ctx, uint8_t *block);
 
 
 static const uint8_t padBlock[128] = {
@@ -52,7 +52,7 @@ static const uint64_t K[80] = {
         0x4cc5d4becb3e42b6UL, 0x597f299cfc657e2aUL, 0x5fcb6fab3ad6faecUL, 0x6c44198c4a475817UL
 };
 
-static inline int processLength(sha512_ctx *ctx, uint64_t l, uint64_t h) {
+static inline int processLength(sha384_ctx *ctx, uint64_t l, uint64_t h) {
 
 
     ctx->buf[127] = (uint8_t) (l & 0xFF);
@@ -77,33 +77,33 @@ static inline int processLength(sha512_ctx *ctx, uint64_t l, uint64_t h) {
     return 16;
 }
 
-sha512_ctx *sha512_create_ctx() {
-    sha512_ctx *ptr = calloc(1, sizeof(sha512_ctx));
+sha384_ctx *sha384_create_ctx() {
+    sha384_ctx *ptr = calloc(1, sizeof(sha384_ctx));
     assert(ptr != NULL);
-    sha512_reset(ptr);
+    sha384_reset(ptr);
     return ptr;
 }
 
-void sha512_free_ctx(sha512_ctx *ctx) {
-    memset(ctx, 0, sizeof(sha512_ctx));
+void sha384_free_ctx(sha384_ctx *ctx) {
+    memset(ctx, 0, sizeof(sha384_ctx));
     free(ctx);
 }
 
-void sha512_reset(sha512_ctx *ctx) {
+void sha384_reset(sha384_ctx *ctx) {
 
-    memset(ctx->buf, 0, BUF_SIZE_SHA512);
-    ctx->ident = SHA512_MAGIC;
+    memset(ctx->buf, 0, BUF_SIZE_SHA384);
+    ctx->ident = SHA384_MAGIC;
     ctx->buf_index = 0;
     ctx->byteCount1 = 0;
     ctx->byteCount2 = 0;
-    ctx->state[0] = 0x6a09e667f3bcc908L;
-    ctx->state[1] = 0xbb67ae8584caa73bL;
-    ctx->state[2] = 0x3c6ef372fe94f82bL;
-    ctx->state[3] = 0xa54ff53a5f1d36f1L;
-    ctx->state[4] = 0x510e527fade682d1L;
-    ctx->state[5] = 0x9b05688c2b3e6c1fL;
-    ctx->state[6] = 0x1f83d9abfb41bd6bL;
-    ctx->state[7] = 0x5be0cd19137e2179L;
+    ctx->state[0] = 0xcbbb9d5dc1059ed8L;
+    ctx->state[1] = 0x629a292a367cd507L;
+    ctx->state[2] = 0x9159015a3070dd17L;
+    ctx->state[3] = 0x152fecd8f70e5939L;
+    ctx->state[4] = 0x67332667ffc00b31L;
+    ctx->state[5] = 0x8eb44a8768581511L;
+    ctx->state[6] = 0xdb0c2e0d64f98fa7L;
+    ctx->state[7] = 0x47b5481dbefa4fa4L;
 
     ctx->s0 = vld1q_u64(&ctx->state[0]);
     ctx->s1 = vld1q_u64(&ctx->state[2]);
@@ -112,7 +112,7 @@ void sha512_reset(sha512_ctx *ctx) {
 
 }
 
-void sha512_update(sha512_ctx *ctx, uint8_t *input, size_t len) {
+void sha384_update(sha384_ctx *ctx, uint8_t *input, size_t len) {
     if (input == NULL || len == 0) {
         return;
     }
@@ -120,7 +120,7 @@ void sha512_update(sha512_ctx *ctx, uint8_t *input, size_t len) {
     uint8_t *end = input + len;
 
     if (ctx->buf_index != 0) {
-        size_t rem = BUF_SIZE_SHA512 - ctx->buf_index;
+        size_t rem = BUF_SIZE_SHA384 - ctx->buf_index;
         size_t toCopy = len < rem ? len : rem;
         memcpy(&ctx->buf[ctx->buf_index], input, toCopy);
         ctx->buf_index += toCopy;
@@ -131,8 +131,8 @@ void sha512_update(sha512_ctx *ctx, uint8_t *input, size_t len) {
         }
 
 
-        if (ctx->buf_index == BUF_SIZE_SHA512) {
-            hashBlock512(ctx, ctx->buf);
+        if (ctx->buf_index == BUF_SIZE_SHA384) {
+            hashBlock384(ctx, ctx->buf);
             ctx->buf_index = 0;
         }
     }
@@ -141,11 +141,11 @@ void sha512_update(sha512_ctx *ctx, uint8_t *input, size_t len) {
     // Directly process block
     //
     uint8_t *ptr = input;
-    while (end - ptr >= BUF_SIZE_SHA512) {
-        hashBlock512(ctx, ptr);
-        ptr += BUF_SIZE_SHA512;
-        ctx->byteCount1 += BUF_SIZE_SHA512;
-        if (ctx->byteCount1 < BUF_SIZE_SHA512) {
+    while (end - ptr >= BUF_SIZE_SHA384) {
+        hashBlock384(ctx, ptr);
+        ptr += BUF_SIZE_SHA384;
+        ctx->byteCount1 += BUF_SIZE_SHA384;
+        if (ctx->byteCount1 < BUF_SIZE_SHA384) {
             ctx->byteCount2++;
         }
     }
@@ -154,7 +154,7 @@ void sha512_update(sha512_ctx *ctx, uint8_t *input, size_t len) {
     // Copy in any trailing bytes that do not fill a block.
     //
     if (end - ptr > 0) {
-        size_t rem = BUF_SIZE_SHA512 - ctx->buf_index;
+        size_t rem = BUF_SIZE_SHA384 - ctx->buf_index;
         size_t toCopy = end - ptr < rem ? (size_t) (end - ptr) : rem;
         memcpy(&ctx->buf[ctx->buf_index], ptr, toCopy);
         ctx->buf_index += toCopy;
@@ -167,27 +167,27 @@ void sha512_update(sha512_ctx *ctx, uint8_t *input, size_t len) {
 
 }
 
-void sha512_update_byte(sha512_ctx *ctx, uint8_t b) {
+void sha384_update_byte(sha384_ctx *ctx, uint8_t b) {
     ctx->buf[ctx->buf_index++] = b;
     ctx->byteCount1++;
     if (ctx->byteCount1 == 0) {
         ctx->byteCount2++;
     }
-    if (ctx->buf_index == BUF_SIZE_SHA512) {
-        hashBlock512(ctx, ctx->buf);
+    if (ctx->buf_index == BUF_SIZE_SHA384) {
+        hashBlock384(ctx, ctx->buf);
         ctx->buf_index = 0;
     }
 }
 
-void sha512_digest(sha512_ctx *ctx, uint8_t *output) {
+void sha384_digest(sha384_ctx *ctx, uint8_t *output) {
 
     const uint64_t h = ctx->byteCount1 >> 61 | ctx->byteCount2 << 3;
     const uint64_t l = ctx->byteCount1 << 3;
 
     size_t padLen = ctx->buf_index < 112 ? 112 - ctx->buf_index : 128 + 112 - ctx->buf_index;
-    sha512_update(ctx, (uint8_t *) padBlock, padLen);
+    sha384_update(ctx, (uint8_t *) padBlock, padLen);
     processLength(ctx, l, h);
-    hashBlock512(ctx, ctx->buf);
+    hashBlock384(ctx, ctx->buf);
 
     //
     // Save state
@@ -200,29 +200,28 @@ void sha512_digest(sha512_ctx *ctx, uint8_t *output) {
     vst1q_u8((uint8_t *) &output[0 * 16], vrev64q_u8(vreinterpretq_u8_u64(ctx->s0)));
     vst1q_u8((uint8_t *) &output[1 * 16], vrev64q_u8(vreinterpretq_u8_u64(ctx->s1)));
     vst1q_u8((uint8_t *) &output[2 * 16], vrev64q_u8(vreinterpretq_u8_u64(ctx->s2)));
-    vst1q_u8((uint8_t *) &output[3 * 16], vrev64q_u8(vreinterpretq_u8_u64(ctx->s3)));
 
-    sha512_reset(ctx);
+    sha384_reset(ctx);
 }
 
-uint32_t sha512_getSize(sha512_ctx *ctx) {
-    return SHA512_SIZE;
+uint32_t sha384_getSize(sha384_ctx *ctx) {
+    return SHA384_SIZE;
 }
 
-uint32_t sha512_getByteLen(sha512_ctx *ctx) {
-    return BUF_SIZE_SHA512;
+uint32_t sha384_getByteLen(sha384_ctx *ctx) {
+    return BUF_SIZE_SHA384;
 }
 
-bool sha512_restoreFullState(sha512_ctx *ctx, const uint8_t *oldState) {
+bool sha384_restoreFullState(sha384_ctx *ctx, const uint8_t *oldState) {
 
-    sha512_ctx newState;
-    memcpy(&newState, oldState, sizeof(sha512_ctx));
+    sha384_ctx newState;
+    memcpy(&newState, oldState, sizeof(sha384_ctx));
 
-    if (newState.ident != SHA512_MAGIC) {
+    if (newState.ident != SHA384_MAGIC) {
         return false;
     }
 
-    if (newState.buf_index >= BUF_SIZE_SHA512) {
+    if (newState.buf_index >= BUF_SIZE_SHA384) {
         return false;
     }
 
@@ -231,12 +230,12 @@ bool sha512_restoreFullState(sha512_ctx *ctx, const uint8_t *oldState) {
     return true;
 }
 
-size_t sha512_encodeFullState(const sha512_ctx *ctx, uint8_t *output) {
-    memcpy(output, ctx, sizeof(sha512_ctx));
-    return sizeof(sha512_ctx);
+size_t sha384_encodeFullState(const sha384_ctx *ctx, uint8_t *output) {
+    memcpy(output, ctx, sizeof(sha384_ctx));
+    return sizeof(sha384_ctx);
 }
 
-void hashBlock512(sha512_ctx *ctx, uint8_t *block) {
+void hashBlock384(sha384_ctx *ctx, uint8_t *block) {
 
     uint64x2_t ab_save, cd_save, ef_save, gh_save;
     uint64x2_t msg0, msg1, msg2, msg3, msg4, msg5, msg6, msg7;
@@ -246,6 +245,7 @@ void hashBlock512(sha512_ctx *ctx, uint8_t *block) {
     uint64x2_t s1 = cd_save = ctx->s1;
     uint64x2_t s2 = ef_save = ctx->s2;
     uint64x2_t s3 = gh_save = ctx->s3;
+    
 
     msg0 = vreinterpretq_u64_u8(vrev64q_u8(vld1q_u8(&block[0 * 16])));
     msg1 = vreinterpretq_u64_u8(vrev64q_u8(vld1q_u8(&block[1 * 16])));

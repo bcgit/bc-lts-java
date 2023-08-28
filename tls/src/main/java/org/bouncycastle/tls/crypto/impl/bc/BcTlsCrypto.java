@@ -491,9 +491,9 @@ public class BcTlsCrypto
         case CryptoHashAlgorithm.sha256:
             return SHA256Digest.newInstance(digest);
         case CryptoHashAlgorithm.sha384:
-            return new SHA384Digest((SHA384Digest)digest);
+            return SHA384Digest.newInstance(digest);
         case CryptoHashAlgorithm.sha512:
-            return SHA512Digest.newInstance((SHA512Digest)digest);
+            return SHA512Digest.newInstance(digest);
         case CryptoHashAlgorithm.sm3:
             return new SM3Digest((SM3Digest)digest);
         default:
@@ -514,7 +514,7 @@ public class BcTlsCrypto
         case CryptoHashAlgorithm.sha256:
             return new SHA256Digest();
         case CryptoHashAlgorithm.sha384:
-            return new SHA384Digest();
+            return SHA384Digest.newInstance();
         case CryptoHashAlgorithm.sha512:
             return SHA512Digest.newInstance();
         case CryptoHashAlgorithm.sm3:

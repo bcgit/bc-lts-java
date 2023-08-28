@@ -9,17 +9,17 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.OutputStream;
-import java.security.DigestOutputStream;
 import java.security.SecureRandom;
 
-public class SHA256JavaAgreementTest extends TestCase
+public class SHA384JavaAgreementTest extends TestCase
 {
 
     @Before
     public void before()
     {
+
         CryptoServicesRegistrar.setNativeEnabled(true);
+
     }
 
     @After
@@ -32,15 +32,15 @@ public class SHA256JavaAgreementTest extends TestCase
     private byte[] takeDigest(byte[] message, boolean expectNative) throws Exception
     {
 
-        SavableDigest dig = SHA256Digest.newInstance();
+        SavableDigest dig = SHA384Digest.newInstance();
 
 
         if (expectNative)
         {
-            TestCase.assertTrue(dig.toString().contains("SHA256[Native]"));
+            TestCase.assertTrue(dig.toString().contains("SHA384[Native]"));
         } else
         {
-            TestCase.assertTrue(dig.toString().contains("SHA256[Java]"));
+            TestCase.assertTrue(dig.toString().contains("SHA384[Java]"));
         }
 
         byte[] res = new byte[dig.getDigestSize()];
@@ -52,14 +52,14 @@ public class SHA256JavaAgreementTest extends TestCase
 
 
     @Test
-    public void testSHA256() throws Exception
+    public void testSHA384() throws Exception
     {
 
-        if (!TestUtil.hasNativeService("SHA2"))
+        if (!TestUtil.hasNativeService("SHA384"))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha512"))
             {
-                TestCase.fail("Skipping SHA2 Agreement Test: " + TestUtil.errorMsg());
+                TestCase.fail("Skipping SHA384 Agreement Test: " + TestUtil.errorMsg());
             }
             return;
         }

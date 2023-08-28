@@ -133,7 +133,7 @@ public class HMacDRBGTest
                             "8EEAD057C0EC754EF8B53E60A1F434F05946A8B686AFBC7A"
                         }),
                 new DRBGTestVector(
-                    new SHA384Digest(),
+                    SHA384Digest.newInstance(),
                     new SHA384EntropyProvider().get(888),
                     false,
                     "202122232425262728292A2B",
@@ -154,7 +154,7 @@ public class HMacDRBGTest
                         "7F808182838485868788898A8B8C8D8E8F90919293949596" +
                         "9798999A9B9C9D9E9FA0A1A2A3A4A5A6A7A8A9AAABACADAE"),
                 new DRBGTestVector(
-                    new SHA384Digest(),
+                    SHA384Digest.newInstance(),
                     new SHA384EntropyProvider().get(888),
                     true,
                     "202122232425262728292A2B",

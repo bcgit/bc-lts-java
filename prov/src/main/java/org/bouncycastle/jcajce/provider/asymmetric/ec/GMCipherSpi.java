@@ -390,7 +390,7 @@ public class GMCipherSpi
     {
         public SM2withSha384()
         {
-            super(new SM2Engine(new SHA384Digest()));
+            super(new SM2Engine(SHA384Digest.newInstance()));
         }
     }
 

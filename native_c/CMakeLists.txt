@@ -85,7 +85,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
         set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/linux/arm64)
         set(OPTIONS -Wconversion -Werror=return-type)
         set(PROBE_OPTIONS ${OPTIMISE_FLAG})
-        set(ARM64_NEON_OPTIONS ${OPTIONS} -march=armv8.4-a+crypto ${OPTIMISE_FLAG})
+        set(ARM64_NEON_OPTIONS ${OPTIONS} -march=armv8.4-a+crypto+sha2+sha3 ${OPTIMISE_FLAG})
         set(ARM_BE -mbig-endian)
     endif ()
 
@@ -157,6 +157,12 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             arm/jni/sha224_jni.c
             )
 
+    set(ARM_SHA384
+            arm/sha/sha384.h
+            arm/sha/sha384.c
+            arm/jni/sha384_jni.c
+            )
+
     set(ARM_SHA512
             arm/sha/sha512.h
             arm/sha/sha512.c
@@ -191,6 +197,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             ${ARM_CCM}
             ${ARM_SHA256}
             ${ARM_SHA224}
+            ${ARM_SHA384}
             ${ARM_SHA512}
             ${ARM_MUL}
             )

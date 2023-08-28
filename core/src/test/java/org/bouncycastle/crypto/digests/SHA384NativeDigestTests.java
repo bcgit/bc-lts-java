@@ -12,7 +12,7 @@ import org.junit.Test;
 
 import java.security.SecureRandom;
 
-public class SHA512NativeDigestTests
+public class SHA384NativeDigestTests
         extends TestCase
 {
     @Before
@@ -32,18 +32,18 @@ public class SHA512NativeDigestTests
     @Test
     public void testReturnLen() throws Exception
     {
-        if (!TestUtil.hasNativeService("SHA512"))
+        if (!TestUtil.hasNativeService("SHA384"))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha512"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha384"))
             {
-                fail("Skipping SHA512 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA384 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
 
-        SHA512Digest jdig = new SHA512Digest();
+        SHA384Digest jdig = new SHA384Digest();
 
-        SHA512NativeDigest ndig = new SHA512NativeDigest();
+        SHA384NativeDigest ndig = new SHA384NativeDigest();
         TestCase.assertEquals(jdig.getByteLength(), ndig.getByteLength());
         TestCase.assertEquals(jdig.getDigestSize(), ndig.getDigestSize());
 
@@ -55,37 +55,37 @@ public class SHA512NativeDigestTests
 
 
     @Test
-    public void testSHA512Empty()
+    public void testSHA384Empty()
             throws Exception
     {
 
-        if (!TestUtil.hasNativeService("SHA512"))
+        if (!TestUtil.hasNativeService("SHA384"))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha512"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha384"))
             {
-                fail("Skipping SHA512 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA384 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
 
-        SavableDigest dig = SHA512Digest.newInstance();
+        SavableDigest dig = SHA384Digest.newInstance();
         byte[] res = new byte[dig.getDigestSize()];
-        TestCase.assertEquals(64, dig.doFinal(res, 0));
+        TestCase.assertEquals(48, dig.doFinal(res, 0));
 
         TestCase.assertTrue("Empty Digest result",
-                Arrays.areEqual(res, Hex.decode("cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e")));
+                Arrays.areEqual(res, Hex.decode("38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b")));
 
     }
 
     @Test
-    public void testSHA512FullStateEncoding()
+    public void testSHA384FullStateEncoding()
             throws Exception
     {
-        if (!TestUtil.hasNativeService("SHA512"))
+        if (!TestUtil.hasNativeService("SHA384"))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha512"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha384"))
             {
-                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA384 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -99,23 +99,23 @@ public class SHA512NativeDigestTests
         for (int t = 0; t < 256; t++)
         {
 
-            SavableDigest dig = SHA512Digest.newInstance();
+            SavableDigest dig = SHA384Digest.newInstance();
             dig.update(msg, 0, t);
             byte[] state = dig.getEncodedState();
 
             byte[] resAfterStateExtraction = new byte[dig.getDigestSize()];
-            TestCase.assertEquals(64, dig.doFinal(resAfterStateExtraction, 0));
+            TestCase.assertEquals(48, dig.doFinal(resAfterStateExtraction, 0));
 
-            SavableDigest dig2 = SHA512Digest.newInstance(state, 0);
+            SavableDigest dig2 = SHA384Digest.newInstance(state, 0);
             byte[] resStateRecreated = new byte[dig2.getDigestSize()];
-            TestCase.assertEquals(64, dig2.doFinal(resStateRecreated, 0));
+            TestCase.assertEquals(48, dig2.doFinal(resStateRecreated, 0));
 
 
-            SHA512Digest javaDigest = new SHA512Digest();
+            SHA384Digest javaDigest = new SHA384Digest();
             javaDigest.update(msg, 0, t);
 
             byte[] resJava = new byte[javaDigest.getDigestSize()];
-            TestCase.assertEquals(64, javaDigest.doFinal(resJava, 0));
+            TestCase.assertEquals(48, javaDigest.doFinal(resJava, 0));
 
 
             TestCase.assertTrue("Java = native post state extraction", Arrays.areEqual(resJava, resAfterStateExtraction));
@@ -124,15 +124,15 @@ public class SHA512NativeDigestTests
     }
 
 
-    public void testSHA512ByteByByte()
+    public void testSHA384ByteByByte()
             throws Exception
     {
 
-        if (!TestUtil.hasNativeService("SHA512"))
+        if (!TestUtil.hasNativeService("SHA384"))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha512"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha384"))
             {
-                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA384 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -141,8 +141,8 @@ public class SHA512NativeDigestTests
         SecureRandom rand = new SecureRandom();
         rand.nextBytes(msg);
 
-        SavableDigest dig = SHA512Digest.newInstance();
-        SHA512Digest javaDigest = new SHA512Digest();
+        SavableDigest dig = SHA384Digest.newInstance();
+        SHA384Digest javaDigest = new SHA384Digest();
 
         for (int t = 0; t < 256; t++)
         {
@@ -151,10 +151,10 @@ public class SHA512NativeDigestTests
         }
 
         byte[] resJava = new byte[javaDigest.getDigestSize()];
-        TestCase.assertEquals(64, javaDigest.doFinal(resJava, 0));
+        TestCase.assertEquals(48, javaDigest.doFinal(resJava, 0));
 
         byte[] nativeDigest = new byte[dig.getDigestSize()];
-        TestCase.assertEquals(64, dig.doFinal(nativeDigest, 0));
+        TestCase.assertEquals(48, dig.doFinal(nativeDigest, 0));
 
         TestCase.assertTrue("Java = native byte by byte", Arrays.areEqual(resJava, nativeDigest));
 
@@ -168,15 +168,15 @@ public class SHA512NativeDigestTests
      * @throws Exception
      */
     @Test
-    public void testSHA512FullStateEncodingExtraData()
+    public void testSHA384FullStateEncodingExtraData()
             throws Exception
     {
 
-        if (!TestUtil.hasNativeService("SHA2"))
+        if (!TestUtil.hasNativeService("SHA384"))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha384"))
             {
-                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA384 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -187,26 +187,26 @@ public class SHA512NativeDigestTests
         rand.nextBytes(msg);
 
 
-        SavableDigest dig = SHA512Digest.newInstance();
+        SavableDigest dig = SHA384Digest.newInstance();
         dig.update(msg, 0, 12);
         byte[] state = dig.getEncodedState();
 
 
-        SavableDigest dig2 = SHA512Digest.newInstance(state, 0);
+        SavableDigest dig2 = SHA384Digest.newInstance(state, 0);
 
         dig.update(msg, 12, msg.length - 12);
         dig2.update(msg, 12, msg.length - 12);
 
-        SHA512Digest javaDigest = new SHA512Digest();
+        SHA384Digest javaDigest = new SHA384Digest();
         javaDigest.update(msg, 0, msg.length);
 
         byte[] d1Result = new byte[dig.getDigestSize()];
         byte[] d2Result = new byte[dig2.getDigestSize()];
         byte[] javaResult = new byte[javaDigest.getDigestSize()];
 
-        TestCase.assertEquals(64, dig.doFinal(d1Result, 0));
-        TestCase.assertEquals(64, dig2.doFinal(d2Result, 0));
-        TestCase.assertEquals(64, javaDigest.doFinal(javaResult, 0));
+        TestCase.assertEquals(48, dig.doFinal(d1Result, 0));
+        TestCase.assertEquals(48, dig2.doFinal(d2Result, 0));
+        TestCase.assertEquals(48, javaDigest.doFinal(javaResult, 0));
 
 
         TestCase.assertTrue(Arrays.areEqual(javaResult, d1Result) && Arrays.areEqual(javaResult, d2Result));
@@ -218,17 +218,17 @@ public class SHA512NativeDigestTests
     {
 
 
-        if (!TestUtil.hasNativeService("SHA512"))
+        if (!TestUtil.hasNativeService("SHA384"))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha512"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha384"))
             {
-                fail("Skipping SHA512 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA384 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
 
 
-        new SHA512NativeDigest()
+        new SHA384NativeDigest()
         {
             {
                 try
@@ -244,7 +244,7 @@ public class SHA512NativeDigestTests
         };
 
 
-        new SHA512NativeDigest()
+        new SHA384NativeDigest()
         {
             {
                 try
@@ -260,7 +260,7 @@ public class SHA512NativeDigestTests
         };
 
 
-        new SHA512NativeDigest()
+        new SHA384NativeDigest()
         {
             {
                 try
@@ -275,7 +275,7 @@ public class SHA512NativeDigestTests
             }
         };
 
-        new SHA512NativeDigest()
+        new SHA384NativeDigest()
         {
             {
                 try
@@ -291,7 +291,7 @@ public class SHA512NativeDigestTests
         };
 
 
-        new SHA512NativeDigest()
+        new SHA384NativeDigest()
         {
             {
 
@@ -302,18 +302,18 @@ public class SHA512NativeDigestTests
 
                 byte[] res = new byte[getDigestSize()];
                 update(new byte[20], 19, 0);
-                TestCase.assertEquals(64, doFinal(res, 0));
+                TestCase.assertEquals(48, doFinal(res, 0));
 
                 TestCase.assertTrue("Empty Digest result",
                         Arrays.areEqual(
                                 res,
-                                Hex.decode("cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e")
+                                Hex.decode("38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b")
                         ));
             }
         };
 
 
-        new SHA512NativeDigest()
+        new SHA384NativeDigest()
         {
             {
 
@@ -324,12 +324,12 @@ public class SHA512NativeDigestTests
 
                 byte[] res = new byte[getDigestSize()];
                 update(new byte[20], 0, 0);
-                TestCase.assertEquals(64, doFinal(res, 0));
+                TestCase.assertEquals(48, doFinal(res, 0));
 
                 TestCase.assertTrue("Empty Digest result",
                         Arrays.areEqual(
                                 res,
-                                Hex.decode("cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e")
+                                Hex.decode("38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b")
                         ));
             }
         };
@@ -341,17 +341,17 @@ public class SHA512NativeDigestTests
             throws Exception
     {
 
-        if (!TestUtil.hasNativeService("SHA512"))
+        if (!TestUtil.hasNativeService("SHA384"))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha512"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha384"))
             {
-                fail("Skipping SHA512 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA384 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
 
 
-        new SHA512NativeDigest()
+        new SHA384NativeDigest()
         {
             {
                 try
@@ -367,7 +367,7 @@ public class SHA512NativeDigestTests
         };
 
 
-        new SHA512NativeDigest()
+        new SHA384NativeDigest()
         {
             {
                 try
@@ -383,7 +383,7 @@ public class SHA512NativeDigestTests
         };
 
 
-        new SHA512NativeDigest()
+        new SHA384NativeDigest()
         {
             {
                 try
@@ -398,7 +398,7 @@ public class SHA512NativeDigestTests
             }
         };
 
-        new SHA512NativeDigest()
+        new SHA384NativeDigest()
         {
             {
                 try
@@ -414,7 +414,7 @@ public class SHA512NativeDigestTests
         };
 
 
-        new SHA512NativeDigest()
+        new SHA384NativeDigest()
         {
             {
                 //
@@ -423,10 +423,10 @@ public class SHA512NativeDigestTests
                 //
 
                 byte[] res = new byte[getDigestSize() + 1];
-                TestCase.assertEquals(64, doFinal(res, 1));
+                TestCase.assertEquals(48, doFinal(res, 1));
                 TestCase.assertTrue(
                         Arrays.areEqual(
-                                Hex.decode("00cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"),
+                                Hex.decode("0038b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b"),
                                 res)
                 );
 
@@ -439,11 +439,11 @@ public class SHA512NativeDigestTests
             throws Exception
     {
 
-        if (!TestUtil.hasNativeService("SHA512"))
+        if (!TestUtil.hasNativeService("SHA384"))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha512"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha384"))
             {
-                fail("Skipping SHA512 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA384 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -454,7 +454,7 @@ public class SHA512NativeDigestTests
         //
         final byte[] saneState;
 
-        SHA512NativeDigest dig = new SHA512NativeDigest()
+        SHA384NativeDigest dig = new SHA384NativeDigest()
         {
             {
                 update((byte) 1);
@@ -468,7 +468,7 @@ public class SHA512NativeDigestTests
 
         try
         {
-            new SHA512NativeDigest().restoreState(null, 0);
+            new SHA384NativeDigest().restoreState(null, 0);
             fail("too short");
         }
         catch (Exception ex)
@@ -479,7 +479,7 @@ public class SHA512NativeDigestTests
 
         try
         {
-            new SHA512NativeDigest().restoreState(new byte[saneState.length - 2], 0);
+            new SHA384NativeDigest().restoreState(new byte[saneState.length - 2], 0);
             fail("too short");
         }
         catch (Exception ex)
@@ -490,12 +490,12 @@ public class SHA512NativeDigestTests
 
         try
         {
-            new SHA512NativeDigest().restoreState(new byte[saneState.length], 0);
+            new SHA384NativeDigest().restoreState(new byte[saneState.length], 0);
             fail("bad id");
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid sha512 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha384 encoded state"));
         }
 
 
@@ -522,12 +522,12 @@ public class SHA512NativeDigestTests
                 }
             }
 
-            new SHA512NativeDigest().restoreState(state, 0);
+            new SHA384NativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value exceeding 64");
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid sha512 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha384 encoded state"));
         }
 
 
@@ -547,12 +547,12 @@ public class SHA512NativeDigestTests
                 }
             }
 
-            new SHA512NativeDigest().restoreFullState(state, 0);
+            new SHA384NativeDigest().restoreFullState(state, 0);
             fail("should fail on bufPtr value exceeding 64");
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid sha512 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha384 encoded state"));
         }
 
     }
@@ -561,11 +561,11 @@ public class SHA512NativeDigestTests
             throws Exception
     {
 
-        if (!TestUtil.hasNativeService("SHA2"))
+        if (!TestUtil.hasNativeService("SHA384"))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha384"))
             {
-                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA384 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -576,7 +576,7 @@ public class SHA512NativeDigestTests
         //
         final byte[] saneState;
 
-        SHA512NativeDigest dig = new SHA512NativeDigest()
+        SHA384NativeDigest dig = new SHA384NativeDigest()
         {
             {
                 update((byte) 1);
@@ -589,7 +589,7 @@ public class SHA512NativeDigestTests
 
         try
         {
-            new SHA512NativeDigest().restoreState(null, 0);
+            new SHA384NativeDigest().restoreState(null, 0);
             fail("accepted null");
         }
         catch (Exception ex)
@@ -600,7 +600,7 @@ public class SHA512NativeDigestTests
 
         try
         {
-            new SHA512NativeDigest().restoreState(new byte[saneState.length - 2], 0);
+            new SHA384NativeDigest().restoreState(new byte[saneState.length - 2], 0);
             fail("too short");
         }
         catch (Exception ex)
@@ -612,12 +612,12 @@ public class SHA512NativeDigestTests
         try
         {
             // All zeroes.
-            new SHA512NativeDigest().restoreFullState(new byte[saneState.length], 0);
+            new SHA384NativeDigest().restoreFullState(new byte[saneState.length], 0);
             fail("bad id");
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid sha512 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha384 encoded state"));
         }
 
 
@@ -643,12 +643,12 @@ public class SHA512NativeDigestTests
                 }
             }
 
-            new SHA512NativeDigest().restoreState(state, 0);
+            new SHA384NativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value exceeding 64");
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid sha512 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha384 encoded state"));
         }
 
 
@@ -668,12 +668,12 @@ public class SHA512NativeDigestTests
                 }
             }
 
-            new SHA512NativeDigest().restoreState(state, 0);
+            new SHA384NativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value exceeding 64");
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid sha512 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha384 encoded state"));
         }
 
 
@@ -683,32 +683,32 @@ public class SHA512NativeDigestTests
     public void testMemoable()
             throws Exception
     {
-        if (!TestUtil.hasNativeService("SHA512"))
+        if (!TestUtil.hasNativeService("SHA384"))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha512"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha384"))
             {
-                fail("Skipping SHA512 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA384 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
 
         // There are other tests for memoable, this is more of a sanity test
 
-        SHA512NativeDigest dig1 = new SHA512NativeDigest();
+        SHA384NativeDigest dig1 = new SHA384NativeDigest();
         dig1.update((byte) 1);
 
-        SHA512NativeDigest dig2 = new SHA512NativeDigest(dig1);
+        SHA384NativeDigest dig2 = new SHA384NativeDigest(dig1);
 
-        SHA512Digest jig1 = new SHA512Digest();
+        SHA384Digest jig1 = new SHA384Digest();
         jig1.update((byte) 1);
 
         byte[] r1 = new byte[dig1.getDigestSize()];
         byte[] r2 = new byte[dig2.getDigestSize()];
         byte[] j1 = new byte[jig1.getDigestSize()];
 
-        TestCase.assertEquals(64, dig1.doFinal(r1, 0));
-        TestCase.assertEquals(64, dig2.doFinal(r2, 0));
-        TestCase.assertEquals(64, jig1.doFinal(j1, 0));
+        TestCase.assertEquals(48, dig1.doFinal(r1, 0));
+        TestCase.assertEquals(48, dig2.doFinal(r2, 0));
+        TestCase.assertEquals(48, jig1.doFinal(j1, 0));
 
         TestCase.assertTrue(Arrays.areEqual(j1, r1));
         TestCase.assertTrue(Arrays.areEqual(j1, r2));

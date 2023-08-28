@@ -146,7 +146,13 @@ class DefaultNativeServices
                 set.add(SHA224);
             }
 
-            if (NativeFeatures.hasHardwareSHA512()) {
+            if (NativeFeatures.hasHardwareSHA384())
+            {
+                set.add(SHA384);
+            }
+
+            if (NativeFeatures.hasHardwareSHA512())
+            {
                 set.add(SHA512);
             }
 

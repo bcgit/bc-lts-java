@@ -30,7 +30,7 @@ public class SHA512
             throws CloneNotSupportedException
         {
             Digest d = (Digest)super.clone();
-            d.digest = SHA512Digest.newInstance((SHA512Digest)digest);
+            d.digest = SHA512Digest.newInstance(digest);
 
             return d;
         }

@@ -22,6 +22,8 @@ public interface NativeServices
 
     String SHA512 = "SHA512";
 
+    String SHA384 = "SHA384";
+
     String MULACC = "MULACC";
 
     String NONE = "NONE";

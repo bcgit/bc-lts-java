@@ -153,7 +153,7 @@ public class TLSKDF
     {
         public TLS12withSHA384()
         {
-            super("TLS12withSHA384KDF", new HMac(new SHA384Digest()));
+            super("TLS12withSHA384KDF", new HMac(SHA384Digest.newInstance()));
         }
     }
 

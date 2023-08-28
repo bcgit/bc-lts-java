@@ -1,8 +1,6 @@
 package org.bouncycastle.crypto.digests;
 
-import org.bouncycastle.crypto.CryptoServiceProperties;
-import org.bouncycastle.crypto.CryptoServicePurpose;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.util.Memoable;
 import org.bouncycastle.util.Pack;
 
@@ -19,9 +17,62 @@ import org.bouncycastle.util.Pack;
  * </pre>
  */
 public class SHA384Digest
-    extends LongDigest
+        extends LongDigest
 {
-    private static final int    DIGEST_LENGTH = 48;
+    private static final int DIGEST_LENGTH = 48;
+
+
+    public static SavableDigest newInstance()
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA384))
+        {
+            return new SHA384NativeDigest();
+        }
+        return new SHA384Digest();
+    }
+
+    public static SavableDigest newInstance(CryptoServicePurpose purpose)
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA384))
+        {
+            return new SHA384NativeDigest(purpose);
+        }
+        return new SHA384Digest(purpose);
+    }
+
+    public static SavableDigest newInstance(Digest digest)
+    {
+
+        if (digest instanceof SHA384Digest)
+        {
+            return new SHA384Digest((SHA384Digest) digest);
+        }
+
+        if (digest instanceof SHA384NativeDigest)
+        {
+            if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA384))
+            {
+                return new SHA384NativeDigest((SHA384NativeDigest) digest);
+            }
+        }
+
+        throw new IllegalArgumentException("receiver digest not available for input type " + (digest != null ? digest.getClass() : "null"));
+    }
+
+    public static SavableDigest newInstance(byte[] encoded, int offset)
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
+        {
+            SHA384NativeDigest sha512 = new SHA384NativeDigest();
+
+            sha512.restoreFullState(encoded, offset);
+
+            return sha512;
+        }
+
+        return new SHA384Digest(encoded);
+    }
+
 
     /**
      * Standard constructor
@@ -79,8 +130,8 @@ public class SHA384Digest
     }
 
     public int doFinal(
-        byte[]  out,
-        int     outOff)
+            byte[] out,
+            int outOff)
     {
         finish();
 
@@ -124,7 +175,7 @@ public class SHA384Digest
 
     public void reset(Memoable other)
     {
-        SHA384Digest d = (SHA384Digest)other;
+        SHA384Digest d = (SHA384Digest) other;
 
         super.copyIn(d);
     }
@@ -134,7 +185,7 @@ public class SHA384Digest
         byte[] encoded = new byte[getEncodedStateSize() + 1];
         super.populateState(encoded);
 
-        encoded[encoded.length - 1] = (byte)purpose.ordinal();
+        encoded[encoded.length - 1] = (byte) purpose.ordinal();
 
         return encoded;
     }
@@ -142,5 +193,11 @@ public class SHA384Digest
     protected CryptoServiceProperties cryptoServiceProperties()
     {
         return Utils.getDefaultProperties(this, 256, purpose);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "SHA384[Java]()";
     }
 }

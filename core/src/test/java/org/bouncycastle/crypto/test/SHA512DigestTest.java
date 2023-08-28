@@ -44,7 +44,7 @@ public class SHA512DigestTest
 
     protected Digest cloneDigest(Digest digest)
     {
-        return SHA512Digest.newInstance((SHA512Digest)digest);
+        return SHA512Digest.newInstance(digest);
     }
 
     protected Digest cloneDigest(byte[] encodedState)

@@ -493,7 +493,7 @@ public class SHA224NativeDigestTests
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid SHA224 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha224 encoded state"));
         }
 
 
@@ -525,7 +525,7 @@ public class SHA224NativeDigestTests
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid SHA224 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha224 encoded state"));
         }
 
 
@@ -550,7 +550,7 @@ public class SHA224NativeDigestTests
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid SHA224 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha224 encoded state"));
         }
 
     }
@@ -611,7 +611,7 @@ public class SHA224NativeDigestTests
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid SHA224 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha224 encoded state"));
         }
 
 
@@ -642,7 +642,7 @@ public class SHA224NativeDigestTests
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid SHA224 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha224 encoded state"));
         }
 
 
@@ -667,7 +667,7 @@ public class SHA224NativeDigestTests
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid SHA224 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid sha224 encoded state"));
         }
 
 

@@ -180,7 +180,7 @@ subprojects {
     filter {
       includeTestsMatching "AllTest*"
     }
-    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=noskip',  '-Dorg.bouncycastle.native.cpu_variant=vaesf'
+    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384',  '-Dorg.bouncycastle.native.cpu_variant=vaesf'
 
   }
 
@@ -198,7 +198,7 @@ subprojects {
     filter {
       includeTestsMatching "AllTest*"
     }
-    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=noskip',  '-Dorg.bouncycastle.native.cpu_variant=vaes'
+    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384',  '-Dorg.bouncycastle.native.cpu_variant=vaes'
 
 
   }
@@ -221,7 +221,7 @@ subprojects {
       }
     }
 
-     jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=noskip', '-Dorg.bouncycastle.native.cpu_variant=avx'
+     jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384', '-Dorg.bouncycastle.native.cpu_variant=avx'
 
   }
 

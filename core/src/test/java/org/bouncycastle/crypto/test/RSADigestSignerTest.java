@@ -52,7 +52,7 @@ public class RSADigestSignerTest
         checkDigest(rsaPublic, rsaPrivate, SHA224Digest.newInstance(), NISTObjectIdentifiers.id_sha224);
         checkDigest(rsaPublic, rsaPrivate, SHA256Digest.newInstance(), NISTObjectIdentifiers.id_sha256);
         checkNullDigest(rsaPublic, rsaPrivate, SHA256Digest.newInstance(), NISTObjectIdentifiers.id_sha256);
-        checkDigest(rsaPublic, rsaPrivate, new SHA384Digest(), NISTObjectIdentifiers.id_sha384);
+        checkDigest(rsaPublic, rsaPrivate, SHA384Digest.newInstance(), NISTObjectIdentifiers.id_sha384);
         checkDigest(rsaPublic, rsaPrivate, SHA512Digest.newInstance(), NISTObjectIdentifiers.id_sha512);
         checkDigest(rsaPublic, rsaPrivate, new SHA512tDigest(224), NISTObjectIdentifiers.id_sha512_224);
         checkDigest(rsaPublic, rsaPrivate, new SHA512tDigest(256), NISTObjectIdentifiers.id_sha512_256);

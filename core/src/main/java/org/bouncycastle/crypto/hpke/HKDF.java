@@ -25,7 +25,7 @@ class HKDF
             hash = new SHA256Digest();
             break;
         case HPKE.kdf_HKDF_SHA384:
-            hash = new SHA384Digest();
+            hash = SHA384Digest.newInstance();
             break;
         case HPKE.kdf_HKDF_SHA512:
             hash = SHA512Digest.newInstance();

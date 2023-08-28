@@ -192,7 +192,7 @@ public class DigestConstraintsTest
 
         try
         {
-            new SHA384Digest();
+            SHA384Digest.newInstance();
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -202,7 +202,7 @@ public class DigestConstraintsTest
 
         CryptoServicesRegistrar.setServicesConstraints(new BitsOfSecurityConstraint(256));
 
-        new SHA384Digest(CryptoServicePurpose.PRF);
+        SHA384Digest.newInstance(CryptoServicePurpose.PRF);
 
         CryptoServicesRegistrar.setServicesConstraints(null);
     }

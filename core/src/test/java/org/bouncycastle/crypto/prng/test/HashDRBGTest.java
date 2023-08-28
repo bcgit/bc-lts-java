@@ -134,7 +134,7 @@ public class HashDRBGTest
                             "EE2043E1CCB29DCF063C0A50830E428E6DCA262ECD77C542"
                         }),
                 new DRBGTestVector(
-                            new SHA384Digest(),
+                            SHA384Digest.newInstance(),
                             new SHA384EntropyProvider().get(888),
                             false,
                             "202122232425262728292A2B",
@@ -152,7 +152,7 @@ public class HashDRBGTest
                                 }
                         ),
                 new DRBGTestVector(
-                        new SHA384Digest(),
+                        SHA384Digest.newInstance(),
                         new SHA384EntropyProvider().get(888),
                         true,
                         "202122232425262728292A2B",

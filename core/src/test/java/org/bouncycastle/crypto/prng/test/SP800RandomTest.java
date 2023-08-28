@@ -263,11 +263,11 @@ public class SP800RandomTest
         isEquals("CTR-DRBG-AES256", rBuild.buildCTR(AESEngine.newInstance(), 256, Hex.decode("20212223242526"), false).getAlgorithm());
 
         isEquals("HASH-DRBG-SHA256", rBuild.buildHash(SHA256Digest.newInstance(), Hex.decode("20212223242526"), false).getAlgorithm());
-        isEquals("HASH-DRBG-SHA384", rBuild.buildHash(new SHA384Digest(), Hex.decode("20212223242526"), false).getAlgorithm());
+        isEquals("HASH-DRBG-SHA384", rBuild.buildHash(SHA384Digest.newInstance(), Hex.decode("20212223242526"), false).getAlgorithm());
         isEquals("HASH-DRBG-SHA512", rBuild.buildHash(SHA512Digest.newInstance(), Hex.decode("20212223242526"), false).getAlgorithm());
 
         isEquals("HMAC-DRBG-SHA256", rBuild.buildHMAC(new HMac(SHA256Digest.newInstance()), Hex.decode("20212223242526"), false).getAlgorithm());
-        isEquals("HMAC-DRBG-SHA384", rBuild.buildHMAC(new HMac(new SHA384Digest()), Hex.decode("20212223242526"), false).getAlgorithm());
+        isEquals("HMAC-DRBG-SHA384", rBuild.buildHMAC(new HMac(SHA384Digest.newInstance()), Hex.decode("20212223242526"), false).getAlgorithm());
         isEquals("HMAC-DRBG-SHA512", rBuild.buildHMAC(new HMac(SHA512Digest.newInstance()), Hex.decode("20212223242526"), false).getAlgorithm());
     }
 
