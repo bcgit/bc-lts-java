@@ -253,7 +253,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_r
 
 
     if (!sha224_restoreFullState(sha, input.bytearray + offset)) {
-        throw_java_illegal_argument(env, "invalid sha256 encoded state");
+        throw_java_illegal_argument(env, "invalid sha224 encoded state");
     }
 
     exit:
