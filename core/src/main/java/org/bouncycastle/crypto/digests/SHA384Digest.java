@@ -61,13 +61,13 @@ public class SHA384Digest
 
     public static SavableDigest newInstance(byte[] encoded, int offset)
     {
-        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA384))
         {
-            SHA384NativeDigest sha512 = new SHA384NativeDigest();
+            SHA384NativeDigest sha384 = new SHA384NativeDigest();
 
-            sha512.restoreFullState(encoded, offset);
+            sha384.restoreFullState(encoded, offset);
 
-            return sha512;
+            return sha384;
         }
 
         return new SHA384Digest(encoded);

@@ -61,7 +61,7 @@ public class SHA512Digest
 
     public static SavableDigest newInstance(byte[] encoded, int offset)
     {
-        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA512))
         {
             SHA512NativeDigest sha512 = new SHA512NativeDigest();
 
