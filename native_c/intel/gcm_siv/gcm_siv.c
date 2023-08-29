@@ -7,6 +7,33 @@
 #include <stdlib.h>
 #include <memory.h>
 
+static inline void encrypt(__m128i *d0, __m128i *d1, __m128i *roundKeys, const int num_rounds) {
+    *d1 = _mm_xor_si128(*d0, roundKeys[0]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[1]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[2]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[3]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[4]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[5]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[6]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[7]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[8]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[9]);
+    if (num_rounds == ROUNDS_128) {
+        *d1 = _mm_aesenclast_si128(*d1, roundKeys[10]);
+    } else if (num_rounds == ROUNDS_192) {
+        *d1 = _mm_aesenc_si128(*d1, roundKeys[10]);
+        *d1 = _mm_aesenc_si128(*d1, roundKeys[11]);
+        *d1 = _mm_aesenclast_si128(*d1, roundKeys[12]);
+    } else if (num_rounds == ROUNDS_256) {
+        *d1 = _mm_aesenc_si128(*d1, roundKeys[10]);
+        *d1 = _mm_aesenc_si128(*d1, roundKeys[11]);
+        *d1 = _mm_aesenc_si128(*d1, roundKeys[12]);
+        *d1 = _mm_aesenc_si128(*d1, roundKeys[13]);
+        *d1 = _mm_aesenclast_si128(*d1, roundKeys[14]);
+    } else {
+        assert(0);
+    }
+}
 
 gcm_siv_err *make_gcm_siv_error(const char *msg, int type) {
     gcm_siv_err *err = calloc(1, sizeof(gcm_siv_err));
@@ -72,7 +99,7 @@ gcm_siv_err *gcm_siv_init(
 
     // We had old initial text drop it here.
     if (ctx->initAD != NULL) {
-        memset(ctx->initAD, 0, (size_t)ctx->initADLen);
+        memset(ctx->initAD, 0, (size_t) ctx->initADLen);
         free(ctx->initAD);
         ctx->initAD = NULL;
         ctx->initADLen = 0;
@@ -83,9 +110,9 @@ gcm_siv_err *gcm_siv_init(
         // We keep a copy so that if the instances is reset it can be returned to
         // the same state it was before the first data is processed.
         //
-        ctx->initAD = malloc((size_t)initialTextLen);
+        ctx->initAD = malloc((size_t) initialTextLen);
         ctx->initADLen = initialTextLen;
-        memcpy(ctx->initAD, initialText, (size_t)initialTextLen);
+        memcpy(ctx->initAD, initialText, (size_t) initialTextLen);
     }
 
     // Zero out mac block
@@ -176,37 +203,6 @@ void gHASH(__m128i *T, __m128i *theGHash, __m128i *pNext) {
     _mm_storeu_si128(theGHash, createBigEndianM128i((long) z1, (long) z0));
 }
 
-static inline void encrypt(__m128i *d0, __m128i *d1, __m128i *roundKeys, const int num_rounds) {
-    *d1 = _mm_xor_si128(*d0, roundKeys[0]);
-    *d1 = _mm_aesenc_si128(*d1, roundKeys[1]);
-    *d1 = _mm_aesenc_si128(*d1, roundKeys[2]);
-    *d1 = _mm_aesenc_si128(*d1, roundKeys[3]);
-    *d1 = _mm_aesenc_si128(*d1, roundKeys[4]);
-    *d1 = _mm_aesenc_si128(*d1, roundKeys[5]);
-    *d1 = _mm_aesenc_si128(*d1, roundKeys[6]);
-    *d1 = _mm_aesenc_si128(*d1, roundKeys[7]);
-    *d1 = _mm_aesenc_si128(*d1, roundKeys[8]);
-    *d1 = _mm_aesenc_si128(*d1, roundKeys[9]);
-    if (num_rounds == ROUNDS_128) {
-        *d1 = _mm_aesenclast_si128(*d1, roundKeys[10]);
-    } else if (num_rounds == ROUNDS_192) {
-        *d1 = _mm_aesenc_si128(*d1, roundKeys[10]);
-        *d1 = _mm_aesenc_si128(*d1, roundKeys[11]);
-        *d1 = _mm_aesenclast_si128(*d1, roundKeys[12]);
-    } else if (num_rounds == ROUNDS_256) {
-        *d1 = _mm_aesenc_si128(*d1, roundKeys[10]);
-        *d1 = _mm_aesenc_si128(*d1, roundKeys[11]);
-        *d1 = _mm_aesenc_si128(*d1, roundKeys[12]);
-        *d1 = _mm_aesenc_si128(*d1, roundKeys[13]);
-        *d1 = _mm_aesenclast_si128(*d1, roundKeys[14]);
-    } else {
-        assert(0);
-    }
-}
-
-//uint8_t
-//deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, int *num_rounds,
-//           size_t key_len, uint8_t theFlags) {
 void
 deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, int *num_rounds, size_t key_len) {
     /* Create the buffers */
@@ -269,7 +265,6 @@ deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNo
     }
     /* Initialise the Cipher */
     generate_key(true, myResult, roundKeys, key_len);
-//    return theFlags | INIT;
 }
 
 void resetStreams(gcm_siv_ctx *ctx) {
@@ -277,7 +272,6 @@ void resetStreams(gcm_siv_ctx *ctx) {
     gcm_siv_hasher_reset(&ctx->theAEADHasher);
     gcm_siv_hasher_reset(&ctx->theDataHasher);
     /* Initialise AEAD if required */
-    //ctx->theFlags &= ~AEAD_COMPLETE;
     ctx->theGHash = _mm_setzero_si128();
     if (ctx->initAD != NULL) {
         gcm_siv_hasher_updateHash(&ctx->theAEADHasher, ctx->T, ctx->initAD, ctx->initADLen,
@@ -292,9 +286,8 @@ void calculateTag(gcm_siv_hasher *theDataHasher, gcm_siv_hasher *theAEADHasher, 
     __m128i myPolyVal = createBigEndianM128i(theAEADHasher->numHashed << 3, theDataHasher->numHashed << 3);
     gHASH(T, theGHash, &myPolyVal);
     reverse_bytes(theGHash, &myPolyVal);
-    __m128i d1 = _mm_set_epi8(0, 0, 0, 0, theNonce[11], theNonce[10], theNonce[9], theNonce[8], theNonce[7],
-                              theNonce[6], theNonce[5], theNonce[4], theNonce[3], theNonce[2], theNonce[1],
-                              theNonce[0]);
+    int32_t *p = (int32_t *) theNonce;
+    __m128i d1 = _mm_setr_epi32(*p, p[1], p[2], 0);
     myPolyVal = _mm_xor_si128(myPolyVal, d1);
     ((uint8_t *) &myPolyVal)[BLOCK_SIZE - 1] &= 0x7f;
     encrypt(&myPolyVal, (__m128i *) macBlock, roundKeys, num_rounds);

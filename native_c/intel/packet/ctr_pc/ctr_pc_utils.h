@@ -8,16 +8,16 @@
 
 bool ctr_pc_incCtr(uint64_t magnitude, uint64_t *ctr, uint64_t initialCTR, uint64_t ctrMask, bool *ctrAtEnd);
 
-void ctr_pc_generate_partial_block(__m128i *IV_le, uint64_t ctr, __m128i *roundKeys, uint32_t num_rounds,
+void ctr_pc_generate_partial_block(__m128i *IV_le, uint64_t ctr, __m128i *roundKeys, int num_rounds,
                                    __m128i *partialBlock);
 
 bool ctr_pc_process_byte(unsigned char *io, uint32_t *buf_pos, uint64_t *ctr, uint64_t initialCTR, uint64_t ctrMask,
-                             bool *ctrAtEnd, __m128i *IV_le, __m128i *roundKeys, uint32_t num_rounds,
+                             bool *ctrAtEnd, __m128i *IV_le, __m128i *roundKeys, int num_rounds,
                              __m128i *partialBlock);
 
 bool ctr_pc_process_bytes(unsigned char *src, size_t len, unsigned char *dest, size_t *written, uint32_t *buf_pos,
                           uint64_t* ctr, uint64_t initialCTR, uint64_t ctrMast, bool* ctrAtEnd, __m128i* IV_le,
-                          __m128i* roundKeys, uint32_t num_rounds, __m128i* partialBlock);
+                          __m128i* roundKeys, int num_rounds, __m128i* partialBlock);
 
 
 

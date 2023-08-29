@@ -444,6 +444,7 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
     } else {
 
         if (!tag_verification(macBlock, bufBlock + limit, macBlockLen)) {
+            memset(output, 0, *outputLen);
             return make_packet_error("mac check in GCM failed", ILLEGAL_CIPHER_TEXT);
         }
     }

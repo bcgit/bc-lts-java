@@ -31,7 +31,7 @@ static __m256i *SPREAD_256 = (__m256i *) _spread_256;
 
 static inline void
 aes_ctr256_wide(__m256i *d0, __m256i *d1, __m256i *d2, __m256i *d3, __m256i *d4, __m256i *d5, __m256i *d6, __m256i *d7,
-                __m128i *roundKeys, const __m128i ctr, const uint32_t max_rounds, const uint32_t blocks) {
+                __m128i *roundKeys, const __m128i ctr, const int max_rounds, const uint32_t blocks) {
 
     __m256i ctr0, ctr1, ctr2, ctr3, ctr4, ctr5, ctr6, ctr7;
 
@@ -379,7 +379,7 @@ aes_ctr256_wide(__m256i *d0, __m256i *d1, __m256i *d2, __m256i *d3, __m256i *d4,
 
 bool ctr_pc_process_bytes(unsigned char *src, size_t len, unsigned char *dest, size_t *written, uint32_t *buf_pos,
                               uint64_t *ctr, uint64_t initialCTR, uint64_t ctrMast, bool *ctrAtEnd, __m128i *IV_le,
-                              __m128i *roundKeys, uint32_t num_rounds, __m128i *partialBlock) {
+                              __m128i *roundKeys, int num_rounds, __m128i *partialBlock) {
 
     unsigned char *destStart = dest;
 

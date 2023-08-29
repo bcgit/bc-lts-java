@@ -306,17 +306,6 @@ static inline __m128i reduce(__m128i tee, __m128i high) {
 }
 
 
-///**
-// * xor X into A and mul reduce
-// * @param a
-// * @param hk hash keys in reverse order of exponentiation.
-// * @param X result of last round of reduction
-// */
-//inline void xor_reduce(__m512i a, __m512i hk, __m128i &X) {
-//    a = _mm512_xor_si512(a, _mm512_castsi128_si512(X));
-//    gfmul_512_reduce(a, hk, X);
-//}
-
 /**
  * Apply encrypted counter to io0..3
  * @param io0 block 0

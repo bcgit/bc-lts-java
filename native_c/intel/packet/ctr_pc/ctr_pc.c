@@ -10,7 +10,7 @@ ctr_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *iv
     __m128i IV_le;
     uint32_t buf_pos = 0;
     __m128i partialBlock = _mm_setzero_si128();
-    uint32_t num_rounds = generate_key(true, key, roundKeys, keysize);
+    int num_rounds = generate_key(true, key, roundKeys, keysize);
     uint64_t ctrMask;
     bool ctrAtEnd = false;
     switch (ivLen) {

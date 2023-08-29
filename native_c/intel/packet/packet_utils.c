@@ -56,31 +56,29 @@ int generate_key(bool encryption, uint8_t *key, __m128i *roundKeys, size_t keyLe
     return num_rounds;
 }
 
-static inline void
-packet_encrypt(__m128i *d0, const __m128i chainblock, __m128i *roundKeys, const int num_rounds) {
-    *d0 = _mm_xor_si128(*d0, chainblock);
-    *d0 = _mm_xor_si128(*d0, roundKeys[0]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[1]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[2]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[3]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[4]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[5]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[6]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[7]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[8]);
-    *d0 = _mm_aesenc_si128(*d0, roundKeys[9]);
+static inline void encrypt(__m128i *d0, __m128i *d1, __m128i *roundKeys, const int num_rounds) {
+    *d1 = _mm_xor_si128(*d0, roundKeys[0]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[1]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[2]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[3]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[4]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[5]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[6]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[7]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[8]);
+    *d1 = _mm_aesenc_si128(*d1, roundKeys[9]);
     if (num_rounds == ROUNDS_128) {
-        *d0 = _mm_aesenclast_si128(*d0, roundKeys[10]);
+        *d1 = _mm_aesenclast_si128(*d1, roundKeys[10]);
     } else if (num_rounds == ROUNDS_192) {
-        *d0 = _mm_aesenc_si128(*d0, roundKeys[10]);
-        *d0 = _mm_aesenc_si128(*d0, roundKeys[11]);
-        *d0 = _mm_aesenclast_si128(*d0, roundKeys[12]);
+        *d1 = _mm_aesenc_si128(*d1, roundKeys[10]);
+        *d1 = _mm_aesenc_si128(*d1, roundKeys[11]);
+        *d1 = _mm_aesenclast_si128(*d1, roundKeys[12]);
     } else if (num_rounds == ROUNDS_256) {
-        *d0 = _mm_aesenc_si128(*d0, roundKeys[10]);
-        *d0 = _mm_aesenc_si128(*d0, roundKeys[11]);
-        *d0 = _mm_aesenc_si128(*d0, roundKeys[12]);
-        *d0 = _mm_aesenc_si128(*d0, roundKeys[13]);
-        *d0 = _mm_aesenclast_si128(*d0, roundKeys[14]);
+        *d1 = _mm_aesenc_si128(*d1, roundKeys[10]);
+        *d1 = _mm_aesenc_si128(*d1, roundKeys[11]);
+        *d1 = _mm_aesenc_si128(*d1, roundKeys[12]);
+        *d1 = _mm_aesenc_si128(*d1, roundKeys[13]);
+        *d1 = _mm_aesenclast_si128(*d1, roundKeys[14]);
     } else {
         assert(0);
     }
@@ -92,8 +90,8 @@ size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, 
     __m128i d0;
     __m128i tmpCb = *chainblock;
     while (blocks > 0) {
-        d0 = _mm_loadu_si128((__m128i *) src);
-        packet_encrypt(&d0, tmpCb, roundKeys, num_rounds);
+        d0 = _mm_xor_si128(_mm_loadu_si128((__m128i *) src), tmpCb);
+        encrypt(&d0, &d0, roundKeys, num_rounds);
         _mm_storeu_si128((__m128i *) dest, d0);
         blocks--;
         src += BLOCK_SIZE;

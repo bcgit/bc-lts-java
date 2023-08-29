@@ -51,7 +51,6 @@ typedef struct {
     __m128i T[256];
     gcm_siv_hasher theAEADHasher;
     gcm_siv_hasher theDataHasher;
-    //uint8_t theFlags;
 } gcm_siv_ctx;
 
 

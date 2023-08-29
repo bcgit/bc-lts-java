@@ -54,9 +54,6 @@ int generate_key(bool encryption, uint8_t *key, __m128i *roundKeys, size_t keyLe
 
 packet_err *make_packet_error(const char *msg, int type);
 
-static inline void
-packet_encrypt(__m128i *d0, const __m128i chainblock, __m128i *roundKeys, const int num_rounds);
-
 size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
                       int num_rounds);
 

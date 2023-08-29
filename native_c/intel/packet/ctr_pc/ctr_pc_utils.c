@@ -13,7 +13,7 @@ bool ctr_pc_incCtr(uint64_t magnitude, uint64_t *ctr, uint64_t initialCTR, uint6
 }
 
 
-void ctr_pc_generate_partial_block(__m128i *IV_le, uint64_t ctr, __m128i *roundKeys, uint32_t num_rounds,
+void ctr_pc_generate_partial_block(__m128i *IV_le, uint64_t ctr, __m128i *roundKeys, int num_rounds,
                                    __m128i *partialBlock) {
     __m128i c = _mm_xor_si128(*IV_le, _mm_set_epi64x(0, (long long) ctr));
     __m128i j = _mm_shuffle_epi8(c, *SWAP_ENDIAN_128);
@@ -26,7 +26,7 @@ void ctr_pc_generate_partial_block(__m128i *IV_le, uint64_t ctr, __m128i *roundK
 }
 
 bool ctr_pc_process_byte(unsigned char *io, uint32_t *buf_pos, uint64_t *ctr, uint64_t initialCTR, uint64_t ctrMask,
-                             bool *ctrAtEnd, __m128i *IV_le, __m128i *roundKeys, uint32_t num_rounds,
+                             bool *ctrAtEnd, __m128i *IV_le, __m128i *roundKeys, int num_rounds,
                              __m128i *partialBlock) {
     if (*buf_pos == 0) {
         if (*ctrAtEnd) {

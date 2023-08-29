@@ -8,7 +8,7 @@ gcm_siv_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t
                           uint8_t *p_in, size_t inLen, uint8_t *p_out, size_t *outputLen) {
     __m128i roundKeys[15];
     __m128i theGHash = _mm_setzero_si128();
-    __m128i H= _mm_setzero_si128();
+    __m128i H = _mm_setzero_si128();
     __m128i T[256];
     gcm_siv_hasher theAEADHasher;
     gcm_siv_hasher theDataHasher;
@@ -36,6 +36,7 @@ gcm_siv_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t
         calculateTag(&theDataHasher, &theAEADHasher, T, roundKeys,
                      num_rounds, &theGHash, (int8_t *) nonce, macBlock);
         if (!tag_verification_16(macBlock, p_in + *outputLen)) {
+            memset(p_out, 0, *outputLen);
             return make_packet_error("mac check  failed", ILLEGAL_CIPHER_TEXT);
         }
     }
