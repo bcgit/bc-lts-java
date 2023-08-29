@@ -164,6 +164,6 @@ public class AESCBCPacketCipher
     @Override
     public String toString()
     {
-        return "CBC Packet Cipher";
+        return "CBC Packet Cipher (Java)";
     }
 }

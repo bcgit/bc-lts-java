@@ -101,4 +101,9 @@ public class AESNativeGCMPacketCipher
 
     static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce, int nonLen, byte[] aad,
                                     int aadLen, int macSize, byte[] in, int inOff, int inLen, byte[] out, int outOff, int outLen);
+    @Override
+    public String toString()
+    {
+        return "GCM Packet Cipher (Native)";
+    }
 }

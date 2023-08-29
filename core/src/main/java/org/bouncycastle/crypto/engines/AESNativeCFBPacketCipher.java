@@ -66,4 +66,9 @@ public class AESNativeCFBPacketCipher
 
     static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce, byte[] in, int inOff, int inLen, byte[] out, int outOff);
 
+    @Override
+    public String toString()
+    {
+        return "CFB Packet Cipher (Native)";
+    }
 }

@@ -557,6 +557,6 @@ public class AESGCMSIVPacketCipher
     @Override
     public String toString()
     {
-        return "GCM-SIV Packet Cipher";
+        return "GCM-SIV Packet Cipher (Java)";
     }
 }

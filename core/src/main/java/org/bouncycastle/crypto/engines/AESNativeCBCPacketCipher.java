@@ -70,4 +70,9 @@ public class AESNativeCBCPacketCipher
 
     static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce, int nonLen, byte[] in, int inOff, int inLen, byte[] out, int outOff, int outLen);
 
+    @Override
+    public String toString()
+    {
+        return "CBC Packet Cipher (Native)";
+    }
 }

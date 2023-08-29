@@ -63,5 +63,9 @@ public class AESNativeCTRPacketCipher
     static native int getOutputSize(int len);
 
     static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce, byte[] in, int inOff, int inLen, byte[] out, int outOff);
-
+    @Override
+    public String toString()
+    {
+        return "CTR Packet Cipher (Native)";
+    }
 }

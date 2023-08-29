@@ -71,4 +71,9 @@ public class AESNativeGCMSIVPacketCipher
 
     static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce,  byte[] aad,
                                     int aadLen,  byte[] in, int inOff, int inLen, byte[] out, int outOff, int outLen);
+    @Override
+    public String toString()
+    {
+        return "GCM-SIV Packet Cipher (Native)";
+    }
 }

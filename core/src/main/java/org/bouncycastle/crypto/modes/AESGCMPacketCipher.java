@@ -507,6 +507,6 @@ public class AESGCMPacketCipher
     @Override
     public String toString()
     {
-        return "GCM Packet Cipher";
+        return "GCM Packet Cipher  (Java)";
     }
 }

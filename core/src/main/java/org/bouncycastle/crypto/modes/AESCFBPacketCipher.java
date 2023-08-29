@@ -143,6 +143,6 @@ public class AESCFBPacketCipher
     @Override
     public String toString()
     {
-        return "CFB Packet Cipher";
+        return "CFB Packet Cipher  (Java)";
     }
 }

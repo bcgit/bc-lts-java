@@ -95,4 +95,10 @@ public class AESCTRPacketCipher
         }
         return len;
     }
+
+    @Override
+    public String toString()
+    {
+        return "CTR Packet Cipher  (Java)";
+    }
 }
