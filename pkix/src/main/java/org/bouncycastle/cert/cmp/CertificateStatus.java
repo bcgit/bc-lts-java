@@ -7,7 +7,6 @@ import org.bouncycastle.asn1.cmp.CertStatus;
 import org.bouncycastle.asn1.cmp.PKIStatusInfo;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.jcajce.BCFKSLoadStoreParameter;
 import org.bouncycastle.operator.DigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.DigestCalculatorProvider;
@@ -38,31 +37,16 @@ public class CertificateStatus
     public boolean isVerified(X509CertificateHolder certHolder, DigestCalculatorProvider digesterProvider)
         throws CMPException
     {
-        return isVerified(new CMPCertificate(certHolder.toASN1Structure()), certHolder.getSignatureAlgorithm(), digesterProvider);
+        return isVerified(new CMPCertificate(certHolder.toASN1Structure()), certHolder.getSignatureAlgorithm(),
+            digesterProvider);
     }
 
-    public boolean isVerified(CMPCertificate cmpCert, AlgorithmIdentifier signatureAlgorithm, DigestCalculatorProvider digesterProvider)
+    public boolean isVerified(CMPCertificate cmpCert, AlgorithmIdentifier signatureAlgorithm,
+        DigestCalculatorProvider digesterProvider)
         throws CMPException
     {
-        AlgorithmIdentifier digAlg = digestAlgFinder.find(signatureAlgorithm);
-        if (digAlg == null)
-        {
-            throw new CMPException("cannot find algorithm for digest from signature");
-        }
+        byte[] certHash = CMPUtil.calculateCertHash(cmpCert, signatureAlgorithm, digesterProvider, digestAlgFinder);
 
-        DigestCalculator digester;
-
-        try
-        {
-            digester = digesterProvider.get(digAlg);
-        }
-        catch (OperatorCreationException e)
-        {
-            throw new CMPException("unable to create digester: " + e.getMessage(), e);
-        }
-
-        CMPUtil.derEncodeToStream(cmpCert, digester.getOutputStream());
-
-        return Arrays.areEqual(certStatus.getCertHash().getOctets(), digester.getDigest());
+        return Arrays.constantTimeAreEqual(certStatus.getCertHash().getOctets(), certHash);
     }
 }
