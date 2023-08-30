@@ -3,14 +3,14 @@ package org.bouncycastle.crypto.modes;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.OutputLengthException;
-import org.bouncycastle.crypto.PacketCipherEngine;
+import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 
 public class AESCTRPacketCipher
-    extends PacketCipherEngine
+    extends AESPacketCipherEngine
     implements AESCTRModePacketCipher
 {
     public static AESCTRPacketCipher newInstance()

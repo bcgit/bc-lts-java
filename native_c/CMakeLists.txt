@@ -720,11 +720,11 @@ else ()
     target_compile_definitions("${LIB_NATIVE}-vaesf" PUBLIC BC_VAESF BC_VARIANT=\"vaesf\" BUILD_TS=\"${BUILD_TS}\")
 
     # Uncomment to enable test project
-    add_executable(tryit main.c debug.h)
-    target_link_libraries(tryit "${LIB_NATIVE}-avx")
-    target_compile_options("tryit" PRIVATE
-            $<$<COMPILE_LANGUAGE:C>: -g -Wpsabi -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mvpclmulqdq -mavx512f -mavx512bw ${OPTIONS}>
-            )
+    # add_executable(tryit main.c debug.h)
+    #target_link_libraries(tryit "${LIB_NATIVE}-avx")
+    #target_compile_options("tryit" PRIVATE
+	    #        $<$<COMPILE_LANGUAGE:C>: -g -Wpsabi -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mvpclmulqdq -mavx512f -mavx512bw ${OPTIONS}>
+	    #  )
 
 
 endif ()

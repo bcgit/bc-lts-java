@@ -6,7 +6,7 @@ import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.PacketCipherEngine;
+import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -66,7 +66,7 @@ public class AESCCMPacketCipherTest
         throws Exception
     {
 
-        AESCCMModePacketCipher ccm = PacketCipherEngine.createCCMPacketCipher();
+        AESCCMModePacketCipher ccm = AESPacketCipherEngine.createCCMPacketCipher();
 
         checkVectors(0, ccm, K1, 32, N1, A1, P1, T1, C1);
         checkVectors(1, ccm, K2, 48, N2, A2, P2, T2, C2);
@@ -98,7 +98,7 @@ public class AESCCMPacketCipherTest
         throws InvalidCipherTextException, PacketCipherException
     {
         SecureRandom secureRandom = new SecureRandom();
-        AESCCMModePacketCipher ccm2 = PacketCipherEngine.createCCMPacketCipher();
+        AESCCMModePacketCipher ccm2 = AESPacketCipherEngine.createCCMPacketCipher();
         int[] keybytes = {16, 24, 32};
         for (int i = 0; i < 3; ++i)
         {
@@ -188,7 +188,7 @@ public class AESCCMPacketCipherTest
 
         SecureRandom rand = new SecureRandom();
         SecureRandom secureRandom = new SecureRandom();
-        AESCCMModePacketCipher ccm2 = PacketCipherEngine.createCCMPacketCipher();
+        AESCCMModePacketCipher ccm2 = AESPacketCipherEngine.createCCMPacketCipher();
         for (int ks : new int[]{16, 24, 32})
         {
             byte[] key = new byte[ks];
@@ -292,7 +292,7 @@ public class AESCCMPacketCipherTest
 
     public void testOutputErase()
     {
-        AESCCMModePacketCipher ccm = PacketCipherEngine.createCCMPacketCipher();
+        AESCCMModePacketCipher ccm = AESPacketCipherEngine.createCCMPacketCipher();
         byte[] C3new = Arrays.clone(C3);
         C3new[0]++;
         KeyParameter keyParam = (K3 == null) ? null : new KeyParameter(K3);
@@ -318,7 +318,7 @@ public class AESCCMPacketCipherTest
 
     public void testExceptions()
     {
-        AESCCMModePacketCipher ccm = PacketCipherEngine.createCCMPacketCipher();
+        AESCCMModePacketCipher ccm = AESPacketCipherEngine.createCCMPacketCipher();
         try
         {
             ccm.getOutputSize(false, new KeyParameter(new byte[16]), 0);

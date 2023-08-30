@@ -4,8 +4,7 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.OutputLengthException;
-import org.bouncycastle.crypto.PacketCipherEngine;
+import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.modes.gcm.GCMUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -15,7 +14,7 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
 
 public class AESGCMPacketCipher
-    extends PacketCipherEngine
+    extends AESPacketCipherEngine
     implements AESGCMModePacketCipher
 {
     public static AESGCMPacketCipher newInstance()

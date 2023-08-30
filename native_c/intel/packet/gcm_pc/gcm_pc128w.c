@@ -53,7 +53,7 @@ packet_err *gcm_pc_process_buffer_enc(
         const __m128i h3 = hashKeys[(HASHKEY_0 - 1)];
         const __m128i h2 = hashKeys[(HASHKEY_0 - 2)];
         const __m128i h1 = hashKeys[(HASHKEY_0 - 3)];
-        // Initial set of 16 blocks.
+        // Initial set of 4 blocks.
         __m128i id0 = _mm_loadu_si128((__m128i *) &in[0 * 16]);
         __m128i id1 = _mm_loadu_si128((__m128i *) &in[1 * 16]);
         __m128i id2 = _mm_loadu_si128((__m128i *) &in[2 * 16]);

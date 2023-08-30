@@ -3,7 +3,7 @@ package org.bouncycastle.crypto.modes;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.ExceptionMessage;
-import org.bouncycastle.crypto.PacketCipherEngine;
+import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -11,7 +11,7 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
 
 public class AESCBCPacketCipher
-    extends PacketCipherEngine
+    extends AESPacketCipherEngine
     implements AESCBCModePacketCipher
 {
     public static AESCBCPacketCipher newInstance()

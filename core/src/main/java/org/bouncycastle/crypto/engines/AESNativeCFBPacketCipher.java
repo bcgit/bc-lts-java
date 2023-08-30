@@ -1,15 +1,14 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.PacketCipherEngine;
+import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.modes.AESCFBModePacketCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
-import org.bouncycastle.util.Arrays;
 
 public class AESNativeCFBPacketCipher
-    extends PacketCipherEngine
+    extends AESPacketCipherEngine
     implements AESCFBModePacketCipher
 {
     public static AESCFBModePacketCipher newInstance()

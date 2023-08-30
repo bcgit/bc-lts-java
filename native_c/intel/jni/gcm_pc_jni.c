@@ -49,6 +49,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMPacketCi
     init_bytearray_ctx(&iv);
     init_bytearray_ctx(&ad);
 
+    // Non-critical array access
     if (!load_bytearray_ctx(&key, env, key_)) {
         throw_java_invalid_state(env, "unable to obtain ptr to valid key array");
         goto exit;
@@ -94,6 +95,9 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMPacketCi
         }
     }
 
+
+
+    // Critical array access.
     if (in == NULL) {
         throw_java_illegal_argument(env, EM_INPUT_NULL);
         goto exit;
@@ -114,19 +118,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMPacketCi
         goto exit;
     }
 
-    //
-    // Load the contexts
-    //
-    if (!load_critical_ctx(&input)) {
-        throw_java_invalid_state(env, "unable to obtain ptr to valid input array");
-        goto exit;
-    }
-
-    if (!load_critical_ctx(&output)) {
-        release_critical_ctx(&input);
-        throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
-        goto exit;
-    }
 
     if (out == NULL) {
         throw_java_illegal_argument(env, EM_OUTPUT_NULL);
@@ -148,6 +139,23 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMPacketCi
         throw_java_illegal_argument(env, EM_OUTPUT_LENGTH);
         goto exit;
     }
+
+    //
+    // Load the contexts
+    //
+
+    if (!load_critical_ctx(&output)) {
+        throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
+        goto exit;
+    }
+
+    if (!load_critical_ctx(&input)) {
+        release_critical_ctx(&output);
+        throw_java_invalid_state(env, "unable to obtain ptr to valid input array");
+        goto exit;
+    }
+
+
     uint8_t *p_in = input.critical + inOff;
     uint8_t *p_out = output.critical + outOff;
     size_t outputLen = 0;
@@ -168,8 +176,8 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMPacketCi
     release_bytearray_ctx(&key);
     release_bytearray_ctx(&iv);
     release_bytearray_ctx(&ad);
-    release_critical_ctx(&output);
     release_critical_ctx(&input);
+    release_critical_ctx(&output);
     handle_gcm_pc_result(env, err);
     return (jint) outputLen;
 }

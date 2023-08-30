@@ -3,7 +3,7 @@ package org.bouncycastle.crypto.modes;
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.ExceptionMessage;
-import org.bouncycastle.crypto.PacketCipherEngine;
+import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -126,7 +126,7 @@ public class AESGCMSIVPacketCipherTest
          */
         void testTheCipher(final AESGCMSIVPacketCipherTest pTest)
         {
-            AESGCMSIVModePacketCipher gcmsivPC = PacketCipherEngine.createGCMSIVPacketCipher();
+            AESGCMSIVModePacketCipher gcmsivPC = AESPacketCipherEngine.createGCMSIVPacketCipher();
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, EMPTY, EXPECTED_1);
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, DATA_8, EXPECTED_2);
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, DATA_12, EXPECTED_3);

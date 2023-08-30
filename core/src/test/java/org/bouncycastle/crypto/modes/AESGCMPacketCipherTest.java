@@ -6,10 +6,9 @@ import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.PacketCipherEngine;
+import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -333,7 +332,7 @@ public class AESGCMPacketCipherTest
     private void testResetBehavior()
         throws Exception
     {
-        AESGCMModePacketCipher gcm = PacketCipherEngine.createGCMPacketCipher();
+        AESGCMModePacketCipher gcm = AESPacketCipherEngine.createGCMPacketCipher();
         SecureRandom rnd = new SecureRandom();
 
         int[] ivLens = new int[]{12, 16};
@@ -376,7 +375,7 @@ public class AESGCMPacketCipherTest
 
     private void testExceptions()
     {
-        AESGCMModePacketCipher gcm = PacketCipherEngine.createGCMPacketCipher();
+        AESGCMModePacketCipher gcm = AESPacketCipherEngine.createGCMPacketCipher();
         try
         {
             gcm.getOutputSize(false, new KeyParameter(new byte[16]), 0);
@@ -516,7 +515,7 @@ public class AESGCMPacketCipherTest
         byte[] IV = Hex.decode(testVector[4]);
         byte[] C = Hex.decode(testVector[5]);
         byte[] T = Hex.decode(testVector[6]);
-        AESGCMModePacketCipher GCMgcm = PacketCipherEngine.createGCMPacketCipher();
+        AESGCMModePacketCipher GCMgcm = AESPacketCipherEngine.createGCMPacketCipher();
         byte[] C3new = Arrays.clone(C);
         C3new[0]++;
         KeyParameter keyParam = (K == null) ? null : new KeyParameter(K);
@@ -565,7 +564,7 @@ public class AESGCMPacketCipherTest
         byte[] T = new byte[macLength];
         System.arraycopy(t, 0, T, 0, T.length);
 
-        AESGCMModePacketCipher gcm = PacketCipherEngine.createGCMPacketCipher();
+        AESGCMModePacketCipher gcm = AESPacketCipherEngine.createGCMPacketCipher();
         AEADParameters parameters = new AEADParameters(new KeyParameter(K), T.length * 8, IV, A);
         byte[] enc = new byte[gcm.getOutputSize(true, parameters, P.length)];
 
@@ -641,7 +640,7 @@ public class AESGCMPacketCipherTest
         srng.nextBytes(IV);
 
         AEADParameters parameters = new AEADParameters(new KeyParameter(K), 16 * 8, IV, A);
-        AESGCMModePacketCipher cipher = PacketCipherEngine.createGCMPacketCipher();
+        AESGCMModePacketCipher cipher = AESPacketCipherEngine.createGCMPacketCipher();
         byte[] C = new byte[cipher.getOutputSize(true, parameters, P.length)];
 
         int len = cipher.processPacket(true, parameters, P, 0, P.length, C, 0);
@@ -678,7 +677,7 @@ public class AESGCMPacketCipherTest
         byte[] IV = new byte[16];
 
         AEADParameters parameters = new AEADParameters(new KeyParameter(K), 16 * 8, IV, A);
-        AESGCMModePacketCipher cipher = PacketCipherEngine.createGCMPacketCipher();
+        AESGCMModePacketCipher cipher = AESPacketCipherEngine.createGCMPacketCipher();
         if (cipher.getOutputSize(true, parameters, 0) != 16)
         {
             fail("incorrect getOutputSize for initial 0 bytes encryption");
@@ -694,7 +693,7 @@ public class AESGCMPacketCipherTest
         throws InvalidCipherTextException, PacketCipherException
     {
         SecureRandom secureRandom = new SecureRandom();
-        AESGCMModePacketCipher GCMgcm2 = PacketCipherEngine.createGCMPacketCipher();
+        AESGCMModePacketCipher GCMgcm2 = AESPacketCipherEngine.createGCMPacketCipher();
         int[] keybytes = {16, 24, 32};
         for (int i = 0; i < 3; ++i)
         {
@@ -784,7 +783,7 @@ public class AESGCMPacketCipherTest
 
         SecureRandom rand = new SecureRandom();
         SecureRandom secureRandom = new SecureRandom();
-        AESGCMModePacketCipher GCMgcm2 = PacketCipherEngine.createGCMPacketCipher();
+        AESGCMModePacketCipher GCMgcm2 = AESPacketCipherEngine.createGCMPacketCipher();
         byte[] javaPT;
         for (int ks : new int[]{16, 24, 32})
         {

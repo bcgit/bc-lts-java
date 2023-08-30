@@ -3,7 +3,7 @@ package org.bouncycastle.crypto.modes;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.PacketCipherEngine;
+import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -15,7 +15,7 @@ import org.bouncycastle.util.Longs;
 import org.bouncycastle.util.Pack;
 
 public class AESGCMSIVPacketCipher
-    extends PacketCipherEngine
+    extends AESPacketCipherEngine
     implements AESGCMSIVModePacketCipher
 {
     public static AESGCMSIVPacketCipher newInstance()

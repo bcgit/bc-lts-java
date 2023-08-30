@@ -136,7 +136,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_init
     }
 
     if (iv.size != 12) {
-        throw_java_illegal_argument(env, "IV must be at least 12 bytes");
+        throw_java_illegal_argument(env, "IV must be 12 bytes");
         goto exit;
     }
 
@@ -188,7 +188,9 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
         (JNIEnv *env, jclass cl, jlong ref, jbyte aadByte) {
 
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
-    checkAEADStatus(env, ctx, 1);
+    if (checkAEADStatus(env, ctx, 1)) {
+        return;
+    }
     uint8_t theByte = (uint8_t) aadByte;
     gcm_siv_hasher_updateHash(&ctx->theAEADHasher, ctx->T, &theByte, 1, &ctx->theGHash);
 }
@@ -216,7 +218,9 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
     if (!bytearray_offset_and_len_are_in_range(&aad, offset, len, env)) {
         goto exit;
     }
-    checkAEADStatus(env, ctx, len);
+    if (checkAEADStatus(env, ctx, len)) {
+        goto exit;
+    }
     gcm_siv_hasher_updateHash(&ctx->theAEADHasher, ctx->T, aad.bytearray + offset, len, &ctx->theGHash);
 
     exit:
@@ -257,6 +261,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_doFi
     }
 
     if (!load_critical_ctx(&input)) {
+        release_critical_ctx(&output);
         throw_java_invalid_state(env, "unable to obtain ptr to valid input array");
         goto exit;
     }
@@ -269,6 +274,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_doFi
     err = gcm_siv_doFinal(ctx, input.critical, (size_t) theEndDataSize, dest, &written);
 
     exit:
+    release_critical_ctx(&input);
     release_critical_ctx(&output);
 
     handle_gcm_siv_result(env, err);

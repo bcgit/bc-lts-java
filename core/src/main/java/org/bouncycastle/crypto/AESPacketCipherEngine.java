@@ -22,7 +22,7 @@ import org.bouncycastle.crypto.modes.gcm.GCMUtil;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
 
-public abstract class PacketCipherEngine
+public abstract class AESPacketCipherEngine
     implements PacketCipher
 {
     protected static final int BLOCK_SIZE = 16;

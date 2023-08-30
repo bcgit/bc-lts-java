@@ -11,7 +11,7 @@ import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.PacketCipherEngine;
+import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.TestUtil;
@@ -40,13 +40,22 @@ public class AESCBCPacketCipherTest
         throws Exception
     {
         CryptoServicesRegistrar.setNativeEnabled(true);
-        tests();
+        runTests();
         CryptoServicesRegistrar.setNativeEnabled(false);
-        tests();
+        runTests();
         System.out.println("AESCBCPacketCipherTest pass");
     }
 
-    private void tests()
+
+    @Test
+    public void test() throws Exception {
+        // Entry point for junit
+        performTest();
+    }
+
+
+
+    private void runTests()
         throws Exception
     {
         testExceptions();
@@ -58,8 +67,8 @@ public class AESCBCPacketCipherTest
 
     }
 
-    @Test
-    public void testCBC()
+
+    private void testCBC()
         throws Exception
     {
 
@@ -78,7 +87,7 @@ public class AESCBCPacketCipherTest
 
 
         CBCBlockCipher javaCBC = new CBCBlockCipher(new AESEngine());
-        AESCBCModePacketCipher packetCBC = PacketCipherEngine.createCBCPacketCipher();
+        AESCBCModePacketCipher packetCBC = AESPacketCipherEngine.createCBCPacketCipher();
         for (int gi = 0; gi < reqGroups.size(); gi++)
         {
             Map<String, Object> reqGroup = reqGroups.get(gi);
@@ -393,7 +402,7 @@ public class AESCBCPacketCipherTest
         throws InvalidCipherTextException, PacketCipherException
     {
         SecureRandom secureRandom = new SecureRandom();
-        AESCBCModePacketCipher cbc2 = PacketCipherEngine.createCBCPacketCipher();
+        AESCBCModePacketCipher cbc2 = AESPacketCipherEngine.createCBCPacketCipher();
         int[] keybytes = {16, 24, 32};
         for (int i = 0; i < 3; ++i)
         {
@@ -469,7 +478,7 @@ public class AESCBCPacketCipherTest
     @Override
     public String getName()
     {
-        return null;
+        return "AESCBCPacketCipherTest";
     }
 
     byte[] generateCT(byte[] message, byte[] key, byte[] iv, boolean expectNative)
@@ -629,7 +638,7 @@ public class AESCBCPacketCipherTest
         for (int keySize : new int[]{16, 24, 32})
         {
             CBCBlockCipher javaEngineEnc = new CBCBlockCipher(new AESEngine());
-            AESCBCModePacketCipher cbcPacketCipher = PacketCipherEngine.createCBCPacketCipher();
+            AESCBCModePacketCipher cbcPacketCipher = AESPacketCipherEngine.createCBCPacketCipher();
 
             CBCBlockCipher javaEngineDec = new CBCBlockCipher(new AESEngine());
 
@@ -702,7 +711,7 @@ public class AESCBCPacketCipherTest
 
     public void testExceptions()
     {
-        AESCBCModePacketCipher cbc = PacketCipherEngine.createCBCPacketCipher();
+        AESCBCModePacketCipher cbc = AESPacketCipherEngine.createCBCPacketCipher();
 
         try
         {

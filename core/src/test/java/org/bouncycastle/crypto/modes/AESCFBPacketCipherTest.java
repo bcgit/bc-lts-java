@@ -13,7 +13,7 @@ import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.NativeBlockCipherProvider;
 import org.bouncycastle.crypto.NativeServices;
-import org.bouncycastle.crypto.PacketCipherEngine;
+import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.TestUtil;
@@ -70,7 +70,7 @@ public class AESCFBPacketCipherTest
 
     public void testExceptions()
     {
-        AESCFBModePacketCipher cfb = PacketCipherEngine.createCFBPacketCipher();
+        AESCFBModePacketCipher cfb = AESPacketCipherEngine.createCFBPacketCipher();
 
         try
         {
@@ -204,7 +204,7 @@ public class AESCFBPacketCipherTest
 //        {
 //            throw new IllegalStateException("expected native CFB got " + nativeCFB.getClass().getName());
 //        }
-        AESCFBModePacketCipher packetCFB = PacketCipherEngine.createCFBPacketCipher();
+        AESCFBModePacketCipher packetCFB = AESPacketCipherEngine.createCFBPacketCipher();
 
         CFBBlockCipher javaCFB = new CFBBlockCipher(new AESEngine(), 128);
 
@@ -1218,7 +1218,7 @@ public class AESCFBPacketCipherTest
         }
 
         SecureRandom rand = new SecureRandom();
-        AESCFBModePacketCipher packetCFB = PacketCipherEngine.createCFBPacketCipher();
+        AESCFBModePacketCipher packetCFB = AESPacketCipherEngine.createCFBPacketCipher();
         for (int keySize : new int[]{16, 24, 32})
         {
 
