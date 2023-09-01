@@ -528,7 +528,7 @@ public class AESGCMPacketCipher
     @Override
     public String toString()
     {
-        return "GCM-PC(Java)";
+        return "GCM-PS[Java](AES[Java])";
     }
 
     @Override

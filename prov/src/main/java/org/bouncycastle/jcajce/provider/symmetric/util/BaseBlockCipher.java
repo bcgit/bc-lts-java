@@ -1790,5 +1790,12 @@ public class BaseBlockCipher
         }
     }
 
-
+    @Override
+    public String toString()
+    {
+        if (packetCipherInstance != null) {
+            return packetCipherInstance.toString();
+        }
+        return cipher.toString();
+    }
 }

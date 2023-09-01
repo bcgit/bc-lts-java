@@ -291,6 +291,6 @@ public class AESCCMPacketCipher
     @Override
     public String toString()
     {
-        return "CCM Packet Cipher (Java)";
+        return "CCM-PS[Java](AES[Java])";
     }
 }

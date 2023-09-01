@@ -113,6 +113,6 @@ public class AESNativeCCMPacketCipher
     @Override
     public String toString()
     {
-        return "CCM Packet Cipher (Native)";
+        return "CCM-PS[Native](AES[Native])";
     }
 }

@@ -76,6 +76,6 @@ public class AESNativeGCMSIVPacketCipher
     @Override
     public String toString()
     {
-        return "GCM-SIV Packet Cipher (Native)";
+        return "GCMSIV-PS[Native](AES[Native])";
     }
 }

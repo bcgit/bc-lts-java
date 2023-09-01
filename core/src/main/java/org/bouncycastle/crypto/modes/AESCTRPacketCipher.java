@@ -103,6 +103,6 @@ public class AESCTRPacketCipher
     @Override
     public String toString()
     {
-        return "CTR Packet Cipher  (Java)";
+        return "CTR-PS[Java](AES[Java])";
     }
 }

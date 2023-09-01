@@ -70,6 +70,6 @@ public class AESNativeCBCPacketCipher
     @Override
     public String toString()
     {
-        return "CBC Packet Cipher (Native)";
+        return "CBC-PS[Native](AES[Native])";
     }
 }

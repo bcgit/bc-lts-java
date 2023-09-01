@@ -138,7 +138,7 @@ public class AESNativeGCMPacketCipher
     @Override
     public String toString()
     {
-        return "GCM Packet Cipher (Native)";
+        return "GCM-PS[Native](AES[Native])";
     }
 
     @Override

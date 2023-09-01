@@ -65,6 +65,6 @@ public class AESNativeCFBPacketCipher
     @Override
     public String toString()
     {
-        return "CFB Packet Cipher (Native)";
+        return "CFB-PS[Native](AES[Native])";
     }
 }

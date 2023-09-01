@@ -146,6 +146,6 @@ public class AESCFBPacketCipher
     @Override
     public String toString()
     {
-        return "CFB Packet Cipher  (Java)";
+        return "CFB-PS[Java](AES[Java])";
     }
 }

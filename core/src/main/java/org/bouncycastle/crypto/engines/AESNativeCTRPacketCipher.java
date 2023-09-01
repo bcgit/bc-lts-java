@@ -61,6 +61,6 @@ public class AESNativeCTRPacketCipher
     @Override
     public String toString()
     {
-        return "CTR Packet Cipher (Native)";
+        return "CTR-PS[Native](AES[Native])";
     }
 }
