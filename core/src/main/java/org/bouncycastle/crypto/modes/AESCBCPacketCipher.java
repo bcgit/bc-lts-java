@@ -1,25 +1,27 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.ExceptionMessage;
-import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.engines.AESNativeCBCPacketCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
 
 public class AESCBCPacketCipher
-    extends AESPacketCipherEngine
-    implements AESCBCModePacketCipher
+        extends AESPacketCipherEngine
+        implements AESCBCModePacketCipher
 {
-    public static AESCBCPacketCipher newInstance()
+    public static AESCBCModePacketCipher newInstance()
     {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CBC_PC))
+        {
+            return new AESNativeCBCPacketCipher();
+        }
+
         return new AESCBCPacketCipher();
     }
 
-    private AESCBCPacketCipher()
+    public AESCBCPacketCipher()
     {
     }
 
@@ -45,8 +47,9 @@ public class AESCBCPacketCipher
     }
 
     @Override
-    public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len, byte[] output, int outOff)
-        throws PacketCipherException
+    public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
+                             byte[] output, int outOff)
+            throws PacketCipherException
     {
         processPacketExceptionCheck(input, inOff, len, output, outOff);
         if (outOff + len > output.length)
@@ -76,13 +79,13 @@ public class AESCBCPacketCipher
         int ROUNDS;
         if (parameters instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV)parameters;
+            ParametersWithIV ivParam = (ParametersWithIV) parameters;
             iv = ivParam.getIV().clone();
             if (iv.length != BLOCK_SIZE)
             {
                 throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.CBC_IV_LENGTH));
             }
-            KeyParameter params = (KeyParameter)ivParam.getParameters();
+            KeyParameter params = (KeyParameter) ivParam.getParameters();
             // if null it's an IV changed only.
             if (params != null)
             {
@@ -126,7 +129,7 @@ public class AESCBCPacketCipher
             {
                 for (j = 0; j + inOff < len; ++j)
                 {
-                    output[j + outOff] = (byte)(input[inOff + j] ^ output[j + outOff - BLOCK_SIZE]);
+                    output[j + outOff] = (byte) (input[inOff + j] ^ output[j + outOff - BLOCK_SIZE]);
                 }
                 encryptBlock(output, outOff, output, outOff, workingKey, s, ROUNDS);
             }
@@ -156,14 +159,20 @@ public class AESCBCPacketCipher
         {
             Arrays.fill(ints, 0);
         }
-        Arrays.fill(iv, (byte)0);
+        Arrays.fill(iv, (byte) 0);
         Arrays.fill(C, 0);
         return blockCount << 4;
     }
 
+    // public String toString()
+    //    {
+    //        return "CBC[Java](" + cipher.toString() + ")";
+    //    }
+
+
     @Override
     public String toString()
     {
-        return "CBC Packet Cipher (Java)";
+        return "CBC-PS[Java](AES[Java])";
     }
 }

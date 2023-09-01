@@ -8,11 +8,7 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import junit.framework.TestCase;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.ExceptionMessage;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -571,14 +567,14 @@ public class AESCBCPacketCipherTest
     public void testCBCJavaAgreement_128()
         throws Exception
     {
-//        if (!TestUtil.hasNativeService("AES/CBC"))
-//        {
-//            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
-//            {
-//                TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
-//            }
-//            return;
-//        }
+        if (!TestUtil.hasNativeService("AES/CBC-PC"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc_pc"))
+            {
+                TestCase.fail("Skipping CBC_PC Agreement Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
         doTest(16);
     }
 
@@ -586,14 +582,14 @@ public class AESCBCPacketCipherTest
     public void testCBCJavaAgreement_192()
         throws Exception
     {
-//        if (!TestUtil.hasNativeService("AES/CBC"))
-//        {
-//            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
-//            {
-//                TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
-//            }
-//            return;
-//        }
+        if (!TestUtil.hasNativeService("AES/CBC-PC"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
+            {
+                TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
         doTest(24);
     }
 
@@ -601,14 +597,14 @@ public class AESCBCPacketCipherTest
     public void testCBCJavaAgreement_256()
         throws Exception
     {
-//        if (!TestUtil.hasNativeService("AES/CBC"))
-//        {
-//            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
-//            {
-//                TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
-//            }
-//            return;
-//        }
+        if (!TestUtil.hasNativeService("AES/CBC-PC"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
+            {
+                TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
         doTest(32);
     }
 
@@ -624,21 +620,18 @@ public class AESCBCPacketCipherTest
         throws Exception
     {
 
-        if (!TestUtil.hasNativeService("AES/CBC"))
-        {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
-            {
-                TestCase.fail("Skipping CBC Spread Test: " + TestUtil.errorMsg());
-            }
-            return;
-        }
-
         SecureRandom rand = new SecureRandom();
 
         for (int keySize : new int[]{16, 24, 32})
         {
             CBCBlockCipher javaEngineEnc = new CBCBlockCipher(new AESEngine());
-            AESCBCModePacketCipher cbcPacketCipher = AESPacketCipherEngine.createCBCPacketCipher();
+            AESCBCModePacketCipher cbcPacketCipherJava = new AESCBCPacketCipher(); // AESPacketCipherEngine.createCBCPacketCipher();
+            AESCBCModePacketCipher cbcPacketCipherNative = AESCBCPacketCipher.newInstance(); // May be java implementation if java is the module variant
+
+            if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CBC_PC)) {
+                TestCase.assertTrue(cbcPacketCipherNative.toString().contains("Native["));
+            }
+
 
             CBCBlockCipher javaEngineDec = new CBCBlockCipher(new AESEngine());
 
@@ -674,7 +667,7 @@ public class AESCBCPacketCipherTest
                     javaEngineEnc.processBlock(msg, j * 16, javaCT, j * 16);
                 }
 
-                cbcPacketCipher.processPacket(true, new ParametersWithIV(new KeyParameter(key), iv), msg, 0, msgSize, nativeCT, 0);
+                cbcPacketCipherJava.processPacket(true, new ParametersWithIV(new KeyParameter(key), iv), msg, 0, msgSize, nativeCT, 0);
 
                 TestCase.assertTrue(pFix + "Cipher texts the same", Arrays.areEqual(nativeCT, javaCT));
 
@@ -690,7 +683,7 @@ public class AESCBCPacketCipherTest
                     javaEngineDec.processBlock(javaCT, j * 16, javaPt, j * 16);
                 }
 
-                cbcPacketCipher.processPacket(true, new ParametersWithIV(new KeyParameter(key), iv), nativeCT, 0, msgSize, nativePt, 0);
+                cbcPacketCipherJava.processPacket(true, new ParametersWithIV(new KeyParameter(key), iv), nativeCT, 0, msgSize, nativePt, 0);
 
                 if (!Arrays.areEqual(nativePt, msg))
                 {

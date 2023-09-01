@@ -1,24 +1,32 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.ExceptionMessage;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.engines.AESNativeGCMPacketCipher;
 import org.bouncycastle.crypto.modes.gcm.GCMUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
+
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
 
+import javax.security.auth.DestroyFailedException;
+import javax.security.auth.Destroyable;
+
 public class AESGCMPacketCipher
-    extends AESPacketCipherEngine
-    implements AESGCMModePacketCipher
+        extends AESPacketCipherEngine
+        implements AESGCMModePacketCipher, Destroyable
 {
-    public static AESGCMPacketCipher newInstance()
+    private boolean destroyed = false;
+    private byte[] lastKey;
+    private byte[] lastNonce;
+
+    public static AESGCMModePacketCipher newInstance()
     {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM_PC))
+        {
+            return new AESNativeGCMPacketCipher();
+        }
         return new AESGCMPacketCipher();
     }
 
@@ -26,6 +34,7 @@ public class AESGCMPacketCipher
     {
 
     }
+
 
     @Override
     public int getOutputSize(boolean forEncryption, CipherParameters parameters, int len)
@@ -37,7 +46,7 @@ public class AESGCMPacketCipher
         int macSize;
         if (parameters instanceof AEADParameters)
         {
-            AEADParameters param = (AEADParameters)parameters;
+            AEADParameters param = (AEADParameters) parameters;
             int macSizeBits = param.getMacSize();
             if (macSizeBits < 32 || macSizeBits > 128 || (macSizeBits & 7) != 0)
             {
@@ -69,7 +78,7 @@ public class AESGCMPacketCipher
     @Override
     public int processPacket(boolean forEncryption, CipherParameters params, byte[] input, int inOff, int len,
                              byte[] output, int outOff)
-        throws PacketCipherException
+            throws PacketCipherException
     {
         processPacketExceptionCheck(input, inOff, len, output, outOff);
 
@@ -103,7 +112,7 @@ public class AESGCMPacketCipher
             byte[] initialAssociatedText;
             if (params instanceof AEADParameters)
             {
-                AEADParameters param = (AEADParameters)params;
+                AEADParameters param = (AEADParameters) params;
                 newNonce = param.getNonce();
                 initialAssociatedText = param.getAssociatedText();
 
@@ -118,12 +127,12 @@ public class AESGCMPacketCipher
             }
             else if (params instanceof ParametersWithIV)
             {
-                ParametersWithIV param = (ParametersWithIV)params;
+                ParametersWithIV param = (ParametersWithIV) params;
 
                 newNonce = param.getIV().clone();
                 initialAssociatedText = null;
                 macSize = 16;
-                keyParam = (KeyParameter)param.getParameters();
+                keyParam = (KeyParameter) param.getParameters();
             }
             else
             {
@@ -139,6 +148,17 @@ public class AESGCMPacketCipher
             }
 
             nonce = newNonce;
+
+            // This only works if you use the same instance of packet cipher
+            // It matches the existing behavior of the normal GCM implementation
+            if (forEncryption && Arrays.areEqual(keyParam.getKey(), lastKey) && Arrays.areEqual(nonce, lastNonce))
+            {
+                throw new IllegalArgumentException("cannot reuse nonce for GCM encryption");
+            }
+
+            lastKey = Arrays.clone(keyParam.getKey());
+            lastNonce = Arrays.clone(nonce);
+
 
             // TODO Restrict macSize to 16 if nonce length not 12?
 
@@ -177,7 +197,7 @@ public class AESGCMPacketCipher
                     gHASHPartial(J0, nonce, pos, num, T);
                 }
                 byte[] X = new byte[BLOCK_SIZE];
-                Pack.longToBigEndian((long)nonce.length << 3, X, 8);
+                Pack.longToBigEndian((long) nonce.length << 3, X, 8);
                 gHASHBlock(J0, X, T);
             }
             S_current = new byte[BLOCK_SIZE];
@@ -270,7 +290,8 @@ public class AESGCMPacketCipher
                                 extracted(S_current, S_atPre, atLengthPre);
                             }
                             ctrBlock = new byte[BLOCK_SIZE];
-                            blocksRemaining = getNextCTRBlock(ctrBlock, blocksRemaining, counter, workingKey, s, ROUNDS);
+                            blocksRemaining = getNextCTRBlock(ctrBlock, blocksRemaining, counter, workingKey, s,
+                                    ROUNDS);
                             gHASHBlock(S_current, input, inOff, T);
                             GCMUtil.xor(ctrBlock, 0, input, inOff, output, outOff + written);
                             totalLength += BLOCK_SIZE;
@@ -319,7 +340,8 @@ public class AESGCMPacketCipher
                     /*
                      *  Some AAD was sent after the cipher started. We determine the difference b/w the hash value
                      *  we actually used when the cipher started (S_atPre) and the final hash value calculated (S_at).
-                     *  Then we carry this difference forward by multiplying by HGCM^c, where c is the number of (full or
+                     *  Then we carry this difference forward by multiplying by HGCM^c, where c is the number of
+                     * (full or
                      *  partial) cipher-text blocks produced, and adjust the current hash.
                      */
                     // Finish hash for partial AAD block
@@ -407,28 +429,27 @@ public class AESGCMPacketCipher
         }
         if (nonce != null)
         {
-            Arrays.fill(nonce, (byte)0);
+            Arrays.fill(nonce, (byte) 0);
         }
         if (S_current != null)
         {
-            Arrays.fill(S_current, (byte)0);
-            Arrays.fill(S_at, (byte)0);
-            Arrays.fill(S_atPre, (byte)0);
-            Arrays.fill(atBlock, (byte)0);
+            Arrays.fill(S_current, (byte) 0);
+            Arrays.fill(S_at, (byte) 0);
+            Arrays.fill(S_atPre, (byte) 0);
+            Arrays.fill(atBlock, (byte) 0);
         }
         if (bufBlock != null)
         {
-            Arrays.fill(bufBlock, (byte)0);
+            Arrays.fill(bufBlock, (byte) 0);
         }
         if (macBlock != null)
         {
-            Arrays.fill(macBlock, (byte)0);
+            Arrays.fill(macBlock, (byte) 0);
         }
 
         AEADExceptionHandler(output, outOff, exceptionThrown, written);
         return written;
     }
-
 
 
     private static void extracted(byte[] S, byte[] S_atPre, long atLengthPre)
@@ -478,7 +499,8 @@ public class AESGCMPacketCipher
         multiplyH(Y, T);
     }
 
-    private int getNextCTRBlock(byte[] block, int blocksRemaining, byte[] counter, int[][] workingkey, byte[] s, int ROUNDS)
+    private int getNextCTRBlock(byte[] block, int blocksRemaining, byte[] counter, int[][] workingkey, byte[] s,
+                                int ROUNDS)
     {
         if (blocksRemaining == 0)
         {
@@ -488,16 +510,16 @@ public class AESGCMPacketCipher
 
         int c = 1;
         c += counter[15] & 0xFF;
-        counter[15] = (byte)c;
+        counter[15] = (byte) c;
         c >>>= 8;
         c += counter[14] & 0xFF;
-        counter[14] = (byte)c;
+        counter[14] = (byte) c;
         c >>>= 8;
         c += counter[13] & 0xFF;
-        counter[13] = (byte)c;
+        counter[13] = (byte) c;
         c >>>= 8;
         c += counter[12] & 0xFF;
-        counter[12] = (byte)c;
+        counter[12] = (byte) c;
 
         encryptBlock(counter, block, workingkey, s, ROUNDS);
         return blocksRemaining;
@@ -506,6 +528,20 @@ public class AESGCMPacketCipher
     @Override
     public String toString()
     {
-        return "GCM Packet Cipher  (Java)";
+        return "GCM-PC(Java)";
+    }
+
+    @Override
+    public void destroy() throws DestroyFailedException
+    {
+        Arrays.clear(lastKey);
+        Arrays.clear(lastNonce);
+        destroyed = true;
+    }
+
+    @Override
+    public boolean isDestroyed()
+    {
+        return destroyed;
     }
 }

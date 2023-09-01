@@ -13,12 +13,9 @@ import org.bouncycastle.util.Arrays;
 public class AESNativeCBCPacketCipher
     implements PacketCipher, AESCBCModePacketCipher
 {
-    public static AESCBCModePacketCipher newInstance()
-    {
-        return new AESNativeCBCPacketCipher();
-    }
 
-    private AESNativeCBCPacketCipher()
+
+    public AESNativeCBCPacketCipher()
     {
     }
 

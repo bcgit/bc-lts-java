@@ -9,15 +9,15 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
 public class AESNativeGCMSIVPacketCipher
-    extends AESPacketCipherEngine
-    implements AESGCMSIVModePacketCipher
+        extends AESPacketCipherEngine
+        implements AESGCMSIVModePacketCipher
 {
     public static AESGCMSIVModePacketCipher newInstance()
     {
         return new AESNativeGCMSIVPacketCipher();
     }
 
-    private AESNativeGCMSIVPacketCipher()
+    public AESNativeGCMSIVPacketCipher()
     {
     }
 
@@ -28,25 +28,26 @@ public class AESNativeGCMSIVPacketCipher
     }
 
     @Override
-    public int processPacket(boolean encryption, CipherParameters params, byte[] input, int inOff, int len, byte[] output, int outOff)
-        throws PacketCipherException
+    public int processPacket(boolean encryption, CipherParameters params, byte[] input, int inOff, int len,
+                             byte[] output, int outOff)
+            throws PacketCipherException
     {
         byte[] nonce;
         byte[] initialAssociatedText;
         byte[] key;
         if (params instanceof AEADParameters)
         {
-            AEADParameters param = (AEADParameters)params;
+            AEADParameters param = (AEADParameters) params;
             nonce = param.getNonce();
             initialAssociatedText = param.getAssociatedText();
             key = param.getKey().getKey();
         }
         else if (params instanceof ParametersWithIV)
         {
-            ParametersWithIV param = (ParametersWithIV)params;
+            ParametersWithIV param = (ParametersWithIV) params;
             nonce = param.getIV().clone();
             initialAssociatedText = null;
-            key = ((KeyParameter)param.getParameters()).getKey();
+            key = ((KeyParameter) param.getParameters()).getKey();
         }
         else
         {
@@ -58,7 +59,7 @@ public class AESNativeGCMSIVPacketCipher
         try
         {
             result = processPacket(encryption, key, key.length, nonce, initialAssociatedText, iatLen,
-                 input, inOff, len, output, outOff, outLen);
+                    input, inOff, len, output, outOff, outLen);
         }
         catch (Exception e)
         {
@@ -69,8 +70,9 @@ public class AESNativeGCMSIVPacketCipher
 
     static native int getOutputSize(boolean encryption, int len);
 
-    static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce,  byte[] aad,
-                                    int aadLen,  byte[] in, int inOff, int inLen, byte[] out, int outOff, int outLen);
+    static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce, byte[] aad,
+                                    int aadLen, byte[] in, int inOff, int inLen, byte[] out, int outOff, int outLen);
+
     @Override
     public String toString()
     {

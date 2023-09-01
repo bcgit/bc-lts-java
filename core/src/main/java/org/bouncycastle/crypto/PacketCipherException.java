@@ -4,7 +4,7 @@ public class PacketCipherException extends Exception
 {
     private final Reason reason;
 
-    enum Reason
+    public enum Reason
     {
         INVALID_CIPHERTEXT,
         OUTPUT_LENGTH,
@@ -45,5 +45,10 @@ public class PacketCipherException extends Exception
     public String toString()
     {
         return reason.toString() + " " + super.toString();
+    }
+
+    public Reason getReason()
+    {
+        return reason;
     }
 }

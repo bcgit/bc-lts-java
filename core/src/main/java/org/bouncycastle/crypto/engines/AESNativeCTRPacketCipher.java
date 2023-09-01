@@ -1,8 +1,6 @@
 package org.bouncycastle.crypto.engines;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.modes.AESCTRModePacketCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -12,12 +10,9 @@ public class AESNativeCTRPacketCipher
     extends AESPacketCipherEngine
     implements AESCTRModePacketCipher
 {
-    public static AESCTRModePacketCipher newInstance()
-    {
-        return new AESNativeCTRPacketCipher();
-    }
 
-    private AESNativeCTRPacketCipher()
+
+    public AESNativeCTRPacketCipher()
     {
     }
 

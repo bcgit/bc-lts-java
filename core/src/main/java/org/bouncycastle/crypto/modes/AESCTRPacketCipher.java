@@ -1,20 +1,22 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.ExceptionMessage;
-import org.bouncycastle.crypto.OutputLengthException;
-import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.engines.AESNativeCTRPacketCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 
 public class AESCTRPacketCipher
-    extends AESPacketCipherEngine
-    implements AESCTRModePacketCipher
+        extends AESPacketCipherEngine
+        implements AESCTRModePacketCipher
 {
-    public static AESCTRPacketCipher newInstance()
+    public static AESCTRModePacketCipher newInstance()
     {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CTR_PC))
+        {
+            return new AESNativeCTRPacketCipher();
+        }
+
         return new AESCTRPacketCipher();
     }
 
@@ -33,8 +35,9 @@ public class AESCTRPacketCipher
     }
 
     @Override
-    public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len, byte[] output, int outOff)
-        throws PacketCipherException
+    public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
+                             byte[] output, int outOff)
+            throws PacketCipherException
     {
         processPacketExceptionCheck(input, inOff, len, output, outOff);
         if (output.length - outOff < len)
@@ -50,11 +53,12 @@ public class AESCTRPacketCipher
         byte[] s = Arrays.clone(S);
         if (parameters instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV)parameters;
+            ParametersWithIV ivParam = (ParametersWithIV) parameters;
             IV = Arrays.clone(ivParam.getIV());
             if (BLOCK_SIZE < IV.length)
             {
-                throw new IllegalArgumentException("CTR/SIC mode requires IV no greater than: " + BLOCK_SIZE + " bytes.");
+                throw new IllegalArgumentException("CTR/SIC mode requires IV no greater than: " + BLOCK_SIZE + " " +
+                        "bytes.");
             }
             int maxCounterSize = Math.min(8, BLOCK_SIZE >> 1);
             if (BLOCK_SIZE - IV.length > maxCounterSize)
@@ -62,7 +66,7 @@ public class AESCTRPacketCipher
                 throw new IllegalArgumentException("CTR/SIC mode requires IV of at least: " + (BLOCK_SIZE - maxCounterSize) + " bytes.");
             }
             System.arraycopy(IV, 0, counter, 0, IV.length);
-            KeyParameter keyParameter = (KeyParameter)ivParam.getParameters();
+            KeyParameter keyParameter = (KeyParameter) ivParam.getParameters();
             if (keyParameter == null)
             {
                 throw PacketCipherException.from(new IllegalStateException("CTR/SIC cipher unitialized."));
@@ -91,7 +95,7 @@ public class AESCTRPacketCipher
         int4ToLittleEndian(counterOut, counter, 0);
         for (int i = 0; i < len + inOff - inIndex; ++i)
         {
-            output[outIndex + i] = (byte)(counter[i] ^ input[inIndex + i]);
+            output[outIndex + i] = (byte) (counter[i] ^ input[inIndex + i]);
         }
         return len;
     }

@@ -11,12 +11,9 @@ public class AESNativeCFBPacketCipher
     extends AESPacketCipherEngine
     implements AESCFBModePacketCipher
 {
-    public static AESCFBModePacketCipher newInstance()
-    {
-        return new AESNativeCFBPacketCipher();
-    }
 
-    private AESNativeCFBPacketCipher()
+
+    public AESNativeCFBPacketCipher()
     {
     }
 

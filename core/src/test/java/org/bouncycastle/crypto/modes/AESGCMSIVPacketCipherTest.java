@@ -182,7 +182,7 @@ public class AESGCMSIVPacketCipherTest
          */
         void testTheCipher(final AESGCMSIVPacketCipherTest pTest)
         {
-            AESGCMSIVPacketCipher gcmsivPC = AESGCMSIVPacketCipher.newInstance();
+            AESGCMSIVModePacketCipher gcmsivPC = AESGCMSIVPacketCipher.newInstance();
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, AEAD_1, DATA_8, EXPECTED_1);
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, AEAD_1, DATA_12, EXPECTED_2);
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, AEAD_1, DATA_16, EXPECTED_3);
@@ -250,7 +250,7 @@ public class AESGCMSIVPacketCipherTest
          */
         void testTheCipher(final AESGCMSIVPacketCipherTest pTest)
         {
-            AESGCMSIVPacketCipher gcmsivPC = AESGCMSIVPacketCipher.newInstance();
+            AESGCMSIVModePacketCipher gcmsivPC = AESGCMSIVPacketCipher.newInstance();
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, EMPTY, EXPECTED_1);
             pTest.testSIVCipher(gcmsivPC, KEY_2, NONCE_2, AEAD_2, DATA_2, EXPECTED_2);
             pTest.testSIVCipher(gcmsivPC, KEY_3, NONCE_3, AEAD_3, DATA_3, EXPECTED_3);
@@ -297,7 +297,7 @@ public class AESGCMSIVPacketCipherTest
          */
         void testTheCipher(final AESGCMSIVPacketCipherTest pTest)
         {
-            AESGCMSIVPacketCipher gcmsivPC = AESGCMSIVPacketCipher.newInstance();
+            AESGCMSIVModePacketCipher gcmsivPC = AESGCMSIVPacketCipher.newInstance();
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, EMPTY, EXPECTED_1);
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, DATA_8, EXPECTED_2);
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, DATA_12, EXPECTED_3);
@@ -353,7 +353,7 @@ public class AESGCMSIVPacketCipherTest
          */
         void testTheCipher(final AESGCMSIVPacketCipherTest pTest)
         {
-            AESGCMSIVPacketCipher gcmsivPC = AESGCMSIVPacketCipher.newInstance();
+            AESGCMSIVModePacketCipher gcmsivPC = AESGCMSIVPacketCipher.newInstance();
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, AEAD_1, DATA_8, EXPECTED_1);
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, AEAD_1, DATA_12, EXPECTED_2);
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, AEAD_1, DATA_16, EXPECTED_3);
@@ -421,7 +421,7 @@ public class AESGCMSIVPacketCipherTest
          */
         void testTheCipher(final AESGCMSIVPacketCipherTest pTest)
         {
-            AESGCMSIVPacketCipher gcmsivPC = AESGCMSIVPacketCipher.newInstance();
+            AESGCMSIVModePacketCipher gcmsivPC = AESGCMSIVPacketCipher.newInstance();
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, EMPTY, EXPECTED_1);
             pTest.testSIVCipher(gcmsivPC, KEY_2, NONCE_2, AEAD_2, DATA_2, EXPECTED_2);
             pTest.testSIVCipher(gcmsivPC, KEY_3, NONCE_3, AEAD_3, DATA_3, EXPECTED_3);
@@ -455,7 +455,7 @@ public class AESGCMSIVPacketCipherTest
          */
         void testTheCipher(final AESGCMSIVPacketCipherTest pTest)
         {
-            AESGCMSIVPacketCipher gcmsivPC = AESGCMSIVPacketCipher.newInstance();
+            AESGCMSIVModePacketCipher gcmsivPC = AESGCMSIVPacketCipher.newInstance();
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, DATA_1, EXPECTED_1);
             pTest.testSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, DATA_2, EXPECTED_2);
         }
@@ -463,7 +463,7 @@ public class AESGCMSIVPacketCipherTest
 
     private void testExceptions()
     {
-        AESGCMSIVPacketCipher gcm = AESGCMSIVPacketCipher.newInstance();
+        AESGCMSIVModePacketCipher gcm = AESGCMSIVPacketCipher.newInstance();
 
         try
         {

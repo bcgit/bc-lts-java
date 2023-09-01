@@ -1,9 +1,6 @@
 package org.bouncycastle.crypto.engines;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.ExceptionMessage;
-import org.bouncycastle.crypto.PacketCipher;
-import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.modes.AESCCMModePacketCipher;
 import org.bouncycastle.crypto.modes.AESCCMPacketCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -13,12 +10,9 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 public class AESNativeCCMPacketCipher
     implements PacketCipher, AESCCMModePacketCipher
 {
-    public static AESCCMModePacketCipher newInstance()
-    {
-        return new AESNativeCCMPacketCipher();
-    }
 
-    private AESNativeCCMPacketCipher()
+
+    public AESNativeCCMPacketCipher()
     {
     }
 

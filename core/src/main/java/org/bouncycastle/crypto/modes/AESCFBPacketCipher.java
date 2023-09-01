@@ -1,24 +1,26 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.ExceptionMessage;
-import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.engines.AESNativeCFBPacketCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 
 public class AESCFBPacketCipher
-    extends AESPacketCipherEngine
-    implements AESCFBModePacketCipher
+        extends AESPacketCipherEngine
+        implements AESCFBModePacketCipher
 {
-    public static AESCFBPacketCipher newInstance()
+    public static AESCFBModePacketCipher newInstance()
     {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CFB_PC))
+        {
+            return new AESNativeCFBPacketCipher();
+        }
+
         return new AESCFBPacketCipher();
     }
 
-    private AESCFBPacketCipher()
+    protected AESCFBPacketCipher()
     {
     }
 
@@ -44,8 +46,9 @@ public class AESCFBPacketCipher
     }
 
     @Override
-    public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len, byte[] output, int outOff)
-        throws PacketCipherException
+    public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
+                             byte[] output, int outOff)
+            throws PacketCipherException
     {
         processPacketExceptionCheck(input, inOff, len, output, outOff);
         if (outOff + len > output.length)
@@ -64,11 +67,11 @@ public class AESCFBPacketCipher
         int C[] = new int[4];
         if (parameters instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV)parameters;
+            ParametersWithIV ivParam = (ParametersWithIV) parameters;
             // if null it's an IV changed only.
             if (ivParam.getParameters() != null)
             {
-                byte[] key = ((KeyParameter)ivParam.getParameters()).getKey();
+                byte[] key = ((KeyParameter) ivParam.getParameters()).getKey();
                 int keyLen = key.length;
                 checkKeyLength(keyLen);
                 int KC = keyLen >>> 2;
@@ -129,8 +132,8 @@ public class AESCFBPacketCipher
                 outStart += BLOCK_SIZE;
             }
         }
-        Arrays.fill(cfbV, (byte)0);
-        Arrays.fill(iv, (byte)0);
+        Arrays.fill(cfbV, (byte) 0);
+        Arrays.fill(iv, (byte) 0);
         Arrays.fill(C, 0);
         for (int[] ints : workingKey)
         {

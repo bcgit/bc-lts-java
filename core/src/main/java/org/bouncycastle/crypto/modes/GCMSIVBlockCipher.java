@@ -2,13 +2,9 @@ package org.bouncycastle.crypto.modes;
 
 import java.io.ByteArrayOutputStream;
 
-import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.NativeBlockCipherProvider;
-import org.bouncycastle.crypto.OutputLengthException;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.AESNativeGCMSIV;
 import org.bouncycastle.crypto.modes.gcm.GCMMultiplier;
 import org.bouncycastle.crypto.modes.gcm.Tables4kGCMMultiplier;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -22,17 +18,20 @@ import org.bouncycastle.util.Pack;
 
 /**
  * GCM-SIV Mode.
- * <p>It should be noted that the specified limit of 2<sup>36</sup> bytes is not supported. This is because all bytes are
+ * <p>It should be noted that the specified limit of 2<sup>36</sup> bytes is not supported. This is because all bytes
+ * are
  * cached in a <b>ByteArrayOutputStream</b> object (which has a limit of a little less than 2<sup>31</sup> bytes),
  * and are output on the <b>doFinal</b>() call (which can only process a maximum of 2<sup>31</sup> bytes).</p>
  * <p>The practical limit of 2<sup>31</sup> - 24 bytes is policed, and attempts to breach the limit will be rejected</p>
  * <p>In order to properly support the higher limit, an extended form of <b>ByteArrayOutputStream</b> would be needed
- * which would use multiple arrays to store the data. In addition, a new <b>doOutput</b> method would be required (similar
- * to that in <b>XOF</b> digests), which would allow the data to be output over multiple calls. Alternatively an extended
+ * which would use multiple arrays to store the data. In addition, a new <b>doOutput</b> method would be required
+ * (similar
+ * to that in <b>XOF</b> digests), which would allow the data to be output over multiple calls. Alternatively an
+ * extended
  * form of <b>ByteArrayInputStream</b> could be used to deliver the data.</p>
  */
 public class GCMSIVBlockCipher
-    implements GCMSIVModeCipher
+        implements GCMSIVModeCipher
 {
     /**
      * The buffer length.
@@ -58,12 +57,12 @@ public class GCMSIVBlockCipher
     /**
      * The top bit mask.
      */
-    private static final byte MASK = (byte)0x80;
+    private static final byte MASK = (byte) 0x80;
 
     /**
      * The addition constant.
      */
-    private static final byte ADD = (byte)0xE1;
+    private static final byte ADD = (byte) 0xE1;
 
     /**
      * The initialisation flag.
@@ -147,9 +146,29 @@ public class GCMSIVBlockCipher
     {
         if (cipher instanceof NativeBlockCipherProvider)
         {
-            return ((NativeBlockCipherProvider)cipher).createGCMSIV();
+            return ((NativeBlockCipherProvider) cipher).createGCMSIV();
         }
         return new GCMSIVBlockCipher(cipher);
+    }
+
+    public static GCMSIVModeCipher newInstance()
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCMSIV))
+        {
+            return new AESNativeGCMSIV();
+        }
+
+        return new GCMSIVBlockCipher();
+    }
+
+    public static GCMSIVModeCipher newInstance(final BlockCipher pCipher,
+                                               final GCMMultiplier pMultiplier)
+    {
+        if (pCipher instanceof NativeBlockCipherProvider)
+        {
+            return ((NativeBlockCipherProvider) pCipher).createGCMSIV();
+        }
+        return new GCMSIVBlockCipher(pCipher, pMultiplier);
     }
 
     /**
@@ -159,6 +178,7 @@ public class GCMSIVBlockCipher
     {
         this(AESEngine.newInstance());
     }
+
 
     /**
      * Constructor.
@@ -201,7 +221,7 @@ public class GCMSIVBlockCipher
 
     public void init(final boolean pEncrypt,
                      final CipherParameters cipherParameters)
-        throws IllegalArgumentException
+            throws IllegalArgumentException
     {
         /* Set defaults */
         byte[] myInitialAEAD = null;
@@ -211,16 +231,16 @@ public class GCMSIVBlockCipher
         /* Access parameters */
         if (cipherParameters instanceof AEADParameters)
         {
-            final AEADParameters myAEAD = (AEADParameters)cipherParameters;
+            final AEADParameters myAEAD = (AEADParameters) cipherParameters;
             myInitialAEAD = myAEAD.getAssociatedText();
             myNonce = myAEAD.getNonce();
             myKey = myAEAD.getKey();
         }
         else if (cipherParameters instanceof ParametersWithIV)
         {
-            final ParametersWithIV myParms = (ParametersWithIV)cipherParameters;
+            final ParametersWithIV myParms = (ParametersWithIV) cipherParameters;
             myNonce = myParms.getIV();
-            myKey = (KeyParameter)myParms.getParameters();
+            myKey = (KeyParameter) myParms.getParameters();
         }
         else
         {
@@ -235,8 +255,8 @@ public class GCMSIVBlockCipher
 
         /* Check keysize */
         if (myKey == null
-            || (myKey.getKeyLength() != BUFLEN
-            && myKey.getKeyLength() != (BUFLEN << 1)))
+                || (myKey.getKeyLength() != BUFLEN
+                && myKey.getKeyLength() != (BUFLEN << 1)))
         {
             throw new IllegalArgumentException("Invalid key");
         }
@@ -277,7 +297,7 @@ public class GCMSIVBlockCipher
 
         /* Make sure that we haven't breached AEAD data limit */
         if (theAEADHasher.getBytesProcessed() + Long.MIN_VALUE
-            > (MAX_DATALEN - pLen) + Long.MIN_VALUE)
+                > (MAX_DATALEN - pLen) + Long.MIN_VALUE)
         {
             throw new IllegalStateException("AEAD byte count exceeded");
         }
@@ -312,7 +332,7 @@ public class GCMSIVBlockCipher
             currBytes = theEncData.size();
         }
         if (currBytes + Long.MIN_VALUE
-            > (dataLimit - pLen) + Long.MIN_VALUE)
+                > (dataLimit - pLen) + Long.MIN_VALUE)
         {
             throw new IllegalStateException("byte count exceeded");
         }
@@ -344,7 +364,7 @@ public class GCMSIVBlockCipher
     public int processByte(final byte pByte,
                            final byte[] pOutput,
                            final int pOutOffset)
-        throws DataLengthException
+            throws DataLengthException
     {
         /* Check that we have initialised */
         checkStatus(1);
@@ -369,7 +389,7 @@ public class GCMSIVBlockCipher
                             final int pLen,
                             final byte[] pOutput,
                             final int pOutOffset)
-        throws DataLengthException
+            throws DataLengthException
     {
         /* Check that we have initialised */
         checkStatus(pLen);
@@ -394,7 +414,7 @@ public class GCMSIVBlockCipher
 
     public int doFinal(final byte[] pOutput,
                        final int pOffset)
-        throws IllegalStateException, InvalidCipherTextException
+            throws IllegalStateException, InvalidCipherTextException
     {
         /* Check that we have initialised */
         checkStatus(0);
@@ -484,7 +504,7 @@ public class GCMSIVBlockCipher
 
         /* Initialise AEAD if required */
         theFlags &= ~AEAD_COMPLETE;
-        Arrays.fill(theGHash, (byte)0);
+        Arrays.fill(theGHash, (byte) 0);
         if (theInitialAEAD != null)
         {
             theAEADHasher.updateHash(theInitialAEAD, 0, theInitialAEAD.length);
@@ -524,8 +544,8 @@ public class GCMSIVBlockCipher
         if (badLen || myLast > myBufLen)
         {
             throw pOutput
-                ? new OutputLengthException("Output buffer too short.")
-                : new DataLengthException("Input buffer too short.");
+                    ? new OutputLengthException("Output buffer too short.")
+                    : new DataLengthException("Input buffer too short.");
         }
     }
 
@@ -578,7 +598,7 @@ public class GCMSIVBlockCipher
      * @throws InvalidCipherTextException on data too short or mac check failed
      */
     private void decryptPlain()
-        throws InvalidCipherTextException
+            throws InvalidCipherTextException
     {
         /* Access buffer and length */
         final byte[] mySrc = theEncData.getBuffer();
@@ -777,11 +797,11 @@ public class GCMSIVBlockCipher
     private static void mulX(final byte[] pValue)
     {
         /* Loop through the bytes */
-        byte myMask = (byte)0;
+        byte myMask = (byte) 0;
         for (int i = 0; i < BUFLEN; i++)
         {
             final byte myValue = pValue[i];
-            pValue[i] = (byte)(((myValue >> 1) & ~MASK) | myMask);
+            pValue[i] = (byte) (((myValue >> 1) & ~MASK) | myMask);
             myMask = (myValue & 1) == 0 ? 0 : MASK;
         }
 
@@ -856,7 +876,7 @@ public class GCMSIVBlockCipher
      * GCMSIVCache.
      */
     private static class GCMSIVCache
-        extends ByteArrayOutputStream
+            extends ByteArrayOutputStream
     {
         /**
          * Constructor.
@@ -880,7 +900,7 @@ public class GCMSIVBlockCipher
          */
         void clearBuffer()
         {
-            Arrays.fill(getBuffer(), (byte)0);
+            Arrays.fill(getBuffer(), (byte) 0);
         }
     }
 
@@ -955,7 +975,7 @@ public class GCMSIVBlockCipher
             int numProcessed = 0;
             int myRemaining = pLen;
             if (numActive > 0
-                && pLen >= mySpace)
+                    && pLen >= mySpace)
             {
                 /* Copy data into the cache and hash it */
                 System.arraycopy(pBuffer, pOffset, theBuffer, numActive, mySpace);
@@ -1001,7 +1021,7 @@ public class GCMSIVBlockCipher
             if (numActive > 0)
             {
                 /* Access the next data */
-                Arrays.fill(theReverse, (byte)0);
+                Arrays.fill(theReverse, (byte) 0);
                 fillReverse(theBuffer, 0, numActive, theReverse);
 
                 /* hash value */
