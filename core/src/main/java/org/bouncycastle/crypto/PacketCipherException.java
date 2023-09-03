@@ -36,12 +36,6 @@ public class PacketCipherException extends Exception
     }
 
     @Override
-    public String getMessage()
-    {
-        return reason.toString() + " " + super.getMessage();
-    }
-
-    @Override
     public String toString()
     {
         return reason.toString() + " " + super.toString();

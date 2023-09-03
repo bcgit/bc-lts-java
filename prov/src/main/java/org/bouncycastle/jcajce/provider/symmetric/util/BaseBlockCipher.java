@@ -104,9 +104,6 @@ public class BaseBlockCipher
     //
     // Packet cipher integration
     //
-    boolean validPacketMode = false;
-    boolean validPacketPadding = false;
-    boolean validPacketCipher;
     boolean updateCalled = false;
     private Boolean packetDirection;
     private CipherParameters packetParams;
@@ -116,7 +113,7 @@ public class BaseBlockCipher
     protected BaseBlockCipher(
             BlockCipher engine)
     {
-        validPacketCipher = engine.getAlgorithmName().equals("AES");
+
         baseEngine = engine;
         cipher = new BufferedGenericBlockCipher(engine);
     }
@@ -128,7 +125,7 @@ public class BaseBlockCipher
             int keySizeInBits,
             int ivLength)
     {
-        validPacketCipher = engine.getAlgorithmName().equals("AES");
+
         baseEngine = engine;
 
         this.scheme = scheme;
@@ -144,7 +141,7 @@ public class BaseBlockCipher
             BlockCipherProvider provider)
     {
         baseEngine = provider.get();
-        validPacketCipher = baseEngine.getAlgorithmName().equals("AES");
+
         engineProvider = provider;
         cipher = new BufferedGenericBlockCipher(provider.get());
     }
@@ -153,7 +150,6 @@ public class BaseBlockCipher
             AEADBlockCipher engine)
     {
         this.baseEngine = engine.getUnderlyingCipher();
-        validPacketCipher = engine.getAlgorithmName().equals("AES");
         if (engine.getAlgorithmName().indexOf("GCM") >= 0)
         {
             this.ivLength = 12;
@@ -171,7 +167,7 @@ public class BaseBlockCipher
             boolean fixedIv,
             int ivLength)
     {
-        validPacketCipher = engine.getAlgorithmName().equals("AES");
+
         this.baseEngine = null;
         this.fixedIv = fixedIv;
         this.ivLength = ivLength;
@@ -183,7 +179,7 @@ public class BaseBlockCipher
             boolean fixedIv,
             int ivLength)
     {
-        validPacketCipher = engine.getAlgorithmName().equals("AES");
+
         this.baseEngine = engine.getUnderlyingCipher();
         this.fixedIv = fixedIv;
         this.ivLength = ivLength;
@@ -202,7 +198,7 @@ public class BaseBlockCipher
             boolean fixedIv,
             int ivLength)
     {
-        validPacketCipher = engine.getAlgorithmName().equals("AES");
+
         baseEngine = engine;
         this.fixedIv = fixedIv;
         this.cipher = new BufferedGenericBlockCipher(engine);
@@ -222,7 +218,6 @@ public class BaseBlockCipher
             int ivLength)
     {
         baseEngine = engine.getUnderlyingCipher();
-        validPacketCipher = baseEngine.getAlgorithmName().equals("AES");
         this.cipher = new BufferedGenericBlockCipher(engine);
         this.fixedIv = fixedIv;
         this.ivLength = ivLength / 8;
@@ -336,14 +331,14 @@ public class BaseBlockCipher
         {
             throw new NoSuchAlgorithmException("no mode supported for this algorithm");
         }
-        validPacketMode = false;
+
         modeName = Strings.toUpperCase(mode);
 
         if (modeName.equals("ECB"))
         {
             ivLength = 0;
             cipher = new BufferedGenericBlockCipher(baseEngine);
-            validPacketMode = true;
+
         }
         else if (modeName.equals("CBC"))
         {
@@ -376,13 +371,11 @@ public class BaseBlockCipher
 
                 cipher = new BufferedGenericBlockCipher(
                         CFBBlockCipher.newInstance(baseEngine, wordSize));
-                validPacketMode = wordSize == 128;
             }
             else
             {
                 cipher = new BufferedGenericBlockCipher(
                         CFBBlockCipher.newInstance(baseEngine, 8 * baseEngine.getBlockSize()));
-                validPacketMode = 8 * baseEngine.getBlockSize() == 128;
             }
 
 
@@ -441,7 +434,6 @@ public class BaseBlockCipher
         }
         else if (modeName.equals("CTR"))
         {
-            validPacketMode = true;
             ivLength = baseEngine.getBlockSize();
             fixedIv = false;
             if (baseEngine instanceof DSTU7624Engine)
@@ -481,7 +473,6 @@ public class BaseBlockCipher
         }
         else if (modeName.equals("CCM"))
         {
-            validPacketMode = true;
             ivLength = 12; // CCM nonce 7..13 bytes
             if (baseEngine instanceof DSTU7624Engine)
             {
@@ -516,7 +507,6 @@ public class BaseBlockCipher
         {
             ivLength = 12;
             cipher = new AEADGenericBlockCipher(new GCMSIVBlockCipher(baseEngine));
-            validPacketMode = true;
         }
         else if (modeName.equals("GCM"))
         {
@@ -530,7 +520,6 @@ public class BaseBlockCipher
                 ivLength = 12;
                 cipher = new AEADGenericBlockCipher(GCMBlockCipher.newInstance(baseEngine));
             }
-            validPacketMode = true;
         }
         else
         {
@@ -548,11 +537,9 @@ public class BaseBlockCipher
         }
 
         paddingName = Strings.toUpperCase(padding);
-        validPacketPadding = false;
 
         if (paddingName.equals("NOPADDING"))
         {
-            validPacketPadding = true;
             if (cipher.wrapOnNoPadding())
             {
                 if (cipher.getUnderlyingCipher() instanceof MultiBlockCipher)
@@ -1102,9 +1089,6 @@ public class BaseBlockCipher
      */
     private void resetAndDestroyPacketCipher()
     {
-        validPacketCipher = false;
-        validPacketMode = false;
-        validPacketPadding = false;
         updateCalled = false;
         packetDirection = null;
         packetParams = null;
@@ -1133,6 +1117,10 @@ public class BaseBlockCipher
      */
     private void makePacketCipher()
     {
+        if (modeName == null) {
+            return;
+        }
+
         synchronized (this)
         {
             if (modeName.equals("GCMSIV"))
@@ -1150,8 +1138,17 @@ public class BaseBlockCipher
                 packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCBCPacketCipher() :
                         packetCipherInstance;
             }
-            else if (modeName.equals("CFB"))
+            else if (modeName.startsWith("CFB"))
             {
+                if (modeName.length() != 3)
+                {
+                    int wordSize = Integer.parseInt(modeName.substring(3));
+                    if (wordSize != 128)
+                    {
+                        return;
+                    }
+                }
+
                 packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCFBPacketCipher() :
                         packetCipherInstance;
             }
@@ -1357,11 +1354,8 @@ public class BaseBlockCipher
             throws IllegalBlockSizeException, BadPaddingException
     {
 
-        if (
-                validPacketCipher &&
-                        validPacketPadding &&
-                        validPacketMode && !updateCalled &&
-                        packetDirection != null && packetParams != null)
+        if (!updateCalled &&
+                packetDirection != null && packetParams != null)
         {
             makePacketCipher();
 
@@ -1432,11 +1426,11 @@ public class BaseBlockCipher
         {
             if (inputLen != 0)
             {
-                if (
-                        validPacketCipher &&
-                                validPacketPadding &&
-                                validPacketMode && !updateCalled &&
-                                packetDirection != null && packetParams != null)
+
+                // validPacketCipher = engine.getAlgorithmName().equals("AES");
+
+                if (!updateCalled &&
+                        packetDirection != null && packetParams != null)
                 {
                     makePacketCipher();
                     Integer ol = applyPacketCipher(input, inputOffset, inputLen, output, outputOffset);
@@ -1584,6 +1578,12 @@ public class BaseBlockCipher
             {
                 throw new BadPaddingException(e.getMessage());
             }
+        }
+
+        @Override
+        public String toString()
+        {
+            return "BufferedGenericBlockCipher(" + cipher + ")";
         }
     }
 
@@ -1793,7 +1793,8 @@ public class BaseBlockCipher
     @Override
     public String toString()
     {
-        if (packetCipherInstance != null) {
+        if (packetCipherInstance != null)
+        {
             return packetCipherInstance.toString();
         }
         return cipher.toString();
