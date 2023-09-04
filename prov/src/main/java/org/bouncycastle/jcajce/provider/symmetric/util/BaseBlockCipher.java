@@ -108,6 +108,7 @@ public class BaseBlockCipher
     private Boolean packetDirection;
     private CipherParameters packetParams;
     private PacketCipher packetCipherInstance;
+    private static final byte[] emptyArray = new byte[0];
 
 
     protected BaseBlockCipher(
@@ -1117,7 +1118,15 @@ public class BaseBlockCipher
      */
     private void makePacketCipher()
     {
-        if (modeName == null) {
+
+
+        if (modeName == null)
+        {
+            return;
+        }
+
+        if (!"AES".equals(baseEngine.getAlgorithmName()))
+        {
             return;
         }
 
@@ -1140,22 +1149,27 @@ public class BaseBlockCipher
             }
             else if (modeName.startsWith("CFB"))
             {
-                if (modeName.length() != 3)
-                {
-                    int wordSize = Integer.parseInt(modeName.substring(3));
-                    if (wordSize != 128)
-                    {
-                        return;
-                    }
-                }
-
-                packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCFBPacketCipher() :
-                        packetCipherInstance;
+                return; // TODO add back when fixed
+//                if (modeName.length() != 3)
+//                {
+//                    int wordSize = Integer.parseInt(modeName.substring(3));
+//                    if (wordSize != 128)
+//                    {
+//                        return;
+//                    }
+//                }
+//
+//                // Otherwise it would have been baseEngine.getBlockSize() * 8 as this is AES thanks to 1124 it
+//                // will be 128
+//
+//
+//                packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCFBPacketCipher() :
+//                        packetCipherInstance;
             }
             else if (modeName.equals("CTR"))
             {
-                packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCTRPacketCipher() :
-                        packetCipherInstance;
+//                packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCTRPacketCipher() :
+//                        packetCipherInstance;
             }
             else if (modeName.equals("CCM"))
             {
@@ -1354,6 +1368,7 @@ public class BaseBlockCipher
             throws IllegalBlockSizeException, BadPaddingException
     {
 
+
         if (!updateCalled &&
                 packetDirection != null && packetParams != null)
         {
@@ -1361,6 +1376,7 @@ public class BaseBlockCipher
 
             if (packetCipherInstance != null)
             {
+                input = input != null ? input : emptyArray;
                 int outputLen = packetCipherInstance.getOutputSize(packetDirection, packetParams, inputLen);
                 byte[] output = new byte[outputLen];
                 if (applyPacketCipher(input, inputOffset, inputLen, output, 0) == null)
@@ -1427,16 +1443,14 @@ public class BaseBlockCipher
             if (inputLen != 0)
             {
 
-                // validPacketCipher = engine.getAlgorithmName().equals("AES");
-
                 if (!updateCalled &&
                         packetDirection != null && packetParams != null)
                 {
+                    input = input != null ? input : emptyArray;
                     makePacketCipher();
                     Integer ol = applyPacketCipher(input, inputOffset, inputLen, output, outputOffset);
                     if (ol != null) return ol;
                 }
-
 
                 len = cipher.processBytes(input, inputOffset, inputLen, output, outputOffset);
             }
