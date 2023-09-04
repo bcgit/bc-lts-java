@@ -1,6 +1,13 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.*;
+
+import org.bouncycastle.crypto.AESPacketCipherEngine;
+import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.NativeServices;
+import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESNativeCBCPacketCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -8,8 +15,8 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
 
 public class AESCBCPacketCipher
-        extends AESPacketCipherEngine
-        implements AESCBCModePacketCipher
+    extends AESPacketCipherEngine
+    implements AESCBCModePacketCipher
 {
     public static AESCBCModePacketCipher newInstance()
     {
@@ -32,33 +39,26 @@ public class AESCBCPacketCipher
         {
             throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
         }
-        if (encryption)
+        if ((len & 15) != 0)
         {
-            return ((len >> 4) + ((len & 15) != 0 ? 1 : 0)) << 4;
+            throw new IllegalArgumentException(ExceptionMessage.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID);
         }
-        else
-        {
-            if ((len & 15) != 0)
-            {
-                throw new IllegalArgumentException(ExceptionMessage.AES_DECRYPTION_INPUT_LENGTH_INVALID);
-            }
-            return len;
-        }
+        return len;
     }
 
     @Override
     public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
                              byte[] output, int outOff)
-            throws PacketCipherException
+        throws PacketCipherException
     {
         processPacketExceptionCheck(input, inOff, len, output, outOff);
         if (outOff + len > output.length)
         {
             throw PacketCipherException.from(new DataLengthException(ExceptionMessage.OUTPUT_LENGTH));
         }
-        if (!encryption && ((len & 15) != 0))
+        if ((len & 15) != 0)
         {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.AES_DECRYPTION_INPUT_LENGTH_INVALID));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID));
         }
         boolean tail = (len & 15) != 0;
         int blockCount = (len >> 4) + (tail ? 1 : 0);
@@ -79,13 +79,13 @@ public class AESCBCPacketCipher
         int ROUNDS;
         if (parameters instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV) parameters;
+            ParametersWithIV ivParam = (ParametersWithIV)parameters;
             iv = ivParam.getIV().clone();
             if (iv.length != BLOCK_SIZE)
             {
                 throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.CBC_IV_LENGTH));
             }
-            KeyParameter params = (KeyParameter) ivParam.getParameters();
+            KeyParameter params = (KeyParameter)ivParam.getParameters();
             // if null it's an IV changed only.
             if (params != null)
             {
@@ -129,7 +129,7 @@ public class AESCBCPacketCipher
             {
                 for (j = 0; j + inOff < len; ++j)
                 {
-                    output[j + outOff] = (byte) (input[inOff + j] ^ output[j + outOff - BLOCK_SIZE]);
+                    output[j + outOff] = (byte)(input[inOff + j] ^ output[j + outOff - BLOCK_SIZE]);
                 }
                 encryptBlock(output, outOff, output, outOff, workingKey, s, ROUNDS);
             }
@@ -159,16 +159,10 @@ public class AESCBCPacketCipher
         {
             Arrays.fill(ints, 0);
         }
-        Arrays.fill(iv, (byte) 0);
+        Arrays.fill(iv, (byte)0);
         Arrays.fill(C, 0);
         return blockCount << 4;
     }
-
-    // public String toString()
-    //    {
-    //        return "CBC[Java](" + cipher.toString() + ")";
-    //    }
-
 
     @Override
     public String toString()
