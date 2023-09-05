@@ -38,6 +38,8 @@ typedef struct {
 //E1L=((0xe1000000L& 0xFFFFFFFFL) << 32)
 #define E1L  (-2233785415175766016L)
 
+typedef void (*encrypt_function)(__m128i *d0, __m128i *d1, __m128i *roundKeys);
+
 static const int8_t __attribute__ ((aligned(16))) _swap_endian[16] = {
         15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
 };
@@ -51,6 +53,8 @@ int get_output_size(int len);
 
 int generate_key(bool encryption, uint8_t *key, __m128i *roundKeys, size_t keyLen);
 
+//int generateKey(bool encryption, uint8_t *key, __m128i *roundKeys, size_t keyLen, encrypt_function *fun);
+
 packet_err *make_packet_error(const char *msg, int type);
 
 size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
@@ -59,5 +63,11 @@ size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, 
 bool tag_verification(const uint8_t *left, const uint8_t *right, size_t len);
 
 bool tag_verification_16(const uint8_t *left, const uint8_t *right);
+
+//static inline void encrypt128(__m128i *d0, __m128i *d1, __m128i *roundKeys);
+//
+//static inline void encrypt192(__m128i *d0, __m128i *d1, __m128i *roundKeys);
+//
+//static inline void encrypt256(__m128i *d0, __m128i *d1, __m128i *roundKeys);
 
 #endif //BC_LTS_C_PACKET_UTILS_H
