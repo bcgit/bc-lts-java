@@ -269,12 +269,12 @@ public class AESCBCPacketCipherTest
         try
         {
             cbc.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), 16);
-            fail("negative value for getOutputSize");
+            fail("Failed to detect incorrect parameter type");
         }
         catch (IllegalArgumentException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().contains("invalid parameters"));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INVALID_PARAM_TYPE));
         }
 
 
@@ -345,7 +345,7 @@ public class AESCBCPacketCipherTest
         catch (PacketCipherException e)
         {
             TestCase.assertTrue("wrong message",
-                    e.getMessage().contains(ExceptionMessage.AES_DECRYPTION_INPUT_LENGTH_INVALID));
+                    e.getMessage().contains(ExceptionMessage.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID));
         }
 
         try

@@ -15,8 +15,8 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
 
 public class AESCBCPacketCipher
-    extends AESPacketCipherEngine
-    implements AESCBCModePacketCipher
+        extends AESPacketCipherEngine
+        implements AESCBCModePacketCipher
 {
     public static AESCBCModePacketCipher newInstance()
     {
@@ -35,10 +35,16 @@ public class AESCBCPacketCipher
     @Override
     public int getOutputSize(boolean encryption, CipherParameters parameters, int len)
     {
+        if (!(parameters instanceof ParametersWithIV))
+        {
+            throw new IllegalArgumentException(ExceptionMessage.INVALID_PARAM_TYPE);
+        }
+
         if (len < 0)
         {
             throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
         }
+
         if ((len & 15) != 0)
         {
             throw new IllegalArgumentException(ExceptionMessage.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID);
@@ -49,7 +55,7 @@ public class AESCBCPacketCipher
     @Override
     public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
                              byte[] output, int outOff)
-        throws PacketCipherException
+            throws PacketCipherException
     {
         processPacketExceptionCheck(input, inOff, len, output, outOff);
         if (outOff + len > output.length)
@@ -79,13 +85,13 @@ public class AESCBCPacketCipher
         int ROUNDS;
         if (parameters instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV)parameters;
+            ParametersWithIV ivParam = (ParametersWithIV) parameters;
             iv = ivParam.getIV().clone();
             if (iv.length != BLOCK_SIZE)
             {
                 throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.CBC_IV_LENGTH));
             }
-            KeyParameter params = (KeyParameter)ivParam.getParameters();
+            KeyParameter params = (KeyParameter) ivParam.getParameters();
             // if null it's an IV changed only.
             if (params != null)
             {
@@ -129,7 +135,7 @@ public class AESCBCPacketCipher
             {
                 for (j = 0; j + inOff < len; ++j)
                 {
-                    output[j + outOff] = (byte)(input[inOff + j] ^ output[j + outOff - BLOCK_SIZE]);
+                    output[j + outOff] = (byte) (input[inOff + j] ^ output[j + outOff - BLOCK_SIZE]);
                 }
                 encryptBlock(output, outOff, output, outOff, workingKey, s, ROUNDS);
             }
@@ -159,7 +165,7 @@ public class AESCBCPacketCipher
         {
             Arrays.fill(ints, 0);
         }
-        Arrays.fill(iv, (byte)0);
+        Arrays.fill(iv, (byte) 0);
         Arrays.fill(C, 0);
         return blockCount << 4;
     }

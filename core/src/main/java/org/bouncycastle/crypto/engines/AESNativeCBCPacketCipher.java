@@ -22,6 +22,10 @@ public class AESNativeCBCPacketCipher
     @Override
     public int getOutputSize(boolean encryption, CipherParameters parameters, int len)
     {
+        if (!(parameters instanceof ParametersWithIV))
+        {
+            throw new IllegalArgumentException(ExceptionMessage.INVALID_PARAM_TYPE);
+        }
         return getOutputSize(len);
     }
 

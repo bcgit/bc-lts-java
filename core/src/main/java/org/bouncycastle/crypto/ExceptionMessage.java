@@ -14,4 +14,5 @@ public class ExceptionMessage
     public static final String CBC_IV_LENGTH = "iv must be only 16 bytes";
     public static final String OUTPUT_NULL = "output was null";
     public static final String GCM_SIV_UNINITIALIZED = "GCM-SIV is uninitialized";
+    public static final String INVALID_PARAM_TYPE = "invalid parameter type";
 }
