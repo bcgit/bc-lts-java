@@ -28,10 +28,16 @@ public class AESCBCPacketCipher
     @Override
     public int getOutputSize(boolean encryption, CipherParameters parameters, int len)
     {
+        if (!(parameters instanceof ParametersWithIV))
+        {
+            throw new IllegalArgumentException("invalid parameters passed to CBC");
+        }
+
         if (len < 0)
         {
             throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
         }
+
         if (encryption)
         {
             return ((len >> 4) + ((len & 15) != 0 ? 1 : 0)) << 4;
@@ -51,6 +57,10 @@ public class AESCBCPacketCipher
                              byte[] output, int outOff)
             throws PacketCipherException
     {
+        if (len == 0) {
+            return 0;
+        }
+
         processPacketExceptionCheck(input, inOff, len, output, outOff);
         if (outOff + len > output.length)
         {
@@ -80,7 +90,7 @@ public class AESCBCPacketCipher
         if (parameters instanceof ParametersWithIV)
         {
             ParametersWithIV ivParam = (ParametersWithIV) parameters;
-            iv = ivParam.getIV().clone();
+            iv = Arrays.clone(ivParam.getIV());
             if (iv.length != BLOCK_SIZE)
             {
                 throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.CBC_IV_LENGTH));

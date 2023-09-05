@@ -99,7 +99,7 @@ public class AESGCMSIVPacketCipher
         else if (parameters instanceof ParametersWithIV)
         {
             final ParametersWithIV myParms = (ParametersWithIV) parameters;
-            myNonce = myParms.getIV().clone();
+            myNonce = Arrays.clone(myParms.getIV());
             myKey = (KeyParameter) myParms.getParameters();
         }
         else

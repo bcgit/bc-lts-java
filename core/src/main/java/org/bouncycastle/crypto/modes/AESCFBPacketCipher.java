@@ -83,7 +83,7 @@ public class AESCFBPacketCipher
             {
                 throw PacketCipherException.from(new IllegalArgumentException("CFB cipher unitialized"));
             }
-            iv = ivParam.getIV().clone();
+            iv = Arrays.clone(ivParam.getIV());
             //reset
             if (iv.length < BLOCK_SIZE)
             {

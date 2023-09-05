@@ -129,7 +129,7 @@ public class AESGCMPacketCipher
             {
                 ParametersWithIV param = (ParametersWithIV) params;
 
-                newNonce = param.getIV().clone();
+                newNonce = Arrays.clone(param.getIV());
                 initialAssociatedText = null;
                 macSize = 16;
                 keyParam = (KeyParameter) param.getParameters();

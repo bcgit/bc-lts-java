@@ -94,7 +94,7 @@ public class AESCCMPacketCipher
         {
             ParametersWithIV param = (ParametersWithIV) params;
             macSize = 8;
-            nonce = param.getIV().clone();
+            nonce = Arrays.clone(param.getIV());
             initialAssociatedText = null;
             keyParam = (KeyParameter) param.getParameters();
         }
