@@ -2,6 +2,7 @@ package org.bouncycastle.crypto.modes;
 
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipherException;
@@ -470,7 +471,7 @@ public class AESGCMSIVPacketCipherTest
             gcm.getOutputSize(false, new KeyParameter(new byte[16]), 0);
             fail("negative value for getOutputSize");
         }
-        catch (IllegalArgumentException e)
+        catch (DataLengthException e)
         {
             // expected
             TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));

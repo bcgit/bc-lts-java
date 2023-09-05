@@ -121,7 +121,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_DECRYPTION_INPUT_LENGTH_INVALID));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID));
         }
 
         try

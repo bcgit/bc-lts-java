@@ -1,6 +1,14 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.*;
+
+import org.bouncycastle.crypto.AESPacketCipherEngine;
+import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.NativeServices;
+import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESNativeGCMSIVPacketCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -64,7 +72,7 @@ public class AESGCMSIVPacketCipher
         }
         else if (len < BLOCK_SIZE)
         {
-            throw new IllegalArgumentException(ExceptionMessage.OUTPUT_LENGTH);
+            throw new DataLengthException(ExceptionMessage.OUTPUT_LENGTH);
         }
         return len - BLOCK_SIZE;
     }

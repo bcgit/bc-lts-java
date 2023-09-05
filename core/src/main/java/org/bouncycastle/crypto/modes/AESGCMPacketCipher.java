@@ -1,6 +1,13 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.AESPacketCipherEngine;
+import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.NativeServices;
+import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESNativeGCMPacketCipher;
 import org.bouncycastle.crypto.modes.gcm.GCMUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -164,22 +171,15 @@ public class AESGCMPacketCipher
 
             // Cipher always used in forward mode
             // if keyParam is null we're reusing the last key.
-            if (keyParam != null)
-            {
-                int keyLen = keyParam.getKey().length;
-                checkKeyLength(keyLen);
-                KC = keyLen >>> 2;
-                ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
-                workingKey = generateWorkingKey(keyParam.getKey(), KC, ROUNDS);
-                s = Arrays.clone(S);
-                HGCM = new byte[BLOCK_SIZE];
-                encryptBlock(HGCM, HGCM, workingKey, s, ROUNDS);
-                GCMInitialT(T, HGCM);
-            }
-            else
-            {
-                throw new IllegalArgumentException("Key must be specified in initial init");
-            }
+            int keyLen = keyParam.getKey().length;
+            checkKeyLength(keyLen);
+            KC = keyLen >>> 2;
+            ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
+            workingKey = generateWorkingKey(keyParam.getKey(), KC, ROUNDS);
+            s = Arrays.clone(S);
+            HGCM = new byte[BLOCK_SIZE];
+            encryptBlock(HGCM, HGCM, workingKey, s, ROUNDS);
+            GCMInitialT(T, HGCM);
 
             J0 = new byte[BLOCK_SIZE];
 
@@ -387,9 +387,7 @@ public class AESGCMPacketCipher
                 Pack.longToBigEndian(atLength * 8, X, 0);
                 Pack.longToBigEndian(totalLength * 8, X, 8);
                 gHASHBlock(S_current, X, T);
-                // T = MSBt(GCTRk(J0,S))
                 byte[] tag = new byte[BLOCK_SIZE];
-                //cipher.processBlock(J0, 0, tag, 0);
                 encryptBlock(J0, tag, workingKey, s, ROUNDS);
                 GCMUtil.xor(tag, S_current);
                 written += extra;

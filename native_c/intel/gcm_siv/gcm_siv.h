@@ -41,7 +41,6 @@ typedef struct {
     __m128i roundKeys[15];
     __m128i theGHash;
     __m128i H;
-    int num_rounds;
     bool encryption;
     uint8_t nonce[NONCELEN];
     __m128i theNonce;
@@ -51,6 +50,7 @@ typedef struct {
     __m128i T[256];
     gcm_siv_hasher theAEADHasher;
     gcm_siv_hasher theDataHasher;
+    encrypt_function encrypt;
 } gcm_siv_ctx;
 
 
@@ -91,23 +91,20 @@ void gcm_siv_hasher_completeHash(gcm_siv_hasher *p_gsh, __m128i *T, __m128i *the
 
 void gHASH(__m128i *T, __m128i *theGHash, __m128i *pNext);
 
-//uint8_t
-//deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, int *num_rounds,
-//           size_t key_len, uint8_t theFlags);
-
 void
-deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, int *num_rounds, size_t key_len);
+deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, size_t key_len,
+           encrypt_function *encrypt);
 
 void resetStreams(gcm_siv_ctx *ctx);
 
 void calculateTag(gcm_siv_hasher *theDataHasher, gcm_siv_hasher *theAEADHasher, __m128i *T, __m128i *roundKeys,
-                  int num_rounds, __m128i *theGHash, const int8_t *theNonce, uint8_t *macBlock);
+                  __m128i *theGHash, const int8_t *theNonce, uint8_t *macBlock, encrypt_function *encrypt);
 
 void incrementCounter(uint8_t *pCounter);
 
 void
-gcm_siv_process_packet(const uint8_t *mySrc, int myRemaining, uint8_t *myCounter, __m128i *roundKeys, int num_rounds,
-                       uint8_t *output);
+gcm_siv_process_packet(const uint8_t *mySrc, int myRemaining, uint8_t *myCounter, __m128i *roundKeys,
+                       uint8_t *output, encrypt_function *encrypt);
 
 gcm_siv_err *gcm_siv_doFinal(gcm_siv_ctx *ctx, uint8_t *input, size_t len, uint8_t *output, size_t *written);
 

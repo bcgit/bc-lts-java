@@ -20,7 +20,7 @@ public class AESNativeCFBPacketCipher
     @Override
     public int getOutputSize(boolean encryption, CipherParameters parameters, int len)
     {
-        return getOutputSize(encryption, len);
+        return getOutputSize(len);
     }
 
     @Override
@@ -58,7 +58,7 @@ public class AESNativeCFBPacketCipher
         return result;
     }
 
-    static native int getOutputSize(boolean encryption, int len);
+    static native int getOutputSize(int len);
 
     static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce, byte[] in, int inOff, int inLen, byte[] out, int outOff);
 

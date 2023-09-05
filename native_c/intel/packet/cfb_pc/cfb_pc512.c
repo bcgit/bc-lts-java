@@ -185,12 +185,6 @@ size_t cfb_pc_decrypt(uint8_t *src, size_t len, unsigned char *dest, __m128i *ro
     //
     // Round out buffer.
     //
-//    while (buf_index > 0 && len > 0) {
-//        *dest = cfb_pc_decrypt_byte( *src, roundKeys, mask, feedback, buf_index, num_rounds);
-//        len--;
-//        dest++;
-//        src++;
-//    }
 
     while (len >= 16 * CFB_BLOCK_SIZE) {
         __m512i d0 = _mm512_loadu_si512((__m512i *) &src[0 * 64]);
