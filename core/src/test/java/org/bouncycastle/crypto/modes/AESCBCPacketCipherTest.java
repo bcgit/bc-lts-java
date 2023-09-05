@@ -146,7 +146,6 @@ public class AESCBCPacketCipherTest
                 // Test encrypted output same
                 TestCase.assertTrue(Arrays.areEqual(msg, ptResult));
 
-
             }
         }
     }
@@ -205,9 +204,11 @@ public class AESCBCPacketCipherTest
                 byte[] workingArray = new byte[2 + msg.length * 2];
 
 
-                // Generate the expected chiper text from java CBC mode
+                // Generate the expected cipher text from java CBC mode
                 byte[] expectedCText = new byte[msg.length];
+                cbcModeCipherEnc.reset();
                 cbcModeCipherEnc.processBlocks(msg, 0, msg.length / 16, expectedCText, 0);
+
 
                 for (int jiggle : new int[]{0, 1})
                 {
@@ -220,14 +221,11 @@ public class AESCBCPacketCipherTest
                     // Check cipher text
                     for (int j = 0; j < msg.length; j++)
                     {
-
                         if (expectedCText[j] != workingArray[j + msg.length + jiggle])
                         {
-
                             System.out.println(Hex.toHexString(workingArray));
                             System.out.println(Hex.toHexString(expectedCText));
                             System.out.println(jiggle);
-
                             fail("cipher text not same");
                         }
                     }
@@ -248,7 +246,6 @@ public class AESCBCPacketCipherTest
                     {
                         if (msg[j] != workingArray[j + jiggle])
                         {
-
                             System.out.println(Hex.toHexString(workingArray));
                             System.out.println(Hex.toHexString(msg));
                             System.out.println(jiggle);
@@ -258,12 +255,9 @@ public class AESCBCPacketCipherTest
 
                     }
 
-
                 }
 
             }
-
-
         }
     }
 
