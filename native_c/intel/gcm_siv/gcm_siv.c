@@ -7,6 +7,23 @@
 #include <stdlib.h>
 #include <memory.h>
 
+static inline void divideP(__m128i *x, __m128i *z) {
+    int64_t x0 = (*x)[0];
+    uint64_t x1 = (uint64_t)(*x)[1];
+    int64_t m = x0 >> 63;
+    x0 ^= (m & E1L);
+    (*z)[0] = (x0 << 1) | (int64_t) (x1 >> 63);
+    (*z)[1] = (int64_t) (x1 << 1) | -m;
+}
+
+static inline __m128i createBigEndianM128i(long q1, long q0) {
+    return _mm_set_epi64x(_bswap64(q1), _bswap64(q0));
+}
+
+static inline void reverse_bytes(__m128i *input, __m128i *output) {
+    *output = _mm_shuffle_epi8(*input, *SWAP_ENDIAN_128);
+}
+
 static inline void encrypt(__m128i *d0, __m128i *d1, __m128i *roundKeys, const int num_rounds) {
     *d1 = _mm_xor_si128(*d0, roundKeys[0]);
     *d1 = _mm_aesenc_si128(*d1, roundKeys[1]);
@@ -95,7 +112,6 @@ gcm_siv_err *gcm_siv_init(
         uint8_t *initialText,
         int initialTextLen) {
     ctx->encryption = encryption;
-    //ctx->theFlags = 0;
 
     // We had old initial text drop it here.
     if (ctx->initAD != NULL) {
@@ -118,9 +134,6 @@ gcm_siv_err *gcm_siv_init(
     // Zero out mac block
     memset(ctx->macBlock, 0, BLOCK_SIZE);
     memcpy(ctx->nonce, nonce, NONCELEN);
-
-//    ctx->theFlags = deriveKeys(ctx->T, &ctx->H, ctx->roundKeys, key, (char *) ctx->nonce, &ctx->num_rounds, keyLen,
-//                               ctx->theFlags);
     deriveKeys(ctx->T, &ctx->H, ctx->roundKeys, key, (char *) ctx->nonce, &ctx->num_rounds, keyLen);
 
     resetStreams(ctx);

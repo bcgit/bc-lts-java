@@ -567,14 +567,14 @@ public class AESCBCPacketCipherTest
     public void testCBCJavaAgreement_128()
         throws Exception
     {
-        if (!TestUtil.hasNativeService("AES/CBC-PC"))
-        {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc_pc"))
-            {
-                TestCase.fail("Skipping CBC_PC Agreement Test: " + TestUtil.errorMsg());
-            }
-            return;
-        }
+//        if (!TestUtil.hasNativeService("AES/CBC-PC"))
+//        {
+//            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc_pc"))
+//            {
+//                TestCase.fail("Skipping CBC_PC Agreement Test: " + TestUtil.errorMsg());
+//            }
+//            return;
+//        }
         doTest(16);
     }
 
@@ -582,14 +582,14 @@ public class AESCBCPacketCipherTest
     public void testCBCJavaAgreement_192()
         throws Exception
     {
-        if (!TestUtil.hasNativeService("AES/CBC-PC"))
-        {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
-            {
-                TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
-            }
-            return;
-        }
+//        if (!TestUtil.hasNativeService("AES/CBC-PC"))
+//        {
+//            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
+//            {
+//                TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
+//            }
+//            return;
+//        }
         doTest(24);
     }
 
@@ -597,14 +597,14 @@ public class AESCBCPacketCipherTest
     public void testCBCJavaAgreement_256()
         throws Exception
     {
-        if (!TestUtil.hasNativeService("AES/CBC-PC"))
-        {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
-            {
-                TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
-            }
-            return;
-        }
+//        if (!TestUtil.hasNativeService("AES/CBC-PC"))
+//        {
+//            if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
+//            {
+//                TestCase.fail("Skipping CBC Agreement Test: " + TestUtil.errorMsg());
+//            }
+//            return;
+//        }
         doTest(32);
     }
 

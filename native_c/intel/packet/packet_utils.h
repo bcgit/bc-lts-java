@@ -27,7 +27,7 @@ typedef struct {
 #define EM_LEN_NEGATIVE  "input len is negative"
 #define EM_INPUT_SHORT  "data too short"
 #define EM_AES_KEY_LENGTH  "Key length not 128/192/256 bits."
-#define EM_AES_DECRYPTION_INPUT_LENGTH_INVALID  "the length of input should be times of 16."
+#define BLOCK_CIPHER_16_INPUT_LENGTH_INVALID  "the length of input should be times of 16."
 #define EM_CBC_IV_LENGTH  "initialisation vector must be the same length as block size"
 #define EM_OUTPUT_NULL  "output was null"
 //Error Type
@@ -43,12 +43,11 @@ static const int8_t __attribute__ ((aligned(16))) _swap_endian[16] = {
 };
 static const __m128i *SWAP_ENDIAN_128 = ((__m128i *) _swap_endian);
 
-
 void packet_err_free(packet_err *err);
 
 int get_aead_output_size(bool encryption, int len, int macSize);
 
-int get_output_size(bool encryption, int len);
+int get_output_size(int len);
 
 int generate_key(bool encryption, uint8_t *key, __m128i *roundKeys, size_t keyLen);
 
@@ -61,9 +60,4 @@ bool tag_verification(const uint8_t *left, const uint8_t *right, size_t len);
 
 bool tag_verification_16(const uint8_t *left, const uint8_t *right);
 
-void divideP(__m128i *x, __m128i *z);
-
- __m128i createBigEndianM128i(long q1, long q0);
-
-void reverse_bytes(__m128i* input, __m128i* output);
 #endif //BC_LTS_C_PACKET_UTILS_H

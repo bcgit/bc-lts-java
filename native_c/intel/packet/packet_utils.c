@@ -10,10 +10,8 @@ int get_aead_output_size(bool encryption, int len, int macSize) {
     }
 }
 
-int get_output_size(bool encryption, int len) {
-    if (encryption) {
-        return len + ((len & 15) ? BLOCK_SIZE : 0);
-    } else if (len & 15) {
+int get_output_size(int len) {
+    if (len & 15) {
         return -1;
     } else {
         return len;
@@ -118,19 +116,8 @@ bool tag_verification_16(const uint8_t *macblock, const uint8_t *ciphertext) {
     return (d0[0] | d0[1]) == 0;
 }
 
-void divideP(__m128i *x, __m128i *z) {
-    int64_t x0 = (*x)[0];
-    uint64_t x1 = (uint64_t)(*x)[1];
-    int64_t m = x0 >> 63;
-    x0 ^= (m & E1L);
-    (*z)[0] = (x0 << 1) | (int64_t) (x1 >> 63);
-    (*z)[1] = (int64_t) (x1 << 1) | -m;
-}
 
- __m128i createBigEndianM128i(long q1, long q0) {
-    return _mm_set_epi64x(_bswap64(q1), _bswap64(q0));
-}
 
-void reverse_bytes(__m128i *input, __m128i *output) {
-    *output = _mm_shuffle_epi8(*input, *SWAP_ENDIAN_128);
-}
+
+
+

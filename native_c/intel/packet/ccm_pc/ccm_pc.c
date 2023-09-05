@@ -30,7 +30,7 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
     memcpy(macBlock + 1, nonce, nonceLen);
 
     IV_le = _mm_shuffle_epi8(*(__m128i *) macBlock, *SWAP_ENDIAN_128);
-    ctr = (uint64_t) _mm_extract_epi64(IV_le, 0);
+    ctr = (uint64_t) IV_le[0];
     initialCTR = ctr;
     IV_le = _mm_and_si128(IV_le, _mm_set_epi64x(-1, 0));
 
@@ -49,8 +49,7 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
         ccm_pc_calculateMac(p_in, inLen, initAD, initADLen, mac_size, nonce, nonceLen, buf, macBlock, &chainblock,
                             roundKeys, num_rounds, &buf_ptr);
         ctr_pc_process_bytes(macBlock, BLOCK_SIZE, macBlock, outputLen, &buf_pos, &ctr, initialCTR, ctrMask,
-                             &ctrAtEnd,
-                             &IV_le, roundKeys, num_rounds, &partialBlock);
+                             &ctrAtEnd, &IV_le, roundKeys, num_rounds, &partialBlock);
         ctr_pc_process_bytes(p_in, inLen, p_out, outputLen, &buf_pos, &ctr, initialCTR, ctrMask, &ctrAtEnd,
                              &IV_le, roundKeys, num_rounds, &partialBlock);
         memcpy(p_out + *outputLen, macBlock, mac_size);
