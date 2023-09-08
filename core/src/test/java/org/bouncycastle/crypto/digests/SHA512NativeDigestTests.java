@@ -85,7 +85,7 @@ public class SHA512NativeDigestTests
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("sha512"))
             {
-                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA512 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -132,7 +132,7 @@ public class SHA512NativeDigestTests
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("sha512"))
             {
-                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA512 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -172,11 +172,11 @@ public class SHA512NativeDigestTests
             throws Exception
     {
 
-        if (!TestUtil.hasNativeService("SHA2"))
+        if (!TestUtil.hasNativeService("SHA512"))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha512"))
             {
-                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA512 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -561,11 +561,11 @@ public class SHA512NativeDigestTests
             throws Exception
     {
 
-        if (!TestUtil.hasNativeService("SHA2"))
+        if (!TestUtil.hasNativeService("SHA512"))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha512"))
             {
-                fail("Skipping SHA2 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHA512 Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
