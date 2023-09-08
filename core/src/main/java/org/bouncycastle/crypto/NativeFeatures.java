@@ -243,6 +243,24 @@ class NativeFeatures
     }
 
 
+    static boolean hasSHA3()
+    {
+        try
+        {
+            return nativeSHA3();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.log(Level.FINE, "native sha3 exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+    private static native boolean nativeSHA3();
+
     private static native boolean nativeSHA256();
 
     private static native boolean nativeSHA224();

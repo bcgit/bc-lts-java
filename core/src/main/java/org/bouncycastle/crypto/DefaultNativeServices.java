@@ -156,6 +156,11 @@ class DefaultNativeServices
                 set.add(SHA512);
             }
 
+            if (NativeFeatures.hasHardwareSHA512())
+            {
+                set.add(SHA512);
+            }
+
             if (NativeFeatures.hasCCMHardwareSupport())
             {
                 set.add(AES_CCM);
@@ -166,6 +171,10 @@ class DefaultNativeServices
                 set.add(MULACC);
             }
 
+            if (NativeFeatures.hasSHA3())
+            {
+                set.add(SHA3);
+            }
         }
 
         if (set.isEmpty())

@@ -242,4 +242,14 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCCM
 }
 
 
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeCCM
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA3
+        (JNIEnv *env, jclass cl) {
+    probe_system();
+    return cpu_info.sha3 && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
+}
 
