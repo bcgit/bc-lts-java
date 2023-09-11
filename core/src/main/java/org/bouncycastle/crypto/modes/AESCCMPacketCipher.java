@@ -16,8 +16,8 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 
 public class AESCCMPacketCipher
-        extends AESPacketCipherEngine
-        implements AESCCMModePacketCipher
+    extends AESPacketCipherEngine
+    implements AESCCMModePacketCipher
 {
     public static AESCCMModePacketCipher newInstance()
     {
@@ -39,20 +39,7 @@ public class AESCCMPacketCipher
         {
             throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
         }
-        int macSize;
-        if (params instanceof AEADParameters)
-        {
-            AEADParameters param = (AEADParameters) params;
-            macSize = getMacSize(encryption, param.getMacSize());
-        }
-        else if (params instanceof ParametersWithIV)
-        {
-            macSize = 8;
-        }
-        else
-        {
-            throw new IllegalArgumentException("invalid parameters passed to CCM: " + params.getClass().getName());
-        }
+        int macSize = getMacSize(encryption, params);
         if (encryption)
         {
             return len + macSize;
@@ -67,7 +54,7 @@ public class AESCCMPacketCipher
     @Override
     public int processPacket(boolean forEncryption, CipherParameters params, byte[] in, int inOff, int inLen,
                              byte[] output, int outOff)
-            throws PacketCipherException
+        throws PacketCipherException
     {
         processPacketExceptionCheck(in, inOff, inLen, output, outOff);
         byte[] nonce;
@@ -83,46 +70,40 @@ public class AESCCMPacketCipher
         {
             block = new byte[BLOCK_SIZE];
         }
-        if (params instanceof AEADParameters)
+        try
         {
-            AEADParameters param = (AEADParameters) params;
-            try
+            if (params instanceof AEADParameters)
             {
-                macSize = getMacSize(forEncryption, param.getMacSize());
+                AEADParameters param = (AEADParameters)params;
+                macSize = getCCMMacSize(forEncryption, param.getMacSize());
+                nonce = param.getNonce();
+                initialAssociatedText = param.getAssociatedText();
+                keyParam = param.getKey();
             }
-            catch (IllegalArgumentException e)
+            else if (params instanceof ParametersWithIV)
             {
-                throw PacketCipherException.from(e);
+                ParametersWithIV param = (ParametersWithIV)params;
+                macSize = 8;
+                nonce = Arrays.clone(param.getIV());
+                initialAssociatedText = null;
+                keyParam = (KeyParameter)param.getParameters();
             }
-            nonce = param.getNonce();
-            initialAssociatedText = param.getAssociatedText();
-            keyParam = param.getKey();
+            else
+            {
+                throw new IllegalArgumentException(ExceptionMessage.CCM_INVALID_PARAMETER);
+            }
+            AEADLengthCheck(forEncryption, inLen, output, outOff, macSize);
+            if (nonce == null || nonce.length < 7 || nonce.length > 13)
+            {
+                throw new IllegalArgumentException(ExceptionMessage.CCM_IV_SIZE);
+            }
+            checkKeyLength(keyParam, ExceptionMessage.CCM_CIPHER_UNITIALIZED);
         }
-        else if (params instanceof ParametersWithIV)
+        catch (IllegalArgumentException e)
         {
-            ParametersWithIV param = (ParametersWithIV) params;
-            macSize = 8;
-            nonce = Arrays.clone(param.getIV());
-            initialAssociatedText = null;
-            keyParam = (KeyParameter) param.getParameters();
+            throw PacketCipherException.from(e);
         }
-        else
-        {
-            throw PacketCipherException.from(new IllegalArgumentException("invalid parameters passed to CCM"));
-        }
-        AEADLengthCheck(forEncryption, inLen, output, outOff, macSize);
-        if (nonce == null || nonce.length < 7 || nonce.length > 13)
-        {
-            throw PacketCipherException.from(new IllegalArgumentException("nonce must have length from 7 to 13 " +
-                    "octets"));
-        }
-        if (keyParam == null)
-        {
-            throw PacketCipherException.from(new IllegalStateException("CCM cipher unitialized."));
-        }
-        int keyLen = keyParam.getKey().length;
-        checkKeyLength(keyLen);
-        int KC = keyLen >>> 2;
+        int KC = keyParam.getKeyLength() >>> 2;
         int ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
         int[][] workingKey = generateWorkingKey(keyParam.getKey(), KC, ROUNDS);
         byte[] s = Arrays.clone(S);
@@ -139,7 +120,7 @@ public class AESCCMPacketCipher
         int outputLen = 0;
         try
         {
-            counter[0] = (byte) ((q - 1) & 0x7);
+            counter[0] = (byte)((q - 1) & 0x7);
             System.arraycopy(nonce, 0, counter, 1, nonce.length);
             littleEndianToInt4(counter, 0, counterIn);
             int inIndex = inOff;
@@ -154,7 +135,7 @@ public class AESCCMPacketCipher
                 while (inIndex < (inOff + inLen - BLOCK_SIZE))                 // S1...
                 {
                     ctrProcessBlock(counter, counterIn, counterOut, in, inIndex, output, outIndex, workingKey, s,
-                            ROUNDS);
+                        ROUNDS);
                     outIndex += BLOCK_SIZE;
                     inIndex += BLOCK_SIZE;
                 }
@@ -167,11 +148,11 @@ public class AESCCMPacketCipher
                 outputLen = inLen - macSize;
                 System.arraycopy(in, inOff + outputLen, macBlock, 0, macSize);
                 ctrProcessBlock(counter, counterIn, counterOut, macBlock, 0, macBlock, 0, workingKey, s, ROUNDS);
-                Arrays.fill(macBlock, macSize, BLOCK_SIZE, (byte) 0);
+                Arrays.fill(macBlock, macSize, BLOCK_SIZE, (byte)0);
                 while (inIndex < (inOff + outputLen - BLOCK_SIZE))
                 {
                     ctrProcessBlock(counter, counterIn, counterOut, in, inIndex, output, outIndex, workingKey, s,
-                            ROUNDS);
+                        ROUNDS);
                     outIndex += BLOCK_SIZE;
                     inIndex += BLOCK_SIZE;
                 }
@@ -179,7 +160,7 @@ public class AESCCMPacketCipher
                 ctrProcessBlock(counter, counterIn, counterOut, block, 0, block, 0, workingKey, s, ROUNDS);
                 System.arraycopy(block, 0, output, outIndex, outputLen - (inIndex - inOff));
                 calculateMac(output, outOff, outputLen, block, macSize, initialAssociatedText, nonce, workingKey, s,
-                        ROUNDS);
+                    ROUNDS);
                 if (!Arrays.constantTimeAreEqual(macBlock, block))
                 {
                     throw new InvalidCipherTextException("mac check in CCM failed");
@@ -214,7 +195,7 @@ public class AESCCMPacketCipher
         int count = 1;
         while (q > 0)
         {
-            buf[buf.length - count++] = (byte) (q & 0xff);
+            buf[buf.length - count++] = (byte)(q & 0xff);
             q >>>= 8;
         }
         littleEndianToInt4(buf, 0, C);
@@ -227,24 +208,24 @@ public class AESCCMPacketCipher
             int textLength = aad.length;
             if (textLength < ((1 << 16) - (1 << 8)))
             {
-                buf[0] = (byte) (textLength >> 8);
-                buf[1] = (byte) textLength;
+                buf[0] = (byte)(textLength >> 8);
+                buf[1] = (byte)textLength;
                 bufOff = 2;
             }
             else // can't go any higher than 2^32
             {
-                buf[0] = (byte) 0xff;
-                buf[1] = (byte) 0xfe;
-                buf[2] = (byte) (textLength >> 24);
-                buf[3] = (byte) (textLength >> 16);
-                buf[4] = (byte) (textLength >> 8);
-                buf[5] = (byte) textLength;
+                buf[0] = (byte)0xff;
+                buf[1] = (byte)0xfe;
+                buf[2] = (byte)(textLength >> 24);
+                buf[3] = (byte)(textLength >> 16);
+                buf[4] = (byte)(textLength >> 8);
+                buf[5] = (byte)textLength;
                 bufOff = 6;
             }
             bufOff = cbcmacUpdate(buf, C, bufOff, aad, 0, aad.length, workingkey, s, ROUNDS);
             if (bufOff != 0)
             {
-                Arrays.fill(buf, bufOff, BLOCK_SIZE, (byte) 0);
+                Arrays.fill(buf, bufOff, BLOCK_SIZE, (byte)0);
                 int4XorLittleEndian(C, buf, 0);
                 encryptBlock(C, workingkey, s, ROUNDS);
                 bufOff = 0;
@@ -253,22 +234,13 @@ public class AESCCMPacketCipher
         if (inLen != 0)
         {
             bufOff = cbcmacUpdate(buf, C, bufOff, in, inOff, inLen, workingkey, s, ROUNDS);
-            Arrays.fill(buf, bufOff, BLOCK_SIZE, (byte) 0);
+            Arrays.fill(buf, bufOff, BLOCK_SIZE, (byte)0);
             int4XorLittleEndian(C, buf, 0);
             encryptBlock(C, workingkey, s, ROUNDS);
         }
         int4ToLittleEndian(C, macBlock, 0);
-        Arrays.fill(macBlock, macSize, BLOCK_SIZE, (byte) 0);
+        Arrays.fill(macBlock, macSize, BLOCK_SIZE, (byte)0);
         Arrays.fill(C, 0);
-    }
-
-    private int getMacSize(boolean forEncryption, int requestedMacBits)
-    {
-        if (forEncryption && (requestedMacBits < 32 || requestedMacBits > 128 || 0 != (requestedMacBits & 15)))
-        {
-            throw new IllegalArgumentException("tag length in octets must be one of {4,6,8,10,12,14,16}");
-        }
-        return requestedMacBits >>> 3;
     }
 
     private int cbcmacUpdate(byte[] buf, int[] C, int bufOff, byte[] in, int inOff, int len, int[][] workingkey,

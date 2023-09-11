@@ -8,14 +8,17 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import junit.framework.TestCase;
+import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.MultiBlockCipher;
 import org.bouncycastle.crypto.NativeBlockCipherProvider;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.AESPacketCipherEngine;
+import org.bouncycastle.crypto.PacketCipher;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.AESNativeCFBPacketCipher;
 import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -48,6 +51,8 @@ public class AESCFBPacketCipherTest
     public void performTest()
         throws Exception
     {
+        testAgreementForMultipleMessages();
+        testIntoSameArray();
         CryptoServicesRegistrar.setNativeEnabled(true);
         Tests();
         CryptoServicesRegistrar.setNativeEnabled(false);
@@ -68,13 +73,211 @@ public class AESCFBPacketCipherTest
         testCFBJavaAgreement_256();
     }
 
+    public boolean isNativeVariant()
+    {
+        String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
+        if (variant == null || "java".equals(variant))
+        {
+            return false;
+        }
+        return true;
+    }
+    public void testAgreementForMultipleMessages() throws Exception
+    {
+        SecureRandom secureRandom = new SecureRandom();
+        CryptoServicesRegistrar.setNativeEnabled(false);
+
+        // Java implementation of CFB mode with the Java aes engine
+        // Packet ciphers will be compared to this.
+        CFBModeCipher cfbModeCipherEnc = new CFBBlockCipher(new AESEngine(), 128);
+
+        //
+        //  Implementation of packet cipher, may be native or java depending on variant used in testing
+        //
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        PacketCipher cfbPS = AESCFBPacketCipher.newInstance();
+
+
+        //
+        // Verify we are getting is what we expect.
+        //
+        if (isNativeVariant())
+        {
+            TestCase.assertTrue(cfbPS.toString().contains("CFB-PS[Native]"));
+            TestCase.assertTrue(cfbPS instanceof AESNativeCFBPacketCipher);
+        }
+        else
+        {
+            TestCase.assertTrue(cfbPS.toString().contains("CFB-PS[Java]"));
+            TestCase.assertTrue(cfbPS instanceof AESCFBPacketCipher);
+        }
+
+        byte[] iv = new byte[16];
+        secureRandom.nextBytes(iv);
+        for (int ks : new int[]{16, 24, 32})
+        {
+            byte[] key = new byte[ks];
+            secureRandom.nextBytes(key);
+            CipherParameters cp = new ParametersWithIV(new KeyParameter(key), iv);
+            cfbModeCipherEnc.init(true, cp);
+
+
+            for (int t = 0; t < 8192; t += 16)
+            {
+                cfbModeCipherEnc.reset();
+                byte[] msg = new byte[t];
+                secureRandom.nextBytes(msg);
+
+                // Generate expected message off the
+                byte[] expected = new byte[msg.length];
+                cfbModeCipherEnc.processBlocks(msg, 0, msg.length / 16, expected, 0);
+
+
+                // Test encryption
+                int len = cfbPS.getOutputSize(true, cp, msg.length);
+                TestCase.assertEquals(msg.length, len);
+                byte[] ctResult = new byte[len];
+
+                int outLen = cfbPS.processPacket(true, cp, msg, 0, msg.length, ctResult, 0);
+                TestCase.assertEquals(msg.length, outLen);
+
+                // Test encrypted output same
+                TestCase.assertTrue(Arrays.areEqual(expected, ctResult));
+
+
+                // Test decryption
+
+                len = cfbPS.getOutputSize(false, cp, ctResult.length);
+                TestCase.assertEquals(msg.length, len);
+                byte[] ptResult = new byte[len];
+
+                outLen = cfbPS.processPacket(false, cp, ctResult, 0, ctResult.length, ptResult, 0);
+                TestCase.assertEquals(msg.length, outLen);
+
+                // Test encrypted output same
+                TestCase.assertTrue(Arrays.areEqual(msg, ptResult));
+
+            }
+        }
+    }
+
+
+    /**
+     * Tests operation of packet cipher where input and output arrays are the same
+     *
+     * @throws Exception
+     */
+    public void testIntoSameArray() throws Exception
+    {
+        SecureRandom secureRandom = new SecureRandom();
+        CryptoServicesRegistrar.setNativeEnabled(false);
+
+        // Java implementation of CFB mode with the Java aes engine
+        // Packet ciphers will be compared to this.
+        CFBModeCipher cfbModeCipherEnc = new CFBBlockCipher(new AESEngine(), 128);
+
+        //
+        //  Implementation of packet cipher, may be native or java depending on variant used in testing
+        //
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        PacketCipher cfbPS = AESCFBPacketCipher.newInstance();
+
+
+        //
+        // Verify we are getting is what we expect.
+        //
+        if (isNativeVariant())
+        {
+            TestCase.assertTrue(cfbPS.toString().contains("CFB-PS[Native]"));
+            TestCase.assertTrue(cfbPS instanceof AESNativeCFBPacketCipher);
+        }
+        else
+        {
+            TestCase.assertTrue(cfbPS.toString().contains("CFB-PS[Java]"));
+            TestCase.assertTrue(cfbPS instanceof AESCFBPacketCipher);
+        }
+
+        byte[] iv = new byte[16];
+        secureRandom.nextBytes(iv);
+        for (int ks : new int[]{16, 24, 32})
+        {
+            byte[] key = new byte[ks];
+            secureRandom.nextBytes(key);
+            CipherParameters cp = new ParametersWithIV(new KeyParameter(key), iv);
+            cfbModeCipherEnc.init(true, cp);
+
+            for (int t = 0; t < 2048; t += 16)
+            {
+                byte[] msg = new byte[t];
+                secureRandom.nextBytes(msg);
+
+                // We will slide around in the array also at odd addresses
+                byte[] workingArray = new byte[2 + msg.length * 2];
+
+
+                // Generate the expected cipher text from java CFB mode
+                byte[] expectedCText = new byte[msg.length];
+                cfbModeCipherEnc.reset();
+                cfbModeCipherEnc.processBlocks(msg, 0, msg.length / 16, expectedCText, 0);
+
+
+                for (int jiggle : new int[]{0, 1})
+                {
+                    // Encryption
+                    System.arraycopy(msg, 0, workingArray, jiggle, msg.length);
+                    int len = cfbPS.processPacket(true, cp, workingArray, jiggle, msg.length, workingArray,
+                        msg.length + jiggle);
+                    TestCase.assertEquals(msg.length, len);
+
+                    // Check cipher text
+                    for (int j = 0; j < msg.length; j++)
+                    {
+                        if (expectedCText[j] != workingArray[j + msg.length + jiggle])
+                        {
+                            System.out.println(Hex.toHexString(workingArray));
+                            System.out.println(Hex.toHexString(expectedCText));
+                            System.out.println(jiggle);
+                            fail("cipher text not same");
+                        }
+                    }
+
+
+                    // Destroy plain text section
+                    // as it should be written over with the correct plain text
+                    Arrays.fill(workingArray, jiggle, msg.length + jiggle, (byte) 1);
+
+
+                    // Decryption
+                    len = cfbPS.processPacket(false, cp, workingArray, msg.length + jiggle, msg.length, workingArray,
+                        jiggle);
+                    TestCase.assertEquals(msg.length, len);
+
+                    // Check cipher text
+                    for (int j = 0; j < msg.length; j++)
+                    {
+                        if (msg[j] != workingArray[j + jiggle])
+                        {
+                            System.out.println(Hex.toHexString(workingArray));
+                            System.out.println(Hex.toHexString(msg));
+                            System.out.println(jiggle);
+
+                            fail("plain text not same");
+                        }
+
+                    }
+
+                }
+
+            }
+        }
+    }
     public void testExceptions()
     {
         AESCFBModePacketCipher cfb = AESPacketCipherEngine.createCFBPacketCipher();
 
         try
         {
-            cfb.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), -1);
+            cfb.getOutputSize(false, new ParametersWithIV(new KeyParameter(new byte[16]),  new byte[16]), -1);
             fail("negative value for getOutputSize");
         }
         catch (IllegalArgumentException e)

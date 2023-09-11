@@ -2,13 +2,19 @@ package org.bouncycastle.crypto.modes;
 
 import java.security.SecureRandom;
 
+import javax.security.auth.DestroyFailedException;
+import javax.security.auth.Destroyable;
+
 import junit.framework.TestCase;
+import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.AESPacketCipherEngine;
+import org.bouncycastle.crypto.PacketCipher;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.AESNativeGCMPacketCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -38,6 +44,8 @@ public class AESGCMPacketCipherTest
     public void performTest()
         throws Exception
     {
+        testAgreementForMultipleMessages();
+        testIntoSameArray();
         CryptoServicesRegistrar.setNativeEnabled(true);
         Tests();
         CryptoServicesRegistrar.setNativeEnabled(false);
@@ -374,6 +382,7 @@ public class AESGCMPacketCipherTest
     }
 
     private void testExceptions()
+        throws DestroyFailedException
     {
         AESGCMModePacketCipher gcm = AESPacketCipherEngine.createGCMPacketCipher();
         try
@@ -432,6 +441,7 @@ public class AESGCMPacketCipherTest
 
         try
         {
+            ((Destroyable)gcm).destroy();
             gcm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[16], 0, 16, new byte[31], 0);
             fail("output buffer too small for processPacket");
         }
@@ -442,6 +452,7 @@ public class AESGCMPacketCipherTest
 
         try
         {
+            ((Destroyable)gcm).destroy();
             gcm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[16], -1, 16, new byte[32], 0);
             fail("offset is negative for processPacket");
         }
@@ -452,6 +463,7 @@ public class AESGCMPacketCipherTest
 
         try
         {
+            ((Destroyable)gcm).destroy();
             gcm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[16], 0, -1, new byte[32], 0);
             fail("len is negative for processPacket");
         }
@@ -462,6 +474,7 @@ public class AESGCMPacketCipherTest
 
         try
         {
+            ((Destroyable)gcm).destroy();
             gcm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[16], 0, 16, new byte[32], -1);
             fail("output offset is negative for processPacket");
         }
@@ -472,6 +485,7 @@ public class AESGCMPacketCipherTest
 
         try
         {
+            ((Destroyable)gcm).destroy();
             gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[15], 0, 15, new byte[0], 0);
             fail("input buffer too small for processPacket");
         }
@@ -482,6 +496,7 @@ public class AESGCMPacketCipherTest
 
         try
         {
+            ((Destroyable)gcm).destroy();
             gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), new byte[17], 0, 17, new byte[0], 0);
             fail("output buffer too small for processPacket");
         }
@@ -690,7 +705,7 @@ public class AESGCMPacketCipherTest
     }
 
     private void testAgreement()
-        throws InvalidCipherTextException, PacketCipherException
+        throws InvalidCipherTextException, PacketCipherException, DestroyFailedException
     {
         SecureRandom secureRandom = new SecureRandom();
         AESGCMModePacketCipher GCMgcm2 = AESPacketCipherEngine.createGCMPacketCipher();
@@ -741,7 +756,7 @@ public class AESGCMPacketCipherTest
                 byte[] GCMgcm1PT = new byte[GCMgcm1.getOutputSize(GCMgcm1CT.length)];
                 j = GCMgcm1.processBytes(GCMgcm1CT, 0, GCMgcm1CT.length, GCMgcm1PT, 0);
                 GCMgcm1.doFinal(GCMgcm1PT, j);
-
+                ((Destroyable)GCMgcm2).destroy();
                 byte[] GCMgcm2PT = new byte[GCMgcm2.getOutputSize(true, parameters, GCMgcm2CT.length)];
                 GCMgcm2.processPacket(true, parameters, GCMgcm2CT, 0, GCMgcm2CT.length, GCMgcm2PT, 0);
 
@@ -817,7 +832,7 @@ public class AESGCMPacketCipherTest
                         byte[] GCMgcm1CT = new byte[GCMgcm1.getOutputSize(javaPT.length)];
                         int j = GCMgcm1.processBytes(javaPT, 0, javaPT.length, GCMgcm1CT, 0);
                         GCMgcm1.doFinal(GCMgcm1CT, j);
-
+                        ((Destroyable)GCMgcm2).destroy();
                         byte[] GCMgcm2CT = new byte[GCMgcm2.getOutputSize(true, parameters, javaPT.length)];
                         GCMgcm2.processPacket(true, parameters, javaPT, 0, javaPT.length, GCMgcm2CT, 0);
 
@@ -863,5 +878,213 @@ public class AESGCMPacketCipherTest
         while (bits - value + (n - 1) < 0);
 
         return value;
+    }
+
+    public boolean isNativeVariant()
+    {
+        String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
+        if (variant == null || "java".equals(variant))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public void testAgreementForMultipleMessages()
+        throws Exception
+    {
+        SecureRandom secureRandom = new SecureRandom();
+        CryptoServicesRegistrar.setNativeEnabled(false);
+
+        // Java implementation of GCM mode with the Java aes engine
+        // Packet ciphers will be compared to this.
+        GCMModeCipher gcmModeCipherEnc = new GCMBlockCipher(new AESEngine());
+
+        //
+        //  Implementation of packet cipher, may be native or java depending on variant used in testing
+        //
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        PacketCipher gcmPS = AESGCMPacketCipher.newInstance();
+
+
+        //
+        // Verify we are getting is what we expect.
+        //
+        if (isNativeVariant())
+        {
+            TestCase.assertTrue(gcmPS.toString().contains("GCM-PS[Native]"));
+            TestCase.assertTrue(gcmPS instanceof AESNativeGCMPacketCipher);
+        }
+        else
+        {
+            TestCase.assertTrue(gcmPS.toString().contains("GCM-PS[Java]"));
+            TestCase.assertTrue(gcmPS instanceof AESGCMPacketCipher);
+        }
+
+        byte[] iv = new byte[12];
+        for (int ks : new int[]{16, 24, 32})
+        {
+            byte[] key = new byte[ks];
+            secureRandom.nextBytes(key);
+
+            for (int t = 0; t < 8192; t += 16)
+            {
+                secureRandom.nextBytes(iv);
+                CipherParameters cp = new ParametersWithIV(new KeyParameter(key), iv);
+                gcmModeCipherEnc.reset();
+                byte[] msg = new byte[t];
+                secureRandom.nextBytes(msg);
+                gcmModeCipherEnc.init(true, cp);
+                // Generate expected message off the
+                int outLen = gcmModeCipherEnc.getOutputSize(msg.length);
+                byte[] expected = new byte[gcmModeCipherEnc.getOutputSize(msg.length)];
+
+                int resultLen = gcmModeCipherEnc.processBytes(msg, 0, msg.length, expected, 0);
+                gcmModeCipherEnc.doFinal(expected, resultLen);
+
+                // Test encryption
+                int len = gcmPS.getOutputSize(true, cp, msg.length);
+                TestCase.assertEquals(outLen, len);
+                byte[] ctResult = new byte[len];
+
+                outLen = gcmPS.processPacket(true, cp, msg, 0, msg.length, ctResult, 0);
+                TestCase.assertEquals(ctResult.length, outLen);
+
+                // Test encrypted output same
+                TestCase.assertTrue(Arrays.areEqual(expected, ctResult));
+
+
+                // Test decryption
+
+                len = gcmPS.getOutputSize(false, cp, ctResult.length);
+                TestCase.assertEquals(msg.length, len);
+                byte[] ptResult = new byte[len];
+
+                outLen = gcmPS.processPacket(false, cp, ctResult, 0, ctResult.length, ptResult, 0);
+                TestCase.assertEquals(msg.length, outLen);
+
+                // Test encrypted output same
+                TestCase.assertTrue(Arrays.areEqual(msg, ptResult));
+
+            }
+        }
+    }
+
+
+    /**
+     * Tests operation of packet cipher where input and output arrays are the same
+     *
+     * @throws Exception
+     */
+    public void testIntoSameArray()
+        throws Exception
+    {
+        SecureRandom secureRandom = new SecureRandom();
+        CryptoServicesRegistrar.setNativeEnabled(false);
+
+        // Java implementation of GCM mode with the Java aes engine
+        // Packet ciphers will be compared to this.
+        GCMModeCipher gcmModeCipherEnc = new GCMBlockCipher(new AESEngine());
+
+        //
+        //  Implementation of packet cipher, may be native or java depending on variant used in testing
+        //
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        PacketCipher gcmPS = AESGCMPacketCipher.newInstance();
+
+
+        //
+        // Verify we are getting is what we expect.
+        //
+        if (isNativeVariant())
+        {
+            TestCase.assertTrue(gcmPS.toString().contains("GCM-PS[Native]"));
+            TestCase.assertTrue(gcmPS instanceof AESNativeGCMPacketCipher);
+        }
+        else
+        {
+            TestCase.assertTrue(gcmPS.toString().contains("GCM-PS[Java]"));
+            TestCase.assertTrue(gcmPS instanceof AESGCMPacketCipher);
+        }
+
+        byte[] iv;
+
+        for (int ks : new int[]{16, 24, 32})
+        {
+            byte[] key = new byte[ks];
+            secureRandom.nextBytes(key);
+            for (int inLen : new int[]{12, 13, 14, 15, 16})
+            {
+                iv = new byte[inLen];
+                for (int t = 0; t < 2048; t += 16)
+                {
+                    byte[] msg = new byte[t];
+                    secureRandom.nextBytes(msg);
+                    secureRandom.nextBytes(iv);
+
+                    CipherParameters cp = new ParametersWithIV(new KeyParameter(key), iv);
+                    gcmModeCipherEnc.init(true, cp);
+                    // We will slide around in the array also at odd addresses
+                    byte[] workingArray = new byte[2 + msg.length + gcmModeCipherEnc.getOutputSize(msg.length)];
+
+
+                    // Generate the expected cipher text from java GCM mode
+                    byte[] expectedCText = new byte[gcmModeCipherEnc.getOutputSize(msg.length)];
+                    //gcmModeCipherEnc.reset();
+                    int resultLen = gcmModeCipherEnc.processBytes(msg, 0, msg.length, expectedCText, 0);
+                    gcmModeCipherEnc.doFinal(expectedCText, resultLen);
+
+                    for (int jiggle : new int[]{0, 1})
+                    {
+                        ((Destroyable)gcmPS).destroy();
+                        // Encryption
+                        System.arraycopy(msg, 0, workingArray, jiggle, msg.length);
+                        int len = gcmPS.processPacket(true, cp, workingArray, jiggle, msg.length, workingArray,
+                            msg.length + jiggle);
+                        TestCase.assertEquals(gcmPS.getOutputSize(true, cp, msg.length), len);
+
+                        // Check cipher text
+                        for (int j = 0; j < msg.length; j++)
+                        {
+                            if (expectedCText[j] != workingArray[j + msg.length + jiggle])
+                            {
+                                System.out.println(Hex.toHexString(workingArray));
+                                System.out.println(Hex.toHexString(expectedCText));
+                                System.out.println(jiggle);
+                                fail("cipher text not same");
+                            }
+                        }
+
+
+                        // Destroy plain text section
+                        // as it should be written over with the correct plain text
+                        Arrays.fill(workingArray, jiggle, msg.length + jiggle, (byte)1);
+
+
+                        // Decryption
+                        len = gcmPS.processPacket(false, cp, workingArray, msg.length + jiggle, len, workingArray,
+                            jiggle);
+                        TestCase.assertEquals(msg.length, len);
+
+                        // Check cipher text
+                        for (int j = 0; j < msg.length; j++)
+                        {
+                            if (msg[j] != workingArray[j + jiggle])
+                            {
+                                System.out.println(Hex.toHexString(workingArray));
+                                System.out.println(Hex.toHexString(msg));
+                                System.out.println(jiggle);
+
+                                fail("plain text not same");
+                            }
+
+                        }
+
+                    }
+
+                }
+            }
+
+        }
     }
 }

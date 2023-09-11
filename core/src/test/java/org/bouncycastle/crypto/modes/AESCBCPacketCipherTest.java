@@ -20,14 +20,14 @@ public class AESCBCPacketCipherTest
 
     }
 
-    //    public static void main(
-//            String[] args)
-//            throws Exception
+//    public static void main(
+//        String[] args)
+//        throws Exception
 //    {
 //        AESCBCPacketCipherTest test = new AESCBCPacketCipherTest();
 //        test.performTest();
 //    }
-//
+
     public boolean isNativeVariant()
     {
         String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
@@ -37,39 +37,18 @@ public class AESCBCPacketCipherTest
         }
         return true;
     }
-//
-//
-//    public void performTest()
-//            throws Exception
-//    {
-//        CryptoServicesRegistrar.setNativeEnabled(true);
-//       // runTests();
-//        CryptoServicesRegistrar.setNativeEnabled(false);
-//       // runTests();
-//        System.out.println("AESCBCPacketCipherTest pass");
-//    }
 
-
-//    @Test
-//    public void test() throws Exception
-//    {
-//        // Entry point for junit
-//        performTest();
-//    }
-
-
-//    private void runTests()
-//            throws Exception
-//    {
-//        testSpread();
-//        testExceptions();
-//        testAgreement();
-//        testCBCJavaAgreement_128();
-//        testCBCJavaAgreement_192();
-//        testCBCJavaAgreement_256();
-//
-//    }
-
+    public void performTest()
+            throws Exception
+    {
+        testAgreementForMultipleMessages();
+        testIntoSameArray();
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        testExceptions();
+        CryptoServicesRegistrar.setNativeEnabled(false);
+        testExceptions();
+        System.out.println("AESCBCPacketCipherTest pass");
+    }
 
     public void testAgreementForMultipleMessages() throws Exception
     {
@@ -265,18 +244,6 @@ public class AESCBCPacketCipherTest
     public void testExceptions()
     {
         AESCBCModePacketCipher cbc = AESPacketCipherEngine.createCBCPacketCipher();
-
-        try
-        {
-            cbc.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), 16);
-            fail("Failed to detect incorrect parameter type");
-        }
-        catch (IllegalArgumentException e)
-        {
-            // expected
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INVALID_PARAM_TYPE));
-        }
-
 
         try
         {

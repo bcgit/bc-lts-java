@@ -2,6 +2,7 @@ package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.AESPacketCipherEngine;
+import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.modes.AESCFBModePacketCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -20,6 +21,7 @@ public class AESNativeCFBPacketCipher
     @Override
     public int getOutputSize(boolean encryption, CipherParameters parameters, int len)
     {
+        checkCFBParameter(parameters);
         return getOutputSize(len);
     }
 
@@ -38,13 +40,13 @@ public class AESNativeCFBPacketCipher
             }
             else
             {
-                throw PacketCipherException.from(new IllegalArgumentException("CFB cipher unitialized"));
+                throw new IllegalArgumentException(ExceptionMessage.CFB_CIPHER_UNITIALIZED);
             }
             iv = ivParam.getIV().clone();
         }
         else
         {
-            throw PacketCipherException.from(new IllegalArgumentException("invalid parameters passed to CFB"));
+            throw new IllegalArgumentException(ExceptionMessage.CFB_CIPHER_UNITIALIZED);
         }
         int result;
         try

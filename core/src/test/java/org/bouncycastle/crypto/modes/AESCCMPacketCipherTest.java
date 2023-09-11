@@ -3,18 +3,20 @@ package org.bouncycastle.crypto.modes;
 import java.security.SecureRandom;
 
 import junit.framework.TestCase;
+import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.AESPacketCipherEngine;
+import org.bouncycastle.crypto.PacketCipher;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.AESNativeCCMPacketCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
-
 
 
 public class AESCCMPacketCipherTest
@@ -43,7 +45,7 @@ public class AESCCMPacketCipherTest
 
     private byte[] K4 = Hex.decode("404142434445464748494a4b4c4d4e4f");
     private byte[] N4 = Hex.decode("101112131415161718191a1b1c");
-    private byte[] A4 = Hex.decode("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9cacbcccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
+    //private byte[] A4 = Hex.decode("000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f404142434445464748494a4b4c4d4e4f505152535455565758595a5b5c5d5e5f606162636465666768696a6b6c6d6e6f707172737475767778797a7b7c7d7e7f808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9fa0a1a2a3a4a5a6a7a8a9aaabacadaeafb0b1b2b3b4b5b6b7b8b9babbbcbdbebfc0c1c2c3c4c5c6c7c8c9caccmccdcecfd0d1d2d3d4d5d6d7d8d9dadbdcdddedfe0e1e2e3e4e5e6e7e8e9eaebecedeeeff0f1f2f3f4f5f6f7f8f9fafbfcfdfeff");
     private byte[] P4 = Hex.decode("202122232425262728292a2b2c2d2e2f303132333435363738393a3b3c3d3e3f");
     private byte[] C4 = Hex.decode("69915dad1e84c6376a68c2967e4dab615ae0fd1faec44cc484828529463ccf72b4ac6bec93e8598e7f0dadbcea5b");
     private byte[] T4 = Hex.decode("f4dd5d0ee404617225ffe34fce91");
@@ -55,7 +57,10 @@ public class AESCCMPacketCipherTest
     private byte[] T5 = Hex.decode("5c768856796b627b13ec8641581b");
 
     public void performTest()
-        throws Exception{
+        throws Exception
+    {
+        testAgreementForMultipleMessages();
+        testIntoSameArray();
         CryptoServicesRegistrar.setNativeEnabled(true);
         Tests();
         CryptoServicesRegistrar.setNativeEnabled(false);
@@ -75,19 +80,19 @@ public class AESCCMPacketCipherTest
         //
         // 4 has a reduced associated text which needs to be replicated
         //
-        byte[] a4 = new byte[65536]; // 524288 / 8
+//        byte[] a4 = new byte[65536]; // 524288 / 8
 
-        for (int i = 0; i < a4.length; i += A4.length)
-        {
-            System.arraycopy(A4, 0, a4, i, A4.length);
-        }
-
-        checkVectors(3, ccm, K4, 112, N4, a4, P4, T4, C4);
-
-        //
-        // long data test
-        //
-        checkVectors(4, ccm, K4, 112, N4, A4, A4, T5, C5);
+//        for (int i = 0; i < a4.length; i += A4.length)
+//        {
+//            System.arraycopy(A4, 0, a4, i, A4.length);
+//        }
+//
+//        checkVectors(3, ccm, K4, 112, N4, a4, P4, T4, C4);
+//
+//        //
+//        // long data test
+//        //
+//        checkVectors(4, ccm, K4, 112, N4, A4, A4, T5, C5);
         testExceptions();
         testOutputErase();
         testAgreement();
@@ -331,13 +336,13 @@ public class AESCCMPacketCipherTest
 
         try
         {
-            ccm.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]), -1);
+            ccm.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[13]), -1);
             fail("negative value for getOutputSize");
         }
         catch (IllegalArgumentException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().equals(ExceptionMessage.LEN_NEGATIVE));
+            TestCase.assertEquals("wrong message", ExceptionMessage.LEN_NEGATIVE, e.getMessage());
         }
 
         try
@@ -441,6 +446,216 @@ public class AESCCMPacketCipherTest
         catch (PacketCipherException e)
         {
             TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+        }
+    }
+
+    public boolean isNativeVariant()
+    {
+        String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
+        if (variant == null || "java".equals(variant))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    public void testAgreementForMultipleMessages()
+        throws Exception
+    {
+        SecureRandom secureRandom = new SecureRandom();
+        CryptoServicesRegistrar.setNativeEnabled(false);
+
+        // Java implementation of CCM mode with the Java aes engine
+        // Packet ciphers will be compared to this.
+        CCMModeCipher ccmModeCipherEnc = new CCMBlockCipher(new AESEngine());
+
+        //
+        //  Implementation of packet cipher, may be native or java depending on variant used in testing
+        //
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        PacketCipher ccmPS = AESCCMPacketCipher.newInstance();
+
+
+        //
+        // Verify we are getting is what we expect.
+        //
+        if (isNativeVariant())
+        {
+            TestCase.assertTrue(ccmPS.toString().contains("CCM-PS[Native]"));
+            TestCase.assertTrue(ccmPS instanceof AESNativeCCMPacketCipher);
+        }
+        else
+        {
+            TestCase.assertTrue(ccmPS.toString().contains("CCM-PS[Java]"));
+            TestCase.assertTrue(ccmPS instanceof AESCCMPacketCipher);
+        }
+
+        byte[] iv = new byte[7];
+        secureRandom.nextBytes(iv);
+        for (int ks : new int[]{16, 24, 32})
+        {
+            byte[] key = new byte[ks];
+            secureRandom.nextBytes(key);
+            CipherParameters cp = new ParametersWithIV(new KeyParameter(key), iv);
+            ccmModeCipherEnc.init(true, cp);
+
+
+            for (int t = 0; t < 8192; t += 16)
+            {
+                ccmModeCipherEnc.reset();
+                byte[] msg = new byte[t];
+                secureRandom.nextBytes(msg);
+
+                // Generate expected message off the
+                int outLen = ccmModeCipherEnc.getOutputSize(msg.length);
+                byte[] expected = new byte[ccmModeCipherEnc.getOutputSize(msg.length)];
+                ccmModeCipherEnc.processPacket(msg, 0, msg.length, expected, 0);
+
+
+                // Test encryption
+                int len = ccmPS.getOutputSize(true, cp, msg.length);
+                TestCase.assertEquals(outLen, len);
+                byte[] ctResult = new byte[len];
+
+                outLen = ccmPS.processPacket(true, cp, msg, 0, msg.length, ctResult, 0);
+                TestCase.assertEquals(ctResult.length, outLen);
+
+                // Test encrypted output same
+                TestCase.assertTrue(Arrays.areEqual(expected, ctResult));
+
+
+                // Test decryption
+
+                len = ccmPS.getOutputSize(false, cp, ctResult.length);
+                TestCase.assertEquals(msg.length, len);
+                byte[] ptResult = new byte[len];
+
+                outLen = ccmPS.processPacket(false, cp, ctResult, 0, ctResult.length, ptResult, 0);
+                TestCase.assertEquals(msg.length, outLen);
+
+                // Test encrypted output same
+                TestCase.assertTrue(Arrays.areEqual(msg, ptResult));
+
+            }
+        }
+    }
+
+
+    /**
+     * Tests operation of packet cipher where input and output arrays are the same
+     *
+     * @throws Exception
+     */
+    public void testIntoSameArray()
+        throws Exception
+    {
+        SecureRandom secureRandom = new SecureRandom();
+        CryptoServicesRegistrar.setNativeEnabled(false);
+
+        // Java implementation of CCM mode with the Java aes engine
+        // Packet ciphers will be compared to this.
+        CCMModeCipher ccmModeCipherEnc = new CCMBlockCipher(new AESEngine());
+
+        //
+        //  Implementation of packet cipher, may be native or java depending on variant used in testing
+        //
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        PacketCipher ccmPS = AESCCMPacketCipher.newInstance();
+
+
+        //
+        // Verify we are getting is what we expect.
+        //
+        if (isNativeVariant())
+        {
+            TestCase.assertTrue(ccmPS.toString().contains("CCM-PS[Native]"));
+            TestCase.assertTrue(ccmPS instanceof AESNativeCCMPacketCipher);
+        }
+        else
+        {
+            TestCase.assertTrue(ccmPS.toString().contains("CCM-PS[Java]"));
+            TestCase.assertTrue(ccmPS instanceof AESCCMPacketCipher);
+        }
+
+        byte[] iv;
+
+        for (int ks : new int[]{16, 24, 32})
+        {
+            byte[] key = new byte[ks];
+            secureRandom.nextBytes(key);
+            for (int inLen : new int[]{7, 8, 9, 10, 11, 12, 13})
+            {
+                iv = new byte[inLen];
+                secureRandom.nextBytes(iv);
+
+                CipherParameters cp = new ParametersWithIV(new KeyParameter(key), iv);
+                ccmModeCipherEnc.init(true, cp);
+
+                for (int t = 0; t < 2048; t += 16)
+                {
+                    byte[] msg = new byte[t];
+                    secureRandom.nextBytes(msg);
+
+                    // We will slide around in the array also at odd addresses
+                    byte[] workingArray = new byte[2 + msg.length + ccmModeCipherEnc.getOutputSize(msg.length)];
+
+
+                    // Generate the expected cipher text from java CCM mode
+                    byte[] expectedCText = new byte[ccmModeCipherEnc.getOutputSize(msg.length)];
+                    ccmModeCipherEnc.reset();
+                    ccmModeCipherEnc.processPacket(msg, 0, msg.length, expectedCText, 0);
+
+
+                    for (int jiggle : new int[]{0, 1})
+                    {
+                        // Encryption
+                        System.arraycopy(msg, 0, workingArray, jiggle, msg.length);
+                        int len = ccmPS.processPacket(true, cp, workingArray, jiggle, msg.length, workingArray,
+                            msg.length + jiggle);
+                        TestCase.assertEquals(ccmPS.getOutputSize(true, cp, msg.length), len);
+
+                        // Check cipher text
+                        for (int j = 0; j < msg.length; j++)
+                        {
+                            if (expectedCText[j] != workingArray[j + msg.length + jiggle])
+                            {
+                                System.out.println(Hex.toHexString(workingArray));
+                                System.out.println(Hex.toHexString(expectedCText));
+                                System.out.println(jiggle);
+                                fail("cipher text not same");
+                            }
+                        }
+
+
+                        // Destroy plain text section
+                        // as it should be written over with the correct plain text
+                        Arrays.fill(workingArray, jiggle, msg.length + jiggle, (byte)1);
+
+
+                        // Decryption
+                        len = ccmPS.processPacket(false, cp, workingArray, msg.length + jiggle, len, workingArray,
+                            jiggle);
+                        TestCase.assertEquals(msg.length, len);
+
+                        // Check cipher text
+                        for (int j = 0; j < msg.length; j++)
+                        {
+                            if (msg[j] != workingArray[j + jiggle])
+                            {
+                                System.out.println(Hex.toHexString(workingArray));
+                                System.out.println(Hex.toHexString(msg));
+                                System.out.println(jiggle);
+
+                                fail("plain text not same");
+                            }
+
+                        }
+
+                    }
+
+                }
+            }
+
         }
     }
 

@@ -18,10 +18,7 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
     __m128i partialBlock = _mm_setzero_si128();
     uint64_t ctrMask = 0xFFFFFFFFFFFFFFFF;
     bool ctrAtEnd = false;
-
     int num_rounds = generate_key(true, key, roundKeys, keysize);
-    __m128i chainblock = _mm_setzero_si128();
-
     memset(buf, 0, BLOCK_SIZE);
 
     buf_ptr = 0;
@@ -46,7 +43,7 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
 
     if (encryption) {
         *outputLen = 0;
-        ccm_pc_calculateMac(p_in, inLen, initAD, initADLen, mac_size, nonce, nonceLen, buf, macBlock, &chainblock,
+        ccm_pc_calculateMac(p_in, inLen, initAD, initADLen, mac_size, nonce, nonceLen, buf, macBlock,
                             roundKeys, num_rounds, &buf_ptr);
         ctr_pc_process_bytes(macBlock, BLOCK_SIZE, macBlock, outputLen, &buf_pos, &ctr, initialCTR, ctrMask,
                              &ctrAtEnd, &IV_le, roundKeys, num_rounds, &partialBlock);
@@ -69,7 +66,7 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
                              &IV_le, roundKeys, num_rounds, &partialBlock);
         ctr_pc_process_bytes(p_in, *outputLen, p_out, &written, &buf_pos, &ctr, initialCTR, ctrMask, &ctrAtEnd,
                              &IV_le, roundKeys, num_rounds, &partialBlock);
-        ccm_pc_calculateMac(p_out, *outputLen, initAD, initADLen, mac_size, nonce, nonceLen, buf, macBlock, &chainblock,
+        ccm_pc_calculateMac(p_out, *outputLen, initAD, initADLen, mac_size, nonce, nonceLen, buf, macBlock,
                             roundKeys, num_rounds, &buf_ptr);
 
         uint8_t nonEqual = 0;
@@ -88,8 +85,9 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
 
 
 void ccm_pc_calculateMac(uint8_t *input, size_t len, uint8_t *initAD, size_t initADLen, size_t mac_size, uint8_t *nonce,
-                         size_t nonceLen, uint8_t *buf, uint8_t *macBlock, __m128i *chainblock, __m128i *roundKeys,
+                         size_t nonceLen, uint8_t *buf, uint8_t *macBlock, __m128i *roundKeys,
                          int num_rounds, size_t *buf_ptr) {
+    __m128i chainblock = _mm_setzero_si128();
     if (initADLen) {
         buf[0] |= 0x40;
     }
@@ -101,7 +99,7 @@ void ccm_pc_calculateMac(uint8_t *input, size_t len, uint8_t *initAD, size_t ini
         buf[BLOCK_SIZE - count++] = (uint8_t) (q & 0xFF);
         q >>= 8;
     }
-    cbc_pc_encrypt(buf, 1, macBlock, chainblock, roundKeys, num_rounds);
+    cbc_pc_encrypt(buf, 1, macBlock, &chainblock, roundKeys, num_rounds);
     if (initADLen) {
         if (initADLen < TEXT_LENGTH_UPPER_BOUND) {
             buf[0] = (uint8_t) (initADLen >> 8);
@@ -117,16 +115,16 @@ void ccm_pc_calculateMac(uint8_t *input, size_t len, uint8_t *initAD, size_t ini
             *buf_ptr = 6;
         }
         if (initAD != NULL) {
-            cbc_pc_mac_update(initAD, initADLen, buf, buf_ptr, macBlock, chainblock, roundKeys, num_rounds);
+            cbc_pc_mac_update(initAD, initADLen, buf, buf_ptr, macBlock, &chainblock, roundKeys, num_rounds);
         }
         memset(buf + *buf_ptr, 0, (BLOCK_SIZE - *buf_ptr));
-        cbc_pc_encrypt(buf, 1, macBlock, chainblock, roundKeys, num_rounds);
+        cbc_pc_encrypt(buf, 1, macBlock, &chainblock, roundKeys, num_rounds);
         *buf_ptr = 0;
     }
-    cbc_pc_mac_update(input, len, buf, buf_ptr, macBlock, chainblock, roundKeys, num_rounds);
+    cbc_pc_mac_update(input, len, buf, buf_ptr, macBlock, &chainblock, roundKeys, num_rounds);
     if (*buf_ptr) {
         memset(buf + *buf_ptr, 0, BLOCK_SIZE - *buf_ptr);
-        cbc_pc_encrypt(buf, 1, macBlock, chainblock, roundKeys, num_rounds);
+        cbc_pc_encrypt(buf, 1, macBlock, &chainblock, roundKeys, num_rounds);
     }
     memset(macBlock + mac_size, 0, BLOCK_SIZE - mac_size);
 }

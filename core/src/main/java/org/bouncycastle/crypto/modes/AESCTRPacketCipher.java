@@ -14,8 +14,8 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 
 public class AESCTRPacketCipher
-        extends AESPacketCipherEngine
-        implements AESCTRModePacketCipher
+    extends AESPacketCipherEngine
+    implements AESCTRModePacketCipher
 {
     public static AESCTRModePacketCipher newInstance()
     {
@@ -38,13 +38,14 @@ public class AESCTRPacketCipher
         {
             throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
         }
+        checkParameters(parameters);
         return len;
     }
 
     @Override
     public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
                              byte[] output, int outOff)
-            throws PacketCipherException
+        throws PacketCipherException
     {
         processPacketExceptionCheck(input, inOff, len, output, outOff);
         if (output.length - outOff < len)
@@ -58,35 +59,41 @@ public class AESCTRPacketCipher
         int ROUNDS;
         int[][] workingKey;
         byte[] s = Arrays.clone(S);
-        if (parameters instanceof ParametersWithIV)
+        try
         {
-            ParametersWithIV ivParam = (ParametersWithIV) parameters;
-            IV = Arrays.clone(ivParam.getIV());
-            if (BLOCK_SIZE < IV.length)
+            if (parameters instanceof ParametersWithIV)
             {
-                throw new IllegalArgumentException("CTR/SIC mode requires IV no greater than: " + BLOCK_SIZE + " " +
-                        "bytes.");
+                ParametersWithIV ivParam = (ParametersWithIV)parameters;
+                IV = Arrays.clone(ivParam.getIV());
+                if (BLOCK_SIZE < IV.length)
+                {
+                    throw new IllegalArgumentException(ExceptionMessage.CTR16_IV_TOO_LONG);
+                }
+                //int maxCounterSize = Math.min(8, BLOCK_SIZE >> 1);
+                if (BLOCK_SIZE - IV.length > 8) // 8 is the maxCounterSize
+                {
+                    throw new IllegalArgumentException(ExceptionMessage.CTR16_IV_TOO_SHORT);
+                }
+                System.arraycopy(IV, 0, counter, 0, IV.length);
+                KeyParameter keyParameter = (KeyParameter)ivParam.getParameters();
+                if (keyParameter == null)
+                {
+                    throw PacketCipherException.from(new IllegalStateException(ExceptionMessage.CTR_CIPHER_UNITIALIZED));
+                }
+                int keyLen = keyParameter.getKey().length;
+                checkKeyLength(keyLen);
+                int KC = keyLen >>> 2;
+                ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
+                workingKey = generateWorkingKey(keyParameter.getKey(), KC, ROUNDS);
             }
-            int maxCounterSize = Math.min(8, BLOCK_SIZE >> 1);
-            if (BLOCK_SIZE - IV.length > maxCounterSize)
+            else
             {
-                throw new IllegalArgumentException("CTR/SIC mode requires IV of at least: " + (BLOCK_SIZE - maxCounterSize) + " bytes.");
+                throw new IllegalArgumentException(ExceptionMessage.CTR_INVALID_PARAMETER);
             }
-            System.arraycopy(IV, 0, counter, 0, IV.length);
-            KeyParameter keyParameter = (KeyParameter) ivParam.getParameters();
-            if (keyParameter == null)
-            {
-                throw PacketCipherException.from(new IllegalStateException("CTR/SIC cipher unitialized."));
-            }
-            int keyLen = keyParameter.getKey().length;
-            checkKeyLength(keyLen);
-            int KC = keyLen >>> 2;
-            ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
-            workingKey = generateWorkingKey(keyParameter.getKey(), KC, ROUNDS);
         }
-        else
+        catch (Exception e)
         {
-            throw new IllegalArgumentException("CTR/SIC mode requires ParametersWithIV");
+            throw PacketCipherException.from(e);
         }
         littleEndianToInt4(counter, 0, counterIn);
         int blockCount = len >>> 4;
@@ -102,7 +109,7 @@ public class AESCTRPacketCipher
         int4ToLittleEndian(counterOut, counter, 0);
         for (int i = 0; i < len + inOff - inIndex; ++i)
         {
-            output[outIndex + i] = (byte) (counter[i] ^ input[inIndex + i]);
+            output[outIndex + i] = (byte)(counter[i] ^ input[inIndex + i]);
         }
         return len;
     }

@@ -21,8 +21,8 @@ import javax.security.auth.DestroyFailedException;
 import javax.security.auth.Destroyable;
 
 public class AESGCMPacketCipher
-        extends AESPacketCipherEngine
-        implements AESGCMModePacketCipher, Destroyable
+    extends AESPacketCipherEngine
+    implements AESGCMModePacketCipher, Destroyable
 {
     private boolean destroyed = false;
     private byte[] lastKey;
@@ -50,26 +50,7 @@ public class AESGCMPacketCipher
         {
             throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
         }
-        int macSize;
-        if (parameters instanceof AEADParameters)
-        {
-            AEADParameters param = (AEADParameters) parameters;
-            int macSizeBits = param.getMacSize();
-            if (macSizeBits < 32 || macSizeBits > 128 || (macSizeBits & 7) != 0)
-            {
-                throw new IllegalArgumentException("Invalid value for MAC size: " + macSizeBits);
-            }
-            macSize = macSizeBits >> 3;
-
-        }
-        else if (parameters instanceof ParametersWithIV)
-        {
-            macSize = 16;
-        }
-        else
-        {
-            throw new IllegalArgumentException("invalid parameters passed to GCM");
-        }
+        int macSize = checkParameters(parameters);
         if (forEncryption)
         {
             return len + macSize;
@@ -85,7 +66,7 @@ public class AESGCMPacketCipher
     @Override
     public int processPacket(boolean forEncryption, CipherParameters params, byte[] input, int inOff, int len,
                              byte[] output, int outOff)
-            throws PacketCipherException
+        throws PacketCipherException
     {
         processPacketExceptionCheck(input, inOff, len, output, outOff);
 
@@ -119,31 +100,29 @@ public class AESGCMPacketCipher
             byte[] initialAssociatedText;
             if (params instanceof AEADParameters)
             {
-                AEADParameters param = (AEADParameters) params;
+                AEADParameters param = (AEADParameters)params;
                 newNonce = param.getNonce();
                 initialAssociatedText = param.getAssociatedText();
-
                 int macSizeBits = param.getMacSize();
                 if (macSizeBits < 32 || macSizeBits > 128 || (macSizeBits & 7) != 0)
                 {
-                    throw new IllegalArgumentException("Invalid value for MAC size: " + macSizeBits);
+                    throw new IllegalArgumentException(ExceptionMessage.GCM_INVALID_MAC_SIZE + macSizeBits);
                 }
-
                 macSize = macSizeBits >> 3;
                 keyParam = param.getKey();
             }
             else if (params instanceof ParametersWithIV)
             {
-                ParametersWithIV param = (ParametersWithIV) params;
+                ParametersWithIV param = (ParametersWithIV)params;
 
                 newNonce = Arrays.clone(param.getIV());
                 initialAssociatedText = null;
                 macSize = 16;
-                keyParam = (KeyParameter) param.getParameters();
+                keyParam = (KeyParameter)param.getParameters();
             }
             else
             {
-                throw new IllegalArgumentException("invalid parameters passed to GCM");
+                throw new IllegalArgumentException(ExceptionMessage.GCM_INVALID_PARAMETER);
             }
             AEADLengthCheck(forEncryption, len, output, outOff, macSize);
             int bufLength = forEncryption ? BLOCK_SIZE : (BLOCK_SIZE + macSize);
@@ -151,7 +130,7 @@ public class AESGCMPacketCipher
 
             if (newNonce == null || newNonce.length < 12)
             {
-                throw new IllegalArgumentException("IV must be at least 12 byte");
+                throw new IllegalArgumentException(ExceptionMessage.GCM_IV_TOO_SHORT);
             }
 
             nonce = newNonce;
@@ -197,7 +176,7 @@ public class AESGCMPacketCipher
                     gHASHPartial(J0, nonce, pos, num, T);
                 }
                 byte[] X = new byte[BLOCK_SIZE];
-                Pack.longToBigEndian((long) nonce.length << 3, X, 8);
+                Pack.longToBigEndian((long)nonce.length << 3, X, 8);
                 gHASHBlock(J0, X, T);
             }
             S_current = new byte[BLOCK_SIZE];
@@ -291,7 +270,7 @@ public class AESGCMPacketCipher
                             }
                             ctrBlock = new byte[BLOCK_SIZE];
                             blocksRemaining = getNextCTRBlock(ctrBlock, blocksRemaining, counter, workingKey, s,
-                                    ROUNDS);
+                                ROUNDS);
                             gHASHBlock(S_current, input, inOff, T);
                             GCMUtil.xor(ctrBlock, 0, input, inOff, output, outOff + written);
                             totalLength += BLOCK_SIZE;
@@ -427,22 +406,22 @@ public class AESGCMPacketCipher
         }
         if (nonce != null)
         {
-            Arrays.fill(nonce, (byte) 0);
+            Arrays.fill(nonce, (byte)0);
         }
         if (S_current != null)
         {
-            Arrays.fill(S_current, (byte) 0);
-            Arrays.fill(S_at, (byte) 0);
-            Arrays.fill(S_atPre, (byte) 0);
-            Arrays.fill(atBlock, (byte) 0);
+            Arrays.fill(S_current, (byte)0);
+            Arrays.fill(S_at, (byte)0);
+            Arrays.fill(S_atPre, (byte)0);
+            Arrays.fill(atBlock, (byte)0);
         }
         if (bufBlock != null)
         {
-            Arrays.fill(bufBlock, (byte) 0);
+            Arrays.fill(bufBlock, (byte)0);
         }
         if (macBlock != null)
         {
-            Arrays.fill(macBlock, (byte) 0);
+            Arrays.fill(macBlock, (byte)0);
         }
 
         AEADExceptionHandler(output, outOff, exceptionThrown, written);
@@ -508,16 +487,16 @@ public class AESGCMPacketCipher
 
         int c = 1;
         c += counter[15] & 0xFF;
-        counter[15] = (byte) c;
+        counter[15] = (byte)c;
         c >>>= 8;
         c += counter[14] & 0xFF;
-        counter[14] = (byte) c;
+        counter[14] = (byte)c;
         c >>>= 8;
         c += counter[13] & 0xFF;
-        counter[13] = (byte) c;
+        counter[13] = (byte)c;
         c >>>= 8;
         c += counter[12] & 0xFF;
-        counter[12] = (byte) c;
+        counter[12] = (byte)c;
 
         encryptBlock(counter, block, workingkey, s, ROUNDS);
         return blocksRemaining;
@@ -530,7 +509,8 @@ public class AESGCMPacketCipher
     }
 
     @Override
-    public void destroy() throws DestroyFailedException
+    public void destroy()
+        throws DestroyFailedException
     {
         Arrays.clear(lastKey);
         Arrays.clear(lastNonce);

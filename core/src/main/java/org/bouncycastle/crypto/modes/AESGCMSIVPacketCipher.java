@@ -37,10 +37,8 @@ public class AESGCMSIVPacketCipher
 
     }
 
-    /**
-     * The nonce length.
-     */
-    private static final int NONCELEN = 12;
+
+
     /**
      * The halfBuffer length.
      */
@@ -74,6 +72,7 @@ public class AESGCMSIVPacketCipher
         {
             throw new DataLengthException(ExceptionMessage.OUTPUT_LENGTH);
         }
+        checkParameters(parameters);
         return len - BLOCK_SIZE;
     }
 
@@ -112,12 +111,12 @@ public class AESGCMSIVPacketCipher
         }
         else
         {
-            throw PacketCipherException.from(new IllegalArgumentException("invalid parameters passed to GCM-SIV"));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.GCM_SIV_INVALID_PARAMETER));
         }
         /* Check nonceSize */
         if (myNonce == null || myNonce.length != NONCELEN)
         {
-            throw PacketCipherException.from(new IllegalArgumentException("Invalid nonce"));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.GCM_SIV_IV_SIZE));
         }
 
         /* Check keysize */
@@ -128,7 +127,6 @@ public class AESGCMSIVPacketCipher
         else
         {
             int keyLen = myKey.getKey().length;
-            checkKeyLength(keyLen);
             KC = keyLen >>> 2;
             ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
             workingKey = generateWorkingKey(myKey.getKey(), KC, ROUNDS);

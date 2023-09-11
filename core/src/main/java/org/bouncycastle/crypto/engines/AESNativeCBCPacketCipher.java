@@ -1,19 +1,18 @@
 package org.bouncycastle.crypto.engines;
 
+import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.PacketCipher;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.modes.AESCBCModePacketCipher;
-import org.bouncycastle.crypto.modes.AESCCMModePacketCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
-import org.bouncycastle.util.Arrays;
 
 public class AESNativeCBCPacketCipher
+    extends AESPacketCipherEngine
     implements PacketCipher, AESCBCModePacketCipher
 {
-
 
     public AESNativeCBCPacketCipher()
     {
@@ -22,10 +21,7 @@ public class AESNativeCBCPacketCipher
     @Override
     public int getOutputSize(boolean encryption, CipherParameters parameters, int len)
     {
-        if (!(parameters instanceof ParametersWithIV))
-        {
-            throw new IllegalArgumentException(ExceptionMessage.INVALID_PARAM_TYPE);
-        }
+        checkParameters(parameters);
         return getOutputSize(len);
     }
 
@@ -35,25 +31,33 @@ public class AESNativeCBCPacketCipher
     {
         byte[] iv;
         byte[] key;
-        if (parameters instanceof ParametersWithIV)
+        try
         {
-            ParametersWithIV ivParam = (ParametersWithIV)parameters;
-            iv = ivParam.getIV().clone();
-            KeyParameter params = (KeyParameter)ivParam.getParameters();
-            // if null it's an IV changed only.
-            if (params != null)
+            if (parameters instanceof ParametersWithIV)
             {
-                key = params.getKey();
+                ParametersWithIV ivParam = (ParametersWithIV)parameters;
+                iv = ivParam.getIV().clone();
+                KeyParameter params = (KeyParameter)ivParam.getParameters();
+                // if null it's an IV changed only.
+                if (params != null)
+                {
+                    key = params.getKey();
+                }
+                else
+                {
+                    throw new IllegalArgumentException(ExceptionMessage.CBC_CIPHER_UNITIALIZED);
+                }
             }
             else
             {
-                throw PacketCipherException.from(new IllegalArgumentException("CBC cipher unitialized"));
+                throw new IllegalArgumentException(ExceptionMessage.INVALID_PARAM_TYPE);
             }
         }
-        else
+        catch (IllegalArgumentException e)
         {
-            throw PacketCipherException.from(new IllegalArgumentException("invalid parameters passed to CBC"));
+            throw PacketCipherException.from(e);
         }
+
         int outLen = output != null ? output.length : 0;
         int result;
         try

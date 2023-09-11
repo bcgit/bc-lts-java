@@ -63,6 +63,7 @@ ctr_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *iv
     size_t written = 0;
     ctr_pc_process_bytes(p_in, inLen, p_out, &written, &buf_pos, &ctr, initialCTR, ctrMask, &ctrAtEnd, &IV_le,
                          roundKeys, num_rounds, &partialBlock);
+    *outputLen = inLen;
     return NULL;
 }
 

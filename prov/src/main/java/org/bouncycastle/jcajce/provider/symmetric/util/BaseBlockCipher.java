@@ -1149,7 +1149,7 @@ public class BaseBlockCipher
             }
             else if (modeName.startsWith("CFB"))
             {
-                return; // TODO add back when fixed
+                //return; // TODO add back when fixed
 //                if (modeName.length() != 3)
 //                {
 //                    int wordSize = Integer.parseInt(modeName.substring(3));
@@ -1163,13 +1163,13 @@ public class BaseBlockCipher
 //                // will be 128
 //
 //
-//                packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCFBPacketCipher() :
-//                        packetCipherInstance;
+                packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCFBPacketCipher() :
+                        packetCipherInstance;
             }
             else if (modeName.equals("CTR"))
             {
-//                packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCTRPacketCipher() :
-//                        packetCipherInstance;
+                packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCTRPacketCipher() :
+                        packetCipherInstance;
             }
             else if (modeName.equals("CCM"))
             {

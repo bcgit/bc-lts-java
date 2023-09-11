@@ -82,21 +82,17 @@ static inline void encrypt(__m128i *d0, __m128i *d1, __m128i *roundKeys, const i
     }
 }
 
-size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *chainblock, __m128i *roundKeys,
+size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *tmpCb, __m128i *roundKeys,
                       int num_rounds) {
     unsigned char *destStart = dest;
-    __m128i d0;
-    __m128i tmpCb = *chainblock;
     while (blocks > 0) {
-        d0 = _mm_xor_si128(_mm_loadu_si128((__m128i *) src), tmpCb);
-        encrypt(&d0, &d0, roundKeys, num_rounds);
-        _mm_storeu_si128((__m128i *) dest, d0);
+        *tmpCb = _mm_xor_si128(_mm_loadu_si128((__m128i *) src), *tmpCb);
+        encrypt(tmpCb, tmpCb, roundKeys, num_rounds);
+        _mm_storeu_si128((__m128i *) dest, *tmpCb);
         blocks--;
         src += BLOCK_SIZE;
         dest += BLOCK_SIZE;
-        tmpCb = d0;
     }
-    *chainblock = tmpCb;
     return (size_t) (dest - destStart);
 }
 

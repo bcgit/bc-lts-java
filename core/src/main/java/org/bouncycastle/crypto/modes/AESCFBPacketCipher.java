@@ -34,6 +34,7 @@ public class AESCFBPacketCipher
     @Override
     public int getOutputSize(boolean encryption, CipherParameters parameters, int len)
     {
+        checkCFBParameter(parameters);
         if (len < 0)
         {
             throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
@@ -60,44 +61,51 @@ public class AESCFBPacketCipher
             throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID));
         }
         byte[] cfbV = new byte[BLOCK_SIZE];
-        byte[] iv;
+        byte[] iv, key;
         int[][] workingKey;
         byte[] s;
         int ROUNDS;
         int[] C = new int[4];
-        if (parameters instanceof ParametersWithIV)
+        try
         {
-            ParametersWithIV ivParam = (ParametersWithIV)parameters;
-            // if null it's an IV changed only.
-            if (ivParam.getParameters() != null)
+            if (parameters instanceof ParametersWithIV)
             {
-                byte[] key = ((KeyParameter)ivParam.getParameters()).getKey();
-                int keyLen = key.length;
-                checkKeyLength(keyLen);
-                int KC = keyLen >>> 2;
-                ROUNDS = KC + 6;
-                workingKey = generateWorkingKey(key, KC, ROUNDS);
-                s = Arrays.clone(S);
+                ParametersWithIV ivParam = (ParametersWithIV)parameters;
+                // if null it's an IV changed only.
+                if (ivParam.getParameters() != null)
+                {
+                    key = ((KeyParameter)ivParam.getParameters()).getKey();
+                }
+                else
+                {
+                    throw new IllegalArgumentException(ExceptionMessage.CFB_CIPHER_UNITIALIZED);
+                }
+                iv = ivParam.getIV().clone();
+                //reset
+                if (iv.length < BLOCK_SIZE)
+                {
+                    System.arraycopy(iv, 0, cfbV, cfbV.length - iv.length, iv.length);
+                }
+                else
+                {
+                    cfbV = iv;
+                }
+                littleEndianToInt4(cfbV, 0, C);
             }
             else
             {
-                throw PacketCipherException.from(new IllegalArgumentException("CFB cipher unitialized"));
+                throw new IllegalArgumentException(ExceptionMessage.CFB_CIPHER_UNITIALIZED);
             }
-            iv = Arrays.clone(ivParam.getIV());
-            //reset
-            if (iv.length < BLOCK_SIZE)
-            {
-                System.arraycopy(iv, 0, cfbV, cfbV.length - iv.length, iv.length);
-            }
-            else
-            {
-                cfbV = iv;
-            }
-            littleEndianToInt4(cfbV, 0, C);
+            int keyLen = key.length;
+            checkKeyLength(keyLen);
+            int KC = keyLen >>> 2;
+            ROUNDS = KC + 6;
+            workingKey = generateWorkingKey(key, KC, ROUNDS);
+            s = Arrays.clone(S);
         }
-        else
+        catch (Exception e)
         {
-            throw PacketCipherException.from(new IllegalArgumentException("invalid parameters passed to CFB"));
+            throw PacketCipherException.from(e);
         }
         int inStart = inOff;
         int outStart = outOff;

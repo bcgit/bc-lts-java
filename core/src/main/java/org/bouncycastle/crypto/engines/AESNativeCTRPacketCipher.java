@@ -19,6 +19,7 @@ public class AESNativeCTRPacketCipher
     @Override
     public int getOutputSize(boolean encryption, CipherParameters parameters, int len)
     {
+        checkParameters(parameters);
         return getOutputSize(len);
     }
 
@@ -35,13 +36,13 @@ public class AESNativeCTRPacketCipher
             KeyParameter keyParameter = (KeyParameter)ivParam.getParameters();
             if (keyParameter == null)
             {
-                throw PacketCipherException.from(new IllegalStateException("CTR/SIC cipher unitialized."));
+                throw PacketCipherException.from(new IllegalStateException(ExceptionMessage.CTR_CIPHER_UNITIALIZED));
             }
             key = keyParameter.getKey();
         }
         else
         {
-            throw new IllegalArgumentException("CTR/SIC mode requires ParametersWithIV");
+            throw new IllegalArgumentException(ExceptionMessage.CTR_INVALID_PARAMETER);
         }
         int result;
         try
