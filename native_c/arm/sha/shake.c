@@ -159,7 +159,7 @@ bool shake_restoreFullState(shake_ctx *ctx, const uint8_t *oldState) {
 
     switch (newState.bitLen) {
         case 128:
-        case 255:
+        case 256:
             break;
         default:
             return false;

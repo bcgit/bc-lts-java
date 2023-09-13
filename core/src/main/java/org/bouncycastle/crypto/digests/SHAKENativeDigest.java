@@ -4,6 +4,7 @@ import org.bouncycastle.crypto.*;
 import org.bouncycastle.util.Memoable;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
+import org.bouncycastle.util.encoders.Hex;
 
 /**
  * SHAKE implementation.
@@ -48,11 +49,8 @@ public class SHAKENativeDigest
 
     public SHAKENativeDigest(SHAKENativeDigest src)
     {
-
         this(CryptoServicePurpose.ANY);
-
         byte[] state = src.getEncodedState();
-
         restoreFullState(nativeRef.getReference(), state, 0);
     }
 
@@ -231,7 +229,7 @@ public class SHAKENativeDigest
 
         public DigestRefWrapper(long reference)
         {
-            super(reference, "SHA3");
+            super(reference, "SHAKE");
         }
 
         @Override

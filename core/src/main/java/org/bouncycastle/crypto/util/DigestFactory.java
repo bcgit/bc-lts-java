@@ -239,12 +239,12 @@ public final class DigestFactory
 
     public static Digest createSHAKE128()
     {
-        return new SHAKEDigest(128);
+        return SHAKEDigest.newInstance(128);
     }
 
     public static Digest createSHAKE256()
     {
-        return new SHAKEDigest(256);
+        return SHAKEDigest.newInstance(256);
     }
 
     public static Digest cloneDigest(Digest hashAlg)

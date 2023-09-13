@@ -1,5 +1,6 @@
 package org.bouncycastle.crypto.test;
 
+import org.bouncycastle.crypto.Xof;
 import org.bouncycastle.crypto.digests.CSHAKEDigest;
 import org.bouncycastle.crypto.digests.SHAKEDigest;
 import org.bouncycastle.util.Arrays;
@@ -191,7 +192,7 @@ public class CSHAKETest
 
     private void checkSHAKE(int bitSize, CSHAKEDigest cshake, byte[] msg)
     {
-        SHAKEDigest ref = new SHAKEDigest(bitSize);
+        Xof ref = SHAKEDigest.newInstance(bitSize);
 
         ref.update(msg, 0, msg.length);
         cshake.update(msg, 0, msg.length);

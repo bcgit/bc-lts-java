@@ -245,7 +245,7 @@ public abstract class Ed448
 
     private static Xof createXof()
     {
-        return new SHAKEDigest(256);
+        return SHAKEDigest.newInstance(256);
     }
 
     private static boolean decodePointVar(byte[] p, boolean negate, PointAffine r)

@@ -247,8 +247,7 @@ public class SignatureSpi
         public ecDSAShake128()
         {
             // RFC 8702 specifies deterministic DSA
-            super(new SHAKEDigest(128), new ECDSASigner(new HMacDSAKCalculator(new SHAKEDigest(128))), StandardDSAEncoding.INSTANCE);
-        }
+            super( SHAKEDigest.newInstance(128), new ECDSASigner(new HMacDSAKCalculator(SHAKEDigest.newInstance(128))), StandardDSAEncoding.INSTANCE);        }
     }
 
     static public class ecDSAShake256
@@ -257,7 +256,7 @@ public class SignatureSpi
         public ecDSAShake256()
         {
             // RFC 8702 specifies deterministic DSA
-            super(new SHAKEDigest(256), new ECDSASigner(new HMacDSAKCalculator(new SHAKEDigest(256))), StandardDSAEncoding.INSTANCE);
+            super(SHAKEDigest.newInstance(256), new ECDSASigner(new HMacDSAKCalculator(SHAKEDigest.newInstance(256))), StandardDSAEncoding.INSTANCE);
         }
     }
 

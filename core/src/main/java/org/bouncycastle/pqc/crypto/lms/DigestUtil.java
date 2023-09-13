@@ -67,15 +67,15 @@ class DigestUtil
         }
         if (oid.equals(NISTObjectIdentifiers.id_shake128))
         {
-            return new SHAKEDigest(128);
+            return SHAKEDigest.newInstance(128);
         }
         if (oid.equals(NISTObjectIdentifiers.id_shake256))
         {
-            return new SHAKEDigest(256);
+            return SHAKEDigest.newInstance(256);
         }
         if (oid.equals(NISTObjectIdentifiers.id_shake256_len))
         {
-            return new SHAKEDigest(256);
+            return SHAKEDigest.newInstance(256);
         }
 
         throw new IllegalArgumentException("unrecognized digest OID: " + oid);

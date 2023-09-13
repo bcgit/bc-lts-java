@@ -371,7 +371,7 @@ public class PSSTest
     {
         byte[] data = Hex.decode("010203040506070809101112131415");
 
-        PSSSigner eng = new PSSSigner(new RSAEngine(), SHA256Digest.newInstance(), new SHAKEDigest(128), Hex.decode("deadbeef"));
+        PSSSigner eng = new PSSSigner(new RSAEngine(), SHA256Digest.newInstance(), SHAKEDigest.newInstance(128), Hex.decode("deadbeef"));
 
         eng.init(true, new ParametersWithRandom(prv8, new FixedSecureRandom(data)));
 

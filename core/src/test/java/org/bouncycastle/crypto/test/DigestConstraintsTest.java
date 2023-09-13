@@ -268,7 +268,7 @@ public class DigestConstraintsTest
 
         try
         {
-            new SHAKEDigest(128);
+            SHAKEDigest.newInstance(128);
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -298,7 +298,7 @@ public class DigestConstraintsTest
 
         try
         {
-            new SHAKEDigest(128, CryptoServicePurpose.PRF);
+            SHAKEDigest.newInstance(128, CryptoServicePurpose.PRF);
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -307,7 +307,7 @@ public class DigestConstraintsTest
         }
 
         SHA3Digest.newInstance(512);
-        new SHAKEDigest(256);
+        SHAKEDigest.newInstance(256);
         new CSHAKEDigest(256, new byte[0], new byte[0]);
         new KMAC(256, new byte[0]);
 

@@ -64,11 +64,12 @@ public class SHAKENativeDigestTests
             return;
         }
 
-        SHAKENativeDigest nd = new SHAKENativeDigest(256) {
+        SHAKENativeDigest nd = new SHAKENativeDigest(256)
+        {
             @Override
             public int doFinal(byte[] output, int outOff)
             {
-                return doFinal(nativeRef.getReference(),output,outOff,output.length);
+                return doFinal(nativeRef.getReference(), output, outOff, output.length);
             }
         };
         nd.update((byte) 1);
@@ -121,51 +122,51 @@ public class SHAKENativeDigestTests
 
     }
 
-//    @Test
-//    public void testSHAKEFullStateEncoding()
-//            throws Exception
-//    {
-//        if (!TestUtil.hasNativeService("SHAKE"))
-//        {
-//            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
-//            {
-//                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
-//            }
-//            return;
-//        }
-//
-//
-//        byte[] msg = new byte[256];
-//        SecureRandom rand = new SecureRandom();
-//        rand.nextBytes(msg);
-//
-//
-//        for (int t = 0; t < 256; t++)
-//        {
-//
-//            SavableDigest dig = SHAKEDigest.newInstance();
-//            dig.update(msg, 0, t);
-//            byte[] state = dig.getEncodedState();
-//
-//            byte[] resAfterStateExtraction = new byte[dig.getDigestSize()];
-//            TestCase.assertEquals(32, dig.doFinal(resAfterStateExtraction, 0));
-//
-//            SavableDigest dig2 = SHAKEDigest.newInstance(state, CryptoServicePurpose.AGREEMENT);
-//            byte[] resStateRecreated = new byte[dig2.getDigestSize()];
-//            TestCase.assertEquals(32, dig2.doFinal(resStateRecreated, 0));
-//
-//
-//            SHAKEDigest javaDigest = new SHAKEDigest();
-//            javaDigest.update(msg, 0, t);
-//
-//            byte[] resJava = new byte[javaDigest.getDigestSize()];
-//            TestCase.assertEquals(32, javaDigest.doFinal(resJava, 0));
-//
-//
-//            TestCase.assertTrue("native post state extraction", Arrays.areEqual(resJava, resAfterStateExtraction));
-//            TestCase.assertTrue("native recreated from extracted state", Arrays.areEqual(resJava, resStateRecreated));
-//        }
-//    }
+    @Test
+    public void testSHAKEFullStateEncoding()
+            throws Exception
+    {
+        if (!TestUtil.hasNativeService(NativeServices.SHAKE))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("shake"))
+            {
+                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+
+        byte[] msg = new byte[256];
+        SecureRandom rand = new SecureRandom();
+        rand.nextBytes(msg);
+
+
+        for (int t = 0; t < 256; t++)
+        {
+
+            SavableDigestXof dig = SHAKEDigest.newInstance();
+            dig.update(msg, 0, t);
+            byte[] state = dig.getEncodedState();
+
+            byte[] resAfterStateExtraction = new byte[dig.getDigestSize()];
+            TestCase.assertEquals(32, dig.doFinal(resAfterStateExtraction, 0));
+
+            SavableDigestXof dig2 = SHAKEDigest.newInstance(state, CryptoServicePurpose.AGREEMENT);
+            byte[] resStateRecreated = new byte[dig2.getDigestSize()];
+            TestCase.assertEquals(32, dig2.doFinal(resStateRecreated, 0));
+
+
+            SHAKEDigest javaDigest = new SHAKEDigest();
+            javaDigest.update(msg, 0, t);
+
+            byte[] resJava = new byte[javaDigest.getDigestSize()];
+            TestCase.assertEquals(32, javaDigest.doFinal(resJava, 0));
+
+
+            TestCase.assertTrue("native post state extraction", Arrays.areEqual(resJava, resAfterStateExtraction));
+            TestCase.assertTrue("native recreated from extracted state", Arrays.areEqual(resJava, resStateRecreated));
+        }
+    }
 
 
     public void testSHAKEByteByByte()
@@ -229,7 +230,6 @@ public class SHAKENativeDigestTests
         boolean expectNative = CryptoServicesRegistrar.hasEnabledService(NativeServices.SHAKE);
 
 
-
         byte[] msg = new byte[256];
         SecureRandom rand = new SecureRandom();
         rand.nextBytes(msg);
@@ -237,44 +237,53 @@ public class SHAKENativeDigestTests
         Arrays.fill(msg, (byte) 1);
 
 
-        SavableDigestXof dig = SHAKEDigest.newInstance();
+        for (int len : new int[]{128, 256})
+        {
+            SavableDigestXof dig = SHAKEDigest.newInstance(len);
 
-        if (expectNative) {
-            TestCase.assertTrue(dig instanceof SHAKENativeDigest);
-        } else {
-            TestCase.assertTrue(dig instanceof SHAKEDigest);
+            if (expectNative)
+            {
+                TestCase.assertTrue(dig instanceof SHAKENativeDigest);
+            }
+            else
+            {
+                TestCase.assertTrue(dig instanceof SHAKEDigest);
+            }
+
+
+            dig.update(msg, 0, 12);
+            byte[] state = dig.getEncodedState();
+
+
+            SavableDigestXof dig2 = SHAKEDigest.newInstance(state, CryptoServicePurpose.AGREEMENT);
+
+            if (expectNative)
+            {
+                TestCase.assertTrue(dig2 instanceof SHAKENativeDigest);
+            }
+            else
+            {
+                TestCase.assertTrue(dig2 instanceof SHAKEDigest);
+            }
+
+            dig.update(msg, 12, msg.length - 12);
+            dig2.update(msg, 12, msg.length - 12);
+
+            SHAKEDigest javaDigest = new SHAKEDigest(len);
+            javaDigest.update(msg, 0, msg.length);
+
+            byte[] d1Result = new byte[dig.getDigestSize()];
+            byte[] d2Result = new byte[dig2.getDigestSize()];
+            byte[] javaResult = new byte[javaDigest.getDigestSize()];
+
+
+            TestCase.assertEquals((len == 128)?32:64, dig.doFinal(d1Result, 0));
+            TestCase.assertEquals((len == 128)?32:64, dig2.doFinal(d2Result, 0));
+            TestCase.assertEquals((len == 128)?32:64, javaDigest.doFinal(javaResult, 0));
+
+
+            TestCase.assertTrue(Arrays.areEqual(javaResult, d1Result) && Arrays.areEqual(javaResult, d2Result));
         }
-
-
-        dig.update(msg, 0, 12);
-        byte[] state = dig.getEncodedState();
-
-
-        SavableDigestXof dig2 = SHAKEDigest.newInstance(state, CryptoServicePurpose.AGREEMENT);
-
-        if (expectNative) {
-            TestCase.assertTrue(dig2 instanceof SHAKENativeDigest);
-        } else {
-            TestCase.assertTrue(dig2 instanceof SHAKEDigest);
-        }
-
-        dig.update(msg, 12, msg.length - 12);
-        dig2.update(msg, 12, msg.length - 12);
-
-        SHAKEDigest javaDigest = new SHAKEDigest();
-        javaDigest.update(msg, 0, msg.length);
-
-        byte[] d1Result = new byte[dig.getDigestSize()];
-        byte[] d2Result = new byte[dig2.getDigestSize()];
-        byte[] javaResult = new byte[javaDigest.getDigestSize()];
-
-        TestCase.assertEquals(32, dig.doFinal(d1Result, 0));
-        TestCase.assertEquals(32, dig2.doFinal(d2Result, 0));
-        TestCase.assertEquals(32, javaDigest.doFinal(javaResult, 0));
-
-
-        TestCase.assertTrue(Arrays.areEqual(javaResult, d1Result) && Arrays.areEqual(javaResult, d2Result));
-
     }
 
     public void testUpdateLimitEnforcement()
@@ -483,7 +492,7 @@ public class SHAKENativeDigestTests
             {
                 try
                 {
-                    doFinal(new byte[20], 0,-1);
+                    doFinal(new byte[20], 0, -1);
                     fail("accepted negative output len");
                 }
                 catch (Exception ex)
@@ -499,7 +508,7 @@ public class SHAKENativeDigestTests
             {
                 try
                 {
-                    doFinal(new byte[20], 0,21);
+                    doFinal(new byte[20], 0, 21);
                     fail("accepted specified len is past end of array .. 0 offset");
                 }
                 catch (Exception ex)
@@ -515,7 +524,7 @@ public class SHAKENativeDigestTests
             {
                 try
                 {
-                    doFinal(new byte[20], 1,20);
+                    doFinal(new byte[20], 1, 20);
                     fail("accepted specified len is past end of array .. offset");
                 }
                 catch (Exception ex)
@@ -800,7 +809,6 @@ public class SHAKENativeDigestTests
         TestCase.assertTrue(Arrays.areEqual(j1, r2));
 
     }
-
 
 
 }

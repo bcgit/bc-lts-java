@@ -112,28 +112,28 @@ public class BcDefaultDigestProvider
         {
             public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
             {
-                return new SHAKEDigest(128);
+                return SHAKEDigest.newInstance(128);
             }
         });
         table.put(NISTObjectIdentifiers.id_shake256, new BcDigestProvider()
         {
             public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
             {
-                return new SHAKEDigest(256);
+                return SHAKEDigest.newInstance(256);
             }
         });
         table.put(NISTObjectIdentifiers.id_shake128_len, new BcDigestProvider()
         {
             public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
             {
-                return new AdjustedXof(new SHAKEDigest(128), ASN1Integer.getInstance(digestAlgorithmIdentifier.getParameters()).intValueExact());
+                return new AdjustedXof(SHAKEDigest.newInstance(128), ASN1Integer.getInstance(digestAlgorithmIdentifier.getParameters()).intValueExact());
             }
         });
         table.put(NISTObjectIdentifiers.id_shake256_len, new BcDigestProvider()
         {
             public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
             {
-                return new AdjustedXof(new SHAKEDigest(256), ASN1Integer.getInstance(digestAlgorithmIdentifier.getParameters()).intValueExact());
+                return new AdjustedXof(SHAKEDigest.newInstance(256), ASN1Integer.getInstance(digestAlgorithmIdentifier.getParameters()).intValueExact());
             }
         });
         table.put(PKCSObjectIdentifiers.md5, new BcDigestProvider()

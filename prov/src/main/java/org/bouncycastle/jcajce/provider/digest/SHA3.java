@@ -47,14 +47,14 @@ public class SHA3
     {
         public DigestSHAKE(int type, int size)
         {
-            super(new SHAKEDigest(type));
+            super(SHAKEDigest.newInstance(type));
         }
 
         public Object clone()
                 throws CloneNotSupportedException
         {
             BCMessageDigest d = (BCMessageDigest) super.clone();
-            d.digest = new SHAKEDigest((SHAKEDigest) digest);
+            d.digest = SHAKEDigest.newInstance( digest);
 
             return d;
         }

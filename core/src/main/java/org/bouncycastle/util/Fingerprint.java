@@ -1,5 +1,7 @@
 package org.bouncycastle.util;
 
+import org.bouncycastle.crypto.Digest;
+import org.bouncycastle.crypto.Xof;
 import org.bouncycastle.crypto.digests.SHA512tDigest;
 import org.bouncycastle.crypto.digests.SHAKEDigest;
 
@@ -105,7 +107,7 @@ public class Fingerprint
             throw new IllegalArgumentException("bitLength must be a multiple of 8");
         }
 
-        SHAKEDigest digest = new SHAKEDigest(256);
+        Xof digest = SHAKEDigest.newInstance(256);
 
         digest.update(input, 0, input.length);
 
