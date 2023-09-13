@@ -259,6 +259,24 @@ class NativeFeatures
         }
     }
 
+    static boolean hasSHAKE()
+    {
+        try
+        {
+            return nativeSHAKE();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.log(Level.FINE, "native shake exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+    private static native boolean nativeSHAKE();
+
     private static native boolean nativeSHA3();
 
     private static native boolean nativeSHA256();

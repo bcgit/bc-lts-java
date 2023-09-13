@@ -57,10 +57,10 @@ public class RSADigestSignerTest
         checkDigest(rsaPublic, rsaPrivate, new SHA512tDigest(224), NISTObjectIdentifiers.id_sha512_224);
         checkDigest(rsaPublic, rsaPrivate, new SHA512tDigest(256), NISTObjectIdentifiers.id_sha512_256);
 
-        checkDigest(rsaPublic, rsaPrivate, new SHA3Digest(224), NISTObjectIdentifiers.id_sha3_224);
-        checkDigest(rsaPublic, rsaPrivate, new SHA3Digest(256), NISTObjectIdentifiers.id_sha3_256);
-        checkDigest(rsaPublic, rsaPrivate, new SHA3Digest(384), NISTObjectIdentifiers.id_sha3_384);
-        checkDigest(rsaPublic, rsaPrivate, new SHA3Digest(512), NISTObjectIdentifiers.id_sha3_512);
+        checkDigest(rsaPublic, rsaPrivate, SHA3Digest.newInstance(224), NISTObjectIdentifiers.id_sha3_224);
+        checkDigest(rsaPublic, rsaPrivate, SHA3Digest.newInstance(256), NISTObjectIdentifiers.id_sha3_256);
+        checkDigest(rsaPublic, rsaPrivate, SHA3Digest.newInstance(384), NISTObjectIdentifiers.id_sha3_384);
+        checkDigest(rsaPublic, rsaPrivate, SHA3Digest.newInstance(512), NISTObjectIdentifiers.id_sha3_512);
 
         // Null format test
         RSADigestSigner signer = new RSADigestSigner(new NullDigest());

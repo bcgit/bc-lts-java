@@ -9,7 +9,7 @@ import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 /**
- * SHA256 implementation.
+ * SHA384 implementation.
  */
 class SHA384NativeDigest
         implements SavableDigest
@@ -164,7 +164,7 @@ class SHA384NativeDigest
 
     protected CryptoServiceProperties cryptoServiceProperties()
     {
-        return Utils.getDefaultProperties(this, 256, purpose);
+        return Utils.getDefaultProperties(this, 384, purpose);
     }
 
 

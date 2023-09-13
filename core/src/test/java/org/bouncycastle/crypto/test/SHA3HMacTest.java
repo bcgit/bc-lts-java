@@ -269,10 +269,10 @@ public class SHA3HMacTest
     public void performTest()
         throws Exception
     {
-        doTest(new HMac(new SHA3Digest(224)), sha3_224);
-        doTest(new HMac(new SHA3Digest(256)), sha3_256);
-        doTest(new HMac(new SHA3Digest(384)), sha3_384);
-        doTest(new HMac(new SHA3Digest(512)), sha3_512);
+        doTest(new HMac(SHA3Digest.newInstance(224)), sha3_224);
+        doTest(new HMac(SHA3Digest.newInstance(256)), sha3_256);
+        doTest(new HMac(SHA3Digest.newInstance(384)), sha3_384);
+        doTest(new HMac(SHA3Digest.newInstance(512)), sha3_512);
     }
 
     public void doTest(HMac hmac, String[][] data)

@@ -173,7 +173,7 @@ public class DSATest
 
         byte[] M = Hex.decode("1BD4ED430B0F384B4E8D458EFF1A8A553286D7AC21CB2F6806172EF5F94A06AD");
 
-        DSADigestSigner dsa = new DSADigestSigner(new DSASigner(), new SHA3Digest(size));
+        DSADigestSigner dsa = new DSADigestSigner(new DSASigner(), SHA3Digest.newInstance(size));
 
         dsa.init(true, new ParametersWithRandom(priKey, k));
 

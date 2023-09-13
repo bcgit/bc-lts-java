@@ -175,6 +175,11 @@ class DefaultNativeServices
             {
                 set.add(SHA3);
             }
+
+            if (NativeFeatures.hasSHAKE())
+            {
+                set.add(SHAKE);
+            }
         }
 
         if (set.isEmpty())

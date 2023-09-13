@@ -31,6 +31,8 @@ public class AllTests
         suite.addTestSuite(SHA224JavaAgreementTest.class);
         suite.addTestSuite(SHA512JavaAgreementTest.class);
         suite.addTestSuite(SHA384JavaAgreementTest.class);
+        suite.addTestSuite(SHA3JavaAgreementTest.class);
+        suite.addTestSuite(SHAKEJavaAgreementTest.class);
 
         suite.addTestSuite(CBCNativeLimitTest.class);
         suite.addTestSuite(CFBNativeLimitTest.class);
@@ -42,6 +44,8 @@ public class AllTests
         suite.addTestSuite(SHA224NativeDigestTests.class);
         suite.addTestSuite(SHA512NativeDigestTests.class);
         suite.addTestSuite(SHA384NativeDigestTests.class);
+        suite.addTestSuite(SHA3NativeDigestTests.class);
+        suite.addTestSuite(SHAKENativeDigestTests.class);
 
         suite.addTestSuite(NativeEntropyTests.class);
         suite.addTestSuite(NativeFailsafeTest.class);

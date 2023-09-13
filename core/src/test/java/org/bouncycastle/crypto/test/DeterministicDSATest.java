@@ -61,10 +61,10 @@ public class DeterministicDSATest
         doTestHMACDetDSATest(SHA384Digest.newInstance(), privKey, new BigInteger("854CF929B58D73C3CBFDC421E8D5430CD6DB5E66", 16), new BigInteger("91D0E0F53E22F898D158380676A871A157CDA622", 16));
         doTestHMACDetDSATest( SHA512Digest.newInstance(), privKey, new BigInteger("8EA47E475BA8AC6F2D821DA3BD212D11A3DEB9A0", 16), new BigInteger("7C670C7AD72B6C050C109E1790008097125433E8", 16));
 
-        doTestHMACDetDSATest(new SHA3Digest(224), privKey, new BigInteger("58748b6ca41d25e41f7bfa51fed204a10a1bd1d3", 16), new BigInteger("86de2fdad0bc848dd20ddd9dc6253fc6d7553268", 16));
-        doTestHMACDetDSATest(new SHA3Digest(256), privKey, new BigInteger("98c7a7906ada494285b3ab15cf9188a425f26bd4", 16), new BigInteger("21c5ed876037470d3959fa12f918674a4bf190e9", 16));
-        doTestHMACDetDSATest(new SHA3Digest(384), privKey, new BigInteger("445ec584ec15c14abc67c99886a30a286cc83b33", 16), new BigInteger("21f564d5bb4b175e89a1a6fb2f27cd34c861142d", 16));
-        doTestHMACDetDSATest(new SHA3Digest(512), privKey, new BigInteger("16918083f4c3ff4fc9b327e9e120a30ec39faaf6", 16), new BigInteger("1e9183a1dc7c20dbb596920cd94da3844a087203", 16));
+        doTestHMACDetDSATest(SHA3Digest.newInstance(224), privKey, new BigInteger("58748b6ca41d25e41f7bfa51fed204a10a1bd1d3", 16), new BigInteger("86de2fdad0bc848dd20ddd9dc6253fc6d7553268", 16));
+        doTestHMACDetDSATest(SHA3Digest.newInstance(256), privKey, new BigInteger("98c7a7906ada494285b3ab15cf9188a425f26bd4", 16), new BigInteger("21c5ed876037470d3959fa12f918674a4bf190e9", 16));
+        doTestHMACDetDSATest(SHA3Digest.newInstance(384), privKey, new BigInteger("445ec584ec15c14abc67c99886a30a286cc83b33", 16), new BigInteger("21f564d5bb4b175e89a1a6fb2f27cd34c861142d", 16));
+        doTestHMACDetDSATest(SHA3Digest.newInstance(512), privKey, new BigInteger("16918083f4c3ff4fc9b327e9e120a30ec39faaf6", 16), new BigInteger("1e9183a1dc7c20dbb596920cd94da3844a087203", 16));
 
         dsaParameters = new DSAParameters(
                 new BigInteger("9DB6FB5951B66BB6FE1E140F1D2CE5502374161FD6538DF1648218642F0B5C48" +
@@ -130,10 +130,10 @@ public class DeterministicDSATest
         doTestHMACDetECDSATest(SHA384Digest.newInstance(), privKey, new BigInteger("B234B60B4DB75A733E19280A7A6034BD6B1EE88AF5332367", 16), new BigInteger("7994090B2D59BB782BE57E74A44C9A1C700413F8ABEFE77A", 16));
         doTestHMACDetECDSATest(SHA512Digest.newInstance(), privKey, new BigInteger("FE4F4AE86A58B6507946715934FE2D8FF9D95B6B098FE739", 16), new BigInteger("74CF5605C98FBA0E1EF34D4B5A1577A7DCF59457CAE52290", 16));
 
-        doTestHMACDetECDSATest(new SHA3Digest(224), privKey, new BigInteger("abfcb817d04cc223f0d9c02c6db9230a91f955bf4556e0c6", 16), new BigInteger("ec2c29065a50d8ea39533d49472ccf538a5388cb31900e8f", 16));
-        doTestHMACDetECDSATest(new SHA3Digest(256), privKey, new BigInteger("a2c2d5362d3cea77191edb239bf22a14dcc59d6500a744fc", 16), new BigInteger("6c63f3012353082026be7e2c6f37e6d7811066ddc9b9ee47", 16));
-        doTestHMACDetECDSATest(new SHA3Digest(384), privKey, new BigInteger("2ff2c37d48cd6691c8adb9d2b1c1af203a1a6b8769c588dd", 16), new BigInteger("79c8171097f845c608dafd218ba096a51e0e4882faf2c08d", 16));
-        doTestHMACDetECDSATest(new SHA3Digest(512), privKey, new BigInteger("384619b82461f4cc852dfa1e87cd87105e8eb3cfd0fb6461", 16), new BigInteger("d0aac03f72e90942821e3af1f77fd8a6ae82d1ed31b8ed06", 16));
+        doTestHMACDetECDSATest(SHA3Digest.newInstance(224), privKey, new BigInteger("abfcb817d04cc223f0d9c02c6db9230a91f955bf4556e0c6", 16), new BigInteger("ec2c29065a50d8ea39533d49472ccf538a5388cb31900e8f", 16));
+        doTestHMACDetECDSATest(SHA3Digest.newInstance(256), privKey, new BigInteger("a2c2d5362d3cea77191edb239bf22a14dcc59d6500a744fc", 16), new BigInteger("6c63f3012353082026be7e2c6f37e6d7811066ddc9b9ee47", 16));
+        doTestHMACDetECDSATest(SHA3Digest.newInstance(384), privKey, new BigInteger("2ff2c37d48cd6691c8adb9d2b1c1af203a1a6b8769c588dd", 16), new BigInteger("79c8171097f845c608dafd218ba096a51e0e4882faf2c08d", 16));
+        doTestHMACDetECDSATest(SHA3Digest.newInstance(512), privKey, new BigInteger("384619b82461f4cc852dfa1e87cd87105e8eb3cfd0fb6461", 16), new BigInteger("d0aac03f72e90942821e3af1f77fd8a6ae82d1ed31b8ed06", 16));
 
         x9ECParameters = NISTNamedCurves.getByName("P-224");
         ecDomainParameters = new ECDomainParameters(x9ECParameters.getCurve(), x9ECParameters.getG(), x9ECParameters.getN());

@@ -89,6 +89,17 @@ public class SHA3Digest
         super(checkBitLength(bitLength), purpose);
     }
 
+
+    public static SavableDigest newInstance(Digest digest)
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA3) && digest instanceof SHA3NativeDigest)
+        {
+            return new SHA3NativeDigest((SHA3NativeDigest) digest);
+        }
+
+        return new SHA3Digest((SHA3Digest) digest);
+    }
+
     public SHA3Digest(SHA3Digest source)
     {
         super(source);
@@ -114,7 +125,8 @@ public class SHA3Digest
     }
 
 
-    public static SavableDigest newInstance(byte[] encoded, CryptoServicePurpose purpose) {
+    public static SavableDigest newInstance(byte[] encoded, CryptoServicePurpose purpose)
+    {
         if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA3))
         {
             return new SHA3NativeDigest(encoded, purpose);

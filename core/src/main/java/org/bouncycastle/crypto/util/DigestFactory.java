@@ -75,28 +75,28 @@ public final class DigestFactory
         {
             public Digest createClone(Digest original)
             {
-                return new SHA3Digest((SHA3Digest)original);
+                return SHA3Digest.newInstance(original);
             }
         });
         cloneMap.put(createSHA3_256().getAlgorithmName(), new Cloner()
         {
             public Digest createClone(Digest original)
             {
-                return new SHA3Digest((SHA3Digest)original);
+                return SHA3Digest.newInstance(original);
             }
         });
         cloneMap.put(createSHA3_384().getAlgorithmName(), new Cloner()
         {
             public Digest createClone(Digest original)
             {
-                return new SHA3Digest((SHA3Digest)original);
+                return  SHA3Digest.newInstance(original);
             }
         });
         cloneMap.put(createSHA3_512().getAlgorithmName(), new Cloner()
         {
             public Digest createClone(Digest original)
             {
-                return new SHA3Digest((SHA3Digest)original);
+                return  SHA3Digest.newInstance(original);
             }
         });
 
@@ -104,7 +104,7 @@ public final class DigestFactory
         {
             public Digest createClone(Digest original)
             {
-                return new SHAKEDigest((SHAKEDigest)original);
+                return SHA3Digest.newInstance(original);
             }
         });
 
@@ -112,7 +112,7 @@ public final class DigestFactory
         {
             public Digest createClone(Digest original)
             {
-                return new SHAKEDigest((SHAKEDigest)original);
+                return SHA3Digest.newInstance(original);
             }
         });
     }
@@ -199,42 +199,42 @@ public final class DigestFactory
 
     public static Digest createSHA3_224()
     {
-        return new SHA3Digest(224);
+        return SHA3Digest.newInstance(224);
     }
 
     public static Digest createSHA3_224PRF()
      {
-         return new SHA3Digest(224, CryptoServicePurpose.PRF);
+         return SHA3Digest.newInstance(224, CryptoServicePurpose.PRF);
      }
 
     public static Digest createSHA3_256()
     {
-        return new SHA3Digest(256);
+        return SHA3Digest.newInstance(256);
     }
 
     public static Digest createSHA3_256PRF()
     {
-        return new SHA3Digest(256, CryptoServicePurpose.PRF);
+        return SHA3Digest.newInstance(256, CryptoServicePurpose.PRF);
     }
 
     public static Digest createSHA3_384()
     {
-        return new SHA3Digest(384);
+        return SHA3Digest.newInstance(384);
     }
 
     public static Digest createSHA3_384PRF()
     {
-        return new SHA3Digest(384, CryptoServicePurpose.PRF);
+        return SHA3Digest.newInstance(384, CryptoServicePurpose.PRF);
     }
 
     public static Digest createSHA3_512()
     {
-        return new SHA3Digest(512);
+        return SHA3Digest.newInstance(512);
     }
 
     public static Digest createSHA3_512PRF()
     {
-        return new SHA3Digest(512, CryptoServicePurpose.PRF);
+        return SHA3Digest.newInstance(512, CryptoServicePurpose.PRF);
     }
 
     public static Digest createSHAKE128()

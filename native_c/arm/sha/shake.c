@@ -4,8 +4,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <memory.h>
-#include "sha3.h"
+#include "shake.h"
 #include <stdbool.h>
+#include <printf.h>
 #include "../keccak/keccak.h"
 
 
@@ -25,32 +26,32 @@ static const uint64_t K[] = {
 };
 
 
-sha3_ctx *sha3_create_ctx(int bitLen) {
-    assert(bitLen == 224 || bitLen == 256 || bitLen == 384 || bitLen == 512);
-    sha3_ctx *ptr = calloc(1, sizeof(sha3_ctx));
+shake_ctx *shake_create_ctx(int bitLen) {
+    assert(bitLen == 128 || bitLen == 256);
+    shake_ctx *ptr = calloc(1, sizeof(shake_ctx));
     assert(ptr != NULL);
     ptr->bitLen = (uint32_t) bitLen;
     ptr->rate = 1600 - ((uint32_t) bitLen << 1);
-    sha3_reset(ptr);
+    shake_reset(ptr);
     return ptr;
 }
 
-void sha3_free_ctx(sha3_ctx *ctx) {
-    memset(ctx, 0, sizeof(sha3_ctx));
+void shake_free_ctx(shake_ctx *ctx) {
+    memset(ctx, 0, sizeof(shake_ctx));
     free(ctx);
 }
 
-void sha3_reset(sha3_ctx *ctx) {
-    ctx->ident = SHA3_MAGIC;
+void shake_reset(shake_ctx *ctx) {
+    ctx->ident = SHAKE_MAGIC;
     ctx->buf_index = 0;
     ctx->byteCount = 0;
     ctx->rate_bytes = ctx->rate >> 3;
     memset(ctx->state, 0, sizeof(uint64_t) * STATE_LEN);
-    memset(ctx->buf, 0, BUF_SIZE_SHA3);
+    memset(ctx->buf, 0, BUF_SIZE_SHAKE);
     ctx->squeezing = false;
 }
 
-void sha3_update_byte(sha3_ctx *ctx, uint8_t b) {
+void shake_update_byte(shake_ctx *ctx, uint8_t b) {
     assert(!ctx->squeezing);
     const size_t rateBytes = ctx->rate_bytes;
     ctx->buf[ctx->buf_index++] = b;
@@ -61,7 +62,7 @@ void sha3_update_byte(sha3_ctx *ctx, uint8_t b) {
     }
 }
 
-void sha3_update(sha3_ctx *ctx, uint8_t *input, size_t len) {
+void shake_update(shake_ctx *ctx, uint8_t *input, size_t len) {
     assert(!ctx->squeezing);
     const size_t rateBytes = ctx->rate_bytes;
     const size_t remaining = rateBytes - ctx->buf_index;
@@ -96,8 +97,7 @@ void sha3_update(sha3_ctx *ctx, uint8_t *input, size_t len) {
     ctx->byteCount += len;
 }
 
-void sha3_digest(sha3_ctx *ctx, uint8_t *output) {
-    ctx->squeezing = true;
+void shake_digest(shake_ctx *ctx, uint8_t *output, size_t len) {
     size_t rateBytes = ctx->rate_bytes;
     const size_t toClear = rateBytes - ctx->buf_index;
 
@@ -106,13 +106,10 @@ void sha3_digest(sha3_ctx *ctx, uint8_t *output) {
     // TODO add padding to state directly.
     memset(ctx->buf + ctx->buf_index, 0, toClear); // clear to end of buffer
     switch (ctx->bitLen) {
-        case 224:
+        case 128:
         case 256:
-        case 384:
-        case 512:
-            ctx->buf[ctx->buf_index] = 0x06;
+            ctx->buf[ctx->buf_index] = 0x1F;
             break;
-
     }
 
     ctx->buf[rateBytes - 1] |= 128;
@@ -128,34 +125,41 @@ void sha3_digest(sha3_ctx *ctx, uint8_t *output) {
         p += 8;
     }
 
-
-    uint8x8_t *s = (uint8x8_t *) ctx->state;
+    ctx->squeezing = true;
     KF1600_StatePermute(ctx->state, K);
 
-    memcpy(output, ctx->state, ctx->bitLen / 8);
+    while (len >= ctx->rate_bytes) {
+        memcpy(output, ctx->state, ctx->rate_bytes);
+        KF1600_StatePermute(ctx->state, K);
+        len -= ctx->rate_bytes;
+        output += ctx->rate_bytes;
+    }
+
+    if (len > 0) {
+        memcpy(output, ctx->state, len);
+    }
+
 }
 
-uint32_t sha3_getSize(sha3_ctx *ctx) {
-    return ctx->bitLen >> 3;
+uint32_t shake_getSize(shake_ctx *ctx) {
+    return ctx->bitLen >> 2;
 }
 
-uint32_t sha3_getByteLen(sha3_ctx *ctx) {
+uint32_t shake_getByteLen(shake_ctx *ctx) {
     return ctx->rate >> 3;
 }
 
-bool sha3_restoreFullState(sha3_ctx *ctx, const uint8_t *oldState) {
-    sha3_ctx newState;
-    memcpy(&newState, oldState, sizeof(sha3_ctx));
+bool shake_restoreFullState(shake_ctx *ctx, const uint8_t *oldState) {
+    shake_ctx newState;
+    memcpy(&newState, oldState, sizeof(shake_ctx));
 
-    if (newState.ident != SHA3_MAGIC) {
+    if (newState.ident != SHAKE_MAGIC) {
         return false;
     }
 
     switch (newState.bitLen) {
-        case 224:
-        case 256:
-        case 384:
-        case 512:
+        case 128:
+        case 255:
             break;
         default:
             return false;
@@ -165,7 +169,7 @@ bool sha3_restoreFullState(sha3_ctx *ctx, const uint8_t *oldState) {
     newState.rate = 1600 - ((uint32_t) newState.bitLen << 1);
     newState.rate_bytes = newState.rate >> 3;
 
-    if (newState.buf_index >= BUF_SIZE_SHA3) {
+    if (newState.buf_index >= BUF_SIZE_SHAKE) {
         return false;
     }
 
@@ -174,7 +178,7 @@ bool sha3_restoreFullState(sha3_ctx *ctx, const uint8_t *oldState) {
     return true;
 }
 
-size_t sha3_encodeFullState(const sha3_ctx *ctx, uint8_t *output) {
-    memcpy(output, ctx, sizeof(sha3_ctx));
-    return sizeof(sha3_ctx);
+size_t shake_encodeFullState(const shake_ctx *ctx, uint8_t *output) {
+    memcpy(output, ctx, sizeof(shake_ctx));
+    return sizeof(shake_ctx);
 }

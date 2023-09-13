@@ -98,6 +98,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             arm/aes/aes_common_neon.h
             arm/aes/aes_key.c
             arm/aes/schedule.h
+            arm/keccak/keccak.h
             )
 
     set(ARM_ECB arm/jni/ecb_jni.c arm/ecb/ecb.h arm/ecb/ecb_neon.c jniutil/variant_selector.h)
@@ -175,6 +176,12 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             arm/jni/sha3_jni.c
             )
 
+    set(ARM_SHAKE
+            arm/sha/shake.h
+            arm/sha/shake.c
+            arm/jni/shake_jni.c
+            )
+
     set(ARM_MUL
             arm/mul/cmul.h
             arm/mul/cmul128.c
@@ -206,6 +213,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
             ${ARM_SHA384}
             ${ARM_SHA512}
             ${ARM_SHA3}
+            ${ARM_SHAKE}
             ${ARM_MUL}
             )
     target_include_directories("${LIB_NATIVE}-neon-le" PUBLIC ${JNI_INCLUDES})

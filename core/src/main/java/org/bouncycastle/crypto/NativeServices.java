@@ -25,6 +25,8 @@ public interface NativeServices
     String SHA384 = "SHA384";
 
     String SHA3 = "SHA3";
+
+    String SHAKE = "SHAKE";
     String MULACC = "MULACC";
 
     String NONE = "NONE";

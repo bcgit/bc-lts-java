@@ -84,28 +84,28 @@ public class BcDefaultDigestProvider
         {
             public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
             {
-                return new SHA3Digest(224);
+                return SHA3Digest.newInstance(224);
             }
         });
         table.put(NISTObjectIdentifiers.id_sha3_256, new BcDigestProvider()
         {
             public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
             {
-                return new SHA3Digest(256);
+                return SHA3Digest.newInstance(256);
             }
         });
         table.put(NISTObjectIdentifiers.id_sha3_384, new BcDigestProvider()
         {
             public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
             {
-                return new SHA3Digest(384);
+                return SHA3Digest.newInstance(384);
             }
         });
         table.put(NISTObjectIdentifiers.id_sha3_512, new BcDigestProvider()
         {
             public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
             {
-                return new SHA3Digest(512);
+                return SHA3Digest.newInstance(512);
             }
         });
         table.put(NISTObjectIdentifiers.id_shake128, new BcDigestProvider()

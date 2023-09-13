@@ -3,13 +3,16 @@ package org.bouncycastle.crypto.digests;
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.Digest;
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.SavableDigest;
 import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.encoders.Hex;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.annotation.processing.SupportedSourceVersion;
 import java.security.SecureRandom;
 
 public class SHA3JavaAgreementTest extends TestCase
@@ -51,6 +54,16 @@ public class SHA3JavaAgreementTest extends TestCase
 
     public void testAlgoName() throws Exception
     {
+        if (!TestUtil.hasNativeService(NativeServices.SHA3))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
+            {
+                TestCase.fail("Skipping SHAKE Agreement Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+
         for (int bitLen : new int[]{224, 256, 384, 512})
         {
             SHA3NativeDigest nd = new SHA3NativeDigest(bitLen);

@@ -6,10 +6,10 @@ import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 /**
- * SHA3 implementation.
+ * SHAKE implementation.
  */
-public class SHA3NativeDigest
-        implements SavableDigest
+public class SHAKENativeDigest
+        implements SavableDigestXof
 {
     private final CryptoServicePurpose purpose;
 
@@ -17,16 +17,16 @@ public class SHA3NativeDigest
     private int bitLen;
 
 
-  public   SHA3NativeDigest(CryptoServicePurpose purpose)
+  public SHAKENativeDigest(CryptoServicePurpose purpose)
     {
-        this(256, purpose);
+        this(128, purpose);
     }
 
-   public  SHA3NativeDigest(int bitLen, CryptoServicePurpose purpose)
+   public SHAKENativeDigest(int bitLen, CryptoServicePurpose purpose)
     {
         if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA3))
         {
-            throw new IllegalStateException("no native SHA3 support");
+            throw new IllegalStateException("no native SHAKE support");
         }
 
         this.purpose = purpose;
@@ -36,17 +36,17 @@ public class SHA3NativeDigest
         CryptoServicesRegistrar.checkConstraints(cryptoServiceProperties());
     }
 
-    public SHA3NativeDigest(int bitLen)
+    public SHAKENativeDigest(int bitLen)
     {
         this(bitLen, CryptoServicePurpose.ANY);
     }
 
-    public SHA3NativeDigest()
+    public SHAKENativeDigest()
     {
         this(CryptoServicePurpose.ANY);
     }
 
-    public SHA3NativeDigest(SHA3NativeDigest src)
+    public SHAKENativeDigest(SHAKENativeDigest src)
     {
 
         this(CryptoServicePurpose.ANY);
@@ -56,20 +56,20 @@ public class SHA3NativeDigest
         restoreFullState(nativeRef.getReference(), state, 0);
     }
 
-    public SHA3NativeDigest(byte[] encoded, CryptoServicePurpose purpose)
+    public SHAKENativeDigest(byte[] encoded, CryptoServicePurpose purpose)
     {
         this(purpose);
         restoreFullState(nativeRef.getReference(), encoded, 0);
     }
 
-    public SHA3NativeDigest(byte[] encoded)
+    public SHAKENativeDigest(byte[] encoded)
     {
         this();
         restoreFullState(nativeRef.getReference(), encoded, 0);
     }
 
 
-    SHA3NativeDigest restoreState(byte[] state, int offset)
+    SHAKENativeDigest restoreState(byte[] state, int offset)
     {
         restoreFullState(nativeRef.getReference(), state, offset);
         return this;
@@ -83,7 +83,7 @@ public class SHA3NativeDigest
     public String getAlgorithmName()
     {
 
-        return "SHA3-" + bitLen;
+        return "SHAKE" + bitLen;
     }
 
     @Override
@@ -110,7 +110,23 @@ public class SHA3NativeDigest
     @Override
     public int doFinal(byte[] output, int outOff)
     {
-        int i = doFinal(nativeRef.getReference(), output, outOff);
+        int i = doFinal(nativeRef.getReference(), output, outOff, getDigestSize(nativeRef.getReference()));
+        reset();
+        return i;
+    }
+
+    @Override
+    public int doFinal(byte[] out, int outOff, int outLen)
+    {
+        int i = doFinal(nativeRef.getReference(),out,outOff,outLen);
+        reset();
+        return i;
+    }
+
+    @Override
+    public int doOutput(byte[] out, int outOff, int outLen)
+    {
+        int i = doFinal(nativeRef.getReference(),out,outOff,outLen);
         reset();
         return i;
     }
@@ -133,13 +149,13 @@ public class SHA3NativeDigest
     @Override
     public Memoable copy()
     {
-        return new SHA3NativeDigest(this);
+        return new SHAKENativeDigest(this);
     }
 
     @Override
     public void reset(Memoable other)
     {
-        SHA3NativeDigest dig = (SHA3NativeDigest) other;
+        SHAKENativeDigest dig = (SHAKENativeDigest) other;
         restoreFullState(nativeRef.getReference(), dig.getEncodedState(), 0);
     }
 
@@ -162,7 +178,7 @@ public class SHA3NativeDigest
     @Override
     public String toString()
     {
-        return "SHA3[Native]()";
+        return "SHAKE[Native]()";
     }
 
     static native long makeNative(int bitLen);
@@ -175,7 +191,7 @@ public class SHA3NativeDigest
 
     static native void update(long nativeRef, byte[] in, int inOff, int len);
 
-    static native int doFinal(long nativeRef, byte[] out, int outOff);
+    static native int doFinal(long nativeRef, byte[] out, int outOff, int len);
 
     static native void reset(long nativeRef);
 
@@ -189,6 +205,8 @@ public class SHA3NativeDigest
     {
         return Utils.getDefaultProperties(this, bitLen, purpose);
     }
+
+
 
 
     private static class Disposer

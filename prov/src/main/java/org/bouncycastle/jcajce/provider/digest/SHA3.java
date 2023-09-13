@@ -2,10 +2,7 @@ package org.bouncycastle.jcajce.provider.digest;
 
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.crypto.CipherKeyGenerator;
-import org.bouncycastle.crypto.digests.ParallelHash;
-import org.bouncycastle.crypto.digests.SHA3Digest;
-import org.bouncycastle.crypto.digests.SHAKEDigest;
-import org.bouncycastle.crypto.digests.TupleHash;
+import org.bouncycastle.crypto.digests.*;
 import org.bouncycastle.crypto.macs.HMac;
 import org.bouncycastle.crypto.macs.KMAC;
 import org.bouncycastle.jcajce.provider.config.ConfigurableProvider;
@@ -20,27 +17,33 @@ public class SHA3
     }
 
     static public class DigestSHA3
-        extends BCMessageDigest
-        implements Cloneable
+            extends BCMessageDigest
+            implements Cloneable
     {
         public DigestSHA3(int size)
         {
-            super(new SHA3Digest(size));
+            super(SHA3Digest.newInstance(size));
         }
 
         public Object clone()
-            throws CloneNotSupportedException
+                throws CloneNotSupportedException
         {
-            BCMessageDigest d = (BCMessageDigest)super.clone();
-            d.digest = new SHA3Digest((SHA3Digest)digest);
-
+            BCMessageDigest d = (BCMessageDigest) super.clone();
+            if (digest instanceof SHA3NativeDigest)
+            {
+                d.digest = new SHA3NativeDigest((SHA3NativeDigest) digest);
+            }
+            else
+            {
+                d.digest = new SHA3Digest((SHA3Digest) digest);
+            }
             return d;
         }
     }
 
     static public class DigestSHAKE
-        extends BCMessageDigest
-        implements Cloneable
+            extends BCMessageDigest
+            implements Cloneable
     {
         public DigestSHAKE(int type, int size)
         {
@@ -48,18 +51,18 @@ public class SHA3
         }
 
         public Object clone()
-            throws CloneNotSupportedException
+                throws CloneNotSupportedException
         {
-            BCMessageDigest d = (BCMessageDigest)super.clone();
-            d.digest = new SHAKEDigest((SHAKEDigest)digest);
+            BCMessageDigest d = (BCMessageDigest) super.clone();
+            d.digest = new SHAKEDigest((SHAKEDigest) digest);
 
             return d;
         }
     }
 
     static public class DigestTupleHash
-        extends BCMessageDigest
-        implements Cloneable
+            extends BCMessageDigest
+            implements Cloneable
     {
         public DigestTupleHash(int type, int size)
         {
@@ -67,18 +70,18 @@ public class SHA3
         }
 
         public Object clone()
-            throws CloneNotSupportedException
+                throws CloneNotSupportedException
         {
-            BCMessageDigest d = (BCMessageDigest)super.clone();
-            d.digest = new TupleHash((TupleHash)digest);
+            BCMessageDigest d = (BCMessageDigest) super.clone();
+            d.digest = new TupleHash((TupleHash) digest);
 
             return d;
         }
     }
 
     static public class DigestParallelHash
-        extends BCMessageDigest
-        implements Cloneable
+            extends BCMessageDigest
+            implements Cloneable
     {
         public DigestParallelHash(int type, int size)
         {
@@ -86,17 +89,17 @@ public class SHA3
         }
 
         public Object clone()
-            throws CloneNotSupportedException
+                throws CloneNotSupportedException
         {
-            BCMessageDigest d = (BCMessageDigest)super.clone();
-            d.digest = new ParallelHash((ParallelHash)digest);
+            BCMessageDigest d = (BCMessageDigest) super.clone();
+            d.digest = new ParallelHash((ParallelHash) digest);
 
             return d;
         }
     }
 
     public static class HashMacSHA3
-        extends BaseMac
+            extends BaseMac
     {
         public HashMacSHA3(int size)
         {
@@ -105,7 +108,7 @@ public class SHA3
     }
 
     public static class KeyGeneratorSHA3
-        extends BaseKeyGenerator
+            extends BaseKeyGenerator
     {
         public KeyGeneratorSHA3(int size)
         {
@@ -114,7 +117,7 @@ public class SHA3
     }
 
     static public class Digest224
-        extends DigestSHA3
+            extends DigestSHA3
     {
         public Digest224()
         {
@@ -123,7 +126,7 @@ public class SHA3
     }
 
     static public class Digest256
-        extends DigestSHA3
+            extends DigestSHA3
     {
         public Digest256()
         {
@@ -132,7 +135,7 @@ public class SHA3
     }
 
     static public class Digest384
-        extends DigestSHA3
+            extends DigestSHA3
     {
         public Digest384()
         {
@@ -141,7 +144,7 @@ public class SHA3
     }
 
     static public class Digest512
-        extends DigestSHA3
+            extends DigestSHA3
     {
         public Digest512()
         {
@@ -150,7 +153,7 @@ public class SHA3
     }
 
     static public class DigestShake128_256
-        extends DigestSHAKE
+            extends DigestSHAKE
     {
         public DigestShake128_256()
         {
@@ -159,7 +162,7 @@ public class SHA3
     }
 
     static public class DigestShake256_512
-        extends DigestSHAKE
+            extends DigestSHAKE
     {
         public DigestShake256_512()
         {
@@ -168,7 +171,7 @@ public class SHA3
     }
 
     static public class HashMac224
-        extends HashMacSHA3
+            extends HashMacSHA3
     {
         public HashMac224()
         {
@@ -177,7 +180,7 @@ public class SHA3
     }
 
     static public class HashMac256
-        extends HashMacSHA3
+            extends HashMacSHA3
     {
         public HashMac256()
         {
@@ -186,7 +189,7 @@ public class SHA3
     }
 
     static public class HashMac384
-        extends HashMacSHA3
+            extends HashMacSHA3
     {
         public HashMac384()
         {
@@ -195,7 +198,7 @@ public class SHA3
     }
 
     static public class HashMac512
-        extends HashMacSHA3
+            extends HashMacSHA3
     {
         public HashMac512()
         {
@@ -204,7 +207,7 @@ public class SHA3
     }
 
     static public class KeyGenerator224
-        extends KeyGeneratorSHA3
+            extends KeyGeneratorSHA3
     {
         public KeyGenerator224()
         {
@@ -213,7 +216,7 @@ public class SHA3
     }
 
     static public class KeyGenerator256
-        extends KeyGeneratorSHA3
+            extends KeyGeneratorSHA3
     {
         public KeyGenerator256()
         {
@@ -222,7 +225,7 @@ public class SHA3
     }
 
     static public class KeyGenerator384
-        extends KeyGeneratorSHA3
+            extends KeyGeneratorSHA3
     {
         public KeyGenerator384()
         {
@@ -231,7 +234,7 @@ public class SHA3
     }
 
     static public class KeyGenerator512
-        extends KeyGeneratorSHA3
+            extends KeyGeneratorSHA3
     {
         public KeyGenerator512()
         {
@@ -240,7 +243,7 @@ public class SHA3
     }
 
     public static class KMac128
-        extends BaseMac
+            extends BaseMac
     {
         public KMac128()
         {
@@ -249,7 +252,7 @@ public class SHA3
     }
 
     public static class KMac256
-        extends BaseMac
+            extends BaseMac
     {
         public KMac256()
         {
@@ -258,7 +261,7 @@ public class SHA3
     }
 
     public static class DigestTupleHash128_256
-        extends DigestTupleHash
+            extends DigestTupleHash
     {
         public DigestTupleHash128_256()
         {
@@ -267,7 +270,7 @@ public class SHA3
     }
 
     public static class DigestTupleHash256_512
-        extends DigestTupleHash
+            extends DigestTupleHash
     {
         public DigestTupleHash256_512()
         {
@@ -276,7 +279,7 @@ public class SHA3
     }
 
     public static class DigestParallelHash128_256
-        extends DigestParallelHash
+            extends DigestParallelHash
     {
         public DigestParallelHash128_256()
         {
@@ -285,7 +288,7 @@ public class SHA3
     }
 
     public static class DigestParallelHash256_512
-        extends DigestParallelHash
+            extends DigestParallelHash
     {
         public DigestParallelHash256_512()
         {
@@ -294,7 +297,7 @@ public class SHA3
     }
 
     public static class Mappings
-        extends DigestAlgorithmProvider
+            extends DigestAlgorithmProvider
     {
         private static final String PREFIX = SHA3.class.getName();
 
@@ -319,20 +322,20 @@ public class SHA3
             provider.addAlgorithm("Alg.Alias.MessageDigest.SHAKE256", "SHAKE256-512");
             provider.addAlgorithm("Alg.Alias.MessageDigest.SHAKE128", "SHAKE128-256");
 
-            addHMACAlgorithm(provider, "SHA3-224", PREFIX + "$HashMac224",  PREFIX + "$KeyGenerator224");
+            addHMACAlgorithm(provider, "SHA3-224", PREFIX + "$HashMac224", PREFIX + "$KeyGenerator224");
             addHMACAlias(provider, "SHA3-224", NISTObjectIdentifiers.id_hmacWithSHA3_224);
 
-            addHMACAlgorithm(provider, "SHA3-256", PREFIX + "$HashMac256",  PREFIX + "$KeyGenerator256");
+            addHMACAlgorithm(provider, "SHA3-256", PREFIX + "$HashMac256", PREFIX + "$KeyGenerator256");
             addHMACAlias(provider, "SHA3-256", NISTObjectIdentifiers.id_hmacWithSHA3_256);
 
-            addHMACAlgorithm(provider, "SHA3-384", PREFIX + "$HashMac384",  PREFIX + "$KeyGenerator384");
+            addHMACAlgorithm(provider, "SHA3-384", PREFIX + "$HashMac384", PREFIX + "$KeyGenerator384");
             addHMACAlias(provider, "SHA3-384", NISTObjectIdentifiers.id_hmacWithSHA3_384);
 
-            addHMACAlgorithm(provider, "SHA3-512", PREFIX + "$HashMac512",  PREFIX + "$KeyGenerator512");
+            addHMACAlgorithm(provider, "SHA3-512", PREFIX + "$HashMac512", PREFIX + "$KeyGenerator512");
             addHMACAlias(provider, "SHA3-512", NISTObjectIdentifiers.id_hmacWithSHA3_512);
 
-            addKMACAlgorithm(provider, "128", PREFIX + "$KMac128",  PREFIX + "$KeyGenerator256");
-            addKMACAlgorithm(provider, "256", PREFIX + "$KMac256",  PREFIX + "$KeyGenerator512");
+            addKMACAlgorithm(provider, "128", PREFIX + "$KMac128", PREFIX + "$KeyGenerator256");
+            addKMACAlgorithm(provider, "256", PREFIX + "$KMac256", PREFIX + "$KeyGenerator512");
 
             provider.addAlgorithm("MessageDigest.TUPLEHASH256-512", PREFIX + "$DigestTupleHash256_512");
             provider.addAlgorithm("MessageDigest.TUPLEHASH128-256", PREFIX + "$DigestTupleHash128_256");

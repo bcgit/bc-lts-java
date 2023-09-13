@@ -764,7 +764,7 @@ class BcFKSKeyStoreSpi
             }
             else if (pbkdf2Params.getPrf().getAlgorithm().equals(NISTObjectIdentifiers.id_hmacWithSHA3_512))
             {
-                PKCS5S2ParametersGenerator pGen = new PKCS5S2ParametersGenerator(new SHA3Digest(512));
+                PKCS5S2ParametersGenerator pGen = new PKCS5S2ParametersGenerator(SHA3Digest.newInstance(512));
 
                 pGen.init(Arrays.concatenate(encPassword, differentiator), pbkdf2Params.getSalt(), pbkdf2Params.getIterationCount().intValue());
 

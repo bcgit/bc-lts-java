@@ -1,9 +1,7 @@
 package org.bouncycastle.crypto.digests;
 
 import junit.framework.TestCase;
-import org.bouncycastle.crypto.CryptoServicePurpose;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.SavableDigest;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
@@ -11,9 +9,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Field;
 import java.security.SecureRandom;
 
-public class SHA3NativeDigestTests
+public class SHAKENativeDigestTests
         extends TestCase
 {
     @Before
@@ -33,18 +32,18 @@ public class SHA3NativeDigestTests
     @Test
     public void testReturnLen() throws Exception
     {
-        if (!TestUtil.hasNativeService("SHA3"))
+        if (!TestUtil.hasNativeService(NativeServices.SHAKE))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("shake"))
             {
-                fail("Skipping SHA3 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
 
-        SHA3Digest jdig = new SHA3Digest();
+        SHAKEDigest jdig = new SHAKEDigest();
 
-        SHA3NativeDigest ndig = new SHA3NativeDigest();
+        SHAKENativeDigest ndig = new SHAKENativeDigest();
         TestCase.assertEquals(jdig.getByteLength(), ndig.getByteLength());
         TestCase.assertEquals(jdig.getDigestSize(), ndig.getDigestSize());
 
@@ -56,27 +55,24 @@ public class SHA3NativeDigestTests
 
     public void testNoUpdateAfterSqueeze() throws Exception
     {
-        if (!TestUtil.hasNativeService("SHA3"))
+        if (!TestUtil.hasNativeService(NativeServices.SHAKE))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("shake"))
             {
-                fail("Skipping SHA3 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
 
-
-
-        SHA3NativeDigest nd = new SHA3NativeDigest(256) {
+        SHAKENativeDigest nd = new SHAKENativeDigest(256) {
             @Override
             public int doFinal(byte[] output, int outOff)
             {
-                // Remove the call so reset to errors can be observed.
-                return doFinal(nativeRef.getReference(),output,outOff);
+                return doFinal(nativeRef.getReference(),output,outOff,output.length);
             }
         };
         nd.update((byte) 1);
-        byte[] o = new byte[32];
+        byte[] o = new byte[512];
         nd.doFinal(o, 0);
         try
         {
@@ -103,94 +99,94 @@ public class SHA3NativeDigestTests
 
 
     @Test
-    public void testSHA3Empty()
+    public void testSHAKEEmpty()
             throws Exception
     {
 
-        if (!TestUtil.hasNativeService("SHA3"))
+        if (!TestUtil.hasNativeService(NativeServices.SHAKE))
         {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("shake"))
             {
-                fail("Skipping SHA3 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
 
-        SavableDigest dig = SHA3Digest.newInstance();
+        Xof dig = SHAKEDigest.newInstance();
         byte[] res = new byte[dig.getDigestSize()];
         TestCase.assertEquals(32, dig.doFinal(res, 0));
 
         TestCase.assertTrue("Empty Digest result",
-                Arrays.areEqual(res, Hex.decode("a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a")));
+                Arrays.areEqual(res, Hex.decode("7f9c2ba4e88f827d616045507605853ed73b8093f6efbc88eb1a6eacfa66ef26")));
 
     }
 
-    @Test
-    public void testSHA3FullStateEncoding()
+//    @Test
+//    public void testSHAKEFullStateEncoding()
+//            throws Exception
+//    {
+//        if (!TestUtil.hasNativeService("SHAKE"))
+//        {
+//            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
+//            {
+//                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
+//            }
+//            return;
+//        }
+//
+//
+//        byte[] msg = new byte[256];
+//        SecureRandom rand = new SecureRandom();
+//        rand.nextBytes(msg);
+//
+//
+//        for (int t = 0; t < 256; t++)
+//        {
+//
+//            SavableDigest dig = SHAKEDigest.newInstance();
+//            dig.update(msg, 0, t);
+//            byte[] state = dig.getEncodedState();
+//
+//            byte[] resAfterStateExtraction = new byte[dig.getDigestSize()];
+//            TestCase.assertEquals(32, dig.doFinal(resAfterStateExtraction, 0));
+//
+//            SavableDigest dig2 = SHAKEDigest.newInstance(state, CryptoServicePurpose.AGREEMENT);
+//            byte[] resStateRecreated = new byte[dig2.getDigestSize()];
+//            TestCase.assertEquals(32, dig2.doFinal(resStateRecreated, 0));
+//
+//
+//            SHAKEDigest javaDigest = new SHAKEDigest();
+//            javaDigest.update(msg, 0, t);
+//
+//            byte[] resJava = new byte[javaDigest.getDigestSize()];
+//            TestCase.assertEquals(32, javaDigest.doFinal(resJava, 0));
+//
+//
+//            TestCase.assertTrue("native post state extraction", Arrays.areEqual(resJava, resAfterStateExtraction));
+//            TestCase.assertTrue("native recreated from extracted state", Arrays.areEqual(resJava, resStateRecreated));
+//        }
+//    }
+
+
+    public void testSHAKEByteByByte()
             throws Exception
     {
-        if (!TestUtil.hasNativeService("SHA3"))
+
+        if (!TestUtil.hasNativeService("SHAKE"))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
             {
-                fail("Skipping SHA3 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
-
 
         byte[] msg = new byte[256];
         SecureRandom rand = new SecureRandom();
         rand.nextBytes(msg);
 
-
-        for (int t = 0; t < 256; t++)
-        {
-
-            SavableDigest dig = SHA3Digest.newInstance();
-            dig.update(msg, 0, t);
-            byte[] state = dig.getEncodedState();
-
-            byte[] resAfterStateExtraction = new byte[dig.getDigestSize()];
-            TestCase.assertEquals(32, dig.doFinal(resAfterStateExtraction, 0));
-
-            SavableDigest dig2 = SHA3Digest.newInstance(state, CryptoServicePurpose.AGREEMENT);
-            byte[] resStateRecreated = new byte[dig2.getDigestSize()];
-            TestCase.assertEquals(32, dig2.doFinal(resStateRecreated, 0));
-
-
-            SHA3Digest javaDigest = new SHA3Digest();
-            javaDigest.update(msg, 0, t);
-
-            byte[] resJava = new byte[javaDigest.getDigestSize()];
-            TestCase.assertEquals(32, javaDigest.doFinal(resJava, 0));
-
-
-            TestCase.assertTrue("native post state extraction", Arrays.areEqual(resJava, resAfterStateExtraction));
-            TestCase.assertTrue("native recreated from extracted state", Arrays.areEqual(resJava, resStateRecreated));
-        }
-    }
-
-
-    public void testSHA3ByteByByte()
-            throws Exception
-    {
-
-        if (!TestUtil.hasNativeService("SHA3"))
-        {
-            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
-            {
-                fail("Skipping SHA3 Limit Test: " + TestUtil.errorMsg());
-            }
-            return;
-        }
-
-        byte[] msg = new byte[256];
-        SecureRandom rand = new SecureRandom();
-        rand.nextBytes(msg);
-
-        SavableDigest dig = SHA3Digest.newInstance();
-        SHA3Digest javaDigest = new SHA3Digest();
+        Digest dig = SHAKEDigest.newInstance();
+        SHAKEDigest javaDigest = new SHAKEDigest();
 
         for (int t = 0; t < 256; t++)
         {
@@ -216,18 +212,22 @@ public class SHA3NativeDigestTests
      * @throws Exception
      */
     @Test
-    public void testSHA3FullStateEncodingExtraData()
+    public void testSHAKEFullStateEncodingExtraData()
             throws Exception
     {
 
-        if (!TestUtil.hasNativeService("SHA3"))
+        if (!TestUtil.hasNativeService("SHAKE"))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
             {
-                fail("Skipping SHA3 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
+
+
+        boolean expectNative = CryptoServicesRegistrar.hasEnabledService(NativeServices.SHAKE);
+
 
 
         byte[] msg = new byte[256];
@@ -237,17 +237,31 @@ public class SHA3NativeDigestTests
         Arrays.fill(msg, (byte) 1);
 
 
-        SavableDigest dig = SHA3Digest.newInstance();
+        SavableDigestXof dig = SHAKEDigest.newInstance();
+
+        if (expectNative) {
+            TestCase.assertTrue(dig instanceof SHAKENativeDigest);
+        } else {
+            TestCase.assertTrue(dig instanceof SHAKEDigest);
+        }
+
+
         dig.update(msg, 0, 12);
         byte[] state = dig.getEncodedState();
 
 
-        SavableDigest dig2 = SHA3Digest.newInstance(state, CryptoServicePurpose.AGREEMENT);
+        SavableDigestXof dig2 = SHAKEDigest.newInstance(state, CryptoServicePurpose.AGREEMENT);
+
+        if (expectNative) {
+            TestCase.assertTrue(dig2 instanceof SHAKENativeDigest);
+        } else {
+            TestCase.assertTrue(dig2 instanceof SHAKEDigest);
+        }
 
         dig.update(msg, 12, msg.length - 12);
         dig2.update(msg, 12, msg.length - 12);
 
-        SHA3Digest javaDigest = new SHA3Digest();
+        SHAKEDigest javaDigest = new SHAKEDigest();
         javaDigest.update(msg, 0, msg.length);
 
         byte[] d1Result = new byte[dig.getDigestSize()];
@@ -268,17 +282,17 @@ public class SHA3NativeDigestTests
     {
 
 
-        if (!TestUtil.hasNativeService("SHA3"))
+        if (!TestUtil.hasNativeService("SHAKE"))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
             {
-                fail("Skipping SHA3 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
 
 
-        new SHA3NativeDigest()
+        new SHAKENativeDigest()
         {
             {
                 try
@@ -294,7 +308,7 @@ public class SHA3NativeDigestTests
         };
 
 
-        new SHA3NativeDigest()
+        new SHAKENativeDigest()
         {
             {
                 try
@@ -310,7 +324,7 @@ public class SHA3NativeDigestTests
         };
 
 
-        new SHA3NativeDigest()
+        new SHAKENativeDigest()
         {
             {
                 try
@@ -325,7 +339,7 @@ public class SHA3NativeDigestTests
             }
         };
 
-        new SHA3NativeDigest()
+        new SHAKENativeDigest()
         {
             {
                 try
@@ -341,7 +355,7 @@ public class SHA3NativeDigestTests
         };
 
 
-        new SHA3NativeDigest()
+        new SHAKENativeDigest()
         {
             {
 
@@ -357,13 +371,13 @@ public class SHA3NativeDigestTests
                 TestCase.assertTrue("Empty Digest result",
                         Arrays.areEqual(
                                 res,
-                                Hex.decode("a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a")
+                                Hex.decode("7f9c2ba4e88f827d616045507605853ed73b8093f6efbc88eb1a6eacfa66ef26")
                         ));
             }
         };
 
 
-        new SHA3NativeDigest()
+        new SHAKENativeDigest()
         {
             {
 
@@ -379,7 +393,7 @@ public class SHA3NativeDigestTests
                 TestCase.assertTrue("Empty Digest result",
                         Arrays.areEqual(
                                 res,
-                                Hex.decode("a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a")
+                                Hex.decode("7f9c2ba4e88f827d616045507605853ed73b8093f6efbc88eb1a6eacfa66ef26")
                         ));
             }
         };
@@ -391,17 +405,17 @@ public class SHA3NativeDigestTests
             throws Exception
     {
 
-        if (!TestUtil.hasNativeService("SHA3"))
+        if (!TestUtil.hasNativeService("SHAKE"))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
             {
-                fail("Skipping SHA3 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
 
 
-        new SHA3NativeDigest()
+        new SHAKENativeDigest()
         {
             {
                 try
@@ -417,7 +431,7 @@ public class SHA3NativeDigestTests
         };
 
 
-        new SHA3NativeDigest()
+        new SHAKENativeDigest()
         {
             {
                 try
@@ -433,7 +447,7 @@ public class SHA3NativeDigestTests
         };
 
 
-        new SHA3NativeDigest()
+        new SHAKENativeDigest()
         {
             {
                 try
@@ -448,7 +462,7 @@ public class SHA3NativeDigestTests
             }
         };
 
-        new SHA3NativeDigest()
+        new SHAKENativeDigest()
         {
             {
                 try
@@ -464,7 +478,54 @@ public class SHA3NativeDigestTests
         };
 
 
-        new SHA3NativeDigest()
+        new SHAKENativeDigest()
+        {
+            {
+                try
+                {
+                    doFinal(new byte[20], 0,-1);
+                    fail("accepted negative output len");
+                }
+                catch (Exception ex)
+                {
+                    TestCase.assertTrue(ex.getMessage().contains("output len is negative"));
+                }
+            }
+        };
+
+
+        new SHAKENativeDigest()
+        {
+            {
+                try
+                {
+                    doFinal(new byte[20], 0,21);
+                    fail("accepted specified len is past end of array .. 0 offset");
+                }
+                catch (Exception ex)
+                {
+                    TestCase.assertTrue(ex.getMessage().contains("array + offset too short for digest output"));
+                }
+            }
+        };
+
+
+        new SHAKENativeDigest()
+        {
+            {
+                try
+                {
+                    doFinal(new byte[20], 1,20);
+                    fail("accepted specified len is past end of array .. offset");
+                }
+                catch (Exception ex)
+                {
+                    TestCase.assertTrue(ex.getMessage().contains("array + offset too short for digest output"));
+                }
+            }
+        };
+
+        new SHAKENativeDigest()
         {
             {
                 //
@@ -476,7 +537,7 @@ public class SHA3NativeDigestTests
                 TestCase.assertEquals(32, doFinal(res, 1));
                 TestCase.assertTrue(
                         Arrays.areEqual(
-                                Hex.decode("00a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a"),
+                                Hex.decode("007f9c2ba4e88f827d616045507605853ed73b8093f6efbc88eb1a6eacfa66ef26"),
                                 res)
                 );
 
@@ -489,11 +550,11 @@ public class SHA3NativeDigestTests
             throws Exception
     {
 
-        if (!TestUtil.hasNativeService("SHA3"))
+        if (!TestUtil.hasNativeService("SHAKE"))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
             {
-                fail("Skipping SHA3 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -504,7 +565,7 @@ public class SHA3NativeDigestTests
         //
         final byte[] saneState;
 
-        SHA3NativeDigest dig = new SHA3NativeDigest()
+        SHAKENativeDigest dig = new SHAKENativeDigest()
         {
             {
                 update((byte) 1);
@@ -519,7 +580,7 @@ public class SHA3NativeDigestTests
 
         try
         {
-            new SHA3NativeDigest().restoreState(null, 0);
+            new SHAKENativeDigest().restoreState(null, 0);
             fail("too short");
         }
         catch (Exception ex)
@@ -530,7 +591,7 @@ public class SHA3NativeDigestTests
 
         try
         {
-            new SHA3NativeDigest().restoreState(new byte[saneState.length - 2], 0);
+            new SHAKENativeDigest().restoreState(new byte[saneState.length - 2], 0);
             fail("too short");
         }
         catch (Exception ex)
@@ -541,12 +602,12 @@ public class SHA3NativeDigestTests
 
         try
         {
-            new SHA3NativeDigest().restoreState(new byte[saneState.length], 0);
+            new SHAKENativeDigest().restoreState(new byte[saneState.length], 0);
             fail("bad id");
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid sha3 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid shake encoded state"));
         }
 
 
@@ -564,21 +625,14 @@ public class SHA3NativeDigestTests
             // within in the struct that the LSB of bufPtr will be.
             // This will enable us to assert that length checking of encoded bufPtr is correct.
 
-            for (int t = 0; t < state.length; t++)
-            {
-                if (state[t] == 5)
-                {
-                    state[t] = (byte) 144;
-                    break;
-                }
-            }
+            state[24] = (byte) 192;
 
-            new SHA3NativeDigest().restoreState(state, 0);
-            fail("should fail on bufPtr value at 145");
+            new SHAKENativeDigest().restoreState(state, 0);
+            fail("should fail on bufPtr value at 192");
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid sha3 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid shake encoded state"));
         }
 
 
@@ -590,20 +644,14 @@ public class SHA3NativeDigestTests
             byte[] state = Arrays.clone(saneState);
 
 
-            for (int t = 0; t < state.length; t++)
-            {
-                if (state[t] == 5)
-                {
-                    state[t] = (byte) 145;
-                }
-            }
+            state[24] = (byte) 193;
 
-            new SHA3NativeDigest().restoreFullState(state, 0);
-            fail("should fail on bufPtr value exceeding 145");
+            new SHAKENativeDigest().restoreFullState(state, 0);
+            fail("should fail on bufPtr value exceeding 193");
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid sha3 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid shake encoded state"));
         }
 
     }
@@ -612,11 +660,11 @@ public class SHA3NativeDigestTests
             throws Exception
     {
 
-        if (!TestUtil.hasNativeService("SHA3"))
+        if (!TestUtil.hasNativeService("SHAKE"))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
             {
-                fail("Skipping SHA3 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -627,9 +675,10 @@ public class SHA3NativeDigestTests
         //
         final byte[] saneState;
 
-        SHA3NativeDigest dig = new SHA3NativeDigest()
+        SHAKENativeDigest dig = new SHAKENativeDigest()
         {
             {
+                update((byte) 1);
                 update((byte) 1);
                 update((byte) 1);
                 update((byte) 1);
@@ -640,7 +689,7 @@ public class SHA3NativeDigestTests
 
         try
         {
-            new SHA3NativeDigest().restoreState(null, 0);
+            new SHAKENativeDigest().restoreState(null, 0);
             fail("accepted null");
         }
         catch (Exception ex)
@@ -651,7 +700,7 @@ public class SHA3NativeDigestTests
 
         try
         {
-            new SHA3NativeDigest().restoreState(new byte[saneState.length - 2], 0);
+            new SHAKENativeDigest().restoreState(new byte[saneState.length - 2], 0);
             fail("too short");
         }
         catch (Exception ex)
@@ -663,12 +712,12 @@ public class SHA3NativeDigestTests
         try
         {
             // All zeroes.
-            new SHA3NativeDigest().restoreFullState(new byte[saneState.length], 0);
+            new SHAKENativeDigest().restoreFullState(new byte[saneState.length], 0);
             fail("bad id");
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid sha3 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid shake encoded state"));
         }
 
 
@@ -686,20 +735,14 @@ public class SHA3NativeDigestTests
             // within in the struct that the LSB of bufPtr will be.
             // This will enable us to assert that length checking of encoded bufPtr is correct.
 
-            for (int t = 0; t < state.length; t++)
-            {
-                if (state[t] == 4)
-                {
-                    state[t] = (byte) 144;
-                }
-            }
+            state[24] = (byte) 193;
 
-            new SHA3NativeDigest().restoreState(state, 0);
-            fail("should fail on bufPtr value exceeding 144");
+            new SHAKENativeDigest().restoreState(state, 0);
+            fail("should fail on bufPtr value exceeding 193");
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid sha3 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid shake encoded state"));
         }
 
 
@@ -709,22 +752,14 @@ public class SHA3NativeDigestTests
             // Check bufPtr limit test
 
             byte[] state = Arrays.clone(saneState);
+            state[24] = (byte) 192;
 
-
-            for (int t = 0; t < state.length; t++)
-            {
-                if (state[t] == 4)
-                {
-                    state[t] = (byte) 144;
-                }
-            }
-
-            new SHA3NativeDigest().restoreState(state, 0);
-            fail("should fail on bufPtr value exceeding 144");
+            new SHAKENativeDigest().restoreState(state, 0);
+            fail("should fail on bufPtr value exceeding 192");
         }
         catch (Exception ex)
         {
-            TestCase.assertTrue(ex.getMessage().contains("invalid sha3 encoded state"));
+            TestCase.assertTrue(ex.getMessage().contains("invalid shake encoded state"));
         }
 
 
@@ -734,23 +769,23 @@ public class SHA3NativeDigestTests
     public void testMemoable()
             throws Exception
     {
-        if (!TestUtil.hasNativeService("SHA3"))
+        if (!TestUtil.hasNativeService("SHAKE"))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
             {
-                fail("Skipping SHA3 Limit Test: " + TestUtil.errorMsg());
+                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
             }
             return;
         }
 
         // There are other tests for memoable, this is more of a sanity test
 
-        SHA3NativeDigest dig1 = new SHA3NativeDigest();
+        SHAKENativeDigest dig1 = new SHAKENativeDigest();
         dig1.update((byte) 1);
 
-        SHA3NativeDigest dig2 = new SHA3NativeDigest(dig1);
+        SHAKENativeDigest dig2 = new SHAKENativeDigest(dig1);
 
-        SHA3Digest jig1 = new SHA3Digest();
+        SHAKEDigest jig1 = new SHAKEDigest();
         jig1.update((byte) 1);
 
         byte[] r1 = new byte[dig1.getDigestSize()];

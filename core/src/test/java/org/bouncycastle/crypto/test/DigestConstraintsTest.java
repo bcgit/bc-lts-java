@@ -223,7 +223,7 @@ public class DigestConstraintsTest
 
         try
         {
-            new SHA3Digest(224);
+             SHA3Digest.newInstance(224);
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -233,7 +233,7 @@ public class DigestConstraintsTest
 
         try
         {
-            new SHA3Digest(256);
+            SHA3Digest.newInstance(256);
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -243,7 +243,7 @@ public class DigestConstraintsTest
 
         try
         {
-            new SHA3Digest(384);
+            SHA3Digest.newInstance(384);
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -253,12 +253,12 @@ public class DigestConstraintsTest
 
         CryptoServicesRegistrar.setServicesConstraints(new BitsOfSecurityConstraint(256));
 
-        new SHA3Digest(256, CryptoServicePurpose.PRF);
-        new SHA3Digest(384, CryptoServicePurpose.PRF);
+        SHA3Digest.newInstance(256, CryptoServicePurpose.PRF);
+        SHA3Digest.newInstance(384, CryptoServicePurpose.PRF);
 
         try
         {
-            new SHA3Digest(224, CryptoServicePurpose.PRF);
+            SHA3Digest.newInstance(224, CryptoServicePurpose.PRF);
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -306,7 +306,7 @@ public class DigestConstraintsTest
             isEquals("service does not provide 256 bits of security only 128", e.getMessage());
         }
 
-        new SHA3Digest(512);
+        SHA3Digest.newInstance(512);
         new SHAKEDigest(256);
         new CSHAKEDigest(256, new byte[0], new byte[0]);
         new KMAC(256, new byte[0]);

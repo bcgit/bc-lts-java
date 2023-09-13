@@ -63,15 +63,15 @@ class BcImplProvider
         case HashAlgorithmTags.SHA512:
             return  SHA512Digest.newInstance();
         case HashAlgorithmTags.SHA3_224:
-            return new SHA3Digest(224);
+            return SHA3Digest.newInstance(224);
         case HashAlgorithmTags.SHA3_256:
         case HashAlgorithmTags.SHA3_256_OLD:
-            return new SHA3Digest(256);
+            return SHA3Digest.newInstance(256);
         case HashAlgorithmTags.SHA3_384:
-            return new SHA3Digest(384);
+            return SHA3Digest.newInstance(384);
         case HashAlgorithmTags.SHA3_512:
         case HashAlgorithmTags.SHA3_512_OLD:
-            return new SHA3Digest(512);
+            return SHA3Digest.newInstance(512);
         case HashAlgorithmTags.MD2:
             return new MD2Digest();
         case HashAlgorithmTags.MD5:

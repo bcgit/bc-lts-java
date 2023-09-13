@@ -127,13 +127,10 @@ class SHA224NativeDigest
     }
 
 
-
-
     void restoreFullState(byte[] encoded, int offset)
     {
         restoreFullState(nativeRef.getReference(), encoded, offset);
     }
-
 
 
     @Override

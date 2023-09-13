@@ -20,6 +20,7 @@ dependencies {
 
   implementation files("$lts_prov")
   implementation files("$lts_util")
+    implementation project(path: ':core')
     java9Implementation project(':prov')
   java9Implementation project(':util')
   java9Implementation files(sourceSets.main.output.classesDirs) {
