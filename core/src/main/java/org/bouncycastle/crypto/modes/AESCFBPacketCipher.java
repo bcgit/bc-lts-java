@@ -39,10 +39,6 @@ public class AESCFBPacketCipher
         {
             throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
         }
-        if ((len & 15) != 0)
-        {
-            throw new IllegalArgumentException(ExceptionMessage.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID);
-        }
         return len;
     }
 
@@ -110,9 +106,10 @@ public class AESCFBPacketCipher
         int inStart = inOff;
         int outStart = outOff;
         int blockCount = len >>> 4;
+        boolean tail = (len & 15) != 0;
         if (encryption)
         {
-            boolean tail = (len & 15) != 0;
+
             for (int i = 0; i < blockCount; ++i)
             {
                 encryptBlock(C, workingKey, s, ROUNDS);
@@ -138,6 +135,12 @@ public class AESCFBPacketCipher
                 littleEndianToInt4(input, inStart, C);
                 inStart += BLOCK_SIZE;
                 outStart += BLOCK_SIZE;
+            }
+            if (tail)
+            {
+                encryptBlock(C, workingKey, s, ROUNDS);
+                int4XorLittleEndianTail(C, input, inStart, input.length - inStart);
+                int4ToLittleEndian(C, output, outStart);
             }
         }
         Arrays.fill(cfbV, (byte)0);

@@ -94,11 +94,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFBPacketCi
         goto exit;
     }
 
-    if (encryption != JNI_TRUE && (inLen & 15)) {
-        throw_bc_data_length_exception(env, BLOCK_CIPHER_16_INPUT_LENGTH_INVALID);
-        goto exit;
-    }
-
     if (out == NULL) {
         throw_java_illegal_argument(env, EM_OUTPUT_NULL);
         goto exit;
@@ -109,7 +104,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFBPacketCi
         goto exit;
     }
 
-    if (!check_range(output.size, (size_t) outOff, (size_t) (((inLen >> 4) << 4) + (inLen & 15 ? 16 : 0)))) {
+    if (!check_range(output.size, (size_t) outOff, (size_t)inLen)) {
         throw_bc_data_length_exception(env, EM_OUTPUT_LENGTH);
         goto exit;
     }
@@ -172,9 +167,5 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFBPacketCi
         throw_java_illegal_argument(env, EM_LEN_NEGATIVE);
         return 0;
     }
-    int result = get_output_size((int) len);
-    if (result < 0) {
-        throw_bc_data_length_exception(env, EM_OUTPUT_LENGTH);
-    }
-    return result;
+    return len;
 }

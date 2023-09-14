@@ -37,7 +37,7 @@ public class AESCFBPacketCipherTest
         String[] args)
         throws Exception
     {
-        AESCFBPacketCipherTest test= new AESCFBPacketCipherTest();
+        AESCFBPacketCipherTest test = new AESCFBPacketCipherTest();
         test.performTest();
     }
 
@@ -82,7 +82,9 @@ public class AESCFBPacketCipherTest
         }
         return true;
     }
-    public void testAgreementForMultipleMessages() throws Exception
+
+    public void testAgreementForMultipleMessages()
+        throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
         CryptoServicesRegistrar.setNativeEnabled(false);
@@ -122,7 +124,7 @@ public class AESCFBPacketCipherTest
             cfbModeCipherEnc.init(true, cp);
 
 
-            for (int t = 0; t < 8192; t += 16)
+            for (int t = 0; t < 8192; t++)
             {
                 cfbModeCipherEnc.reset();
                 byte[] msg = new byte[t];
@@ -130,7 +132,7 @@ public class AESCFBPacketCipherTest
 
                 // Generate expected message off the
                 byte[] expected = new byte[msg.length];
-                cfbModeCipherEnc.processBlocks(msg, 0, msg.length / 16, expected, 0);
+                cfbModeCipherEnc.processBytes(msg, 0, msg.length, expected, 0);
 
 
                 // Test encryption
@@ -167,7 +169,8 @@ public class AESCFBPacketCipherTest
      *
      * @throws Exception
      */
-    public void testIntoSameArray() throws Exception
+    public void testIntoSameArray()
+        throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
         CryptoServicesRegistrar.setNativeEnabled(false);
@@ -218,7 +221,7 @@ public class AESCFBPacketCipherTest
                 // Generate the expected cipher text from java CFB mode
                 byte[] expectedCText = new byte[msg.length];
                 cfbModeCipherEnc.reset();
-                cfbModeCipherEnc.processBlocks(msg, 0, msg.length / 16, expectedCText, 0);
+                cfbModeCipherEnc.processBytes(msg, 0, msg.length, expectedCText, 0);
 
 
                 for (int jiggle : new int[]{0, 1})
@@ -244,7 +247,7 @@ public class AESCFBPacketCipherTest
 
                     // Destroy plain text section
                     // as it should be written over with the correct plain text
-                    Arrays.fill(workingArray, jiggle, msg.length + jiggle, (byte) 1);
+                    Arrays.fill(workingArray, jiggle, msg.length + jiggle, (byte)1);
 
 
                     // Decryption
@@ -271,13 +274,14 @@ public class AESCFBPacketCipherTest
             }
         }
     }
+
     public void testExceptions()
     {
         AESCFBModePacketCipher cfb = AESPacketCipherEngine.createCFBPacketCipher();
 
         try
         {
-            cfb.getOutputSize(false, new ParametersWithIV(new KeyParameter(new byte[16]),  new byte[16]), -1);
+            cfb.getOutputSize(false, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]), -1);
             fail("negative value for getOutputSize");
         }
         catch (IllegalArgumentException e)
@@ -315,16 +319,6 @@ public class AESCFBPacketCipherTest
         catch (PacketCipherException e)
         {
             TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
-        }
-
-        try
-        {
-            cfb.processPacket(false, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]), new byte[15], 0, 15, new byte[16], 0);
-            fail("output buffer too small for processPacket");
-        }
-        catch (PacketCipherException e)
-        {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID));
         }
 
         try
@@ -488,7 +482,7 @@ public class AESCFBPacketCipherTest
                     byte[] javaResult = new byte[expected.length];
 
                     int nrl = packetCFB.processPacket(encryption, params, msg, 0, msg.length, nativeResult, 0);
-                    int jrl = javaCFB.processBlocks(msg, 0, msg.length / javaCFB.getBlockSize(), javaResult, 0);
+                    int jrl = javaCFB.processBytes(msg, 0, msg.length, javaResult, 0);
 //                    if (!Arrays.areEqual(nativeResult, expected))
 //                    {
 //                        nrl = packetCFB.processPacket(encryption, params, msg, 0, msg.length, nativeResult, 0);
@@ -1354,7 +1348,6 @@ public class AESCFBPacketCipherTest
         }
 
     }
-
 
 
     public void testCFBJavaAgreement_128()
