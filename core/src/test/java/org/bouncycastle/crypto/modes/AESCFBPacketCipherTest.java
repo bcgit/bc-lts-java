@@ -209,7 +209,7 @@ public class AESCFBPacketCipherTest
             CipherParameters cp = new ParametersWithIV(new KeyParameter(key), iv);
             cfbModeCipherEnc.init(true, cp);
 
-            for (int t = 0; t < 2048; t += 16)
+            for (int t = 0; t < 2048; t++)
             {
                 byte[] msg = new byte[t];
                 secureRandom.nextBytes(msg);
