@@ -293,7 +293,7 @@ size_t cfb_pc_decrypt(uint8_t *src, size_t len, unsigned char *dest, __m128i *ro
 unsigned char
 cfb_pc_decrypt_byte(unsigned char b, __m128i *roundKeys, __m128i *mask, __m128i *feedback, uint32_t *buf_index,
                     int num_rounds) {
-    if (buf_index == 0) {
+    if (*buf_index == 0) {
         // We need to generate a new encrypted feedback block to xor into the data.
 
         *mask = _mm_xor_si128(*feedback, roundKeys[0]);
