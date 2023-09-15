@@ -1150,19 +1150,15 @@ public class BaseBlockCipher
             else if (modeName.startsWith("CFB"))
             {
                 //return; // TODO add back when fixed
-//                if (modeName.length() != 3)
-//                {
-//                    int wordSize = Integer.parseInt(modeName.substring(3));
-//                    if (wordSize != 128)
-//                    {
-//                        return;
-//                    }
-//                }
-//
-//                // Otherwise it would have been baseEngine.getBlockSize() * 8 as this is AES thanks to 1124 it
-//                // will be 128
-//
-//
+                if (modeName.length() != 3)
+                {
+                    int wordSize = Integer.parseInt(modeName.substring(3));
+                    if (wordSize != 128)
+                    {
+                        return;
+                    }
+                }
+
                 packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCFBPacketCipher() :
                         packetCipherInstance;
             }
