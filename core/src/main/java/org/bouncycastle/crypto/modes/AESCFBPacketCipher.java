@@ -52,10 +52,6 @@ public class AESCFBPacketCipher
         {
             throw PacketCipherException.from(new DataLengthException(ExceptionMessage.OUTPUT_LENGTH));
         }
-        if ((len & 15) != 0)
-        {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID));
-        }
         byte[] cfbV = new byte[BLOCK_SIZE];
         byte[] iv, key;
         int[][] workingKey;
