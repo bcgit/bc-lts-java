@@ -104,6 +104,7 @@ public class AESCFBPacketCipher
         int outStart = outOff;
         int blockCount = len >>> 4;
         boolean tail = (len & 15) != 0;
+        int remaining=len;
         if (encryption)
         {
 
@@ -114,7 +115,7 @@ public class AESCFBPacketCipher
                 int4ToLittleEndian(C, output, outStart);
                 inStart += BLOCK_SIZE;
                 outStart += BLOCK_SIZE;
-                len -= BLOCK_SIZE;
+                remaining -= BLOCK_SIZE;
             }
         }
         else
@@ -127,14 +128,14 @@ public class AESCFBPacketCipher
                 littleEndianToInt4(input, inStart, C);
                 inStart += BLOCK_SIZE;
                 outStart += BLOCK_SIZE;
-                len -= BLOCK_SIZE;
+                remaining -= BLOCK_SIZE;
             }
         }
         if (tail)
         {
             encryptBlock(C, workingKey, s, ROUNDS);
             Pack.intToLittleEndian(C, cfbV, 0);
-            for (int i = 0; i < len ; ++i)
+            for (int i = 0; i < remaining ; ++i)
             {
                 output[outStart + i] = (byte)(cfbV[i] ^ input[inStart + i]);
             }

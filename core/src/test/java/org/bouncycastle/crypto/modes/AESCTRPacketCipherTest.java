@@ -74,7 +74,7 @@ public class AESCTRPacketCipherTest
     {
 
         SecureRandom rand = new SecureRandom();
-
+        setUp();
 
         int[] ivLens = new int[]{15, 14, 13, 12, 11, 10, 9, 8, 16};
 
