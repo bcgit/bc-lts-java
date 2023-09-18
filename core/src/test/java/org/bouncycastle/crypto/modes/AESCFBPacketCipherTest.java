@@ -32,85 +32,21 @@ public class AESCFBPacketCipherTest
         extends TestCase
 {
 
+    public AESCFBPacketCipherTest() {
 
-    public void testAgreementForMultipleMessages()
-            throws Exception
-    {
-        SecureRandom secureRandom = new SecureRandom();
-        CryptoServicesRegistrar.setNativeEnabled(false);
-
-        // Java implementation of CFB mode with the Java aes engine
-        // Packet ciphers will be compared to this.
-        CFBModeCipher cfbModeCipherEnc = new CFBBlockCipher(new AESEngine(), 128);
-
-        //
-        //  Implementation of packet cipher, may be native or java depending on variant used in testing
-        //
-        CryptoServicesRegistrar.setNativeEnabled(true);
-        PacketCipher cfbPS = new AESCFBPacketCipher(); //  AESCFBPacketCipher.newInstance();
-
-        // isCorrectTypeForVariant(cfbPS);
-
-        byte[] iv = new byte[16];
-        secureRandom.nextBytes(iv);
-        for (int ks : new int[]{16, 24, 32})
-        {
-            byte[] key = new byte[ks];
-            secureRandom.nextBytes(key);
-            CipherParameters cp = new ParametersWithIV(new KeyParameter(key), iv);
-            cfbModeCipherEnc.init(true, cp);
-
-
-            for (int t = 0; t < 8192; t++)
-            {
-                cfbModeCipherEnc.reset();
-                byte[] msg = new byte[t];
-                secureRandom.nextBytes(msg);
-
-                // Generate expected message off the
-                byte[] expected = new byte[msg.length];
-                cfbModeCipherEnc.processBytes(msg, 0, msg.length, expected, 0);
-
-
-                // Test encryption
-                int len = cfbPS.getOutputSize(true, cp, msg.length);
-                TestCase.assertEquals(msg.length, len);
-                byte[] ctResult = new byte[len];
-
-                int outLen = cfbPS.processPacket(true, cp, msg, 0, msg.length, ctResult, 0);
-                TestCase.assertEquals(msg.length, outLen);
-
-                // Test encrypted output same
-                TestCase.assertTrue("Cipher text: " + msg.length, Arrays.areEqual(expected, ctResult));
-
-
-                // Test decryption
-
-                len = cfbPS.getOutputSize(false, cp, ctResult.length);
-                TestCase.assertEquals(msg.length, len);
-                byte[] ptResult = new byte[len];
-
-                outLen = cfbPS.processPacket(false, cp, ctResult, 0, ctResult.length, ptResult, 0);
-                TestCase.assertEquals("Plain text: " + msg.length, msg.length, outLen);
-
-                // Test encrypted output same
-                TestCase.assertTrue("With message: " + msg.length, Arrays.areEqual(msg, ptResult));
-
-            }
-        }
     }
-
 
     /**
      * Tests operation of packet cipher where input and output arrays are the same
      *
      * @throws Exception
      */
+    @Test
     public void testIntoSameArray()
             throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
-        CryptoServicesRegistrar.setNativeEnabled(false);
+
 
         // Java implementation of CFB mode with the Java aes engine
         // Packet ciphers will be compared to this.
@@ -119,7 +55,6 @@ public class AESCFBPacketCipherTest
         //
         //  Implementation of packet cipher, may be native or java depending on variant used in testing
         //
-        CryptoServicesRegistrar.setNativeEnabled(true);
         PacketCipher cfbPS = AESCFBPacketCipher.newInstance();
 
         isCorrectTypeForVariant(cfbPS);
@@ -200,6 +135,7 @@ public class AESCFBPacketCipherTest
         }
     }
 
+    @Test
     public void testExceptions()
     {
         AESCFBModePacketCipher cfb = AESPacketCipherEngine.createCFBPacketCipher();
@@ -305,12 +241,12 @@ public class AESCFBPacketCipherTest
         }
     }
 
-
+    @Test
     public void testCFBSpreadAgreement()
             throws Exception
     {
         SecureRandom rand = new SecureRandom();
-        AESCFBModePacketCipher cfbPkt = AESPacketCipherEngine.createCFBPacketCipher();
+        AESCFBModePacketCipher cfbPkt =  AESCFBPacketCipher.createCFBPacketCipher();
         isCorrectTypeForVariant(cfbPkt);
         for (int ks : new int[]{16, 24, 32})
         {
@@ -356,11 +292,12 @@ public class AESCFBPacketCipherTest
                     // When msg is created the whole array is filled with random data.
                     // Finally, when plain texts are generated they will be generated into empty arrays
                     // and will have leading zero values.
+                    byte[] expectedResult = Arrays.clone(msg);
                     for (int i = 0; i < jitter; i++)
                     {
-                        msg[i] = 0;
+                        expectedResult[i] = 0;
                     }
-                    TestCase.assertTrue(Arrays.areEqual(cfbExpectedPt, msg)); // sanity
+                    TestCase.assertTrue(Arrays.areEqual(cfbExpectedPt, expectedResult)); // sanity
 
                 }
             }

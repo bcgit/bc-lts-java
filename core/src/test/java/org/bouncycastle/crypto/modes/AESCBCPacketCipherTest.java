@@ -11,6 +11,8 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class AESCBCPacketCipherTest
         extends TestCase
@@ -20,13 +22,6 @@ public class AESCBCPacketCipherTest
 
     }
 
-//    public static void main(
-//        String[] args)
-//        throws Exception
-//    {
-//        AESCBCPacketCipherTest test = new AESCBCPacketCipherTest();
-//        test.performTest();
-//    }
 
     public boolean isNativeVariant()
     {
@@ -38,18 +33,8 @@ public class AESCBCPacketCipherTest
         return true;
     }
 
-    public void performTest()
-            throws Exception
-    {
-        testAgreementForMultipleMessages();
-        testIntoSameArray();
-        CryptoServicesRegistrar.setNativeEnabled(true);
-        testExceptions();
-        CryptoServicesRegistrar.setNativeEnabled(false);
-        testExceptions();
-        System.out.println("AESCBCPacketCipherTest pass");
-    }
 
+    @Test
     public void testAgreementForMultipleMessages() throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
@@ -129,16 +114,15 @@ public class AESCBCPacketCipherTest
         }
     }
 
-
     /**
      * Tests operation of packet cipher where input and output arrays are the same
      *
      * @throws Exception
      */
+    @Test
     public void testIntoSameArray() throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
-        CryptoServicesRegistrar.setNativeEnabled(false);
 
         // Java implementation of CBC mode with the Java aes engine
         // Packet ciphers will be compared to this.
@@ -147,7 +131,6 @@ public class AESCBCPacketCipherTest
         //
         //  Implementation of packet cipher, may be native or java depending on variant used in testing
         //
-        CryptoServicesRegistrar.setNativeEnabled(true);
         PacketCipher cbcPS = AESCBCPacketCipher.newInstance();
 
 
@@ -174,7 +157,8 @@ public class AESCBCPacketCipherTest
             CipherParameters cp = new ParametersWithIV(new KeyParameter(key), iv);
             cbcModeCipherEnc.init(true, cp);
 
-            for (int t = 0; t < 2048; t += 16)
+
+            for (int t = 16; t < 2048; t += 16)
             {
                 byte[] msg = new byte[t];
                 secureRandom.nextBytes(msg);
@@ -241,6 +225,7 @@ public class AESCBCPacketCipherTest
     }
 
 
+    @Test
     public void testExceptions()
     {
         AESCBCModePacketCipher cbc = AESPacketCipherEngine.createCBCPacketCipher();

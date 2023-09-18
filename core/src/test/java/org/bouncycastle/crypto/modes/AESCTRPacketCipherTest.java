@@ -428,6 +428,7 @@ public class AESCTRPacketCipherTest
      *
      * @throws Exception
      */
+    @Test
     public void testIntoSameArray() throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();

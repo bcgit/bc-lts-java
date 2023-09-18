@@ -75,12 +75,19 @@ public class AESCBCPacketCipher
         {
             throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID));
         }
+
+        if (len == 0) {
+            return len;
+        }
+
         boolean tail = (len & 15) != 0;
         int blockCount = (len >> 4) + (tail ? 1 : 0);
         if ((blockCount << 4) + outOff > output.length)
         {
             throw PacketCipherException.from(new DataLengthException(ExceptionMessage.OUTPUT_LENGTH));
         }
+
+
 
         byte[] iv;
         int[][] workingKey;

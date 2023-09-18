@@ -1,11 +1,12 @@
 package org.bouncycastle.crypto.modes;
 
+import junit.framework.TestCase;
 import org.bouncycastle.test.PrintTestResult;
 import junit.framework.Test;
 import junit.extensions.TestSetup;
 import junit.framework.TestSuite;
 
-public class AllTests
+public class AllTests extends TestCase
 {
     public static void main(String[] args)
     {
@@ -19,8 +20,8 @@ public class AllTests
         suite.addTestSuite(AESCCMPacketCipherTest.class);
         suite.addTestSuite(AESCFBPacketCipherTest.class);
         suite.addTestSuite(AESCTRPacketCipherTest.class);
+        suite.addTestSuite(AESGCMPacketCipherTest.class);
         suite.addTestSuite(AESGCMSIVPacketCipherTest.class);
-
         return new BCTestSetup(suite);
     }
 

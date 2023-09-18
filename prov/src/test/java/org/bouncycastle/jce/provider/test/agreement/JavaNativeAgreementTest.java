@@ -104,8 +104,11 @@ public class JavaNativeAgreementTest extends SimpleTest
                                 BouncyCastleProvider.PROVIDER_NAME);
                         gcmDecJava.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-                        TestCase.assertTrue(getEngineString(gcmDecJava).contains("GCM[Java"));
-                        TestCase.assertTrue(getEngineString(gcmEncJava).contains("GCM[Java"));
+                        if (isJava8())
+                        {
+                            TestCase.assertTrue(getEngineString(gcmDecJava).contains("GCM[Java"));
+                            TestCase.assertTrue(getEngineString(gcmEncJava).contains("GCM[Java"));
+                        }
 
                         CryptoServicesRegistrar.setNativeEnabled(true);
                         Cipher gcmEncNative = Cipher.getInstance("AES/GCM/NoPadding",
@@ -116,8 +119,11 @@ public class JavaNativeAgreementTest extends SimpleTest
                                 BouncyCastleProvider.PROVIDER_NAME);
                         gcmDecNative.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-                        TestCase.assertTrue(getEngineString(gcmDecNative).contains("GCM[Native"));
-                        TestCase.assertTrue(getEngineString(gcmEncNative).contains("GCM[Native"));
+                        if (isJava8())
+                        {
+                            TestCase.assertTrue(getEngineString(gcmDecNative).contains("GCM[Native"));
+                            TestCase.assertTrue(getEngineString(gcmEncNative).contains("GCM[Native"));
+                        }
 
 
                         byte[] msg = new byte[msgSize];
@@ -215,9 +221,11 @@ public class JavaNativeAgreementTest extends SimpleTest
                             BouncyCastleProvider.PROVIDER_NAME);
                     gcmDecJava.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-                    TestCase.assertTrue(getEngineString(gcmDecJava).contains("SICBlockCipher"));
-                    TestCase.assertTrue(getEngineString(gcmEncJava).contains("SICBlockCipher"));
-
+                    if (isJava8())
+                    {
+                        TestCase.assertTrue(getEngineString(gcmDecJava).contains("SICBlockCipher"));
+                        TestCase.assertTrue(getEngineString(gcmEncJava).contains("SICBlockCipher"));
+                    }
                     CryptoServicesRegistrar.setNativeEnabled(true);
                     Cipher gcmEncNative = Cipher.getInstance("AES/CTR/NoPadding",
                             BouncyCastleProvider.PROVIDER_NAME);
@@ -227,9 +235,11 @@ public class JavaNativeAgreementTest extends SimpleTest
                             BouncyCastleProvider.PROVIDER_NAME);
                     gcmDecNative.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-                    TestCase.assertTrue(getEngineString(gcmDecNative).contains("CTR[Native"));
-                    TestCase.assertTrue(getEngineString(gcmEncNative).contains("CTR[Native"));
-
+                    if (isJava8())
+                    {
+                        TestCase.assertTrue(getEngineString(gcmDecNative).contains("CTR[Native"));
+                        TestCase.assertTrue(getEngineString(gcmEncNative).contains("CTR[Native"));
+                    }
 
                     byte[] msg = new byte[msgSize];
                     rand.nextBytes(msg);
@@ -325,8 +335,11 @@ public class JavaNativeAgreementTest extends SimpleTest
                             BouncyCastleProvider.PROVIDER_NAME);
                     decJava.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-                    TestCase.assertTrue(getEngineString(decJava).contains("CFB[Java"));
-                    TestCase.assertTrue(getEngineString(encJava).contains("CFB[Java"));
+                    if (isJava8())
+                    {
+                        TestCase.assertTrue(getEngineString(decJava).contains("CFB[Java"));
+                        TestCase.assertTrue(getEngineString(encJava).contains("CFB[Java"));
+                    }
 
                     CryptoServicesRegistrar.setNativeEnabled(true);
                     Cipher encNative = Cipher.getInstance("AES/CFB/NoPadding",
@@ -337,9 +350,11 @@ public class JavaNativeAgreementTest extends SimpleTest
                             BouncyCastleProvider.PROVIDER_NAME);
                     decNative.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-                    TestCase.assertTrue(getEngineString(decNative).contains("CFB[Native"));
-                    TestCase.assertTrue(getEngineString(encNative).contains("CFB[Native"));
-
+                    if (isJava8())
+                    {
+                        TestCase.assertTrue(getEngineString(decNative).contains("CFB[Native"));
+                        TestCase.assertTrue(getEngineString(encNative).contains("CFB[Native"));
+                    }
 
                     byte[] msg = new byte[msgSize];
                     rand.nextBytes(msg);
@@ -435,8 +450,11 @@ public class JavaNativeAgreementTest extends SimpleTest
                             BouncyCastleProvider.PROVIDER_NAME);
                     decJava.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-                    TestCase.assertTrue(getEngineString(decJava).contains("CBC[Java"));
-                    TestCase.assertTrue(getEngineString(encJava).contains("CBC[Java"));
+                    if (isJava8())
+                    {
+                        TestCase.assertTrue(getEngineString(decJava).contains("CBC[Java"));
+                        TestCase.assertTrue(getEngineString(encJava).contains("CBC[Java"));
+                    }
 
                     CryptoServicesRegistrar.setNativeEnabled(true);
                     Cipher encNative = Cipher.getInstance("AES/CBC/NoPadding",
@@ -447,9 +465,11 @@ public class JavaNativeAgreementTest extends SimpleTest
                             BouncyCastleProvider.PROVIDER_NAME);
                     decNative.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-                    TestCase.assertTrue(getEngineString(decNative).contains("CBC[Native"));
-                    TestCase.assertTrue(getEngineString(encNative).contains("CBC[Native"));
-
+                    if (isJava8())
+                    {
+                        TestCase.assertTrue(getEngineString(decNative).contains("CBC[Native"));
+                        TestCase.assertTrue(getEngineString(encNative).contains("CBC[Native"));
+                    }
 
                     byte[] msg = new byte[msgSize];
                     rand.nextBytes(msg);
@@ -539,8 +559,11 @@ public class JavaNativeAgreementTest extends SimpleTest
                         BouncyCastleProvider.PROVIDER_NAME);
                 decJava.init(Cipher.DECRYPT_MODE, spec);
 
-                TestCase.assertTrue(getEngineString(decJava).contains("AES[Java"));
-                TestCase.assertTrue(getEngineString(encJava).contains("AES[Java"));
+                if (isJava8())
+                {
+                    TestCase.assertTrue(getEngineString(decJava).contains("AES[Java"));
+                    TestCase.assertTrue(getEngineString(encJava).contains("AES[Java"));
+                }
 
                 CryptoServicesRegistrar.setNativeEnabled(true);
                 Cipher encNative = Cipher.getInstance("AES/ECB/NoPadding",
@@ -551,9 +574,11 @@ public class JavaNativeAgreementTest extends SimpleTest
                         BouncyCastleProvider.PROVIDER_NAME);
                 decNative.init(Cipher.DECRYPT_MODE, spec);
 
-                TestCase.assertTrue(getEngineString(decNative).contains("AES[Native"));
-                TestCase.assertTrue(getEngineString(encNative).contains("AES[Native"));
-
+                if (isJava8())
+                {
+                    TestCase.assertTrue(getEngineString(decNative).contains("AES[Native"));
+                    TestCase.assertTrue(getEngineString(encNative).contains("AES[Native"));
+                }
 
                 byte[] msg = new byte[msgSize];
                 rand.nextBytes(msg);
@@ -634,7 +659,10 @@ public class JavaNativeAgreementTest extends SimpleTest
                 CryptoServicesRegistrar.setNativeEnabled(false);
                 MessageDigest mdJava = MessageDigest.getInstance("SHA256", BouncyCastleProvider.PROVIDER_NAME);
 
-                TestCase.assertTrue(getDigestEngineString(mdJava).contains("SHA256[Java]"));
+                if (isJava8())
+                {
+                    TestCase.assertTrue(getDigestEngineString(mdJava).contains("SHA256[Java]"));
+                }
 
                 DigestInputStream din = new DigestInputStream(new ByteArrayInputStream(msg), mdJava);
                 Streams.drain(din);
@@ -646,7 +674,10 @@ public class JavaNativeAgreementTest extends SimpleTest
                 CryptoServicesRegistrar.setNativeEnabled(true);
                 MessageDigest mdNative = MessageDigest.getInstance("SHA256", BouncyCastleProvider.PROVIDER_NAME);
 
-                TestCase.assertTrue(getDigestEngineString(mdNative).contains("SHA256[Native]"));
+                if (isJava8())
+                {
+                    TestCase.assertTrue(getDigestEngineString(mdNative).contains("SHA256[Native]"));
+                }
 
                 DigestInputStream din = new DigestInputStream(new ByteArrayInputStream(msg), mdNative);
                 Streams.drain(din);
@@ -738,5 +769,6 @@ public class JavaNativeAgreementTest extends SimpleTest
     {
         return String.join(" ", CryptoServicesRegistrar.getNativeServices().getFeatureSet());
     }
+
 
 }

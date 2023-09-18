@@ -17,6 +17,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
+import org.junit.Test;
 
 
 public class AESCCMPacketCipherTest
@@ -89,6 +90,7 @@ public class AESCCMPacketCipherTest
     }
 
 
+    @Test
     public void testVectors()
             throws Exception
     {
@@ -141,6 +143,7 @@ public class AESCCMPacketCipherTest
     }
 
 
+    @Test
     public void testAgreement()
             throws InvalidCipherTextException, PacketCipherException
     {
@@ -224,6 +227,7 @@ public class AESCCMPacketCipherTest
     }
 
 
+    @Test
     public void testCCMSpreadAgreement()
             throws Exception
     {
@@ -295,6 +299,7 @@ public class AESCCMPacketCipherTest
     }
 
 
+    @Test
     public void testOutputErase()
     {
         AESCCMModePacketCipher ccm = AESPacketCipherEngine.createCCMPacketCipher();
@@ -322,6 +327,7 @@ public class AESCCMPacketCipherTest
         }
     }
 
+    @Test
     public void testExceptions()
     {
         AESCCMModePacketCipher ccm = AESPacketCipherEngine.createCCMPacketCipher();
@@ -461,6 +467,7 @@ public class AESCCMPacketCipherTest
         }
     }
 
+    @Test
     public void testAgreementForMultipleMessages()
             throws Exception
     {
@@ -556,6 +563,7 @@ public class AESCCMPacketCipherTest
      *
      * @throws Exception
      */
+    @Test
     public void testIntoSameArray()
             throws Exception
     {

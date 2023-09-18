@@ -32,7 +32,7 @@ public class AESGCMSIVPacketCipher
         return new AESGCMSIVPacketCipher();
     }
 
-    private AESGCMSIVPacketCipher()
+    public AESGCMSIVPacketCipher()
     {
 
     }
