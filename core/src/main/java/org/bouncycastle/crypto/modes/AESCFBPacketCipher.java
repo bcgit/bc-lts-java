@@ -12,6 +12,7 @@ import org.bouncycastle.crypto.engines.AESNativeCFBPacketCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Pack;
 
 public class AESCFBPacketCipher
     extends AESPacketCipherEngine
@@ -114,12 +115,6 @@ public class AESCFBPacketCipher
                 inStart += BLOCK_SIZE;
                 outStart += BLOCK_SIZE;
             }
-            if (tail)
-            {
-                encryptBlock(C, workingKey, s, ROUNDS);
-                int4XorLittleEndianTail(C, input, inStart, input.length - inStart);
-                int4ToLittleEndian(C, output, outStart);
-            }
         }
         else
         {
@@ -132,11 +127,14 @@ public class AESCFBPacketCipher
                 inStart += BLOCK_SIZE;
                 outStart += BLOCK_SIZE;
             }
-            if (tail)
+        }
+        if (tail)
+        {
+            encryptBlock(C, workingKey, s, ROUNDS);
+            Pack.intToLittleEndian(C, cfbV, 0);
+            for (int i = 0; i < len - inStart; ++i)
             {
-                encryptBlock(C, workingKey, s, ROUNDS);
-                int4XorLittleEndianTail(C, input, inStart, input.length - inStart);
-                int4ToLittleEndian(C, output, outStart);
+                output[outStart + i] = (byte)(cfbV[i] ^ input[inStart + i]);
             }
         }
         Arrays.fill(cfbV, (byte)0);

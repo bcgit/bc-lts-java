@@ -614,26 +614,6 @@ public abstract class AESPacketCipherEngine
         C[3] ^= Pack.littleEndianToInt(input, 12 + inOff);
     }
 
-    protected void int4XorLittleEndianTail(int[] C, byte[] input, int inOff, int len)
-    {
-        if (len >= BLOCK_SIZE)
-        {
-            int4XorLittleEndian(C, input, inOff);
-            return;
-        }
-        int count = Math.min(len >>> 2, 4);
-        int i;
-        for (i = 0; i < count; ++i)
-        {
-            C[i] ^= Pack.littleEndianToInt(input, inOff + (i << 2));
-        }
-        len = inOff + (i << 2);
-        for (int j = 0; j + len < input.length; ++j)
-        {
-            C[i] ^= (input[j + len] & 0xff) << (j << 2);
-        }
-    }
-
     protected static void littleEndianToInt4(byte[] input, int inOff, int[] output)
     {
         output[0] = Pack.littleEndianToInt(input, inOff);
