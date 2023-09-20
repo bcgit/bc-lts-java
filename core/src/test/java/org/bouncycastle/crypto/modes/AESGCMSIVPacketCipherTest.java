@@ -22,13 +22,10 @@ import org.junit.Test;
 public class AESGCMSIVPacketCipherTest
         extends TestCase
 {
-    public String getName()
+
+    public AESGCMSIVPacketCipherTest()
     {
-        return "GCM-SIV";
     }
-
-
-    public AESGCMSIVPacketCipherTest(){}
 
     @Test
     public void testVectors()
@@ -174,22 +171,14 @@ public class AESGCMSIVPacketCipherTest
         }
     }
 
-    private boolean isNativeVariant()
-    {
-        String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
-        if (variant == null || "java".equals(variant))
-        {
-            return false;
-        }
-        return true;
-    }
+
 
     @Test
     public void testAgreementForMultipleMessages()
             throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
-        CryptoServicesRegistrar.setNativeEnabled(false);
+
 
         // Java implementation of GCMSIV mode with the Java aes engine
         // Packet ciphers will be compared to this.
@@ -198,7 +187,7 @@ public class AESGCMSIVPacketCipherTest
         //
         //  Implementation of packet cipher, may be native or java depending on variant used in testing
         //
-        CryptoServicesRegistrar.setNativeEnabled(true);
+
         PacketCipher gcmsivPS = AESGCMSIVPacketCipher.newInstance();
 
 
@@ -218,7 +207,7 @@ public class AESGCMSIVPacketCipherTest
 
         byte[] iv = new byte[12];
         secureRandom.nextBytes(iv);
-        for (int ks : new int[]{16,  32})
+        for (int ks : new int[]{16, 32})
         {
             byte[] key = new byte[ks];
             secureRandom.nextBytes(key);
@@ -228,40 +217,50 @@ public class AESGCMSIVPacketCipherTest
 
             for (int t = 0; t < 8192; t += 16)
             {
-                gcmsivModeCipherEnc.reset();
-                byte[] msg = new byte[t];
-                secureRandom.nextBytes(msg);
 
-                // Generate expected message off the
-                int outLen = gcmsivModeCipherEnc.getOutputSize(msg.length);
-                byte[] expected = new byte[gcmsivModeCipherEnc.getOutputSize(msg.length)];
-                int resultLen = gcmsivModeCipherEnc.processBytes(msg, 0, msg.length, expected, 0);
-                gcmsivModeCipherEnc.doFinal(expected, resultLen);
+                for (int jitter =0; jitter <2; jitter++)
+                {
 
-                // Test encryption
-                int len = gcmsivPS.getOutputSize(true, cp, msg.length);
-                TestCase.assertEquals(outLen, len);
-                byte[] ctResult = new byte[len];
+                    gcmsivModeCipherEnc.reset();
+                    byte[] msg = new byte[t+jitter];
+                    secureRandom.nextBytes(msg);
 
-                outLen = gcmsivPS.processPacket(true, cp, msg, 0, msg.length, ctResult, 0);
-                TestCase.assertEquals(ctResult.length, outLen);
+                    // Generate expected message off the
+                    int outLen = gcmsivModeCipherEnc.getOutputSize(msg.length-jitter);
+                    byte[] expected = new byte[gcmsivModeCipherEnc.getOutputSize(msg.length-jitter)+jitter];
+                    int resultLen = gcmsivModeCipherEnc.processBytes(msg, jitter, msg.length-jitter, expected, jitter);
+                    gcmsivModeCipherEnc.doFinal(expected, resultLen+jitter);
 
-                // Test encrypted output same
-                TestCase.assertTrue(Arrays.areEqual(expected, ctResult));
+                    // Test encryption
+                    int len = gcmsivPS.getOutputSize(true, cp, msg.length-jitter);
+                    TestCase.assertEquals(outLen, len);
+                    byte[] ctResult = new byte[len+jitter];
+
+                    outLen = gcmsivPS.processPacket(true, cp, msg, jitter, msg.length-jitter, ctResult, jitter);
+                    TestCase.assertEquals(ctResult.length-jitter, outLen);
+
+                    // Test encrypted output same
+                    TestCase.assertTrue(Arrays.areEqual(expected, ctResult));
 
 
-                // Test decryption
+                    // Test decryption
 
-                len = gcmsivPS.getOutputSize(false, cp, ctResult.length);
-                TestCase.assertEquals(msg.length, len);
-                byte[] ptResult = new byte[len];
+                    len = gcmsivPS.getOutputSize(false, cp, ctResult.length-jitter);
+                    TestCase.assertEquals(msg.length-jitter, len);
+                    byte[] ptResult = new byte[len+jitter];
 
-                outLen = gcmsivPS.processPacket(false, cp, ctResult, 0, ctResult.length, ptResult, 0);
-                TestCase.assertEquals(msg.length, outLen);
+                    outLen = gcmsivPS.processPacket(false, cp, ctResult, jitter, ctResult.length-jitter, ptResult, jitter);
+                    TestCase.assertEquals(msg.length-jitter, outLen);
 
-                // Test encrypted output same
-                TestCase.assertTrue(Arrays.areEqual(msg, ptResult));
 
+                    byte[] expectedResult =Arrays.clone(msg);
+                    for (int i=0; i<jitter;i++) {
+                        expectedResult[i] = 0;
+                    }
+
+                    // Test encrypted output same
+                    TestCase.assertTrue(Arrays.areEqual(expectedResult, ptResult));
+                }
             }
         }
     }
@@ -277,7 +276,7 @@ public class AESGCMSIVPacketCipherTest
             throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
-        CryptoServicesRegistrar.setNativeEnabled(false);
+
 
         // Java implementation of GCMSIV mode with the Java aes engine
         // Packet ciphers will be compared to this.
@@ -286,23 +285,23 @@ public class AESGCMSIVPacketCipherTest
         //
         //  Implementation of packet cipher, may be native or java depending on variant used in testing
         //
-        CryptoServicesRegistrar.setNativeEnabled(true);
-        PacketCipher gcmsivPS =  new AESGCMSIVPacketCipher(); //  AESGCMSIVPacketCipher.newInstance();
+
+        PacketCipher gcmsivPS = AESGCMSIVPacketCipher.newInstance();
 
 
         //
         // Verify we are getting is what we expect.
         //
-//        if (isNativeVariant())
-//        {
-//            TestCase.assertTrue(gcmsivPS.toString().contains("GCMSIV-PS[Native]"));
-//            TestCase.assertTrue(gcmsivPS instanceof AESNativeGCMSIVPacketCipher);
-//        }
-//        else
-//        {
-//            TestCase.assertTrue(gcmsivPS.toString().contains("GCMSIV-PS[Java]"));
-//            TestCase.assertTrue(gcmsivPS instanceof AESGCMSIVPacketCipher);
-//        }
+        if (isNativeVariant())
+        {
+            TestCase.assertTrue(gcmsivPS.toString().contains("GCMSIV-PS[Native]"));
+            TestCase.assertTrue(gcmsivPS instanceof AESNativeGCMSIVPacketCipher);
+        }
+        else
+        {
+            TestCase.assertTrue(gcmsivPS.toString().contains("GCMSIV-PS[Java]"));
+            TestCase.assertTrue(gcmsivPS instanceof AESGCMSIVPacketCipher);
+        }
 
         byte[] iv;
 
@@ -339,7 +338,7 @@ public class AESGCMSIVPacketCipherTest
                     // Encryption
                     System.arraycopy(msg, 0, workingArray, jitter, msg.length);
                     int len = gcmsivPS.processPacket(true, cp, workingArray, jitter, msg.length, workingArray,
-                             mLen + jitter);
+                            mLen + jitter);
                     TestCase.assertEquals(gcmsivPS.getOutputSize(true, cp, msg.length), len);
 
                     // Check cipher text
@@ -357,7 +356,7 @@ public class AESGCMSIVPacketCipherTest
 
                     // Destroy plain text section
                     // as it should be written over with the correct plain text
-                    Arrays.fill(workingArray, jitter, mLen+jitter, (byte) 1);
+                    Arrays.fill(workingArray, jitter, mLen + jitter, (byte) 1);
 
                     // Decryption
                     len = gcmsivPS.processPacket(false, cp, workingArray, mLen + jitter, len, workingArray,
@@ -382,8 +381,6 @@ public class AESGCMSIVPacketCipherTest
 
             }
         }
-
-
     }
 
 
@@ -814,4 +811,13 @@ public class AESGCMSIVPacketCipherTest
         }
     }
 
+    private boolean isNativeVariant()
+    {
+        String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
+        if (variant == null || "java".equals(variant))
+        {
+            return false;
+        }
+        return true;
+    }
 }

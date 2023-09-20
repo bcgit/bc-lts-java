@@ -63,31 +63,7 @@ public class AESCCMPacketCipherTest
 
     }
 
-    private boolean isNativeVariant()
-    {
-        String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
-        if (variant == null || "java".equals(variant))
-        {
-            return false;
-        }
-        return true;
-    }
 
-    private void isCorrectTypeForVariant(Object o) {
-        //
-        // Verify we are getting is what we expect.
-        //
-        if (isNativeVariant())
-        {
-            TestCase.assertTrue(o.toString().contains("CCM-PS[Native]"));
-            TestCase.assertTrue(o instanceof AESNativeCCMPacketCipher);
-        }
-        else
-        {
-            TestCase.assertTrue(o.toString().contains("CCM-PS[Java]"));
-            TestCase.assertTrue(o instanceof AESCCMPacketCipher);
-        }
-    }
 
 
     @Test
@@ -105,198 +81,6 @@ public class AESCCMPacketCipherTest
 
     }
 
-    private void checkVectors(
-            int count,
-            AESCCMModePacketCipher ccm,
-            byte[] k,
-            int macSize,
-            byte[] n,
-            byte[] a,
-            byte[] p,
-            byte[] t,
-            byte[] c)
-            throws PacketCipherException
-    {
-        KeyParameter keyParam = (k == null) ? null : new KeyParameter(k);
-        AEADParameters parameters = new AEADParameters(keyParam, macSize, n, a);
-        int len = ccm.getOutputSize(true, parameters, p.length);
-        byte[] enc = new byte[len];
-        ccm.processPacket(true, parameters, p, 0, p.length, enc, 0);
-
-        if (!Arrays.areEqual(c, enc))
-        {
-            for (int i = 0; i < c.length; ++i)
-            {
-                if (c[i] != enc[i])
-                {
-                    System.out.println(i + " " + c[i] + enc[i]);
-                }
-            }
-            fail("encrypted stream fails to match in test " + count);
-        }
-
-        len = ccm.getOutputSize(false, parameters, enc.length);
-        byte[] dec = new byte[len];
-        ccm.processPacket(false, parameters, enc, 0, enc.length, dec, 0);
-
-        TestCase.assertTrue("decrypted stream fails to match in test " + count, Arrays.areEqual(p, dec));
-    }
-
-
-    @Test
-    public void testAgreement()
-            throws InvalidCipherTextException, PacketCipherException
-    {
-        SecureRandom secureRandom = new SecureRandom();
-        AESCCMModePacketCipher ccm2 = AESPacketCipherEngine.createCCMPacketCipher();
-
-        isCorrectTypeForVariant(ccm2);
-
-        int[] keybytes = {16, 24, 32};
-        for (int i = 0; i < 3; ++i)
-        {
-            int keySize = keybytes[i];
-
-            for (int t = 0; t < 4000; t++)
-            {
-                byte[] javaPT = new byte[secureRandom.nextInt(2048)];
-                secureRandom.nextBytes(javaPT);
-                byte[] key = new byte[keySize];
-                secureRandom.nextBytes(key);
-
-                byte[] iv = new byte[13];
-                secureRandom.nextBytes(iv);
-                CCMBlockCipher ccm1 = new CCMBlockCipher(new AESEngine());
-                ParametersWithIV parameters = new ParametersWithIV(new KeyParameter(key), iv);
-                ccm1.init(true, parameters);
-                byte[] ccm1CT = new byte[ccm1.getOutputSize(javaPT.length)];
-                int j = ccm1.processBytes(javaPT, 0, javaPT.length, ccm1CT, 0);
-                ccm1.doFinal(ccm1CT, j);
-
-                byte[] ccm2CT = new byte[ccm2.getOutputSize(true, parameters, javaPT.length)];
-                ccm2.processPacket(true, parameters, javaPT, 0, javaPT.length, ccm2CT, 0);
-
-                if (!Arrays.areEqual(ccm1CT, ccm2CT))
-                {
-                    System.out.println(javaPT.length);
-                    System.out.println(Hex.toHexString(ccm2CT));
-                    System.out.println(Hex.toHexString(ccm1CT));
-                    for (j = 0; j < ccm2CT.length; j++)
-                    {
-                        if (ccm2CT[j] == ccm1CT[j])
-                        {
-                            System.out.print("  ");
-                        }
-                        else
-                        {
-                            System.out.print("^^");
-                        }
-                    }
-                    System.out.println();
-                }
-
-                ccm1.init(true, parameters);
-                byte[] ccm1PT = new byte[ccm1.getOutputSize(ccm1CT.length)];
-                j = ccm1.processBytes(ccm1CT, 0, ccm1CT.length, ccm1PT, 0);
-                ccm1.doFinal(ccm1PT, j);
-
-                byte[] ccm2PT = new byte[ccm2.getOutputSize(true, parameters, ccm2CT.length)];
-                ccm2.processPacket(true, parameters, ccm2CT, 0, ccm2CT.length, ccm2PT, 0);
-
-                if (!Arrays.areEqual(ccm1PT, ccm2PT))
-                {
-                    System.out.println(javaPT.length);
-                    System.out.println(Hex.toHexString(ccm1PT));
-                    System.out.println(Hex.toHexString(ccm2PT));
-                    for (j = 0; j < ccm2CT.length; j++)
-                    {
-                        if (ccm2PT[j] == ccm1PT[j])
-                        {
-                            System.out.print("  ");
-                        }
-                        else
-                        {
-                            System.out.print("^^");
-                        }
-                    }
-                    System.out.println();
-                }
-            }
-        }
-
-    }
-
-
-    @Test
-    public void testCCMSpreadAgreement()
-            throws Exception
-    {
-     SecureRandom rand = new SecureRandom();
-        SecureRandom secureRandom = new SecureRandom();
-        AESCCMModePacketCipher ccm2 = AESPacketCipherEngine.createCCMPacketCipher();
-        isCorrectTypeForVariant(ccm2);
-        for (int ks : new int[]{16, 24, 32})
-        {
-            byte[] key = new byte[ks];
-            rand.nextBytes(key);
-
-            for (int ivLen = 7; ivLen <= 13; ivLen++)
-            {
-                byte[] iv = new byte[ivLen];
-                rand.nextBytes(iv);
-
-
-                for (int macSize = 32; macSize <= 128; macSize += 16)
-                {
-
-                    for (int msgSize = 0; msgSize < 515; msgSize++)
-                    {
-
-                        byte[] javaPT = new byte[msgSize];
-                        rand.nextBytes(javaPT);
-
-
-                        // Java version used to generate expected output
-                        CCMBlockCipher ccmReference = new CCMBlockCipher(new AESEngine());
-                        AEADParameters parameters = new AEADParameters(new KeyParameter(key), macSize, iv);
-                        ccmReference.init(true, parameters);
-                        byte[] ccmExpected = new byte[ccmReference.getOutputSize(javaPT.length)];
-                        int j = ccmReference.processBytes(javaPT, 0, javaPT.length, ccmExpected, 0);
-                        ccmReference.doFinal(ccmExpected, j);
-
-
-
-
-                        byte[] ccmPCEnc = new byte[ccm2.getOutputSize(true, parameters, javaPT.length)];
-                        ccm2.processPacket(true, parameters, javaPT, 0, javaPT.length, ccmPCEnc, 0);
-
-                        if (!Arrays.areEqual(ccmExpected, ccmPCEnc))
-                        {
-                            System.out.println(javaPT.length);
-                            System.out.println(Hex.toHexString(ccmPCEnc));
-                            System.out.println(Hex.toHexString(ccmExpected));
-                            for (j = 0; j < ccmPCEnc.length; j++)
-                            {
-                                if (ccmPCEnc[j] == ccmExpected[j])
-                                {
-                                    System.out.print("  ");
-                                }
-                                else
-                                {
-                                    System.out.print("^^");
-                                }
-                            }
-                            System.out.println();
-                        }
-
-                        TestCase.assertTrue(Arrays.areEqual(ccmExpected, ccmPCEnc));
-
-                    }
-                }
-            }
-
-        }
-    }
 
 
     @Test
@@ -472,7 +256,7 @@ public class AESCCMPacketCipherTest
             throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
-        CryptoServicesRegistrar.setNativeEnabled(false);
+
 
         // Java implementation of CCM mode with the Java aes engine
         // Packet ciphers will be compared to this.
@@ -481,7 +265,6 @@ public class AESCCMPacketCipherTest
         //
         //  Implementation of packet cipher, may be native or java depending on variant used in testing
         //
-        CryptoServicesRegistrar.setNativeEnabled(true);
         PacketCipher ccmPS = AESCCMPacketCipher.newInstance();
 
 
@@ -568,7 +351,6 @@ public class AESCCMPacketCipherTest
             throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
-        CryptoServicesRegistrar.setNativeEnabled(false);
 
         // Java implementation of CCM mode with the Java aes engine
         // Packet ciphers will be compared to this.
@@ -577,7 +359,6 @@ public class AESCCMPacketCipherTest
         //
         //  Implementation of packet cipher, may be native or java depending on variant used in testing
         //
-        CryptoServicesRegistrar.setNativeEnabled(true);
         PacketCipher ccmPS = AESCCMPacketCipher.newInstance();
 
         isCorrectTypeForVariant(ccmPS);
@@ -664,4 +445,66 @@ public class AESCCMPacketCipherTest
         }
     }
 
+    private void checkVectors(
+            int count,
+            AESCCMModePacketCipher ccm,
+            byte[] k,
+            int macSize,
+            byte[] n,
+            byte[] a,
+            byte[] p,
+            byte[] t,
+            byte[] c)
+            throws PacketCipherException
+    {
+        KeyParameter keyParam = (k == null) ? null : new KeyParameter(k);
+        AEADParameters parameters = new AEADParameters(keyParam, macSize, n, a);
+        int len = ccm.getOutputSize(true, parameters, p.length);
+        byte[] enc = new byte[len];
+        ccm.processPacket(true, parameters, p, 0, p.length, enc, 0);
+
+        if (!Arrays.areEqual(c, enc))
+        {
+            for (int i = 0; i < c.length; ++i)
+            {
+                if (c[i] != enc[i])
+                {
+                    System.out.println(i + " " + c[i] + enc[i]);
+                }
+            }
+            fail("encrypted stream fails to match in test " + count);
+        }
+
+        len = ccm.getOutputSize(false, parameters, enc.length);
+        byte[] dec = new byte[len];
+        ccm.processPacket(false, parameters, enc, 0, enc.length, dec, 0);
+
+        TestCase.assertTrue("decrypted stream fails to match in test " + count, Arrays.areEqual(p, dec));
+    }
+
+    private boolean isNativeVariant()
+    {
+        String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
+        if (variant == null || "java".equals(variant))
+        {
+            return false;
+        }
+        return true;
+    }
+
+    private void isCorrectTypeForVariant(Object o) {
+        //
+        // Verify we are getting is what we expect.
+        //
+        if (isNativeVariant())
+        {
+            TestCase.assertTrue(o.toString().contains("CCM-PS[Native]"));
+            TestCase.assertTrue(o instanceof AESNativeCCMPacketCipher);
+        }
+        else
+        {
+            TestCase.assertTrue(o.toString().contains("CCM-PS[Java]"));
+            TestCase.assertTrue(o instanceof AESCCMPacketCipher);
+        }
+    }
 }

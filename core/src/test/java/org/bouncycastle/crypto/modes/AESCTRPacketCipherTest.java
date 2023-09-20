@@ -9,16 +9,13 @@ import org.bouncycastle.crypto.ExceptionMessage;
 import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipher;
 import org.bouncycastle.crypto.PacketCipherException;
-import org.bouncycastle.crypto.SkippingStreamCipher;
 import org.bouncycastle.crypto.StreamCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.AESNativeCTRPacketCipher;
-import org.bouncycastle.crypto.engines.AESNativeCTR;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
-import org.junit.Before;
 import org.junit.Test;
 
 public class AESCTRPacketCipherTest
@@ -31,12 +28,6 @@ public class AESCTRPacketCipherTest
     }
 
 
-
-    @Before
-    public void setUp()
-    {
-        CryptoServicesRegistrar.setNativeEnabled(true);
-    }
 
 
     @Test
@@ -131,7 +122,7 @@ public class AESCTRPacketCipherTest
 
 
     @Test
-    public void testMultipleMessagesProcessBlocks()
+    public void testMultipleMessagesBlocks()
             throws Exception
     {
         SecureRandom rand = new SecureRandom();
@@ -319,15 +310,6 @@ public class AESCTRPacketCipherTest
         }
     }
 
-    public boolean isNativeVariant()
-    {
-        String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
-        if (variant == null || "java".equals(variant))
-        {
-            return false;
-        }
-        return true;
-    }
 
 
 
@@ -340,7 +322,7 @@ public class AESCTRPacketCipherTest
     public void testIntoSameArray() throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
-        CryptoServicesRegistrar.setNativeEnabled(false);
+
 
         // Java implementation of CTR mode with the Java aes engine
         // Packet ciphers will be compared to this.
@@ -349,7 +331,6 @@ public class AESCTRPacketCipherTest
         //
         //  Implementation of packet cipher, may be native or java depending on variant used in testing
         //
-        CryptoServicesRegistrar.setNativeEnabled(true);
         PacketCipher ctrPS = AESCTRPacketCipher.newInstance();
 
 
@@ -441,4 +422,15 @@ public class AESCTRPacketCipherTest
             }
         }
     }
+
+    private boolean isNativeVariant()
+    {
+        String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
+        if (variant == null || "java".equals(variant))
+        {
+            return false;
+        }
+        return true;
+    }
+
 }

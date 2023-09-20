@@ -21,304 +21,15 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Times;
 import org.bouncycastle.util.encoders.Hex;
-import org.bouncycastle.util.test.SimpleTest;
 import org.junit.Test;
 
 public class AESGCMPacketCipherTest
         extends TestCase
 {
 
-//    public static void main(String[] args)
-//        throws Exception
-//    {
-//        AESGCMPacketCipherTest test = new AESGCMPacketCipherTest();
-//        test.performTest();
-//    }
+    public AESGCMPacketCipherTest() {
 
-
-//    public void Tests()
-//        throws Exception
-//    {
-//        for (int i = 1; i < TEST_VECTORS.length; ++i)
-//        {
-//            runTestCase(TEST_VECTORS[i]);
-//        }
-//
-//        randomTests();
-//        outputSizeTests();
-//        testExceptions();
-//        testResetBehavior();
-//        testOutputErase();
-//        testAgreement();
-//        testGCMSpreadAgreement();
-//    }
-
-    private static final String[][] TEST_VECTORS = new String[][]{
-//        {
-//            "Test Case 1",
-//            "00000000000000000000000000000000",
-//            "",
-//            "",
-//            "000000000000000000000000",
-//            "",
-//            "58e2fccefa7e3061367f1d57a4e7455a",
-//        },
-            {
-                    "Test Case 2",
-                    "00000000000000000000000000000000",
-                    "00000000000000000000000000000000",
-                    "",
-                    "000000000000000000000000",
-                    "0388dace60b6a392f328c2b971b2fe78",
-                    "ab6e47d42cec13bdf53a67b21257bddf",
-            },
-            {
-                    "Test Case 3",
-                    "feffe9928665731c6d6a8f9467308308",
-                    "d9313225f88406e5a55909c5aff5269a"
-                            + "86a7a9531534f7da2e4c303d8a318a72"
-                            + "1c3c0c95956809532fcf0e2449a6b525"
-                            + "b16aedf5aa0de657ba637b391aafd255",
-                    "",
-                    "cafebabefacedbaddecaf888",
-                    "42831ec2217774244b7221b784d0d49c"
-                            + "e3aa212f2c02a4e035c17e2329aca12e"
-                            + "21d514b25466931c7d8f6a5aac84aa05"
-                            + "1ba30b396a0aac973d58e091473f5985",
-                    "4d5c2af327cd64a62cf35abd2ba6fab4",
-            },
-            {
-                    "Test Case 4",
-                    "feffe9928665731c6d6a8f9467308308",
-                    "d9313225f88406e5a55909c5aff5269a"
-                            + "86a7a9531534f7da2e4c303d8a318a72"
-                            + "1c3c0c95956809532fcf0e2449a6b525"
-                            + "b16aedf5aa0de657ba637b39",
-                    "feedfacedeadbeeffeedfacedeadbeef"
-                            + "abaddad2",
-                    "cafebabefacedbaddecaf888",
-                    "42831ec2217774244b7221b784d0d49c"
-                            + "e3aa212f2c02a4e035c17e2329aca12e"
-                            + "21d514b25466931c7d8f6a5aac84aa05"
-                            + "1ba30b396a0aac973d58e091",
-                    "5bc94fbc3221a5db94fae95ae7121a47",
-            },
-//            { IV less than 12, no longer supported
-//                    "Test Case 5",
-//                    "feffe9928665731c6d6a8f9467308308",
-//                    "d9313225f88406e5a55909c5aff5269a"
-//                            + "86a7a9531534f7da2e4c303d8a318a72"
-//                            + "1c3c0c95956809532fcf0e2449a6b525"
-//                            + "b16aedf5aa0de657ba637b39",
-//                    "feedfacedeadbeeffeedfacedeadbeef"
-//                            + "abaddad2",
-//                    "cafebabefacedbad",
-//                    "61353b4c2806934a777ff51fa22a4755"
-//                            + "699b2a714fcdc6f83766e5f97b6c7423"
-//                            + "73806900e49f24b22b097544d4896b42"
-//                            + "4989b5e1ebac0f07c23f4598",
-//                    "3612d2e79e3b0785561be14aaca2fccb",
-//            },
-            {
-                    "Test Case 6",
-                    "feffe9928665731c6d6a8f9467308308",
-                    "d9313225f88406e5a55909c5aff5269a"
-                            + "86a7a9531534f7da2e4c303d8a318a72"
-                            + "1c3c0c95956809532fcf0e2449a6b525"
-                            + "b16aedf5aa0de657ba637b39",
-                    "feedfacedeadbeeffeedfacedeadbeef"
-                            + "abaddad2",
-                    "9313225df88406e555909c5aff5269aa"
-                            + "6a7a9538534f7da1e4c303d2a318a728"
-                            + "c3c0c95156809539fcf0e2429a6b5254"
-                            + "16aedbf5a0de6a57a637b39b",
-                    "8ce24998625615b603a033aca13fb894"
-                            + "be9112a5c3a211a8ba262a3cca7e2ca7"
-                            + "01e4a9a4fba43c90ccdcb281d48c7c6f"
-                            + "d62875d2aca417034c34aee5",
-                    "619cc5aefffe0bfa462af43c1699d050",
-            },
-            {
-                    "Test Case 7",
-                    "00000000000000000000000000000000"
-                            + "0000000000000000",
-                    "",
-                    "",
-                    "000000000000000000000000",
-                    "",
-                    "cd33b28ac773f74ba00ed1f312572435",
-            },
-            {
-                    "Test Case 8",
-                    "00000000000000000000000000000000"
-                            + "0000000000000000",
-                    "00000000000000000000000000000000",
-                    "",
-                    "000000000000000000000000",
-                    "98e7247c07f0fe411c267e4384b0f600",
-                    "2ff58d80033927ab8ef4d4587514f0fb",
-            },
-            {
-                    "Test Case 9",
-                    "feffe9928665731c6d6a8f9467308308"
-                            + "feffe9928665731c",
-                    "d9313225f88406e5a55909c5aff5269a"
-                            + "86a7a9531534f7da2e4c303d8a318a72"
-                            + "1c3c0c95956809532fcf0e2449a6b525"
-                            + "b16aedf5aa0de657ba637b391aafd255",
-                    "",
-                    "cafebabefacedbaddecaf888",
-                    "3980ca0b3c00e841eb06fac4872a2757"
-                            + "859e1ceaa6efd984628593b40ca1e19c"
-                            + "7d773d00c144c525ac619d18c84a3f47"
-                            + "18e2448b2fe324d9ccda2710acade256",
-                    "9924a7c8587336bfb118024db8674a14",
-            },
-            {
-                    "Test Case 10",
-                    "feffe9928665731c6d6a8f9467308308"
-                            + "feffe9928665731c",
-                    "d9313225f88406e5a55909c5aff5269a"
-                            + "86a7a9531534f7da2e4c303d8a318a72"
-                            + "1c3c0c95956809532fcf0e2449a6b525"
-                            + "b16aedf5aa0de657ba637b39",
-                    "feedfacedeadbeeffeedfacedeadbeef"
-                            + "abaddad2",
-                    "cafebabefacedbaddecaf888",
-                    "3980ca0b3c00e841eb06fac4872a2757"
-                            + "859e1ceaa6efd984628593b40ca1e19c"
-                            + "7d773d00c144c525ac619d18c84a3f47"
-                            + "18e2448b2fe324d9ccda2710",
-                    "2519498e80f1478f37ba55bd6d27618c",
-            },
-//            { // IV less than 12 no longer supported
-//                    "Test Case 11",
-//                    "feffe9928665731c6d6a8f9467308308"
-//                            + "feffe9928665731c",
-//                    "d9313225f88406e5a55909c5aff5269a"
-//                            + "86a7a9531534f7da2e4c303d8a318a72"
-//                            + "1c3c0c95956809532fcf0e2449a6b525"
-//                            + "b16aedf5aa0de657ba637b39",
-//                    "feedfacedeadbeeffeedfacedeadbeef"
-//                            + "abaddad2",
-//                    "cafebabefacedbad",
-//                    "0f10f599ae14a154ed24b36e25324db8"
-//                            + "c566632ef2bbb34f8347280fc4507057"
-//                            + "fddc29df9a471f75c66541d4d4dad1c9"
-//                            + "e93a19a58e8b473fa0f062f7",
-//                    "65dcc57fcf623a24094fcca40d3533f8",
-//            },
-            {
-                    "Test Case 12",
-                    "feffe9928665731c6d6a8f9467308308"
-                            + "feffe9928665731c",
-                    "d9313225f88406e5a55909c5aff5269a"
-                            + "86a7a9531534f7da2e4c303d8a318a72"
-                            + "1c3c0c95956809532fcf0e2449a6b525"
-                            + "b16aedf5aa0de657ba637b39",
-                    "feedfacedeadbeeffeedfacedeadbeef"
-                            + "abaddad2",
-                    "9313225df88406e555909c5aff5269aa"
-                            + "6a7a9538534f7da1e4c303d2a318a728"
-                            + "c3c0c95156809539fcf0e2429a6b5254"
-                            + "16aedbf5a0de6a57a637b39b",
-                    "d27e88681ce3243c4830165a8fdcf9ff"
-                            + "1de9a1d8e6b447ef6ef7b79828666e45"
-                            + "81e79012af34ddd9e2f037589b292db3"
-                            + "e67c036745fa22e7e9b7373b",
-                    "dcf566ff291c25bbb8568fc3d376a6d9",
-            },
-            {
-                    "Test Case 13",
-                    "00000000000000000000000000000000"
-                            + "00000000000000000000000000000000",
-                    "",
-                    "",
-                    "000000000000000000000000",
-                    "",
-                    "530f8afbc74536b9a963b4f1c4cb738b",
-            },
-            {
-                    "Test Case 14",
-                    "00000000000000000000000000000000"
-                            + "00000000000000000000000000000000",
-                    "00000000000000000000000000000000",
-                    "",
-                    "000000000000000000000000",
-                    "cea7403d4d606b6e074ec5d3baf39d18",
-                    "d0d1c8a799996bf0265b98b5d48ab919",
-            },
-            {
-                    "Test Case 15",
-                    "feffe9928665731c6d6a8f9467308308"
-                            + "feffe9928665731c6d6a8f9467308308",
-                    "d9313225f88406e5a55909c5aff5269a"
-                            + "86a7a9531534f7da2e4c303d8a318a72"
-                            + "1c3c0c95956809532fcf0e2449a6b525"
-                            + "b16aedf5aa0de657ba637b391aafd255",
-                    "",
-                    "cafebabefacedbaddecaf888",
-                    "522dc1f099567d07f47f37a32a84427d"
-                            + "643a8cdcbfe5c0c97598a2bd2555d1aa"
-                            + "8cb08e48590dbb3da7b08b1056828838"
-                            + "c5f61e6393ba7a0abcc9f662898015ad",
-                    "b094dac5d93471bdec1a502270e3cc6c",
-            },
-            {
-                    "Test Case 16",
-                    "feffe9928665731c6d6a8f9467308308"
-                            + "feffe9928665731c6d6a8f9467308308",
-                    "d9313225f88406e5a55909c5aff5269a"
-                            + "86a7a9531534f7da2e4c303d8a318a72"
-                            + "1c3c0c95956809532fcf0e2449a6b525"
-                            + "b16aedf5aa0de657ba637b39",
-                    "feedfacedeadbeeffeedfacedeadbeef"
-                            + "abaddad2",
-                    "cafebabefacedbaddecaf888",
-                    "522dc1f099567d07f47f37a32a84427d"
-                            + "643a8cdcbfe5c0c97598a2bd2555d1aa"
-                            + "8cb08e48590dbb3da7b08b1056828838"
-                            + "c5f61e6393ba7a0abcc9f662",
-                    "76fc6ece0f4e1768cddf8853bb2d551b",
-            },
-//            { IV less than 12, no longer supported
-//                    "Test Case 17",
-//                    "feffe9928665731c6d6a8f9467308308"
-//                            + "feffe9928665731c6d6a8f9467308308",
-//                    "d9313225f88406e5a55909c5aff5269a"
-//                            + "86a7a9531534f7da2e4c303d8a318a72"
-//                            + "1c3c0c95956809532fcf0e2449a6b525"
-//                            + "b16aedf5aa0de657ba637b39",
-//                    "feedfacedeadbeeffeedfacedeadbeef"
-//                            + "abaddad2",
-//                    "cafebabefacedbad",
-//                    "c3762df1ca787d32ae47c13bf19844cb"
-//                            + "af1ae14d0b976afac52ff7d79bba9de0"
-//                            + "feb582d33934a4f0954cc2363bc73f78"
-//                            + "62ac430e64abe499f47c9b1f",
-//                    "3a337dbf46a792c45e454913fe2ea8f2",
-//            },
-            {
-                    "Test Case 18",
-                    "feffe9928665731c6d6a8f9467308308"
-                            + "feffe9928665731c6d6a8f9467308308",
-                    "d9313225f88406e5a55909c5aff5269a"
-                            + "86a7a9531534f7da2e4c303d8a318a72"
-                            + "1c3c0c95956809532fcf0e2449a6b525"
-                            + "b16aedf5aa0de657ba637b39",
-                    "feedfacedeadbeeffeedfacedeadbeef"
-                            + "abaddad2",
-                    "9313225df88406e555909c5aff5269aa"
-                            + "6a7a9538534f7da1e4c303d2a318a728"
-                            + "c3c0c95156809539fcf0e2429a6b5254"
-                            + "16aedbf5a0de6a57a637b39b",
-                    "5a8def2f0c9e53f1f75d7853659e2a20"
-                            + "eeb2b22aafde6419a058ab4f6f746bf4"
-                            + "0fc0c3b780f244452da3ebf1c5d82cde"
-                            + "a2418997200ef82e44ae7e3f",
-                    "a44a8266ee1c8eb0c8b5d4cf5ae9f19a",
-            },
-    };
+    }
 
     @Test
     public void testResetBehavior()
@@ -522,7 +233,7 @@ public class AESGCMPacketCipherTest
                         + "1ba30b396a0aac973d58e091473f5985",
                 "4d5c2af327cd64a62cf35abd2ba6fab4",
         };
-        String testName = testVector[0];
+
         byte[] K = Hex.decode(testVector[1]);
         byte[] P = Hex.decode(testVector[2]);
         byte[] A = Hex.decode(testVector[3]);
@@ -553,86 +264,22 @@ public class AESGCMPacketCipherTest
         }
     }
 
-    private void runTestCase(String[] testVector)
-            throws PacketCipherException
-    {
-        for (int macLength = 12; macLength <= 16; ++macLength)
-        {
-            runTestCase(testVector, macLength);
-        }
-    }
-
-    private void runTestCase(String[] testVector, int macLength)
-            throws PacketCipherException
-    {
-        int pos = 0;
-        String testName = testVector[pos++];
-        byte[] K = Hex.decode(testVector[pos++]);
-        byte[] P = Hex.decode(testVector[pos++]);
-        byte[] A = Hex.decode(testVector[pos++]);
-        byte[] IV = Hex.decode(testVector[pos++]);
-        byte[] C = Hex.decode(testVector[pos++]);
-
-        // For short MAC, take leading bytes
-        byte[] t = Hex.decode(testVector[pos++]);
-        byte[] T = new byte[macLength];
-        System.arraycopy(t, 0, T, 0, T.length);
-
-        AESGCMModePacketCipher gcm = AESPacketCipherEngine.createGCMPacketCipher();
-        AEADParameters parameters = new AEADParameters(new KeyParameter(K), T.length * 8, IV, A);
-        byte[] enc = new byte[gcm.getOutputSize(true, parameters, P.length)];
-
-        int len = gcm.processPacket(true, parameters, P, 0, P.length, enc, 0);
-
-        if (enc.length != len)
-        {
-            fail("encryption reported incorrect length: " + testName);
-        }
-
-        byte[] tail = new byte[macLength];
-        byte[] ct = new byte[P.length];
-        System.arraycopy(enc, 0, ct, 0, P.length);
-        System.arraycopy(enc, P.length, tail, 0, macLength);
-
-        if (!Arrays.areEqual(C, ct))
-        {
-            fail("incorrect encrypt in: " + testName);
-        }
-
-        if (!Arrays.areEqual(T, tail))
-        {
-            fail("stream contained wrong mac in: " + testName);
-        }
-
-        byte[] dec = new byte[gcm.getOutputSize(false, parameters, enc.length)];
-        len = gcm.processPacket(false, parameters, enc, 0, enc.length, dec, 0);
-
-        if (!Arrays.areEqual(P, dec))
-        {
-            fail("incorrect decrypt in: " + testName);
-        }
-    }
 
     @Test
-    public void randomTests()
+    public void testRandom()
             throws InvalidCipherTextException, PacketCipherException
     {
         SecureRandom srng = new SecureRandom();
         srng.setSeed(Times.nanoTime());
-        randomTests(srng);
-    }
 
-    private void randomTests(SecureRandom srng)
-            throws InvalidCipherTextException, PacketCipherException
-    {
-        for (int i = 0; i < 10; ++i)
+        for (int t=0; t<10000; t++)
         {
-            randomTest(srng);
+            execRandomTest(srng);
         }
     }
 
-    @Test
-    public void randomTest(SecureRandom srng)
+
+    private void execRandomTest(SecureRandom srng)
             throws PacketCipherException
     {
         int kLength = 16 + 8 * (Math.abs(srng.nextInt()) % 3);
@@ -686,7 +333,8 @@ public class AESGCMPacketCipherTest
         }
     }
 
-    private void outputSizeTests()
+    @Test
+    public void testOutputSize()
     {
         byte[] K = new byte[16];
         byte[] A = null;
@@ -705,191 +353,13 @@ public class AESGCMPacketCipherTest
         }
     }
 
-    @Test
-    public void testAgreement()
-            throws InvalidCipherTextException, PacketCipherException, DestroyFailedException
-    {
-        SecureRandom secureRandom = new SecureRandom();
-        AESGCMModePacketCipher GCMgcm2 = AESPacketCipherEngine.createGCMPacketCipher();
-        int[] keybytes = {16, 24, 32};
-        for (int i = 0; i < 3; ++i)
-        {
-            int keySize = keybytes[i];
-
-            for (int t = 0; t < 4000; t++)
-            {
-                byte[] javaPT = new byte[secureRandom.nextInt(2048)];
-                secureRandom.nextBytes(javaPT);
-                byte[] key = new byte[keySize];
-                secureRandom.nextBytes(key);
-
-                byte[] iv = new byte[13];
-                secureRandom.nextBytes(iv);
-                GCMBlockCipher GCMgcm1 = new GCMBlockCipher(new AESEngine());
-                ParametersWithIV parameters = new ParametersWithIV(new KeyParameter(key), iv);
-                GCMgcm1.init(true, parameters);
-                byte[] GCMgcm1CT = new byte[GCMgcm1.getOutputSize(javaPT.length)];
-                int j = GCMgcm1.processBytes(javaPT, 0, javaPT.length, GCMgcm1CT, 0);
-                GCMgcm1.doFinal(GCMgcm1CT, j);
-
-                byte[] GCMgcm2CT = new byte[GCMgcm2.getOutputSize(true, parameters, javaPT.length)];
-                GCMgcm2.processPacket(true, parameters, javaPT, 0, javaPT.length, GCMgcm2CT, 0);
-
-                if (!Arrays.areEqual(GCMgcm1CT, GCMgcm2CT))
-                {
-                    System.out.println(javaPT.length);
-                    System.out.println(Hex.toHexString(GCMgcm2CT));
-                    System.out.println(Hex.toHexString(GCMgcm1CT));
-                    for (j = 0; j < GCMgcm2CT.length; j++)
-                    {
-                        if (GCMgcm2CT[j] == GCMgcm1CT[j])
-                        {
-                            System.out.print("  ");
-                        }
-                        else
-                        {
-                            System.out.print("^^");
-                        }
-                    }
-                    System.out.println();
-                }
-                GCMgcm1 = new GCMBlockCipher(new AESEngine());
-                GCMgcm1.init(true, parameters);
-                byte[] GCMgcm1PT = new byte[GCMgcm1.getOutputSize(GCMgcm1CT.length)];
-                j = GCMgcm1.processBytes(GCMgcm1CT, 0, GCMgcm1CT.length, GCMgcm1PT, 0);
-                GCMgcm1.doFinal(GCMgcm1PT, j);
-                ((Destroyable) GCMgcm2).destroy();
-                byte[] GCMgcm2PT = new byte[GCMgcm2.getOutputSize(true, parameters, GCMgcm2CT.length)];
-                GCMgcm2.processPacket(true, parameters, GCMgcm2CT, 0, GCMgcm2CT.length, GCMgcm2PT, 0);
-
-                if (!Arrays.areEqual(GCMgcm1PT, GCMgcm2PT))
-                {
-                    System.out.println(javaPT.length);
-                    System.out.println(Hex.toHexString(GCMgcm1PT));
-                    System.out.println(Hex.toHexString(GCMgcm2PT));
-                    for (j = 0; j < GCMgcm2CT.length; j++)
-                    {
-                        if (GCMgcm2PT[j] == GCMgcm1PT[j])
-                        {
-                            System.out.print("  ");
-                        }
-                        else
-                        {
-                            System.out.print("^^");
-                        }
-                    }
-                    System.out.println();
-                }
-            }
-        }
-
-    }
-
-    @Test
-    public void testGCMSpreadAgreement()
-            throws Exception
-    {
-
-        SecureRandom rand = new SecureRandom();
-        SecureRandom secureRandom = new SecureRandom();
-        AESGCMModePacketCipher GCMgcm2 = AESPacketCipherEngine.createGCMPacketCipher();
-        byte[] javaPT;
-        for (int ks : new int[]{16, 24, 32})
-        {
-            byte[] key = new byte[ks];
-            rand.nextBytes(key);
-
-            for (int ivLen = 12; ivLen <= 20; ivLen++)
-            {
-                byte[] iv = new byte[ivLen];
-                rand.nextBytes(iv);
-
-
-                for (int macSize = 32; macSize <= 128; macSize += 16)
-                {
-
-                    for (int msgSize = 0; msgSize < 515; msgSize++)
-                    {
-                        if (msgSize != 0)
-                        {
-                            javaPT = new byte[secureRandom.nextInt(msgSize)];
-                        }
-                        else
-                        {
-                            javaPT = new byte[0];
-                        }
-
-
-                        GCMBlockCipher GCMgcm1 = new GCMBlockCipher(new AESEngine());
-                        AEADParameters parameters = new AEADParameters(new KeyParameter(key), macSize, iv);
-                        GCMgcm1.init(true, parameters);
-                        byte[] GCMgcm1CT = new byte[GCMgcm1.getOutputSize(javaPT.length)];
-                        int j = GCMgcm1.processBytes(javaPT, 0, javaPT.length, GCMgcm1CT, 0);
-                        GCMgcm1.doFinal(GCMgcm1CT, j);
-                        ((Destroyable) GCMgcm2).destroy();
-                        byte[] GCMgcm2CT = new byte[GCMgcm2.getOutputSize(true, parameters, javaPT.length)];
-                        GCMgcm2.processPacket(true, parameters, javaPT, 0, javaPT.length, GCMgcm2CT, 0);
-
-                        if (!Arrays.areEqual(GCMgcm1CT, GCMgcm2CT))
-                        {
-                            System.out.println(javaPT.length);
-                            System.out.println(Hex.toHexString(GCMgcm2CT));
-                            System.out.println(Hex.toHexString(GCMgcm1CT));
-                            for (j = 0; j < GCMgcm2CT.length; j++)
-                            {
-                                if (GCMgcm2CT[j] == GCMgcm1CT[j])
-                                {
-                                    System.out.print("  ");
-                                }
-                                else
-                                {
-                                    System.out.print("^^");
-                                }
-                            }
-                            System.out.println();
-                        }
-
-                    }
-                }
-            }
-
-        }
-    }
-
-//    private static int nextInt(SecureRandom rand, int n)
-//    {
-//        if ((n & -n) == n)  // i.e., n is a power of 2
-//        {
-//            return (int)((n * (long)(rand.nextInt() >>> 1)) >> 31);
-//        }
-//
-//        int bits, value;
-//        do
-//        {
-//            bits = rand.nextInt() >>> 1;
-//            value = bits % n;
-//        }
-//        while (bits - value + (n - 1) < 0);
-//
-//        return value;
-//    }
-
-    public boolean isNativeVariant()
-    {
-        String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
-        if (variant == null || "java".equals(variant))
-        {
-            return false;
-        }
-        return true;
-    }
 
     @Test
     public void testAgreementForMultipleMessages()
             throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
-        CryptoServicesRegistrar.setNativeEnabled(false);
+
 
         // Java implementation of GCM mode with the Java aes engine
         // Packet ciphers will be compared to this.
@@ -898,7 +368,6 @@ public class AESGCMPacketCipherTest
         //
         //  Implementation of packet cipher, may be native or java depending on variant used in testing
         //
-        CryptoServicesRegistrar.setNativeEnabled(true);
         PacketCipher gcmPS = AESGCMPacketCipher.newInstance();
 
 
@@ -916,51 +385,65 @@ public class AESGCMPacketCipherTest
             TestCase.assertTrue(gcmPS instanceof AESGCMPacketCipher);
         }
 
-        byte[] iv = new byte[12];
+
         for (int ks : new int[]{16, 24, 32})
         {
             byte[] key = new byte[ks];
             secureRandom.nextBytes(key);
-
-            for (int t = 0; t < 8192; t += 16)
+            for (int ivLen : new int[]{12, 13, 14, 15, 16})
             {
-                secureRandom.nextBytes(iv);
-                CipherParameters cp = new ParametersWithIV(new KeyParameter(key), iv);
-                gcmModeCipherEnc.reset();
-                byte[] msg = new byte[t];
-                secureRandom.nextBytes(msg);
-                gcmModeCipherEnc.init(true, cp);
-                // Generate expected message off the
-                int outLen = gcmModeCipherEnc.getOutputSize(msg.length);
-                byte[] expected = new byte[gcmModeCipherEnc.getOutputSize(msg.length)];
+                for (int t = 0; t < 1025; t += 1)
+                {
+                    for (int jitter = 0; jitter < 2; jitter++)
+                    {
+                        byte[] iv = new byte[ivLen];
+                        secureRandom.nextBytes(iv);
+                        CipherParameters cp = new ParametersWithIV(new KeyParameter(key), iv);
 
-                int resultLen = gcmModeCipherEnc.processBytes(msg, 0, msg.length, expected, 0);
-                gcmModeCipherEnc.doFinal(expected, resultLen);
+                        gcmModeCipherEnc.reset();
+                        byte[] msg = new byte[t+jitter];
+                        secureRandom.nextBytes(msg);
 
-                // Test encryption
-                int len = gcmPS.getOutputSize(true, cp, msg.length);
-                TestCase.assertEquals(outLen, len);
-                byte[] ctResult = new byte[len];
+                        gcmModeCipherEnc.init(true, cp);
+                        // Generate expected message off the
+                        int outLen = gcmModeCipherEnc.getOutputSize(msg.length-jitter);
+                        byte[] expected = new byte[gcmModeCipherEnc.getOutputSize(msg.length-jitter)+jitter];
 
-                outLen = gcmPS.processPacket(true, cp, msg, 0, msg.length, ctResult, 0);
-                TestCase.assertEquals(ctResult.length, outLen);
+                        int resultLen = gcmModeCipherEnc.processBytes(msg, jitter, msg.length-jitter, expected, jitter);
+                        gcmModeCipherEnc.doFinal(expected, resultLen+jitter);
 
-                // Test encrypted output same
-                TestCase.assertTrue(Arrays.areEqual(expected, ctResult));
+                        // Test encryption
+                        int len = gcmPS.getOutputSize(true, cp, msg.length-jitter);
+                        TestCase.assertEquals(outLen, len);
+                        byte[] ctResult = new byte[len+jitter];
+
+                        outLen = gcmPS.processPacket(true, cp, msg, jitter, msg.length-jitter, ctResult, jitter);
+                        TestCase.assertEquals(ctResult.length-jitter, outLen);
+
+                        // Test encrypted output same
+                        TestCase.assertTrue(Arrays.areEqual(expected, ctResult));
 
 
-                // Test decryption
+                        // Test decryption
 
-                len = gcmPS.getOutputSize(false, cp, ctResult.length);
-                TestCase.assertEquals(msg.length, len);
-                byte[] ptResult = new byte[len];
+                        len = gcmPS.getOutputSize(false, cp, ctResult.length-jitter);
+                        TestCase.assertEquals(msg.length-jitter, len);
+                        byte[] ptResult = new byte[len+jitter];
 
-                outLen = gcmPS.processPacket(false, cp, ctResult, 0, ctResult.length, ptResult, 0);
-                TestCase.assertEquals(msg.length, outLen);
+                        outLen = gcmPS.processPacket(false, cp, ctResult, jitter, ctResult.length-jitter, ptResult, jitter);
+                        TestCase.assertEquals(msg.length-jitter, outLen);
 
-                // Test encrypted output same
-                TestCase.assertTrue(Arrays.areEqual(msg, ptResult));
 
+                        byte[] expectedResult = Arrays.clone(msg);
+                        for (int i =0; i<jitter; i++) {
+                            expectedResult[i] = 0;
+                        }
+
+                        // Test encrypted output same
+                        TestCase.assertTrue(Arrays.areEqual(expectedResult, ptResult));
+
+                    }
+                }
             }
         }
     }
@@ -976,7 +459,6 @@ public class AESGCMPacketCipherTest
             throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
-        CryptoServicesRegistrar.setNativeEnabled(false);
 
         // Java implementation of GCM mode with the Java aes engine
         // Packet ciphers will be compared to this.
@@ -985,7 +467,6 @@ public class AESGCMPacketCipherTest
         //
         //  Implementation of packet cipher, may be native or java depending on variant used in testing
         //
-        CryptoServicesRegistrar.setNativeEnabled(true);
         PacketCipher gcmPS = AESGCMPacketCipher.newInstance();
 
 
@@ -1012,7 +493,7 @@ public class AESGCMPacketCipherTest
             for (int inLen : new int[]{12, 13, 14, 15, 16})
             {
                 iv = new byte[inLen];
-                for (int t = 0; t < 2048; t += 16)
+                for (int t = 0; t < 2049; t += 1)
                 {
                     byte[] msg = new byte[t];
                     secureRandom.nextBytes(msg);
@@ -1030,23 +511,23 @@ public class AESGCMPacketCipherTest
                     int resultLen = gcmModeCipherEnc.processBytes(msg, 0, msg.length, expectedCText, 0);
                     gcmModeCipherEnc.doFinal(expectedCText, resultLen);
 
-                    for (int jiggle : new int[]{0, 1})
+                    for (int jitter : new int[]{0, 1})
                     {
                         ((Destroyable) gcmPS).destroy();
                         // Encryption
-                        System.arraycopy(msg, 0, workingArray, jiggle, msg.length);
-                        int len = gcmPS.processPacket(true, cp, workingArray, jiggle, msg.length, workingArray,
-                                msg.length + jiggle);
+                        System.arraycopy(msg, 0, workingArray, jitter, msg.length);
+                        int len = gcmPS.processPacket(true, cp, workingArray, jitter, msg.length, workingArray,
+                                msg.length + jitter);
                         TestCase.assertEquals(gcmPS.getOutputSize(true, cp, msg.length), len);
 
                         // Check cipher text
                         for (int j = 0; j < msg.length; j++)
                         {
-                            if (expectedCText[j] != workingArray[j + msg.length + jiggle])
+                            if (expectedCText[j] != workingArray[j + msg.length + jitter])
                             {
                                 System.out.println(Hex.toHexString(workingArray));
                                 System.out.println(Hex.toHexString(expectedCText));
-                                System.out.println(jiggle);
+                                System.out.println(jitter);
                                 fail("cipher text not same");
                             }
                         }
@@ -1054,22 +535,22 @@ public class AESGCMPacketCipherTest
 
                         // Destroy plain text section
                         // as it should be written over with the correct plain text
-                        Arrays.fill(workingArray, jiggle, msg.length + jiggle, (byte) 1);
+                        Arrays.fill(workingArray, jitter, msg.length + jitter, (byte) 1);
 
 
                         // Decryption
-                        len = gcmPS.processPacket(false, cp, workingArray, msg.length + jiggle, len, workingArray,
-                                jiggle);
+                        len = gcmPS.processPacket(false, cp, workingArray, msg.length + jitter, len, workingArray,
+                                jitter);
                         TestCase.assertEquals(msg.length, len);
 
                         // Check cipher text
                         for (int j = 0; j < msg.length; j++)
                         {
-                            if (msg[j] != workingArray[j + jiggle])
+                            if (msg[j] != workingArray[j + jitter])
                             {
                                 System.out.println(Hex.toHexString(workingArray));
                                 System.out.println(Hex.toHexString(msg));
-                                System.out.println(jiggle);
+                                System.out.println(jitter);
 
                                 fail("plain text not same");
                             }
@@ -1083,4 +564,16 @@ public class AESGCMPacketCipherTest
 
         }
     }
+
+    boolean isNativeVariant()
+    {
+        String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
+        if (variant == null || "java".equals(variant))
+        {
+            return false;
+        }
+        return true;
+    }
+
+
 }

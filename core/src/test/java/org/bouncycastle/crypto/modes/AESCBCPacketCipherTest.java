@@ -38,7 +38,6 @@ public class AESCBCPacketCipherTest
     public void testAgreementForMultipleMessages() throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
-        CryptoServicesRegistrar.setNativeEnabled(false);
 
         // Java implementation of CBC mode with the Java aes engine
         // Packet ciphers will be compared to this.
@@ -47,7 +46,6 @@ public class AESCBCPacketCipherTest
         //
         //  Implementation of packet cipher, may be native or java depending on variant used in testing
         //
-        CryptoServicesRegistrar.setNativeEnabled(true);
         PacketCipher cbcPS = AESCBCPacketCipher.newInstance();
 
 
@@ -77,39 +75,48 @@ public class AESCBCPacketCipherTest
 
             for (int t = 0; t < 8192; t += 16)
             {
-                cbcModeCipherEnc.reset();
-                byte[] msg = new byte[t];
-                secureRandom.nextBytes(msg);
+                for (int jitter = 0; jitter < 2; jitter++)
+                {
+                    cbcModeCipherEnc.reset();
+                    byte[] msg = new byte[t + jitter];
+                    secureRandom.nextBytes(msg);
 
-                // Generate expected message off the
-                byte[] expected = new byte[msg.length];
-                cbcModeCipherEnc.processBlocks(msg, 0, msg.length / 16, expected, 0);
-
-
-                // Test encryption
-                int len = cbcPS.getOutputSize(true, cp, msg.length);
-                TestCase.assertEquals(msg.length, len);
-                byte[] ctResult = new byte[len];
-
-                int outLen = cbcPS.processPacket(true, cp, msg, 0, msg.length, ctResult, 0);
-                TestCase.assertEquals(msg.length, outLen);
-
-                // Test encrypted output same
-                TestCase.assertTrue(Arrays.areEqual(expected, ctResult));
+                    // Generate expected message off the
+                    byte[] expected = new byte[t+jitter];
+                    cbcModeCipherEnc.processBlocks(msg, jitter, (msg.length - jitter) / 16, expected, jitter);
 
 
-                // Test decryption
+                    // Test encryption
+                    int len = cbcPS.getOutputSize(true, cp, msg.length - jitter);
+                    TestCase.assertEquals(msg.length - jitter, len);
+                    byte[] ctResult = new byte[len + jitter];
 
-                len = cbcPS.getOutputSize(false, cp, ctResult.length);
-                TestCase.assertEquals(msg.length, len);
-                byte[] ptResult = new byte[len];
+                    int outLen = cbcPS.processPacket(true, cp, msg, jitter, msg.length - jitter, ctResult, jitter);
+                    TestCase.assertEquals(msg.length - jitter, outLen);
 
-                outLen = cbcPS.processPacket(false, cp, ctResult, 0, ctResult.length, ptResult, 0);
-                TestCase.assertEquals(msg.length, outLen);
+                    // Test encrypted output same
+                    TestCase.assertTrue(Arrays.areEqual(expected, ctResult));
 
-                // Test encrypted output same
-                TestCase.assertTrue(Arrays.areEqual(msg, ptResult));
 
+                    // Test decryption
+
+                    len = cbcPS.getOutputSize(false, cp, ctResult.length-jitter);
+                    TestCase.assertEquals(msg.length - jitter, len);
+                    byte[] ptResult = new byte[len + jitter];
+
+                    outLen = cbcPS.processPacket(false, cp, ctResult, jitter, ctResult.length - jitter, ptResult,
+                            jitter);
+                    TestCase.assertEquals(msg.length - jitter, outLen);
+
+                    byte[] expectedResult = Arrays.clone(msg);
+
+                    for (int i = 0; i < jitter; i++)
+                    {
+                        expectedResult[i] = 0;
+                    }
+                    // Test encrypted output same
+                    TestCase.assertTrue(Arrays.areEqual(expectedResult, ptResult));
+                }
             }
         }
     }
@@ -173,22 +180,22 @@ public class AESCBCPacketCipherTest
                 cbcModeCipherEnc.processBlocks(msg, 0, msg.length / 16, expectedCText, 0);
 
 
-                for (int jiggle : new int[]{0, 1})
+                for (int jitter : new int[]{0, 1})
                 {
                     // Encryption
-                    System.arraycopy(msg, 0, workingArray, jiggle, msg.length);
-                    int len = cbcPS.processPacket(true, cp, workingArray, jiggle, msg.length, workingArray,
-                            msg.length + jiggle);
+                    System.arraycopy(msg, 0, workingArray, jitter, msg.length);
+                    int len = cbcPS.processPacket(true, cp, workingArray, jitter, msg.length, workingArray,
+                            msg.length + jitter);
                     TestCase.assertEquals(msg.length, len);
 
                     // Check cipher text
                     for (int j = 0; j < msg.length; j++)
                     {
-                        if (expectedCText[j] != workingArray[j + msg.length + jiggle])
+                        if (expectedCText[j] != workingArray[j + msg.length + jitter])
                         {
                             System.out.println(Hex.toHexString(workingArray));
                             System.out.println(Hex.toHexString(expectedCText));
-                            System.out.println(jiggle);
+                            System.out.println(jitter);
                             fail("cipher text not same");
                         }
                     }
@@ -196,22 +203,22 @@ public class AESCBCPacketCipherTest
 
                     // Destroy plain text section
                     // as it should be written over with the correct plain text
-                    Arrays.fill(workingArray, jiggle, msg.length + jiggle, (byte) 1);
+                    Arrays.fill(workingArray, jitter, msg.length + jitter, (byte) 1);
 
 
                     // Decryption
-                    len = cbcPS.processPacket(false, cp, workingArray, msg.length + jiggle, msg.length, workingArray,
-                            jiggle);
+                    len = cbcPS.processPacket(false, cp, workingArray, msg.length + jitter, msg.length, workingArray,
+                            jitter);
                     TestCase.assertEquals(msg.length, len);
 
                     // Check cipher text
                     for (int j = 0; j < msg.length; j++)
                     {
-                        if (msg[j] != workingArray[j + jiggle])
+                        if (msg[j] != workingArray[j + jitter])
                         {
                             System.out.println(Hex.toHexString(workingArray));
                             System.out.println(Hex.toHexString(msg));
-                            System.out.println(jiggle);
+                            System.out.println(jitter);
 
                             fail("plain text not same");
                         }
