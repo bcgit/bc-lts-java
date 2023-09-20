@@ -502,14 +502,20 @@ public class AESTest
 
         javaC.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
 
-        TestCase.assertTrue(getPacketCipherToString(javaC).contains("BlockCipher(CBC[Java](AES[Java]")); // Should be null as not call to do final has occured.
-
+        if (isJava8())
+        {
+            TestCase.assertTrue(getPacketCipherToString(javaC).contains("BlockCipher(CBC[Java](AES[Java]")); //
+            // Should be null as not call to do final has occurred.
+        }
         byte[] out = new byte[javaC.getOutputSize(msg.length)];
         TestCase.assertEquals(out.length, expected.length);
 
         javaC.doFinal(msg, 0, msg.length, out, 0);
 
-        TestCase.assertTrue(getPacketCipherToString(javaC).contains("CBC-PS[Java](AES[Java])")); // Shoul
+        if (isJava8())
+        {
+            TestCase.assertTrue(getPacketCipherToString(javaC).contains("CBC-PS[Java](AES[Java])")); // Shoul
+        }
 
         TestCase.assertTrue(Arrays.areEqual(expected, out));
 
@@ -623,7 +629,7 @@ public class AESTest
             Field f = cl.getDeclaredField("spi");
             f.setAccessible(true);
             Object k = f.get(cipher);
-            return k == null?null:k.toString();
+            return k == null ? null : k.toString();
 
         }
         catch (Exception ex)

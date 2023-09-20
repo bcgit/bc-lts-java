@@ -111,8 +111,11 @@ public class JavaNativeLargeMessageTest extends SimpleTest
                     BouncyCastleProvider.PROVIDER_NAME);
             gcmDecJava.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-            TestCase.assertTrue(getEngineString(gcmDecJava).contains("AES[Java"));
-            TestCase.assertTrue(getEngineString(gcmEncJava).contains("AES[Java"));
+            if (isJava8())
+            {
+                TestCase.assertTrue(getEngineString(gcmDecJava).contains("AES[Java"));
+                TestCase.assertTrue(getEngineString(gcmEncJava).contains("AES[Java"));
+            }
 
             CryptoServicesRegistrar.setNativeEnabled(true);
             Cipher gcmEncNative = Cipher.getInstance("AES/GCM/NoPadding",
@@ -123,9 +126,11 @@ public class JavaNativeLargeMessageTest extends SimpleTest
                     BouncyCastleProvider.PROVIDER_NAME);
             gcmDecNative.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-            TestCase.assertTrue(getEngineString(gcmDecNative).contains("AES[Native"));
-            TestCase.assertTrue(getEngineString(gcmEncNative).contains("AES[Native"));
-
+            if (isJava8())
+            {
+                TestCase.assertTrue(getEngineString(gcmDecNative).contains("AES[Native"));
+                TestCase.assertTrue(getEngineString(gcmEncNative).contains("AES[Native"));
+            }
 
             ByteArrayOutputStream jCtext = new ByteArrayOutputStream();
             CipherOutputStream javaCos = new CipherOutputStream(jCtext, gcmEncJava);
@@ -218,8 +223,11 @@ public class JavaNativeLargeMessageTest extends SimpleTest
                     BouncyCastleProvider.PROVIDER_NAME);
             gcmDecJava.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-            TestCase.assertTrue(getEngineString(gcmDecJava).contains("SICBlockCipher"));
-            TestCase.assertTrue(getEngineString(gcmEncJava).contains("SICBlockCipher"));
+            if (isJava8())
+            {
+                TestCase.assertTrue(getEngineString(gcmDecJava).contains("SICBlockCipher"));
+                TestCase.assertTrue(getEngineString(gcmEncJava).contains("SICBlockCipher"));
+            }
 
             CryptoServicesRegistrar.setNativeEnabled(true);
             Cipher gcmEncNative = Cipher.getInstance("AES/CTR/NoPadding",
@@ -230,9 +238,11 @@ public class JavaNativeLargeMessageTest extends SimpleTest
                     BouncyCastleProvider.PROVIDER_NAME);
             gcmDecNative.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-            TestCase.assertTrue(getEngineString(gcmDecNative).contains("CTR[Native"));
-            TestCase.assertTrue(getEngineString(gcmEncNative).contains("CTR[Native"));
-
+            if (isJava8())
+            {
+                TestCase.assertTrue(getEngineString(gcmDecNative).contains("CTR[Native"));
+                TestCase.assertTrue(getEngineString(gcmEncNative).contains("CTR[Native"));
+            }
 
             ByteArrayOutputStream jCtext = new ByteArrayOutputStream();
             CipherOutputStream javaCos = new CipherOutputStream(jCtext, gcmEncJava);
@@ -325,8 +335,11 @@ public class JavaNativeLargeMessageTest extends SimpleTest
                     BouncyCastleProvider.PROVIDER_NAME);
             gcmDecJava.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-            TestCase.assertTrue(getEngineString(gcmDecJava).contains("CFB[Java"));
-            TestCase.assertTrue(getEngineString(gcmEncJava).contains("CFB[Java"));
+            if (isJava8())
+            {
+                TestCase.assertTrue(getEngineString(gcmDecJava).contains("CFB[Java"));
+                TestCase.assertTrue(getEngineString(gcmEncJava).contains("CFB[Java"));
+            }
 
             CryptoServicesRegistrar.setNativeEnabled(true);
             Cipher gcmEncNative = Cipher.getInstance("AES/CFB/NoPadding",
@@ -337,9 +350,11 @@ public class JavaNativeLargeMessageTest extends SimpleTest
                     BouncyCastleProvider.PROVIDER_NAME);
             gcmDecNative.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-            TestCase.assertTrue(getEngineString(gcmDecNative).contains("CFB[Native"));
-            TestCase.assertTrue(getEngineString(gcmEncNative).contains("CFB[Native"));
-
+            if (isJava8())
+            {
+                TestCase.assertTrue(getEngineString(gcmDecNative).contains("CFB[Native"));
+                TestCase.assertTrue(getEngineString(gcmEncNative).contains("CFB[Native"));
+            }
 
             ByteArrayOutputStream jCtext = new ByteArrayOutputStream();
             CipherOutputStream javaCos = new CipherOutputStream(jCtext, gcmEncJava);
@@ -432,9 +447,11 @@ public class JavaNativeLargeMessageTest extends SimpleTest
                     BouncyCastleProvider.PROVIDER_NAME);
             gcmDecJava.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-            TestCase.assertTrue(getEngineString(gcmDecJava).contains("CBC[Java"));
-            TestCase.assertTrue(getEngineString(gcmEncJava).contains("CBC[Java"));
-
+            if (isJava8())
+            {
+                TestCase.assertTrue(getEngineString(gcmDecJava).contains("CBC[Java"));
+                TestCase.assertTrue(getEngineString(gcmEncJava).contains("CBC[Java"));
+            }
             CryptoServicesRegistrar.setNativeEnabled(true);
             Cipher gcmEncNative = Cipher.getInstance("AES/CBC/NoPadding",
                     BouncyCastleProvider.PROVIDER_NAME);
@@ -444,9 +461,11 @@ public class JavaNativeLargeMessageTest extends SimpleTest
                     BouncyCastleProvider.PROVIDER_NAME);
             gcmDecNative.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
-            TestCase.assertTrue(getEngineString(gcmDecNative).contains("CBC[Native"));
-            TestCase.assertTrue(getEngineString(gcmEncNative).contains("CBC[Native"));
-
+            if (isJava8())
+            {
+                TestCase.assertTrue(getEngineString(gcmDecNative).contains("CBC[Native"));
+                TestCase.assertTrue(getEngineString(gcmEncNative).contains("CBC[Native"));
+            }
 
             ByteArrayOutputStream jCtext = new ByteArrayOutputStream();
             CipherOutputStream javaCos = new CipherOutputStream(jCtext, gcmEncJava);
@@ -532,8 +551,11 @@ public class JavaNativeLargeMessageTest extends SimpleTest
                     BouncyCastleProvider.PROVIDER_NAME);
             gcmDecJava.init(Cipher.DECRYPT_MODE, spec);
 
-            TestCase.assertTrue(getEngineString(gcmDecJava).contains("AES[Java"));
-            TestCase.assertTrue(getEngineString(gcmEncJava).contains("AES[Java"));
+            if (isJava8())
+            {
+                TestCase.assertTrue(getEngineString(gcmDecJava).contains("AES[Java"));
+                TestCase.assertTrue(getEngineString(gcmEncJava).contains("AES[Java"));
+            }
 
             CryptoServicesRegistrar.setNativeEnabled(true);
             Cipher gcmEncNative = Cipher.getInstance("AES/ECB/NoPadding",
@@ -544,9 +566,11 @@ public class JavaNativeLargeMessageTest extends SimpleTest
                     BouncyCastleProvider.PROVIDER_NAME);
             gcmDecNative.init(Cipher.DECRYPT_MODE, spec);
 
-            TestCase.assertTrue(getEngineString(gcmDecNative).contains("AES[Native"));
-            TestCase.assertTrue(getEngineString(gcmEncNative).contains("AES[Native"));
-
+            if (isJava8())
+            {
+                TestCase.assertTrue(getEngineString(gcmDecNative).contains("AES[Native"));
+                TestCase.assertTrue(getEngineString(gcmEncNative).contains("AES[Native"));
+            }
 
             ByteArrayOutputStream jCtext = new ByteArrayOutputStream();
             CipherOutputStream javaCos = new CipherOutputStream(jCtext, gcmEncJava);
@@ -652,25 +676,7 @@ public class JavaNativeLargeMessageTest extends SimpleTest
         return spi.toString();
     }
 
-    /**
-     * Method for getting the toString() value of the digest.
-     * This exists to assert that the provider has served up a native or a java only implementation
-     * of a given transformation.
-     *
-     * @param cipher
-     * @return
-     * @throws Exception
-     */
-    public String getDigestEngineString(MessageDigest cipher) throws Exception
-    {
-        //
-        // This will only work on BC LTS.
-        //
-        Field f = cipher.getClass().getSuperclass().getDeclaredField("digest");
-        f.setAccessible(true);
-        Object spi = f.get(cipher);
-        return spi.toString();
-    }
+
 
 
 }
