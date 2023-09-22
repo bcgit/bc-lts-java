@@ -22,7 +22,7 @@ import javax.security.auth.Destroyable;
 
 public class AESGCMPacketCipher
     extends AESPacketCipherEngine
-    implements AESGCMModePacketCipher, Destroyable
+    implements AESGCMModePacketCipher
 {
     private boolean destroyed = false;
     private byte[] lastKey;

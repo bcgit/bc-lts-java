@@ -1118,20 +1118,28 @@ public class BaseBlockCipher
      */
     private void makePacketCipher()
     {
-
-
-        if (modeName == null)
-        {
-            return;
-        }
-
-        if (!"AES".equals(baseEngine.getAlgorithmName()))
-        {
-            return;
-        }
-
         synchronized (this)
         {
+            if (!CryptoServicesRegistrar.isPacketCipherEnabled() ||
+                    updateCalled || packetDirection == null || packetParams == null)
+            {
+                packetCipherInstance = null;
+                return;
+            }
+
+            if (modeName == null)
+            {
+                packetCipherInstance = null;
+                return;
+            }
+
+            if (!"AES".equals(baseEngine.getAlgorithmName()))
+            {
+                packetCipherInstance = null;
+                return;
+            }
+
+
             if (modeName.equals("GCMSIV"))
             {
                 packetCipherInstance = packetCipherInstance == null ?
@@ -1149,7 +1157,6 @@ public class BaseBlockCipher
             }
             else if (modeName.startsWith("CFB"))
             {
-                //return; // TODO add back when fixed
                 if (modeName.length() != 3)
                 {
                     int wordSize = Integer.parseInt(modeName.substring(3));
@@ -1196,7 +1203,7 @@ public class BaseBlockCipher
      * @throws BadPaddingException
      * @throws IllegalBlockSizeException
      */
-    private Integer applyPacketCipher(
+    private int applyPacketCipher(
             byte[] input,
             int inputOffset,
             int inputLen,
@@ -1204,10 +1211,6 @@ public class BaseBlockCipher
             int outputOffset) throws BadPaddingException, IllegalBlockSizeException
 
     {
-        if (packetCipherInstance == null)
-        {
-            return null;
-        }
 
         try
         {
@@ -1375,10 +1378,7 @@ public class BaseBlockCipher
                 input = input != null ? input : emptyArray;
                 int outputLen = packetCipherInstance.getOutputSize(packetDirection, packetParams, inputLen);
                 byte[] output = new byte[outputLen];
-                if (applyPacketCipher(input, inputOffset, inputLen, output, 0) == null)
-                {
-                    throw new IllegalStateException("packet cipher not applied when expected");
-                }
+                applyPacketCipher(input, inputOffset, inputLen, output, 0);
                 return output;
             }
         }
@@ -1436,22 +1436,18 @@ public class BaseBlockCipher
 
         try
         {
-            if (inputLen != 0)
+            makePacketCipher();
+            if (packetCipherInstance != null)
             {
-
-                if (!updateCalled &&
-                        packetDirection != null && packetParams != null)
-                {
-                    input = input != null ? input : emptyArray;
-                    makePacketCipher();
-                    Integer ol = applyPacketCipher(input, inputOffset, inputLen, output, outputOffset);
-                    if (ol != null) return ol;
-                }
-
-                len = cipher.processBytes(input, inputOffset, inputLen, output, outputOffset);
+                return applyPacketCipher(input, inputOffset, inputLen, output, outputOffset);
             }
 
+            if (inputLen != 0)
+            {
+                len = cipher.processBytes(input, inputOffset, inputLen, output, outputOffset);
+            }
             return (len + cipher.doFinal(output, outputOffset + len));
+
         }
         catch (OutputLengthException e)
         {
@@ -1809,4 +1805,6 @@ public class BaseBlockCipher
         }
         return cipher.toString();
     }
+
+
 }

@@ -16,7 +16,7 @@ import javax.security.auth.Destroyable;
 
 public class AESNativeGCMPacketCipher
     extends AESPacketCipherEngine
-    implements AESGCMModePacketCipher, Destroyable
+    implements AESGCMModePacketCipher
 {
     private byte[] lastKey;
     private byte[] lastNonce;

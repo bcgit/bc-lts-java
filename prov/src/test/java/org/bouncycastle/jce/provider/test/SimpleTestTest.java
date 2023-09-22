@@ -19,7 +19,7 @@ public class SimpleTestTest
             Security.addProvider(new BouncyCastleProvider());
         }
 
-        org.bouncycastle.util.test.Test[] tests = RegressionTest.tests;
+        org.bouncycastle.util.test.Test[] tests = RegressionTest.tests();
 
         for (int i = 0; i != tests.length; i++)
         {

@@ -44,13 +44,18 @@ public final class CryptoServicesRegistrar
 {
     private static final Logger LOG = Logger.getLogger(CryptoServicesRegistrar.class.getName());
 
-    private static final Permission CanSetDefaultProperty = new CryptoServicesPermission(CryptoServicesPermission.GLOBAL_CONFIG);
-    private static final Permission CanSetThreadProperty = new CryptoServicesPermission(CryptoServicesPermission.THREAD_LOCAL_CONFIG);
-    private static final Permission CanSetDefaultRandom = new CryptoServicesPermission(CryptoServicesPermission.DEFAULT_RANDOM);
-    private static final Permission CanSetConstraints = new CryptoServicesPermission(CryptoServicesPermission.CONSTRAINTS);
+    private static final Permission CanSetDefaultProperty =
+            new CryptoServicesPermission(CryptoServicesPermission.GLOBAL_CONFIG);
+    private static final Permission CanSetThreadProperty =
+            new CryptoServicesPermission(CryptoServicesPermission.THREAD_LOCAL_CONFIG);
+    private static final Permission CanSetDefaultRandom =
+            new CryptoServicesPermission(CryptoServicesPermission.DEFAULT_RANDOM);
+    private static final Permission CanSetConstraints =
+            new CryptoServicesPermission(CryptoServicesPermission.CONSTRAINTS);
 
     private static final ThreadLocal<Map<String, Object[]>> threadProperties = new ThreadLocal<Map<String, Object[]>>();
-    private static final Map<String, Object[]> globalProperties = Collections.synchronizedMap(new HashMap<String, Object[]>());
+    private static final Map<String, Object[]> globalProperties = Collections.synchronizedMap(new HashMap<String,
+            Object[]>());
     private static final SecureRandomProvider defaultRandomProviderImpl = new ThreadLocalSecureRandomProvider();
 
     private static final CryptoServicesConstraints noConstraintsImpl = new CryptoServicesConstraints()
@@ -61,74 +66,84 @@ public final class CryptoServicesRegistrar
         }
     };
 
-    private static final AtomicReference<SecureRandomProvider> defaultSecureRandomProvider = new AtomicReference<SecureRandomProvider>();
+    private static final AtomicReference<SecureRandomProvider> defaultSecureRandomProvider =
+            new AtomicReference<SecureRandomProvider>();
     private static final boolean preconfiguredConstraints;
-    private static final AtomicReference<CryptoServicesConstraints> servicesConstraints = new AtomicReference<CryptoServicesConstraints>();
+    private static final AtomicReference<CryptoServicesConstraints> servicesConstraints =
+            new AtomicReference<CryptoServicesConstraints>();
 
     private static final NativeServices nativeServices;
+
+    public static final String PACKET_CIPHER_ENABLE_PROP = "org.bouncycastle.packet_cipher_enabled";
+
+    private static boolean packetCipherEnabled = true;
 
     static
     {
         // default domain parameters for DSA and Diffie-Hellman
 
         DSAParameters def512Params = new DSAParameters(
-            new BigInteger("fca682ce8e12caba26efccf7110e526db078b05edecbcd1eb4a208f3ae1617ae01f35b91a47e6df63413c5e12ed0899bcd132acd50d99151bdc43ee737592e17", 16),
-            new BigInteger("962eddcc369cba8ebb260ee6b6a126d9346e38c5", 16),
-            new BigInteger("678471b27a9cf44ee91a49c5147db1a9aaf244f05a434d6486931d2d14271b9e35030b71fd73da179069b32e2935630e1c2062354d0da20a6c416e50be794ca4", 16),
-            new DSAValidationParameters(Hex.decodeStrict("b869c82b35d70e1b1ff91b28e37a62ecdc34409b"), 123));
+                new BigInteger(
+                        "fca682ce8e12caba26efccf7110e526db078b05edecbcd1eb4a208f3ae1617ae01f35b91a47e6df63413c5e12ed0899bcd132acd50d99151bdc43ee737592e17", 16),
+                new BigInteger("962eddcc369cba8ebb260ee6b6a126d9346e38c5", 16),
+                new BigInteger(
+                        "678471b27a9cf44ee91a49c5147db1a9aaf244f05a434d6486931d2d14271b9e35030b71fd73da179069b32e2935630e1c2062354d0da20a6c416e50be794ca4", 16),
+                new DSAValidationParameters(Hex.decodeStrict("b869c82b35d70e1b1ff91b28e37a62ecdc34409b"), 123));
 
         DSAParameters def768Params = new DSAParameters(
-            new BigInteger("e9e642599d355f37c97ffd3567120b8e25c9cd43e927b3a9670fbec5" +
-                "d890141922d2c3b3ad2480093799869d1e846aab49fab0ad26d2ce6a" +
-                "22219d470bce7d777d4a21fbe9c270b57f607002f3cef8393694cf45" +
-                "ee3688c11a8c56ab127a3daf", 16),
-            new BigInteger("9cdbd84c9f1ac2f38d0f80f42ab952e7338bf511", 16),
-            new BigInteger("30470ad5a005fb14ce2d9dcd87e38bc7d1b1c5facbaecbe95f190aa7" +
-                "a31d23c4dbbcbe06174544401a5b2c020965d8c2bd2171d366844577" +
-                "1f74ba084d2029d83c1c158547f3a9f1a2715be23d51ae4d3e5a1f6a" +
-                "7064f316933a346d3f529252", 16),
-            new DSAValidationParameters(Hex.decodeStrict("77d0f8c4dad15eb8c4f2f8d6726cefd96d5bb399"), 263));
+                new BigInteger("e9e642599d355f37c97ffd3567120b8e25c9cd43e927b3a9670fbec5" +
+                        "d890141922d2c3b3ad2480093799869d1e846aab49fab0ad26d2ce6a" +
+                        "22219d470bce7d777d4a21fbe9c270b57f607002f3cef8393694cf45" +
+                        "ee3688c11a8c56ab127a3daf", 16),
+                new BigInteger("9cdbd84c9f1ac2f38d0f80f42ab952e7338bf511", 16),
+                new BigInteger("30470ad5a005fb14ce2d9dcd87e38bc7d1b1c5facbaecbe95f190aa7" +
+                        "a31d23c4dbbcbe06174544401a5b2c020965d8c2bd2171d366844577" +
+                        "1f74ba084d2029d83c1c158547f3a9f1a2715be23d51ae4d3e5a1f6a" +
+                        "7064f316933a346d3f529252", 16),
+                new DSAValidationParameters(Hex.decodeStrict("77d0f8c4dad15eb8c4f2f8d6726cefd96d5bb399"), 263));
 
         DSAParameters def1024Params = new DSAParameters(
-            new BigInteger("fd7f53811d75122952df4a9c2eece4e7f611b7523cef4400c31e3f80" +
-                "b6512669455d402251fb593d8d58fabfc5f5ba30f6cb9b556cd7813b" +
-                "801d346ff26660b76b9950a5a49f9fe8047b1022c24fbba9d7feb7c6" +
-                "1bf83b57e7c6a8a6150f04fb83f6d3c51ec3023554135a169132f675" +
-                "f3ae2b61d72aeff22203199dd14801c7", 16),
-            new BigInteger("9760508f15230bccb292b982a2eb840bf0581cf5", 16),
-            new BigInteger("f7e1a085d69b3ddecbbcab5c36b857b97994afbbfa3aea82f9574c0b" +
-                "3d0782675159578ebad4594fe67107108180b449167123e84c281613" +
-                "b7cf09328cc8a6e13c167a8b547c8d28e0a3ae1e2bb3a675916ea37f" +
-                "0bfa213562f1fb627a01243bcca4f1bea8519089a883dfe15ae59f06" +
-                "928b665e807b552564014c3bfecf492a", 16),
-            new DSAValidationParameters(Hex.decodeStrict("8d5155894229d5e689ee01e6018a237e2cae64cd"), 92));
+                new BigInteger("fd7f53811d75122952df4a9c2eece4e7f611b7523cef4400c31e3f80" +
+                        "b6512669455d402251fb593d8d58fabfc5f5ba30f6cb9b556cd7813b" +
+                        "801d346ff26660b76b9950a5a49f9fe8047b1022c24fbba9d7feb7c6" +
+                        "1bf83b57e7c6a8a6150f04fb83f6d3c51ec3023554135a169132f675" +
+                        "f3ae2b61d72aeff22203199dd14801c7", 16),
+                new BigInteger("9760508f15230bccb292b982a2eb840bf0581cf5", 16),
+                new BigInteger("f7e1a085d69b3ddecbbcab5c36b857b97994afbbfa3aea82f9574c0b" +
+                        "3d0782675159578ebad4594fe67107108180b449167123e84c281613" +
+                        "b7cf09328cc8a6e13c167a8b547c8d28e0a3ae1e2bb3a675916ea37f" +
+                        "0bfa213562f1fb627a01243bcca4f1bea8519089a883dfe15ae59f06" +
+                        "928b665e807b552564014c3bfecf492a", 16),
+                new DSAValidationParameters(Hex.decodeStrict("8d5155894229d5e689ee01e6018a237e2cae64cd"), 92));
 
         DSAParameters def2048Params = new DSAParameters(
-            new BigInteger("95475cf5d93e596c3fcd1d902add02f427f5f3c7210313bb45fb4d5b" +
-                "b2e5fe1cbd678cd4bbdd84c9836be1f31c0777725aeb6c2fc38b85f4" +
-                "8076fa76bcd8146cc89a6fb2f706dd719898c2083dc8d896f84062e2" +
-                "c9c94d137b054a8d8096adb8d51952398eeca852a0af12df83e475aa" +
-                "65d4ec0c38a9560d5661186ff98b9fc9eb60eee8b030376b236bc73b" +
-                "e3acdbd74fd61c1d2475fa3077b8f080467881ff7e1ca56fee066d79" +
-                "506ade51edbb5443a563927dbc4ba520086746175c8885925ebc64c6" +
-                "147906773496990cb714ec667304e261faee33b3cbdf008e0c3fa906" +
-                "50d97d3909c9275bf4ac86ffcb3d03e6dfc8ada5934242dd6d3bcca2" +
-                "a406cb0b", 16),
-            new BigInteger("f8183668ba5fc5bb06b5981e6d8b795d30b8978d43ca0ec572e37e09939a9773", 16),
-            new BigInteger("42debb9da5b3d88cc956e08787ec3f3a09bba5f48b889a74aaf53174" +
-                "aa0fbe7e3c5b8fcd7a53bef563b0e98560328960a9517f4014d3325f" +
-                "c7962bf1e049370d76d1314a76137e792f3f0db859d095e4a5b93202" +
-                "4f079ecf2ef09c797452b0770e1350782ed57ddf794979dcef23cb96" +
-                "f183061965c4ebc93c9c71c56b925955a75f94cccf1449ac43d586d0" +
-                "beee43251b0b2287349d68de0d144403f13e802f4146d882e057af19" +
-                "b6f6275c6676c8fa0e3ca2713a3257fd1b27d0639f695e347d8d1cf9" +
-                "ac819a26ca9b04cb0eb9b7b035988d15bbac65212a55239cfc7e58fa" +
-                "e38d7250ab9991ffbc97134025fe8ce04c4399ad96569be91a546f49" +
-                "78693c7a", 16),
-            new DSAValidationParameters(Hex.decodeStrict("b0b4417601b59cbc9d8ac8f935cadaec4f5fbb2f23785609ae466748d9b5a536"), 497));
+                new BigInteger("95475cf5d93e596c3fcd1d902add02f427f5f3c7210313bb45fb4d5b" +
+                        "b2e5fe1cbd678cd4bbdd84c9836be1f31c0777725aeb6c2fc38b85f4" +
+                        "8076fa76bcd8146cc89a6fb2f706dd719898c2083dc8d896f84062e2" +
+                        "c9c94d137b054a8d8096adb8d51952398eeca852a0af12df83e475aa" +
+                        "65d4ec0c38a9560d5661186ff98b9fc9eb60eee8b030376b236bc73b" +
+                        "e3acdbd74fd61c1d2475fa3077b8f080467881ff7e1ca56fee066d79" +
+                        "506ade51edbb5443a563927dbc4ba520086746175c8885925ebc64c6" +
+                        "147906773496990cb714ec667304e261faee33b3cbdf008e0c3fa906" +
+                        "50d97d3909c9275bf4ac86ffcb3d03e6dfc8ada5934242dd6d3bcca2" +
+                        "a406cb0b", 16),
+                new BigInteger("f8183668ba5fc5bb06b5981e6d8b795d30b8978d43ca0ec572e37e09939a9773", 16),
+                new BigInteger("42debb9da5b3d88cc956e08787ec3f3a09bba5f48b889a74aaf53174" +
+                        "aa0fbe7e3c5b8fcd7a53bef563b0e98560328960a9517f4014d3325f" +
+                        "c7962bf1e049370d76d1314a76137e792f3f0db859d095e4a5b93202" +
+                        "4f079ecf2ef09c797452b0770e1350782ed57ddf794979dcef23cb96" +
+                        "f183061965c4ebc93c9c71c56b925955a75f94cccf1449ac43d586d0" +
+                        "beee43251b0b2287349d68de0d144403f13e802f4146d882e057af19" +
+                        "b6f6275c6676c8fa0e3ca2713a3257fd1b27d0639f695e347d8d1cf9" +
+                        "ac819a26ca9b04cb0eb9b7b035988d15bbac65212a55239cfc7e58fa" +
+                        "e38d7250ab9991ffbc97134025fe8ce04c4399ad96569be91a546f49" +
+                        "78693c7a", 16),
+                new DSAValidationParameters(Hex.decodeStrict(
+                        "b0b4417601b59cbc9d8ac8f935cadaec4f5fbb2f23785609ae466748d9b5a536"), 497));
 
         localSetGlobalProperty(Property.DSA_DEFAULT_PARAMS, def512Params, def768Params, def1024Params, def2048Params);
-        localSetGlobalProperty(Property.DH_DEFAULT_PARAMS, toDH(def512Params), toDH(def768Params), toDH(def1024Params), toDH(def2048Params));
+        localSetGlobalProperty(Property.DH_DEFAULT_PARAMS, toDH(def512Params), toDH(def768Params),
+                toDH(def1024Params), toDH(def2048Params));
 
         servicesConstraints.set(getDefaultConstraints());
         preconfiguredConstraints = (servicesConstraints.get() != noConstraintsImpl);
@@ -139,6 +154,8 @@ public final class CryptoServicesRegistrar
         NativeLoader.loadDriver();
 
         nativeServices = new DefaultNativeServices();
+        packetCipherEnabled = Properties.isOverrideSet(PACKET_CIPHER_ENABLE_PROP);
+
     }
 
 
@@ -157,25 +174,36 @@ public final class CryptoServicesRegistrar
         return NativeLoader.isNativeAvailable();
     }
 
-    // TODO: what happens if setNativeEnabled() is passed true?
+
     public static void setNativeEnabled(boolean enabled)
     {
         NativeLoader.setNativeEnabled(enabled);
-        //TODO: nativeFeatures = null;
     }
+
 
     public static NativeServices getNativeServices()
     {
         return nativeServices;
     }
 
+    public static void setPacketCipherEnabled(boolean enabled)
+    {
+        packetCipherEnabled = enabled;
+    }
+
+    public static boolean isPacketCipherEnabled()
+    {
+        return packetCipherEnabled;
+    }
+
     public static boolean hasEnabledService(String feature)
     {
+
         return nativeServices != null &&
-            nativeServices.isSupported() &&
-            nativeServices.isInstalled() &&
-            nativeServices.isEnabled() &&
-            nativeServices.hasService(feature);
+                nativeServices.isSupported() &&
+                nativeServices.isInstalled() &&
+                nativeServices.isEnabled() &&
+                nativeServices.hasService(feature);
     }
 
     /**
@@ -246,7 +274,7 @@ public final class CryptoServicesRegistrar
     public static EntropySourceProvider getDefaultEntropySourceProvider()
     {
         if (NativeLoader.hasNativeService(NativeServices.DRBG) ||
-            NativeLoader.hasNativeService(NativeServices.NRBG))
+                NativeLoader.hasNativeService(NativeServices.NRBG))
         {
             return new EntropySourceProvider()
             {
@@ -349,7 +377,7 @@ public final class CryptoServicesRegistrar
 
         if (values != null)
         {
-            return (T)values[0];
+            return (T) values[0];
         }
 
         return null;
@@ -388,7 +416,7 @@ public final class CryptoServicesRegistrar
             return null;
         }
 
-        return (T[])values.clone();
+        return (T[]) values.clone();
     }
 
     /**
@@ -413,11 +441,11 @@ public final class CryptoServicesRegistrar
         {
             for (int i = 0; i != values.length; i++)
             {
-                DHParameters params = (DHParameters)values[i];
+                DHParameters params = (DHParameters) values[i];
 
                 if (params.getP().bitLength() == size)
                 {
-                    return (T)params;
+                    return (T) params;
                 }
             }
         }
@@ -425,11 +453,11 @@ public final class CryptoServicesRegistrar
         {
             for (int i = 0; i != values.length; i++)
             {
-                DSAParameters params = (DSAParameters)values[i];
+                DSAParameters params = (DSAParameters) values[i];
 
                 if (params.getP().bitLength() == size)
                 {
-                    return (T)params;
+                    return (T) params;
                 }
             }
         }
@@ -514,7 +542,7 @@ public final class CryptoServicesRegistrar
         // clear the property for the current thread as well to avoid confusion
         localClearThreadProperty(property);
 
-        return (T[])globalProperties.remove(property.name);
+        return (T[]) globalProperties.remove(property.name);
     }
 
     /**
@@ -528,7 +556,7 @@ public final class CryptoServicesRegistrar
     {
         checkPermission(CanSetThreadProperty);
 
-        return (T[])localClearThreadProperty(property);
+        return (T[]) localClearThreadProperty(property);
     }
 
     private static Object[] localClearThreadProperty(Property property)
@@ -567,7 +595,8 @@ public final class CryptoServicesRegistrar
         int pSize = dsaParams.getP().bitLength();
         int m = chooseLowerBound(pSize);
         return new DHParameters(dsaParams.getP(), dsaParams.getG(), dsaParams.getQ(), m, 0, null,
-            new DHValidationParameters(dsaParams.getValidationParameters().getSeed(), dsaParams.getValidationParameters().getCounter()));
+                new DHValidationParameters(dsaParams.getValidationParameters().getSeed(),
+                        dsaParams.getValidationParameters().getCounter()));
     }
 
     // based on lower limit of at least 2^{2 * bits_of_security}
@@ -634,15 +663,16 @@ public final class CryptoServicesRegistrar
 
     // {"Provider class name","SecureRandomSpi class name"}
     private static final String[][] initialEntropySourceNames = new String[][]
-        {
-            // Normal JVM
-            {"sun.security.provider.Sun", "sun.security.provider.SecureRandom"},
-            // Apache harmony
-            {"org.apache.harmony.security.provider.crypto.CryptoProvider", "org.apache.harmony.security.provider.crypto.SHA1PRNG_SecureRandomImpl"},
-            // Android.
-            {"com.android.org.conscrypt.OpenSSLProvider", "com.android.org.conscrypt.OpenSSLRandom"},
-            {"org.conscrypt.OpenSSLProvider", "org.conscrypt.OpenSSLRandom"},
-        };
+            {
+                    // Normal JVM
+                    {"sun.security.provider.Sun", "sun.security.provider.SecureRandom"},
+                    // Apache harmony
+                    {"org.apache.harmony.security.provider.crypto.CryptoProvider", "org.apache.harmony.security" +
+                            ".provider.crypto.SHA1PRNG_SecureRandomImpl"},
+                    // Android.
+                    {"com.android.org.conscrypt.OpenSSLProvider", "com.android.org.conscrypt.OpenSSLRandom"},
+                    {"org.conscrypt.OpenSSLProvider", "org.conscrypt.OpenSSLRandom"},
+            };
 
     // Cascade through providers looking for match.
     private final static Object[] findSource()
@@ -721,7 +751,7 @@ public final class CryptoServicesRegistrar
                 {
                     try
                     {
-                        return (SecureRandom)SecureRandom.class.getMethod("getInstanceStrong").invoke(null);
+                        return (SecureRandom) SecureRandom.class.getMethod("getInstanceStrong").invoke(null);
                     }
                     catch (Exception e)
                     {
@@ -745,11 +775,11 @@ public final class CryptoServicesRegistrar
     }
 
     private static class CoreSecureRandom
-        extends SecureRandom
+            extends SecureRandom
     {
         CoreSecureRandom(Object[] initialEntropySourceAndSpi)
         {
-            super((SecureRandomSpi)initialEntropySourceAndSpi[1], (Provider)initialEntropySourceAndSpi[0]);
+            super((SecureRandomSpi) initialEntropySourceAndSpi[1], (Provider) initialEntropySourceAndSpi[0]);
         }
     }
 
@@ -765,7 +795,7 @@ public final class CryptoServicesRegistrar
     }
 
     private static class HybridEntropySource
-        implements EntropySource
+            implements EntropySource
     {
         private final AtomicBoolean seedAvailable = new AtomicBoolean(false);
         private final AtomicInteger samples = new AtomicInteger(0);
@@ -775,12 +805,14 @@ public final class CryptoServicesRegistrar
         private final int bytesRequired;
         private final byte[] additionalInput = Pack.longToBigEndian(System.currentTimeMillis());
 
-        HybridEntropySource(final EntropyDaemon entropyDaemon, EntropySourceProvider entropyProvider, final int bitsRequired)
+        HybridEntropySource(final EntropyDaemon entropyDaemon, EntropySourceProvider entropyProvider,
+                            final int bitsRequired)
         {
             bytesRequired = (bitsRequired + 7) / 8;
             // remember for the seed generator we need the correct security strength for SHA-512
             entropySource = new SignallingEntropySource(entropyDaemon, seedAvailable, entropyProvider, 256);
-            drbg = new HMacSP800DRBG(new HMac(new SHA512Digest()), 256, entropySource, Strings.toByteArray("Bouncy Castle Hybrid Entropy Source"), entropySource.getEntropy());
+            drbg = new HMacSP800DRBG(new HMac(new SHA512Digest()), 256, entropySource, Strings.toByteArray("Bouncy " +
+                    "Castle Hybrid Entropy Source"), entropySource.getEntropy());
         }
 
         @Override
@@ -825,7 +857,7 @@ public final class CryptoServicesRegistrar
         }
 
         private class SignallingEntropySource
-            implements EntropySource
+                implements EntropySource
         {
             private final EntropyDaemon entropyDaemon;
             private final AtomicBoolean seedAvailable;
@@ -834,7 +866,8 @@ public final class CryptoServicesRegistrar
             private final AtomicReference entropy = new AtomicReference();
             private final AtomicBoolean scheduled = new AtomicBoolean(false);
 
-            SignallingEntropySource(EntropyDaemon entropyDaemon, AtomicBoolean seedAvailable, EntropySourceProvider baseRandom, int bitsRequired)
+            SignallingEntropySource(EntropyDaemon entropyDaemon, AtomicBoolean seedAvailable,
+                                    EntropySourceProvider baseRandom, int bitsRequired)
             {
                 this.entropyDaemon = entropyDaemon;
                 this.seedAvailable = seedAvailable;
@@ -849,7 +882,7 @@ public final class CryptoServicesRegistrar
 
             public byte[] getEntropy()
             {
-                byte[] seed = (byte[])entropy.getAndSet(null);
+                byte[] seed = (byte[]) entropy.getAndSet(null);
 
                 if (seed == null || seed.length != byteLength)
                 {
@@ -881,7 +914,7 @@ public final class CryptoServicesRegistrar
     }
 
     private static class URLSeededEntropySourceProvider
-        implements EntropySourceProvider
+            implements EntropySourceProvider
     {
         private final InputStream seedStream;
 
@@ -926,7 +959,7 @@ public final class CryptoServicesRegistrar
             return new IncrementalEntropySource()
             {
                 public byte[] getEntropy(long pause)
-                    throws InterruptedException
+                        throws InterruptedException
                 {
                     byte[] seed = new byte[numBytes];
                     for (int i = 0; i < numBytes / 8; i++)
@@ -991,7 +1024,7 @@ public final class CryptoServicesRegistrar
     }
 
     private static void sleep(long ms)
-        throws InterruptedException
+            throws InterruptedException
     {
         if (ms != 0)
         {
@@ -1000,7 +1033,7 @@ public final class CryptoServicesRegistrar
     }
 
     private static class OneShotHybridEntropySource
-        implements EntropySource
+            implements EntropySource
     {
         private final AtomicBoolean seedAvailable = new AtomicBoolean(false);
         private final AtomicInteger samples = new AtomicInteger(0);
@@ -1015,7 +1048,8 @@ public final class CryptoServicesRegistrar
             bytesRequired = (bitsRequired + 7) / 8;
             // remember for the seed generator we need the correct security strength for SHA-512
             entropySource = new SignallingEntropySource(seedAvailable, entropyProvider, 256);
-            drbg = new HMacSP800DRBG(new HMac(new SHA512Digest()), 256, entropySource, Strings.toByteArray("Bouncy Castle One Shot Entropy Source"), entropySource.getEntropy());
+            drbg = new HMacSP800DRBG(new HMac(new SHA512Digest()), 256, entropySource, Strings.toByteArray("Bouncy " +
+                    "Castle One Shot Entropy Source"), entropySource.getEntropy());
         }
 
         public boolean isPredictionResistant()
@@ -1058,7 +1092,7 @@ public final class CryptoServicesRegistrar
         }
 
         private class SignallingEntropySource
-            implements IncrementalEntropySource
+                implements IncrementalEntropySource
         {
             private final AtomicBoolean seedAvailable;
             private final IncrementalEntropySource entropySource;
@@ -1069,7 +1103,7 @@ public final class CryptoServicesRegistrar
             SignallingEntropySource(AtomicBoolean seedAvailable, EntropySourceProvider baseRandom, int bitsRequired)
             {
                 this.seedAvailable = seedAvailable;
-                this.entropySource = (IncrementalEntropySource)baseRandom.get(bitsRequired);
+                this.entropySource = (IncrementalEntropySource) baseRandom.get(bitsRequired);
                 this.byteLength = (bitsRequired + 7) / 8;
             }
 
@@ -1092,9 +1126,9 @@ public final class CryptoServicesRegistrar
             }
 
             public byte[] getEntropy(long pause)
-                throws InterruptedException
+                    throws InterruptedException
             {
-                byte[] seed = (byte[])entropy.getAndSet(null);
+                byte[] seed = (byte[]) entropy.getAndSet(null);
 
                 if (seed == null || seed.length != byteLength)
                 {
@@ -1126,7 +1160,7 @@ public final class CryptoServicesRegistrar
     }
 
     private static class ThreadLocalSecureRandomProvider
-        implements SecureRandomProvider
+            implements SecureRandomProvider
     {
         final ThreadLocal<SecureRandom> defaultRandoms = new ThreadLocal<SecureRandom>();
 

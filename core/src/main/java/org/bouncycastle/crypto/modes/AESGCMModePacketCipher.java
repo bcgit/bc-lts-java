@@ -7,8 +7,10 @@ import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
+import javax.security.auth.Destroyable;
+
 public interface AESGCMModePacketCipher
-    extends PacketCipher
+    extends PacketCipher, Destroyable
 {
     default int checkParameters(CipherParameters params)
     {
