@@ -11,7 +11,7 @@ import org.bouncycastle.util.encoders.Hex;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.lang.reflect.Array;
+
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class CCMNativeLimitTest

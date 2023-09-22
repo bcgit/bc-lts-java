@@ -22,38 +22,38 @@ test {
 }
 
 jar {
-  from sourceSets.main.output
+    from sourceSets.main.output
 }
 
 task sourcesJar(type: Jar) {
-  archiveBaseName = jar.archiveBaseName
-  classifier = 'sources'
-  from sourceSets.main.allSource
+    archiveBaseName = jar.archiveBaseName
+    classifier = 'sources'
+    from sourceSets.main.allSource
     exclude("**/*.so")
-  into('native/intel') {
-    from '../native_c/intel'
-  }
-  into('native/jniutil') {
-    from '../native_c/jniutil'
-  }
+    into('native/intel') {
+        from '../native_c/intel'
+    }
+    into('native/jniutil') {
+        from '../native_c/jniutil'
+    }
 }
 
 javadoc {
-  title = "Bouncy Castle Library (LTS Edition) ${version} Low-Level API"
-  options.windowTitle = "Bouncy Castle Library (LTS Edition) ${version} Low-Level API"
-  options.overview = "overview.html"
+    title = "Bouncy Castle Library (LTS Edition) ${version} Low-Level API"
+    options.windowTitle = "Bouncy Castle Library (LTS Edition) ${version} Low-Level API"
+    options.overview = "overview.html"
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-  archiveBaseName = jar.archiveBaseName
-  classifier = 'javadoc'
-  from javadoc.destinationDir
+    archiveBaseName = jar.archiveBaseName
+    classifier = 'javadoc'
+    from javadoc.destinationDir
 }
 
 artifacts {
-  archives jar
-  archives javadocJar
-  archives sourcesJar
+    archives jar
+    archives javadocJar
+    archives sourcesJar
 }
 
 
@@ -63,9 +63,9 @@ task cleanNative(type: Delete) {
 }
 
 
-task('copyJars', type:Copy) {
-    from new File(projectDir,"build/libs")
-    into new File(rootDir,"../bc-lts-java-jars/${version}/")
+task('copyJars', type: Copy) {
+    from new File(projectDir, "build/libs")
+    into new File(rootDir, "../bc-lts-java-jars/${version}/")
 }
 
 task withNative() {

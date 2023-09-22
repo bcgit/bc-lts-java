@@ -52,11 +52,6 @@ public class JavaNativeAgreementTest extends SimpleTest
 
     }
 
-    private boolean isJava8()
-    {
-        return System.getProperty("java.version", "").startsWith("1.8");
-    }
-
 
     @After
     public void tearDown()
@@ -683,6 +678,7 @@ public class JavaNativeAgreementTest extends SimpleTest
                 {
                     TestCase.assertTrue(getDigestEngineString(mdNative).contains("SHA256[Native]"));
                 }
+
                 DigestInputStream din = new DigestInputStream(new ByteArrayInputStream(msg), mdNative);
                 Streams.drain(din);
                 nativeDigest = din.getMessageDigest().digest();
@@ -773,5 +769,6 @@ public class JavaNativeAgreementTest extends SimpleTest
     {
         return String.join(" ", CryptoServicesRegistrar.getNativeServices().getFeatureSet());
     }
+
 
 }
