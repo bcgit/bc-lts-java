@@ -3,7 +3,7 @@ import static ExtraFunctions.*
 jar.archiveBaseName = "bccore-lts$vm_range"
 
 dependencies {
-
+  testImplementation 'com.fasterxml.jackson.core:jackson-databind:2.13.3'
 }
 
 test {

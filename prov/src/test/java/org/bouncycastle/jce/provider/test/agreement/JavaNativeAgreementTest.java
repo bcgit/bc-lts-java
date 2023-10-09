@@ -125,6 +125,7 @@ public class JavaNativeAgreementTest extends SimpleTest
                             TestCase.assertTrue(getEngineString(gcmEncNative).contains("GCM[Native"));
                         }
 
+
                         byte[] msg = new byte[msgSize];
                         rand.nextBytes(msg);
 
@@ -225,7 +226,6 @@ public class JavaNativeAgreementTest extends SimpleTest
                         TestCase.assertTrue(getEngineString(gcmDecJava).contains("SICBlockCipher"));
                         TestCase.assertTrue(getEngineString(gcmEncJava).contains("SICBlockCipher"));
                     }
-
                     CryptoServicesRegistrar.setNativeEnabled(true);
                     Cipher gcmEncNative = Cipher.getInstance("AES/CTR/NoPadding",
                             BouncyCastleProvider.PROVIDER_NAME);

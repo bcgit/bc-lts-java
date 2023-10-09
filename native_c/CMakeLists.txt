@@ -1,5 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 
+
+FILE(TO_CMAKE_PATH "$ENV{JAVA_HOME}/include" JNI_INCLUDE)
+
+FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/../core" FIPS_JAVA_ROOT)
+
+message("JNI Include directory:  ${JNI_INCLUDE}")
+message("FIPS_JAVA_ROOT  ${FIPS_JAVA_ROOT}")
+
 message("Looking for either JAVA_HOME or LTS_JDK8 env vars. ")
 
 if (DEFINED ENV{JAVA_HOME})
@@ -361,6 +369,32 @@ else ()
             intel/jni/cbc_jni.c
             )
 
+    set(CBC_PC
+            intel/packet/cbc_pc/cbc_pc.h
+            intel/packet/cbc_pc/cbc_pc.c
+            intel/packet/cbc_pc/cbc_pc128.c
+            intel/jni/cbc_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
+    set(CBC_PC_VAES
+            intel/packet/cbc_pc/cbc_pc.h
+            intel/packet/cbc_pc/cbc_pc.c
+            intel/packet/cbc_pc/cbc_pc256.c
+            intel/jni/cbc_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
+    set(CBC_PC_VAESF
+            intel/packet/cbc_pc/cbc_pc.h
+            intel/packet/cbc_pc/cbc_pc.c
+            intel/packet/cbc_pc/cbc_pc512.c
+            intel/jni/cbc_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
 
     set(CFB
             intel/cfb/cfb.h
@@ -383,6 +417,33 @@ else ()
             intel/jni/cfb_jni.c
             )
 
+    set(CFB_PC
+            intel/packet/cfb_pc/cfb_pc.h
+            intel/packet/cfb_pc/cfb_pc.c
+            intel/packet/cfb_pc/cfb_pc128.c
+            intel/jni/cfb_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
+    set(CFB_PC_VAES
+            intel/packet/cfb_pc/cfb_pc.h
+            intel/packet/cfb_pc/cfb_pc.c
+            intel/packet/cfb_pc/cfb_pc256.c
+            intel/jni/cfb_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
+    set(CFB_PC_VAESF
+            intel/packet/cfb_pc/cfb_pc.h
+            intel/packet/cfb_pc/cfb_pc.c
+            intel/packet/cfb_pc/cfb_pc512.c
+            intel/jni/cfb_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
     set(CTR
             intel/ctr/ctr.h
             intel/ctr/ctr.c
@@ -404,6 +465,39 @@ else ()
             intel/ctr/ctr512w.c
             intel/jni/ctr_jni.c
             )
+
+    set(CTR_PC
+            intel/packet/ctr_pc/ctr_pc.h
+            intel/packet/ctr_pc/ctr_pc.c
+            intel/packet/ctr_pc/ctr_pc128w.c
+            intel/jni/ctr_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.h
+    )
+
+    set(CTR_PC_VAES
+            intel/packet/ctr_pc/ctr_pc.h
+            intel/packet/ctr_pc/ctr_pc.c
+            intel/packet/ctr_pc/ctr_pc256w.c
+            intel/jni/ctr_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.h
+    )
+
+    set(CTR_PC_VAESF
+            intel/packet/ctr_pc/ctr_pc.h
+            intel/packet/ctr_pc/ctr_pc.c
+            intel/packet/ctr_pc/ctr_pc512w.c
+            intel/jni/ctr_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.h
+    )
 
     set(RAND intel/jni/rand_jni.c)
 
@@ -434,6 +528,43 @@ else ()
             intel/gcm/gcm512w.c
             intel/jni/gcm_jni.c
             )
+    set(GCM_PC
+            intel/packet/gcm_pc/gcm_pc.h
+            intel/packet/gcm_pc/gcm_pc.c
+            intel/packet/gcm_pc/gcm_pcHash128.h
+            intel/packet/gcm_pc/gcm_pc128w.c
+            intel/jni/gcm_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
+    set(GCM_PC_VAESF
+            intel/packet/gcm_pc/gcm_pc.h
+            intel/packet/gcm_pc/gcm_pc.c
+            intel/packet/gcm_pc/gcm_pcHash512.h
+            intel/packet/gcm_pc/gcm_pc512w.c
+            intel/jni/gcm_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
+    set(GCM_SIV
+            intel/gcm_siv/gcm_siv.h
+            intel/gcm_siv/gcm_siv.c
+            intel/jni/gcm_siv_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
+
+    set(GCM_SIV_PC
+            intel/gcm_siv/gcm_siv.h
+            intel/gcm_siv/gcm_siv.c
+            intel/packet/gcm_siv_pc/gcm_siv_pc.h
+            intel/packet/gcm_siv_pc/gcm_siv_pc.c
+            intel/jni/gcm_siv_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+    )
 
 
     set(CCM
@@ -456,6 +587,38 @@ else ()
             intel/jni/ccm_jni.c
             )
 
+    set(CCM_PC
+             intel/packet/ccm_pc/ccm_pc.h
+             intel/packet/ccm_pc/ccm_pc.c
+             intel/packet/ctr_pc/ctr_pc128w.c
+             intel/jni/ccm_pc_jni.c
+             intel/packet/packet_utils.h
+             intel/packet/packet_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.h
+            )
+
+    set(CCM_PC_VAES
+            intel/packet/ccm_pc/ccm_pc.h
+            intel/packet/ccm_pc/ccm_pc.c
+            intel/packet/ctr_pc/ctr_pc256w.c
+            intel/jni/ccm_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.h
+    )
+
+    set(CCM_PC_VAESF
+            intel/packet/ccm_pc/ccm_pc.h
+            intel/packet/ccm_pc/ccm_pc.c
+            intel/packet/ctr_pc/ctr_pc512w.c
+            intel/jni/ccm_pc_jni.c
+            intel/packet/packet_utils.h
+            intel/packet/packet_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.c
+            intel/packet/ctr_pc/ctr_pc_utils.h
+    )
 
     # Probe project a simple lib for probing the CPUs features
     #
@@ -477,13 +640,20 @@ else ()
             ${IDENT_IMPL}
             ${ECB}
             ${CBC}
+            ${CBC_PC}
             ${CFB}
+            ${CFB_PC}
             ${CTR}
+            ${CTR_PC}
             ${RAND}
             ${SHA256}
             ${GCM}
+            ${GCM_PC}
+            ${GCM_SIV}
+            ${GCM_SIV_PC}
             ${MUL_AVX}
             ${CCM}
+            ${CCM_PC}
             ${SHA224}
             )
     target_include_directories("${LIB_NATIVE}-avx" PUBLIC ${JNI_INCLUDES})
@@ -498,12 +668,19 @@ else ()
             ${IDENT_IMPL}
             ${ECB_VAES}
             ${CBC_VAES}
+            ${CBC_PC_VAES}
             ${CFB_VAES}
+            ${CFB_PC_VAES}
             ${CTR_VAES}
+            ${CTR_PC_VAES}
             ${RAND}
             ${SHA256}
             ${GCM}
+            ${GCM_PC}
+            ${GCM_SIV}
+            ${GCM_SIV_PC}
             ${MUL_AVX}
+            ${CCM_PC_VAES}
             ${CCM_VAES}
             ${SHA224}
             )
@@ -519,13 +696,20 @@ else ()
             ${IDENT_IMPL}
             ${ECB_VAESF}
             ${CBC_VAESF}
+            ${CBC_PC_VAESF}
             ${CFB_VAESF}
+            ${CFB_PC_VAESF}
             ${CTR_VAESF}
+            ${CTR_PC_VAESF}
             ${RAND}
             ${SHA256}
             ${GCM_VAESF}
+            ${GCM_PC_VAESF}
+            ${GCM_SIV}
+            ${GCM_SIV_PC}
             ${MUL_VAESF}
             ${CCM_VAESF}
+            ${CCM_PC_VAESF}
             ${SHA224}
             )
     target_include_directories("${LIB_NATIVE}-vaesf" PUBLIC ${JNI_INCLUDES})
@@ -533,12 +717,13 @@ else ()
     install(TARGETS "${LIB_NATIVE}-vaesf" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaesf)
     target_compile_definitions("${LIB_NATIVE}-vaesf" PUBLIC BC_VAESF BC_VARIANT=\"vaesf\" BUILD_TS=\"${BUILD_TS}\")
 
-#    # Uncomment to enable test project
-#    add_executable(tryit main.c debug.h)
-#    target_link_libraries(tryit "${LIB_NATIVE}-avx")
-#    target_compile_options("tryit" PRIVATE
-#            $<$<COMPILE_LANGUAGE:C>: -g -Wpsabi -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mvpclmulqdq -mavx512f -mavx512bw ${OPTIONS}>
-#            )
+    # Uncomment to enable test project
+    # add_executable(tryit main.c debug.h)
+    #target_link_libraries(tryit "${LIB_NATIVE}-avx")
+    #target_compile_options("tryit" PRIVATE
+	    #        $<$<COMPILE_LANGUAGE:C>: -g -Wpsabi -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mvpclmulqdq -mavx512f -mavx512bw ${OPTIONS}>
+	    #  )
 
 
 endif ()
+

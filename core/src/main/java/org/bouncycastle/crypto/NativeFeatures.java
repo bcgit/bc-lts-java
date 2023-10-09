@@ -104,6 +104,24 @@ class NativeFeatures
 
     private static native boolean nativeGCM();
 
+    static boolean hasGCMSIVHardwareSupport()
+    {
+        try
+        {
+            return nativeGCMSIV();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.log(Level.FINE, "native gcm-siv exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+    private static native boolean nativeGCMSIV();
+
 
     static boolean hasCCMHardwareSupport()
     {
@@ -123,6 +141,113 @@ class NativeFeatures
 
     private static native boolean nativeCCM();
 
+    static boolean hasCCMPCHardwareSupport()
+    {
+        try
+        {
+            return nativeCCMPC();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native ccm packet cipher exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+    private static native boolean nativeCCMPC();
+
+    static boolean hasCBCPCHardwareSupport()
+    {
+        try
+        {
+            return nativeCBCPC();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native cbc packet cipher exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+    private static native boolean nativeCBCPC();
+
+    static boolean hasCFBPCHardwareSupport()
+    {
+        try
+        {
+            return nativeCFBPC();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native cfb packet cipher exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+    private static native boolean nativeCFBPC();
+
+    static boolean hasCTRPCHardwareSupport()
+    {
+        try
+        {
+            return nativeCTRPC();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native ctr packet cipher exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+    private static native boolean nativeCTRPC();
+
+    static boolean hasGCMPCHardwareSupport()
+    {
+        try
+        {
+            return nativeGCMPC();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native gcm packet cipher exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+    private static native boolean nativeGCMPC();
+
+    static boolean hasGCMSIVPCHardwareSupport()
+    {
+        try
+        {
+            return nativeGCMSIVPC();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.WARNING))
+            {
+                LOG.log(Level.WARNING, "native gcm-siv packet cipher exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+    private static native boolean nativeGCMSIVPC();
 
     static boolean hasHardwareRand()
     {

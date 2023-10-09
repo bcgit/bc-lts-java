@@ -31,6 +31,19 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
     return (info.ecx & (1 << 25)) != 0 ? JNI_TRUE : JNI_FALSE;
 }
 
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeCBCPC
+ * Signature: ()Z
+ */
+__attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCBCPC
+        (JNIEnv *env, jclass cl) {
+    cpuid_t info;
+    cpuid(&info, 1, 0);
+
+    return (info.ecx & (1 << 25)) != 0 ? JNI_TRUE : JNI_FALSE;
+}
+
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
@@ -48,7 +61,20 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
- * Method:    nativeCFB
+ * Method:    nativeCFBPC
+ * Signature: ()Z
+ */
+__attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCFBPC
+        (JNIEnv *env, jclass cl) {
+    cpuid_t info;
+    cpuid(&info, 1, 0);
+
+    return (info.ecx & (1 << 25)) != 0 ? JNI_TRUE : JNI_FALSE;
+}
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeCTR
  * Signature: ()Z
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCTR
@@ -59,6 +85,18 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
     return (info.ecx & (1 << 25)) != 0 ? JNI_TRUE : JNI_FALSE;
 }
 
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeCTRPC
+ * Signature: ()Z
+ */
+__attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCTRPC
+        (JNIEnv *env, jclass cl) {
+    cpuid_t info;
+    cpuid(&info, 1, 0);
+
+    return (info.ecx & (1 << 25)) != 0 ? JNI_TRUE : JNI_FALSE;
+}
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
@@ -95,6 +133,60 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeGCM
+ * Signature: ()Z
+ */
+__attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCMSIV
+        (JNIEnv *env, jclass cl) {
+
+    cpuid_t info;
+    cpuid(&info, 1, 0);
+
+    bool aes = (info.ecx & (1 << 25)) != 0;
+    bool pclmulqdq = (info.ecx & (1 << 1)) != 0;
+
+    return (aes && pclmulqdq) ? JNI_TRUE : JNI_FALSE;
+
+}
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeGCMPC
+ * Signature: ()Z
+ */
+__attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCMPC
+        (JNIEnv *env, jclass cl) {
+
+    cpuid_t info;
+    cpuid(&info, 1, 0);
+
+    bool aes = (info.ecx & (1 << 25)) != 0;
+    bool pclmulqdq = (info.ecx & (1 << 1)) != 0;
+
+    return (aes && pclmulqdq) ? JNI_TRUE : JNI_FALSE;
+
+}
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeGCMSIVPC
+ * Signature: ()Z
+ */
+__attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCMSIVPC
+        (JNIEnv *env, jclass cl) {
+
+    cpuid_t info;
+    cpuid(&info, 1, 0);
+
+    bool aes = (info.ecx & (1 << 25)) != 0;
+    bool pclmulqdq = (info.ecx & (1 << 1)) != 0;
+
+    return (aes && pclmulqdq) ? JNI_TRUE : JNI_FALSE;
+
+}
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
  * Method:    nativeCCM
  * Signature: ()Z
  */
@@ -107,6 +199,22 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
     return (info.ecx & (1 << 25)) != 0 ? JNI_TRUE : JNI_FALSE;
 
 }
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeCCM
+ * Signature: ()Z
+ */
+__attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCCMPC
+        (JNIEnv *env, jclass cl) {
+
+    cpuid_t info;
+    cpuid(&info, 1, 0);
+
+    return (info.ecx & (1 << 25)) != 0 ? JNI_TRUE : JNI_FALSE;
+
+}
+
 
 
 /*
@@ -177,6 +285,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
     return JNI_FALSE;
 }
 
+
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
  * Method:    nativeMulAcc
@@ -193,5 +302,6 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeMul
     return (pclmulqdq) ? JNI_TRUE : JNI_FALSE;
 
 }
+
 
 

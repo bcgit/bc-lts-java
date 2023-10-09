@@ -247,17 +247,6 @@ class AESNativeGCM
         throws IllegalStateException, InvalidCipherTextException
     {
 
-//        if (outOff < 0)
-//        {
-//            throw new IllegalArgumentException("outOff is negative");
-//        }
-//
-//
-//        if (outOff > out.length)
-//        {
-//            throw new IllegalArgumentException("offset past end of output array");
-//        }
-
         checkStatus();
 
 

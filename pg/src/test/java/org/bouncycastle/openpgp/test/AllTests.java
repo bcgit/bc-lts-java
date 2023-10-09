@@ -25,6 +25,10 @@ public class AllTests
             
             if (!result.isSuccessful())
             {
+                Throwable t = result.getException();
+                if (t != null) {
+                    t.printStackTrace();
+                }
                 fail(result.toString());
             }
         }

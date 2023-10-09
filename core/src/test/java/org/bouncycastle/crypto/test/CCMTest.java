@@ -1,5 +1,6 @@
 package org.bouncycastle.crypto.test;
 
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.DESEngine;
@@ -56,6 +57,7 @@ public class CCMTest
     public void performTest()
         throws Exception
     {
+
         CCMModeCipher ccm = CCMBlockCipher.newInstance(AESEngine.newInstance());
 
         checkVectors(0, ccm, K1, 32, N1, A1, P1, T1, C1);
@@ -301,6 +303,9 @@ public class CCMTest
     public static void main(
         String[]    args)
     {
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        runTest(new CCMTest());
+        CryptoServicesRegistrar.setNativeEnabled(false);
         runTest(new CCMTest());
     }
 }

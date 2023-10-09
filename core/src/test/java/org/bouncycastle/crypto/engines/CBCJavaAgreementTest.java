@@ -6,6 +6,7 @@ import java.security.SecureRandom;
 import java.security.Security;
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.CBCModeCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -126,7 +127,7 @@ public class CBCJavaAgreementTest extends TestCase
     public void testCBCJavaAgreement_128()
             throws Exception
     {
-        if (!TestUtil.hasNativeService("AES/CBC"))
+        if (!TestUtil.hasNativeService(NativeServices.AES_CBC))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {
@@ -141,7 +142,7 @@ public class CBCJavaAgreementTest extends TestCase
     public void testCBCJavaAgreement_192()
             throws Exception
     {
-        if (!TestUtil.hasNativeService("AES/CBC"))
+        if (!TestUtil.hasNativeService(NativeServices.AES_CBC))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {
@@ -156,7 +157,7 @@ public class CBCJavaAgreementTest extends TestCase
     public void testCBCJavaAgreement_256()
             throws Exception
     {
-        if (!TestUtil.hasNativeService("AES/CBC"))
+        if (!TestUtil.hasNativeService(NativeServices.AES_CBC))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {
@@ -178,7 +179,7 @@ public class CBCJavaAgreementTest extends TestCase
     public void testCBCSpreadNoPadding() throws Exception
     {
 
-        if (!TestUtil.hasNativeService("AES/CBC"))
+        if (!TestUtil.hasNativeService(NativeServices.AES_CBC))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("cbc"))
             {

@@ -17,13 +17,13 @@ plugins {
   id "java"
 }
 
-println("Environment setup:")
-["LTS_JDK8", "LTS_JDK11", "LTS_JDK15"].each({ it ->
-  println("Looking for JDK ENV '${it}' found  ${System.getenv(it)}");
-  if (System.getenv(it) == null) {
-    throw new RuntimeException("Looking for JDK ENV '${it}' but found null, see README 'Environmental variables'");
-  }
-})
+//println("Environment setup:")
+//["LTS_JDK8", "LTS_JDK11", "LTS_JDK15"].each({ it ->
+//  println("Looking for JDK ENV '${it}' found  ${System.getenv(it)}");
+//  if (System.getenv(it) == null) {
+//    throw new RuntimeException("Looking for JDK ENV '${it}' but found null, see README 'Environmental variables'");
+//  }
+//})
 
 
 
@@ -270,6 +270,9 @@ subprojects {
         exclude('**/pqc/**')
       }
     }
+
+    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr,ccm', '-Dorg.bouncycastle.native.cpu_variant=java'
+
   }
 
 

@@ -66,6 +66,7 @@ for target in "${targets[@]}"
 do
   if [[ -f "$target" ]]; then
      execstack -c "$target"
+     echo "applied execstack to $target"
   else
     echo "Skipping: $target"
   fi

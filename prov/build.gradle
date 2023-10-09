@@ -48,9 +48,9 @@ dependencies {
 }
 
 compileJava {
-  javaCompiler = javaToolchains.compilerFor {
-    languageVersion = JavaLanguageVersion.of(8)
-  }
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(8)
+    }
 }
 
 compileJava9Java {
@@ -135,6 +135,24 @@ task('copyJars', type:Copy) {
     into new File(rootDir,"../bc-lts-java-jars/${version}/")
 }
 
+
+tasks.register('testNoPSprov', Test) {
+    testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
+
+    jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
+            '-Dorg.bouncycastle.bks.enable_v1=true',
+            '-Dtest.bclts.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr,ccm',
+            '-Dorg.bouncycastle.native.cpu_variant=java'
+
+    filter {
+        includeTestsMatching "AllTest*"
+    }
+}
+
+
 test {
     testLogging.showStandardStreams = true
     testLogging.showCauses = true
@@ -142,8 +160,10 @@ test {
     testLogging.showStackTraces = true
 
 
-    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr,ccm', '-Dorg.bouncycastle.native.cpu_variant=java'
-
-
+    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true',
+            '-Dtest.bclts.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr,ccm',
+            '-Dorg.bouncycastle.native.cpu_variant=java'
 
 }
+
+test.dependsOn("testNoPSprov")

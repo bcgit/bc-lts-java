@@ -4,8 +4,10 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.Key;
+import java.security.SecureRandom;
 import java.security.Security;
 
 import javax.crypto.Cipher;
@@ -15,34 +17,42 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import junit.framework.TestCase;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.modes.CBCBlockCipher;
+import org.bouncycastle.crypto.modes.CBCModeCipher;
+import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.crypto.prng.FixedSecureRandom;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
+import org.bouncycastle.util.test.Test;
 import org.bouncycastle.util.test.TestRandomData;
 
 /**
  * basic test class for the AES cipher vectors from FIPS-197
  */
 public class AESTest
-    extends BaseBlockCipherTest
+        extends BaseBlockCipherTest
 {
     static String[] cipherTests =
-    {
-        "128",
-        "000102030405060708090a0b0c0d0e0f",
-        "00112233445566778899aabbccddeeff",
-        "69c4e0d86a7b0430d8cdb78070b4c55a",
-        "192",
-        "000102030405060708090a0b0c0d0e0f1011121314151617",
-        "00112233445566778899aabbccddeeff",
-        "dda97ca4864cdfe06eaf70a0ec0d7191",
-        "256",
-        "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
-        "00112233445566778899aabbccddeeff",
-        "8ea2b7ca516745bfeafc49904b496089",
-    };
+            {
+                    "128",
+                    "000102030405060708090a0b0c0d0e0f",
+                    "00112233445566778899aabbccddeeff",
+                    "69c4e0d86a7b0430d8cdb78070b4c55a",
+                    "192",
+                    "000102030405060708090a0b0c0d0e0f1011121314151617",
+                    "00112233445566778899aabbccddeeff",
+                    "dda97ca4864cdfe06eaf70a0ec0d7191",
+                    "256",
+                    "000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f",
+                    "00112233445566778899aabbccddeeff",
+                    "8ea2b7ca516745bfeafc49904b496089",
+            };
 
     public AESTest()
     {
@@ -50,24 +60,24 @@ public class AESTest
     }
 
     private void test(
-        int         strength,
-        byte[]      keyBytes,
-        byte[]      input,
-        byte[]      output)
-        throws Exception
+            int strength,
+            byte[] keyBytes,
+            byte[] input,
+            byte[] output)
+            throws Exception
     {
-        Key                     key;
-        Cipher                  in, out;
-        CipherInputStream       cIn;
-        CipherOutputStream      cOut;
-        ByteArrayInputStream    bIn;
-        ByteArrayOutputStream   bOut;
+        Key key;
+        Cipher in, out;
+        CipherInputStream cIn;
+        CipherOutputStream cOut;
+        ByteArrayInputStream bIn;
+        ByteArrayOutputStream bOut;
 
         key = new SecretKeySpec(keyBytes, "AES");
 
         in = Cipher.getInstance("AES/ECB/NoPadding", "BC");
         out = Cipher.getInstance("AES/ECB/NoPadding", "BC");
-        
+
         try
         {
             out.init(Cipher.ENCRYPT_MODE, key);
@@ -107,7 +117,7 @@ public class AESTest
             fail("AES failed encryption - " + e.toString(), e);
         }
 
-        byte[]    bytes;
+        byte[] bytes;
 
         bytes = bOut.toByteArray();
 
@@ -131,7 +141,7 @@ public class AESTest
 
             for (int i = 0; i != input.length / 2; i++)
             {
-                bytes[i] = (byte)dIn.read();
+                bytes[i] = (byte) dIn.read();
             }
             dIn.readFully(bytes, input.length / 2, bytes.length - input.length / 2);
         }
@@ -147,15 +157,15 @@ public class AESTest
     }
 
     private void eaxTest()
-        throws Exception
+            throws Exception
     {
         byte[] K = Hex.decode("233952DEE4D5ED5F9B9C6D6FF80FF478");
         byte[] N = Hex.decode("62EC67F9C3A4A407FCB2A8C49031A8B3");
         byte[] P = Hex.decode("68656c6c6f20776f726c642121");
         byte[] C = Hex.decode("2f9f76cb7659c70e4be11670a3e193ae1bc6b5762a");
 
-        Key                     key;
-        Cipher                  in, out;
+        Key key;
+        Cipher in, out;
 
         key = new SecretKeySpec(K, "AES");
 
@@ -191,15 +201,15 @@ public class AESTest
     }
 
     private void ccmTest()
-        throws Exception
+            throws Exception
     {
         byte[] K = Hex.decode("404142434445464748494a4b4c4d4e4f");
         byte[] N = Hex.decode("10111213141516");
         byte[] P = Hex.decode("68656c6c6f20776f726c642121");
         byte[] C = Hex.decode("39264f148b54c456035de0a531c8344f46db12b388");
 
-        Key                     key;
-        Cipher                  in, out;
+        Key key;
+        Cipher in, out;
 
         key = new SecretKeySpec(K, "AES");
 
@@ -235,28 +245,28 @@ public class AESTest
     }
 
     private void gcmTest()
-        throws Exception
+            throws Exception
     {
         // Test Case 15 from McGrew/Viega
         byte[] K = Hex.decode(
-              "feffe9928665731c6d6a8f9467308308"
-            + "feffe9928665731c6d6a8f9467308308");
+                "feffe9928665731c6d6a8f9467308308"
+                        + "feffe9928665731c6d6a8f9467308308");
         byte[] P = Hex.decode(
-              "d9313225f88406e5a55909c5aff5269a"
-            + "86a7a9531534f7da2e4c303d8a318a72"
-            + "1c3c0c95956809532fcf0e2449a6b525"
-            + "b16aedf5aa0de657ba637b391aafd255");
+                "d9313225f88406e5a55909c5aff5269a"
+                        + "86a7a9531534f7da2e4c303d8a318a72"
+                        + "1c3c0c95956809532fcf0e2449a6b525"
+                        + "b16aedf5aa0de657ba637b391aafd255");
         byte[] N = Hex.decode("cafebabefacedbaddecaf888");
         String T = "b094dac5d93471bdec1a502270e3cc6c";
         byte[] C = Hex.decode(
-              "522dc1f099567d07f47f37a32a84427d"
-            + "643a8cdcbfe5c0c97598a2bd2555d1aa"
-            + "8cb08e48590dbb3da7b08b1056828838"
-            + "c5f61e6393ba7a0abcc9f662898015ad"
-            + T);
+                "522dc1f099567d07f47f37a32a84427d"
+                        + "643a8cdcbfe5c0c97598a2bd2555d1aa"
+                        + "8cb08e48590dbb3da7b08b1056828838"
+                        + "c5f61e6393ba7a0abcc9f662898015ad"
+                        + T);
 
-        Key                     key;
-        Cipher                  in, out;
+        Key key;
+        Cipher in, out;
 
         key = new SecretKeySpec(K, "AES");
 
@@ -282,7 +292,7 @@ public class AESTest
         try
         {
             in = Cipher.getInstance("AES/GCM/PKCS5Padding", "BC");
-    
+
             fail("bad padding missed in GCM");
         }
         catch (NoSuchPaddingException e)
@@ -293,7 +303,7 @@ public class AESTest
 
         // reuse test
         in = Cipher.getInstance("AES/GCM/NoPadding", "BC");
-        
+
         in.init(Cipher.ENCRYPT_MODE, key, new IvParameterSpec(N));
 
         enc = in.doFinal(P);
@@ -305,7 +315,9 @@ public class AESTest
         }
         catch (IllegalStateException e)
         {
-            isTrue("wrong message", e.getMessage().equals("GCM cipher cannot be reused for encryption"));
+            boolean ok = e.getMessage().equals("GCM cipher cannot be reused for encryption") ||
+                    e.getMessage().equals("cannot reuse nonce for GCM encryption"); // packet cipher
+            isTrue("wrong message", ok);
         }
 
         try
@@ -324,8 +336,8 @@ public class AESTest
         key = new SecretKeySpec(Hex.decode("01000000000000000000000000000000"), "AES");
         N = Hex.decode("030000000000000000000000");
         P = Hex.decode("01000000000000000000000000000000" + "02000000000000000000000000000000"
-                        + "03000000000000000000000000000000" + "04000000000000000000000000000000");
-        C  = Hex.decode("2433668f1058190f6d43e360f4f35cd8" + "e475127cfca7028ea8ab5c20f7ab2af0"
+                + "03000000000000000000000000000000" + "04000000000000000000000000000000");
+        C = Hex.decode("2433668f1058190f6d43e360f4f35cd8" + "e475127cfca7028ea8ab5c20f7ab2af0"
                 + "2516a2bdcbc08d521be37ff28c152bba" + "36697f25b4cd169c6590d1dd39566d3f"
                 + "8a263dd317aa88d56bdf3936dba75bb8");
 
@@ -362,16 +374,16 @@ public class AESTest
     }
 
     private void gcmTestWithRandom()
-        throws Exception
+            throws Exception
     {
         byte[] K = Hex.decode(
-            "feffe9928665731c6d6a8f9467308308"
-                + "feffe9928665731c6d6a8f9467308308");
+                "feffe9928665731c6d6a8f9467308308"
+                        + "feffe9928665731c6d6a8f9467308308");
         byte[] P = Hex.decode(
-            "d9313225f88406e5a55909c5aff5269a"
-                + "86a7a9531534f7da2e4c303d8a318a72"
-                + "1c3c0c95956809532fcf0e2449a6b525"
-                + "b16aedf5aa0de657ba637b391aafd255");
+                "d9313225f88406e5a55909c5aff5269a"
+                        + "86a7a9531534f7da2e4c303d8a318a72"
+                        + "1c3c0c95956809532fcf0e2449a6b525"
+                        + "b16aedf5aa0de657ba637b391aafd255");
 
         Key key;
         Cipher in, out;
@@ -407,19 +419,19 @@ public class AESTest
     }
 
     private void ocbTest()
-        throws Exception
+            throws Exception
     {
         byte[] K = Hex.decode(
-              "000102030405060708090A0B0C0D0E0F");
+                "000102030405060708090A0B0C0D0E0F");
         byte[] P = Hex.decode(
-              "000102030405060708090A0B0C0D0E0F");
+                "000102030405060708090A0B0C0D0E0F");
         byte[] N = Hex.decode("000102030405060708090A0B");
         String T = "4CBB3E4BD6B456AF";
         byte[] C = Hex.decode(
-            "BEA5E8798DBE7110031C144DA0B2612213CC8B747807121A" + T);
+                "BEA5E8798DBE7110031C144DA0B2612213CC8B747807121A" + T);
 
-        Key                     key;
-        Cipher                  in, out;
+        Key key;
+        Cipher in, out;
 
         key = new SecretKeySpec(K, "AES");
 
@@ -454,28 +466,89 @@ public class AESTest
         }
     }
 
-    public void performTest()
-        throws Exception
+
+    public void packetCipher() throws Exception
     {
-        for (int i = 0; i != cipherTests.length; i += 4)
+        // Trigger use of packet cipher in test
+
+        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
         {
-            test(Integer.parseInt(cipherTests[i]), 
-                            Hex.decode(cipherTests[i + 1]),
-                            Hex.decode(cipherTests[i + 2]),
-                            Hex.decode(cipherTests[i + 3]));
+            Security.addProvider(new BouncyCastleProvider());
         }
 
-        byte[]  kek1 = Hex.decode("000102030405060708090a0b0c0d0e0f");
-        byte[]  in1 = Hex.decode("00112233445566778899aabbccddeeff");
-        byte[]  out1 = Hex.decode("1fa68b0a8112b447aef34bd8fb5a7b829d3e862371d2cfe5");
-        
+        SecureRandom rand = new SecureRandom();
+
+        byte[] key = new byte[16];
+        byte[] iv = new byte[16];
+        byte[] msg = new byte[32];
+        byte[] expected = null;
+
+        rand.nextBytes(key);
+        rand.nextBytes(iv);
+        rand.nextBytes(msg);
+
+        CryptoServicesRegistrar.setNativeEnabled(false);
+
+        // Produce a test vector with the low level api
+        CBCModeCipher cbc = CBCBlockCipher.newInstance(AESEngine.newInstance());
+        cbc.init(true, new ParametersWithIV(new KeyParameter(key), iv));
+
+        TestCase.assertTrue(cbc.toString().contains("CBC[Java](AES[Java]")); // Must be java version
+
+        expected = new byte[msg.length];
+        cbc.processBlocks(msg, 0, 2, expected, 0);
+
+        Cipher javaC = Cipher.getInstance("AES/CBC/NOPADDING", BouncyCastleProvider.PROVIDER_NAME);
+
+        javaC.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
+
+        if (isJava8())
+        {
+            TestCase.assertTrue(getPacketCipherToString(javaC).contains("BlockCipher(CBC[Java](AES[Java]")); //
+            // Should be null as not call to do final has occurred.
+        }
+        byte[] out = new byte[javaC.getOutputSize(msg.length)];
+        TestCase.assertEquals(out.length, expected.length);
+
+        javaC.doFinal(msg, 0, msg.length, out, 0);
+
+        if (isJava8())
+        {
+            TestCase.assertTrue(getPacketCipherToString(javaC).contains("CBC-PS[Java](AES[Java])")); // Shoul
+        }
+
+        TestCase.assertTrue(Arrays.areEqual(expected, out));
+
+
+    }
+
+
+    public void performTest()
+            throws Exception
+    {
+
+        packetCipher();
+
+        for (int i = 0; i != cipherTests.length; i += 4)
+        {
+            test(Integer.parseInt(cipherTests[i]),
+                    Hex.decode(cipherTests[i + 1]),
+                    Hex.decode(cipherTests[i + 2]),
+                    Hex.decode(cipherTests[i + 3]));
+        }
+
+        byte[] kek1 = Hex.decode("000102030405060708090a0b0c0d0e0f");
+        byte[] in1 = Hex.decode("00112233445566778899aabbccddeeff");
+        byte[] out1 = Hex.decode("1fa68b0a8112b447aef34bd8fb5a7b829d3e862371d2cfe5");
+
         wrapTest(1, "AESWrap", kek1, in1, out1);
 
-        byte[]  kek2 = Hex.decode("000102030405060708090a0b0c0d0e0f");
-        byte[]  in2 = Hex.decode("00112233445566778899aabbccddeeff");
-        byte[]  out2 = Hex.decode("7c8798dfc802553b3f00bb4315e3a087322725c92398b9c112c74d0925c63b61");
+        byte[] kek2 = Hex.decode("000102030405060708090a0b0c0d0e0f");
+        byte[] in2 = Hex.decode("00112233445566778899aabbccddeeff");
+        byte[] out2 = Hex.decode("7c8798dfc802553b3f00bb4315e3a087322725c92398b9c112c74d0925c63b61");
 
-        wrapTest(2, "AESRFC3211WRAP", kek2,  kek2, new FixedSecureRandom(Hex.decode("9688df2af1b7b1ac9688df2a")), in2, out2);
+        wrapTest(2, "AESRFC3211WRAP", kek2, kek2, new FixedSecureRandom(Hex.decode("9688df2af1b7b1ac9688df2a")), in2,
+                out2);
 
         byte[] kek3 = Hex.decode("5840df6e29b02af1ab493b705bf16ea1ae8338f4dcc176a8");
         byte[] in3 = Hex.decode("c37b7e6492584340bed12207808941155068f738");
@@ -517,14 +590,14 @@ public class AESTest
 
 
         String[] wrapOids = {
-            NISTObjectIdentifiers.id_aes128_wrap.getId(),
-            NISTObjectIdentifiers.id_aes192_wrap.getId(),
-            NISTObjectIdentifiers.id_aes256_wrap.getId(),
+                NISTObjectIdentifiers.id_aes128_wrap.getId(),
+                NISTObjectIdentifiers.id_aes192_wrap.getId(),
+                NISTObjectIdentifiers.id_aes256_wrap.getId(),
         };
 
         wrapOidTest(wrapOids, "AESWrap");
 
-        wrapOids = new String[] {
+        wrapOids = new String[]{
                 NISTObjectIdentifiers.id_aes128_wrap_pad.getId(),
                 NISTObjectIdentifiers.id_aes192_wrap_pad.getId(),
                 NISTObjectIdentifiers.id_aes256_wrap_pad.getId()
@@ -540,10 +613,30 @@ public class AESTest
     }
 
     public static void main(
-        String[]    args)
+            String[] args) throws Exception
     {
         Security.addProvider(new BouncyCastleProvider());
 
         runTest(new AESTest());
     }
+
+
+    private static String getPacketCipherToString(Cipher cipher)
+    {
+        try
+        {
+            Class cl = cipher.getClass();
+            Field f = cl.getDeclaredField("spi");
+            f.setAccessible(true);
+            Object k = f.get(cipher);
+            return k == null ? null : k.toString();
+
+        }
+        catch (Exception ex)
+        {
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
+
+    }
+
 }

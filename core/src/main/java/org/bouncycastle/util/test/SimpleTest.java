@@ -262,7 +262,7 @@ public abstract class SimpleTest
             while (e.hasMoreElements())
             {
                 // -DM System.out.print
-                System.out.println("=>  " + (TestResult)e.nextElement());
+                System.out.println("=>  " + (TestResult) e.nextElement());
             }
         }
     }

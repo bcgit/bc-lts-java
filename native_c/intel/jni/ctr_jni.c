@@ -109,9 +109,6 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_init
         goto exit;
     }
 
-
-
-
     if (!aes_keysize_is_valid_or_null(env, &key)) {
         goto exit;
     }

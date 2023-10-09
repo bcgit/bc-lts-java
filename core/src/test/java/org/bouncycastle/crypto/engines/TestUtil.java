@@ -18,4 +18,18 @@ public class TestUtil
     {
         return String.join(" ", CryptoServicesRegistrar.getNativeServices().getFeatureSet());
     }
+
+    public static boolean isSkipSet(String label)
+    {
+        for (String item : System.getProperty("test.bclts.ignore.native", "").split(","))
+        {
+            item = item.trim();
+            if (item.equalsIgnoreCase(label))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

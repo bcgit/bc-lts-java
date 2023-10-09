@@ -142,29 +142,6 @@ class AESNativeCFB
     public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
         throws DataLengthException
     {
-//        if (inOff < 0)
-//        {
-//            throw new DataLengthException("inOff is negative");
-//        }
-//
-//        if (len < 0)
-//        {
-//            throw new DataLengthException("len is negative");
-//        }
-//
-//        if (outOff < 0)
-//        {
-//            throw new DataLengthException("outOff is negative");
-//        }
-//
-//        if (inOff + len > in.length)
-//        {
-//            throw new DataLengthException("input buffer too small");
-//        }
-//        if (outOff + len > out.length)
-//        {
-//            throw new OutputLengthException("output buffer too small");
-//        }
 
         if (referenceWrapper == null)
         {
@@ -186,26 +163,6 @@ class AESNativeCFB
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
         throws DataLengthException, IllegalStateException
     {
-
-//        if (inOff < 0)
-//        {
-//            throw new DataLengthException("inOff is negative");
-//        }
-//
-//        if (outOff < 0)
-//        {
-//            throw new DataLengthException("outOff is negative");
-//        }
-//
-//        if ((inOff + getBlockSize()) > in.length)
-//        {
-//            throw new DataLengthException("input buffer too short");
-//        }
-//
-//        if (outOff + getBlockSize() > out.length)
-//        {
-//            throw new DataLengthException("output buffer too short");
-//        }
 
         if (referenceWrapper == null)
         {
@@ -240,32 +197,7 @@ class AESNativeCFB
         throws DataLengthException, IllegalStateException
     {
 
-//        if (inOff < 0)
-//        {
-//            throw new DataLengthException("inOff is negative");
-//        }
-//
-//        if (blockCount < 0)
-//        {
-//            throw new DataLengthException("blockCount is negative");
-//        }
-//
-//        if (outOff < 0)
-//        {
-//            throw new DataLengthException("outOff is negative");
-//        }
-//
-//        int extent = getBlockSize() * blockCount;
-//
-//        if (inOff + extent > in.length)
-//        {
-//            throw new DataLengthException("input buffer too short");
-//        }
-//
-//        if (outOff + extent > out.length)
-//        {
-//            throw new DataLengthException("output buffer too short");
-//        }
+
 
         if (referenceWrapper == null)
         {
