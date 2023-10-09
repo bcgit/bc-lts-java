@@ -6,6 +6,7 @@ import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.encoders.Hex;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,6 +99,15 @@ public class SHA3JavaAgreementTest extends TestCase
 
                 CryptoServicesRegistrar.setNativeEnabled(true);
                 byte[] nativeDigest = takeDigest(bitLen, msg, true);
+
+                boolean equal = Arrays.areEqual(java, nativeDigest);
+
+                if (!equal) {
+                    System.out.println(bitLen);
+                    System.out.println(Hex.toHexString(msg));
+                    System.out.println(Hex.toHexString(java));
+                    System.out.println(Hex.toHexString(nativeDigest));
+                }
 
                 TestCase.assertTrue(Arrays.areEqual(java, nativeDigest));
 

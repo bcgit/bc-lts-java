@@ -254,11 +254,11 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
 #        target_compile_definitions("${LIB_NATIVE}-neon-be" PUBLIC BC_NEON BC_VARIANT=\"neon\" BUILD_TS=\"${BUILD_TS}\")
     endif ()
 
-    #
-    # Main method for testing.
-    #
-    add_executable("tryit" main.c debug_neon.h)
-    target_link_libraries("tryit" ${LIB_NATIVE}-neon-le)
+#    #
+#    # Main method for testing.
+#    #
+#    add_executable("tryit" main.c debug_neon.h)
+#    target_link_libraries("tryit" ${LIB_NATIVE}-neon-le)
 
 
 else ()

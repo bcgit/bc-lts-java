@@ -259,7 +259,7 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHAKE
-        (JNIEnv *, jclass) {
+        (JNIEnv *env, jclass cl) {
     probe_system();
     return cpu_info.sha3 && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
 }

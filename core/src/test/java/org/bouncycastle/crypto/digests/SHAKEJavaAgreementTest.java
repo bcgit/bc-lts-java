@@ -7,6 +7,7 @@ import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.Xof;
 import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.encoders.Hex;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -135,7 +136,18 @@ public class SHAKEJavaAgreementTest extends TestCase
                         CryptoServicesRegistrar.setNativeEnabled(true);
                         byte[] nativeDigest = takeDigestXof(bitLen, msg, true, len, writeOffset, 0);
 
-                        TestCase.assertTrue(Arrays.areEqual(java, nativeDigest));
+
+                        boolean equal = Arrays.areEqual(java, nativeDigest);
+
+                        if (!equal) {
+                            System.out.println(bitLen);
+                            System.out.println(len);
+                            System.out.println(Hex.toHexString(msg));
+                            System.out.println(Hex.toHexString(java));
+                            System.out.println(Hex.toHexString(nativeDigest));
+                        }
+
+                        TestCase.assertTrue(equal);
 
                         if (msg.length > 0)
                         {
