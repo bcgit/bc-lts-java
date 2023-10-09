@@ -28,7 +28,7 @@
 // Xor Not And: out = a ^ ( (~b) & c)
 #define vXNA(out, a, b, c) out = vbcaxq_u64(a, c, b);
 
-static const uint64x2_t k_zero = {0, 0};
+static const uint64x2_t k_zero = {0UL, 0UL};
 
 static inline void KF1600_StatePermute(uint64x2_t *state, const uint64_t *K) {
     int round;
@@ -48,31 +48,31 @@ static inline void KF1600_StatePermute(uint64x2_t *state, const uint64_t *K) {
     uint64x2_t Esa, Ese, Esi, Eso, Esu;
 
 
-    Aba = state[0]; // vld1q_lane_u64(&state[0], zero, 0);
-    Abe = state[1]; // vld1q_lane_u64(&state[1], zero, 0);
-    Abi = state[2]; //vld1q_lane_u64(&state[2], zero, 0);
-    Abo = state[3]; //vld1q_lane_u64(&state[3], zero, 0);
-    Abu = state[4]; //vld1q_lane_u64(&state[4], zero, 0);
-    Aga = state[5]; //vld1q_lane_u64(&state[5], zero, 0);
-    Age = state[6]; //vld1q_lane_u64(&state[6], zero, 0);
-    Agi = state[7]; //vld1q_lane_u64(&state[7], zero, 0);
-    Ago = state[8]; //vld1q_lane_u64(&state[8], zero, 0);
-    Agu = state[9]; //vld1q_lane_u64(&state[9], zero, 0);
-    Aka = state[10]; //vld1q_lane_u64(&state[10], zero, 0);
-    Ake = state[11]; //vld1q_lane_u64(&state[11], zero, 0);
-    Aki = state[12]; //vld1q_lane_u64(&state[12], zero, 0);
-    Ako = state[13]; //vld1q_lane_u64(&state[13], zero, 0);
-    Aku = state[14]; //vld1q_lane_u64(&state[14], zero, 0);
-    Ama = state[15]; //vld1q_lane_u64(&state[15], zero, 0);
-    Ame = state[16]; //vld1q_lane_u64(&state[16], zero, 0);
-    Ami = state[17]; // vld1q_lane_u64(&state[17],zero,0);
-    Amo = state[18]; // vld1q_lane_u64(&state[18],zero,0);
-    Amu = state[19]; // vld1q_lane_u64(&state[19],zero,0);
-    Asa = state[20]; // vld1q_lane_u64(&state[20],zero,0);
-    Ase = state[21]; // vld1q_lane_u64(&state[21],zero,0);
-    Asi = state[22]; // vld1q_lane_u64(&state[22],zero,0);
-    Aso = state[23]; // vld1q_lane_u64(&state[23],zero,0);
-    Asu = state[24]; // vld1q_lane_u64(&state[24],zero,0);
+    Aba = state[0];
+    Abe = state[1];
+    Abi = state[2];
+    Abo = state[3];
+    Abu = state[4];
+    Aga = state[5];
+    Age = state[6];
+    Agi = state[7];
+    Ago = state[8];
+    Agu = state[9];
+    Aka = state[10];
+    Ake = state[11];
+    Aki = state[12];
+    Ako = state[13];
+    Aku = state[14];
+    Ama = state[15];
+    Ame = state[16];
+    Ami = state[17];
+    Amo = state[18];
+    Amu = state[19];
+    Asa = state[20];
+    Ase = state[21];
+    Asi = state[22];
+    Aso = state[23];
+    Asu = state[24];
 
 
     for (round = 0; round < 24; round += 2) {
@@ -261,45 +261,16 @@ static inline void KF1600_StatePermute(uint64x2_t *state, const uint64_t *K) {
     state[23] = Aso;
     state[24] = Asu;
 
-//    vst1q_lane_u64(&state[0],Aba,0);
-//    vst1q_lane_u64(&state[1],Abe,0);
-//    vst1q_lane_u64(&state[2],Abi,0);
-//    vst1q_lane_u64(&state[3],Abo,0);
-//    vst1q_lane_u64(&state[4],Abu,0);
-//
-//    vst1q_lane_u64(&state[5],Aga,0);
-//    vst1q_lane_u64(&state[6],Age,0);
-//    vst1q_lane_u64(&state[7],Agi,0);
-//    vst1q_lane_u64(&state[8],Ago,0);
-//    vst1q_lane_u64(&state[9],Agu,0);
-//
-//    vst1q_lane_u64(&state[10],Aka,0);
-//    vst1q_lane_u64(&state[11],Ake,0);
-//    vst1q_lane_u64(&state[12],Aki,0);
-//    vst1q_lane_u64(&state[13],Ako,0);
-//    vst1q_lane_u64(&state[14],Aku,0);
-//
-//    vst1q_lane_u64(&state[15],Ama,0);
-//    vst1q_lane_u64(&state[16],Ame,0);
-//    vst1q_lane_u64(&state[17],Ami,0);
-//    vst1q_lane_u64(&state[18],Amo,0);
-//    vst1q_lane_u64(&state[19],Amu,0);
-//
-//    vst1q_lane_u64(&state[20],Asa,0);
-//    vst1q_lane_u64(&state[21],Ase,0);
-//    vst1q_lane_u64(&state[22],Asi,0);
-//    vst1q_lane_u64(&state[23],Aso,0);
-//    vst1q_lane_u64(&state[24],Asu,0);
-
 }
 
 
 static inline void keccak_absorb_buf(uint64x2_t *state, uint8_t *buf, size_t rateBytes, const uint64_t *K) {
     rateBytes >>= 3;
-    uint64x2_t tmp = k_zero;
+    uint64x2_t tmp;
     uint64x2_t *s = state;
+
     while (rateBytes > 0) {
-        tmp = vsetq_lane_u64(vreinterpret_u64_u8(vld1_u8(buf)), k_zero, 0);
+        tmp = vsetq_lane_u64(vreinterpret_u64_u8(vld1_u8(buf))[0], k_zero, 0);
         *s = veorq_u64(*s, tmp);
         s++;
         buf += 8;

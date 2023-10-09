@@ -102,7 +102,7 @@ void shake_update(shake_ctx *ctx, uint8_t *input, size_t len) {
 }
 
 void shake_digest(shake_ctx *ctx, uint8_t *output, size_t len) {
-    const uint64x2_t zero = vmovq_n_u64(0);
+
     uint8_t *buf = (uint8_t *) ctx->buf;
 
     ctx->squeezing = true;
@@ -129,7 +129,7 @@ void shake_digest(shake_ctx *ctx, uint8_t *output, size_t len) {
     uint64x2_t *state = ctx->state;
 
     for (int i = 0; i < rateBytes >> 3; i++) {
-        tmp = vsetq_lane_u64(*p, zero, 0);
+        tmp = vsetq_lane_u64(*p, k_zero, 0);
         *state = veorq_u64(*state, tmp); // eor into state
         state++;
         p++;
