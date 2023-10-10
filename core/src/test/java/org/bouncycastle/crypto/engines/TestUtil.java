@@ -19,6 +19,11 @@ public class TestUtil
         return String.join(" ", CryptoServicesRegistrar.getNativeServices().getFeatureSet());
     }
 
+    public static boolean skipPS() {
+         return "true".equals(System.getProperty("org.bouncycastle.test.skip_ps"));
+    }
+
+
     public static boolean isSkipSet(String label)
     {
         for (String item : System.getProperty("test.bclts.ignore.native", "").split(","))

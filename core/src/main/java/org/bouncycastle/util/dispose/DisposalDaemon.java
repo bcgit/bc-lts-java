@@ -1,10 +1,16 @@
 package org.bouncycastle.util.dispose;
 
+import org.bouncycastle.util.Properties;
+
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,11 +27,33 @@ public class DisposalDaemon
 
     private static AtomicLong ctr = new AtomicLong(Long.MIN_VALUE);
 
+    private static final ScheduledExecutorService cleanupExecutor;
     private static final DisposalDaemon disposalDaemon = new DisposalDaemon();
     private static final Thread disposalThread;
 
+    private static final long cleanupDelay;
+    private static final String CLEANUP_DELAY_PROP = "org.bouncycastle.native.cleanup_delay";
+
+
     static
     {
+        cleanupDelay = Properties.asInteger(CLEANUP_DELAY_PROP, 5);
+
+        //
+        // Clean up executor accepts references that are no longer needed
+        // and disposes of them in turn.
+        //
+        cleanupExecutor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory()
+        {
+            @Override
+            public Thread newThread(Runnable r)
+            {
+                Thread t = new Thread(r, "BC Cleanup Executor");
+                t.setDaemon(true);
+                return t;
+            }
+        });
+
         //
         // Sets up the daemon thread that deals with items on the reference
         // queue that may have native code that needs disposing.
@@ -85,14 +113,28 @@ public class DisposalDaemon
         {
             try
             {
-                ReferenceWrapperWithDisposerRunnable item =
+                final ReferenceWrapperWithDisposerRunnable item =
                         (ReferenceWrapperWithDisposerRunnable) referenceQueue.remove();
                 refs.remove(item);
-                item.dispose();
-                if (LOG.isLoggable(Level.FINE))
+
+                //
+                // Delay in order to avoid freeing a reference that the GC has
+                // decided is unreachable concurrently with its last use.
+                //
+                cleanupExecutor.schedule(new Runnable()
                 {
-                    LOG.fine("Disposed: " + item);
-                }
+                    @Override
+                    public void run()
+                    {
+                        if (LOG.isLoggable(Level.FINE))
+                        {
+                            LOG.fine("Disposed: " + item);
+                        }
+                        item.dispose();
+                    }
+                }, cleanupDelay, TimeUnit.SECONDS);
+
+
             }
             catch (InterruptedException iex)
             {

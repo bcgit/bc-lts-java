@@ -3,15 +3,10 @@ package org.bouncycastle.crypto.modes;
 import java.security.SecureRandom;
 
 import junit.framework.TestCase;
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.ExceptionMessage;
-import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.PacketCipher;
-import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.AESNativeGCMSIVPacketCipher;
+import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -30,6 +25,11 @@ public class AESGCMSIVPacketCipherTest
     @Test
     public void testVectors()
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         testExceptions();
         new AESGCMSIV128Test1().exerciseCipher(this);
         new AESGCMSIV128Test2().exerciseCipher(this);
@@ -44,6 +44,11 @@ public class AESGCMSIVPacketCipherTest
     @Test
     public void testExceptions()
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         AESGCMSIVModePacketCipher gcm = AESGCMSIVPacketCipher.newInstance();
 
         try
@@ -177,6 +182,11 @@ public class AESGCMSIVPacketCipherTest
     public void testAgreementForMultipleMessages()
             throws Exception
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         SecureRandom secureRandom = new SecureRandom();
 
 
@@ -275,6 +285,11 @@ public class AESGCMSIVPacketCipherTest
     public void testIntoSameArray()
             throws Exception
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         SecureRandom secureRandom = new SecureRandom();
 
 
@@ -818,6 +833,7 @@ public class AESGCMSIVPacketCipherTest
         {
             return false;
         }
-        return true;
+        // May not be ported to native platform, so exercise java version only.
+        return CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCMSIV_PC);
     }
 }

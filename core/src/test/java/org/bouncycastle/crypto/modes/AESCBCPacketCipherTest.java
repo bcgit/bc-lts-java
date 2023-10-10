@@ -6,6 +6,7 @@ import junit.framework.TestCase;
 import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.AESNativeCBCPacketCipher;
+import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -30,13 +31,21 @@ public class AESCBCPacketCipherTest
         {
             return false;
         }
-        return true;
+
+
+        // May not be ported to native platform, so exercise java version only.
+        return CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CBC_PC);
     }
 
 
     @Test
     public void testAgreementForMultipleMessages() throws Exception
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         SecureRandom secureRandom = new SecureRandom();
 
         // Java implementation of CBC mode with the Java aes engine
@@ -129,6 +138,11 @@ public class AESCBCPacketCipherTest
     @Test
     public void testIntoSameArray() throws Exception
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         SecureRandom secureRandom = new SecureRandom();
 
         // Java implementation of CBC mode with the Java aes engine
@@ -235,6 +249,11 @@ public class AESCBCPacketCipherTest
     @Test
     public void testExceptions()
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         AESCBCModePacketCipher cbc = AESPacketCipherEngine.createCBCPacketCipher();
 
         try

@@ -3,15 +3,10 @@ package org.bouncycastle.crypto.modes;
 import java.security.SecureRandom;
 
 import junit.framework.TestCase;
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.ExceptionMessage;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.PacketCipher;
-import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.AESNativeCCMPacketCipher;
+import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -71,6 +66,11 @@ public class AESCCMPacketCipherTest
             throws Exception
     {
 
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         AESCCMModePacketCipher ccm = AESPacketCipherEngine.createCCMPacketCipher();
 
         isCorrectTypeForVariant(ccm);
@@ -86,6 +86,11 @@ public class AESCCMPacketCipherTest
     @Test
     public void testOutputErase()
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         AESCCMModePacketCipher ccm = AESPacketCipherEngine.createCCMPacketCipher();
         isCorrectTypeForVariant(ccm);
         byte[] C3new = Arrays.clone(C3);
@@ -114,6 +119,11 @@ public class AESCCMPacketCipherTest
     @Test
     public void testExceptions()
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         AESCCMModePacketCipher ccm = AESPacketCipherEngine.createCCMPacketCipher();
         try
         {
@@ -255,6 +265,11 @@ public class AESCCMPacketCipherTest
     public void testAgreementForMultipleMessages()
             throws Exception
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         SecureRandom secureRandom = new SecureRandom();
 
 
@@ -350,6 +365,11 @@ public class AESCCMPacketCipherTest
     public void testIntoSameArray()
             throws Exception
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         SecureRandom secureRandom = new SecureRandom();
 
         // Java implementation of CCM mode with the Java aes engine
@@ -489,7 +509,8 @@ public class AESCCMPacketCipherTest
         {
             return false;
         }
-        return true;
+        // May not be ported to native platform, so exercise java version only.
+        return CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CCM_PC);
     }
 
     private void isCorrectTypeForVariant(Object o) {

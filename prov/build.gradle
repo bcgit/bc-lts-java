@@ -142,7 +142,8 @@ tasks.register('testNoPSprov', Test) {
     testLogging.showExceptions = true
     testLogging.showStackTraces = true
 
-    jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
+    jvmArgs '-Dorg.bouncycastle.test.skip_ps=true',
+            '-Dorg.bouncycastle.packet_cipher_enabled=false',
             '-Dorg.bouncycastle.bks.enable_v1=true',
             '-Dtest.bclts.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr,ccm',
             '-Dorg.bouncycastle.native.cpu_variant=java'

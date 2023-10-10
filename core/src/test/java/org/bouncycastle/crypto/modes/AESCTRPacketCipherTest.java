@@ -3,15 +3,10 @@ package org.bouncycastle.crypto.modes;
 import java.security.SecureRandom;
 
 import junit.framework.TestCase;
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.ExceptionMessage;
-import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.PacketCipher;
-import org.bouncycastle.crypto.PacketCipherException;
-import org.bouncycastle.crypto.StreamCipher;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.AESNativeCTRPacketCipher;
+import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
@@ -21,19 +16,20 @@ import org.junit.Test;
 public class AESCTRPacketCipherTest
         extends TestCase
 {
-
-
     public AESCTRPacketCipherTest() {
 
     }
-
-
 
 
     @Test
     public void testMultipleMessages()
             throws Exception
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         AESCTRModePacketCipher ctrPC = AESPacketCipherEngine.createCTRPacketCipher();
         SecureRandom rand = new SecureRandom();
 
@@ -125,6 +121,11 @@ public class AESCTRPacketCipherTest
     public void testMultipleMessagesBlocks()
             throws Exception
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         SecureRandom rand = new SecureRandom();
         AESCTRModePacketCipher ctrPC = AESPacketCipherEngine.createCTRPacketCipher();
         for (int ks : new int[]{16, 24, 32})
@@ -206,6 +207,11 @@ public class AESCTRPacketCipherTest
     @Test
     public void testExceptions()
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         AESCTRModePacketCipher ctr = AESPacketCipherEngine.createCTRPacketCipher();
         try
         {
@@ -321,6 +327,11 @@ public class AESCTRPacketCipherTest
     @Test
     public void testIntoSameArray() throws Exception
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         SecureRandom secureRandom = new SecureRandom();
 
 
@@ -430,7 +441,8 @@ public class AESCTRPacketCipherTest
         {
             return false;
         }
-        return true;
+        // May not be ported to native platform, so exercise java version only.
+        return CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CTR_PC);
     }
 
 }

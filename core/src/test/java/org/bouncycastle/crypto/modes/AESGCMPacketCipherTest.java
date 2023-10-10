@@ -6,15 +6,10 @@ import javax.security.auth.DestroyFailedException;
 import javax.security.auth.Destroyable;
 
 import junit.framework.TestCase;
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.ExceptionMessage;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.PacketCipher;
-import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.AESNativeGCMPacketCipher;
+import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -35,6 +30,12 @@ public class AESGCMPacketCipherTest
     public void testResetBehavior()
             throws Exception
     {
+
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         AESGCMModePacketCipher gcm = AESPacketCipherEngine.createGCMPacketCipher();
         SecureRandom rnd = new SecureRandom();
 
@@ -84,6 +85,11 @@ public class AESGCMPacketCipherTest
     public void testExceptions()
             throws DestroyFailedException
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         AESGCMModePacketCipher gcm = AESPacketCipherEngine.createGCMPacketCipher();
         try
         {
@@ -218,6 +224,11 @@ public class AESGCMPacketCipherTest
     @Test
     public void testOutputErase()
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         String testVector[] = {
                 "Test Case 3",
                 "feffe9928665731c6d6a8f9467308308",
@@ -269,6 +280,11 @@ public class AESGCMPacketCipherTest
     public void testRandom()
             throws InvalidCipherTextException, PacketCipherException
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         SecureRandom srng = new SecureRandom();
         srng.setSeed(Times.nanoTime());
 
@@ -336,6 +352,11 @@ public class AESGCMPacketCipherTest
     @Test
     public void testOutputSize()
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         byte[] K = new byte[16];
         byte[] A = null;
         byte[] IV = new byte[16];
@@ -358,6 +379,11 @@ public class AESGCMPacketCipherTest
     public void testAgreementForMultipleMessages()
             throws Exception
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         SecureRandom secureRandom = new SecureRandom();
 
 
@@ -458,6 +484,11 @@ public class AESGCMPacketCipherTest
     public void testIntoSameArray()
             throws Exception
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         SecureRandom secureRandom = new SecureRandom();
 
         // Java implementation of GCM mode with the Java aes engine
@@ -572,7 +603,8 @@ public class AESGCMPacketCipherTest
         {
             return false;
         }
-        return true;
+        // May not be ported to native platform, so exercise java version only.
+        return CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM_PC);
     }
 
 

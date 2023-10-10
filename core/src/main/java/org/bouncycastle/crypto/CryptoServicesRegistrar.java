@@ -154,7 +154,11 @@ public final class CryptoServicesRegistrar
         NativeLoader.loadDriver();
 
         nativeServices = new DefaultNativeServices();
-        packetCipherEnabled = Properties.isOverrideSet(PACKET_CIPHER_ENABLE_PROP);
+        if ("false".equals(Properties.getPropertyValue(PACKET_CIPHER_ENABLE_PROP)))
+        {
+            packetCipherEnabled = false;
+        }
+
 
     }
 

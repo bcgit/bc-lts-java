@@ -41,6 +41,11 @@ public class AESCFBPacketCipherTest
     @Test
     public void testExceptions()
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         AESCFBModePacketCipher cfb = AESPacketCipherEngine.createCFBPacketCipher();
 
         try
@@ -148,6 +153,11 @@ public class AESCFBPacketCipherTest
     public void testAgreementForMultipleMessages()
             throws Exception
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         SecureRandom rand = new SecureRandom();
         AESCFBModePacketCipher cfbPkt =  AESCFBPacketCipher.createCFBPacketCipher();
         isCorrectTypeForVariant(cfbPkt);
@@ -216,6 +226,11 @@ public class AESCFBPacketCipherTest
     public void testIntoSameArray()
             throws Exception
     {
+        if (TestUtil.skipPS()) {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
         SecureRandom secureRandom = new SecureRandom();
 
 
@@ -313,7 +328,8 @@ public class AESCFBPacketCipherTest
         {
             return false;
         }
-        return true;
+        // May not be ported to native platform, so exercise java version only.
+        return CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CFB_PC);
     }
 
     private void isCorrectTypeForVariant(Object o)

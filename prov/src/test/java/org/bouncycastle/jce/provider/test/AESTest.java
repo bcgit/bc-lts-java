@@ -476,6 +476,12 @@ public class AESTest
             Security.addProvider(new BouncyCastleProvider());
         }
 
+
+        if ("true".equals(System.getProperty("org.bouncycastle.test.skip_ps"))) {
+            System.out.println("Skipping test on packetCipher");
+            return;
+        }
+
         SecureRandom rand = new SecureRandom();
 
         byte[] key = new byte[16];
@@ -514,7 +520,7 @@ public class AESTest
 
         if (isJava8())
         {
-            TestCase.assertTrue(getPacketCipherToString(javaC).contains("CBC-PS[Java](AES[Java])")); // Shoul
+            TestCase.assertTrue(getPacketCipherToString(javaC).contains("CBC-PS[Java](AES[Java])")); //
         }
 
         TestCase.assertTrue(Arrays.areEqual(expected, out));
