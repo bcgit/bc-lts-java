@@ -4,7 +4,7 @@ package org.bouncycastle.crypto.modes;
 import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.PacketCipherException;
@@ -36,7 +36,7 @@ public class AESCTRPacketCipher
     {
         if (len < 0)
         {
-            throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
+            throw new IllegalArgumentException(ExceptionMessages.LEN_NEGATIVE);
         }
         checkParameters(parameters);
         return len;
@@ -50,7 +50,7 @@ public class AESCTRPacketCipher
         processPacketExceptionCheck(input, inOff, len, output, outOff);
         if (output.length - outOff < len)
         {
-            throw PacketCipherException.from(new OutputLengthException(ExceptionMessage.OUTPUT_LENGTH));
+            throw PacketCipherException.from(new OutputLengthException(ExceptionMessages.OUTPUT_LENGTH));
         }
         byte[] IV;
         byte[] counter = new byte[BLOCK_SIZE];
@@ -67,18 +67,18 @@ public class AESCTRPacketCipher
                 IV = Arrays.clone(ivParam.getIV());
                 if (BLOCK_SIZE < IV.length)
                 {
-                    throw new IllegalArgumentException(ExceptionMessage.CTR16_IV_TOO_LONG);
+                    throw new IllegalArgumentException(ExceptionMessages.CTR16_IV_TOO_LONG);
                 }
                 //int maxCounterSize = Math.min(8, BLOCK_SIZE >> 1);
                 if (BLOCK_SIZE - IV.length > 8) // 8 is the maxCounterSize
                 {
-                    throw new IllegalArgumentException(ExceptionMessage.CTR16_IV_TOO_SHORT);
+                    throw new IllegalArgumentException(ExceptionMessages.CTR16_IV_TOO_SHORT);
                 }
                 System.arraycopy(IV, 0, counter, 0, IV.length);
                 KeyParameter keyParameter = (KeyParameter)ivParam.getParameters();
                 if (keyParameter == null)
                 {
-                    throw PacketCipherException.from(new IllegalStateException(ExceptionMessage.CTR_CIPHER_UNITIALIZED));
+                    throw PacketCipherException.from(new IllegalStateException(ExceptionMessages.CTR_CIPHER_UNITIALIZED));
                 }
                 int keyLen = keyParameter.getKey().length;
                 checkKeyLength(keyLen);
@@ -88,7 +88,7 @@ public class AESCTRPacketCipher
             }
             else
             {
-                throw new IllegalArgumentException(ExceptionMessage.CTR_INVALID_PARAMETER);
+                throw new IllegalArgumentException(ExceptionMessages.CTR_INVALID_PARAMETER);
             }
         }
         catch (Exception e)

@@ -627,27 +627,27 @@ public abstract class AESPacketCipherEngine
     {
         if (input == null)
         {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.INPUT_NULL));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.INPUT_NULL));
         }
         if (output == null)
         {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.OUTPUT_NULL));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.OUTPUT_NULL));
         }
         if (inOff < 0)
         {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.INPUT_OFFSET_NEGATIVE));
         }
         if (outOff < 0)
         {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.OUTPUT_OFFSET_NEGATIVE));
         }
         if (len < 0)
         {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.LEN_NEGATIVE));
         }
         if (inOff + len > input.length)
         {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.INPUT_LENGTH));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.INPUT_TOO_SHORT));
         }
     }
 
@@ -655,7 +655,7 @@ public abstract class AESPacketCipherEngine
     {
         if (keyLen < 16 || keyLen > 32 || (keyLen & 7) != 0)
         {
-            throw new IllegalArgumentException(ExceptionMessage.AES_KEY_LENGTH);
+            throw new IllegalArgumentException(ExceptionMessages.AES_KEY_LENGTH);
         }
     }
 
@@ -666,7 +666,7 @@ public abstract class AESPacketCipherEngine
             int keyLen = params.getKeyLength();
             if (keyLen < 16 || keyLen > 32 || (keyLen & 7) != 0)
             {
-                throw new IllegalArgumentException(ExceptionMessage.AES_KEY_LENGTH);
+                throw new IllegalArgumentException(ExceptionMessages.AES_KEY_LENGTH);
             }
         }
         else
@@ -746,18 +746,18 @@ public abstract class AESPacketCipherEngine
         {
             if (output.length - outOff < inLen + macSize)
             {
-                throw PacketCipherException.from(new OutputLengthException(ExceptionMessage.OUTPUT_LENGTH));
+                throw PacketCipherException.from(new OutputLengthException(ExceptionMessages.OUTPUT_LENGTH));
             }
         }
         else
         {
             if (inLen < macSize)
             {
-                throw PacketCipherException.from(new DataLengthException(ExceptionMessage.INPUT_SHORT));
+                throw PacketCipherException.from(new DataLengthException(ExceptionMessages.INPUT_SHORT));
             }
             if (output.length - outOff < inLen - macSize)
             {
-                throw PacketCipherException.from(new OutputLengthException(ExceptionMessage.OUTPUT_LENGTH));
+                throw PacketCipherException.from(new OutputLengthException(ExceptionMessages.OUTPUT_LENGTH));
             }
         }
     }

@@ -5,7 +5,7 @@ import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESNativeCBCPacketCipher;
@@ -13,8 +13,6 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
-
-import java.util.Set;
 
 public class AESCBCPacketCipher
     extends AESPacketCipherEngine
@@ -40,11 +38,11 @@ public class AESCBCPacketCipher
     {
         if (len < 0)
         {
-            throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
+            throw new IllegalArgumentException(ExceptionMessages.LEN_NEGATIVE);
         }
         if ((len & 15) != 0)
         {
-            throw new IllegalArgumentException(ExceptionMessage.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID);
+            throw new IllegalArgumentException(ExceptionMessages.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID);
         }
         KeyParameter params;
         if (parameters instanceof ParametersWithIV)
@@ -52,7 +50,7 @@ public class AESCBCPacketCipher
             ParametersWithIV ivParam = (ParametersWithIV)parameters;
             if (ivParam.getIV().length != BLOCK_SIZE)
             {
-                throw new IllegalArgumentException(ExceptionMessage.CBC_IV_LENGTH);
+                throw new IllegalArgumentException(ExceptionMessages.CBC_IV_LENGTH);
             }
             params = (KeyParameter)ivParam.getParameters();
         }
@@ -60,7 +58,7 @@ public class AESCBCPacketCipher
         {
             params = (KeyParameter)parameters;
         }
-        checkKeyLength(params, ExceptionMessage.CBC_CIPHER_UNITIALIZED);
+        checkKeyLength(params, ExceptionMessages.CBC_CIPHER_UNITIALIZED);
         return len;
     }
 
@@ -72,11 +70,11 @@ public class AESCBCPacketCipher
         processPacketExceptionCheck(input, inOff, len, output, outOff);
         if (outOff + len > output.length)
         {
-            throw PacketCipherException.from(new DataLengthException(ExceptionMessage.OUTPUT_LENGTH));
+            throw PacketCipherException.from(new DataLengthException(ExceptionMessages.OUTPUT_LENGTH));
         }
         if ((len & 15) != 0)
         {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID));
         }
 
         if (len == 0)
@@ -88,7 +86,7 @@ public class AESCBCPacketCipher
         int blockCount = (len >> 4) + (tail ? 1 : 0);
         if ((blockCount << 4) + outOff > output.length)
         {
-            throw PacketCipherException.from(new DataLengthException(ExceptionMessage.OUTPUT_LENGTH));
+            throw PacketCipherException.from(new DataLengthException(ExceptionMessages.OUTPUT_LENGTH));
         }
 
 
@@ -111,7 +109,7 @@ public class AESCBCPacketCipher
                 iv = ivParam.getIV().clone();
                 if (iv.length != BLOCK_SIZE)
                 {
-                    throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.CBC_IV_LENGTH));
+                    throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.CBC_IV_LENGTH));
                 }
                 params = (KeyParameter)ivParam.getParameters();
             }
@@ -120,7 +118,7 @@ public class AESCBCPacketCipher
                 params = (KeyParameter)parameters;
                 iv = new byte[BLOCK_SIZE];
             }
-            checkKeyLength(params, ExceptionMessage.CBC_CIPHER_UNITIALIZED);
+            checkKeyLength(params, ExceptionMessages.CBC_CIPHER_UNITIALIZED);
             byte[] key = params.getKey();
             int KC = key.length >>> 2;
             ROUNDS = KC + 6;

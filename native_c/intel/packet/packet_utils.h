@@ -19,15 +19,18 @@ typedef struct {
 
 // Define error messages
 // Reference: ExceptionMessage
+#define EM_OUTPUT_LENGTH_NEGATIVE  "output len is negative"
 #define EM_OUTPUT_LENGTH  "output buffer too short"
+#define EM_OUTPUT_TOO_SHORT  "output buffer too short for offset + length"
 #define EM_INPUT_LENGTH  "input buffer too short"
+#define EM_INPUT_TOO_SHORT  "input buffer too short for offset + length"
 #define EM_INPUT_NULL  "input was null"
 #define EM_INPUT_OFFSET_NEGATIVE  "input offset is negative"
 #define EM_OUTPUT_OFFSET_NEGATIVE  "output offset is negative"
-#define EM_LEN_NEGATIVE  "input len is negative"
+#define EM_INPUT_LEN_NEGATIVE  "input len is negative"
 #define EM_INPUT_SHORT  "data too short"
 #define EM_AES_KEY_LENGTH  "Key length not 128/192/256 bits."
-#define BLOCK_CIPHER_16_INPUT_LENGTH_INVALID  "the length of input should be times of 16."
+#define BLOCK_CIPHER_16_INPUT_LENGTH_INVALID  "input len not multiple of block size"
 #define EM_CBC_IV_LENGTH  "initialisation vector must be the same length as block size"
 #define EM_OUTPUT_NULL  "output was null"
 //Error Type

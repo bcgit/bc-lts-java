@@ -11,7 +11,7 @@ int get_aead_output_size(bool encryption, int len, int macSize) {
 }
 
 int get_output_size(int len) {
-    if (len & 15) {
+    if ((len % BLOCK_SIZE) != 0) {
         return -1;
     } else {
         return len;
@@ -107,9 +107,9 @@ bool tag_verification(const uint8_t *left, const uint8_t *right, size_t len) {
 }
 
 bool tag_verification_16(const uint8_t *macblock, const uint8_t *ciphertext) {
-    __m128i d0 = _mm_loadu_si128((__m128i *) ciphertext);
-    d0 = _mm_xor_si128(*(__m128i *) macblock, d0);
-    return (d0[0] | d0[1]) == 0;
+    __m128i left = _mm_loadu_si128((const __m128i *) macblock);
+    __m128i right = _mm_loadu_si128((const __m128i *) ciphertext);
+    return _mm_test_all_zeros(_mm_xor_si128(left,right), _mm_set_epi64x(-1L, -1L)) == 1;
 }
 
 

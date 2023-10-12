@@ -2,7 +2,7 @@ package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.modes.AESGCMSIVModePacketCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -53,7 +53,7 @@ public class AESNativeGCMSIVPacketCipher
         }
         else
         {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.GCM_SIV_INVALID_PARAMETER));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.GCM_SIV_INVALID_PARAMETER));
         }
         int iatLen = initialAssociatedText != null ? initialAssociatedText.length : 0;
         int outLen = output != null ? output.length : 0;

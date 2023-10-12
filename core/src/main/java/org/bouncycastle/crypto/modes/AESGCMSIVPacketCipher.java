@@ -5,7 +5,7 @@ import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.PacketCipherException;
@@ -61,7 +61,7 @@ public class AESGCMSIVPacketCipher
     {
         if (len < 0)
         {
-            throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
+            throw new IllegalArgumentException(ExceptionMessages.LEN_NEGATIVE);
         }
         if (encryption)
         {
@@ -69,7 +69,7 @@ public class AESGCMSIVPacketCipher
         }
         else if (len < BLOCK_SIZE)
         {
-            throw new DataLengthException(ExceptionMessage.OUTPUT_LENGTH);
+            throw new DataLengthException(ExceptionMessages.OUTPUT_LENGTH);
         }
         checkParameters(parameters);
         return len - BLOCK_SIZE;
@@ -110,18 +110,18 @@ public class AESGCMSIVPacketCipher
         }
         else
         {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.GCM_SIV_INVALID_PARAMETER));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.GCM_SIV_INVALID_PARAMETER));
         }
         /* Check nonceSize */
         if (myNonce == null || myNonce.length != NONCELEN)
         {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.GCM_SIV_IV_SIZE));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.GCM_SIV_IV_SIZE));
         }
 
         /* Check keysize */
         if (myKey == null || (myKey.getKeyLength() != BLOCK_SIZE && myKey.getKeyLength() != (BLOCK_SIZE << 1)))
         {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessage.AES_KEY_LENGTH));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.AES_KEY_LENGTH));
         }
         else
         {

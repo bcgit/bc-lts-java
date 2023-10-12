@@ -2,7 +2,7 @@ package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.modes.AESCFBModePacketCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -40,13 +40,13 @@ public class AESNativeCFBPacketCipher
             }
             else
             {
-                throw new IllegalArgumentException(ExceptionMessage.CFB_CIPHER_UNITIALIZED);
+                throw new IllegalArgumentException(ExceptionMessages.CFB_CIPHER_UNITIALIZED);
             }
             iv = ivParam.getIV().clone();
         }
         else
         {
-            throw new IllegalArgumentException(ExceptionMessage.CFB_CIPHER_UNITIALIZED);
+            throw new IllegalArgumentException(ExceptionMessages.CFB_CIPHER_UNITIALIZED);
         }
         int result;
         try

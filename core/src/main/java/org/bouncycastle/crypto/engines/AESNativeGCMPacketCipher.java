@@ -2,17 +2,15 @@ package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.modes.AESGCMModePacketCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
-import org.bouncycastle.util.dispose.Disposable;
 
 import javax.security.auth.DestroyFailedException;
-import javax.security.auth.Destroyable;
 
 public class AESNativeGCMPacketCipher
     extends AESPacketCipherEngine
@@ -53,7 +51,7 @@ public class AESNativeGCMPacketCipher
                 int macSizeBits = param.getMacSize();
                 if (macSizeBits < 32 || macSizeBits > 128 || (macSizeBits & 7) != 0)
                 {
-                    throw new IllegalArgumentException(ExceptionMessage.GCM_INVALID_MAC_SIZE + macSizeBits);
+                    throw new IllegalArgumentException(ExceptionMessages.GCM_INVALID_MAC_SIZE + macSizeBits);
                 }
 
                 macSize = macSizeBits >> 3;
@@ -92,7 +90,7 @@ public class AESNativeGCMPacketCipher
             }
             else
             {
-                throw new IllegalArgumentException(ExceptionMessage.GCM_INVALID_PARAMETER);
+                throw new IllegalArgumentException(ExceptionMessages.GCM_INVALID_PARAMETER);
             }
         }
         catch (Exception e)

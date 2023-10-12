@@ -36,13 +36,13 @@ public class AESNativeCTRPacketCipher
             KeyParameter keyParameter = (KeyParameter)ivParam.getParameters();
             if (keyParameter == null)
             {
-                throw PacketCipherException.from(new IllegalStateException(ExceptionMessage.CTR_CIPHER_UNITIALIZED));
+                throw PacketCipherException.from(new IllegalStateException(ExceptionMessages.CTR_CIPHER_UNITIALIZED));
             }
             key = keyParameter.getKey();
         }
         else
         {
-            throw new IllegalArgumentException(ExceptionMessage.CTR_INVALID_PARAMETER);
+            throw new IllegalArgumentException(ExceptionMessages.CTR_INVALID_PARAMETER);
         }
         int result;
         try

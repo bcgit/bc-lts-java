@@ -5,7 +5,7 @@ import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESNativeCFBPacketCipher;
@@ -38,7 +38,7 @@ public class AESCFBPacketCipher
         checkCFBParameter(parameters);
         if (len < 0)
         {
-            throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
+            throw new IllegalArgumentException(ExceptionMessages.LEN_NEGATIVE);
         }
         return len;
     }
@@ -51,7 +51,7 @@ public class AESCFBPacketCipher
         processPacketExceptionCheck(input, inOff, len, output, outOff);
         if (outOff + len > output.length)
         {
-            throw PacketCipherException.from(new DataLengthException(ExceptionMessage.OUTPUT_LENGTH));
+            throw PacketCipherException.from(new DataLengthException(ExceptionMessages.OUTPUT_LENGTH));
         }
         byte[] cfbV = new byte[BLOCK_SIZE];
         byte[] iv, key;
@@ -71,7 +71,7 @@ public class AESCFBPacketCipher
                 }
                 else
                 {
-                    throw new IllegalArgumentException(ExceptionMessage.CFB_CIPHER_UNITIALIZED);
+                    throw new IllegalArgumentException(ExceptionMessages.CFB_CIPHER_UNITIALIZED);
                 }
                 iv = ivParam.getIV().clone();
                 //reset
@@ -87,7 +87,7 @@ public class AESCFBPacketCipher
             }
             else
             {
-                throw new IllegalArgumentException(ExceptionMessage.CFB_CIPHER_UNITIALIZED);
+                throw new IllegalArgumentException(ExceptionMessages.CFB_CIPHER_UNITIALIZED);
             }
             int keyLen = key.length;
             checkKeyLength(keyLen);

@@ -50,73 +50,82 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
     init_bytearray_ctx(&iv);
     init_bytearray_ctx(&ad);
 
+    //
+    // Load and check key
+    //
     if (!load_bytearray_ctx(&key, env, key_)) {
         throw_java_invalid_state(env, "unable to obtain ptr to valid key array");
         goto exit;
     }
+
+    if (!aes_keysize_is_valid_and_not_null_with_len(env, &key, keyLen)) {
+        goto exit;
+    }
+
+
+    //
+    // Load and check nonce
+    //
 
     if (!load_bytearray_ctx(&iv, env, nonce_)) {
         throw_java_invalid_state(env, "unable to obtain ptr to valid iv array");
         goto exit;
     }
 
-
-    if (!aes_keysize_is_valid_and_not_null(env, &key)) {
-        goto exit;
-    }
-
-    if (!ivlen_is_16_and_not_null(env, &iv)) {
-        goto exit;
-    }
-
-
-    if (in == NULL) {
-        throw_java_illegal_argument(env, EM_INPUT_NULL);
-        goto exit;
-    }
-
-    if (inOff < 0) {
-        throw_java_illegal_argument(env, EM_INPUT_OFFSET_NEGATIVE);
-        goto exit;
-    }
-
-    if (inLen < 0) {
-        throw_java_illegal_argument(env, EM_LEN_NEGATIVE);
-        goto exit;
-    }
-
-    if (!check_range(input.size, (size_t) inOff, (size_t) inLen)) {
-        throw_bc_data_length_exception(env, EM_INPUT_LENGTH);
-        goto exit;
-    }
-
-    if (inLen & 15) {
-        throw_bc_data_length_exception(env, BLOCK_CIPHER_16_INPUT_LENGTH_INVALID);
-        goto exit;
-    }
-
-    if (out == NULL) {
-        throw_java_illegal_argument(env, EM_OUTPUT_NULL);
-        goto exit;
-    }
-
-    if (outOff < 0) {
-        throw_java_illegal_argument(env, EM_OUTPUT_OFFSET_NEGATIVE);
-        goto exit;
-    }
-
-    if (!check_range(output.size, (size_t) outOff, (size_t) (((inLen >> 4) << 4) + (inLen & 15 ? 16 : 0)))) {
-        throw_bc_data_length_exception(env, EM_OUTPUT_LENGTH);
-        goto exit;
-    }
-
-    if (outOff > output.size) {
-        throw_java_illegal_argument(env, EM_OUTPUT_LENGTH);
+    if (!ivlen_is_16_and_not_null_with_len(env, &iv, nonLen)) {
         goto exit;
     }
 
     //
-    // Load the contexts
+    // Check input array with offset and len
+    //
+    if (!critical_offset_and_len_are_in_range_with_messages(
+            &input,
+            inOff,
+            inLen,
+            env,
+            EM_INPUT_NULL,
+            EM_INPUT_OFFSET_NEGATIVE,
+            EM_INPUT_LEN_NEGATIVE,
+            EM_INPUT_TOO_SHORT)) {
+        goto exit;
+    }
+
+
+    //
+    // Input len must be multiple of block size.
+    //
+    if (inLen % BLOCK_SIZE != 0) {
+        throw_bc_data_length_exception(env, BLOCK_CIPHER_16_INPUT_LENGTH_INVALID);
+        goto exit;
+    }
+
+    //
+    // Check output array with offset and len
+    //
+    if (!critical_offset_and_len_are_in_range_with_messages(
+            &output,
+            outOff,
+            outLen,
+            env,
+            EM_OUTPUT_NULL,
+            EM_OUTPUT_OFFSET_NEGATIVE,
+            EM_OUTPUT_LENGTH_NEGATIVE,
+            EM_OUTPUT_TOO_SHORT)) {
+        goto exit;
+    }
+
+    // Assert that input can be processed into output
+    // array size assertions for both arrays with respect to offset and length
+    // have been applied by this point
+    if (outLen < inLen) {
+        throw_java_invalid_state(env, EM_OUTPUT_LENGTH);
+        goto exit;
+    }
+
+
+    //
+    // Load the critical arrays
     //
     if (!load_critical_ctx(&output)) {
         throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
@@ -129,6 +138,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
         goto exit;
     }
 
+    // keyLen, and inLen, inOff and outOff have been asserted not negative
 
     uint8_t *p_in = input.critical + inOff;
     uint8_t *p_out = output.critical + outOff;
@@ -159,14 +169,15 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
  * Signature: (ZII)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCipher_getOutputSize
-        (JNIEnv *env, jclass,  jint len) {
+        (JNIEnv *env, jclass, jint len) {
     if (len < 0) {
-        throw_java_illegal_argument(env, EM_LEN_NEGATIVE);
+        throw_java_illegal_argument(env, EM_INPUT_LEN_NEGATIVE);
         return 0;
     }
     int result = get_output_size((int) len);
     if (result < 0) {
         throw_bc_data_length_exception(env, BLOCK_CIPHER_16_INPUT_LENGTH_INVALID);
+        return 0;
     }
     return result;
 }

@@ -109,7 +109,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMPacketCi
     }
 
     if (inLen < 0) {
-        throw_java_illegal_argument(env, EM_LEN_NEGATIVE);
+        throw_java_illegal_argument(env, EM_INPUT_LEN_NEGATIVE);
         goto exit;
     }
 
@@ -191,7 +191,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMPacketCi
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMPacketCipher_getOutputSize
         (JNIEnv *env, jclass, jboolean encryption, jint len, jint macSize) {
     if (len < 0) {
-        throw_java_illegal_argument(env, EM_LEN_NEGATIVE);
+        throw_java_illegal_argument(env, EM_INPUT_LEN_NEGATIVE);
         return 0;
     }
     int result = get_aead_output_size(encryption == JNI_TRUE, (int) len, (int) macSize);

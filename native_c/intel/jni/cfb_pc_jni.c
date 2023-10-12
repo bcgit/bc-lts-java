@@ -85,7 +85,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFBPacketCi
     }
 
     if (inLen < 0) {
-        throw_java_illegal_argument(env, EM_LEN_NEGATIVE);
+        throw_java_illegal_argument(env, EM_INPUT_LEN_NEGATIVE);
         goto exit;
     }
 
@@ -164,7 +164,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFBPacketCi
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFBPacketCipher_getOutputSize
         (JNIEnv *env, jclass, jint len) {
     if (len < 0) {
-        throw_java_illegal_argument(env, EM_LEN_NEGATIVE);
+        throw_java_illegal_argument(env, EM_INPUT_LEN_NEGATIVE);
         return 0;
     }
     return len;

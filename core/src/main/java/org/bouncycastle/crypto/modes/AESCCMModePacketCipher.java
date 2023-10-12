@@ -1,7 +1,7 @@
 package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.PacketCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -32,23 +32,23 @@ public interface AESCCMModePacketCipher
         }
         else
         {
-            throw new IllegalArgumentException(ExceptionMessage.CCM_INVALID_PARAMETER);
+            throw new IllegalArgumentException(ExceptionMessages.CCM_INVALID_PARAMETER);
         }
         if (nonce == null || nonce.length < 7 || nonce.length > 13)
         {
-            throw new IllegalArgumentException(ExceptionMessage.CCM_IV_SIZE);
+            throw new IllegalArgumentException(ExceptionMessages.CCM_IV_SIZE);
         }
         if (keyParam != null)
         {
             int keyLen = keyParam.getKeyLength();
             if (keyLen < 16 || keyLen > 32 || (keyLen & 7) != 0)
             {
-                throw new IllegalArgumentException(ExceptionMessage.AES_KEY_LENGTH);
+                throw new IllegalArgumentException(ExceptionMessages.AES_KEY_LENGTH);
             }
         }
         else
         {
-            throw new IllegalArgumentException(ExceptionMessage.CCM_CIPHER_UNITIALIZED);
+            throw new IllegalArgumentException(ExceptionMessages.CCM_CIPHER_UNITIALIZED);
         }
         return macSize;
     }
@@ -57,7 +57,7 @@ public interface AESCCMModePacketCipher
     {
         if (forEncryption && (requestedMacBits < 32 || requestedMacBits > 128 || 0 != (requestedMacBits & 15)))
         {
-            throw new IllegalArgumentException(ExceptionMessage.CCM_MAC_SIZE);
+            throw new IllegalArgumentException(ExceptionMessages.CCM_MAC_SIZE);
         }
         return requestedMacBits >>> 3;
     }

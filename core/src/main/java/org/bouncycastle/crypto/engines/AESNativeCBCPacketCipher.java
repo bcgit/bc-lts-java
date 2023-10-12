@@ -2,7 +2,7 @@ package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.PacketCipher;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.modes.AESCBCModePacketCipher;
@@ -45,12 +45,12 @@ public class AESNativeCBCPacketCipher
                 }
                 else
                 {
-                    throw new IllegalArgumentException(ExceptionMessage.CBC_CIPHER_UNITIALIZED);
+                    throw new IllegalArgumentException(ExceptionMessages.CBC_CIPHER_UNITIALIZED);
                 }
             }
             else
             {
-                throw new IllegalArgumentException(ExceptionMessage.INVALID_PARAM_TYPE);
+                throw new IllegalArgumentException(ExceptionMessages.INVALID_PARAM_TYPE);
             }
         }
         catch (IllegalArgumentException e)
@@ -58,7 +58,7 @@ public class AESNativeCBCPacketCipher
             throw PacketCipherException.from(e);
         }
 
-        int outLen = output != null ? output.length : 0;
+        int outLen = output != null ? output.length - outOff : 0;
         int result;
         try
         {

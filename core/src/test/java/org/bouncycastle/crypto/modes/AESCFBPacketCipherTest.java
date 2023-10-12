@@ -1,18 +1,11 @@
 package org.bouncycastle.crypto.modes;
 
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.ExceptionMessage;
-import org.bouncycastle.crypto.MultiBlockCipher;
-import org.bouncycastle.crypto.NativeBlockCipherProvider;
+import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipher;
@@ -20,12 +13,10 @@ import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.AESNativeCFBPacketCipher;
 import org.bouncycastle.crypto.engines.TestUtil;
-import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
-import org.junit.Assert;
 import org.junit.Test;
 
 public class AESCFBPacketCipherTest
@@ -56,7 +47,7 @@ public class AESCFBPacketCipherTest
         catch (IllegalArgumentException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().equals(ExceptionMessage.LEN_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().equals(ExceptionMessages.LEN_NEGATIVE));
         }
 
         try
@@ -68,7 +59,7 @@ public class AESCFBPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_KEY_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.AES_KEY_LENGTH));
         }
 
         try
@@ -79,7 +70,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_NULL));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.INPUT_NULL));
         }
 
         try
@@ -90,7 +81,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.OUTPUT_LENGTH));
         }
 
         try
@@ -101,7 +92,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.INPUT_OFFSET_NEGATIVE));
         }
 
         try
@@ -112,7 +103,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.LEN_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.LEN_NEGATIVE));
         }
 
         try
@@ -123,7 +114,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.OUTPUT_OFFSET_NEGATIVE));
         }
 
         try
@@ -134,7 +125,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.INPUT_LENGTH));
         }
 
         try
@@ -145,7 +136,7 @@ public class AESCFBPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.OUTPUT_LENGTH));
         }
     }
 

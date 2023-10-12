@@ -24,7 +24,7 @@ static inline void aes_cbc_dec_blocks_512b(unsigned char *in, unsigned char *out
                                            __m512i *fb512, __m128i *feedback, const __m128i *roundKeys,
                                            const int num_rounds, const uint32_t num_blocks) {
 
-    if (num_blocks == 16) {
+    if (num_blocks >= 16) {
         __m512i d0 = _mm512_loadu_si512((__m512i *) &in[0 * 64]);
         __m512i d1 = _mm512_loadu_si512((__m512i *) &in[1 * 64]);
         __m512i d2 = _mm512_loadu_si512((__m512i *) &in[2 * 64]);

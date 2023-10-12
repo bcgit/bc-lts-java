@@ -59,7 +59,7 @@ public class AESGCMSIVPacketCipherTest
         catch (DataLengthException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.OUTPUT_LENGTH));
         }
 
         try
@@ -70,7 +70,7 @@ public class AESGCMSIVPacketCipherTest
         catch (IllegalArgumentException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().equals(ExceptionMessage.LEN_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().equals(ExceptionMessages.LEN_NEGATIVE));
         }
 
         try
@@ -82,7 +82,7 @@ public class AESGCMSIVPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_KEY_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.AES_KEY_LENGTH));
         }
 
         try
@@ -106,7 +106,7 @@ public class AESGCMSIVPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_NULL));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.INPUT_NULL));
         }
 
         try
@@ -117,7 +117,7 @@ public class AESGCMSIVPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.OUTPUT_LENGTH));
         }
 
         try
@@ -128,7 +128,7 @@ public class AESGCMSIVPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.INPUT_OFFSET_NEGATIVE));
         }
 
         try
@@ -139,7 +139,7 @@ public class AESGCMSIVPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.LEN_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.LEN_NEGATIVE));
         }
 
         try
@@ -150,7 +150,7 @@ public class AESGCMSIVPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.OUTPUT_OFFSET_NEGATIVE));
         }
 
         try
@@ -161,7 +161,7 @@ public class AESGCMSIVPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_SHORT));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.INPUT_SHORT));
         }
 
         try
@@ -172,7 +172,7 @@ public class AESGCMSIVPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.OUTPUT_LENGTH));
         }
     }
 

@@ -1,7 +1,7 @@
 package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.PacketCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -33,18 +33,18 @@ public interface AESGCMSIVModePacketCipher
         }
         else
         {
-            throw new IllegalArgumentException(ExceptionMessage.GCM_SIV_INVALID_PARAMETER);
+            throw new IllegalArgumentException(ExceptionMessages.GCM_SIV_INVALID_PARAMETER);
         }
         /* Check nonceSize */
         if (myNonce == null || myNonce.length != NONCELEN)
         {
-            throw new IllegalArgumentException(ExceptionMessage.GCM_SIV_IV_SIZE);
+            throw new IllegalArgumentException(ExceptionMessages.GCM_SIV_IV_SIZE);
         }
 
         /* Check keysize */
         if (myKey == null || (myKey.getKeyLength() != 16 && myKey.getKeyLength() != 32))
         {
-            throw new IllegalArgumentException(ExceptionMessage.AES_KEY_LENGTH);
+            throw new IllegalArgumentException(ExceptionMessages.AES_KEY_LENGTH);
         }
     }
 }

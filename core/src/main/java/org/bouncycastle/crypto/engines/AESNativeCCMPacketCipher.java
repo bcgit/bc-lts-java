@@ -51,9 +51,9 @@ public class AESNativeCCMPacketCipher
             }
             else
             {
-                throw new IllegalArgumentException(ExceptionMessage.CCM_INVALID_PARAMETER);
+                throw new IllegalArgumentException(ExceptionMessages.CCM_INVALID_PARAMETER);
             }
-            checkKeyLength(keyParam, ExceptionMessage.CCM_CIPHER_UNITIALIZED);
+            checkKeyLength(keyParam, ExceptionMessages.CCM_CIPHER_UNITIALIZED);
         }
         catch (Exception e)
         {

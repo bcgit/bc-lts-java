@@ -4,7 +4,7 @@ import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.PacketCipherException;
@@ -18,7 +18,6 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
 
 import javax.security.auth.DestroyFailedException;
-import javax.security.auth.Destroyable;
 
 public class AESGCMPacketCipher
     extends AESPacketCipherEngine
@@ -48,7 +47,7 @@ public class AESGCMPacketCipher
     {
         if (len < 0)
         {
-            throw new IllegalArgumentException(ExceptionMessage.LEN_NEGATIVE);
+            throw new IllegalArgumentException(ExceptionMessages.LEN_NEGATIVE);
         }
         int macSize = checkParameters(parameters);
         if (forEncryption)
@@ -57,7 +56,7 @@ public class AESGCMPacketCipher
         }
         else if (len < macSize)
         {
-            throw new DataLengthException(ExceptionMessage.OUTPUT_LENGTH);
+            throw new DataLengthException(ExceptionMessages.OUTPUT_LENGTH);
         }
         return len - macSize;
     }
@@ -106,7 +105,7 @@ public class AESGCMPacketCipher
                 int macSizeBits = param.getMacSize();
                 if (macSizeBits < 32 || macSizeBits > 128 || (macSizeBits & 7) != 0)
                 {
-                    throw new IllegalArgumentException(ExceptionMessage.GCM_INVALID_MAC_SIZE + macSizeBits);
+                    throw new IllegalArgumentException(ExceptionMessages.GCM_INVALID_MAC_SIZE + macSizeBits);
                 }
                 macSize = macSizeBits >> 3;
                 keyParam = param.getKey();
@@ -122,7 +121,7 @@ public class AESGCMPacketCipher
             }
             else
             {
-                throw new IllegalArgumentException(ExceptionMessage.GCM_INVALID_PARAMETER);
+                throw new IllegalArgumentException(ExceptionMessages.GCM_INVALID_PARAMETER);
             }
             AEADLengthCheck(forEncryption, len, output, outOff, macSize);
             int bufLength = forEncryption ? BLOCK_SIZE : (BLOCK_SIZE + macSize);
@@ -130,7 +129,7 @@ public class AESGCMPacketCipher
 
             if (newNonce == null || newNonce.length < 12)
             {
-                throw new IllegalArgumentException(ExceptionMessage.GCM_IV_TOO_SHORT);
+                throw new IllegalArgumentException(ExceptionMessages.GCM_IV_TOO_SHORT);
             }
 
             nonce = newNonce;

@@ -145,6 +145,7 @@ static inline bool process_critical_blocks_valid(
 
 }
 
+
 /**
  * Check and iv is not null and 16 bytes long, throws java exceptions if not met.
  * @param env  the java environment.
@@ -165,6 +166,72 @@ static inline bool ivlen_is_16_and_not_null(JNIEnv *env, java_bytearray_ctx *iv)
     return false;
 }
 
+
+/**
+ * Check and iv is not null and 16 bytes long, throws java exceptions if not met.
+ * @param env  the java environment.
+ * @param iv the array containing the iv.
+ * @param len the length of the IV
+ * @return
+ */
+static inline bool ivlen_is_16_and_not_null_with_len(JNIEnv *env, java_bytearray_ctx *iv, int32_t ivLen) {
+    if (iv->array == NULL) {
+        throw_java_NPE(env, "iv is null");
+        return false;
+    }
+
+    // Assert fundamental size
+    if (ivLen != 16) {
+        throw_java_illegal_argument(env, "iv must be only 16 bytes");
+        return false;
+    }
+
+    // Check array can accommodate ivLen
+    if (iv->size < ivLen) {
+        throw_java_illegal_argument(env, "iv array length is less than ivLen");
+        return false;
+    }
+
+    return true;
+}
+
+
+/**
+ * Assert aes key sizes, throws java exceptions if not.
+ * @param env java env var
+ * @param key the key
+ * @return true if ok
+ */
+static inline bool aes_keysize_is_valid_and_not_null_with_len(JNIEnv *env, java_bytearray_ctx *key, int32_t keyLen) {
+    if (key->array == NULL) {
+        throw_java_NPE(env, "key was null");
+        return false;
+    }
+
+    // basic assertion for size, asserts non-negative
+    if (keyLen < 16) {
+        throw_java_illegal_argument(env, "key must be only 16, 24 or 32 bytes long");
+        return false;
+    }
+
+    // Can array accommodate key
+    if (key->size < keyLen) {
+        throw_java_illegal_argument(env, "key array is less than keyLen");
+        return false;
+    }
+
+    switch (keyLen) {
+        case 16:
+        case 24:
+        case 32:
+            return true;
+        default:
+            throw_java_illegal_argument(env, "key must be only 16, 24 or 32 bytes long");
+    }
+    return false;
+}
+
+
 /**
  * Assert aes key sizes, throws java exceptions if not.
  * @param env java env var
@@ -182,7 +249,7 @@ static inline bool aes_keysize_is_valid_and_not_null(JNIEnv *env, java_bytearray
         case 32:
             return true;
         default:
-            throw_java_illegal_argument(env, "key must be only 16,24 or 32 bytes long");
+            throw_java_illegal_argument(env, "key must be only 16, 24 or 32 bytes long");
     }
     return false;
 }
@@ -205,7 +272,7 @@ static inline bool aes_keysize_is_valid_or_null(JNIEnv *env, java_bytearray_ctx 
         case 32:
             return true;
         default:
-            throw_java_illegal_argument(env, "key must be only 16,24 or 32 bytes long");
+            throw_java_illegal_argument(env, "key must be only 16, 24 or 32 bytes long");
     }
     return false;
 }
@@ -236,6 +303,52 @@ critical_offset_and_len_are_in_range(critical_bytearray_ctx *array, int offset, 
     if (!check_range(array->size, (size_t) offset, (size_t) len)) {
         throw_java_illegal_argument(env,
                                     "array too short for offset + len");
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * Asserts that for a single critical byte array that it is not null and the offset + len are within the bounds
+ * of the critical array.
+ * @param array the array to test
+ * @param offset input offset
+ * @param len length
+ * @param env java env
+ * @param beforeThrow
+ * @return true if valid
+ */
+static inline bool
+critical_offset_and_len_are_in_range_with_messages(
+        critical_bytearray_ctx *array,
+        int offset,
+        int len,
+        JNIEnv *env,
+        const char *arrayNUll,
+        const char *offsetNeg,
+        const char *lenNeg,
+        const char *tooShort) {
+
+    if (array->array == NULL) {
+        throw_java_illegal_argument(env, arrayNUll);
+        return false;
+    }
+
+    if (offset < 0) {
+        throw_java_illegal_argument(env, offsetNeg);
+        return false;
+    }
+
+    if (len < 0) {
+        throw_java_illegal_argument(env,
+                                    lenNeg);
+        return false;
+    }
+
+    if (!check_range(array->size, (size_t) offset, (size_t) len)) {
+        throw_java_illegal_argument(env,
+                                    tooShort);
         return false;
     }
 
@@ -274,7 +387,6 @@ critical_long_offset_and_len_are_in_range(critical_longarray_ctx *array, int off
 
     return true;
 }
-
 
 
 /**

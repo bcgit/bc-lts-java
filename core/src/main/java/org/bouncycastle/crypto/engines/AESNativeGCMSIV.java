@@ -5,9 +5,8 @@ import java.io.ByteArrayOutputStream;
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.ExceptionMessage;
+import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.modes.GCMSIVBlockCipher;
 import org.bouncycastle.crypto.modes.GCMSIVModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -101,7 +100,7 @@ public class AESNativeGCMSIV
         case 32:
             break;
         default:
-            throw new IllegalStateException(ExceptionMessage.AES_KEY_LENGTH);
+            throw new IllegalStateException(ExceptionMessages.AES_KEY_LENGTH);
         }
 
         initRef(lastKey.length);
@@ -137,7 +136,7 @@ public class AESNativeGCMSIV
     {
         if (refWrapper == null)
         {
-            throw new IllegalStateException(ExceptionMessage.GCM_SIV_UNINITIALIZED);
+            throw new IllegalStateException(ExceptionMessages.GCM_SIV_UNINITIALIZED);
         }
 
         processAADBytes(refWrapper.getReference(), in, inOff, len);
@@ -149,7 +148,7 @@ public class AESNativeGCMSIV
     {
         if (refWrapper == null)
         {
-            throw new IllegalStateException(ExceptionMessage.GCM_SIV_UNINITIALIZED);
+            throw new IllegalStateException(ExceptionMessages.GCM_SIV_UNINITIALIZED);
         }
         theEncData.write(in);
         return 0;
@@ -161,7 +160,7 @@ public class AESNativeGCMSIV
     {
         if (refWrapper == null)
         {
-            throw new IllegalStateException(ExceptionMessage.GCM_SIV_UNINITIALIZED);
+            throw new IllegalStateException(ExceptionMessages.GCM_SIV_UNINITIALIZED);
         }
         theEncData.write(in, inOff, len);
         return 0;

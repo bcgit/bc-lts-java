@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.NativeServices;
 
 public class TestUtil
 {
@@ -22,7 +23,6 @@ public class TestUtil
     public static boolean skipPS() {
          return "true".equals(System.getProperty("org.bouncycastle.test.skip_ps"));
     }
-
 
     public static boolean isSkipSet(String label)
     {

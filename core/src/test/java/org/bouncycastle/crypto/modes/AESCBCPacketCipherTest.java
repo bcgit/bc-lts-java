@@ -7,12 +7,10 @@ import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.AESNativeCBCPacketCipher;
 import org.bouncycastle.crypto.engines.TestUtil;
-import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
-import org.junit.Rule;
 import org.junit.Test;
 
 public class AESCBCPacketCipherTest
@@ -22,7 +20,6 @@ public class AESCBCPacketCipherTest
     {
 
     }
-
 
     public boolean isNativeVariant()
     {
@@ -245,7 +242,6 @@ public class AESCBCPacketCipherTest
         }
     }
 
-
     @Test
     public void testExceptions()
     {
@@ -264,7 +260,7 @@ public class AESCBCPacketCipherTest
         catch (IllegalArgumentException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().equals(ExceptionMessage.LEN_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().equals(ExceptionMessages.LEN_NEGATIVE));
         }
 
         try
@@ -276,7 +272,7 @@ public class AESCBCPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.AES_KEY_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.AES_KEY_LENGTH));
         }
 
         try
@@ -288,7 +284,7 @@ public class AESCBCPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.CBC_IV_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.CBC_IV_LENGTH));
         }
 
 
@@ -300,7 +296,7 @@ public class AESCBCPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_NULL));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.INPUT_NULL));
         }
 
         try
@@ -311,7 +307,7 @@ public class AESCBCPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.OUTPUT_LENGTH));
         }
 
         try
@@ -323,7 +319,7 @@ public class AESCBCPacketCipherTest
         catch (PacketCipherException e)
         {
             TestCase.assertTrue("wrong message",
-                    e.getMessage().contains(ExceptionMessage.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID));
+                    e.getMessage().contains(ExceptionMessages.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID));
         }
 
         try
@@ -334,7 +330,7 @@ public class AESCBCPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_OFFSET_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.INPUT_OFFSET_NEGATIVE));
         }
 
         try
@@ -345,7 +341,7 @@ public class AESCBCPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.LEN_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.LEN_NEGATIVE));
         }
 
         try
@@ -356,7 +352,7 @@ public class AESCBCPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_OFFSET_NEGATIVE));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.OUTPUT_OFFSET_NEGATIVE));
         }
 
         try
@@ -367,18 +363,18 @@ public class AESCBCPacketCipherTest
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.INPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.INPUT_TOO_SHORT));
         }
 
         try
         {
             cbc.processPacket(false, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]), new byte[16]
-                    , 0, 16, new byte[0], 0);
+                    , 0, 16, new byte[16], 1);
             fail("output buffer too small for processPacket");
         }
         catch (PacketCipherException e)
         {
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessage.OUTPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.OUTPUT_LENGTH));
         }
     }
 }
