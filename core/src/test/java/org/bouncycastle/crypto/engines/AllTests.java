@@ -41,6 +41,7 @@ public class AllTests
         suite.addTestSuite(GCMNativeLimitTest.class);
         suite.addTestSuite(CCMNativeLimitTest.class);
         suite.addTestSuite(NativeCBCPacketCipherLimitTest.class);
+        suite.addTestSuite(NativeCCMPacketCipherLimitTest.class);
         suite.addTestSuite(SHA256NativeDigestTests.class);
         suite.addTestSuite(SHA224NativeDigestTests.class);
         suite.addTestSuite(SHA512NativeDigestTests.class);

@@ -423,6 +423,55 @@ static inline bool bytearray_offset_and_len_are_in_range(java_bytearray_ctx *arr
     return true;
 }
 
+
+/**
+ * Assert single array not null and
+ * assert inOff >=0, len >=0, inOff+len <= array len for non critical byte array.
+ *
+ *
+ * @param array  the array to test
+ * @param inOff the input offset
+ * @param len the length
+ * @param env the java env
+ * @param
+ * @return true if ok
+ */
+static inline bool bytearray_offset_and_len_are_in_range_not_null_msgs(
+        java_bytearray_ctx *array,
+        int inOff,
+        int len,
+        JNIEnv *env,
+        const char *nonceNullMsg,
+        const char *offsetNegMsg,
+        const char *lenNegMessage,
+        const char *arrayTooShortMsg) {
+
+    if (array->array == NULL) {
+        throw_java_NPE(env, nonceNullMsg);
+        return false;
+    }
+
+    if (inOff < 0) {
+        throw_java_illegal_argument(env, offsetNegMsg);
+        return false;
+    }
+
+    if (len < 0) {
+        throw_java_illegal_argument(env, lenNegMessage);
+        return false;
+    }
+
+
+    if (!check_range(array->size, (size_t) inOff, (size_t) len)) {
+        throw_java_illegal_argument(env,
+                                    arrayTooShortMsg);
+        return false;
+    }
+
+    return true;
+}
+
+
 /**
  * Assert single array offset for critical byte array.
  *

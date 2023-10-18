@@ -36,55 +36,90 @@ void handle_ccm_pc_result(JNIEnv *env, packet_err *err) {
  * Signature: (Z[BI[BI[BII[BII[BII)I
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCMPacketCipher_processPacket
-        (JNIEnv *env, jclass, jboolean encryption, jbyteArray key_, jint keyLen, jbyteArray nonce_, jint nonLen,
-         jbyteArray aad_, jint aadLen, jint macSize, jbyteArray in, jint inOff, jint inLen, jbyteArray out, jint outOff,
-         jint outLen) {
+        (JNIEnv *env, jclass,
+         jboolean encryption,
+         jbyteArray key_, jint keyLen,
+         jbyteArray nonce_, jint nonceLen,
+         jbyteArray aad_, jint aadLen,
+         jint macSize,
+         jbyteArray in, jint inOff, jint inLen,
+         jbyteArray out, jint outOff, jint outLen) {
+
     java_bytearray_ctx key, iv, ad;
     critical_bytearray_ctx input, output;
     packet_err *err = NULL;
     init_critical_ctx(&input, env, in);
     init_critical_ctx(&output, env, out);
-
     init_bytearray_ctx(&key);
     init_bytearray_ctx(&iv);
     init_bytearray_ctx(&ad);
 
+
+    // Assert the mac size.
+    if (macSize < 4 || macSize > 16) {
+        throw_java_illegal_argument(env, EM_MACSIZE_INVALID);
+        goto exit;
+    }
+
+
+    //
+    // Load and check key
+    //
     if (!load_bytearray_ctx(&key, env, key_)) {
         throw_java_invalid_state(env, "unable to obtain ptr to valid key array");
         goto exit;
     }
 
+    if (!aes_keysize_is_valid_and_not_null_with_len(env, &key, keyLen)) {
+        goto exit;
+    }
+
+
+    //
+    // Load and check iv
+    //
     if (!load_bytearray_ctx(&iv, env, nonce_)) {
         throw_java_invalid_state(env, "unable to obtain ptr to valid iv array");
         goto exit;
     }
+
+
+    if (!bytearray_offset_and_len_are_in_range_not_null_msgs(
+            &iv,
+            0,
+            nonceLen,
+            env,
+            "nonce is null",
+            "nonce offset negative",
+            "nonce len is negative",
+            "nonce len past end of nonce array")) {
+        goto exit;
+    }
+
+    if (nonceLen < 7 || nonceLen > 13) {
+        throw_java_illegal_argument(env, "nonce must have length from 7 to 13 octets");
+        goto exit;
+    }
+
+    //
+    // Load aad.
+    //
 
     if (!load_bytearray_ctx(&ad, env, aad_)) {
         throw_java_invalid_state(env, "unable to obtain ptr to valid ad array");
         goto exit;
     }
 
-    if (!aes_keysize_is_valid_and_not_null(env, &key)) {
-        goto exit;
-    }
-
-    if (!bytearray_not_null(&iv, "iv was null", env)) {
-        goto exit;
-    }
-
-    if (iv.size < 7 || iv.size > 13) {
-        throw_java_illegal_argument(env, "nonce must have length from 7 to 13 octets");
-        goto exit;
-    }
-
-    if (aadLen < 0) {
-        throw_java_illegal_argument(env, "adlen was negative");
-        goto exit;
-    }
-
-    if (aad_ != NULL) {
-        if (ad.size < aadLen) {
-            throw_java_illegal_argument(env, "ad buffer too short");
+    if (ad.array != NULL) {
+        if (!bytearray_offset_and_len_are_in_range_not_null_msgs(
+                &ad,
+                0,
+                aadLen,
+                env,
+                "ad is null",
+                "ad offset negative",
+                "ad len is negative",
+                "ad len past end of ad array")) {
             goto exit;
         }
     } else {
@@ -94,48 +129,50 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCMPacketCi
         }
     }
 
-    if (in == NULL) {
-        throw_java_illegal_argument(env, EM_INPUT_NULL);
+
+
+    //
+    // Check input array with offset and minOutputSize
+    //
+    if (!critical_offset_and_len_are_in_range_with_messages(
+            &input,
+            inOff,
+            inLen,
+            env,
+            EM_INPUT_NULL,
+            EM_INPUT_OFFSET_NEGATIVE,
+            EM_INPUT_LEN_NEGATIVE,
+            EM_INPUT_TOO_SHORT)) {
         goto exit;
     }
 
-    if (inOff < 0) {
-        throw_java_illegal_argument(env, EM_INPUT_OFFSET_NEGATIVE);
+
+    //
+    // Check output array with offset and minOutputSize
+    //
+    if (!critical_offset_and_len_are_in_range_with_messages(
+            &output,
+            outOff,
+            outLen,
+            env,
+            EM_OUTPUT_NULL,
+            EM_OUTPUT_OFFSET_NEGATIVE,
+            EM_OUTPUT_LENGTH_NEGATIVE,
+            EM_OUTPUT_TOO_SHORT)) {
         goto exit;
     }
 
-    if (inLen < 0) {
-        throw_java_illegal_argument(env, EM_INPUT_LEN_NEGATIVE);
+    int minOutputSize = get_aead_output_size(encryption == JNI_TRUE, inLen, macSize);
+    if (minOutputSize < 0) {
+        // macLen < input len on decryption asserted here.
+        throw_java_illegal_argument(env, EM_INPUT_SHORT); // inlen < macSize
         goto exit;
     }
-
-    if (!check_range(input.size, (size_t) inOff, (size_t) inLen)) {
-        throw_bc_data_length_exception(env, EM_INPUT_LENGTH);
-        goto exit;
-    }
-
-
-
-    if (out == NULL) {
-        throw_java_illegal_argument(env, EM_OUTPUT_NULL);
-        goto exit;
-    }
-
-    if (outOff < 0) {
-        throw_java_illegal_argument(env, EM_OUTPUT_OFFSET_NEGATIVE);
-        goto exit;
-    }
-
-    if (encryption != JNI_TRUE && inLen < macSize) {
-        throw_java_illegal_argument(env, EM_INPUT_SHORT);
-        goto exit;
-    }
-
-    if (outOff > output.size ||
-        output.size - (size_t) outOff < get_aead_output_size(encryption == JNI_TRUE, (int) inLen, (int) macSize)) {
+    if (outLen < minOutputSize) {
         throw_java_illegal_argument(env, EM_OUTPUT_LENGTH);
         goto exit;
     }
+
 
     //
     // Load the contexts
@@ -153,8 +190,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCMPacketCi
     }
 
 
-
-
     uint8_t *p_in = input.critical + inOff;
     uint8_t *p_out = output.critical + outOff;
     size_t outputLen = 0;
@@ -163,7 +198,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCMPacketCi
             key.bytearray,
             (size_t) keyLen,
             iv.bytearray,
-            (size_t) nonLen,
+            (size_t) nonceLen,
             (size_t) macSize,
             ad.bytearray,
             (size_t) aadLen,
@@ -193,9 +228,14 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCMPacketCi
         throw_java_illegal_argument(env, EM_INPUT_LEN_NEGATIVE);
         return 0;
     }
+    if (macSize < 4 || macSize > 16) {
+        throw_java_illegal_argument(env, EM_MACSIZE_INVALID);
+        return 0;
+    }
+
     int result = get_aead_output_size(encryption == JNI_TRUE, (int) len, (int) macSize);
     if (result < 0) {
-        throw_bc_data_length_exception(env, EM_OUTPUT_LENGTH);
+        throw_java_illegal_argument(env, EM_INVALID_LEN);
     }
     return result;
 }

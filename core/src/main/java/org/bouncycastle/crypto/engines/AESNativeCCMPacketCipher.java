@@ -67,7 +67,7 @@ public class AESNativeCCMPacketCipher
         throws PacketCipherException
     {
         int iatLen = initialAssociatedText != null ? initialAssociatedText.length : 0;
-        int outLen = output != null ? output.length : 0;
+        int outLen = output != null ? output.length-outOff : 0;
         int result;
         try
         {

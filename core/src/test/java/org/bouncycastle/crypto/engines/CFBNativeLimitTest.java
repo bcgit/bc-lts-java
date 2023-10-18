@@ -92,7 +92,7 @@ public class CFBNativeLimitTest extends TestCase
                 catch (Exception ex)
                 {
                     TestCase.assertTrue(ex instanceof IllegalArgumentException);
-                    TestCase.assertTrue(ex.getMessage().contains("key must be only 16,24 or 32 bytes long"));
+                    TestCase.assertTrue(ex.getMessage().contains("key must be only 16, 24 or 32 bytes long"));
 
                 }
                 dispose(ref);
@@ -134,7 +134,7 @@ public class CFBNativeLimitTest extends TestCase
                 catch (Exception ex)
                 {
                     TestCase.assertTrue(ex instanceof IllegalArgumentException);
-                    TestCase.assertTrue(ex.getMessage().contains("key must be only 16,24 or 32 bytes long"));
+                    TestCase.assertTrue(ex.getMessage().contains("key must be only 16, 24 or 32 bytes long"));
                 }
             }
         };

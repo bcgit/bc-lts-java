@@ -30,7 +30,7 @@ public class NativeCBCPacketCipherLimitTest extends TestCase
 
 
         try
-        { // processPacket -- input null
+        { // processPacket -- output null
             new AESNativeCBCPacketCipher()
             {
                 {
@@ -61,7 +61,7 @@ public class NativeCBCPacketCipherLimitTest extends TestCase
         }
 
         try
-        { // processPacket -- output offset negative
+        { // processPacket -- output len negative
             new AESNativeCBCPacketCipher()
             {
                 {
@@ -189,7 +189,7 @@ public class NativeCBCPacketCipherLimitTest extends TestCase
         }
 
         try
-        { // processPacket -- input offset negative
+        { // processPacket -- input len negative
             new AESNativeCBCPacketCipher()
             {
                 {

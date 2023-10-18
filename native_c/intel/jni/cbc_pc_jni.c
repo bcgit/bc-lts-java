@@ -176,7 +176,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
     }
     int result = get_output_size((int) len);
     if (result < 0) {
-        throw_bc_data_length_exception(env, BLOCK_CIPHER_16_INPUT_LENGTH_INVALID);
+        throw_java_illegal_argument(env, BLOCK_CIPHER_16_INPUT_LENGTH_INVALID);
         return 0;
     }
     return result;

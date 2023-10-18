@@ -84,7 +84,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_makeNa
             rounds = ROUNDS_256;
             break;
         default:
-            throw_java_illegal_argument(env, "key must be only 16,24 or 32 bytes long");
+            throw_java_illegal_argument(env, "key must be only 16, 24 or 32 bytes long");
             return 0;
     }
 

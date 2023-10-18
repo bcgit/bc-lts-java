@@ -949,7 +949,7 @@ public class CCMNativeLimitTest
                 }
                 catch (Exception ex)
                 {
-                    assertTrue(ex.getMessage().contains("key must be only 16,24 or 32 bytes long"));
+                    assertTrue(ex.getMessage().contains("key must be only 16, 24 or 32 bytes long"));
                 }
                 dispose(ref);
             }
@@ -1125,7 +1125,7 @@ public class CCMNativeLimitTest
                 }
                 catch (Exception ex)
                 {
-                    assertTrue(ex.getMessage().contains("key must be only 16,24 or 32 bytes long"));
+                    assertTrue(ex.getMessage().contains("key must be only 16, 24 or 32 bytes long"));
                 }
             }
         };

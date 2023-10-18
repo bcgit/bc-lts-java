@@ -28,11 +28,14 @@ typedef struct {
 #define EM_INPUT_OFFSET_NEGATIVE  "input offset is negative"
 #define EM_OUTPUT_OFFSET_NEGATIVE  "output offset is negative"
 #define EM_INPUT_LEN_NEGATIVE  "input len is negative"
-#define EM_INPUT_SHORT  "data too short"
+#define EM_INPUT_SHORT  "input data too short"
+#define EM_INVALID_LEN "len parameter invalid"
 #define EM_AES_KEY_LENGTH  "Key length not 128/192/256 bits."
 #define BLOCK_CIPHER_16_INPUT_LENGTH_INVALID  "input len not multiple of block size"
 #define EM_CBC_IV_LENGTH  "initialisation vector must be the same length as block size"
 #define EM_OUTPUT_NULL  "output was null"
+#define EM_MACSIZE_INVALID  "invalid mac size"
+
 //Error Type
 #define ILLEGAL_STATE 1
 #define ILLEGAL_ARGUMENT 2
