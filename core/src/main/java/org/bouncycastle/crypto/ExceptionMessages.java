@@ -28,7 +28,8 @@ public class ExceptionMessages
     public static final String GCM_SIV_INVALID_PARAMETER = "invalid parameters passed to GCM-SIV";
     public static final String CTR16_IV_TOO_LONG = "CTR/SIC mode requires IV no greater than: 16 bytes.";
     public static final String CTR16_IV_TOO_SHORT = "CTR/SIC mode requires IV of at least: 8 bytes.";
-    public static final String GCM_INVALID_MAC_SIZE = "Invalid value for MAC size: ";
-    public static final String GCM_IV_TOO_SHORT = "IV must be at least 12 byte";
-    public static final String GCM_SIV_IV_SIZE = "Invalid nonce";
+    public static final String GCM_INVALID_MAC_SIZE = "invalid mac size: ";
+    public static final String GCM_IV_TOO_SHORT = "nonce must be at least 12 byte";
+    public static final String GCM_SIV_IV_SIZE = "invalid nonce";
+    public static final String LEN_PARAMETER_INVALID="len parameter invalid";
 }

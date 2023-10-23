@@ -56,11 +56,11 @@ public class AESNativeGCMSIVPacketCipher
             throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.GCM_SIV_INVALID_PARAMETER));
         }
         int iatLen = initialAssociatedText != null ? initialAssociatedText.length : 0;
-        int outLen = output != null ? output.length : 0;
+        int outLen = output != null ? output.length - outOff : 0;
         int result;
         try
         {
-            result = processPacket(encryption, key, key.length, nonce, initialAssociatedText, iatLen,
+            result = processPacket(encryption, key, key.length, nonce, nonce.length, initialAssociatedText, iatLen,
                 input, inOff, len, output, outOff, outLen);
         }
         catch (Exception e)
@@ -72,8 +72,12 @@ public class AESNativeGCMSIVPacketCipher
 
     static native int getOutputSize(boolean encryption, int len);
 
-    static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce, byte[] aad,
-                                    int aadLen, byte[] in, int inOff, int inLen, byte[] out, int outOff, int outLen);
+    static native int processPacket(boolean encryption,
+                                    byte[] key, int keyLen,
+                                    byte[] nonce, int nonceLen,
+                                    byte[] aad,  int aadLen,
+                                    byte[] in, int inOff, int inLen,
+                                    byte[] out, int outOff, int outLen);
 
     @Override
     public String toString()

@@ -59,7 +59,7 @@ public class AESGCMSIVPacketCipherTest
         catch (DataLengthException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.OUTPUT_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.LEN_PARAMETER_INVALID));
         }
 
         try
@@ -94,7 +94,7 @@ public class AESGCMSIVPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().contains("Invalid nonce"));
+            TestCase.assertTrue("wrong message", e.getMessage().contains("invalid nonce"));
         }
 
 

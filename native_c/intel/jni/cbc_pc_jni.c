@@ -31,15 +31,10 @@ void handle_cbc_pc_result(JNIEnv *env, packet_err *err) {
     packet_err_free(err);
 }
 
-/*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCBCPacketCipher
- * Method:    processPacket
- * Signature: (Z[BI[BI[BII[BII[BII)I
- */
+
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCipher_processPacket
         (JNIEnv *env, jclass, jboolean encryption, jbyteArray key_, jint keyLen, jbyteArray nonce_, jint nonLen,
-         jbyteArray in, jint inOff, jint inLen, jbyteArray out, jint outOff,
-         jint outLen) {
+         jbyteArray in, jint inOff, jint inLen, jbyteArray out, jint outOff, jint outLen) {
     java_bytearray_ctx key, iv, ad;
     critical_bytearray_ctx input, output;
     packet_err *err = NULL;
@@ -163,11 +158,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
 }
 
 
-/*
- * Class:     org_bouncycastle_crypto_engines_AESNativeCBCPacketCipher
- * Method:    getOutputSize
- * Signature: (ZII)I
- */
+
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCipher_getOutputSize
         (JNIEnv *env, jclass, jint len) {
     if (len < 0) {

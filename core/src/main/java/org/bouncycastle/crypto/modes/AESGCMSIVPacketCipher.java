@@ -69,7 +69,7 @@ public class AESGCMSIVPacketCipher
         }
         else if (len < BLOCK_SIZE)
         {
-            throw new DataLengthException(ExceptionMessages.OUTPUT_LENGTH);
+            throw new DataLengthException(ExceptionMessages.LEN_PARAMETER_INVALID);
         }
         checkParameters(parameters);
         return len - BLOCK_SIZE;

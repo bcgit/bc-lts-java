@@ -13,8 +13,8 @@ import org.bouncycastle.util.Arrays;
 import javax.security.auth.DestroyFailedException;
 
 public class AESNativeGCMPacketCipher
-    extends AESPacketCipherEngine
-    implements AESGCMModePacketCipher
+        extends AESPacketCipherEngine
+        implements AESGCMModePacketCipher
 {
     private byte[] lastKey;
     private byte[] lastNonce;
@@ -34,7 +34,7 @@ public class AESNativeGCMPacketCipher
     @Override
     public int processPacket(boolean encryption, CipherParameters params, byte[] input, int inOff, int len,
                              byte[] output, int outOff)
-        throws PacketCipherException
+            throws PacketCipherException
     {
         int macSize;
         byte[] nonce;
@@ -44,7 +44,7 @@ public class AESNativeGCMPacketCipher
         {
             if (params instanceof AEADParameters)
             {
-                AEADParameters param = (AEADParameters)params;
+                AEADParameters param = (AEADParameters) params;
                 nonce = param.getNonce();
                 initialAssociatedText = param.getAssociatedText();
 
@@ -70,12 +70,12 @@ public class AESNativeGCMPacketCipher
             }
             else if (params instanceof ParametersWithIV)
             {
-                ParametersWithIV param = (ParametersWithIV)params;
+                ParametersWithIV param = (ParametersWithIV) params;
                 nonce = param.getIV().clone();
                 initialAssociatedText = null;
                 macSize = 16;
 
-                key = ((KeyParameter)param.getParameters()).getKey();
+                key = ((KeyParameter) param.getParameters()).getKey();
 
                 // This only works if you use the same instance of packet cipher
                 // It matches the existing behavior of the normal GCM implementation
@@ -99,12 +99,12 @@ public class AESNativeGCMPacketCipher
         }
 
         int iatLen = initialAssociatedText != null ? initialAssociatedText.length : 0;
-        int outLen = output != null ? output.length : 0;
+        int outLen = output != null ? output.length - outOff : 0;
         int result;
         try
         {
             result = processPacket(encryption, key, key.length, nonce, nonce.length, initialAssociatedText, iatLen,
-                macSize, input, inOff, len, output, outOff, outLen);
+                    macSize, input, inOff, len, output, outOff, outLen);
         }
         catch (Exception e)
         {
@@ -127,7 +127,7 @@ public class AESNativeGCMPacketCipher
 
     @Override
     public void destroy()
-        throws DestroyFailedException
+            throws DestroyFailedException
     {
         Arrays.clear(lastKey);
         Arrays.clear(lastNonce);

@@ -134,7 +134,7 @@ public class AESGCMPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().contains("Invalid value for MAC size"));
+            TestCase.assertTrue("wrong message", e.getMessage().contains("invalid mac size"));
         }
 
         try

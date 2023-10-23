@@ -9,8 +9,8 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
 public class AESNativeCFBPacketCipher
-    extends AESPacketCipherEngine
-    implements AESCFBModePacketCipher
+        extends AESPacketCipherEngine
+        implements AESCFBModePacketCipher
 {
 
 
@@ -26,17 +26,18 @@ public class AESNativeCFBPacketCipher
     }
 
     @Override
-    public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len, byte[] output, int outOff)
-        throws PacketCipherException
+    public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
+                             byte[] output, int outOff)
+            throws PacketCipherException
     {
         byte[] iv, key;
         if (parameters instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV)parameters;
+            ParametersWithIV ivParam = (ParametersWithIV) parameters;
             // if null it's an IV changed only.
             if (ivParam.getParameters() != null)
             {
-                key = ((KeyParameter)ivParam.getParameters()).getKey();
+                key = ((KeyParameter) ivParam.getParameters()).getKey();
             }
             else
             {
@@ -51,7 +52,7 @@ public class AESNativeCFBPacketCipher
         int result;
         try
         {
-            result = processPacket(encryption, key, key.length, iv, input, inOff, len, output, outOff);
+            result = processPacket(encryption, key, key.length, iv, iv.length, input, inOff, len, output, outOff, output.length-outOff);
         }
         catch (Exception e)
         {
@@ -62,7 +63,8 @@ public class AESNativeCFBPacketCipher
 
     static native int getOutputSize(int len);
 
-    static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce, byte[] in, int inOff, int inLen, byte[] out, int outOff);
+    static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce, int nonceLen, byte[] in,
+                                    int inOff, int inLen, byte[] out, int outOff, int outLen);
 
     @Override
     public String toString()
