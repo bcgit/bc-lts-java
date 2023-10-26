@@ -33,8 +33,8 @@ void gcm_siv_err_free(gcm_siv_err *err);
 
 typedef struct {
     uint8_t theBuffer[BLOCK_SIZE];
-    int numActive;
-    long numHashed;
+    uint64_t numActive;
+    size_t numHashed;
 } gcm_siv_hasher;
 
 typedef struct {
@@ -46,11 +46,12 @@ typedef struct {
     __m128i theNonce;
     uint8_t macBlock[BLOCK_SIZE];
     uint8_t *initAD;
-    int initADLen;
+    size_t initADLen;
     __m128i T[256];
     gcm_siv_hasher theAEADHasher;
     gcm_siv_hasher theDataHasher;
     encrypt_function encrypt;
+    size_t max_dl;
 } gcm_siv_ctx;
 
 
@@ -68,7 +69,7 @@ void gcm_siv_reset(gcm_siv_ctx *, bool keepMac);
  */
 size_t gcm_siv_getMac(gcm_siv_ctx *, uint8_t *destination);
 
-size_t gcm_siv_get_output_size(bool encryption, size_t len);
+int64_t gcm_siv_get_output_size(bool encryption, size_t len);
 
 /**
  *
@@ -81,11 +82,11 @@ size_t gcm_siv_get_output_size(bool encryption, size_t len);
  */
 gcm_siv_err *
 gcm_siv_init(gcm_siv_ctx *ctx, bool encryption, uint8_t *key, size_t keyLen, uint8_t *nonce,
-             uint8_t *intialText, int initialTextLen);
+             uint8_t *intialText, size_t initialTextLen);
 
 void gcm_siv_hasher_reset(gcm_siv_hasher *p_gsh);
 
-void gcm_siv_hasher_updateHash(gcm_siv_hasher *p_gsh, __m128i *T, uint8_t *pBuffer, int pLen, __m128i *theGHash);
+void gcm_siv_hasher_updateHash(gcm_siv_hasher *p_gsh, __m128i *T, uint8_t *pBuffer, size_t pLen, __m128i *theGHash);
 
 void gcm_siv_hasher_completeHash(gcm_siv_hasher *p_gsh, __m128i *T, __m128i *theGHash);
 

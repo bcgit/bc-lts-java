@@ -16,8 +16,8 @@ static inline void divideP(__m128i *x, __m128i *z) {
     (*z)[1] = (int64_t) (x1 << 1) | -m;
 }
 
-static inline __m128i createBigEndianM128i(long q1, long q0) {
-    return _mm_set_epi64x(_bswap64(q1), _bswap64(q0));
+static inline __m128i createBigEndianM128i(uint64_t q1, uint64_t q0) {
+    return _mm_set_epi64x(_bswap64((int64_t) q1), _bswap64((int64_t) q0));
 }
 
 static inline void reverse_bytes(__m128i *input, __m128i *output) {
@@ -107,6 +107,7 @@ void gcm_siv_err_free(gcm_siv_err *err) {
 
 gcm_siv_ctx *gcm_siv_create_ctx() {
     gcm_siv_ctx *ctx = calloc(1, sizeof(gcm_siv_ctx));
+    ctx->max_dl = MAX_DATALEN;
     return ctx;
 }
 
@@ -127,10 +128,9 @@ void gcm_siv_reset(gcm_siv_ctx *ctx, bool keepMac) {
 }
 
 size_t gcm_siv_getMac(gcm_siv_ctx *ctx, uint8_t *destination) {
-    if (destination == NULL) {
-        return BLOCK_SIZE;
+    if (destination != NULL) {
+        memcpy(destination, ctx->macBlock, BLOCK_SIZE);
     }
-    memcpy(destination, ctx->macBlock, BLOCK_SIZE);
     return BLOCK_SIZE;
 }
 
@@ -150,7 +150,7 @@ gcm_siv_err *gcm_siv_init(
         size_t keyLen,
         uint8_t *nonce,
         uint8_t *initialText,
-        int initialTextLen) {
+        size_t initialTextLen) {
     ctx->encryption = encryption;
 
     // We had old initial text drop it here.
@@ -169,6 +169,8 @@ gcm_siv_err *gcm_siv_init(
         ctx->initAD = malloc((size_t) initialTextLen);
         ctx->initADLen = initialTextLen;
         memcpy(ctx->initAD, initialText, (size_t) initialTextLen);
+    } else {
+        assert(initialTextLen == 0);
     }
 
     // Zero out mac block
@@ -181,11 +183,17 @@ gcm_siv_err *gcm_siv_init(
 }
 
 
-size_t gcm_siv_get_output_size(bool encryption, size_t len) {
+int64_t gcm_siv_get_output_size(bool encryption, size_t len) {
+
     if (encryption) {
-        return len + BLOCK_SIZE;
+        return (int64_t) (len + BLOCK_SIZE);
     }
-    return len < BLOCK_SIZE ? 0 : len - BLOCK_SIZE;
+
+    if (len < BLOCK_SIZE) {
+        return -1;
+    }
+
+    return (int64_t) (len - BLOCK_SIZE);
 }
 
 
@@ -196,11 +204,11 @@ void gcm_siv_hasher_reset(gcm_siv_hasher *p_gsh) {
 }
 
 
-void gcm_siv_hasher_updateHash(gcm_siv_hasher *p_gsh, __m128i *T, uint8_t *pBuffer, int pLen, __m128i *theGHash) {
+void gcm_siv_hasher_updateHash(gcm_siv_hasher *p_gsh, __m128i *T, uint8_t *pBuffer, size_t pLen, __m128i *theGHash) {
     /* If we should process the cache */
-    const int mySpace = BLOCK_SIZE - p_gsh->numActive;
-    int numProcessed = 0;
-    int myRemaining = pLen;
+    const uint64_t mySpace = BLOCK_SIZE - p_gsh->numActive;
+    uint64_t numProcessed = 0;
+    uint64_t myRemaining = pLen;
     __m128i d0;
     if (p_gsh->numActive > 0 && pLen >= mySpace) {
         /* Copy data into the cache and hash it */
@@ -253,7 +261,7 @@ void gHASH(__m128i *T, __m128i *theGHash, __m128i *pNext) {
         z1 = (uint64_t) t[1] ^ ((z1 >> 8) | (z0 << 56));
         z0 = (uint64_t) t[0] ^ (z0 >> 8) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7);
     }
-    _mm_storeu_si128(theGHash, createBigEndianM128i((long) z1, (long) z0));
+    _mm_storeu_si128(theGHash, createBigEndianM128i(z1, z0));
 }
 
 void
@@ -288,7 +296,7 @@ deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNo
     if ((T[0][0] | T[0][1]) != 0) {
         T[0] = _mm_setzero_si128();
         _mm_storeu_si128(H, *myResult2);
-        __m128i d1 = createBigEndianM128i((*H)[1], (*H)[0]);
+        __m128i d1 = createBigEndianM128i((size_t) (*H)[1], (size_t) (*H)[0]);
         uint64_t c = ((uint64_t) d1[1]) << 57;
         T[1][0] = (int64_t) (((uint64_t) d1[0] >> 7) ^ c ^ (c >> 1) ^ (c >> 2) ^ (c >> 7));
         T[1][1] = (int64_t) (((uint64_t) d1[1] >> 7) | ((uint64_t) d1[0] << 57));
@@ -390,7 +398,7 @@ void incrementCounter(uint8_t *pCounter) {
 gcm_siv_err *gcm_siv_doFinal(gcm_siv_ctx *ctx, uint8_t *input, size_t len, uint8_t *output, size_t *written) {
     gcm_siv_hasher_completeHash(&ctx->theAEADHasher, ctx->T, &ctx->theGHash);
     if (ctx->encryption) {
-        gcm_siv_hasher_updateHash(&ctx->theDataHasher, ctx->T, input, (int) len, &ctx->theGHash);
+        gcm_siv_hasher_updateHash(&ctx->theDataHasher, ctx->T, input, len, &ctx->theGHash);
         calculateTag(&ctx->theDataHasher, &ctx->theAEADHasher, ctx->T, ctx->roundKeys,
                      &ctx->theGHash, (int8_t *) ctx->nonce, ctx->macBlock, &ctx->encrypt);
         gcm_siv_process_packet(input, (int) len, ctx->macBlock, ctx->roundKeys, output, &ctx->encrypt);
@@ -400,7 +408,7 @@ gcm_siv_err *gcm_siv_doFinal(gcm_siv_ctx *ctx, uint8_t *input, size_t len, uint8
         *written = len - BLOCK_SIZE;
         gcm_siv_process_packet(input, (int) *written, input + *written, ctx->roundKeys, output,
                                &ctx->encrypt);
-        gcm_siv_hasher_updateHash(&ctx->theDataHasher, ctx->T, output, (int) *written, &ctx->theGHash);
+        gcm_siv_hasher_updateHash(&ctx->theDataHasher, ctx->T, output, *written, &ctx->theGHash);
         calculateTag(&ctx->theDataHasher, &ctx->theAEADHasher, ctx->T, ctx->roundKeys,
                      &ctx->theGHash, (int8_t *) ctx->nonce, ctx->macBlock, &ctx->encrypt);
         if (!tag_verification_16(ctx->macBlock, input + *written)) {

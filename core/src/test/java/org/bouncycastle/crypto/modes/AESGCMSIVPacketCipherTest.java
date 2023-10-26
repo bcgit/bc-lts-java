@@ -18,6 +18,7 @@ public class AESGCMSIVPacketCipherTest
         extends TestCase
 {
 
+
     public AESGCMSIVPacketCipherTest()
     {
     }
@@ -49,11 +50,11 @@ public class AESGCMSIVPacketCipherTest
             return;
         }
 
-        AESGCMSIVModePacketCipher gcm = AESGCMSIVPacketCipher.newInstance();
+        AESGCMSIVModePacketCipher siv = AESGCMSIVPacketCipher.newInstance();
 
         try
         {
-            gcm.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), 0);
+            siv.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), 0);
             fail("negative value for getOutputSize");
         }
         catch (DataLengthException e)
@@ -64,7 +65,7 @@ public class AESGCMSIVPacketCipherTest
 
         try
         {
-            gcm.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), -1);
+            siv.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), -1);
             fail("negative value for getOutputSize");
         }
         catch (IllegalArgumentException e)
@@ -75,7 +76,7 @@ public class AESGCMSIVPacketCipherTest
 
         try
         {
-            gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[28]), 128, new byte[12]),
+            siv.processPacket(false, new AEADParameters(new KeyParameter(new byte[28]), 128, new byte[12]),
                     new byte[16], 0, 16, new byte[32], 0);
             fail("invalid key size for processPacket");
         }
@@ -87,7 +88,7 @@ public class AESGCMSIVPacketCipherTest
 
         try
         {
-            gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]),
+            siv.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]),
                     new byte[16], 0, 16, new byte[32], 0);
             fail("invalid key size for processPacket");
         }
@@ -100,7 +101,7 @@ public class AESGCMSIVPacketCipherTest
 
         try
         {
-            gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), null, 0,
+            siv.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), null, 0,
                     0, new byte[16], 0);
             fail("input was null for processPacket");
         }
@@ -111,7 +112,7 @@ public class AESGCMSIVPacketCipherTest
 
         try
         {
-            gcm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]),
+            siv.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]),
                     new byte[16], 0, 16, new byte[31], 0);
             fail("output buffer too small for processPacket");
         }
@@ -122,7 +123,7 @@ public class AESGCMSIVPacketCipherTest
 
         try
         {
-            gcm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]),
+            siv.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]),
                     new byte[16], -1, 16, new byte[32], 0);
             fail("offset is negative for processPacket");
         }
@@ -133,7 +134,7 @@ public class AESGCMSIVPacketCipherTest
 
         try
         {
-            gcm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]),
+            siv.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]),
                     new byte[16], 0, -1, new byte[32], 0);
             fail("len is negative for processPacket");
         }
@@ -144,7 +145,7 @@ public class AESGCMSIVPacketCipherTest
 
         try
         {
-            gcm.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]),
+            siv.processPacket(true, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]),
                     new byte[16], 0, 16, new byte[32], -1);
             fail("output offset is negative for processPacket");
         }
@@ -155,7 +156,7 @@ public class AESGCMSIVPacketCipherTest
 
         try
         {
-            gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]),
+            siv.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]),
                     new byte[15], 0, 15, new byte[0], 0);
             fail("input buffer too small for processPacket");
         }
@@ -166,7 +167,7 @@ public class AESGCMSIVPacketCipherTest
 
         try
         {
-            gcm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]),
+            siv.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]),
                     new byte[17], 0, 17, new byte[0], 0);
             fail("output buffer too small for processPacket");
         }

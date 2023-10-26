@@ -12,8 +12,8 @@
 #ifndef BC_FIPS_C_GCM_SIV_PC_H
 #define BC_FIPS_C_GCM_SIV_PC_H
 
-packet_err* gcm_siv_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *iv,
-                                  uint8_t *aad, int aadLen, uint8_t *p_in, size_t inLen, uint8_t *p_out, size_t *outputLen);
+packet_err* gcm_siv_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *nonce,
+                                      uint8_t *aad, size_t aadLen, uint8_t *p_in, size_t inLen, uint8_t *p_out, size_t *outputLen);
 
 
 

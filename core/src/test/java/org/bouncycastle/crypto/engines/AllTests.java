@@ -39,6 +39,7 @@ public class AllTests
         suite.addTestSuite(CTRNativeLimitTest.class);
         suite.addTestSuite(ECBNativeLimitTest.class);
         suite.addTestSuite(GCMNativeLimitTest.class);
+        suite.addTestSuite(GCMSIVNativeLimitTest.class);
         suite.addTestSuite(CCMNativeLimitTest.class);
         suite.addTestSuite(NativeCBCPacketCipherLimitTest.class);
         suite.addTestSuite(NativeCCMPacketCipherLimitTest.class);

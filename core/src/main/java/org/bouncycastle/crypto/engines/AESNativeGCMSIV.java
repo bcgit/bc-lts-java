@@ -16,7 +16,7 @@ import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 public class AESNativeGCMSIV
-    implements GCMSIVModeCipher
+        implements GCMSIVModeCipher
 {
     private GCMSIVRefWrapper refWrapper;
     private byte[] keptMac;
@@ -60,7 +60,7 @@ public class AESNativeGCMSIV
 
     @Override
     public void init(boolean forEncryption, CipherParameters cipherParameters)
-        throws IllegalArgumentException
+            throws IllegalArgumentException
     {
         this.forEncryption = forEncryption;
         keptMac = null;
@@ -73,16 +73,16 @@ public class AESNativeGCMSIV
         /* Access parameters */
         if (cipherParameters instanceof AEADParameters)
         {
-            final AEADParameters myAEAD = (AEADParameters)cipherParameters;
+            final AEADParameters myAEAD = (AEADParameters) cipherParameters;
             myInitialAEAD = myAEAD.getAssociatedText();
             myNonce = myAEAD.getNonce();
             myKey = myAEAD.getKey();
         }
         else if (cipherParameters instanceof ParametersWithIV)
         {
-            final ParametersWithIV myParms = (ParametersWithIV)cipherParameters;
+            final ParametersWithIV myParms = (ParametersWithIV) cipherParameters;
             myNonce = myParms.getIV();
-            myKey = (KeyParameter)myParms.getParameters();
+            myKey = (KeyParameter) myParms.getParameters();
         }
         else
         {
@@ -95,28 +95,28 @@ public class AESNativeGCMSIV
         lastKey = myKey.getKey();
         switch (lastKey.length)
         {
-        case 16:
-        case 24:
-        case 32:
-            break;
-        default:
-            throw new IllegalStateException(ExceptionMessages.AES_KEY_LENGTH);
+            case 16:
+            case 24:
+            case 32:
+                break;
+            default:
+                throw new IllegalStateException(ExceptionMessages.AES_KEY_LENGTH);
         }
 
-        initRef(lastKey.length);
+        initRef();
 
 
         initNative(
-            refWrapper.getReference(),
-            forEncryption, lastKey,
-            theNonce, theInitialAEAD);
+                refWrapper.getReference(),
+                forEncryption, lastKey,
+                theNonce, theInitialAEAD);
         initialised = true;
 //        resetStreams();
     }
 
-    private void initRef(int keySize)
+    private void initRef()
     {
-        refWrapper = new GCMSIVRefWrapper(makeInstance(keySize, forEncryption));
+        refWrapper = new GCMSIVRefWrapper(makeInstance());
     }
 
     @Override
@@ -144,7 +144,7 @@ public class AESNativeGCMSIV
 
     @Override
     public int processByte(byte in, byte[] out, int outOff)
-        throws DataLengthException
+            throws DataLengthException
     {
         if (refWrapper == null)
         {
@@ -156,7 +156,7 @@ public class AESNativeGCMSIV
 
     @Override
     public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
-        throws DataLengthException
+            throws DataLengthException
     {
         if (refWrapper == null)
         {
@@ -168,7 +168,7 @@ public class AESNativeGCMSIV
 
     @Override
     public int doFinal(byte[] out, int outOff)
-        throws IllegalStateException, InvalidCipherTextException
+            throws IllegalStateException, InvalidCipherTextException
     {
         if (!initialised)
         {
@@ -178,8 +178,9 @@ public class AESNativeGCMSIV
             }
             throw new IllegalStateException("GCM cipher needs to be initialised");
         }
-        byte[] mySrc = theEncData.getBuffer();
-        int len = doFinal(refWrapper.getReference(), out, outOff, mySrc, theEncData.size());
+
+
+        int len = doFinal(refWrapper.getReference(), theEncData.getBuffer() ,theEncData.size(),  out, outOff);
         //resetKeepMac
         keptMac = getMac();
         resetStreams();
@@ -228,7 +229,7 @@ public class AESNativeGCMSIV
     }
 
     private static class GCMSIVRefWrapper
-        extends NativeReference
+            extends NativeReference
     {
         public GCMSIVRefWrapper(long reference)
         {
@@ -244,7 +245,7 @@ public class AESNativeGCMSIV
     }
 
     private static class Disposer
-        extends NativeDisposer
+            extends NativeDisposer
     {
         Disposer(long ref)
         {
@@ -261,33 +262,40 @@ public class AESNativeGCMSIV
     private native void reset(long ref);
 
     static native void initNative(
-        long reference,
-        boolean forEncryption,
-        byte[] keyParam,
-        byte[] nonce,
-        byte[] initialAssociatedText);
+            long reference,
+            boolean forEncryption,
+            byte[] keyParam,
+            byte[] nonce,
+            byte[] initialAssociatedText);
 
-    static native long makeInstance(int keySize, boolean forEncryption);
+    static native long makeInstance();
 
     static native void dispose(long nativeRef);
 
-    private static native void processAADByte(long ref, byte in);
+    static native void processAADByte(long ref, byte in);
 
-    private static native void processAADBytes(long ref, byte[] in, int inOff, int len);
+    static native void processAADBytes(long ref, byte[] in, int inOff, int len);
 
-    private static native int doFinal(long ref, byte[] out, int outOff, byte[] theEndData, int theEndDataSize);
+    static native int doFinal(long ref, byte[] input, int inputLen,  byte[] out, int outOff);
 
-    private static native int getUpdateOutputSize(long ref, int len, int streamLen);
+    static native int getUpdateOutputSize(long ref, int len, int streamLen);
 
-    private static native int getOutputSize(long ref, int len);
+    static native int getOutputSize(long ref, int len);
 
-    public static native byte[] getMac(long ref);
+    static native byte[] getMac(long ref);
+
+    /**
+     * Test method, you have ABSOLUTELY no reason to call this in normal use.
+     * max_dl is the maximum amount of data the implementation will process.
+     */
+    static native void test_set_max_dl(long ref,long value);
+
 
     /**
      * GCMSIVCache.
      */
     private static class GCMSIVCache
-        extends ByteArrayOutputStream
+            extends ByteArrayOutputStream
     {
         /**
          * Constructor.
@@ -311,7 +319,7 @@ public class AESNativeGCMSIV
          */
         void clearBuffer()
         {
-            Arrays.fill(getBuffer(), (byte)0);
+            Arrays.fill(getBuffer(), (byte) 0);
         }
     }
 
