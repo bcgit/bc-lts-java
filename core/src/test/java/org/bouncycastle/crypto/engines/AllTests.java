@@ -26,6 +26,7 @@ public class AllTests
         suite.addTestSuite(CTRJavaAgreementTest.class);
         suite.addTestSuite(ECBJavaAgreementTest.class);
         suite.addTestSuite(GCMJavaAgreementTest.class);
+        suite.addTestSuite(GCMSIVJavaAgreementTest.class);
         suite.addTestSuite(SHA256JavaAgreementTest.class);
         suite.addTestSuite(CCMJavaAgreementTest.class);
         suite.addTestSuite(SHA224JavaAgreementTest.class);

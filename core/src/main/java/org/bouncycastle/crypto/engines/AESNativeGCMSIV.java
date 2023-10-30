@@ -228,6 +228,15 @@ public class AESNativeGCMSIV
         initialised = false;
     }
 
+    public String toString()
+    {
+        if (lastKey != null)
+        {
+            return "GCMSIV[Native](AES[Native](" + (lastKey.length * 8) + "))";
+        }
+        return "GCMSIV[Native](AES[Native](not initialized))";
+    }
+
     private static class GCMSIVRefWrapper
             extends NativeReference
     {

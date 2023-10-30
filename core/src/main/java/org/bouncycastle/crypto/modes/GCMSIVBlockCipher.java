@@ -872,6 +872,12 @@ public class GCMSIVBlockCipher
         theFlags |= INIT;
     }
 
+    @Override
+    public String toString()
+    {
+        return "GCMSIV[Java](" + theCipher.toString() + ")";
+    }
+
     /**
      * GCMSIVCache.
      */

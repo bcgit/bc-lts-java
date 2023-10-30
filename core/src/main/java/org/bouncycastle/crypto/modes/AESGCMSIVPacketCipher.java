@@ -121,7 +121,7 @@ public class AESGCMSIVPacketCipher
         /* Check keysize */
         if (myKey == null || (myKey.getKeyLength() != BLOCK_SIZE && myKey.getKeyLength() != (BLOCK_SIZE << 1)))
         {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.AES_KEY_LENGTH));
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.AES_KEY_LENGTH_SIV));
         }
         else
         {

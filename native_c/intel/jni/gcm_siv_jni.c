@@ -109,9 +109,10 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_init
         goto exit;
     }
 
-    if (!aes_keysize_is_valid_and_not_null(env, &key)) {
+    if (!aes_keysize_is_valid_and_not_null_not_24(env, &key)) {
         goto exit;
     }
+
 
     if (!bytearray_not_null(&iv, "iv was null", env)) {
         goto exit;

@@ -32,13 +32,13 @@ public class NativeSIVPacketCipherLimitTest extends TestCase
                 {
                     processPacket(true, new byte[16], -1, new byte[13], 13, null, 0,  new byte[0], 0, 0,
                             new byte[16], 0, 16);
-                    fail("keylen too small");
+                    fail();
                 }
             };
         }
         catch (Exception ex)
         {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
+            TestCase.assertEquals("key must be only 16, or 32 bytes long", ex.getMessage());
         }
 
 
@@ -49,13 +49,13 @@ public class NativeSIVPacketCipherLimitTest extends TestCase
                 {
                     processPacket(true, new byte[16], 15, new byte[13], 13,  null, 0, new byte[0], 0, 0,
                             new byte[16], 0, 16);
-                    fail("keylen too small");
+                    fail();
                 }
             };
         }
         catch (Exception ex)
         {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
+            TestCase.assertEquals("key must be only 16, or 32 bytes long", ex.getMessage());
         }
 
 
@@ -66,7 +66,7 @@ public class NativeSIVPacketCipherLimitTest extends TestCase
                 {
                     processPacket(true, new byte[15], 16, new byte[13], 13,  null, 0, new byte[0], 0, 0,
                             new byte[16], 0, 16);
-                    fail("key array too small");
+                    fail();
                 }
             };
         }
@@ -82,7 +82,7 @@ public class NativeSIVPacketCipherLimitTest extends TestCase
                 {
                     processPacket(true, null, 16, new byte[13], 13, null, 0, new byte[0], 0, 0, new byte[16], 0,
                             16);
-                    fail("key array too small");
+                    fail();
                 }
             };
         }
@@ -99,13 +99,13 @@ public class NativeSIVPacketCipherLimitTest extends TestCase
                 {
                     processPacket(true, new byte[32], 17, new byte[13], 13,  null, 16, new byte[0], 0, 0,
                             new byte[16], 0, 16);
-                    fail("key array long enough but len invalid");
+                    fail();
                 }
             };
         }
         catch (Exception ex)
         {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
+            TestCase.assertEquals("key must be only 16, or 32 bytes long", ex.getMessage());
         }
 
 
@@ -114,15 +114,15 @@ public class NativeSIVPacketCipherLimitTest extends TestCase
             new AESNativeGCMSIVPacketCipher()
             {
                 {
-                    processPacket(true, new byte[36], 25, new byte[13], 13, null, 16, new byte[0], 0, 0,
+                    processPacket(true, new byte[36], 24, new byte[13], 13, null, 16, new byte[0], 0, 0,
                             new byte[16], 0, 16);
-                    fail("key array long enough but len invalid");
+                    fail();
                 }
             };
         }
         catch (Exception ex)
         {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
+            TestCase.assertEquals("key must be only 16, or 32 bytes long", ex.getMessage());
         }
 
         try
@@ -132,13 +132,13 @@ public class NativeSIVPacketCipherLimitTest extends TestCase
                 {
                     processPacket(true, new byte[36], 33, new byte[13], 13, null, 16, new byte[0], 0, 0,
                             new byte[16], 0, 16);
-                    fail("key array long enough but len invalid");
+                    fail();
                 }
             };
         }
         catch (Exception ex)
         {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
+            TestCase.assertEquals("key must be only 16, or 32 bytes long", ex.getMessage());
         }
 
 
@@ -152,13 +152,6 @@ public class NativeSIVPacketCipherLimitTest extends TestCase
             }
         };
 
-        new AESNativeGCMSIVPacketCipher()
-        {
-            {
-                processPacket(true, new byte[24], 24, new byte[17], 12, null, 0,  new byte[16], 0, 0,
-                        new byte[16], 0, 16);
-            }
-        };
 
         new AESNativeGCMSIVPacketCipher()
         {
@@ -177,13 +170,6 @@ public class NativeSIVPacketCipherLimitTest extends TestCase
             }
         };
 
-        new AESNativeGCMSIVPacketCipher()
-        {
-            {
-                processPacket(true, new byte[33], 24, new byte[17], 12, null, 0, new byte[16], 0, 0,
-                        new byte[16], 0, 16);
-            }
-        };
 
         new AESNativeGCMSIVPacketCipher()
         {

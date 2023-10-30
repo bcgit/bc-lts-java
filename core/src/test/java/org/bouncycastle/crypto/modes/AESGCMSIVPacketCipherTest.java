@@ -83,7 +83,7 @@ public class AESGCMSIVPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.AES_KEY_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.AES_KEY_LENGTH_SIV));
         }
 
         try

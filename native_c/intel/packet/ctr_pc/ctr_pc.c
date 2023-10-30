@@ -45,7 +45,7 @@ ctr_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *iv
     if (ivLen < 16) {
         IV_le = _mm_setzero_si128();
         for (int t = 0; t < ivLen; t++) {
-            ((unsigned char *) &IV_le)[15 - t] = iv[t]; // endian
+            ((uint8_t *) &IV_le)[15 - t] = iv[t]; // endian
         }
         initialCTR = 0;
     } else {

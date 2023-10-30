@@ -3,10 +3,6 @@ package org.bouncycastle.crypto.engines;
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.NativeServices;
-import org.bouncycastle.crypto.params.KeyParameter;
-import org.bouncycastle.crypto.params.ParametersWithIV;
-import org.bouncycastle.util.Pack;
-import org.junit.Assert;
 import org.junit.Test;
 
 public class GCMSIVNativeLimitTest extends TestCase
@@ -26,7 +22,7 @@ public class GCMSIVNativeLimitTest extends TestCase
         new AESNativeGCMSIV()
         {
             {
-                for (int size : new int[]{15, 17, 23, 25, 31, 33})
+                for (int size : new int[]{15, 17, 24, 31, 33})
                 {
                     long ref = makeInstance();
                     try
@@ -36,7 +32,7 @@ public class GCMSIVNativeLimitTest extends TestCase
                     }
                     catch (Exception ex)
                     {
-                        assertTrue(ex.getMessage().contains("key must be only 16, 24 or 32 bytes long"));
+                        assertTrue(ex.getMessage().contains("key must be only 16, or 32 bytes long"));
                     }
                     finally
                     {
@@ -120,7 +116,7 @@ public class GCMSIVNativeLimitTest extends TestCase
         new AESNativeGCMSIV()
         {
             {
-                for (int size : new int[]{16, 24, 32})
+                for (int size : new int[]{16, 32})
                 {
                     long ref = makeInstance();
                     try
@@ -139,7 +135,7 @@ public class GCMSIVNativeLimitTest extends TestCase
         new AESNativeGCMSIV()
         {
             {
-                for (int size : new int[]{16, 24, 32})
+                for (int size : new int[]{16, 32})
                 {
                     long ref = makeInstance();
                     try

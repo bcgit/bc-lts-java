@@ -5,6 +5,7 @@
 packet_err *
 cfb_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *iv, size_t ivLen, uint8_t *p_in,
                       size_t inLen, uint8_t *p_out, size_t *outputLen) {
+    assert(ivLen >= BLOCK_SIZE);
     __m128i roundKeys[15];
     __m128i mask = _mm_setzero_si128();
     __m128i feedback = _mm_loadu_si128((__m128i *) iv);

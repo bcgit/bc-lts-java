@@ -31,7 +31,7 @@ public class GCMNativeLimitTest extends TestCase
                 fail("no native gcm and no skip set for it");
                 return false;
             }
-            System.out.println("Skipping CFB native limit test: " + CryptoServicesRegistrar.isNativeEnabled());
+            System.out.println("Skipping GCM native limit test: " + CryptoServicesRegistrar.isNativeEnabled());
             return true;
         }
         return false;

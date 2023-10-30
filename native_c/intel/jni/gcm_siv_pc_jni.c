@@ -66,7 +66,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIVPacke
         goto exit;
     }
 
-    if (!aes_keysize_is_valid_and_not_null_with_len(env, &key, keyLen)) {
+    if (!aes_keysize_is_valid_and_not_null_with_len_not_24(env, &key, keyLen)) {
         goto exit;
     }
 

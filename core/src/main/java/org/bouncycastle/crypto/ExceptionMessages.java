@@ -11,6 +11,7 @@ public class ExceptionMessages
     public static final String LEN_NEGATIVE = "input len is negative";
     public static final String INPUT_SHORT = "data too short";
     public static final String AES_KEY_LENGTH = "key must be only 16, 24 or 32 bytes long";
+    public static final String AES_KEY_LENGTH_SIV = "key must be only 16, or 32 bytes long";
     public static final String BLOCK_CIPHER_16_INPUT_LENGTH_INVALID = "input len not multiple of block size";
     public static final String CBC_IV_LENGTH = "iv must be only 16 bytes";
     public static final String OUTPUT_NULL = "output was null";

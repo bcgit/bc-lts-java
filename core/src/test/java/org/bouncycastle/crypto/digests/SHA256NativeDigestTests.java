@@ -70,7 +70,7 @@ public class SHA256NativeDigestTests
 
         SavableDigest dig = SHA256Digest.newInstance();
         byte[] res = new byte[dig.getDigestSize()];
-        TestCase.assertEquals(32,dig.doFinal(res, 0));
+        TestCase.assertEquals(32, dig.doFinal(res, 0));
 
         TestCase.assertTrue("Empty Digest result",
                 Arrays.areEqual(res, Hex.decode("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")));
@@ -104,9 +104,9 @@ public class SHA256NativeDigestTests
             byte[] state = dig.getEncodedState();
 
             byte[] resAfterStateExtraction = new byte[dig.getDigestSize()];
-            TestCase.assertEquals(32,dig.doFinal(resAfterStateExtraction, 0));
+            TestCase.assertEquals(32, dig.doFinal(resAfterStateExtraction, 0));
 
-            SavableDigest dig2 =  SHA256Digest.newInstance(state,0);
+            SavableDigest dig2 = SHA256Digest.newInstance(state, 0);
             byte[] resStateRecreated = new byte[dig2.getDigestSize()];
             TestCase.assertEquals(32, dig2.doFinal(resStateRecreated, 0));
 
@@ -118,8 +118,10 @@ public class SHA256NativeDigestTests
             TestCase.assertEquals(32, javaDigest.doFinal(resJava, 0));
 
 
-            TestCase.assertTrue("Java = native post state extraction", Arrays.areEqual(resJava, resAfterStateExtraction));
-            TestCase.assertTrue("Java = native recreated from extracted state", Arrays.areEqual(resJava, resStateRecreated));
+            TestCase.assertTrue("Java = native post state extraction", Arrays.areEqual(resJava,
+                    resAfterStateExtraction));
+            TestCase.assertTrue("Java = native recreated from extracted state", Arrays.areEqual(resJava,
+                    resStateRecreated));
         }
     }
 
@@ -187,7 +189,7 @@ public class SHA256NativeDigestTests
         rand.nextBytes(msg);
 
 
-        SavableDigest dig =  SHA256Digest.newInstance();
+        SavableDigest dig = SHA256Digest.newInstance();
         dig.update(msg, 0, 12);
         byte[] state = dig.getEncodedState();
 
@@ -204,9 +206,9 @@ public class SHA256NativeDigestTests
         byte[] d2Result = new byte[dig2.getDigestSize()];
         byte[] javaResult = new byte[javaDigest.getDigestSize()];
 
-        TestCase.assertEquals(32,dig.doFinal(d1Result, 0));
-        TestCase.assertEquals(32,dig2.doFinal(d2Result, 0));
-        TestCase.assertEquals(32,javaDigest.doFinal(javaResult, 0));
+        TestCase.assertEquals(32, dig.doFinal(d1Result, 0));
+        TestCase.assertEquals(32, dig2.doFinal(d2Result, 0));
+        TestCase.assertEquals(32, javaDigest.doFinal(javaResult, 0));
 
 
         TestCase.assertTrue(Arrays.areEqual(javaResult, d1Result) && Arrays.areEqual(javaResult, d2Result));
@@ -302,7 +304,7 @@ public class SHA256NativeDigestTests
 
                 byte[] res = new byte[getDigestSize()];
                 update(new byte[20], 19, 0);
-                TestCase.assertEquals(32,doFinal(res, 0));
+                TestCase.assertEquals(32, doFinal(res, 0));
 
                 TestCase.assertTrue("Empty Digest result",
                         Arrays.areEqual(
@@ -414,9 +416,6 @@ public class SHA256NativeDigestTests
         };
 
 
-
-
-
         new SHA256NativeDigest()
         {
             {
@@ -478,7 +477,6 @@ public class SHA256NativeDigestTests
         {
             TestCase.assertTrue(ex.getMessage().contains("input was null"));
         }
-
 
 
         try
@@ -681,8 +679,6 @@ public class SHA256NativeDigestTests
         }
 
 
-
-
     }
 
     @Test
@@ -713,7 +709,7 @@ public class SHA256NativeDigestTests
         byte[] j1 = new byte[jig1.getDigestSize()];
 
         TestCase.assertEquals(32, dig1.doFinal(r1, 0));
-        TestCase.assertEquals(32,dig2.doFinal(r2, 0));
+        TestCase.assertEquals(32, dig2.doFinal(r2, 0));
         TestCase.assertEquals(32, jig1.doFinal(j1, 0));
 
         TestCase.assertTrue(Arrays.areEqual(j1, r1));

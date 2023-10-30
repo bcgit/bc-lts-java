@@ -238,6 +238,44 @@ static inline bool aes_keysize_is_valid_and_not_null_with_len(JNIEnv *env, java_
  * @param key the key
  * @return true if ok
  */
+static inline bool aes_keysize_is_valid_and_not_null_with_len_not_24(JNIEnv *env, java_bytearray_ctx *key, int32_t keyLen) {
+    if (key->array == NULL) {
+        throw_java_NPE(env, "key was null");
+        return false;
+    }
+
+    // basic assertion for size, asserts non-negative
+    if (keyLen < 16) {
+        throw_java_illegal_argument(env, "key must be only 16, or 32 bytes long");
+        return false;
+    }
+
+    // Can array accommodate key
+    if (key->size < keyLen) {
+        throw_java_illegal_argument(env, "key array is less than keyLen");
+        return false;
+    }
+
+    switch (keyLen) {
+        case 16:
+        case 32:
+            return true;
+        default:
+            throw_java_illegal_argument(env, "key must be only 16, or 32 bytes long");
+    }
+    return false;
+}
+
+
+
+
+
+/**
+ * Assert aes key sizes, throws java exceptions if not.
+ * @param env java env var
+ * @param key the key
+ * @return true if ok
+ */
 static inline bool aes_keysize_is_valid_and_not_null(JNIEnv *env, java_bytearray_ctx *key) {
     if (key->array == NULL) {
         throw_java_NPE(env, "key was null");
@@ -253,6 +291,30 @@ static inline bool aes_keysize_is_valid_and_not_null(JNIEnv *env, java_bytearray
     }
     return false;
 }
+
+
+/**
+ * Assert aes key sizes, throws java exceptions if not.
+ * @param env java env var
+ * @param key the key
+ * @return true if ok
+ */
+static inline bool aes_keysize_is_valid_and_not_null_not_24(JNIEnv *env, java_bytearray_ctx *key) {
+    if (key->array == NULL) {
+        throw_java_NPE(env, "key was null");
+        return false;
+    }
+    switch (key->size) {
+        case 16:
+        case 32:
+            return true;
+        default:
+            throw_java_illegal_argument(env, "key must be only 16, or 32 bytes long");
+    }
+    return false;
+}
+
+
 
 /**
  * Asserts key sizes but also accepts null keys.
