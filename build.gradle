@@ -162,7 +162,7 @@ subprojects {
       includeTestsMatching "AllTest*"
     }
 
-    jvmArgs  '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=es',  '-Dorg.bouncycastle.native.cpu_variant=neon-le'
+    jvmArgs  '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=es,gcmsiv',  '-Dorg.bouncycastle.native.cpu_variant=neon-le'
 
   }
 
@@ -258,7 +258,7 @@ subprojects {
     testLogging.showExceptions = true
     testLogging.showStackTraces = true
 
-    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake', '-Dorg.bouncycastle.native.cpu_variant=java'
+    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake', '-Dorg.bouncycastle.native.cpu_variant=java'
 
     finalizedBy jacocoTestReport
 

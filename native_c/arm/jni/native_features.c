@@ -98,6 +98,15 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
     return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
 }
 
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeCBCPC
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCBCPC
+        (JNIEnv *e, jclass cl) {
+    return JNI_FALSE;
+}
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
@@ -108,6 +117,16 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
         (JNIEnv *env, jclass cl) {
     probe_system();
     return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
+}
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeCFBPC
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCFBPC
+        (JNIEnv *env, jclass cl) {
+    return JNI_FALSE;
 }
 
 
@@ -122,6 +141,17 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
     return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
 }
 
+
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeCTRPC
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCTRPC
+        (JNIEnv *env, jclass cl) {
+    return JNI_FALSE;
+}
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
@@ -148,6 +178,16 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 
     return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
 
+}
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeGCMSIVPC
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCMSIVPC
+        (JNIEnv *env, jclass cl) {
+    return JNI_FALSE;
 }
 
 
@@ -264,35 +304,8 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA
     return cpu_info.sha3 && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
 }
 
-/*
- * Class:     org_bouncycastle_crypto_NativeFeatures
- * Method:    nativeCBCPC
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCBCPC
-        (JNIEnv *e, jclass cl) {
-    return JNI_FALSE;
-}
 
-/*
- * Class:     org_bouncycastle_crypto_NativeFeatures
- * Method:    nativeCFBPC
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCFBPC
-        (JNIEnv *env, jclass cl) {
-    return JNI_FALSE;
-}
 
-/*
- * Class:     org_bouncycastle_crypto_NativeFeatures
- * Method:    nativeCTRPC
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCTRPC
-        (JNIEnv *env, jclass cl) {
-    return JNI_FALSE;
-}
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
@@ -304,15 +317,6 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCM
     return JNI_FALSE;
 }
 
-/*
- * Class:     org_bouncycastle_crypto_NativeFeatures
- * Method:    nativeGCMSIVPC
- * Signature: ()Z
- */
-JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCMSIVPC
-        (JNIEnv *env, jclass cl) {
-    return JNI_FALSE;
-}
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
