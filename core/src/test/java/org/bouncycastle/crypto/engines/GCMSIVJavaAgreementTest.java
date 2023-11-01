@@ -390,7 +390,7 @@ public class GCMSIVJavaAgreementTest extends TestCase
         {
             return;
         }
-        doTest(16);
+    doTest(16);
     }
 
 

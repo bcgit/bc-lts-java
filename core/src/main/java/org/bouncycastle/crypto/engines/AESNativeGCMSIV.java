@@ -24,7 +24,7 @@ public class AESNativeGCMSIV
     /**
      * The encryptedDataStream
      */
-    private GCMSIVCache theEncData;
+    private GCMSIVCache theEncData = new GCMSIVCache();
 
     /**
      * Are we encrypting?
@@ -36,15 +36,11 @@ public class AESNativeGCMSIV
      */
     private byte[] theInitialAEAD;
 
+
     /**
      * The nonce.
      */
     private byte[] theNonce;
-    private boolean initialised = false;
-
-    private byte[] macBlock = new byte[macSize];
-    private static int macSize = 16;
-
     private byte[] lastKey;
 
     @Override
@@ -64,7 +60,8 @@ public class AESNativeGCMSIV
     {
         this.forEncryption = forEncryption;
         keptMac = null;
-        theEncData = new GCMSIVCache();
+        theEncData.reset();
+
         /* Set defaults */
         byte[] myInitialAEAD = null;
         byte[] myNonce;
@@ -110,8 +107,7 @@ public class AESNativeGCMSIV
                 refWrapper.getReference(),
                 forEncryption, lastKey,
                 theNonce, theInitialAEAD);
-        initialised = true;
-//        resetStreams();
+
     }
 
     private void initRef()
@@ -128,6 +124,10 @@ public class AESNativeGCMSIV
     @Override
     public void processAADByte(byte in)
     {
+        if (refWrapper == null)
+        {
+            throw new IllegalStateException(ExceptionMessages.GCM_SIV_UNINITIALIZED);
+        }
         processAADByte(refWrapper.getReference(), in);
     }
 
@@ -138,7 +138,6 @@ public class AESNativeGCMSIV
         {
             throw new IllegalStateException(ExceptionMessages.GCM_SIV_UNINITIALIZED);
         }
-
         processAADBytes(refWrapper.getReference(), in, inOff, len);
     }
 
@@ -170,26 +169,22 @@ public class AESNativeGCMSIV
     public int doFinal(byte[] out, int outOff)
             throws IllegalStateException, InvalidCipherTextException
     {
-        if (!initialised)
-        {
-            if (forEncryption)
-            {
-                throw new IllegalStateException("GCM cipher cannot be reused for encryption");
-            }
-            throw new IllegalStateException("GCM cipher needs to be initialised");
-        }
 
-
-        int len = doFinal(refWrapper.getReference(), theEncData.getBuffer() ,theEncData.size(),  out, outOff);
+        int len = doFinal(refWrapper.getReference(), theEncData.getBuffer(), theEncData.size(), out, outOff);
         //resetKeepMac
         keptMac = getMac();
-        resetStreams();
+        reset();
         return len;
     }
 
     @Override
     public byte[] getMac()
     {
+        if (refWrapper == null)
+        {
+            throw new IllegalStateException(ExceptionMessages.GCM_SIV_UNINITIALIZED);
+        }
+
         if (keptMac != null)
         {
             return Arrays.clone(keptMac);
@@ -200,32 +195,35 @@ public class AESNativeGCMSIV
     @Override
     public int getUpdateOutputSize(int len)
     {
+        if (refWrapper == null)
+        {
+            throw new IllegalStateException(ExceptionMessages.GCM_SIV_UNINITIALIZED);
+        }
         return getUpdateOutputSize(refWrapper.getReference(), len, theEncData.size());
     }
 
     @Override
     public int getOutputSize(int len)
     {
+        if (refWrapper == null)
+        {
+            throw new IllegalStateException(ExceptionMessages.GCM_SIV_UNINITIALIZED);
+        }
         return getOutputSize(refWrapper.getReference(), len);
     }
 
-    private void resetStreams()
-    {
-        theEncData = new GCMSIVCache();
-        reset(refWrapper.getReference());
-    }
 
     @Override
     public void reset()
     {
+
+        theEncData.clearBuffer();
         if (refWrapper == null)
         {
             // deal with reset being called before init.
             return;
         }
-
         reset(refWrapper.getReference());
-        initialised = false;
     }
 
     public String toString()
@@ -285,7 +283,7 @@ public class AESNativeGCMSIV
 
     static native void processAADBytes(long ref, byte[] in, int inOff, int len);
 
-    static native int doFinal(long ref, byte[] input, int inputLen,  byte[] out, int outOff);
+    static native int doFinal(long ref, byte[] input, int inputLen, byte[] out, int outOff);
 
     static native int getUpdateOutputSize(long ref, int len, int streamLen);
 
@@ -297,7 +295,7 @@ public class AESNativeGCMSIV
      * Test method, you have ABSOLUTELY no reason to call this in normal use.
      * max_dl is the maximum amount of data the implementation will process.
      */
-    static native void test_set_max_dl(long ref,long value);
+    static native void test_set_max_dl(long ref, long value);
 
 
     /**
@@ -329,6 +327,7 @@ public class AESNativeGCMSIV
         void clearBuffer()
         {
             Arrays.fill(getBuffer(), (byte) 0);
+            reset();
         }
     }
 
