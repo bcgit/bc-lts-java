@@ -163,7 +163,9 @@ subprojects {
     }
 
     jvmArgs  '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=es,gcmsiv',  '-Dorg.bouncycastle.native.cpu_variant=neon-le'
-
+    reports {
+      junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+    }
   }
 
 
@@ -182,6 +184,9 @@ subprojects {
     }
     jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',  '-Dorg.bouncycastle.native.cpu_variant=vaesf'
 
+    reports {
+      junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+    }
   }
 
 
@@ -200,6 +205,9 @@ subprojects {
     }
     jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',  '-Dorg.bouncycastle.native.cpu_variant=vaes'
 
+    reports {
+      junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+    }
 
   }
 
@@ -223,6 +231,9 @@ subprojects {
 
      jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake', '-Dorg.bouncycastle.native.cpu_variant=avx'
 
+    reports {
+      junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+    }
   }
 
 
@@ -246,6 +257,9 @@ subprojects {
 
     filter {
       includeTestsMatching "AllTest*"
+    }
+    reports {
+      junitXml.outputLocation = layout.buildDirectory.dir("test-results")
     }
   }
 
@@ -272,7 +286,9 @@ subprojects {
     }
 
     jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr,ccm', '-Dorg.bouncycastle.native.cpu_variant=java'
-
+    reports {
+      junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+    }
   }
 
 

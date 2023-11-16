@@ -18,15 +18,16 @@ test-java-code:
     - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java  \"/workspace/bc-lts-java/ci/test_java.sh\""
   artifacts:
     when: always
-    paths:
-      - "core/build/reports"
-      - "prov/build/reports"
-      - "jmail/build/reports"
-      - "pg/build/reports"
-      - "pkix/build/reports"
-      - "mail/build/reports"
-      - "util/build/reports"
-      - "tls/build/reports"
+    reports:
+      junit:
+      - "core/build/test-results"
+      - "prov/build/test-results"
+      - "jmail/build/test-results"
+      - "pg/build/test-results"
+      - "pkix/build/test-results"
+      - "mail/build/test-results"
+      - "util/build/test-results"
+      - "tls/build/test-results"
 
 test-code-avx:
   stage: testAVX
@@ -36,15 +37,17 @@ test-code-avx:
     - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java \"/workspace/bc-lts-java/ci/test_avx.sh\""
   artifacts:
     when: always
-    paths:
-      - "core/build/reports"
-      - "prov/build/reports"
-      - "jmail/build/reports"
-      - "pg/build/reports"
-      - "pkix/build/reports"
-      - "mail/build/reports"
-      - "util/build/reports"
-      - "tls/build/reports"
+    reports:
+      junit:
+        - "core/build/test-results"
+        - "prov/build/test-results"
+        - "jmail/build/test-results"
+        - "pg/build/test-results"
+        - "pkix/build/test-results"
+        - "mail/build/test-results"
+        - "util/build/test-results"
+        - "tls/build/test-results"
+
 
 test-code-vaes:
   stage: testVAES
@@ -54,15 +57,17 @@ test-code-vaes:
     - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java \"/workspace/bc-lts-java/ci/test_vaes.sh\""
   artifacts:
     when: always
-    paths:
-      - "core/build/reports"
-      - "prov/build/reports"
-      - "jmail/build/reports"
-      - "pg/build/reports"
-      - "pkix/build/reports"
-      - "mail/build/reports"
-      - "util/build/reports"
-      - "tls/build/reports"
+    reports:
+      junit:
+        - "core/build/test-results"
+        - "prov/build/test-results"
+        - "jmail/build/test-results"
+        - "pg/build/test-results"
+        - "pkix/build/test-results"
+        - "mail/build/test-results"
+        - "util/build/test-results"
+        - "tls/build/test-results"
+
 
 
 test-code-vaesf:
@@ -73,15 +78,16 @@ test-code-vaesf:
     - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java \"/workspace/bc-lts-java/ci/test_vaesf.sh\""
   artifacts:
     when: always
-    paths:
-      - "core/build/reports"
-      - "prov/build/reports"
-      - "jmail/build/reports"
-      - "pg/build/reports"
-      - "pkix/build/reports"
-      - "mail/build/reports"
-      - "util/build/reports"
-      - "tls/build/reports"
+    reports:
+      junit:
+        - "core/build/test-results"
+        - "prov/build/test-results"
+        - "jmail/build/test-results"
+        - "pg/build/test-results"
+        - "pkix/build/test-results"
+        - "mail/build/test-results"
+        - "util/build/test-results"
+        - "tls/build/test-results"
 
 
 test-java11-code:
