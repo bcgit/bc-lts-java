@@ -20,14 +20,15 @@ test-java-code:
     when: always
     reports:
       junit:
-      - "core/build/test-results/test/**/TEST-*.xml"
-      - "prov/build/test-results/test/**/TEST-*.xml"
-      - "jmail/build/test-results/test/**/TEST-*.xml"
-      - "pg/build/test-results/test/**/TEST-*.xml"
-      - "pkix/build/test-results/test/**/TEST-*.xml"
-      - "mail/build/test-results/test/**/TEST-*.xml"
-      - "util/build/test-results/test/**/TEST-*.xml"
-      - "tls/build/test-results/test/**/TEST-*.xml"
+        - "core/build/test-results/**/TEST-*.xml"
+        - "prov/build/test-results/**/TEST-*.xml"
+        - "jmail/build/test-results/**/TEST-*.xml"
+        - "pg/build/test-results/**/TEST-*.xml"
+        - "pkix/build/test-results/**/TEST-*.xml"
+        - "mail/build/test-results/**/TEST-*.xml"
+        - "util/build/test-results/**/TEST-*.xml"
+        - "tls/build/test-results/**/TEST-*.xml"
+
 
 test-code-avx:
   stage: testAVX
@@ -39,14 +40,14 @@ test-code-avx:
     when: always
     reports:
       junit:
-        - "core/build/test-results/testAVX/**/TEST-*.xml"
-        - "prov/build/test-results/testAVX/**/TEST-*.xml"
-        - "jmail/build/test-results/testAVX/**/TEST-*.xml"
-        - "pg/build/test-results/testAVX/**/TEST-*.xml"
-        - "pkix/build/test-results/testAVX/**/TEST-*.xml"
-        - "mail/build/test-results/testAVX/**/TEST-*.xml"
-        - "util/build/test-results/testAVX/**/TEST-*.xml"
-        - "tls/build/test-results/testAVX/**/TEST-*.xml"
+        - "core/build/test-results/**/TEST-*.xml"
+        - "prov/build/test-results/**/TEST-*.xml"
+        - "jmail/build/test-results/**/TEST-*.xml"
+        - "pg/build/test-results/**/TEST-*.xml"
+        - "pkix/build/test-results/**/TEST-*.xml"
+        - "mail/build/test-results/**/TEST-*.xml"
+        - "util/build/test-results/**/TEST-*.xml"
+        - "tls/build/test-results/**/TEST-*.xml"
 
 
 test-code-vaes:
@@ -59,15 +60,14 @@ test-code-vaes:
     when: always
     reports:
       junit:
-        - "core/build/test-results/testVAES/**/TEST-*.xml"
-        - "prov/build/test-results/testVAES/**/TEST-*.xml"
-        - "jmail/build/test-results/testVAES/**/TEST-*.xml"
-        - "pg/build/test-results/testVAES/**/TEST-*.xml"
-        - "pkix/build/test-results/testVAES/**/TEST-*.xml"
-        - "mail/build/test-results/testVAES/**/TEST-*.xml"
-        - "util/build/test-results/testVAES/**/TEST-*.xml"
-        - "tls/build/test-results/testVAES/**/TEST-*.xml"
-
+        - "core/build/test-results/**/TEST-*.xml"
+        - "prov/build/test-results/**/TEST-*.xml"
+        - "jmail/build/test-results/**/TEST-*.xml"
+        - "pg/build/test-results/**/TEST-*.xml"
+        - "pkix/build/test-results/**/TEST-*.xml"
+        - "mail/build/test-results/**/TEST-*.xml"
+        - "util/build/test-results/**/TEST-*.xml"
+        - "tls/build/test-results/**/TEST-*.xml"
 
 
 test-code-vaesf:
@@ -80,14 +80,14 @@ test-code-vaesf:
     when: always
     reports:
       junit:
-        - "core/build/test-results/testVAESF/**/TEST-*.xml"
-        - "prov/build/test-results/testVAESF/**/TEST-*.xml"
-        - "jmail/build/test-results/testVAESF/**/TEST-*.xml"
-        - "pg/build/test-results/testVAESF/**/TEST-*.xml"
-        - "pkix/build/test-results/testVAESF/**/TEST-*.xml"
-        - "mail/build/test-results/testVAESF/**/TEST-*.xml"
-        - "util/build/test-results/testVAESF/**/TEST-*.xml"
-        - "tls/build/test-results/testVAESF/**/TEST-*.xml"
+        - "core/build/test-results/**/TEST-*.xml"
+        - "prov/build/test-results/**/TEST-*.xml"
+        - "jmail/build/test-results/**/TEST-*.xml"
+        - "pg/build/test-results/**/TEST-*.xml"
+        - "pkix/build/test-results/**/TEST-*.xml"
+        - "mail/build/test-results/**/TEST-*.xml"
+        - "util/build/test-results/**/TEST-*.xml"
+        - "tls/build/test-results/**/TEST-*.xml"
 
 
 test-java11-code:
