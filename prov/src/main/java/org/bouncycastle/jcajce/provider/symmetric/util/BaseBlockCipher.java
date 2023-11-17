@@ -1373,9 +1373,8 @@ public class BaseBlockCipher
         {
             makePacketCipher();
 
-            if (packetCipherInstance != null)
+            if (packetCipherInstance != null && input != null) // packet cipher cannot accept null input
             {
-                input = input != null ? input : emptyArray;
                 int outputLen = packetCipherInstance.getOutputSize(packetDirection, packetParams, inputLen);
                 byte[] output = new byte[outputLen];
                 applyPacketCipher(input, inputOffset, inputLen, output, 0);
@@ -1437,7 +1436,7 @@ public class BaseBlockCipher
         try
         {
             makePacketCipher();
-            if (packetCipherInstance != null)
+            if (packetCipherInstance != null && input != null) // packet cipher cannot accept null input
             {
                 return applyPacketCipher(input, inputOffset, inputLen, output, outputOffset);
             }
