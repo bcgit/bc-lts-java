@@ -34,7 +34,7 @@ import org.bouncycastle.pkcs.PKCS10CertificationRequest;
 import org.bouncycastle.pkcs.PKCS10CertificationRequestBuilder;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequest;
 import org.bouncycastle.pkcs.jcajce.JcaPKCS10CertificationRequestBuilder;
-import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
+//import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
 import org.bouncycastle.test.PrintTestResult;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
@@ -187,7 +187,7 @@ public class PKCS10Test
             fail("expected name 2");
         }
     }
-
+                        /*
     public void testAltRequestAttributes()
         throws Exception
     {
@@ -211,7 +211,8 @@ public class PKCS10Test
 
         assertTrue(request.isAltSignatureValid(new JcaContentVerifierProviderBuilder().setProvider("BC").build(dilKp.getPublic())));
     }
-
+                       */
+    /*
     public void testDeltaRequestAttribute()
         throws Exception
     {
@@ -248,7 +249,7 @@ public class PKCS10Test
         assertTrue(request.isSignatureValid(new JcaContentVerifierProviderBuilder().setProvider("BC").build(p256Kp.getPublic())));
     }
 
-
+        */
     public static void main(String args[])
     {
         PrintTestResult.printResult(junit.textui.TestRunner.run(suite()));

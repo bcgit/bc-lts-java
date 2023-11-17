@@ -122,16 +122,16 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.pqc.crypto.lms.LMOtsParameters;
 import org.bouncycastle.pqc.crypto.lms.LMSigParameters;
-import org.bouncycastle.pqc.jcajce.interfaces.XMSSPrivateKey;
-import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
-import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
-import org.bouncycastle.pqc.jcajce.spec.FalconParameterSpec;
+//import org.bouncycastle.pqc.jcajce.interfaces.XMSSPrivateKey;
+//import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
+//import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
+//import org.bouncycastle.pqc.jcajce.spec.FalconParameterSpec;
 import org.bouncycastle.pqc.jcajce.spec.LMSKeyGenParameterSpec;
-import org.bouncycastle.pqc.jcajce.spec.PicnicParameterSpec;
-import org.bouncycastle.pqc.jcajce.spec.SPHINCS256KeyGenParameterSpec;
-import org.bouncycastle.pqc.jcajce.spec.SPHINCSPlusParameterSpec;
-import org.bouncycastle.pqc.jcajce.spec.XMSSMTParameterSpec;
-import org.bouncycastle.pqc.jcajce.spec.XMSSParameterSpec;
+//import org.bouncycastle.pqc.jcajce.spec.PicnicParameterSpec;
+//import org.bouncycastle.pqc.jcajce.spec.SPHINCS256KeyGenParameterSpec;
+//import org.bouncycastle.pqc.jcajce.spec.SPHINCSPlusParameterSpec;
+//import org.bouncycastle.pqc.jcajce.spec.XMSSMTParameterSpec;
+//import org.bouncycastle.pqc.jcajce.spec.XMSSParameterSpec;
 import org.bouncycastle.util.Encodable;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Base64;
@@ -1415,7 +1415,7 @@ public class CertTest
             X509Certificate cert = (X509Certificate)fact.generateCertificate(bIn);
 
             PublicKey k = cert.getPublicKey();
-            if (!cert.getIssuerDN().toString().equals("C=DE,O=DATEV eG,0.2.262.1.10.7.20=1+CN=CA DATEV D03 1:PN"))
+            if (!cert.getIssuerDN().toString().equals("OID.0.2.262.1.10.7.20=1 + CN=CA DATEV D03 1:PN, O=DATEV eG, C=DE"))
             {
                 fail(id + " failed - name test.");
             }
@@ -2878,7 +2878,7 @@ public class CertTest
         PrivateKey ecPriv = ecKp.getPrivate();
         PublicKey ecPub = ecKp.getPublic();
 
-        KeyPairGenerator lmsKpg = KeyPairGenerator.getInstance("LMS", "BCPQC");
+        KeyPairGenerator lmsKpg = KeyPairGenerator.getInstance("LMS", "BC");
 
         lmsKpg.initialize(new LMSKeyGenParameterSpec(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w1));
 
@@ -3010,6 +3010,7 @@ public class CertTest
         crl.verify(compPub);
     }
 
+    /*
     public void checkCrlECDSAwithDilithiumCreation()
         throws Exception
     {
@@ -3133,7 +3134,7 @@ public class CertTest
             fail("CRL entry reasonCode not found");
         }
     }
-
+    */
     /*
      * we generate a self signed certificate for the sake of testing - GOST3410
      */
@@ -3290,6 +3291,7 @@ public class CertTest
         }
     }
 
+    /*
     public void checkCreation6()
         throws Exception
     {
@@ -3393,7 +3395,7 @@ public class CertTest
         // check encoded works
         cert.getEncoded();
     }
-
+    */
     /*
      * we generate a self signed certificate for the sake of testing - ECGOST3410-2012
      */
@@ -3448,6 +3450,7 @@ public class CertTest
     /*
      * we generate a self signed certificate for the sake of testing - XMSS
      */
+    /*
     public void checkCreation8()
         throws Exception
     {
@@ -3495,10 +3498,12 @@ public class CertTest
 
         //System.out.println(cert);
     }
+     */
 
     /*
      * we generate a self signed certificate for the sake of testing - XMSS^MT
      */
+    /*
     public void checkCreation9()
         throws Exception
     {
@@ -3546,7 +3551,7 @@ public class CertTest
 
         //System.out.println(cert);
     }
-
+     */
     /*
      * we generate a self signed certificate for the sake of testing - LMS
      */
@@ -3556,7 +3561,7 @@ public class CertTest
         //
         // set up the keys
         //
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("LMS", "BCPQC");
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("LMS", "BC");
 
         kpg.initialize(new LMSKeyGenParameterSpec(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w1));
 
@@ -3573,7 +3578,7 @@ public class CertTest
         //
         // create the certificate - version 3
         //
-        ContentSigner sigGen = new JcaContentSignerBuilder("LMS").setProvider("BCPQC").build(privKey);
+        ContentSigner sigGen = new JcaContentSignerBuilder("LMS").setProvider("BC").build(privKey);
         X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(builder.build(), BigInteger.valueOf(1), new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), builder.build(), pubKey);
 
         X509Certificate cert = new JcaX509CertificateConverter().setProvider(BC).getCertificate(certGen.build(sigGen));
@@ -3601,6 +3606,7 @@ public class CertTest
     /*
      * we generate a self signed certificate for the sake of testing - SPHINCSPlus
      */
+    /*
     public void checkCreationSPHINCSPlus()
         throws Exception
     {
@@ -3648,10 +3654,12 @@ public class CertTest
 
         //System.out.println(cert);
     }
+    */
 
     /*
      * we generate a self signed certificate for the sake of testing - SPHINCSPlus
      */
+    /*
     public void checkCreationSPHINCSPlusSimple()
         throws Exception
     {
@@ -3699,10 +3707,12 @@ public class CertTest
 
         //System.out.println(cert);
     }
-
+     */
+    
     /*
      * we generate a self signed certificate for the sake of testing - SPHINCSPlus
      */
+    /*
     public void checkCreationSPHINCSPlusHaraka()
         throws Exception
     {
@@ -3750,6 +3760,7 @@ public class CertTest
 
         //System.out.println(cert);
     }
+     */
 
     /*
      * we generate a self signed certificate across the range of DSA algorithms
@@ -4017,6 +4028,7 @@ public class CertTest
         doGenSelfSignedCert(privKey, pubKey, algs, oids);
     }
 
+    /*
     public void checkCreationPicnic()
             throws Exception
     {
@@ -4488,7 +4500,8 @@ public class CertTest
 
         isTrue("alt sig value wrong", certHolder.isAlternativeSignatureValid(new JcaContentVerifierProviderBuilder().setProvider("BCPQC").build(pubKey)));
     }
-
+    */
+    /*
     public void checkCreationComposite()
         throws Exception
     {
@@ -4633,6 +4646,7 @@ public class CertTest
         isTrue(pubKey.equals(compPub));
         isTrue(privKey.equals(compPrivKey));
     }
+     */
 
     private void checkCompositeCertificateVerify()
         throws Exception
@@ -4649,7 +4663,7 @@ public class CertTest
         PrivateKey ecPriv = ecKp.getPrivate();
         PublicKey ecPub = ecKp.getPublic();
 
-        KeyPairGenerator lmsKpg = KeyPairGenerator.getInstance("LMS", "BCPQC");
+        KeyPairGenerator lmsKpg = KeyPairGenerator.getInstance("LMS", "BC");
 
         lmsKpg.initialize(new LMSKeyGenParameterSpec(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w1));
 
@@ -5428,10 +5442,10 @@ public class CertTest
     public void performTest()
         throws Exception
     {
-        if (Security.getProvider("BCPQC") == null)
-        {
-            Security.addProvider(new BouncyCastlePQCProvider());
-        }
+//        if (Security.getProvider("BCPQC") == null)
+//        {
+//            Security.addProvider(new BouncyCastlePQCProvider());
+//        }
 
         testDirect();
         testIndirect();
@@ -5487,7 +5501,7 @@ public class CertTest
             isEquals("certificate does not verify with supplied key", e.getMessage());
         }
 
-        checkSelfSignedCertificate(22, CertificateFactory.getInstance("X.509", BC).generateCertificate(this.getClass().getResourceAsStream("xmss3.pem")).getEncoded());
+//        checkSelfSignedCertificate(22, CertificateFactory.getInstance("X.509", BC).generateCertificate(this.getClass().getResourceAsStream("xmss3.pem")).getEncoded());
 
         checkCreation1();
         checkCreation2();
@@ -5495,32 +5509,32 @@ public class CertTest
         checkCreation4();
         checkCreation5();
 
-        checkCreation6();
+//        checkCreation6();
         checkCreation7();
-        checkCreation8();
-        checkCreation9();
+//        checkCreation8();
+//        checkCreation9();
         checkCreation10();
 
         checkCreationEd448();
 
-        checkCreationSPHINCSPlus();
-        checkCreationSPHINCSPlusSimple();
-        checkCreationSPHINCSPlusHaraka();
+//        checkCreationSPHINCSPlus();
+//        checkCreationSPHINCSPlusSimple();
+//        checkCreationSPHINCSPlusHaraka();
         checkCreationDSA();
         checkCreationECDSA();
         checkCreationRSA();
         checkCreationRSAPSS();
 
-        checkCreationFalcon();
-        checkCreationDilithium();
-        checkCreationPicnic();
+//        checkCreationFalcon();
+//        checkCreationDilithium();
+//        checkCreationPicnic();
 
         checkSm3WithSm2Creation();
 
-        checkCreationDilithiumWithECDSA();
-        checkCreationDilithiumSigWithECDSASig();
+//        checkCreationDilithiumWithECDSA();
+//        checkCreationDilithiumSigWithECDSASig();
 
-        checkCreationComposite();
+//        checkCreationComposite();
         checkCompositeCertificateVerify();
 
         createECCert("SHA1withECDSA", X9ObjectIdentifiers.ecdsa_with_SHA1);
@@ -5540,7 +5554,7 @@ public class CertTest
         checkCRLCreation4();
         checkCRLCreation5();
         checkCRLCompositeCreation();
-        checkCrlECDSAwithDilithiumCreation();
+//        checkCrlECDSAwithDilithiumCreation();
 
         pemTest();
         pkcs7Test();

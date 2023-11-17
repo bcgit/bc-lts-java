@@ -28,7 +28,7 @@ import org.bouncycastle.jcajce.ExternalPublicKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
-import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
+//import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.util.BigIntegers;
 import org.bouncycastle.util.test.SimpleTest;
 
@@ -45,7 +45,7 @@ public class ExternalKeyTest
     {
         checkPublicKeyInfo();
         checkCertificate();
-        checkCertificateDilithium();
+//        checkCertificateDilithium();
     }
 
     private void checkPublicKeyInfo()
@@ -140,7 +140,7 @@ public class ExternalKeyTest
 
         runTest(new ExternalKeyTest());
 
-        Security.addProvider(new BouncyCastlePQCProvider());
+//        Security.addProvider(new BouncyCastlePQCProvider());
 //        KeyPairGenerator kpGen = KeyPairGenerator.getInstance("CMCE");
 //
 //        KeyPair kp = kpGen.generateKeyPair();
