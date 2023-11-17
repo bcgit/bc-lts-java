@@ -90,6 +90,14 @@ public class X509CertificateHolder
     }
 
     /**
+     * @deprecated use getVersionNumber
+     */
+    public int getVersion()
+    {
+        return x509Certificate.getVersionNumber();
+    }
+
+    /**
      * Return whether or not the holder's certificate contains extensions.
      *
      * @return true if extension are present, false otherwise.
@@ -240,9 +248,9 @@ public class X509CertificateHolder
     }
 
     /**
-     * Return the bytes making up the signature associated with this attribute certificate.
+     * Return the bytes making up the signature associated with this certificate.
      *
-     * @return the attribute certificate signature bytes.
+     * @return the certificate signature bytes.
      */
     public byte[] getSignature()
     {
