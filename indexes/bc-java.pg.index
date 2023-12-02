@@ -32,7 +32,7 @@ b22519ac1752295a6131300400465ee37a9c9d73e1b58139ca83f46a32e4dea5  pg/src/test/ja
 0a5716b069ca6d5d0a4016118e0fdf74b72025fb4403493ce50b4c2e2a79221a  pg/src/test/java/org/bouncycastle/openpgp/test/PGPPBETest.java
 ef0da61162ee2e61cbaae4c780993e7a61fbd491be25d8d4e879a1006dbfeb39  pg/src/test/java/org/bouncycastle/openpgp/test/PGPUtilTest.java
 c057095d37d7dd2b5b0885fa4f2f5deb8a4f0057482b4b24c6999745b0b65113  pg/src/test/java/org/bouncycastle/openpgp/test/CRC24Test.java
-73a7e5a9ffa0449befdecad2be3d4398569cc5c70d8124f8134c78fe1d0e2a80  pg/src/test/java/org/bouncycastle/openpgp/test/RegressionTest.java
+2fc5d3308c45b40dbc0184066a23d0dec5bb577491ace63e7515ece123edf352  pg/src/test/java/org/bouncycastle/openpgp/test/RegressionTest.java
 90e33aa45bf2aaf263198f8451f515415ffcb238354c795255f1b4c703760e39  pg/src/test/java/org/bouncycastle/openpgp/test/PGPMarkerTest.java
 2028f5d1c95aecc6f365511e9e8e90457ee197cf91cafc07b9a63f9ab1261ba0  pg/src/test/java/org/bouncycastle/openpgp/test/BcPGPPBETest.java
 f227288528cfe22553ec8c5c05a2bdacbf044be3aaab2b6608069cba6718de3c  pg/src/test/java/org/bouncycastle/openpgp/test/WildcardKeyIDTest.java
