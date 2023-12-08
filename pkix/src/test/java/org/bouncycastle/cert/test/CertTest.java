@@ -55,7 +55,6 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.asn1.bc.BCObjectIdentifiers;
 import org.bouncycastle.asn1.isara.IsaraObjectIdentifiers;
 import org.bouncycastle.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
@@ -65,7 +64,6 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.asn1.x509.AltSignatureAlgorithm;
 import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.asn1.x509.Extension;
@@ -75,7 +73,6 @@ import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.IssuingDistributionPoint;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
-import org.bouncycastle.asn1.x509.SubjectAltPublicKeyInfo;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.asn1.x9.X9ECParameters;
@@ -122,16 +119,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
 import org.bouncycastle.pqc.crypto.lms.LMOtsParameters;
 import org.bouncycastle.pqc.crypto.lms.LMSigParameters;
-//import org.bouncycastle.pqc.jcajce.interfaces.XMSSPrivateKey;
-//import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
-//import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
-//import org.bouncycastle.pqc.jcajce.spec.FalconParameterSpec;
 import org.bouncycastle.pqc.jcajce.spec.LMSKeyGenParameterSpec;
-//import org.bouncycastle.pqc.jcajce.spec.PicnicParameterSpec;
-//import org.bouncycastle.pqc.jcajce.spec.SPHINCS256KeyGenParameterSpec;
-//import org.bouncycastle.pqc.jcajce.spec.SPHINCSPlusParameterSpec;
-//import org.bouncycastle.pqc.jcajce.spec.XMSSMTParameterSpec;
-//import org.bouncycastle.pqc.jcajce.spec.XMSSParameterSpec;
 import org.bouncycastle.util.Encodable;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Base64;
@@ -2513,6 +2501,16 @@ public class CertTest
         {
             fail("CRL entry reasonCode not found");
         }
+
+        crlGen = new X509v2CRLBuilder(crlHolder);
+
+        crlGen.setThisUpdate(new Date(crlHolder.getThisUpdate().getTime() + 50000));
+        crlGen.setNextUpdate(new Date(crlHolder.getNextUpdate().getTime() + 100000));
+
+        X509CRLHolder hldr2 = crlGen.build(new JcaContentSignerBuilder("SHA256withRSAEncryption").setProvider(BC).build(pair.getPrivate()));
+
+        isEquals(hldr2.getThisUpdate().getTime(), crlHolder.getThisUpdate().getTime() + 50000);
+        isEquals(hldr2.getNextUpdate().getTime(), crlHolder.getNextUpdate().getTime() + 100000);
     }
 
     public void checkCRLCreation3()
@@ -3708,7 +3706,7 @@ public class CertTest
         //System.out.println(cert);
     }
      */
-    
+
     /*
      * we generate a self signed certificate for the sake of testing - SPHINCSPlus
      */

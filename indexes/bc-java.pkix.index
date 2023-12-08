@@ -58,7 +58,7 @@ dbc30e599de56b91716e006183f13ee779d667cbed5e674da973677019f41109  pkix/src/test/
 55dcf83d5f13451d0a545aaee5205d27cf29a4676fcd3f5afcd1291b640e2574  pkix/src/test/java/org/bouncycastle/cert/test/AttrCertTest.java
 461b7d005ff3528e642cb723c1b00de46b207e2aa6a48dfb763d863a2db5134a  pkix/src/test/java/org/bouncycastle/cert/test/PEMData.java
 72dfa891d8bff186b6064c3de64c7432f2b4405ad44d05e4273970189efa9e55  pkix/src/test/java/org/bouncycastle/cert/test/BcCertTest.java
-7a4ba47b6c83ba6c01fcddd25563ab705b5e4273ff872702f49b7afd5da29397  pkix/src/test/java/org/bouncycastle/cert/test/CertTest.java
+3620d3096c18659fa977af83ac564baa27e30d766b04dfa03803e8d655f1039c  pkix/src/test/java/org/bouncycastle/cert/test/CertTest.java
 8110a89fdbb1405e5336060d7012520d1e567790ff492f68246df1640e266e5f  pkix/src/test/java/org/bouncycastle/cert/test/ExternalKeyTest.java
 acbe3dd44babf2e10b60565d4bc33088e21270b49bf1d294afd8fd568566503a  pkix/src/test/java/org/bouncycastle/cert/test/BcPKCS10Test.java
 4165ece3449d36144c18180c0eee2a13746cbd8b39fa82a8d42987d60563fb4e  pkix/src/test/java/org/bouncycastle/cert/ocsp/test/AllTests.java
@@ -116,7 +116,7 @@ dec4923bde1dd34d48d1ba215f6e464115ef371ea457c2d02457e14040858993  pkix/src/test/
 c6d1654101421daffd084244441b7c3d67f874bad5cd27c209c27fe65d67a473  pkix/src/test/java/org/bouncycastle/openssl/test/CompositeKeyTest.java
 a60b665aac6e67a64c552cae7bc2574a0cf2c76ffabb880797657ba50088c832  pkix/src/test/java/org/bouncycastle/openssl/test/ParserTest.java
 a7541bec4f6ee1ef3eee425b21d6c10bfedbc71699c2c36de93921f014fec477  pkix/src/main/jdk1.9/module-info.java
-465e982883ff21b944dd7d9dfc6562ee013db1c2585e75ed57a9200180b76de2  pkix/src/main/java/org/bouncycastle/pkix/SubjectPublicKeyInfoChecker.java
+303abe75fedf5a47ae0128c18005322ceae3cd2d3e686429bc51e34a03e046f4  pkix/src/main/java/org/bouncycastle/pkix/SubjectPublicKeyInfoChecker.java
 f81e19f5de0deecbdac975bb40853227050a3ed1d18a15bb946eddf876f8ac33  pkix/src/main/java/org/bouncycastle/pkix/util/TextBundle.java
 66fba01d96111cf20fe382be0b0a6741f2281ef5eb8cbf2e0baa2273bdfd4a14  pkix/src/main/java/org/bouncycastle/pkix/util/filter/TrustedInput.java
 5ff1c3d2e5575354bf6a67be250af1ecb5c6f089a88c2ab718146e63ab1685f7  pkix/src/main/java/org/bouncycastle/pkix/util/filter/SQLFilter.java
@@ -372,7 +372,7 @@ ee843f95946bad4648a3a3627cefcd4f1a1fbd7fe43903a65ee0729f24fd2510  pkix/src/main/
 b7a8c08746d185c87fceaf27be88826d235f7c055957d1a09dd79839999863b4  pkix/src/main/java/org/bouncycastle/est/Source.java
 3215ac70255e09e877c291dab8d95a61acf07667efee531cd76d6e83865dd7fd  pkix/src/main/java/org/bouncycastle/cert/X509CRLHolder.java
 7ee028bd1e5700d42945dc4fb0e30aaa3d27e973cd3dbfd4508bd518f1cfc4dd  pkix/src/main/java/org/bouncycastle/cert/CertException.java
-08e6807b9ae97343b2c807ea99c517672458737e9252715ae103335a8082f062  pkix/src/main/java/org/bouncycastle/cert/X509v2CRLBuilder.java
+64a818f3daf3ea7d29ad14af1dd83fc051c14b068c7a504f47c6ec95afd1c2e4  pkix/src/main/java/org/bouncycastle/cert/X509v2CRLBuilder.java
 f3bf43fe447d6dd1441e234efa410dee47d7b1ecc5c677a4c0c79efb3844bedd  pkix/src/main/java/org/bouncycastle/cert/X509CertificateHolder.java
 f56a899a9e48e5dda5db2f8528d844b80b61d92face5425b0a5d727221571ba0  pkix/src/main/java/org/bouncycastle/cert/path/CertPathValidationContext.java
 b69dd84d5c448114ef397c9a315a62f9e77d9ebb4f11ec49b99a9b73f7b447ca  pkix/src/main/java/org/bouncycastle/cert/path/CertPathUtils.java

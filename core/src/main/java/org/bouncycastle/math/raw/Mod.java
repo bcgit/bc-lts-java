@@ -89,7 +89,7 @@ public abstract class Mod
         decode30(bits, D, 0, z, 0);
 //        assert 0 != Nat.lessThan(len32, z, m);
 
-        return Nat.equalTo(len30, F, 1) & Nat.equalToZero(len30, G);
+        return equalTo(len30, F, 1) & equalTo(len30, G, 0);
     }
 
     public static boolean modOddInverseVar(int[] m, int[] x, int[] z)
@@ -114,14 +114,14 @@ public abstract class Mod
         encode30(bits, m, 0, M, 0);
         System.arraycopy(M, 0, F, 0, len30);
 
-        int clzG = Integers.numberOfLeadingZeros(G[len30 - 1] | 1) - (len30 * 30 + 2 - bits);
-        int eta = -1 - clzG;
+        int clz = Math.max(0, bits - 1 - Nat.getBitLength(len32, x));
+        int eta = -1 - clz;
         int lenDE = len30, lenFG = len30;
         int m0Inv32 = inverse32(M[0]);
-        int maxDivsteps = getMaximumDivsteps(bits);
+        int maxDivsteps = getMaximumDivsteps(bits) - clz;
 
         int divsteps = 0;
-        while (!Nat.isZero(lenFG, G))
+        while (!equalToVar(lenFG, G, 0))
         {
             if (divsteps >= maxDivsteps)
             {
@@ -133,20 +133,7 @@ public abstract class Mod
             eta = divsteps30Var(eta, F[0], G[0], t);
             updateDE30(lenDE, D, E, t, m0Inv32, M);
             updateFG30(lenFG, F, G, t);
-
-            int fn = F[lenFG - 1];
-            int gn = G[lenFG - 1];
-
-            int cond = (lenFG - 2) >> 31;
-            cond |= fn ^ (fn >> 31);
-            cond |= gn ^ (gn >> 31);
-
-            if (cond == 0)
-            {
-                F[lenFG - 2] |= fn << 30;
-                G[lenFG - 2] |= gn << 30;
-                --lenFG;
-            }
+            lenFG = trimFG30(lenFG, F, G);
         }
 
         int signF = F[lenFG - 1] >> 31;
@@ -168,7 +155,7 @@ public abstract class Mod
         }
 //        assert 0 == signF;
 
-        if (!Nat.isOne(lenFG, F))
+        if (!equalToVar(lenFG, F, 1))
         {
             return false;
         }
@@ -183,6 +170,89 @@ public abstract class Mod
 //        assert !Nat.gte(len32, z, m);
 
         return true;
+    }
+
+    public static int modOddIsCoprime(int[] m, int[] x)
+    {
+        int len32 = m.length;
+//        assert len32 > 0;
+//        assert (m[0] & 1) != 0;
+//        assert m[len32 - 1] != 0;
+
+        int bits = (len32 << 5) - Integers.numberOfLeadingZeros(m[len32 - 1]);
+        int len30 = (bits + 29) / 30;
+
+        int[] t = new int[4];
+        int[] F = new int[len30];
+        int[] G = new int[len30];
+        int[] M = new int[len30];
+
+        encode30(bits, x, 0, G, 0);
+        encode30(bits, m, 0, M, 0);
+        System.arraycopy(M, 0, F, 0, len30);
+
+        int delta = 0;
+        int maxDivsteps = getMaximumDivsteps(bits);
+
+        for (int divSteps = 0; divSteps < maxDivsteps; divSteps += 30)
+        {
+            delta = divsteps30(delta, F[0], G[0], t);
+            updateFG30(len30, F, G, t);
+        }
+
+        int signF = F[len30 - 1] >> 31;
+        cnegate30(len30, signF, F);
+
+        return equalTo(len30, F, 1) & equalTo(len30, G, 0);
+    }
+
+    public static boolean modOddIsCoprimeVar(int[] m, int[] x)
+    {
+        int len32 = m.length;
+//        assert len32 > 0;
+//        assert (m[0] & 1) != 0;
+//        assert m[len32 - 1] != 0;
+
+        int bits = (len32 << 5) - Integers.numberOfLeadingZeros(m[len32 - 1]);
+        int len30 = (bits + 29) / 30;
+
+        int[] t = new int[4];
+        int[] F = new int[len30];
+        int[] G = new int[len30];
+        int[] M = new int[len30];
+
+        encode30(bits, x, 0, G, 0);
+        encode30(bits, m, 0, M, 0);
+        System.arraycopy(M, 0, F, 0, len30);
+
+        int clz = Math.max(0, bits - 1 - Nat.getBitLength(len32, x));
+        int eta = -1 - clz;
+        int lenFG = len30;
+        int maxDivsteps = getMaximumDivsteps(bits) - clz;
+
+        int divsteps = 0;
+        while (!equalToVar(lenFG, G, 0))
+        {
+            if (divsteps >= maxDivsteps)
+            {
+                return false;
+            }
+
+            divsteps += 30;
+
+            eta = divsteps30Var(eta, F[0], G[0], t);
+            updateFG30(lenFG, F, G, t);
+            lenFG = trimFG30(lenFG, F, G);
+        }
+
+        int signF = F[lenFG - 1] >> 31;
+        if (signF < 0)
+        {
+            signF = negate30(lenFG, F);
+        }
+//        assert 0 == signF;
+
+        return equalToVar(lenFG, F, 1);
     }
 
     public static int[] random(int[] p)
@@ -432,6 +502,30 @@ public abstract class Mod
         }
     }
 
+    private static int equalTo(int len, int[] x, int y)
+    {
+        int d = x[0] ^ y;
+        for (int i = 1; i < len; ++i)
+        {
+            d |= x[i];
+        }
+        d = (d >>> 1) | (d & 1);
+        return (d - 1) >> 31;
+    }
+
+    private static boolean equalToVar(int len, int[] x, int y)
+    {
+        int d = x[0] ^ y;
+        if (d != 0)
+            return false;
+
+        for (int i = 1; i < len; ++i)
+        {
+            d |= x[i];
+        }
+        return d == 0;
+    }
+
     private static int getMaximumDivsteps(int bits)
     {
         return (49 * bits + (bits < 46 ? 80 : 47)) / 17;
@@ -451,6 +545,29 @@ public abstract class Mod
         c -= D[last];
         D[last] = c; c >>= 30;
         return c;
+    }
+
+    private static int trimFG30(int len30, int[] F, int[] G)
+    {
+//        assert len30 > 0;
+//        assert F.length >= len30;
+//        assert G.length >= len30;
+
+        int fn = F[len30 - 1];
+        int gn = G[len30 - 1];
+
+        int cond = (len30 - 2) >> 31;
+        cond |= fn ^ (fn >> 31);
+        cond |= gn ^ (gn >> 31);
+
+        if (cond == 0)
+        {
+            F[len30 - 2] |= fn << 30;
+            G[len30 - 2] |= gn << 30;
+            --len30;
+        }
+
+        return len30;
     }
 
     private static void updateDE30(int len30, int[] D, int[] E, int[] t, int m0Inv32, int[] M)
