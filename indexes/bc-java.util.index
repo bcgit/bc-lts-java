@@ -1,9 +1,9 @@
 6bc40a8b432e52be47cbeeb374766f870846303306d17a658dbb7f2051487cd6  util/src/test/java/org/bouncycastle/test/PrintTestResult.java
 7b5b9834aee0a28b28d5f9788e56877e7f240d80bb757bd710b2b3c6b797120a  util/src/test/java/org/bouncycastle/asn1/cmc/test/CMCStatusInfoTest.java
-8e4ab281cdd740943d87d9d4ae151a3e37e0efc6720867ec5dff3ad5739680e3  util/src/test/java/org/bouncycastle/asn1/cmc/test/CMCFailInfoTest.java
+bef3830e04ca68a9e5086103a77581695acb3ccb982f15c68fa80dbf3944877a  util/src/test/java/org/bouncycastle/asn1/cmc/test/CMCFailInfoTest.java
 59452edc4f7b3e25ce89d143a0eb7073692fbc4c7c50719358fe4440bc7fd584  util/src/test/java/org/bouncycastle/asn1/cmc/test/GetCertTest.java
 0a1d6110a17396609ab6cd03cb215c4b986d976ea483553c8ea72fa10aeb8b04  util/src/test/java/org/bouncycastle/asn1/cmc/test/TaggedContentInfoTest.java
-90d7545014bd9b1ab170be54c0f20efc0291bb24035c9366e6443438a4c680dd  util/src/test/java/org/bouncycastle/asn1/cmc/test/CMCStatusTest.java
+302bc782783d2ba020cba7198770a67c620927b28eb4a515a254712af61ee967  util/src/test/java/org/bouncycastle/asn1/cmc/test/CMCStatusTest.java
 f1e9506907777f69050f0b873c14c6e538185403c7f940388b9a9da93353c49c  util/src/test/java/org/bouncycastle/asn1/cmc/test/PublishTrustAnchorsTest.java
 1ada6ac05b7f486d58325e6b18c273161cf0271155dba1b9112fbbcb4810493c  util/src/test/java/org/bouncycastle/asn1/cmc/test/ExtensionReqTest.java
 2178b015c097436377059c5642af00a7e5c84425451a9823a30cb4849aefd868  util/src/test/java/org/bouncycastle/asn1/cmc/test/PopLinkWitnessV2Test.java
@@ -114,7 +114,7 @@ fe03d64b1d642de4b00cf6ef86b3ec2a220ef90fc11bd34133b3f62d9c006f73  util/src/main/
 ad57236c5a1cef2ea1e6f03f5402c48a4e5afe8641f2cfda86a51873f4eac81b  util/src/main/java/org/bouncycastle/asn1/cmc/CMCPublicationInfo.java
 e40c147dfa8b06b0c9cb1022fac4ee2b1cc5ace2ed644f77ac93ce194b7032ee  util/src/main/java/org/bouncycastle/asn1/cmc/PKIData.java
 5c723169a2c2fe302867859090fda1018f2280e7d93d2cc32899704aa46425f7  util/src/main/java/org/bouncycastle/asn1/cmc/TaggedCertificationRequest.java
-7af6c8745d3abd81286fb218b2d1ff6cc2a543643103cbfc109564dfc83174de  util/src/main/java/org/bouncycastle/asn1/cmc/PKIResponse.java
+db994dacf770cc81e5073be4ba78ce42d9382b0a0ddf456d891e851116a0cace  util/src/main/java/org/bouncycastle/asn1/cmc/PKIResponse.java
 4c64db5026be2abba8421a1da65830fbab6a40f84212cf49c7c15e4ae578f38d  util/src/main/java/org/bouncycastle/asn1/cmc/BodyPartPath.java
 fed0e728be3ae3a1d5b300b1221a2f88faf98270cad6c36092abaf3fa1321e9c  util/src/main/java/org/bouncycastle/asn1/cmc/ExtensionReq.java
 4a4d60bce771786125364455afdbfd476d58ad6e6cad19767cdcc162f1f6d2d1  util/src/main/java/org/bouncycastle/asn1/cmc/PendInfo.java
@@ -162,7 +162,7 @@ e5f6a7fe76d0b3865ad02c4dd33bbb96a95fdb03b787c1fcb34da6fcf5c213b2  util/src/main/
 a3ef9da82aa41ff74cb80bc0219b1c4db401ebf1b92cc95a95940b479b34ba85  util/src/main/java/org/bouncycastle/asn1/eac/CertificateHolderReference.java
 7349edf05c0c509e19cc541b87b1b6427996a933d1bf59b40dacaafab5a52ce5  util/src/main/java/org/bouncycastle/asn1/eac/Flags.java
 28334b7f17cb2173d36f76ce395fe620490b7fbb8488f161d611a8a57542b0c3  util/src/main/java/org/bouncycastle/asn1/eac/PackedDate.java
-a0e8cdf75e0fe753c46dda54483efac9e501b499eb62efa088f5655690cc6795  util/src/main/java/org/bouncycastle/asn1/eac/CertificateBody.java
+087fee1b4e6b727873fd763ceca1e112477f5e04987474bbd9e82b446aef3e4c  util/src/main/java/org/bouncycastle/asn1/eac/CertificateBody.java
 74be3967e524ec0f0e8da2bf6ecb507622c830411f52ee296699536e9a19ec60  util/src/main/java/org/bouncycastle/asn1/eac/CVCertificate.java
 8031268d37d4cee0a8ca5068f592399ec5bc83cf30f348fa817bfa3bb3455b40  util/src/main/java/org/bouncycastle/asn1/eac/PublicKeyDataObject.java
 661f6c278b90f137df3b709375f7828ce7e5e98b3c8a67b4d6b280bdc8e988c4  util/src/main/java/org/bouncycastle/asn1/eac/CertificationAuthorityReference.java

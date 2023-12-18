@@ -2,6 +2,7 @@ package org.bouncycastle.math.raw;
 
 import java.math.BigInteger;
 
+import org.bouncycastle.util.Integers;
 import org.bouncycastle.util.Pack;
 
 public abstract class Nat
@@ -226,6 +227,19 @@ public abstract class Nat
         for (int i = 0; i < len; ++i)
         {
             c += (x[i] & M) + (y[i] & MASK);
+            z[i] = (int)c;
+            c >>>= 32;
+        }
+        return (int)c;
+    }
+
+    public static int caddTo(int len, int mask, int[] x, int[] z)
+    {
+        long MASK = -(mask & 1) & M;
+        long c = 0;
+        for (int i = 0; i < len; ++i)
+        {
+            c += (z[i] & M) + (x[i] & MASK);
             z[i] = (int)c;
             c >>>= 32;
         }
@@ -554,6 +568,28 @@ public abstract class Nat
         }
         int b = bit & 31;
         return (x[w] >>> b) & 1;
+    }
+
+    public static int getBitLength(int len, int[] x)
+    {
+        for (int i = len - 1; i >= 0; --i)
+        {
+            int x_i = x[i];
+            if (x_i != 0)
+                return i * 32 + 32 - Integers.numberOfLeadingZeros(x_i);
+        }
+        return 0;
+    }
+
+    public static int getBitLength(int len, int[] x, int xOff)
+    {
+        for (int i = len - 1; i >= 0; --i)
+        {
+            int x_i = x[xOff + i];
+            if (x_i != 0)
+                return i * 32 + 32 - Integers.numberOfLeadingZeros(x_i);
+        }
+        return 0;
     }
 
     public static boolean gte(int len, int[] x, int[] y)

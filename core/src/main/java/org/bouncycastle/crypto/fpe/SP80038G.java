@@ -6,6 +6,7 @@ import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.util.RadixConverter;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.BigIntegers;
+import org.bouncycastle.util.Bytes;
 import org.bouncycastle.util.Integers;
 import org.bouncycastle.util.Pack;
 
@@ -347,15 +348,17 @@ class SP80038G
         {
             int sBlocksLen = (d + BLOCK_SIZE - 1) / BLOCK_SIZE;
             sBlocks = new byte[sBlocksLen * BLOCK_SIZE];
+
+            int j0 = Pack.bigEndianToInt(R, BLOCK_SIZE - 4);
             System.arraycopy(R, 0, sBlocks, 0, BLOCK_SIZE);
 
-            byte[] uint32 = new byte[4];
             for (int j = 1; j < sBlocksLen; ++j)
             {
                 int sOff = j * BLOCK_SIZE;
-                System.arraycopy(R, 0, sBlocks, sOff, BLOCK_SIZE);
-                Pack.intToBigEndian(j, uint32, 0);
-                xor(uint32, 0, sBlocks, sOff + BLOCK_SIZE - 4, 4);
+
+                System.arraycopy(R, 0, sBlocks, sOff, BLOCK_SIZE - 4);
+                Pack.intToBigEndian(j0 ^ j, sBlocks, sOff + BLOCK_SIZE - 4);
+
                 cipher.processBlock(sBlocks, sOff, sBlocks, sOff);
             }
         }
@@ -368,22 +371,15 @@ class SP80038G
     {
         // ii.
         byte[] P = new byte[BLOCK_SIZE];
-        Pack.intToBigEndian(round, P, 0);
-        xor(T, wOff, P, 0, 4);
+        Pack.intToBigEndian(Pack.bigEndianToInt(T, wOff) ^ round, P, 0);
+
         BigInteger numAB = radixConverter.fromEncoding(AB);
-
-        byte[] bytesAB = BigIntegers.asUnsignedByteArray(numAB);
-
-        if ((P.length - bytesAB.length) < 4)  // to be sure...
-        {
-            throw new IllegalStateException("input out of range");
-        }
-        System.arraycopy(bytesAB, 0, P, P.length - bytesAB.length, bytesAB.length);
+        BigIntegers.asUnsignedByteArray(numAB, P, 4, BLOCK_SIZE - 4);
 
         // iii.
-        rev(P);
+        Arrays.reverseInPlace(P);
         cipher.processBlock(P, 0, P, 0);
-        rev(P);
+        Arrays.reverseInPlace(P);
         byte[] S = P;
 
         // iv.
@@ -499,8 +495,8 @@ class SP80038G
         int m = u;
 
         // Note we keep A, B in reverse order throughout
-        rev(A);
-        rev(B);
+        Arrays.reverseInPlace(A);
+        Arrays.reverseInPlace(B);
 
         for (int i = 7; i >= 0; --i)
         {
@@ -522,8 +518,8 @@ class SP80038G
             radixConverter.toEncoding(c, m, C);
         }
 
-        rev(A);
-        rev(B);
+        Arrays.reverseInPlace(A);
+        Arrays.reverseInPlace(B);
 
         return Arrays.concatenate(A, B);
     }
@@ -567,8 +563,8 @@ class SP80038G
         int m = v;
 
         // Note we keep A, B in reverse order throughout
-        rev(a);
-        rev(b);
+        Arrays.reverseInPlace(a);
+        Arrays.reverseInPlace(b);
 
         for (int i = 0; i < 8; ++i)
         {
@@ -590,8 +586,8 @@ class SP80038G
             radixConverter.toEncoding(c, m, C);
         }
 
-        rev(a);
-        rev(b);
+        Arrays.reverseInPlace(a);
+        Arrays.reverseInPlace(b);
 
         return Arrays.concatenate(a, b);
     }
@@ -613,49 +609,11 @@ class SP80038G
 
         for (int i = 0; i < m; ++i)
         {
-            xor(x, i * BLOCK_SIZE, y, 0, BLOCK_SIZE);
+            Bytes.xorTo(BLOCK_SIZE, x, i * BLOCK_SIZE, y, 0);
             c.processBlock(y, 0, y, 0);
         }
 
         return y;
-    }
-
-//    protected static void rev(byte[] x, int xOff, byte[] y, int yOff, int len)
-//    {
-//        for (int i = 1; i <= len; ++i)
-//        {
-//            y[yOff + len - i] = x[xOff + i - 1];
-//        }
-//    }
-
-    protected static void rev(byte[] x)
-    {
-        int half = x.length / 2, end = x.length - 1;
-        for (int i = 0; i < half; ++i)
-        {
-            byte tmp = x[i];
-            x[i] = x[end - i];
-            x[end - i] = tmp;
-        }
-    }
-
-    protected static void rev(short[] x)
-    {
-        int half = x.length / 2, end = x.length - 1;
-        for (int i = 0; i < half; ++i)
-        {
-            short tmp = x[i];
-            x[i] = x[end - i];
-            x[end - i] = tmp;
-        }
-    }
-
-    protected static void xor(byte[] x, int xOff, byte[] y, int yOff, int len)
-    {
-        for (int i = 0; i < len; ++i)
-        {
-            y[yOff + i] ^= x[xOff + i];
-        }
     }
 
     private static byte[] toByte(short[] buf)

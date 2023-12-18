@@ -3,6 +3,7 @@ package org.bouncycastle.jcajce.provider.asymmetric;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.jcajce.provider.config.ConfigurableProvider;
 import org.bouncycastle.jcajce.provider.util.AsymmetricAlgorithmProvider;
+import org.bouncycastle.pqc.jcajce.provider.lms.LMSKeyFactorySpi;
 
 public class LMS
 {
@@ -25,6 +26,8 @@ public class LMS
 
             provider.addAlgorithm("Signature.LMS", PREFIX + "LMSSignatureSpi$generic");
             provider.addAlgorithm("Alg.Alias.Signature." + PKCSObjectIdentifiers.id_alg_hss_lms_hashsig, "LMS");
+
+            provider.addKeyInfoConverter(PKCSObjectIdentifiers.id_alg_hss_lms_hashsig, new LMSKeyFactorySpi());
         }
     }
 }

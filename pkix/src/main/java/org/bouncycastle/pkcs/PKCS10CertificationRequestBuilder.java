@@ -16,6 +16,7 @@ import org.bouncycastle.asn1.pkcs.Attribute;
 import org.bouncycastle.asn1.pkcs.CertificationRequest;
 import org.bouncycastle.asn1.pkcs.CertificationRequestInfo;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.operator.ContentSigner;
 
@@ -160,7 +161,7 @@ public class PKCS10CertificationRequestBuilder
     /**
      * Generate an PKCS#10 request based on the past in signer.
      *
-     * @param signer the content signer to be used to generate the signature validating the certificate.
+     * @param signer the content signer to be used to generate the signature validating the certification request.
      * @return a holder containing the resulting PKCS#10 certification request.
      */
     public PKCS10CertificationRequest build(
@@ -191,6 +192,70 @@ public class PKCS10CertificationRequestBuilder
             info = new CertificationRequestInfo(subject, publicKeyInfo, new DERSet(v));
         }
 
+        try
+        {
+            OutputStream sOut = signer.getOutputStream();
+
+            sOut.write(info.getEncoded(ASN1Encoding.DER));
+
+            sOut.close();
+
+            return new PKCS10CertificationRequest(new CertificationRequest(info, signer.getAlgorithmIdentifier(), new DERBitString(signer.getSignature())));
+        }
+        catch (IOException e)
+        {
+            throw new IllegalStateException("cannot produce certification request signature");
+        }
+    }
+
+    /**
+     * Generate a PKCS10 certificate request, based on the current issuer and subject
+     * using the passed in signer and containing altSignatureAlgorithm. altSubjectPublicKeyInfo, and altSignatureValue attributes
+     * based on the passed altSigner.
+     *
+     * @param signer    the content signer to be used to generate the signature validating the certification request.
+     * @param altPublicKey the public key to verify the altSignatureValue generated as part of this build.
+     * @param altSigner the content signer used to create the altSignatureAlgorithm and altSignatureValue extension.
+     * @return a holder containing the resulting signed certificate.
+     */
+    public PKCS10CertificationRequest build(
+        ContentSigner signer,
+        SubjectPublicKeyInfo altPublicKey,
+        ContentSigner altSigner)
+    {
+        CertificationRequestInfo info;
+
+        ASN1EncodableVector v = new ASN1EncodableVector();
+
+        for (Iterator it = attributes.iterator(); it.hasNext(); )
+        {
+            v.add(Attribute.getInstance(it.next()));
+        }
+
+        v.add(new Attribute(Extension.subjectAltPublicKeyInfo, new DERSet(altPublicKey)));
+        v.add(new Attribute(Extension.altSignatureAlgorithm, new DERSet(altSigner.getAlgorithmIdentifier())));
+
+        info = new CertificationRequestInfo(subject, publicKeyInfo, new DERSet(v));
+
+        // add altSignatureValue
+        try
+        {
+            OutputStream sOut = altSigner.getOutputStream();
+
+            sOut.write(info.getEncoded(ASN1Encoding.DER));
+
+            sOut.close();
+
+            v.add(new Attribute(Extension.altSignatureValue, new DERSet(new DERBitString(altSigner.getSignature()))));
+
+            info = new CertificationRequestInfo(subject, publicKeyInfo, new DERSet(v));
+        }
+        catch (IOException e)
+        {
+            throw new IllegalStateException("cannot produce certification request signature");
+        }
+
+        // create final request
         try
         {
             OutputStream sOut = signer.getOutputStream();
