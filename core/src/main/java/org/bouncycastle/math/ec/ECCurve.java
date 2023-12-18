@@ -679,7 +679,7 @@ public abstract class ECCurve
 
         BigInteger q, r;
         ECPoint.Fp infinity;
-        
+
         public Fp(BigInteger q, BigInteger a, BigInteger b, BigInteger order, BigInteger cofactor)
         {
             this(q, a, b, order, cofactor, false);
@@ -847,6 +847,15 @@ public abstract class ECCurve
         protected AbstractF2m(int m, int k1, int k2, int k3)
         {
             super(buildField(m, k1, k2, k3));
+
+            if (Properties.isOverrideSet("org.bouncycastle.ec.disable"))
+            {
+                throw new UnsupportedOperationException("F2M disabled by \"org.bouncycastle.ec.disable\"");
+            }
+            if (Properties.isOverrideSet("org.bouncycastle.ec.disable_f2m"))
+            {
+                throw new UnsupportedOperationException("F2M disabled by \"org.bouncycastle.ec.disable_f2m\"");
+            }
         }
 
         public ECPoint createPoint(BigInteger x, BigInteger y)
@@ -990,6 +999,11 @@ public abstract class ECCurve
 
             int m = this.getFieldSize();
 
+            if (m > Properties.asInteger("org.bouncycastle.ec.max_f2m_field_size", 1142))  // twice 571
+            {
+                throw new IllegalStateException("field size out of range: " + m);
+            }
+            
             // For odd m, use the half-trace 
             if (0 != (m & 1))
             {
