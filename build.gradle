@@ -8,6 +8,7 @@ buildscript {
       url "https://plugins.gradle.org/m2/"
     }
   }
+
 }
 
 plugins {
@@ -16,15 +17,6 @@ plugins {
   id "jacoco"
   id "java"
 }
-
-//println("Environment setup:")
-//["LTS_JDK8", "LTS_JDK11", "LTS_JDK15"].each({ it ->
-//  println("Looking for JDK ENV '${it}' found  ${System.getenv(it)}");
-//  if (System.getenv(it) == null) {
-//    throw new RuntimeException("Looking for JDK ENV '${it}' but found null, see README 'Environmental variables'");
-//  }
-//})
-
 
 
 if (JavaVersion.current().isJava8Compatible())
@@ -53,25 +45,19 @@ allprojects {
     testImplementation 'junit:junit:4.13.2'
   }
 
+  test {
+    forkEvery=1
+    maxParallelForks=1
+  }
 
 }
 
 ext {
   bcTestDataHome = file('core/src/test/data').absolutePath
 
-  JavaVersion current = JavaVersion.current();
-  //if (current.compareTo(JavaVersion.VERSION_1_8) <= 0)
-  //{
-  //   vm_range = '6to8'
-  //   vm_source = 6
-  //   vm_target = 6
-  //}
-  //else
-  //#{
      vm_range = '8on'
-     vm_source = 8
-     vm_target = 8
- // }
+//     vm_source = 8
+//     vm_target = 8
 
   lts_prov = "${rootProject.projectDir}/prov/build/libs/bcprov-lts${vm_range}-${version}.jar"
   lts_util = "${rootProject.projectDir}/util/build/libs/bcutil-lts${vm_range}-${version}.jar"
@@ -146,8 +132,12 @@ allTestUnisgnedJar.dependsOn(compileTestJava);
 subprojects {
   apply plugin: 'eclipse'
 
-  sourceCompatibility = "$vm_source"
-  targetCompatibility = "$vm_target"
+  java {
+    toolchain {
+      languageVersion = JavaLanguageVersion.of("8");
+    }
+  }
+
 
   task('testNEON_LE', type: Test) {
     systemProperty 'bc.test.data.home', bcTestDataHome
@@ -162,7 +152,7 @@ subprojects {
       includeTestsMatching "AllTest*"
     }
 
-    jvmArgs  '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=es,gcmsiv',  '-Dorg.bouncycastle.native.cpu_variant=neon-le'
+    jvmArgs  '-Dorg.bouncycastle.expected_jvm=1.8', '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=es,gcmsiv',  '-Dorg.bouncycastle.native.cpu_variant=neon-le'
     reports {
       junitXml.outputLocation = layout.buildDirectory.dir("test-results")
     }
@@ -182,7 +172,7 @@ subprojects {
     filter {
       includeTestsMatching "AllTest*"
     }
-    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',  '-Dorg.bouncycastle.native.cpu_variant=vaesf'
+    jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8','-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',  '-Dorg.bouncycastle.native.cpu_variant=vaesf'
 
     reports {
       junitXml.outputLocation = layout.buildDirectory.dir("test-results")
@@ -203,7 +193,7 @@ subprojects {
     filter {
       includeTestsMatching "AllTest*"
     }
-    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',  '-Dorg.bouncycastle.native.cpu_variant=vaes'
+    jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8','-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',  '-Dorg.bouncycastle.native.cpu_variant=vaes'
 
     reports {
       junitXml.outputLocation = layout.buildDirectory.dir("test-results")
@@ -229,7 +219,7 @@ subprojects {
       }
     }
 
-     jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake', '-Dorg.bouncycastle.native.cpu_variant=avx'
+     jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8', '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake', '-Dorg.bouncycastle.native.cpu_variant=avx'
 
     reports {
       junitXml.outputLocation = layout.buildDirectory.dir("test-results")
@@ -255,6 +245,8 @@ subprojects {
 
     finalizedBy jacocoTestReport
 
+    jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8'
+
     filter {
       includeTestsMatching "AllTest*"
     }
@@ -272,7 +264,7 @@ subprojects {
     testLogging.showExceptions = true
     testLogging.showStackTraces = true
 
-    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake', '-Dorg.bouncycastle.native.cpu_variant=java'
+    jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8','-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake', '-Dorg.bouncycastle.native.cpu_variant=java'
 
     finalizedBy jacocoTestReport
 

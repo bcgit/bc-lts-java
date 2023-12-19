@@ -23,7 +23,7 @@ public class AllTests
     public static Test suite()
     {
         TestSuite suite = new TestSuite("Lightweight Crypto Tests");
-
+        suite.addTestSuite(ExpectedJVMTest.class);
         suite.addTestSuite(SimpleTestTest.class);
         suite.addTestSuite(GCMReorderTest.class);
         suite.addTestSuite(HPKETestVectors.class);
