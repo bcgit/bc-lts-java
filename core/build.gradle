@@ -1,5 +1,9 @@
 import static ExtraFunctions.*
 
+plugins {
+  id "biz.aQute.bnd.builder" version "7.0.0"
+}
+
 jar.archiveBaseName = "bccore-lts$vm_range"
 
 dependencies {
