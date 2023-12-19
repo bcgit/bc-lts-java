@@ -1320,7 +1320,7 @@ b6398a5fc766c003dce8be3987407842fabee1cc10b9e4e33aa4f555c83df412  core/src/main/
 5ead7fa08227c8ff7071582442561c1e68054be875136b7cba6afc269e08d10a  core/src/main/java/org/bouncycastle/math/ec/ECLookupTable.java
 971e36abaf0dc22004f4d6ac3c5d6872a81e51d447b19a67685d3f04b0ef15e5  core/src/main/java/org/bouncycastle/math/ec/AbstractECLookupTable.java
 6f9916abeacfe93f97218b2284f4c13975aa05cf69c325c4c4effbe2d129051b  core/src/main/java/org/bouncycastle/math/ec/WNafPreCompInfo.java
-6095233d5498ebe2522f6e2c7a86beb1871b5a38b5c3f26faa4173cf640baf05  core/src/main/java/org/bouncycastle/math/ec/ECCurve.java
+cf85d186c8daeb9690ea07f772cec82885cbbb67e3b36337381118d36a95447b  core/src/main/java/org/bouncycastle/math/ec/ECCurve.java
 b3a69266d29309238cb035fddad688c85d56a5d9fe615762ee7c62646c0966b2  core/src/main/java/org/bouncycastle/math/ec/SimpleLookupTable.java
 930c67080c5d0cf13efda349d31a11487420bdceb2e045b3bff03e4a8cb8c52c  core/src/main/java/org/bouncycastle/math/ec/FixedPointUtil.java
 aa712016978fa327c1b62a03e4ef59799544c334115af8996953b1682de1b483  core/src/main/java/org/bouncycastle/math/ec/LongArray.java

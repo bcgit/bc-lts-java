@@ -4,6 +4,10 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 import static ExtraFunctions.*
 
+plugins {
+  id "biz.aQute.bnd.builder" version "7.0.0"
+}
+
 jar.archiveBaseName = "bctls-lts$vm_range"
 
 sourceSets {
@@ -61,6 +65,9 @@ jar {
     from sourceSets.java9.output
   }
   manifest.attributes('Multi-Release': 'true')
+  manifest.attributes('Bundle-RequiredExecutionEnvironment': 'JavaSE-1.8')
+  manifest.attributes('Export-Package': 'org.bouncycastle.*')
+  manifest.attributes('Import-Package': 'java.*;resolution:=optional;javax.*;resolution:=optional;org.bouncycastle.*;version="[2.73,3)"')
 }
 
 task sourcesJar(type: Jar) {
