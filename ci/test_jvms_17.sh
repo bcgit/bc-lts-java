@@ -12,7 +12,7 @@ cd /workspace/bc-lts-java
 source ci/common.sh
 
 
-export JAVA_HOME=`openjdk_11`
+export JAVA_HOME=`openjdk_17`
 export PATH=$JAVA_HOME/bin:$PATH
 export PATH=$PATH:`ant-bin-1-10`
 
