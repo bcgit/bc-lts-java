@@ -1,13 +1,6 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.ExceptionMessages;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.NativeServices;
-import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.AESNativeGCMPacketCipher;
 import org.bouncycastle.crypto.modes.gcm.GCMUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -52,11 +45,11 @@ public class AESGCMPacketCipher
         int macSize = checkParameters(parameters);
         if (forEncryption)
         {
-            return len + macSize;
+            return PacketCipherChecks.addCheckInputOverflow(len,macSize);
         }
         else if (len < macSize)
         {
-            throw new DataLengthException(ExceptionMessages.OUTPUT_LENGTH);
+            throw new OutputLengthException(ExceptionMessages.OUTPUT_LENGTH);
         }
         return len - macSize;
     }
@@ -67,15 +60,15 @@ public class AESGCMPacketCipher
                              byte[] output, int outOff)
         throws PacketCipherException
     {
-        processPacketExceptionCheck(input, inOff, len, output, outOff);
+        // Output len varies with direction.
+       PacketCipherChecks.checkBoundsInput(input, inOff, len, output, outOff);
 
-        // These fields are set by init and not modified by processing
+
         int macSize = 0;
         byte[] nonce = null;
         byte[] HGCM = null;
         byte[] J0 = null;
 
-        // These fields are modified during processing
         byte[] bufBlock = null;
         byte[] macBlock = null;
         byte[] S_current = null, S_at = null, S_atPre = null;
@@ -123,7 +116,9 @@ public class AESGCMPacketCipher
             {
                 throw new IllegalArgumentException(ExceptionMessages.GCM_INVALID_PARAMETER);
             }
-            AEADLengthCheck(forEncryption, len, output, outOff, macSize);
+
+
+            aeadLengthCheck(forEncryption, len, output, outOff, macSize);
             int bufLength = forEncryption ? BLOCK_SIZE : (BLOCK_SIZE + macSize);
             bufBlock = new byte[bufLength];
 
@@ -150,7 +145,7 @@ public class AESGCMPacketCipher
             // Cipher always used in forward mode
             // if keyParam is null we're reusing the last key.
             int keyLen = keyParam.getKey().length;
-            checkKeyLength(keyLen);
+            PacketCipherChecks.checkKeyLength(keyLen);
             KC = keyLen >>> 2;
             ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
             workingKey = generateWorkingKey(keyParam.getKey(), KC, ROUNDS);
@@ -423,7 +418,7 @@ public class AESGCMPacketCipher
             Arrays.fill(macBlock, (byte)0);
         }
 
-        AEADExceptionHandler(output, outOff, exceptionThrown, written);
+        aeadExceptionHandler(output, outOff, exceptionThrown, written);
         return written;
     }
 

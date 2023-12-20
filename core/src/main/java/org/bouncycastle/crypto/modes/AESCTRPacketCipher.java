@@ -9,13 +9,15 @@ import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESNativeCTRPacketCipher;
+import org.bouncycastle.crypto.engines.AESPacketCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Bytes;
 
 public class AESCTRPacketCipher
-    extends AESPacketCipherEngine
-    implements AESCTRModePacketCipher
+        extends AESPacketCipherEngine
+        implements AESCTRModePacketCipher
 {
     public static AESCTRModePacketCipher newInstance()
     {
@@ -43,76 +45,106 @@ public class AESCTRPacketCipher
     }
 
     @Override
-    public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
+    public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, final int len,
                              byte[] output, int outOff)
-        throws PacketCipherException
+            throws PacketCipherException
     {
-        processPacketExceptionCheck(input, inOff, len, output, outOff);
-        if (output.length - outOff < len)
+        PacketCipherChecks.checkBoundsInputAndOutput(input, inOff, len, output, outOff);
+
+        if (len == 0)
         {
-            throw PacketCipherException.from(new OutputLengthException(ExceptionMessages.OUTPUT_LENGTH));
+            return 0;
         }
-        byte[] IV;
-        byte[] counter = new byte[BLOCK_SIZE];
-        int[] counterIn = new int[4];
-        int[] counterOut = new int[4];
-        int ROUNDS;
+
+        byte[] ivOwned;
+        byte[] counter = new byte[AESPacketCipher.BLOCK_SIZE];
+        byte[] counterOut = new byte[AESPacketCipher.BLOCK_SIZE];
         int[][] workingKey;
-        byte[] s = Arrays.clone(S);
-        try
+        byte[] s = AESPacketCipher.createS(true);
+
+        if (parameters instanceof ParametersWithIV)
         {
-            if (parameters instanceof ParametersWithIV)
+            ParametersWithIV ivParam = (ParametersWithIV) parameters;
+
+            ivOwned = Arrays.clone(ivParam.getIV());
+            if (ivOwned.length > AESPacketCipher.BLOCK_SIZE)
             {
-                ParametersWithIV ivParam = (ParametersWithIV)parameters;
-                IV = Arrays.clone(ivParam.getIV());
-                if (BLOCK_SIZE < IV.length)
-                {
-                    throw new IllegalArgumentException(ExceptionMessages.CTR16_IV_TOO_LONG);
-                }
-                //int maxCounterSize = Math.min(8, BLOCK_SIZE >> 1);
-                if (BLOCK_SIZE - IV.length > 8) // 8 is the maxCounterSize
-                {
-                    throw new IllegalArgumentException(ExceptionMessages.CTR16_IV_TOO_SHORT);
-                }
-                System.arraycopy(IV, 0, counter, 0, IV.length);
-                KeyParameter keyParameter = (KeyParameter)ivParam.getParameters();
-                if (keyParameter == null)
-                {
-                    throw PacketCipherException.from(new IllegalStateException(ExceptionMessages.CTR_CIPHER_UNITIALIZED));
-                }
-                int keyLen = keyParameter.getKey().length;
-                checkKeyLength(keyLen);
-                int KC = keyLen >>> 2;
-                ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
-                workingKey = generateWorkingKey(keyParameter.getKey(), KC, ROUNDS);
+                throw new IllegalArgumentException(ExceptionMessages.CTR16_IV_TOO_LONG);
             }
-            else
+
+            if (ivOwned.length < 8)
             {
-                throw new IllegalArgumentException(ExceptionMessages.CTR_INVALID_PARAMETER);
+                throw new IllegalArgumentException(ExceptionMessages.CTR16_IV_TOO_SHORT);
+            }
+            System.arraycopy(ivOwned, 0, counter, 0, ivOwned.length);
+            KeyParameter keyParameter = (KeyParameter) ivParam.getParameters();
+            if (keyParameter == null)
+            {
+                throw PacketCipherException.from(new IllegalStateException(ExceptionMessages.CTR_CIPHER_UNITIALIZED));
+            }
+            int keyLen = keyParameter.getKey().length;
+            PacketCipherChecks.checkKeyLength(keyLen);
+            workingKey = AESPacketCipher.generateWorkingKey(true, keyParameter.getKey());
+
+        }
+        else
+        {
+            throw new IllegalArgumentException(ExceptionMessages.CTR_INVALID_PARAMETER);
+        }
+
+
+        int ctrSize = AESPacketCipher.BLOCK_SIZE - ivOwned.length;
+        if (ctrSize > 0 && ctrSize < 4)
+        {
+            //
+            // We may have a problem because they could pass in more info than
+            // we have counter space for. With bigger counters they cannot pass in
+            // an array big enough to overflow the counter.
+            // If set with a 16byte iv then the assumption is the caller
+            // knows what they are doing.
+            //
+            int ctrBits = ctrSize * 8;
+            int maxBlocks = 1 << ctrBits;
+            int maxLen = maxBlocks * AESPacketCipher.BLOCK_SIZE;
+            if (len > maxLen)
+            {
+                throw new IllegalStateException("Counter in CTR/SIC mode out of range.");
             }
         }
-        catch (Exception e)
+
+        int remaining = len;
+
+        while (remaining > AESPacketCipher.BLOCK_SIZE)
         {
-            throw PacketCipherException.from(e);
+
+            AESPacketCipher.processBlock(true, workingKey, s, counter, 0, counterOut, 0);
+            Bytes.xor(AESPacketCipher.BLOCK_SIZE, input, inOff, counterOut, 0, output, outOff);
+            incrementCounter(counter, ivOwned);
+            inOff += AESPacketCipher.BLOCK_SIZE;
+            outOff += AESPacketCipher.BLOCK_SIZE;
+            remaining -= AESPacketCipher.BLOCK_SIZE;
         }
-        littleEndianToInt4(counter, 0, counterIn);
-        int blockCount = len >>> 4;
-        int inIndex = inOff;
-        int outIndex = outOff;
-        for (int k = 0; k < blockCount; ++k)
-        {
-            ctrProcessBlock(counter, counterIn, counterOut, input, inIndex, output, outIndex, workingKey, s, ROUNDS);
-            inIndex += BLOCK_SIZE;
-            outIndex += BLOCK_SIZE;
-        }
-        encryptBlock(counterIn, counterOut, workingKey, s, ROUNDS);
-        int4ToLittleEndian(counterOut, counter, 0);
-        for (int i = 0; i < len + inOff - inIndex; ++i)
-        {
-            output[outIndex + i] = (byte)(counter[i] ^ input[inIndex + i]);
-        }
+
+        AESPacketCipher.processBlock(true, workingKey, s, counter, 0, counterOut, 0);
+        Bytes.xor(remaining, input, inOff, counterOut, 0, output, outOff);
+
+
         return len;
     }
+
+
+    private static void incrementCounter(byte[] counter, byte[] iv)
+    {
+        int i = counter.length;
+        while (--i >= 0)
+        {
+            if (++counter[i] != 0)
+            {
+                break;
+            }
+        }
+    }
+
 
     @Override
     public String toString()

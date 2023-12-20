@@ -13,7 +13,7 @@ public class ExceptionMessages
     public static final String AES_KEY_LENGTH = "key must be only 16, 24 or 32 bytes long";
     public static final String AES_KEY_LENGTH_SIV = "key must be only 16, or 32 bytes long";
     public static final String BLOCK_CIPHER_16_INPUT_LENGTH_INVALID = "input len not multiple of block size";
-    public static final String CBC_IV_LENGTH = "iv must be only 16 bytes";
+    public static final String IV_LENGTH_16 = "iv must be only 16 bytes";
     public static final String OUTPUT_NULL = "output was null";
     public static final String GCM_SIV_UNINITIALIZED = "GCM-SIV is uninitialized";
     public static final String INVALID_PARAM_TYPE = "invalid parameter type";
@@ -33,4 +33,5 @@ public class ExceptionMessages
     public static final String GCM_IV_TOO_SHORT = "nonce must be at least 12 byte";
     public static final String GCM_SIV_IV_SIZE = "invalid nonce";
     public static final String LEN_PARAMETER_INVALID="len parameter invalid";
+    public static final String INPUT_OVERFLOW = "too much input";
 }

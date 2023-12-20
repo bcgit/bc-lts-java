@@ -16,7 +16,8 @@ import org.junit.Test;
 public class AESCTRPacketCipherTest
         extends TestCase
 {
-    public AESCTRPacketCipherTest() {
+    public AESCTRPacketCipherTest()
+    {
 
     }
 
@@ -25,7 +26,8 @@ public class AESCTRPacketCipherTest
     public void testMultipleMessages()
             throws Exception
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -103,7 +105,7 @@ public class AESCTRPacketCipherTest
                         byte[] tstValue = Arrays.clone(msg);
                         for (int i = 0; i < jitter; i++)
                         {
-                           tstValue[i] = 0;
+                            tstValue[i] = 0;
                         }
 
                         TestCase.assertTrue("Native PT matches original message ", Arrays.areEqual(tstValue, npt));
@@ -121,7 +123,8 @@ public class AESCTRPacketCipherTest
     public void testMultipleMessagesBlocks()
             throws Exception
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -160,19 +163,19 @@ public class AESCTRPacketCipherTest
                 for (int l = 0; l < maxMsg; l += 16)
                 {
 
-                    for (int jitter =0; jitter<2; jitter++)
+                    for (int jitter = 0; jitter < 2; jitter++)
                     {
 
-                        byte[] msg = new byte[l+jitter];
-                        byte[] nct = new byte[l+jitter];
-                        byte[] npt = new byte[l+jitter];
-                        byte[] jct = new byte[l+jitter];
-                        byte[] jpt = new byte[l+jitter];
+                        byte[] msg = new byte[l + jitter];
+                        byte[] nct = new byte[l + jitter];
+                        byte[] npt = new byte[l + jitter];
+                        byte[] jct = new byte[l + jitter];
+                        byte[] jpt = new byte[l + jitter];
 
                         rand.nextBytes(msg);
 
-                        ctrPC.processPacket(true, params, msg, jitter, msg.length-jitter, nct, jitter);
-                        javaEnc.processBlocks(msg, jitter, (msg.length-jitter) / 16, jct, jitter);
+                        ctrPC.processPacket(true, params, msg, jitter, msg.length - jitter, nct, jitter);
+                        javaEnc.processBlocks(msg, jitter, (msg.length - jitter) / 16, jct, jitter);
 
                         if (!Arrays.areEqual(jct, nct))
                         {
@@ -182,14 +185,15 @@ public class AESCTRPacketCipherTest
 
                         TestCase.assertTrue("Java CT = Native CT", Arrays.areEqual(jct, nct));
 
-                        ctrPC.processPacket(false, params, nct, jitter, nct.length-jitter, npt, jitter);
-                        javaDec.processBlocks(jct, jitter, (jct.length-jitter) / 16, jpt, jitter);
+                        ctrPC.processPacket(false, params, nct, jitter, nct.length - jitter, npt, jitter);
+                        javaDec.processBlocks(jct, jitter, (jct.length - jitter) / 16, jpt, jitter);
 
                         TestCase.assertTrue("Java PT = Native PT", Arrays.areEqual(jpt, npt));
 
                         byte[] tstMsg = Arrays.clone(msg);
 
-                        for (int i =0; i <jitter; i++) {
+                        for (int i = 0; i < jitter; i++)
+                        {
                             tstMsg[i] = 0;
                         }
 
@@ -207,7 +211,8 @@ public class AESCTRPacketCipherTest
     @Test
     public void testExceptions()
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -317,8 +322,6 @@ public class AESCTRPacketCipherTest
     }
 
 
-
-
     /**
      * Tests operation of packet cipher where input and output arrays are the same
      *
@@ -327,7 +330,8 @@ public class AESCTRPacketCipherTest
     @Test
     public void testIntoSameArray() throws Exception
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -433,6 +437,76 @@ public class AESCTRPacketCipherTest
             }
         }
     }
+
+
+    public void testOverflow() throws Exception
+    {
+        if (TestUtil.skipPS())
+        {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
+        SecureRandom secureRandom = new SecureRandom();
+
+
+        // Java implementation of CTR mode with the Java aes engine
+        // Packet ciphers will be compared to this.
+        CTRModeCipher ctrModeCipherEnc = new SICBlockCipher(new AESEngine());
+
+        //
+        //  Implementation of packet cipher, may be native or java depending on variant used in testing
+        //
+        PacketCipher ctrPS = AESCTRPacketCipher.newInstance();
+
+
+        //
+        // Verify we are getting is what we expect.
+        //
+        if (isNativeVariant())
+        {
+            TestCase.assertTrue(ctrPS.toString().contains("CTR-PS[Native]"));
+            TestCase.assertTrue(ctrPS instanceof AESNativeCTRPacketCipher);
+        }
+        else
+        {
+            TestCase.assertTrue(ctrPS.toString().contains("CTR-PS[Java]"));
+            TestCase.assertTrue(ctrPS instanceof AESCTRPacketCipher);
+        }
+
+        byte[] iv = new byte[15];
+        byte[] key = new byte[16];
+        secureRandom.nextBytes(iv);
+        secureRandom.nextBytes(key);
+
+
+        try
+        {
+            byte[] msg = new byte[(256 * 16) + 1];
+            byte[] out = new byte[msg.length];
+
+            ctrPS.processPacket(
+                    true,
+                    new ParametersWithIV(new KeyParameter(key), iv),
+                    msg, 0, msg.length, out, 0);
+        }
+        catch (IllegalStateException ise)
+        {
+            TestCase.assertTrue(ise.getMessage().contains("Counter in CTR/SIC mode out of range"));
+        }
+
+
+        byte[] msg = new byte[(256 * 16)];
+        byte[] out = new byte[msg.length];
+
+        ctrPS.processPacket(
+                true,
+                new ParametersWithIV(new KeyParameter(key), iv),
+                msg, 0, msg.length, out, 0);
+
+
+    }
+
 
     private boolean isNativeVariant()
     {

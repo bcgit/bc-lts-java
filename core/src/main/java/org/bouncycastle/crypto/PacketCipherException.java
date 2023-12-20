@@ -35,6 +35,17 @@ public class PacketCipherException extends Exception
         this.reason = reason;
     }
 
+
+    public void throwCauseAsRuntimeException() {
+        Throwable inner = getCause();
+        if (inner instanceof RuntimeException) {
+            throw (RuntimeException)inner;
+        } else {
+            throw new RuntimeException(inner.getMessage(),inner);
+        }
+    }
+
+
     @Override
     public String toString()
     {

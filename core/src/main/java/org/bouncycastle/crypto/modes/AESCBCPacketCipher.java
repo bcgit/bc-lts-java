@@ -1,22 +1,17 @@
 package org.bouncycastle.crypto.modes;
 
 
-import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.ExceptionMessages;
-import org.bouncycastle.crypto.NativeServices;
-import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.AESNativeCBCPacketCipher;
+import org.bouncycastle.crypto.engines.AESPacketCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
-import org.bouncycastle.util.Pack;
+import org.bouncycastle.util.Bytes;
 
 public class AESCBCPacketCipher
-    extends AESPacketCipherEngine
-    implements AESCBCModePacketCipher
+        extends AESPacketCipherEngine
+        implements AESCBCModePacketCipher
 {
     public static AESCBCModePacketCipher newInstance()
     {
@@ -40,152 +35,125 @@ public class AESCBCPacketCipher
         {
             throw new IllegalArgumentException(ExceptionMessages.LEN_NEGATIVE);
         }
-        if ((len & 15) != 0)
+        if (len % AESPacketCipher.BLOCK_SIZE != 0)
         {
             throw new IllegalArgumentException(ExceptionMessages.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID);
         }
-        KeyParameter params;
+
         if (parameters instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV)parameters;
-            if (ivParam.getIV().length != BLOCK_SIZE)
+            //
+            // Test the IV as we have it.
+            //
+            if (((ParametersWithIV) parameters).getIV().length != AESPacketCipher.BLOCK_SIZE)
             {
-                throw new IllegalArgumentException(ExceptionMessages.CBC_IV_LENGTH);
+                throw new IllegalArgumentException(ExceptionMessages.IV_LENGTH_16);
             }
-            params = (KeyParameter)ivParam.getParameters();
+            parameters = ((ParametersWithIV) parameters).getParameters();
         }
-        else
+
+        if (parameters instanceof KeyParameter)
         {
-            params = (KeyParameter)parameters;
+
+            PacketCipherChecks.checkKeyLenIllegalArgumentException(
+                    ((KeyParameter) parameters).getKeyLength());
         }
-        checkKeyLength(params, ExceptionMessages.CBC_CIPHER_UNITIALIZED);
+
         return len;
     }
 
     @Override
     public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
                              byte[] output, int outOff)
-        throws PacketCipherException
+            throws PacketCipherException
     {
-        processPacketExceptionCheck(input, inOff, len, output, outOff);
-        if (outOff + len > output.length)
-        {
-            throw PacketCipherException.from(new DataLengthException(ExceptionMessages.OUTPUT_LENGTH));
-        }
-        if ((len & 15) != 0)
-        {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.BLOCK_CIPHER_16_INPUT_LENGTH_INVALID));
-        }
+        PacketCipherChecks.checkBoundsInputAndOutputWithBlockSize_16(input, inOff, len, output, outOff);
 
         if (len == 0)
         {
             return len;
         }
 
-        boolean tail = (len & 15) != 0;
-        int blockCount = (len >> 4) + (tail ? 1 : 0);
-        if ((blockCount << 4) + outOff > output.length)
+        int blockCount = len / AESPacketCipher.BLOCK_SIZE;
+
+        // These are copies of parameter values.
+        final byte[] keyOwned;
+        final byte[] ivOwned;
+
+        //
+        // Deal with input parameters with IV
+        //
+        if (parameters instanceof ParametersWithIV)
         {
-            throw PacketCipherException.from(new DataLengthException(ExceptionMessages.OUTPUT_LENGTH));
+            ParametersWithIV ivParam = (ParametersWithIV) parameters;
+            ivOwned = Arrays.clone(ivParam.getIV());
+
+            if (ivOwned.length != AESPacketCipher.BLOCK_SIZE)
+            {
+                throw PacketCipherException.from(
+                        new IllegalArgumentException(ExceptionMessages.IV_LENGTH_16));
+            }
+
+           parameters = ((ParametersWithIV) parameters).getParameters();
+        } else {
+            ivOwned = new byte[AESPacketCipher.BLOCK_SIZE];
         }
 
-
-        byte[] iv;
-        int[][] workingKey;
-        byte[] s;
-        int[] C = new int[4];
-        int[] C2 = null;
-        if (!encryption)
+        // Deal with KeyParameter which may have been either passed in or
+        // the parameter within the ParameterWithIV
+        if (parameters instanceof KeyParameter)
         {
-            C2 = new int[4];
-        }
-        int ROUNDS;
-        KeyParameter params;
-        try
-        {
-            if (parameters instanceof ParametersWithIV)
-            {
-                ParametersWithIV ivParam = (ParametersWithIV)parameters;
-                iv = ivParam.getIV().clone();
-                if (iv.length != BLOCK_SIZE)
-                {
-                    throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.CBC_IV_LENGTH));
-                }
-                params = (KeyParameter)ivParam.getParameters();
-            }
-            else
-            {
-                params = (KeyParameter)parameters;
-                iv = new byte[BLOCK_SIZE];
-            }
-            checkKeyLength(params, ExceptionMessages.CBC_CIPHER_UNITIALIZED);
-            byte[] key = params.getKey();
-            int KC = key.length >>> 2;
-            ROUNDS = KC + 6;
-            workingKey = generateWorkingKey(key, KC, ROUNDS, encryption);
-            s = Arrays.clone(encryption ? S : Si);
-        }
-        catch (IllegalArgumentException e)
-        {
-            throw PacketCipherException.from(e);
-        }
-
-        int i, j;
-        if (encryption)
-        {
-            C[0] = Pack.littleEndianToInt(iv, 0) ^ Pack.littleEndianToInt(input, inOff);
-            C[1] = Pack.littleEndianToInt(iv, 4) ^ Pack.littleEndianToInt(input, inOff + 4);
-            C[2] = Pack.littleEndianToInt(iv, 8) ^ Pack.littleEndianToInt(input, inOff + 8);
-            C[3] = Pack.littleEndianToInt(iv, 12) ^ Pack.littleEndianToInt(input, inOff + 12);
-            encryptBlock(C, workingKey, s, ROUNDS);
-            int4ToLittleEndian(C, output, outOff);
-            inOff += BLOCK_SIZE;
-            outOff += BLOCK_SIZE;
-            for (i = 1; i < len >> 4; ++i)
-            {
-                int4XorLittleEndian(C, input, inOff);
-                encryptBlock(C, workingKey, s, ROUNDS);
-                int4ToLittleEndian(C, output, outOff);
-                inOff += BLOCK_SIZE;
-                outOff += BLOCK_SIZE;
-            }
-            if (tail)
-            {
-                for (j = 0; j + inOff < len; ++j)
-                {
-                    output[j + outOff] = (byte)(input[inOff + j] ^ output[j + outOff - BLOCK_SIZE]);
-                }
-                encryptBlock(output, outOff, output, outOff, workingKey, s, ROUNDS);
-            }
+            KeyParameter kp = (KeyParameter) parameters;
+            PacketCipherChecks.checkKeyLength(kp.getKeyLength());
+            keyOwned = Arrays.clone(kp.getKey());
         }
         else
         {
-            littleEndianToInt4(input, inOff, C);
-            decryptBlock(C, C2, workingKey, s, ROUNDS);
-            int4XorLittleEndian(C2, iv, 0);
-            int4ToLittleEndian(C2, output, outOff);
-            inOff += BLOCK_SIZE;
-            outOff += BLOCK_SIZE;
-            for (i = 1; i < blockCount; ++i)
-            {
-                int[] tmp = C2;
-                C2 = C;
-                C = tmp;
-                littleEndianToInt4(input, inOff, C);
-                decryptBlock(C, C2, workingKey, s, ROUNDS);
-                int4ToLittleEndian(C2, output, outOff);
-                inOff += BLOCK_SIZE;
-                outOff += BLOCK_SIZE;
-            }
-            Arrays.fill(C2, 0);
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.INVALID_PARAM_TYPE));
         }
-        for (int[] ints : workingKey)
+
+        // Create AES parameters
+
+        final byte[] s = AESPacketCipher.createS(encryption);
+        final int[][] workingKey = AESPacketCipher.generateWorkingKey(encryption, keyOwned);
+
+        // Mode values
+        byte[] cbcV = Arrays.clone(ivOwned);
+        byte[] cbcNextV = new byte[AESPacketCipher.BLOCK_SIZE];
+
+
+        // Process blocks
+        for (int i = 0; i < blockCount; i++)
         {
-            Arrays.fill(ints, 0);
+            if (encryption)
+            {
+                Bytes.xorTo(AESPacketCipher.BLOCK_SIZE, input, inOff, cbcV, 0);
+                AESPacketCipher.processBlock(encryption, workingKey, s,  cbcV, 0, output, outOff);
+                System.arraycopy(output, outOff, cbcV, 0, cbcV.length);
+            }
+            else
+            {
+                System.arraycopy(input, inOff, cbcNextV, 0, AESPacketCipher.BLOCK_SIZE);
+                AESPacketCipher.processBlock(encryption, workingKey, s,  input, inOff, output, outOff);
+                Bytes.xorTo(AESPacketCipher.BLOCK_SIZE, cbcV, 0, output, outOff);
+                byte[] tmp;
+                tmp = cbcV;
+                cbcV = cbcNextV;
+                cbcNextV = tmp;
+            }
+            outOff += AESPacketCipher.BLOCK_SIZE;
+            inOff += AESPacketCipher.BLOCK_SIZE;
         }
-        Arrays.fill(iv, (byte)0);
-        Arrays.fill(C, 0);
-        return blockCount << 4;
+
+        Arrays.clear(keyOwned);
+        Arrays.clear(ivOwned);
+        Arrays.clear(cbcNextV);
+        Arrays.fill(cbcV, (byte) 0);
+        Arrays.clear(workingKey);
+        Arrays.clear(s);
+
+        return blockCount * AESPacketCipher.BLOCK_SIZE;
+
     }
 
     @Override

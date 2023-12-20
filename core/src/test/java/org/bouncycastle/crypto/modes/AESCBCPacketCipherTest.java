@@ -284,7 +284,7 @@ public class AESCBCPacketCipherTest
         catch (PacketCipherException e)
         {
             // expected
-            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.CBC_IV_LENGTH));
+            TestCase.assertTrue("wrong message", e.getMessage().contains(ExceptionMessages.IV_LENGTH_16));
         }
 
 

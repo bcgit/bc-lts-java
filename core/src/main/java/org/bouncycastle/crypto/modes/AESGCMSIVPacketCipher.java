@@ -63,16 +63,20 @@ public class AESGCMSIVPacketCipher
         {
             throw new IllegalArgumentException(ExceptionMessages.LEN_NEGATIVE);
         }
+
+        final int macSize = BLOCK_SIZE;
+
         if (encryption)
         {
-            return len + BLOCK_SIZE;
+            return PacketCipherChecks.addCheckInputOverflow(len,macSize);
         }
-        else if (len < BLOCK_SIZE)
+        else if (len < macSize)
         {
             throw new DataLengthException(ExceptionMessages.LEN_PARAMETER_INVALID);
         }
+
         checkParameters(parameters);
-        return len - BLOCK_SIZE;
+        return len - macSize;
     }
 
     @Override
@@ -80,8 +84,8 @@ public class AESGCMSIVPacketCipher
                              byte[] output, int outOff)
         throws PacketCipherException
     {
-        processPacketExceptionCheck(input, inOff, len, output, outOff);
-        AEADLengthCheck(encryption, len, output, outOff, BLOCK_SIZE);
+        PacketCipherChecks.checkBoundsInput(input, inOff, len, output, outOff); // Output len varies with direction
+        aeadLengthCheck(encryption, len, output, outOff, BLOCK_SIZE);
         final byte[] theGHash = new byte[BLOCK_SIZE];
         final byte[] theReverse = new byte[BLOCK_SIZE];
         final GCMSIVHasher theAEADHasher = new GCMSIVHasher();
@@ -158,7 +162,7 @@ public class AESGCMSIVPacketCipher
 
             /* Initialise the Cipher */
             int keyLen = myEncKey.length;
-            checkKeyLength(keyLen);
+            PacketCipherChecks.checkKeyLength(keyLen);
             KC = keyLen >>> 2;
             ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
             workingKey = generateWorkingKey(myEncKey, KC, ROUNDS);
@@ -223,7 +227,7 @@ public class AESGCMSIVPacketCipher
             Arrays.fill(myInitialAEAD, (byte)0);
         }
 
-        AEADExceptionHandler(output, outOff, exception, outputLen);
+        aeadExceptionHandler(output, outOff, exception, outputLen);
         return outputLen;
     }
 

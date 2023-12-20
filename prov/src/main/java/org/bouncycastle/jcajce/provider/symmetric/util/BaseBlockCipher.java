@@ -1116,7 +1116,7 @@ public class BaseBlockCipher
      * and ensures the packetCipherInstance field is populated, if possible.
      * Otherwise, field is forced null.
      */
-    private void makePacketCipher()
+    private PacketCipher makePacketCipher()
     {
         synchronized (this)
         {
@@ -1124,19 +1124,19 @@ public class BaseBlockCipher
                     updateCalled || packetDirection == null || packetParams == null)
             {
                 packetCipherInstance = null;
-                return;
+                return packetCipherInstance;
             }
 
             if (modeName == null)
             {
                 packetCipherInstance = null;
-                return;
+                return packetCipherInstance;
             }
 
             if (!"AES".equals(baseEngine.getAlgorithmName()))
             {
                 packetCipherInstance = null;
-                return;
+                return packetCipherInstance;
             }
 
 
@@ -1162,7 +1162,7 @@ public class BaseBlockCipher
                     int wordSize = Integer.parseInt(modeName.substring(3));
                     if (wordSize != 128)
                     {
-                        return;
+                        return packetCipherInstance;
                     }
                 }
 
@@ -1187,7 +1187,9 @@ public class BaseBlockCipher
                 }
                 packetCipherInstance = null;
             }
+            return packetCipherInstance;
         }
+
     }
 
 
@@ -1203,18 +1205,18 @@ public class BaseBlockCipher
      * @throws BadPaddingException
      * @throws IllegalBlockSizeException
      */
-    private int applyPacketCipher(
-            byte[] input,
-            int inputOffset,
-            int inputLen,
-            byte[] output,
-            int outputOffset) throws BadPaddingException, IllegalBlockSizeException
+    private int applyPacketCipher(PacketCipher ps,
+                                  byte[] input,
+                                  int inputOffset,
+                                  int inputLen,
+                                  byte[] output,
+                                  int outputOffset) throws BadPaddingException, IllegalBlockSizeException
 
     {
 
         try
         {
-            return packetCipherInstance.processPacket(
+            return ps.processPacket(
                     packetDirection,
                     packetParams,
                     input,
@@ -1371,13 +1373,13 @@ public class BaseBlockCipher
         if (!updateCalled &&
                 packetDirection != null && packetParams != null)
         {
-            makePacketCipher();
+            PacketCipher ps = makePacketCipher();
 
-            if (packetCipherInstance != null && input != null) // packet cipher cannot accept null input
+            if (ps != null && input != null) // packet cipher cannot accept null input
             {
-                int outputLen = packetCipherInstance.getOutputSize(packetDirection, packetParams, inputLen);
+                int outputLen = ps.getOutputSize(packetDirection, packetParams, inputLen);
                 byte[] output = new byte[outputLen];
-                applyPacketCipher(input, inputOffset, inputLen, output, 0);
+                applyPacketCipher(ps, input, inputOffset, inputLen, output, 0);
                 return output;
             }
         }
@@ -1435,10 +1437,11 @@ public class BaseBlockCipher
 
         try
         {
-            makePacketCipher();
-            if (packetCipherInstance != null && input != null) // packet cipher cannot accept null input
+            PacketCipher ps = makePacketCipher();
+
+            if (ps != null && input != null) // packet cipher cannot accept null input
             {
-                return applyPacketCipher(input, inputOffset, inputLen, output, outputOffset);
+                return applyPacketCipher(ps, input, inputOffset, inputLen, output, outputOffset);
             }
 
             if (inputLen != 0)
@@ -1805,6 +1808,7 @@ public class BaseBlockCipher
         }
         return cipher.toString();
     }
+
 
 
 }

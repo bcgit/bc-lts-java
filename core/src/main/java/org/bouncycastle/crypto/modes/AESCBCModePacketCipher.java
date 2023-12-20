@@ -1,41 +1,38 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.ExceptionMessages;
-import org.bouncycastle.crypto.PacketCipher;
+import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.engines.AESPacketCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
 public interface AESCBCModePacketCipher
-    extends PacketCipher
+        extends PacketCipher
 {
-    default void checkParameters(CipherParameters parameters)
+
+    default void checkParameters(CipherParameters parameters) throws PacketCipherException
     {
-        KeyParameter params;
-        if (parameters instanceof ParametersWithIV)
+        KeyParameter kp = null;
+        if (parameters instanceof KeyParameter)
         {
-            ParametersWithIV ivParam = (ParametersWithIV)parameters;
-            if (ivParam.getIV().length != 16)
-            {
-                throw new IllegalArgumentException(ExceptionMessages.CBC_IV_LENGTH);
-            }
-            params = (KeyParameter)ivParam.getParameters();
+            kp = (KeyParameter) parameters;
         }
-        else
+        else if (parameters instanceof ParametersWithIV)
         {
-            params = (KeyParameter)parameters;
-        }
-        if (params != null)
-        {
-            int keyLen = params.getKeyLength();
-            if (keyLen < 16 || keyLen > 32 || (keyLen & 7) != 0)
+            kp = (KeyParameter) ((ParametersWithIV) parameters).getParameters();
+
+            //
+            // Test the IV as we have it.
+            //
+            if (((ParametersWithIV) parameters).getIV().length != AESPacketCipher.BLOCK_SIZE)
             {
-                throw new IllegalArgumentException(ExceptionMessages.AES_KEY_LENGTH);
+                throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.IV_LENGTH_16));
             }
         }
         else
         {
-            throw new IllegalArgumentException(ExceptionMessages.CBC_CIPHER_UNITIALIZED);
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.INVALID_PARAM_TYPE));
         }
+
+        AESPacketCipher.checkKeyLength(kp.getKeyLength());
     }
 }
