@@ -20,8 +20,6 @@ public class AESGCMPacketCipher
         implements AESGCMModePacketCipher
 {
     private boolean destroyed = false;
-    private byte[] lastKey;
-    private byte[] lastNonce;
 
     public static AESGCMModePacketCipher newInstance()
     {
@@ -119,18 +117,7 @@ public class AESGCMPacketCipher
         final long totalLen = remaining;
         final int outputLen = encryption ? len + macSizeBytes : len - macSizeBytes;
 
-
-        //
-        // Check we have an input of at lease mac size for decryption
-        //
-        if (!encryption)
-        {
-            PacketCipherChecks.checkInputAgainstRequiredLength(input, inOff, macSizeBytes);
-        }
-        //
-        // Assert output availability now macSize and direction are known
-        //
-        PacketCipherChecks.checkOutputAgainstRequiredLength(output, outOff, outputLen);
+        PacketCipherChecks.checkInputAndOutputAEAD(encryption,input,inOff,len,output,outOff,macSizeBytes);
 
         final byte[] s = AESPacketCipher.createS(true);
         final int[][] workingKey = AESPacketCipher.generateWorkingKey(true, keyOwned);
@@ -388,8 +375,6 @@ public class AESGCMPacketCipher
     public void destroy()
             throws DestroyFailedException
     {
-        Arrays.clear(lastKey);
-        Arrays.clear(lastNonce);
         destroyed = true;
     }
 

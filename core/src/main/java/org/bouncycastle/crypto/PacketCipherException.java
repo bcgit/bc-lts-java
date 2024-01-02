@@ -14,7 +14,11 @@ public class PacketCipherException extends Exception
 
     public static PacketCipherException from(Throwable throwable)
     {
-        if (throwable instanceof InvalidCipherTextException)
+        if (throwable instanceof PacketCipherException)
+        {
+            return (PacketCipherException) throwable;
+        }
+        else if (throwable instanceof InvalidCipherTextException)
         {
             return new PacketCipherException(Reason.INVALID_CIPHERTEXT, throwable.getMessage(), throwable);
         }
@@ -36,12 +40,16 @@ public class PacketCipherException extends Exception
     }
 
 
-    public void throwCauseAsRuntimeException() {
+    public void throwCauseAsRuntimeException()
+    {
         Throwable inner = getCause();
-        if (inner instanceof RuntimeException) {
-            throw (RuntimeException)inner;
-        } else {
-            throw new RuntimeException(inner.getMessage(),inner);
+        if (inner instanceof RuntimeException)
+        {
+            throw (RuntimeException) inner;
+        }
+        else
+        {
+            throw new RuntimeException(inner.getMessage(), inner);
         }
     }
 

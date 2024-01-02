@@ -94,7 +94,23 @@ public class PacketCipherChecks
 
     }
 
-    static void checkInputAgainstRequiredLength(byte[] input, int inOff, int requiredLength) throws PacketCipherException{
+
+    static void checkInputAndOutputAEAD(boolean encryption, byte[] input, int inOff, int len, byte[] output,
+                                        int outOff, int macLenBytes) throws PacketCipherException
+    {
+
+        if (!encryption)
+        {
+            checkInputAgainstRequiredLength(input, outOff, macLenBytes);
+        }
+        final int outputLen = encryption ? len + macLenBytes : len - macLenBytes;
+        checkOutputAgainstRequiredLength(output, outOff, outputLen);
+
+    }
+
+
+    static void checkInputAgainstRequiredLength(byte[] input, int inOff, int requiredLength) throws PacketCipherException
+    {
 
         if (inOff < 0)
         {
@@ -113,7 +129,8 @@ public class PacketCipherChecks
     }
 
 
-    static void checkOutputAgainstRequiredLength(byte[] output, int outOff, int requiredLength) throws PacketCipherException{
+    static void checkOutputAgainstRequiredLength(byte[] output, int outOff, int requiredLength) throws PacketCipherException
+    {
 
         if (outOff < 0)
         {
@@ -169,6 +186,31 @@ public class PacketCipherChecks
                 break;
             default:
                 throw new IllegalArgumentException(ExceptionMessages.AES_KEY_LENGTH);
+        }
+    }
+
+
+    protected static void checkKeyLengthExclude192(int keyLen) throws PacketCipherException
+    {
+        try
+        {
+            checkKeyLenIllegalArgumentExceptionExclude192(keyLen);
+        }
+        catch (IllegalArgumentException ilex)
+        {
+            throw PacketCipherException.from(ilex);
+        }
+    }
+
+    protected static void checkKeyLenIllegalArgumentExceptionExclude192(int keyLen)
+    {
+        switch (keyLen)
+        {
+            case 16:
+            case 32:
+                break;
+            default:
+                throw new IllegalArgumentException(ExceptionMessages.AES_KEY_LENGTH_SIV);
         }
     }
 

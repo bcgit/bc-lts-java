@@ -1,15 +1,10 @@
 package org.bouncycastle.crypto.modes;
 
 
-import org.bouncycastle.crypto.AESPacketCipherEngine;
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.ExceptionMessages;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.NativeServices;
-import org.bouncycastle.crypto.PacketCipherException;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.AESNativeGCMSIVPacketCipher;
+import org.bouncycastle.crypto.engines.AESPacketCipher;
+import org.bouncycastle.crypto.modes.gcm.GCMUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -20,9 +15,10 @@ import org.bouncycastle.util.Longs;
 import org.bouncycastle.util.Pack;
 
 public class AESGCMSIVPacketCipher
-    extends AESPacketCipherEngine
-    implements AESGCMSIVModePacketCipher
+        extends AESPacketCipherEngine
+        implements AESGCMSIVModePacketCipher
 {
+
     public static AESGCMSIVModePacketCipher newInstance()
     {
         if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCMSIV_PC))
@@ -46,15 +42,15 @@ public class AESGCMSIVPacketCipher
      * The maximum data length (AEAD/PlainText). Due to implementation constraints this is restricted to the maximum
      * array length (https://programming.guide/java/array-maximum-length.html) minus the BUFLEN to allow for the MAC
      */
-    private static final int MAX_DATALEN = Integer.MAX_VALUE - 8 - BLOCK_SIZE;
+    private static final int MAX_DATALEN = Integer.MAX_VALUE - 8 - AESPacketCipher.BLOCK_SIZE;
     /**
      * The top bit mask.
      */
-    private static final byte MASK = (byte)0x80;
+    private static final byte MASK = (byte) 0x80;
     /**
      * The addition constant.
      */
-    private static final byte ADD = (byte)0xE1;
+    private static final byte ADD = (byte) 0xE1;
 
     @Override
     public int getOutputSize(boolean encryption, CipherParameters parameters, int len)
@@ -64,11 +60,11 @@ public class AESGCMSIVPacketCipher
             throw new IllegalArgumentException(ExceptionMessages.LEN_NEGATIVE);
         }
 
-        final int macSize = BLOCK_SIZE;
+        final int macSize = AESPacketCipher.BLOCK_SIZE;
 
         if (encryption)
         {
-            return PacketCipherChecks.addCheckInputOverflow(len,macSize);
+            return PacketCipherChecks.addCheckInputOverflow(len, macSize);
         }
         else if (len < macSize)
         {
@@ -82,96 +78,94 @@ public class AESGCMSIVPacketCipher
     @Override
     public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
                              byte[] output, int outOff)
-        throws PacketCipherException
+            throws PacketCipherException
     {
         PacketCipherChecks.checkBoundsInput(input, inOff, len, output, outOff); // Output len varies with direction
-        aeadLengthCheck(encryption, len, output, outOff, BLOCK_SIZE);
-        final byte[] theGHash = new byte[BLOCK_SIZE];
-        final byte[] theReverse = new byte[BLOCK_SIZE];
+        PacketCipherChecks.checkInputAndOutputAEAD(encryption, input, inOff, len, output, outOff,
+                AESPacketCipher.BLOCK_SIZE);
+
+        final byte[] theGHash = new byte[AESPacketCipher.BLOCK_SIZE];
+        final byte[] theReverse = new byte[AESPacketCipher.BLOCK_SIZE];
         final GCMSIVHasher theAEADHasher = new GCMSIVHasher();
         final GCMSIVHasher theDataHasher = new GCMSIVHasher();
         byte[] myInitialAEAD = null;
-        byte[] myNonce;
-        int KC, ROUNDS;
+        byte[] myNonceOwned;
+        byte[] myKeyOwned;
         int[][] workingKey;
         byte[] s;
         long[][] T = new long[256][2];
-        final byte[] myResult = new byte[BLOCK_SIZE];
-        KeyParameter myKey;
+        final byte[] myResult = new byte[AESPacketCipher.BLOCK_SIZE];
         /* Access parameters */
         if (parameters instanceof AEADParameters)
         {
-            final AEADParameters myAEAD = (AEADParameters)parameters;
+            final AEADParameters myAEAD = (AEADParameters) parameters;
             myInitialAEAD = myAEAD.getAssociatedText();
-            myNonce = myAEAD.getNonce();
-            myKey = myAEAD.getKey();
+            myNonceOwned = myAEAD.getNonce();
+            PacketCipherChecks.checkKeyLengthExclude192(myAEAD.getKey().getKeyLength());
+            myKeyOwned = Arrays.clone(myAEAD.getKey().getKey());
         }
         else if (parameters instanceof ParametersWithIV)
         {
-            final ParametersWithIV myParms = (ParametersWithIV)parameters;
-            myNonce = Arrays.clone(myParms.getIV());
-            myKey = (KeyParameter)myParms.getParameters();
+            final ParametersWithIV myParms = (ParametersWithIV) parameters;
+            myNonceOwned = Arrays.clone(myParms.getIV());
+            PacketCipherChecks.checkKeyLengthExclude192(((KeyParameter) myParms.getParameters()).getKeyLength());
+            myKeyOwned = Arrays.clone(((KeyParameter) myParms.getParameters()).getKey());
         }
         else
         {
             throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.GCM_SIV_INVALID_PARAMETER));
         }
         /* Check nonceSize */
-        if (myNonce == null || myNonce.length != NONCELEN)
+        if (myNonceOwned == null || myNonceOwned.length != NONCELEN)
         {
             throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.GCM_SIV_IV_SIZE));
         }
 
-        /* Check keysize */
-        if (myKey == null || (myKey.getKeyLength() != BLOCK_SIZE && myKey.getKeyLength() != (BLOCK_SIZE << 1)))
-        {
-            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.AES_KEY_LENGTH_SIV));
-        }
-        else
-        {
-            int keyLen = myKey.getKey().length;
-            KC = keyLen >>> 2;
-            ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
-            workingKey = generateWorkingKey(myKey.getKey(), KC, ROUNDS);
-            s = Arrays.clone(S);
-        }
+        s = AESPacketCipher.createS(true);
+        workingKey = AESPacketCipher.generateWorkingKey(true, myKeyOwned);
 
-        final byte[] myEncKey = new byte[myKey.getKeyLength()];
-        PacketCipherException exception = null;
-        int outputLen = 0;
+        final byte[] myEncKey = new byte[myKeyOwned.length];
+
+        final int outputLen = encryption ? len + AESPacketCipher.BLOCK_SIZE : len - AESPacketCipher.BLOCK_SIZE;
+
         try
         {
+
             /* Prepare for encryption */
-            System.arraycopy(myNonce, 0, theGHash, BLOCK_SIZE - NONCELEN, NONCELEN);
+            System.arraycopy(myNonceOwned, 0, theGHash, AESPacketCipher.BLOCK_SIZE - NONCELEN, NONCELEN);
 
             /* Derive authentication key */
-            DeriveKey(ROUNDS, workingKey, s, theGHash, theReverse, myResult, 0);
+            deriveKey(workingKey, s, theGHash, theReverse, myResult, 0);
 
             /* Derive encryption key */
             theGHash[0]++;
-            int myOff = DeriveKey(ROUNDS, workingKey, s, theGHash, theReverse, myEncKey, 0);
+            int myOff = deriveKey(workingKey, s, theGHash, theReverse, myEncKey, 0);
 
             /* If we have a 32byte key */
-            if (myEncKey.length == BLOCK_SIZE << 1)
+            if (myEncKey.length == 32)
             {
                 /* Derive remainder of encryption key */
                 theGHash[0]++;
                 myOff += HALFBUFLEN;
-                DeriveKey(ROUNDS, workingKey, s, theGHash, theReverse, myEncKey, myOff);
+                deriveKey(workingKey, s, theGHash, theReverse, myEncKey, myOff);
             }
 
             /* Initialise the Cipher */
             int keyLen = myEncKey.length;
             PacketCipherChecks.checkKeyLength(keyLen);
-            KC = keyLen >>> 2;
-            ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
-            workingKey = generateWorkingKey(myEncKey, KC, ROUNDS);
+
+            Arrays.clear(workingKey);
+            Arrays.clear(s);
+
+            s = AESPacketCipher.createS(true);
+            workingKey = AESPacketCipher.generateWorkingKey(true, myEncKey);
 
             /* Initialise the multiplier */
-            fillReverse(myResult, 0, BLOCK_SIZE, theReverse);
+            fillReverse(myResult, 0, AESPacketCipher.BLOCK_SIZE, theReverse);
             mulX(theReverse);
-            old_GCMInitialT(T, theReverse);
-            Arrays.fill(theGHash, (byte)0);
+            initMultiplier(T, theReverse);
+            Arrays.fill(theGHash, (byte) 0);
+
             /* Initialise AEAD if required */
             if (myInitialAEAD != null)
             {
@@ -184,61 +178,70 @@ public class AESGCMSIVPacketCipher
             long dataLimit = MAX_DATALEN;
             if (!encryption)
             {
-                dataLimit += BLOCK_SIZE;
+                dataLimit += AESPacketCipher.BLOCK_SIZE;
             }
-            if ((long)len + Long.MIN_VALUE > (dataLimit - len) + Long.MIN_VALUE)
+            if ((long) len + Long.MIN_VALUE > (dataLimit - len) + Long.MIN_VALUE)
             {
                 throw PacketCipherException.from(new IllegalStateException("byte count exceeded"));
             }
+
 
             /* If we are encrypting */
             if (encryption)
             {
                 theDataHasher.updateHash(input, inOff, len, theReverse, theGHash, T);
                 /* Derive the tag */
-                final byte[] myTag = calculateTag(theDataHasher, theAEADHasher, theReverse, theGHash, T, myNonce,
-                    workingKey, s, ROUNDS);
+                final byte[] myTag = calculateTag(theDataHasher, theAEADHasher, theReverse, theGHash, T, myNonceOwned,
+                        workingKey, s);
                 /* encrypt the plain text */
-                outputLen = BLOCK_SIZE + encryptPlain(input, inOff, len, myTag, output, outOff, workingKey, s, ROUNDS);
+                encryptPlain(input, inOff, len, myTag, output, outOff, workingKey, s);
                 /* Add the tag to the output */
-                System.arraycopy(myTag, 0, output, outOff + len, BLOCK_SIZE);
+                System.arraycopy(myTag, 0, output, outOff + len, AESPacketCipher.BLOCK_SIZE);
             }
             else
             {
                 /* decrypt to plain text */
                 decryptPlain(theDataHasher, theAEADHasher, input, inOff, len,
-                    output, outOff, myNonce, theReverse, theGHash, T, workingKey, s, ROUNDS);
-                outputLen = len - BLOCK_SIZE;
+                        output, outOff, myNonceOwned, theReverse, theGHash, T, workingKey, s);
             }
-        }
-        catch (Exception ex)
-        {
-            exception = PacketCipherException.from(ex);
-        }
-        for (int[] ints : workingKey)
-        {
-            Arrays.fill(ints, 0);
-        }
-        Arrays.fill(theGHash, (byte)0);
-        Arrays.fill(theReverse, (byte)0);
-        Arrays.fill(myNonce, (byte)0);
-        if (myInitialAEAD != null)
-        {
-            Arrays.fill(myInitialAEAD, (byte)0);
-        }
 
-        aeadExceptionHandler(output, outOff, exception, outputLen);
+        } catch (Throwable t) {
+            // Offset with respect to array length has been asserted by this point.
+            Arrays.clear(output,outOff,Math.min(output.length-outOff, outputLen));
+            throw PacketCipherException.from(t);
+        } finally
+        {
+
+
+            for (int[] ints : workingKey)
+            {
+                Arrays.fill(ints, 0);
+            }
+            Arrays.clear(theGHash);
+            Arrays.clear(theReverse);
+            Arrays.clear(myNonceOwned);
+            Arrays.clear(myKeyOwned);
+            Arrays.clear(workingKey);
+            Arrays.clear(s);
+        }
+        // TODO examine from PoV of partial result clearing
+
         return outputLen;
     }
 
-    private int DeriveKey(int ROUNDS, int[][] workingKey, byte[] s, byte[] myIn, byte[] myOut, byte[] myEncKey,
-                          int myOff)
+    private static int deriveKey(int[][] workingKey, byte[] s, byte[] myIn, byte[] myOut, byte[] myEncKey,
+                                 int myOff)
     {
-        encryptBlock(myIn, 0, myOut, 0, workingKey, s, ROUNDS);
+
+        AESPacketCipher.processBlock(true, workingKey, s, myIn, 0, myOut, 0);
+        //encryptBlock(myIn, 0, myOut, 0, workingKey, s, workingKey.length-1);
         System.arraycopy(myOut, 0, myEncKey, myOff, HALFBUFLEN);
         myIn[0]++;
         myOff += HALFBUFLEN;
-        encryptBlock(myIn, 0, myOut, 0, workingKey, s, ROUNDS);
+
+        AESPacketCipher.processBlock(true, workingKey, s, myIn, 0, myOut, 0);
+
+        //encryptBlock(myIn, 0, myOut, 0, workingKey, s, workingKey.length-1);
         System.arraycopy(myOut, 0, myEncKey, myOff, HALFBUFLEN);
         return myOff;
     }
@@ -248,15 +251,15 @@ public class AESGCMSIVPacketCipher
      *
      * @return the calculated tag
      */
-    private byte[] calculateTag(GCMSIVHasher theDataHasher, GCMSIVHasher theAEADHasher, byte[] theReverse,
-                                byte[] theGHash, long[][] T, byte[] theNonce, int[][] workingKey, byte[] s, int ROUNDS)
+    private static byte[] calculateTag(GCMSIVHasher theDataHasher, GCMSIVHasher theAEADHasher, byte[] theReverse,
+                                       byte[] theGHash, long[][] T, byte[] theNonce, int[][] workingKey, byte[] s)
     {
         /* Complete the hash */
         theDataHasher.completeHash(theReverse, theGHash, T);
         final byte[] myPolyVal = completePolyVal(theDataHasher, theAEADHasher, theGHash, T);
 
         /* calculate polyVal */
-        final byte[] myResult = new byte[BLOCK_SIZE];
+        final byte[] myResult = new byte[AESPacketCipher.BLOCK_SIZE];
 
         /* Fold in the nonce */
         for (int i = 0; i < NONCELEN; i++)
@@ -265,10 +268,12 @@ public class AESGCMSIVPacketCipher
         }
 
         /* Clear top bit */
-        myPolyVal[BLOCK_SIZE - 1] &= (MASK - 1);
+        myPolyVal[AESPacketCipher.BLOCK_SIZE - 1] &= (MASK - 1);
 
         /* Calculate tag and return it */
-        encryptBlock(myPolyVal, 0, myResult, 0, workingKey, s, ROUNDS);
+
+        AESPacketCipher.processBlock(true, workingKey, s, myPolyVal, 0, myResult, 0);
+        // encryptBlock(myPolyVal, 0, myResult, 0, workingKey, s, ROUNDS);
         //theCipher.processBlock(myPolyVal, 0, myResult, 0);
         return myResult;
     }
@@ -278,18 +283,19 @@ public class AESGCMSIVPacketCipher
      *
      * @return the calculated value
      */
-    private byte[] completePolyVal(GCMSIVHasher theDataHasher, GCMSIVHasher theAEADHasher, byte[] theGHash, long[][] T)
+    private static byte[] completePolyVal(GCMSIVHasher theDataHasher, GCMSIVHasher theAEADHasher, byte[] theGHash,
+                                          long[][] T)
     {
         /* Build the polyVal result */
-        final byte[] myResult = new byte[BLOCK_SIZE];
+        final byte[] myResult = new byte[AESPacketCipher.BLOCK_SIZE];
         /* Create reversed bigEndian buffer to keep it simple */
-        final byte[] myIn = new byte[BLOCK_SIZE];
+        final byte[] myIn = new byte[AESPacketCipher.BLOCK_SIZE];
         Pack.longToBigEndian(Bytes.SIZE * theDataHasher.getBytesProcessed(), myIn, 0);
         Pack.longToBigEndian(Bytes.SIZE * theAEADHasher.getBytesProcessed(), myIn, Longs.BYTES);
 
         /* hash value */
         gHASH(myIn, theGHash, T);
-        fillReverse(theGHash, 0, BLOCK_SIZE, myResult);
+        fillReverse(theGHash, 0, AESPacketCipher.BLOCK_SIZE, myResult);
         return myResult;
     }
 
@@ -302,21 +308,22 @@ public class AESGCMSIVPacketCipher
      * @param pOffset  the target offset
      * @return the length of data encrypted
      */
-    private int encryptPlain(byte[] input, int inOff, int len, final byte[] pCounter, final byte[] pTarget,
-                             int pOffset, int[][] workingKey, byte[] s, int ROUNDS)
+    private static int encryptPlain(byte[] input, int inOff, int len, final byte[] pCounter, final byte[] pTarget,
+                                    int pOffset, int[][] workingKey, byte[] s)
     {
         /* Access buffer and length */
         final byte[] myCounter = Arrays.clone(pCounter);
-        myCounter[BLOCK_SIZE - 1] |= MASK;
-        final byte[] myMask = new byte[BLOCK_SIZE];
+        myCounter[AESPacketCipher.BLOCK_SIZE - 1] |= MASK;
+        final byte[] myMask = new byte[AESPacketCipher.BLOCK_SIZE];
         int myRemaining = len;
         /* While we have data to process */
         while (myRemaining > 0)
         {
             /* Generate the next mask */
-            encryptBlock(myCounter, 0, myMask, 0, workingKey, s, ROUNDS);
+            AESPacketCipher.processBlock(true, workingKey, s, myCounter, 0, myMask, 0);
+//            encryptBlock(myCounter, 0, myMask, 0, workingKey, s, ROUNDS);
             /* Xor data into mask */
-            final int myLen = Math.min(BLOCK_SIZE, myRemaining);
+            final int myLen = Math.min(AESPacketCipher.BLOCK_SIZE, myRemaining);
             xorBlock(myMask, input, inOff, myLen);
             /* Copy encrypted data to output */
             System.arraycopy(myMask, 0, pTarget, pOffset, myLen);
@@ -331,12 +338,12 @@ public class AESGCMSIVPacketCipher
         return len;
     }
 
-    private class GCMSIVHasher
+    private static class GCMSIVHasher
     {
         /**
          * Cache.
          */
-        private final byte[] theBuffer = new byte[BLOCK_SIZE];
+        private final byte[] theBuffer = new byte[AESPacketCipher.BLOCK_SIZE];
 
         /**
          * Count of active bytes in cache.
@@ -370,14 +377,14 @@ public class AESGCMSIVPacketCipher
                         final int pLen, byte[] theReverse, byte[] theGHash, long[][] T)
         {
             /* If we should process the cache */
-            final int mySpace = BLOCK_SIZE - numActive;
+            final int mySpace = AESPacketCipher.BLOCK_SIZE - numActive;
             int numProcessed = 0;
             int myRemaining = pLen;
             if (numActive > 0 && pLen >= mySpace)
             {
                 /* Copy data into the cache and hash it */
                 System.arraycopy(pBuffer, pOffset, theBuffer, numActive, mySpace);
-                fillReverse(theBuffer, 0, BLOCK_SIZE, theReverse);
+                fillReverse(theBuffer, 0, AESPacketCipher.BLOCK_SIZE, theReverse);
                 gHASH(theReverse, theGHash, T);
 
                 /* Adjust counters */
@@ -387,15 +394,15 @@ public class AESGCMSIVPacketCipher
             }
 
             /* While we have full blocks */
-            while (myRemaining >= BLOCK_SIZE)
+            while (myRemaining >= AESPacketCipher.BLOCK_SIZE)
             {
                 /* Access the next data */
-                fillReverse(pBuffer, pOffset + numProcessed, BLOCK_SIZE, theReverse);
+                fillReverse(pBuffer, pOffset + numProcessed, AESPacketCipher.BLOCK_SIZE, theReverse);
                 gHASH(theReverse, theGHash, T);
 
                 /* Adjust counters */
-                numProcessed += BLOCK_SIZE;
-                myRemaining -= BLOCK_SIZE;
+                numProcessed += AESPacketCipher.BLOCK_SIZE;
+                myRemaining -= AESPacketCipher.BLOCK_SIZE;
             }
 
             /* If we have remaining data */
@@ -419,7 +426,7 @@ public class AESGCMSIVPacketCipher
             if (numActive > 0)
             {
                 /* Access the next data */
-                Arrays.fill(theReverse, (byte)0);
+                Arrays.fill(theReverse, (byte) 0);
                 fillReverse(theBuffer, 0, numActive, theReverse);
                 /* hash value */
                 gHASH(theReverse, theGHash, T);
@@ -433,18 +440,37 @@ public class AESGCMSIVPacketCipher
                                     final byte[] pOutput)
     {
         /* Loop through the buffer */
-        for (int i = 0, j = BLOCK_SIZE - 1; i < pLength; i++, j--)
+        for (int i = 0, j = AESPacketCipher.BLOCK_SIZE - 1; i < pLength; i++, j--)
         {
             /* Copy byte */
             pOutput[j] = pInput[pOffset + i];
         }
     }
 
-    private void gHASH(final byte[] pNext, byte[] theGHash, long[][] T)
+    private static void gHASH(final byte[] pNext, byte[] theGHash, long[][] T)
     {
         xorBlock(theGHash, pNext);
-        old_multiplyH(theGHash, T);
+        mulH(theGHash, T);
     }
+
+    protected static void mulH(byte[] x, long[][] T)
+    {
+        long[] t = T[x[15] & 0xFF];
+        long z0 = t[0], z1 = t[1];
+
+        for (int i = 14; i >= 0; --i)
+        {
+            t = T[x[i] & 0xFF];
+
+            long c = z1 << 56;
+            z1 = t[1] ^ ((z1 >>> 8) | (z0 << 56));
+            z0 = t[0] ^ (z0 >>> 8) ^ c ^ (c >>> 1) ^ (c >>> 2) ^ (c >>> 7);
+        }
+
+        Pack.longToBigEndian(z0, x, 0);
+        Pack.longToBigEndian(z1, x, 8);
+    }
+
 
     /**
      * xor a full block buffer.
@@ -456,7 +482,7 @@ public class AESGCMSIVPacketCipher
                                  final byte[] pRight)
     {
         /* Loop through the bytes */
-        for (int i = 0; i < BLOCK_SIZE; i++)
+        for (int i = 0; i < AESPacketCipher.BLOCK_SIZE; i++)
         {
             pLeft[i] ^= pRight[i];
         }
@@ -490,11 +516,11 @@ public class AESGCMSIVPacketCipher
     private static void mulX(final byte[] pValue)
     {
         /* Loop through the bytes */
-        byte myMask = (byte)0;
-        for (int i = 0; i < BLOCK_SIZE; i++)
+        byte myMask = (byte) 0;
+        for (int i = 0; i < AESPacketCipher.BLOCK_SIZE; i++)
         {
             final byte myValue = pValue[i];
-            pValue[i] = (byte)(((myValue >> 1) & ~MASK) | myMask);
+            pValue[i] = (byte) (((myValue >> 1) & ~MASK) | myMask);
             myMask = (myValue & 1) == 0 ? 0 : MASK;
         }
 
@@ -508,27 +534,30 @@ public class AESGCMSIVPacketCipher
     /**
      * decrypt data stream.
      */
-    private void decryptPlain(GCMSIVHasher theDataHasher, GCMSIVHasher theAEADHasher, byte[] input, int inOff, int len,
-                              byte[] output, int outOff, byte[] theNonce, byte[] theReverse, byte[] theGHash,
-                              long[][] T, int[][] workingKey, byte[] s, int ROUNDS)
-        throws PacketCipherException
+    private static void decryptPlain(GCMSIVHasher theDataHasher, GCMSIVHasher theAEADHasher, byte[] input, int inOff,
+                                     int len,
+                                     byte[] output, int outOff, byte[] theNonce, byte[] theReverse, byte[] theGHash,
+                                     long[][] T, int[][] workingKey, byte[] s)
+            throws PacketCipherException
     {
-        int myRemaining = len - BLOCK_SIZE;
+        int myRemaining = len - AESPacketCipher.BLOCK_SIZE;
         /* Access counter */
-        final byte[] myExpected = Arrays.copyOfRange(input, myRemaining + inOff, myRemaining + inOff + BLOCK_SIZE);
+        final byte[] myExpected = Arrays.copyOfRange(input, myRemaining + inOff,
+                myRemaining + inOff + AESPacketCipher.BLOCK_SIZE);
         final byte[] myCounter = Arrays.clone(myExpected);
-        myCounter[BLOCK_SIZE - 1] |= MASK;
-        final byte[] myMask = new byte[BLOCK_SIZE];
+        myCounter[AESPacketCipher.BLOCK_SIZE - 1] |= MASK;
+        final byte[] myMask = new byte[AESPacketCipher.BLOCK_SIZE];
         int myOff = inOff;
 
         /* While we have data to process */
         while (myRemaining > 0)
         {
             /* Generate the next mask */
-            encryptBlock(myCounter, 0, myMask, 0, workingKey, s, ROUNDS);
+            AESPacketCipher.processBlock(true, workingKey, s, myCounter, 0, myMask, 0);
+            /// encryptBlock(myCounter, 0, myMask, 0, workingKey, s, ROUNDS);
 
             /* Xor data into mask */
-            final int myLen = Math.min(BLOCK_SIZE, myRemaining);
+            final int myLen = Math.min(AESPacketCipher.BLOCK_SIZE, myRemaining);
             xorBlock(myMask, input, myOff, myLen);
 
             /* Write data to plain dataStream */
@@ -544,12 +573,27 @@ public class AESGCMSIVPacketCipher
 
         /* Derive and check the tag */
         final byte[] myTag = calculateTag(theDataHasher, theAEADHasher, theReverse, theGHash, T, theNonce, workingKey
-            , s, ROUNDS);
+                , s);
         if (!Arrays.constantTimeAreEqual(myTag, myExpected))
         {
             throw PacketCipherException.from(new InvalidCipherTextException("mac check failed"));
         }
     }
+
+    protected static void initMultiplier(long[][] t, byte[] h)
+    {
+        // T[1] = H.p^7
+        GCMUtil.asLongs(h, t[1]);
+        GCMUtil.multiplyP7(t[1], t[1]);
+        for (int n = 2; n < 256; n += 2)
+        {
+            // T[2.n] = T[n].p^-1
+            GCMUtil.divideP(t[n >> 1], t[n]);
+            // T[2.n + 1] = T[2.n] + T[1]
+            GCMUtil.xor(t[n], t[1], t[n + 1]);
+        }
+    }
+
 
     /**
      * increment the counter.

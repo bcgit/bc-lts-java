@@ -26,7 +26,8 @@ public class AESGCMSIVPacketCipherTest
     @Test
     public void testVectors()
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -45,7 +46,8 @@ public class AESGCMSIVPacketCipherTest
     @Test
     public void testExceptions()
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -178,12 +180,68 @@ public class AESGCMSIVPacketCipherTest
     }
 
 
+    @Test
+    public void testCleanUpOnFailure() throws Exception
+    {
+        SecureRandom secureRandom = new SecureRandom();
+
+
+        // Java implementation of GCMSIV mode with the Java aes engine
+        // Packet ciphers will be compared to this.
+        GCMSIVModeCipher gcmsivModeCipherEnc = new GCMSIVBlockCipher(new AESEngine());
+
+
+        byte[] referenceMsg = new byte[33];
+        secureRandom.nextBytes(referenceMsg);
+
+        byte[] key = new byte[16];
+        byte[] iv = new byte[12];
+
+        CipherParameters cp = new ParametersWithIV(new KeyParameter(key), iv);
+        gcmsivModeCipherEnc.init(true, cp);
+
+        byte[] ct = new byte[gcmsivModeCipherEnc.getOutputSize(referenceMsg.length)];
+        int l = gcmsivModeCipherEnc.processBytes(referenceMsg, 0, referenceMsg.length, ct, 0);
+        gcmsivModeCipherEnc.doFinal(ct,l);
+
+
+
+
+        //
+        //  Implementation of packet cipher, may be native or java depending on variant used in testing
+        //
+
+        PacketCipher gcmsivPS = AESGCMSIVPacketCipher.newInstance();
+
+        //
+        // destination array is four bytes longer, we expect the packet cipher to zero
+        // the preceding bytes leaving the trailing four bytes with 0x11 still set.
+        //
+        byte[] pt = new byte[gcmsivPS.getOutputSize(false,cp, ct.length)+4];
+        Arrays.fill(pt, (byte) 0x11);
+
+        ct[0] ^=1; // break message, will cause tag failure
+
+        try
+        {
+            gcmsivPS.processPacket(false, cp, ct, 0, ct.length, pt, 0);
+            fail("did not fail on broken message");
+        } catch (Exception ex) {
+            byte[] expected = new byte[pt.length];
+            Arrays.fill(expected,expected.length-4,expected.length, (byte) 0x11);
+            TestCase.assertTrue(Arrays.areEqual(expected,pt));
+        }
+
+
+    }
+
 
     @Test
     public void testAgreementForMultipleMessages()
             throws Exception
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -229,26 +287,27 @@ public class AESGCMSIVPacketCipherTest
             for (int t = 0; t < 8192; t += 16)
             {
 
-                for (int jitter =0; jitter <2; jitter++)
+                for (int jitter = 0; jitter < 2; jitter++)
                 {
 
                     gcmsivModeCipherEnc.reset();
-                    byte[] msg = new byte[t+jitter];
+                    byte[] msg = new byte[t + jitter];
                     secureRandom.nextBytes(msg);
 
                     // Generate expected message off the
-                    int outLen = gcmsivModeCipherEnc.getOutputSize(msg.length-jitter);
-                    byte[] expected = new byte[gcmsivModeCipherEnc.getOutputSize(msg.length-jitter)+jitter];
-                    int resultLen = gcmsivModeCipherEnc.processBytes(msg, jitter, msg.length-jitter, expected, jitter);
-                    gcmsivModeCipherEnc.doFinal(expected, resultLen+jitter);
+                    int outLen = gcmsivModeCipherEnc.getOutputSize(msg.length - jitter);
+                    byte[] expected = new byte[gcmsivModeCipherEnc.getOutputSize(msg.length - jitter) + jitter];
+                    int resultLen = gcmsivModeCipherEnc.processBytes(msg, jitter, msg.length - jitter, expected,
+                            jitter);
+                    gcmsivModeCipherEnc.doFinal(expected, resultLen + jitter);
 
                     // Test encryption
-                    int len = gcmsivPS.getOutputSize(true, cp, msg.length-jitter);
+                    int len = gcmsivPS.getOutputSize(true, cp, msg.length - jitter);
                     TestCase.assertEquals(outLen, len);
-                    byte[] ctResult = new byte[len+jitter];
+                    byte[] ctResult = new byte[len + jitter];
 
-                    outLen = gcmsivPS.processPacket(true, cp, msg, jitter, msg.length-jitter, ctResult, jitter);
-                    TestCase.assertEquals(ctResult.length-jitter, outLen);
+                    outLen = gcmsivPS.processPacket(true, cp, msg, jitter, msg.length - jitter, ctResult, jitter);
+                    TestCase.assertEquals(ctResult.length - jitter, outLen);
 
                     // Test encrypted output same
                     TestCase.assertTrue(Arrays.areEqual(expected, ctResult));
@@ -256,16 +315,18 @@ public class AESGCMSIVPacketCipherTest
 
                     // Test decryption
 
-                    len = gcmsivPS.getOutputSize(false, cp, ctResult.length-jitter);
-                    TestCase.assertEquals(msg.length-jitter, len);
-                    byte[] ptResult = new byte[len+jitter];
+                    len = gcmsivPS.getOutputSize(false, cp, ctResult.length - jitter);
+                    TestCase.assertEquals(msg.length - jitter, len);
+                    byte[] ptResult = new byte[len + jitter];
 
-                    outLen = gcmsivPS.processPacket(false, cp, ctResult, jitter, ctResult.length-jitter, ptResult, jitter);
-                    TestCase.assertEquals(msg.length-jitter, outLen);
+                    outLen = gcmsivPS.processPacket(false, cp, ctResult, jitter, ctResult.length - jitter, ptResult,
+                            jitter);
+                    TestCase.assertEquals(msg.length - jitter, outLen);
 
 
-                    byte[] expectedResult =Arrays.clone(msg);
-                    for (int i=0; i<jitter;i++) {
+                    byte[] expectedResult = Arrays.clone(msg);
+                    for (int i = 0; i < jitter; i++)
+                    {
                         expectedResult[i] = 0;
                     }
 
@@ -286,7 +347,8 @@ public class AESGCMSIVPacketCipherTest
     public void testIntoSameArray()
             throws Exception
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
