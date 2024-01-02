@@ -128,6 +128,11 @@ public class AESCTRPacketCipher
         AESPacketCipher.processBlock(true, workingKey, s, counter, 0, counterOut, 0);
         Bytes.xor(remaining, input, inOff, counterOut, 0, output, outOff);
 
+        Arrays.clear(counterOut);
+        Arrays.clear(counter);
+        Arrays.clear(ivOwned);
+        Arrays.clear(workingKey);
+        Arrays.clear(s);
 
         return len;
     }

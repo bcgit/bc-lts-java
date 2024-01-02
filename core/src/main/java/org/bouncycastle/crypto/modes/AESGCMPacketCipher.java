@@ -2,19 +2,22 @@ package org.bouncycastle.crypto.modes;
 
 import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.AESNativeGCMPacketCipher;
+import org.bouncycastle.crypto.engines.AESPacketCipher;
 import org.bouncycastle.crypto.modes.gcm.GCMUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Bytes;
 import org.bouncycastle.util.Pack;
+import org.bouncycastle.util.encoders.Hex;
 
 import javax.security.auth.DestroyFailedException;
 
 public class AESGCMPacketCipher
-    extends AESPacketCipherEngine
-    implements AESGCMModePacketCipher
+        extends AESPacketCipherEngine
+        implements AESGCMModePacketCipher
 {
     private boolean destroyed = false;
     private byte[] lastKey;
@@ -29,7 +32,7 @@ public class AESGCMPacketCipher
         return new AESGCMPacketCipher();
     }
 
-    private AESGCMPacketCipher()
+    public AESGCMPacketCipher()
     {
 
     }
@@ -45,7 +48,7 @@ public class AESGCMPacketCipher
         int macSize = checkParameters(parameters);
         if (forEncryption)
         {
-            return PacketCipherChecks.addCheckInputOverflow(len,macSize);
+            return PacketCipherChecks.addCheckInputOverflow(len, macSize);
         }
         else if (len < macSize)
         {
@@ -56,444 +59,323 @@ public class AESGCMPacketCipher
 
 
     @Override
-    public int processPacket(boolean forEncryption, CipherParameters params, byte[] input, int inOff, int len,
-                             byte[] output, int outOff)
-        throws PacketCipherException
+    public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, final int len,
+                             byte[] output, int outOff) throws PacketCipherException
     {
+
         // Output len varies with direction.
-       PacketCipherChecks.checkBoundsInput(input, inOff, len, output, outOff);
+        PacketCipherChecks.checkBoundsInput(input, inOff, len, output, outOff);
 
+        final byte[] keyOwned;
+        final byte[] nonceOwned;
+        final byte[] ad;
+        final int macSizeBytes;
+        final long[][] mulT = new long[256][2];
+        final int blockSize = AESPacketCipher.BLOCK_SIZE;
+        final int outOffStart = outOff;
 
-        int macSize = 0;
-        byte[] nonce = null;
-        byte[] HGCM = null;
-        byte[] J0 = null;
-
-        byte[] bufBlock = null;
-        byte[] macBlock = null;
-        byte[] S_current = null, S_at = null, S_atPre = null;
-        byte[] counter = null;
-        int blocksRemaining = 0;
-        int bufOff = 0;
-        long totalLength = 0;
-        byte[] atBlock = null;
-        int atBlockPos = 0;
-        long atLength = 0;
-        long atLengthPre = 0;
-        Throwable exceptionThrown = null;
-        int KC, ROUNDS = 0;
-        int[][] workingKey = null;
-        byte[] s = null;
-        long[][] T = new long[256][2];
-        try
+        if (parameters instanceof AEADParameters)
         {
-            KeyParameter keyParam;
-            byte[] newNonce;
-            byte[] initialAssociatedText;
-            if (params instanceof AEADParameters)
+            AEADParameters aeadParam = (AEADParameters) parameters;
+            nonceOwned = aeadParam.getNonce(); // This does a clone
+            ad = aeadParam.getAssociatedText();
+            int macSizeBits = aeadParam.getMacSize();
+            if (macSizeBits < 32 || macSizeBits > 128 || (macSizeBits & 7) != 0)
             {
-                AEADParameters param = (AEADParameters)params;
-                newNonce = param.getNonce();
-                initialAssociatedText = param.getAssociatedText();
-                int macSizeBits = param.getMacSize();
-                if (macSizeBits < 32 || macSizeBits > 128 || (macSizeBits & 7) != 0)
-                {
-                    throw new IllegalArgumentException(ExceptionMessages.GCM_INVALID_MAC_SIZE + macSizeBits);
-                }
-                macSize = macSizeBits >> 3;
-                keyParam = param.getKey();
+                throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.GCM_INVALID_MAC_SIZE + macSizeBits));
             }
-            else if (params instanceof ParametersWithIV)
-            {
-                ParametersWithIV param = (ParametersWithIV)params;
+            macSizeBytes = macSizeBits >> 3;
+            PacketCipherChecks.checkKeyLength(aeadParam.getKey().getKeyLength());
+            keyOwned = Arrays.clone(aeadParam.getKey().getKey());
+        }
+        else if (parameters instanceof ParametersWithIV)
+        {
+            ParametersWithIV param = (ParametersWithIV) parameters;
 
-                newNonce = Arrays.clone(param.getIV());
-                initialAssociatedText = null;
-                macSize = 16;
-                keyParam = (KeyParameter)param.getParameters();
+            nonceOwned = Arrays.clone(param.getIV());
+            ad = null;
+            macSizeBytes = 16;
+            PacketCipherChecks.checkKeyLength(((KeyParameter) param.getParameters()).getKeyLength());
+            keyOwned = Arrays.clone(((KeyParameter) param.getParameters()).getKey());
+        }
+        else
+        {
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.GCM_INVALID_PARAMETER));
+        }
+
+
+        if (nonceOwned.length < 12)
+        {
+            PacketCipherException.from(
+                    new IllegalArgumentException(ExceptionMessages.GCM_IV_TOO_SHORT)
+            );
+        }
+
+        //
+        // Assert input and output make sense with respect to mac bytes direction
+        //
+
+        int remaining = encryption ? len : len - macSizeBytes;
+        final long totalLen = remaining;
+        final int outputLen = encryption ? len + macSizeBytes : len - macSizeBytes;
+
+
+        //
+        // Check we have an input of at lease mac size for decryption
+        //
+        if (!encryption)
+        {
+            PacketCipherChecks.checkInputAgainstRequiredLength(input, inOff, macSizeBytes);
+        }
+        //
+        // Assert output availability now macSize and direction are known
+        //
+        PacketCipherChecks.checkOutputAgainstRequiredLength(output, outOff, outputLen);
+
+        final byte[] s = AESPacketCipher.createS(true);
+        final int[][] workingKey = AESPacketCipher.generateWorkingKey(true, keyOwned);
+
+        // Create H, init multiplier
+        final byte[] H = new byte[blockSize];
+        AESPacketCipher.processBlock(true, workingKey, s, H, 0, H, 0);
+        initMultiplier(mulT, H);
+
+
+        final byte[] J0 = new byte[blockSize];
+        if (nonceOwned.length == 12)
+        {
+            System.arraycopy(nonceOwned, 0, J0, 0, nonceOwned.length);
+            J0[J0.length - 1] = 0x01;
+        }
+        else
+        {
+            gHASH(J0, nonceOwned, nonceOwned.length, mulT);
+            byte[] X = new byte[blockSize];
+            Pack.longToBigEndian((long) nonceOwned.length * 8, X, 8);
+            gHASHBlock(J0, X, mulT);
+        }
+
+        final byte[] S = new byte[blockSize];
+        final long adLen;
+
+        // Inject ad into hash
+        if (ad != null)
+        {
+            adLen = ad.length;
+            int l = ad.length;
+            int offset = 0;
+            while (l > S.length)
+            {
+                gHASHBlock(S, ad, offset, mulT);
+                offset += S.length;
+                l -= S.length;
+            }
+            gHASHPartial(S, ad, offset, l, mulT);
+        }
+        else
+        {
+            adLen = 0;
+        }
+
+        final byte[] counter = Arrays.clone(J0);
+        int blocksRemaining = -2;
+
+
+        final byte[] ctrBlock = new byte[blockSize];
+        while (remaining > blockSize)
+        {
+            blocksRemaining = assertBlocksRemaining(blocksRemaining);
+
+            getNextCtrBlock(counter); // Step counter
+
+            AESPacketCipher.processBlock(
+                    true,
+                    workingKey,
+                    s,
+                    counter,
+                    0,
+                    ctrBlock, 0); // make key stream
+
+            GCMUtil.xor(ctrBlock, input, inOff);
+            if (encryption)
+            {
+                gHASHBlock(S, ctrBlock, mulT);
             }
             else
             {
-                throw new IllegalArgumentException(ExceptionMessages.GCM_INVALID_PARAMETER);
+                gHASHBlock(S, input, inOff, mulT);
             }
 
-
-            aeadLengthCheck(forEncryption, len, output, outOff, macSize);
-            int bufLength = forEncryption ? BLOCK_SIZE : (BLOCK_SIZE + macSize);
-            bufBlock = new byte[bufLength];
-
-            if (newNonce == null || newNonce.length < 12)
-            {
-                throw new IllegalArgumentException(ExceptionMessages.GCM_IV_TOO_SHORT);
-            }
-
-            nonce = newNonce;
-
-            // This only works if you use the same instance of packet cipher
-            // It matches the existing behavior of the normal GCM implementation
-            if (forEncryption && Arrays.areEqual(keyParam.getKey(), lastKey) && Arrays.areEqual(nonce, lastNonce))
-            {
-                throw new IllegalArgumentException("cannot reuse nonce for GCM encryption");
-            }
-
-            lastKey = Arrays.clone(keyParam.getKey());
-            lastNonce = Arrays.clone(nonce);
+            System.arraycopy(ctrBlock, 0, output, outOff, blockSize);
 
 
-            // TODO Restrict macSize to 16 if nonce length not 12?
-
-            // Cipher always used in forward mode
-            // if keyParam is null we're reusing the last key.
-            int keyLen = keyParam.getKey().length;
-            PacketCipherChecks.checkKeyLength(keyLen);
-            KC = keyLen >>> 2;
-            ROUNDS = KC + 6;  // This is not always true for the generalized Rijndael that allows larger block sizes
-            workingKey = generateWorkingKey(keyParam.getKey(), KC, ROUNDS);
-            s = Arrays.clone(S);
-            HGCM = new byte[BLOCK_SIZE];
-            encryptBlock(HGCM, HGCM, workingKey, s, ROUNDS);
-            GCMInitialT(T, HGCM);
-
-            J0 = new byte[BLOCK_SIZE];
-
-            if (nonce.length == 12)
-            {
-                System.arraycopy(nonce, 0, J0, 0, nonce.length);
-                J0[BLOCK_SIZE - 1] = 0x01;
-            }
-            else
-            {
-                //gHASH
-                for (int pos = 0; pos < nonce.length; pos += BLOCK_SIZE)
-                {
-                    int num = Math.min(nonce.length - pos, BLOCK_SIZE);
-                    gHASHPartial(J0, nonce, pos, num, T);
-                }
-                byte[] X = new byte[BLOCK_SIZE];
-                Pack.longToBigEndian((long)nonce.length << 3, X, 8);
-                gHASHBlock(J0, X, T);
-            }
-            S_current = new byte[BLOCK_SIZE];
-            S_at = new byte[BLOCK_SIZE];
-            S_atPre = new byte[BLOCK_SIZE];
-            atBlock = new byte[BLOCK_SIZE];
-            counter = Arrays.clone(J0);
-            blocksRemaining = -2;      // page 8, len(P) <= 2^39 - 256, 1 block used by tag but done on J0
-            if (initialAssociatedText != null)
-            {
-                int aadLen = initialAssociatedText.length;
-                int aadOff = 0;
-                int inLimit = aadOff + aadLen - BLOCK_SIZE;
-                while (aadOff <= inLimit)
-                {
-                    gHASHBlock(S_at, initialAssociatedText, aadOff, T);
-                    atLength += BLOCK_SIZE;
-                    aadOff += BLOCK_SIZE;
-                }
-                atBlockPos = BLOCK_SIZE + inLimit - aadOff;
-                System.arraycopy(initialAssociatedText, aadOff, atBlock, 0, atBlockPos);
-            }
+            remaining -= blockSize;
+            outOff += blockSize;
+            inOff += blockSize;
         }
-        catch (Throwable ex)
+
+
+        // Finish up encryption.
+        assertBlocksRemaining(blocksRemaining);
+        getNextCtrBlock(counter); // Step counter
+        AESPacketCipher.processBlock(
+                true,
+                workingKey,
+                s,
+                counter,
+                0,
+                ctrBlock, 0); // make key stream
+
+
+        if (encryption)
         {
-            exceptionThrown = ex;
+            GCMUtil.xor(ctrBlock, 0, input, inOff, remaining);
+            gHASHPartial(S, ctrBlock, 0, remaining, mulT);
         }
-        int written = 0;
-        if (exceptionThrown == null)
+        else
         {
-            try
+            gHASHPartial(S, input, inOff, remaining, mulT);
+            GCMUtil.xor(ctrBlock, 0, input, inOff, remaining);
+        }
+
+        inOff += remaining;
+
+        System.arraycopy(ctrBlock, 0, output, outOff, remaining);
+
+
+        outOff += remaining;
+
+        byte[] X = new byte[blockSize];
+        Pack.longToBigEndian(adLen * 8, X, 0);
+        Pack.longToBigEndian(totalLen * 8, X, 8);
+
+        gHASHBlock(S, X, mulT);
+
+
+        byte[] tag = new byte[blockSize];
+        AESPacketCipher.processBlock(true, workingKey, s, J0, 0, tag, 0);
+        GCMUtil.xor(tag, S);
+
+        if (encryption)
+        {
+            // Copy tag to output
+            System.arraycopy(tag, 0, output, outOff, macSizeBytes);
+        }
+        else
+        {
+            if (!Arrays.constantTimeAreEqual(macSizeBytes, tag, 0, input, inOff))
             {
-                boolean processContinue = true;
-                if (forEncryption)
-                {
-                    int inLimit = inOff + len - BLOCK_SIZE;
-                    while (inOff <= inLimit)
-                    {
-                        if (totalLength == 0)
-                        {
-                            atLengthPre = getAtLengthPre(S_at, S_atPre, atLength, atLengthPre);
-                            atLengthPre = getAtLengthPre(T, S_atPre, atBlock, atBlockPos, atLengthPre);
-                            extracted(S_current, S_atPre, atLengthPre);
-                        }
-                        byte[] ctrBlock = new byte[BLOCK_SIZE];
-                        blocksRemaining = getNextCTRBlock(ctrBlock, blocksRemaining, counter, workingKey, s, ROUNDS);
-                        GCMUtil.xor(ctrBlock, input, inOff);
-                        gHASHBlock(S_current, ctrBlock, T);
-                        System.arraycopy(ctrBlock, 0, output, outOff + written, BLOCK_SIZE);
-                        totalLength += BLOCK_SIZE;
-
-                        inOff += BLOCK_SIZE;
-                        written += BLOCK_SIZE;
-                    }
-                    bufOff = BLOCK_SIZE + inLimit - inOff;
-                    System.arraycopy(input, inOff, bufBlock, 0, bufOff);
-                }
-                else
-                {
-                    int available = bufBlock.length - bufOff;
-                    if (len < available)
-                    {
-                        System.arraycopy(input, inOff, bufBlock, bufOff, len);
-                        bufOff += len;
-                        processContinue = false;
-                    }
-                    if (processContinue)
-                    {
-                        int inLimit = inOff + len - bufBlock.length;
-                        available = BLOCK_SIZE - bufOff;
-                        System.arraycopy(input, inOff, bufBlock, bufOff, available);
-                        atLengthPre = getAtLengthPre(S_at, S_atPre, atLength, atLengthPre);
-                        atLengthPre = getAtLengthPre(T, S_atPre, atBlock, atBlockPos, atLengthPre);
-                        extracted(S_current, S_atPre, atLengthPre);
-                        byte[] ctrBlock = new byte[BLOCK_SIZE];
-                        blocksRemaining = getNextCTRBlock(ctrBlock, blocksRemaining, counter, workingKey, s, ROUNDS);
-                        gHASHBlock(S_current, bufBlock, 0, T);
-                        GCMUtil.xor(ctrBlock, 0, bufBlock, bufOff, output, outOff + written);
-                        totalLength += BLOCK_SIZE;
-
-                        inOff += available;
-                        written += BLOCK_SIZE;
-                        while (inOff <= inLimit)
-                        {
-                            //decryptBlock(input, inOff, output, outOff + written);
-                            if (totalLength == 0)
-                            {
-                                atLengthPre = getAtLengthPre(S_at, S_atPre, atLength, atLengthPre);
-                                atLengthPre = getAtLengthPre(T, S_atPre, atBlock, atBlockPos, atLengthPre);
-                                extracted(S_current, S_atPre, atLengthPre);
-                            }
-                            ctrBlock = new byte[BLOCK_SIZE];
-                            blocksRemaining = getNextCTRBlock(ctrBlock, blocksRemaining, counter, workingKey, s,
-                                ROUNDS);
-                            gHASHBlock(S_current, input, inOff, T);
-                            GCMUtil.xor(ctrBlock, 0, input, inOff, output, outOff + written);
-                            totalLength += BLOCK_SIZE;
-
-                            inOff += BLOCK_SIZE;
-                            written += BLOCK_SIZE;
-                        }
-
-                        bufOff = bufBlock.length + inLimit - inOff;
-                        System.arraycopy(input, inOff, bufBlock, 0, bufOff);
-                    }
-                }
-                //written += doFinal(output, written + outOff);
-                if (totalLength == 0)
-                {
-                    //initCipher();
-                    atLengthPre = getAtLengthPre(S_at, S_atPre, atLength, atLengthPre);
-                    atLengthPre = getAtLengthPre(T, S_atPre, atBlock, atBlockPos, atLengthPre);
-                    extracted(S_current, S_atPre, atLengthPre);
-                }
-                int extra = bufOff;
-                if (!forEncryption)
-                {
-                    extra -= macSize;
-                }
-                if (extra > 0)
-                {
-                    byte[] ctrBlock = new byte[BLOCK_SIZE];
-                    getNextCTRBlock(ctrBlock, blocksRemaining, counter, workingKey, s, ROUNDS);
-                    if (forEncryption)
-                    {
-                        GCMUtil.xor(bufBlock, 0, ctrBlock, 0, extra);
-                        gHASHPartial(S_current, bufBlock, 0, extra, T);
-                    }
-                    else
-                    {
-                        gHASHPartial(S_current, bufBlock, 0, extra, T);
-                        GCMUtil.xor(bufBlock, 0, ctrBlock, 0, extra);
-                    }
-                    System.arraycopy(bufBlock, 0, output, outOff + written, extra);
-                    totalLength += extra;
-                }
-                atLength += atBlockPos;
-                if (atLength > atLengthPre)
-                {
-                    /*
-                     *  Some AAD was sent after the cipher started. We determine the difference b/w the hash value
-                     *  we actually used when the cipher started (S_atPre) and the final hash value calculated (S_at).
-                     *  Then we carry this difference forward by multiplying by HGCM^c, where c is the number of
-                     * (full or
-                     *  partial) cipher-text blocks produced, and adjust the current hash.
-                     */
-                    // Finish hash for partial AAD block
-                    if (atBlockPos > 0)
-                    {
-                        gHASHPartial(S_at, atBlock, 0, atBlockPos, T);
-                    }
-                    // Find the difference between the AAD hashes
-                    if (atLengthPre > 0)
-                    {
-                        GCMUtil.xor(S_at, S_atPre);
-                    }
-                    // Number of cipher-text blocks produced
-                    long c = ((totalLength * 8) + 127) >>> 7;
-                    // Calculate the adjustment factor
-                    byte[] H_c = new byte[16];
-                    long[] x = GCMUtil.asLongs(HGCM);
-                    long[] y = GCMUtil.oneAsLongs();
-                    if (c > 0)
-                    {
-                        long[] powX = new long[GCMUtil.SIZE_LONGS];
-                        System.arraycopy(x, 0, powX, 0, GCMUtil.SIZE_LONGS);
-                        do
-                        {
-                            if ((c & 1L) != 0)
-                            {
-                                GCMUtil.multiply(y, powX);
-                            }
-                            GCMUtil.square(powX, powX);
-                            c >>>= 1;
-                        }
-                        while (c > 0);
-                    }
-                    GCMUtil.asBytes(y, H_c);
-                    // Carry the difference forward
-                    GCMUtil.multiply(S_at, H_c);
-                    // Adjust the current hash
-                    GCMUtil.xor(S_current, S_at);
-                }
-
-                // Final gHASH
-                byte[] X = new byte[BLOCK_SIZE];
-                Pack.longToBigEndian(atLength * 8, X, 0);
-                Pack.longToBigEndian(totalLength * 8, X, 8);
-                gHASHBlock(S_current, X, T);
-                byte[] tag = new byte[BLOCK_SIZE];
-                encryptBlock(J0, tag, workingKey, s, ROUNDS);
-                GCMUtil.xor(tag, S_current);
-                written += extra;
-                if (forEncryption)
-                {
-                    // Append T to the message
-                    System.arraycopy(tag, 0, output, outOff + written, macSize);
-                    written += macSize;
-                }
-                else
-                {
-                    // We place into macBlock our calculated value for T
-                    macBlock = new byte[macSize];
-                    System.arraycopy(tag, 0, macBlock, 0, macSize);
-                    // Retrieve the T value from the message and compare to calculated one
-                    byte[] msgMac = new byte[macSize];
-                    System.arraycopy(bufBlock, extra, msgMac, 0, macSize);
-                    if (!Arrays.constantTimeAreEqual(macBlock, msgMac))
-                    {
-                        throw new InvalidCipherTextException("mac check in GCM failed");
-                    }
-                }
-            }
-            catch (Throwable t)
-            {
-                exceptionThrown = t;
+                Arrays.clear(output, outOffStart, (int) totalLen);
+                throw PacketCipherException.from(new InvalidCipherTextException("mac check in GCM failed"));
             }
         }
 
-        //reset
-        if (workingKey != null)
-        {
-            for (int[] ints : workingKey)
-            {
-                Arrays.fill(ints, 0);
-            }
-        }
-        if (nonce != null)
-        {
-            Arrays.fill(nonce, (byte)0);
-        }
-        if (S_current != null)
-        {
-            Arrays.fill(S_current, (byte)0);
-            Arrays.fill(S_at, (byte)0);
-            Arrays.fill(S_atPre, (byte)0);
-            Arrays.fill(atBlock, (byte)0);
-        }
-        if (bufBlock != null)
-        {
-            Arrays.fill(bufBlock, (byte)0);
-        }
-        if (macBlock != null)
-        {
-            Arrays.fill(macBlock, (byte)0);
-        }
+        Arrays.clear(nonceOwned);
+        Arrays.clear(S);
+        Arrays.clear(J0);
+        Arrays.clear(X);
+        Arrays.clear(H);
+        Arrays.clear(mulT);
+        Arrays.clear(workingKey);
+        Arrays.clear(keyOwned);
 
-        aeadExceptionHandler(output, outOff, exceptionThrown, written);
-        return written;
+        return outputLen;
     }
 
 
-    private static void extracted(byte[] S, byte[] S_atPre, long atLengthPre)
+    private int assertBlocksRemaining(int blocksRemaining) throws PacketCipherException
     {
-        if (atLengthPre > 0)
+        if (blocksRemaining == 0)
         {
-            System.arraycopy(S_atPre, 0, S, 0, BLOCK_SIZE);
+            throw PacketCipherException.from(new IllegalStateException("Attempt to process too many blocks"));
         }
+        blocksRemaining--;
+        return blocksRemaining;
     }
 
-    private long getAtLengthPre(long[][] T, byte[] S_atPre, byte[] atBlock, int atBlockPos, long atLengthPre)
+
+    /**
+     * This method does not assert blocks remaining, this must
+     * be checked externally!
+     *
+     * @param counter
+     */
+    private static void getNextCtrBlock(byte[] counter)
     {
-        // Finish hash for partial AAD block
-        if (atBlockPos > 0)
-        {
-            gHASHPartial(S_atPre, atBlock, 0, atBlockPos, T);
-            atLengthPre += atBlockPos;
-        }
-        return atLengthPre;
+        int c = 1;
+        c += counter[15] & 0xFF;
+        counter[15] = (byte) c;
+        c >>>= 8;
+        c += counter[14] & 0xFF;
+        counter[14] = (byte) c;
+        c >>>= 8;
+        c += counter[13] & 0xFF;
+        counter[13] = (byte) c;
+        c >>>= 8;
+        c += counter[12] & 0xFF;
+        counter[12] = (byte) c;
     }
 
-    private static long getAtLengthPre(byte[] S_at, byte[] S_atPre, long atLength, long atLengthPre)
+    private static void gHASH(byte[] Y, byte[] b, int len, long[][] T)
     {
-        if (atLength > 0)
+        for (int pos = 0; pos < len; pos += AESPacketCipher.BLOCK_SIZE)
         {
-            System.arraycopy(S_at, 0, S_atPre, 0, BLOCK_SIZE);
-            atLengthPre = atLength;
+            int num = Math.min(len - pos, AESPacketCipher.BLOCK_SIZE);
+            gHASHPartial(Y, b, pos, num, T);
         }
-        return atLengthPre;
     }
 
-    private void gHASHBlock(byte[] Y, byte[] b, long[][] T)
+
+    private static void gHASHBlock(byte[] Y, byte[] b, long[][] T)
     {
         GCMUtil.xor(Y, b);
         multiplyH(Y, T);
     }
 
-    private void gHASHBlock(byte[] Y, byte[] b, int off, long[][] T)
+    private static void gHASHBlock(byte[] Y, byte[] b, int off, long[][] T)
     {
         GCMUtil.xor(Y, b, off);
         multiplyH(Y, T);
     }
 
-    private void gHASHPartial(byte[] Y, byte[] b, int off, int len, long[][] T)
+    private static void gHASHPartial(byte[] Y, byte[] b, int off, int len, long[][] T)
     {
         GCMUtil.xor(Y, b, off, len);
         multiplyH(Y, T);
     }
 
-    private int getNextCTRBlock(byte[] block, int blocksRemaining, byte[] counter, int[][] workingkey, byte[] s,
-                                int ROUNDS)
+
+    private static void multiplyH(byte[] x, long[][] T)
     {
-        if (blocksRemaining == 0)
+        long[] t = T[x[15] & 0xFF];
+        long z0 = t[0], z1 = t[1];
+
+        for (int i = 14; i >= 0; --i)
         {
-            throw new IllegalStateException("Attempt to process too many blocks");
+            t = T[x[i] & 0xFF];
+
+            long c = z1 << 56;
+            z1 = t[1] ^ ((z1 >>> 8) | (z0 << 56));
+            z0 = t[0] ^ (z0 >>> 8) ^ c ^ (c >>> 1) ^ (c >>> 2) ^ (c >>> 7);
         }
-        blocksRemaining--;
 
-        int c = 1;
-        c += counter[15] & 0xFF;
-        counter[15] = (byte)c;
-        c >>>= 8;
-        c += counter[14] & 0xFF;
-        counter[14] = (byte)c;
-        c >>>= 8;
-        c += counter[13] & 0xFF;
-        counter[13] = (byte)c;
-        c >>>= 8;
-        c += counter[12] & 0xFF;
-        counter[12] = (byte)c;
+        Pack.longToBigEndian(z0, x, 0);
+        Pack.longToBigEndian(z1, x, 8);
+    }
 
-        encryptBlock(counter, block, workingkey, s, ROUNDS);
-        return blocksRemaining;
+
+    protected static void initMultiplier(long[][] t, byte[] h)
+    {
+        // T[1] = H.p^7
+        GCMUtil.asLongs(h, t[1]);
+        GCMUtil.multiplyP7(t[1], t[1]);
+        for (int n = 2; n < 256; n += 2)
+        {
+            // T[2.n] = T[n].p^-1
+            GCMUtil.divideP(t[n >> 1], t[n]);
+            // T[2.n + 1] = T[2.n] + T[1]
+            GCMUtil.xor(t[n], t[1], t[n + 1]);
+        }
     }
 
     @Override
@@ -504,7 +386,7 @@ public class AESGCMPacketCipher
 
     @Override
     public void destroy()
-        throws DestroyFailedException
+            throws DestroyFailedException
     {
         Arrays.clear(lastKey);
         Arrays.clear(lastNonce);

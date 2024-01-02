@@ -82,8 +82,7 @@ public class AESGCMPacketCipherTest
     }
 
     @Test
-    public void testExceptions()
-            throws DestroyFailedException
+    public void testExceptions() throws Exception
     {
         if (TestUtil.skipPS()) {
             System.out.println("Skipping packet cipher test.");
@@ -444,6 +443,7 @@ public class AESGCMPacketCipherTest
                         byte[] ctResult = new byte[len+jitter];
 
                         outLen = gcmPS.processPacket(true, cp, msg, jitter, msg.length-jitter, ctResult, jitter);
+
                         TestCase.assertEquals(ctResult.length-jitter, outLen);
 
                         // Test encrypted output same

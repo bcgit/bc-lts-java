@@ -170,7 +170,7 @@ public class AESGCMSIVPacketCipher
             /* Initialise the multiplier */
             fillReverse(myResult, 0, BLOCK_SIZE, theReverse);
             mulX(theReverse);
-            GCMInitialT(T, theReverse);
+            old_GCMInitialT(T, theReverse);
             Arrays.fill(theGHash, (byte)0);
             /* Initialise AEAD if required */
             if (myInitialAEAD != null)
@@ -443,7 +443,7 @@ public class AESGCMSIVPacketCipher
     private void gHASH(final byte[] pNext, byte[] theGHash, long[][] T)
     {
         xorBlock(theGHash, pNext);
-        multiplyH(theGHash, T);
+        old_multiplyH(theGHash, T);
     }
 
     /**

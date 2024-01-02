@@ -696,7 +696,7 @@ public abstract class AESPacketCipherEngine
     }
 
     @Deprecated
-    protected static void multiplyH(byte[] x, long[][] T)
+    protected static void old_multiplyH(byte[] x, long[][] T)
     {
         long[] t = T[x[15] & 0xFF];
         long z0 = t[0], z1 = t[1];
@@ -715,7 +715,7 @@ public abstract class AESPacketCipherEngine
     }
 
     @Deprecated
-    protected static void GCMInitialT(long[][] t, byte[] h)
+    protected static void old_GCMInitialT(long[][] t, byte[] h)
     {
         // T[1] = H.p^7
         GCMUtil.asLongs(h, t[1]);

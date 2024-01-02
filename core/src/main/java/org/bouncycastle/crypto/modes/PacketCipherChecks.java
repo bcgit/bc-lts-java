@@ -94,6 +94,43 @@ public class PacketCipherChecks
 
     }
 
+    static void checkInputAgainstRequiredLength(byte[] input, int inOff, int requiredLength) throws PacketCipherException{
+
+        if (inOff < 0)
+        {
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.INPUT_OFFSET_NEGATIVE));
+        }
+
+        if (requiredLength < 0)
+        {
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.LEN_NEGATIVE));
+        }
+
+        if (inOff > input.length - requiredLength)
+        {
+            throw PacketCipherException.from(new DataLengthException(ExceptionMessages.INPUT_SHORT));
+        }
+    }
+
+
+    static void checkOutputAgainstRequiredLength(byte[] output, int outOff, int requiredLength) throws PacketCipherException{
+
+        if (outOff < 0)
+        {
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.OUTPUT_OFFSET_NEGATIVE));
+        }
+
+        if (requiredLength < 0)
+        {
+            throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.LEN_NEGATIVE));
+        }
+
+        if (outOff > output.length - requiredLength)
+        {
+            throw PacketCipherException.from(new DataLengthException(ExceptionMessages.OUTPUT_LENGTH));
+        }
+    }
+
     static int addCheckInputOverflow(int a, int b)
     {
 
