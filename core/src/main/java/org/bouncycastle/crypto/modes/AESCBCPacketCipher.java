@@ -65,7 +65,7 @@ public class AESCBCPacketCipher
     @Override
     public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
                              byte[] output, int outOff)
-            throws PacketCipherException
+    throws PacketCipherException
     {
         PacketCipherChecks.checkBoundsInputAndOutputWithBlockSize_16(input, inOff, len, output, outOff);
 
@@ -94,8 +94,10 @@ public class AESCBCPacketCipher
                         new IllegalArgumentException(ExceptionMessages.IV_LENGTH_16));
             }
 
-           parameters = ((ParametersWithIV) parameters).getParameters();
-        } else {
+            parameters = ((ParametersWithIV) parameters).getParameters();
+        }
+        else
+        {
             ivOwned = new byte[AESPacketCipher.BLOCK_SIZE];
         }
 
@@ -128,13 +130,13 @@ public class AESCBCPacketCipher
             if (encryption)
             {
                 Bytes.xorTo(AESPacketCipher.BLOCK_SIZE, input, inOff, cbcV, 0);
-                AESPacketCipher.processBlock(encryption, workingKey, s,  cbcV, 0, output, outOff);
+                AESPacketCipher.processBlock(encryption, workingKey, s, cbcV, 0, output, outOff);
                 System.arraycopy(output, outOff, cbcV, 0, cbcV.length);
             }
             else
             {
                 System.arraycopy(input, inOff, cbcNextV, 0, AESPacketCipher.BLOCK_SIZE);
-                AESPacketCipher.processBlock(encryption, workingKey, s,  input, inOff, output, outOff);
+                AESPacketCipher.processBlock(encryption, workingKey, s, input, inOff, output, outOff);
                 Bytes.xorTo(AESPacketCipher.BLOCK_SIZE, cbcV, 0, output, outOff);
                 byte[] tmp;
                 tmp = cbcV;

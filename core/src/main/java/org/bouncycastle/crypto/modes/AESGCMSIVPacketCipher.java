@@ -78,7 +78,7 @@ public class AESGCMSIVPacketCipher
     @Override
     public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
                              byte[] output, int outOff)
-            throws PacketCipherException
+    throws PacketCipherException
     {
         PacketCipherChecks.checkBoundsInput(input, inOff, len, output, outOff); // Output len varies with direction
         PacketCipherChecks.checkInputAndOutputAEAD(encryption, input, inOff, len, output, outOff,
@@ -205,11 +205,14 @@ public class AESGCMSIVPacketCipher
                         output, outOff, myNonceOwned, theReverse, theGHash, T, workingKey, s);
             }
 
-        } catch (Throwable t) {
+        }
+        catch (Throwable t)
+        {
             // Offset with respect to array length has been asserted by this point.
-            Arrays.clear(output,outOff,Math.min(output.length-outOff, outputLen));
+            Arrays.clear(output, outOff, Math.min(output.length - outOff, outputLen));
             throw PacketCipherException.from(t);
-        } finally
+        }
+        finally
         {
 
 
@@ -224,7 +227,6 @@ public class AESGCMSIVPacketCipher
             Arrays.clear(workingKey);
             Arrays.clear(s);
         }
-        // TODO examine from PoV of partial result clearing
 
         return outputLen;
     }
@@ -538,7 +540,7 @@ public class AESGCMSIVPacketCipher
                                      int len,
                                      byte[] output, int outOff, byte[] theNonce, byte[] theReverse, byte[] theGHash,
                                      long[][] T, int[][] workingKey, byte[] s)
-            throws PacketCipherException
+    throws PacketCipherException
     {
         int myRemaining = len - AESPacketCipher.BLOCK_SIZE;
         /* Access counter */

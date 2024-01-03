@@ -60,7 +60,7 @@ public class AESCFBPacketCipher
     @Override
     public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, final int len,
                              byte[] output, int outOff)
-            throws PacketCipherException
+    throws PacketCipherException
     {
         PacketCipherChecks.checkBoundsInputAndOutput(input, inOff, len, output, outOff);
 
@@ -126,12 +126,14 @@ public class AESCFBPacketCipher
                 inOff += AESPacketCipher.BLOCK_SIZE;
                 outOff += AESPacketCipher.BLOCK_SIZE;
             }
-        } else {
+        }
+        else
+        {
             // Input and output may overlap.
             byte[] lastCipherText = new byte[16];
             while (remaining > AESPacketCipher.BLOCK_SIZE)
             {
-                System.arraycopy(input,inOff,lastCipherText,0,lastCipherText.length);
+                System.arraycopy(input, inOff, lastCipherText, 0, lastCipherText.length);
                 Bytes.xor(AESPacketCipher.BLOCK_SIZE, input, inOff, keyBlock, 0, output, outOff);
                 AESPacketCipher.processBlock(true, workingKey, s, lastCipherText, 0, keyBlock, 0);
                 remaining -= AESPacketCipher.BLOCK_SIZE;

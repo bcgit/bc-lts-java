@@ -22,16 +22,18 @@ public class AESGCMPacketCipherTest
         extends TestCase
 {
 
-    public AESGCMPacketCipherTest() {
+    public AESGCMPacketCipherTest()
+    {
 
     }
 
     @Test
     public void testResetBehavior()
-            throws Exception
+    throws Exception
     {
 
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -82,9 +84,11 @@ public class AESGCMPacketCipherTest
     }
 
     @Test
-    public void testExceptions() throws Exception
+    public void testExceptions()
+    throws Exception
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -223,7 +227,8 @@ public class AESGCMPacketCipherTest
     @Test
     public void testOutputErase()
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -277,9 +282,10 @@ public class AESGCMPacketCipherTest
 
     @Test
     public void testRandom()
-            throws InvalidCipherTextException, PacketCipherException
+    throws InvalidCipherTextException, PacketCipherException
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -287,7 +293,7 @@ public class AESGCMPacketCipherTest
         SecureRandom srng = new SecureRandom();
         srng.setSeed(Times.nanoTime());
 
-        for (int t=0; t<10000; t++)
+        for (int t = 0; t < 10000; t++)
         {
             execRandomTest(srng);
         }
@@ -295,7 +301,7 @@ public class AESGCMPacketCipherTest
 
 
     private void execRandomTest(SecureRandom srng)
-            throws PacketCipherException
+    throws PacketCipherException
     {
         int kLength = 16 + 8 * (Math.abs(srng.nextInt()) % 3);
         byte[] K = new byte[kLength];
@@ -351,7 +357,8 @@ public class AESGCMPacketCipherTest
     @Test
     public void testOutputSize()
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -376,9 +383,10 @@ public class AESGCMPacketCipherTest
 
     @Test
     public void testAgreementForMultipleMessages()
-            throws Exception
+    throws Exception
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -426,25 +434,26 @@ public class AESGCMPacketCipherTest
                         CipherParameters cp = new ParametersWithIV(new KeyParameter(key), iv);
 
                         gcmModeCipherEnc.reset();
-                        byte[] msg = new byte[t+jitter];
+                        byte[] msg = new byte[t + jitter];
                         secureRandom.nextBytes(msg);
 
                         gcmModeCipherEnc.init(true, cp);
                         // Generate expected message off the
-                        int outLen = gcmModeCipherEnc.getOutputSize(msg.length-jitter);
-                        byte[] expected = new byte[gcmModeCipherEnc.getOutputSize(msg.length-jitter)+jitter];
+                        int outLen = gcmModeCipherEnc.getOutputSize(msg.length - jitter);
+                        byte[] expected = new byte[gcmModeCipherEnc.getOutputSize(msg.length - jitter) + jitter];
 
-                        int resultLen = gcmModeCipherEnc.processBytes(msg, jitter, msg.length-jitter, expected, jitter);
-                        gcmModeCipherEnc.doFinal(expected, resultLen+jitter);
+                        int resultLen = gcmModeCipherEnc.processBytes(msg, jitter, msg.length - jitter, expected,
+                                jitter);
+                        gcmModeCipherEnc.doFinal(expected, resultLen + jitter);
 
                         // Test encryption
-                        int len = gcmPS.getOutputSize(true, cp, msg.length-jitter);
+                        int len = gcmPS.getOutputSize(true, cp, msg.length - jitter);
                         TestCase.assertEquals(outLen, len);
-                        byte[] ctResult = new byte[len+jitter];
+                        byte[] ctResult = new byte[len + jitter];
 
-                        outLen = gcmPS.processPacket(true, cp, msg, jitter, msg.length-jitter, ctResult, jitter);
+                        outLen = gcmPS.processPacket(true, cp, msg, jitter, msg.length - jitter, ctResult, jitter);
 
-                        TestCase.assertEquals(ctResult.length-jitter, outLen);
+                        TestCase.assertEquals(ctResult.length - jitter, outLen);
 
                         // Test encrypted output same
                         TestCase.assertTrue(Arrays.areEqual(expected, ctResult));
@@ -452,16 +461,18 @@ public class AESGCMPacketCipherTest
 
                         // Test decryption
 
-                        len = gcmPS.getOutputSize(false, cp, ctResult.length-jitter);
-                        TestCase.assertEquals(msg.length-jitter, len);
-                        byte[] ptResult = new byte[len+jitter];
+                        len = gcmPS.getOutputSize(false, cp, ctResult.length - jitter);
+                        TestCase.assertEquals(msg.length - jitter, len);
+                        byte[] ptResult = new byte[len + jitter];
 
-                        outLen = gcmPS.processPacket(false, cp, ctResult, jitter, ctResult.length-jitter, ptResult, jitter);
-                        TestCase.assertEquals(msg.length-jitter, outLen);
+                        outLen = gcmPS.processPacket(false, cp, ctResult, jitter, ctResult.length - jitter, ptResult,
+                                jitter);
+                        TestCase.assertEquals(msg.length - jitter, outLen);
 
 
                         byte[] expectedResult = Arrays.clone(msg);
-                        for (int i =0; i<jitter; i++) {
+                        for (int i = 0; i < jitter; i++)
+                        {
                             expectedResult[i] = 0;
                         }
 
@@ -482,9 +493,10 @@ public class AESGCMPacketCipherTest
      */
     @Test
     public void testIntoSameArray()
-            throws Exception
+    throws Exception
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -519,16 +531,19 @@ public class AESGCMPacketCipherTest
 
         for (int ks : new int[]{16, 24, 32})
         {
-            byte[] key = new byte[ks];
-            secureRandom.nextBytes(key);
+
             for (int inLen : new int[]{12, 13, 14, 15, 16})
             {
+                byte[] key = new byte[ks];
+                secureRandom.nextBytes(key);
                 iv = new byte[inLen];
+
                 for (int t = 0; t < 2049; t += 1)
                 {
                     byte[] msg = new byte[t];
                     secureRandom.nextBytes(msg);
                     secureRandom.nextBytes(iv);
+
 
                     CipherParameters cp = new ParametersWithIV(new KeyParameter(key), iv);
                     gcmModeCipherEnc.init(true, cp);
@@ -544,6 +559,9 @@ public class AESGCMPacketCipherTest
 
                     for (int jitter : new int[]{0, 1})
                     {
+                        // Calling this disposes of a copy of the lastIV and lastKey circumvents nonce reuse detection!
+                        // It is only done for expediency in this test and should not be done in the real use.
+                        // Allow disposal to occur ONLY when finished with the instance.
                         ((Destroyable) gcmPS).destroy();
                         // Encryption
                         System.arraycopy(msg, 0, workingArray, jitter, msg.length);

@@ -21,6 +21,11 @@ public class AESGCMPacketCipher
 {
     private boolean destroyed = false;
 
+    private byte[] lastIV;
+    private byte[] lastKey;
+
+    private static final byte[] deadKeyInstance = new byte[0];
+
     public static AESGCMModePacketCipher newInstance()
     {
         if (CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM_PC))
@@ -58,7 +63,8 @@ public class AESGCMPacketCipher
 
     @Override
     public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, final int len,
-                             byte[] output, int outOff) throws PacketCipherException
+                             byte[] output, int outOff)
+    throws PacketCipherException
     {
 
         // Output len varies with direction.
@@ -72,6 +78,8 @@ public class AESGCMPacketCipher
         final int blockSize = AESPacketCipher.BLOCK_SIZE;
         final int outOffStart = outOff;
 
+        final byte[] newKeyOwned;
+
         if (parameters instanceof AEADParameters)
         {
             AEADParameters aeadParam = (AEADParameters) parameters;
@@ -83,8 +91,16 @@ public class AESGCMPacketCipher
                 throw PacketCipherException.from(new IllegalArgumentException(ExceptionMessages.GCM_INVALID_MAC_SIZE + macSizeBits));
             }
             macSizeBytes = macSizeBits >> 3;
-            PacketCipherChecks.checkKeyLength(aeadParam.getKey().getKeyLength());
-            keyOwned = Arrays.clone(aeadParam.getKey().getKey());
+
+            if (aeadParam.getKey() != null)
+            {
+                PacketCipherChecks.checkKeyLength(aeadParam.getKey().getKeyLength());
+                newKeyOwned = Arrays.clone(aeadParam.getKey().getKey());
+            }
+            else
+            {
+                newKeyOwned = null;
+            }
         }
         else if (parameters instanceof ParametersWithIV)
         {
@@ -93,8 +109,16 @@ public class AESGCMPacketCipher
             nonceOwned = Arrays.clone(param.getIV());
             ad = null;
             macSizeBytes = 16;
-            PacketCipherChecks.checkKeyLength(((KeyParameter) param.getParameters()).getKeyLength());
-            keyOwned = Arrays.clone(((KeyParameter) param.getParameters()).getKey());
+
+            if (param.getParameters() != null)
+            {
+                PacketCipherChecks.checkKeyLength(((KeyParameter) param.getParameters()).getKeyLength());
+                newKeyOwned = Arrays.clone(((KeyParameter) param.getParameters()).getKey());
+            }
+            else
+            {
+                newKeyOwned = null;
+            }
         }
         else
         {
@@ -110,6 +134,32 @@ public class AESGCMPacketCipher
         }
 
         //
+        // Test for nonce reuse
+        //
+        if (encryption)
+        {
+            if (lastIV != null && Arrays.areEqual(lastIV, nonceOwned))
+            {
+                if (newKeyOwned == null)
+                {
+                    throw PacketCipherException.from(new IllegalArgumentException("cannot reuse nonce for GCM " +
+                            "encryption"));
+                }
+                if (lastKey != null && Arrays.areEqual(lastKey, newKeyOwned))
+                {
+                    throw PacketCipherException.from(new IllegalArgumentException("cannot reuse nonce for GCM " +
+                            "encryption"));
+                }
+            }
+        }
+
+        keyOwned = newKeyOwned != null ? newKeyOwned : Arrays.clone(lastKey);
+
+        lastIV = Arrays.clone(nonceOwned);
+        lastKey = Arrays.clone(keyOwned);
+
+
+        //
         // Assert input and output make sense with respect to mac bytes direction
         //
 
@@ -117,7 +167,7 @@ public class AESGCMPacketCipher
         final long totalLen = remaining;
         final int outputLen = encryption ? len + macSizeBytes : len - macSizeBytes;
 
-        PacketCipherChecks.checkInputAndOutputAEAD(encryption,input,inOff,len,output,outOff,macSizeBytes);
+        PacketCipherChecks.checkInputAndOutputAEAD(encryption, input, inOff, len, output, outOff, macSizeBytes);
 
         final byte[] s = AESPacketCipher.createS(true);
         final int[][] workingKey = AESPacketCipher.generateWorkingKey(true, keyOwned);
@@ -270,7 +320,8 @@ public class AESGCMPacketCipher
     }
 
 
-    private int assertBlocksRemaining(int blocksRemaining) throws PacketCipherException
+    private int assertBlocksRemaining(int blocksRemaining)
+    throws PacketCipherException
     {
         if (blocksRemaining == 0)
         {
@@ -373,9 +424,11 @@ public class AESGCMPacketCipher
 
     @Override
     public void destroy()
-            throws DestroyFailedException
+    throws DestroyFailedException
     {
         destroyed = true;
+        Arrays.clear(lastKey);
+        Arrays.clear(lastIV);
     }
 
     @Override
