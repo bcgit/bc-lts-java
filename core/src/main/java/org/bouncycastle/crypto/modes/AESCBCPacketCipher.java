@@ -10,7 +10,6 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Bytes;
 
 public class AESCBCPacketCipher
-        extends AESPacketCipherEngine
         implements AESCBCModePacketCipher
 {
     public static AESCBCModePacketCipher newInstance()

@@ -205,8 +205,6 @@ public class AESGCMSIVPacketCipherTest
         gcmsivModeCipherEnc.doFinal(ct,l);
 
 
-
-
         //
         //  Implementation of packet cipher, may be native or java depending on variant used in testing
         //
@@ -217,18 +215,18 @@ public class AESGCMSIVPacketCipherTest
         // destination array is four bytes longer, we expect the packet cipher to zero
         // the preceding bytes leaving the trailing four bytes with 0x11 still set.
         //
-        byte[] pt = new byte[gcmsivPS.getOutputSize(false,cp, ct.length)+4];
+        byte[] pt = new byte[gcmsivPS.getOutputSize(false,cp, ct.length)+5];
         Arrays.fill(pt, (byte) 0x11);
+        byte[] expected = Arrays.clone(pt);
+        Arrays.fill(expected,1,1+referenceMsg.length, (byte) 0x00);
 
         ct[0] ^=1; // break message, will cause tag failure
 
         try
         {
-            gcmsivPS.processPacket(false, cp, ct, 0, ct.length, pt, 0);
+            gcmsivPS.processPacket(false, cp, ct, 0, ct.length, pt, 1);
             fail("did not fail on broken message");
         } catch (Exception ex) {
-            byte[] expected = new byte[pt.length];
-            Arrays.fill(expected,expected.length-4,expected.length, (byte) 0x11);
             TestCase.assertTrue(Arrays.areEqual(expected,pt));
         }
 
@@ -579,7 +577,7 @@ public class AESGCMSIVPacketCipherTest
          */
         void exerciseCipher(final AESGCMSIVPacketCipherTest pTest)
         {
-            AESGCMSIVModePacketCipher gcmsivPC = AESPacketCipherEngine.createGCMSIVPacketCipher();
+            AESGCMSIVModePacketCipher gcmsivPC = AESGCMSIVPacketCipher.newInstance();
             pTest.exerciseSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, EMPTY, EXPECTED_1);
             pTest.exerciseSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, DATA_8, EXPECTED_2);
             pTest.exerciseSIVCipher(gcmsivPC, KEY_1, NONCE_1, EMPTY, DATA_12, EXPECTED_3);

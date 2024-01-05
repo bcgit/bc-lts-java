@@ -24,6 +24,30 @@ public class Bytes
         }
     }
 
+
+    /**
+     * Xor x with z0 and save result into both Z0 and Z1
+     * z0 = z1 = X xor Z0
+     * @param len length
+     * @param x
+     * @param xOff
+     * @param z0
+     * @param z0Off
+     * @param z1
+     * @param z1Off
+     */
+    public static void xorTee(int len, byte[] x, int xOff, byte[] z0, int z0Off, byte[] z1, int z1Off)
+    {
+        for (int i = 0; i < len; ++i)
+        {
+            z0[z0Off+i] = z1[z1Off + i] = (byte)(x[xOff + i] ^ z0[z0Off + i]);
+        }
+    }
+
+
+
+
+
     public static void xorTo(int len, byte[] x, byte[] z)
     {
         for (int i = 0; i < len; ++i)
@@ -39,4 +63,7 @@ public class Bytes
             z[zOff + i] ^= x[xOff + i];
         }
     }
+
+
+
 }

@@ -7,7 +7,6 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 
 public class AESNativeCTRPacketCipher
-    extends AESPacketCipherEngine
     implements AESCTRModePacketCipher
 {
 

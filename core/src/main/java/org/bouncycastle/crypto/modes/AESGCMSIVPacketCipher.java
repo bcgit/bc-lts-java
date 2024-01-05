@@ -15,7 +15,6 @@ import org.bouncycastle.util.Longs;
 import org.bouncycastle.util.Pack;
 
 public class AESGCMSIVPacketCipher
-        extends AESPacketCipherEngine
         implements AESGCMSIVModePacketCipher
 {
 
@@ -37,7 +36,7 @@ public class AESGCMSIVPacketCipher
     /**
      * The halfBuffer length.
      */
-    private static final int HALFBUFLEN = BLOCK_SIZE >> 1;
+    private static final int HALFBUFLEN = AESPacketCipher.BLOCK_SIZE >> 1;
     /**
      * The maximum data length (AEAD/PlainText). Due to implementation constraints this is restricted to the maximum
      * array length (https://programming.guide/java/array-maximum-length.html) minus the BUFLEN to allow for the MAC

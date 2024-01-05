@@ -14,6 +14,8 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Test;
 
+import javax.crypto.Cipher;
+
 
 public class AESCCMPacketCipherTest
         extends TestCase
@@ -59,19 +61,18 @@ public class AESCCMPacketCipherTest
     }
 
 
-
-
     @Test
-    public void testVectors()
-            throws Exception
+    public void testVectors_old()
+    throws Exception
     {
 
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
 
-        AESCCMModePacketCipher ccm = AESPacketCipherEngine.createCCMPacketCipher();
+        AESCCMModePacketCipher ccm = AESCCMPacketCipher.newInstance();
 
         isCorrectTypeForVariant(ccm);
 
@@ -84,47 +85,67 @@ public class AESCCMPacketCipherTest
 
 
     @Test
-    public void testOutputErase()
+    public void testOutputErase() throws Exception
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
 
-        AESCCMModePacketCipher ccm = AESPacketCipherEngine.createCCMPacketCipher();
-        isCorrectTypeForVariant(ccm);
-        byte[] C3new = Arrays.clone(C3);
-        C3new[0]++;
-        KeyParameter keyParam = (K3 == null) ? null : new KeyParameter(K3);
-        AEADParameters parameters = new AEADParameters(keyParam, 64, N3, A3);
-        int len = ccm.getOutputSize(false, parameters, C3new.length) + C3new.length;
-        byte[] dec = new byte[len];
-        System.arraycopy(C3new, 0, dec, 0, C3new.length);
-        byte[] origin = Arrays.clone(dec);
+        SecureRandom rand = new SecureRandom();
 
-        try
-        {
-            ccm.processPacket(false, parameters, dec, 0, dec.length, dec, C3new.length);
-            fail("mac check should be false");
+        // Create message
+
+        byte[] key = new byte[16];
+        byte[] iv = new byte[12];
+
+        byte[] msg = new byte[17];
+
+        rand.nextBytes(key);
+        rand.nextBytes(iv);
+        rand.nextBytes(msg);
+
+        CipherParameters cp = new ParametersWithIV(new KeyParameter(key),iv);
+        CCMBlockCipher ccmNormal = new CCMBlockCipher(new AESEngine());
+        ccmNormal.init(true,cp);
+
+        byte[] correctPt = new byte[ccmNormal.getOutputSize(msg.length)];
+        ccmNormal.processPacket(msg,0,msg.length,correctPt,0);
+
+        // Vandalise cipher text which will lead to tag failure
+        correctPt[0] ^=1;
+
+        AESCCMModePacketCipher ccm = AESCCMPacketCipher.newInstance();
+        isCorrectTypeForVariant(ccm);
+
+        byte[] ctPk = new byte[ccm.getOutputSize(false,cp,correctPt.length)+5];
+        Arrays.fill(ctPk, (byte) 0x01);
+
+        // Should be zero bytes followed by four 0x01.
+        byte[] expected = Arrays.clone(ctPk);
+        Arrays.fill(expected,1,1+msg.length, (byte) 0);
+
+        try {
+            ccm.processPacket(false,cp,correctPt,0,correctPt.length,ctPk,1);
+            fail("mac failure expected");
         }
         catch (PacketCipherException e)
         {
-            if (!Arrays.areEqual(origin, dec))
-            {
-                fail("the Output Erase is wrong");
-            }
+            TestCase.assertTrue(Arrays.areEqual(expected,ctPk));
         }
     }
 
     @Test
     public void testExceptions()
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
 
-        AESCCMModePacketCipher ccm = AESPacketCipherEngine.createCCMPacketCipher();
+        AESCCMModePacketCipher ccm = AESCCMPacketCipher.newInstance();
         try
         {
             ccm.getOutputSize(false, new KeyParameter(new byte[16]), 0);
@@ -263,9 +284,10 @@ public class AESCCMPacketCipherTest
 
     @Test
     public void testAgreementForMultipleMessages()
-            throws Exception
+    throws Exception
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -319,9 +341,8 @@ public class AESCCMPacketCipherTest
                     byte[] ctResult = new byte[len + jitter];
 
                     outLen = ccmPS.processPacket(true, cp, msg, jitter, msg.length - jitter, ctResult, jitter);
-                    TestCase.assertEquals(ctResult.length - jitter, outLen);
-
-                    // Test encrypted output same
+                    TestCase.assertEquals(ctResult.length - jitter, outLen);                    // Test encrypted
+                    // output same
                     TestCase.assertTrue(Arrays.areEqual(expected, ctResult));
 
 
@@ -363,9 +384,10 @@ public class AESCCMPacketCipherTest
      */
     @Test
     public void testIntoSameArray()
-            throws Exception
+    throws Exception
     {
-        if (TestUtil.skipPS()) {
+        if (TestUtil.skipPS())
+        {
             System.out.println("Skipping packet cipher test.");
             return;
         }
@@ -475,7 +497,7 @@ public class AESCCMPacketCipherTest
             byte[] p,
             byte[] t,
             byte[] c)
-            throws PacketCipherException
+    throws PacketCipherException
     {
         KeyParameter keyParam = (k == null) ? null : new KeyParameter(k);
         AEADParameters parameters = new AEADParameters(keyParam, macSize, n, a);
@@ -513,7 +535,8 @@ public class AESCCMPacketCipherTest
         return CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_CCM_PC);
     }
 
-    private void isCorrectTypeForVariant(Object o) {
+    private void isCorrectTypeForVariant(Object o)
+    {
         //
         // Verify we are getting is what we expect.
         //

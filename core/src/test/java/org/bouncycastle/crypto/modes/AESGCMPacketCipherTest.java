@@ -9,6 +9,7 @@ import junit.framework.TestCase;
 import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.AESNativeGCMPacketCipher;
+import org.bouncycastle.crypto.engines.TEAEngine;
 import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -38,7 +39,7 @@ public class AESGCMPacketCipherTest
             return;
         }
 
-        AESGCMModePacketCipher gcm = AESPacketCipherEngine.createGCMPacketCipher();
+        AESGCMModePacketCipher gcm = AESGCMPacketCipher.newInstance();
         SecureRandom rnd = new SecureRandom();
 
         int[] ivLens = new int[]{12, 16};
@@ -93,7 +94,7 @@ public class AESGCMPacketCipherTest
             return;
         }
 
-        AESGCMModePacketCipher gcm = AESPacketCipherEngine.createGCMPacketCipher();
+        AESGCMModePacketCipher gcm = AESGCMPacketCipher.newInstance();
         try
         {
             gcm.getOutputSize(false, new KeyParameter(new byte[16]), 0);
@@ -226,6 +227,7 @@ public class AESGCMPacketCipherTest
 
     @Test
     public void testOutputErase()
+    throws Exception
     {
         if (TestUtil.skipPS())
         {
@@ -233,50 +235,44 @@ public class AESGCMPacketCipherTest
             return;
         }
 
-        String testVector[] = {
-                "Test Case 3",
-                "feffe9928665731c6d6a8f9467308308",
-                "d9313225f88406e5a55909c5aff5269a"
-                        + "86a7a9531534f7da2e4c303d8a318a72"
-                        + "1c3c0c95956809532fcf0e2449a6b525"
-                        + "b16aedf5aa0de657ba637b391aafd255",
-                "",
-                "cafebabefacedbaddecaf888",
-                "42831ec2217774244b7221b784d0d49c"
-                        + "e3aa212f2c02a4e035c17e2329aca12e"
-                        + "21d514b25466931c7d8f6a5aac84aa05"
-                        + "1ba30b396a0aac973d58e091473f5985",
-                "4d5c2af327cd64a62cf35abd2ba6fab4",
-        };
+        SecureRandom rand = new SecureRandom();
 
-        byte[] K = Hex.decode(testVector[1]);
-        byte[] P = Hex.decode(testVector[2]);
-        byte[] A = Hex.decode(testVector[3]);
-        byte[] IV = Hex.decode(testVector[4]);
-        byte[] C = Hex.decode(testVector[5]);
-        byte[] T = Hex.decode(testVector[6]);
-        AESGCMModePacketCipher GCMgcm = AESPacketCipherEngine.createGCMPacketCipher();
-        byte[] C3new = Arrays.clone(C);
-        C3new[0]++;
-        KeyParameter keyParam = (K == null) ? null : new KeyParameter(K);
-        AEADParameters parameters = new AEADParameters(keyParam, 64, IV, A);
-        int len = GCMgcm.getOutputSize(false, parameters, C3new.length + T.length) + C3new.length + T.length;
-        byte[] dec = new byte[len];
-        System.arraycopy(C3new, 0, dec, 0, C3new.length);
-        byte[] origin = Arrays.clone(dec);
+        GCMBlockCipher gcmBlockCipher = new GCMBlockCipher(new AESEngine());
+        byte[] key = new byte[16];
+        byte[] iv = new byte[12];
+        byte[] msg = new byte[17];
+
+        rand.nextBytes(key);
+        rand.nextBytes(iv);
+        rand.nextBytes(msg);
+
+        CipherParameters parameters = new ParametersWithIV(new KeyParameter(key), iv);
+        gcmBlockCipher.init(true, parameters);
+
+        byte[] ct = new byte[gcmBlockCipher.getOutputSize(msg.length)];
+        int l = gcmBlockCipher.processBytes(msg, 0, msg.length, ct, 0);
+        gcmBlockCipher.doFinal(ct, l);
+
+        // Vandalise cipher text
+        ct[0] ^= 1;
+
+        AESGCMModePacketCipher packetCipher = AESGCMPacketCipher.newInstance();
+        byte[] pt = new byte[packetCipher.getOutputSize(false, parameters, ct.length) + 5];
+        Arrays.fill(pt, (byte) 0x01);
+
+        byte[] expected = Arrays.clone(pt);
+        Arrays.fill(expected, 1, 1 + msg.length, (byte) 0x00);
 
         try
         {
-            GCMgcm.processPacket(false, parameters, dec, 0, C3new.length + T.length, dec, C3new.length + T.length);
-            fail("mac check should be false");
+            packetCipher.processPacket(false, parameters, ct, 0, ct.length, pt, 1);
+            fail("tag should fail");
         }
-        catch (PacketCipherException e)
+        catch (Exception ex)
         {
-            if (!Arrays.areEqual(origin, dec))
-            {
-                fail("the Output Erase is wrong");
-            }
+            TestCase.assertTrue(Arrays.areEqual(expected, pt));
         }
+
     }
 
 
@@ -324,7 +320,7 @@ public class AESGCMPacketCipherTest
         srng.nextBytes(IV);
 
         AEADParameters parameters = new AEADParameters(new KeyParameter(K), 16 * 8, IV, A);
-        AESGCMModePacketCipher cipher = AESPacketCipherEngine.createGCMPacketCipher();
+        AESGCMModePacketCipher cipher = AESGCMPacketCipher.newInstance();
         byte[] C = new byte[cipher.getOutputSize(true, parameters, P.length)];
 
         int len = cipher.processPacket(true, parameters, P, 0, P.length, C, 0);
@@ -368,7 +364,7 @@ public class AESGCMPacketCipherTest
         byte[] IV = new byte[16];
 
         AEADParameters parameters = new AEADParameters(new KeyParameter(K), 16 * 8, IV, A);
-        AESGCMModePacketCipher cipher = AESPacketCipherEngine.createGCMPacketCipher();
+        AESGCMModePacketCipher cipher = AESGCMPacketCipher.newInstance();
         if (cipher.getOutputSize(true, parameters, 0) != 16)
         {
             fail("incorrect getOutputSize for initial 0 bytes encryption");

@@ -16,7 +16,6 @@ import org.bouncycastle.util.encoders.Hex;
 import javax.security.auth.DestroyFailedException;
 
 public class AESGCMPacketCipher
-        extends AESPacketCipherEngine
         implements AESGCMModePacketCipher
 {
     private boolean destroyed = false;

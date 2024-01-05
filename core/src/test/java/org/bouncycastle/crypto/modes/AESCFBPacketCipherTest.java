@@ -7,7 +7,6 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.NativeServices;
-import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.PacketCipher;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.engines.AESEngine;
@@ -37,7 +36,7 @@ public class AESCFBPacketCipherTest
             return;
         }
 
-        AESCFBModePacketCipher cfb = AESPacketCipherEngine.createCFBPacketCipher();
+        AESCFBModePacketCipher cfb = AESCFBPacketCipher.newInstance();
 
         try
         {
@@ -150,7 +149,7 @@ public class AESCFBPacketCipherTest
         }
 
         SecureRandom rand = new SecureRandom();
-        AESCFBModePacketCipher cfbPkt =  AESCFBPacketCipher.createCFBPacketCipher();
+        AESCFBModePacketCipher cfbPkt =  AESCFBPacketCipher.newInstance();
         isCorrectTypeForVariant(cfbPkt);
         for (int ks : new int[]{16, 24, 32})
         {

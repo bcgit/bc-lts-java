@@ -250,7 +250,7 @@ public class AESCBCPacketCipherTest
             return;
         }
 
-        AESCBCModePacketCipher cbc = AESPacketCipherEngine.createCBCPacketCipher();
+        AESCBCModePacketCipher cbc = AESCBCPacketCipher.newInstance();
 
         try
         {

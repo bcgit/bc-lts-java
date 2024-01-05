@@ -1,7 +1,6 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.modes.AESGCMSIVModePacketCipher;
@@ -10,7 +9,6 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
 public class AESNativeGCMSIVPacketCipher
-    extends AESPacketCipherEngine
     implements AESGCMSIVModePacketCipher
 {
     public static AESGCMSIVModePacketCipher newInstance()

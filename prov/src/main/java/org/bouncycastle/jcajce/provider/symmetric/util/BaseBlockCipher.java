@@ -1143,16 +1143,16 @@ public class BaseBlockCipher
             if (modeName.equals("GCMSIV"))
             {
                 packetCipherInstance = packetCipherInstance == null ?
-                        AESPacketCipherEngine.createGCMSIVPacketCipher() : packetCipherInstance;
+                        AESGCMSIVPacketCipher.newInstance() : packetCipherInstance;
             }
             else if (modeName.equals("GCM"))
             {
-                packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createGCMPacketCipher() :
+                packetCipherInstance = packetCipherInstance == null ? AESGCMPacketCipher.newInstance() :
                         packetCipherInstance;
             }
             else if (modeName.equals("CBC") && "NOPADDING".equals(paddingName))
             {
-                packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCBCPacketCipher() :
+                packetCipherInstance = packetCipherInstance == null ? AESCBCPacketCipher.newInstance() :
                         packetCipherInstance;
             }
             else if (modeName.startsWith("CFB"))
@@ -1166,17 +1166,17 @@ public class BaseBlockCipher
                     }
                 }
 
-                packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCFBPacketCipher() :
+                packetCipherInstance = packetCipherInstance == null ? AESCFBPacketCipher.newInstance() :
                         packetCipherInstance;
             }
             else if (modeName.equals("CTR"))
             {
-                packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCTRPacketCipher() :
+                packetCipherInstance = packetCipherInstance == null ? AESCTRPacketCipher.newInstance() :
                         packetCipherInstance;
             }
             else if (modeName.equals("CCM"))
             {
-                packetCipherInstance = packetCipherInstance == null ? AESPacketCipherEngine.createCCMPacketCipher() :
+                packetCipherInstance = packetCipherInstance == null ? AESCCMPacketCipher.newInstance() :
                         packetCipherInstance;
             }
             else

@@ -1,7 +1,5 @@
 package org.bouncycastle.crypto.modes;
 
-
-import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.ExceptionMessages;
@@ -16,7 +14,6 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Bytes;
 
 public class AESCTRPacketCipher
-        extends AESPacketCipherEngine
         implements AESCTRModePacketCipher
 {
     public static AESCTRModePacketCipher newInstance()
@@ -116,7 +113,6 @@ public class AESCTRPacketCipher
 
         while (remaining > AESPacketCipher.BLOCK_SIZE)
         {
-
             AESPacketCipher.processBlock(true, workingKey, s, counter, 0, counterOut, 0);
             Bytes.xor(AESPacketCipher.BLOCK_SIZE, input, inOff, counterOut, 0, output, outOff);
             incrementCounter(counter, ivOwned);
@@ -136,6 +132,7 @@ public class AESCTRPacketCipher
 
         return len;
     }
+
 
 
     private static void incrementCounter(byte[] counter, byte[] iv)

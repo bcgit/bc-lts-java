@@ -2,12 +2,12 @@ package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.modes.AESCCMModePacketCipher;
+import org.bouncycastle.crypto.modes.PacketCipherChecks;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 
 public class AESNativeCCMPacketCipher
-    extends AESPacketCipherEngine
     implements PacketCipher, AESCCMModePacketCipher
 {
     public AESNativeCCMPacketCipher()
@@ -53,7 +53,8 @@ public class AESNativeCCMPacketCipher
             {
                 throw new IllegalArgumentException(ExceptionMessages.CCM_INVALID_PARAMETER);
             }
-            checkKeyLength(keyParam, ExceptionMessages.CCM_CIPHER_UNITIALIZED);
+
+//            checkKeyLength(keyParam, ExceptionMessages.CCM_CIPHER_UNITIALIZED);
         }
         catch (Exception e)
         {
@@ -66,8 +67,8 @@ public class AESNativeCCMPacketCipher
     private static int processAEADPacketCipher(boolean forEncryption, byte[] input, int inOff, int len, byte[] output, int outOff, byte[] initialAssociatedText, byte[] key, byte[] nonce, int macSize)
         throws PacketCipherException
     {
-        int iatLen = initialAssociatedText != null ? initialAssociatedText.length : 0;
-        int outLen = output != null ? output.length-outOff : 0;
+        final int iatLen = initialAssociatedText != null ? initialAssociatedText.length : 0;
+        final int outLen = output != null ? output.length-outOff : 0;
         int result;
         try
         {

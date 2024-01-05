@@ -1,7 +1,6 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.AESPacketCipherEngine;
 import org.bouncycastle.crypto.ExceptionMessages;
 import org.bouncycastle.crypto.PacketCipherException;
 import org.bouncycastle.crypto.modes.AESGCMModePacketCipher;
@@ -13,7 +12,6 @@ import org.bouncycastle.util.Arrays;
 import javax.security.auth.DestroyFailedException;
 
 public class AESNativeGCMPacketCipher
-        extends AESPacketCipherEngine
         implements AESGCMModePacketCipher
 {
     private byte[] lastKey;

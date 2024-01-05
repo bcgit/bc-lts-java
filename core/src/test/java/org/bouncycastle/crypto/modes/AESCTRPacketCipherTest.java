@@ -32,7 +32,7 @@ public class AESCTRPacketCipherTest
             return;
         }
 
-        AESCTRModePacketCipher ctrPC = AESPacketCipherEngine.createCTRPacketCipher();
+        AESCTRModePacketCipher ctrPC = AESCTRPacketCipher.newInstance();
         SecureRandom rand = new SecureRandom();
 
         for (int ks : new int[]{16, 24, 32})
@@ -130,7 +130,7 @@ public class AESCTRPacketCipherTest
         }
 
         SecureRandom rand = new SecureRandom();
-        AESCTRModePacketCipher ctrPC = AESPacketCipherEngine.createCTRPacketCipher();
+        AESCTRModePacketCipher ctrPC = AESCTRPacketCipher.newInstance();
         for (int ks : new int[]{16, 24, 32})
         {
             byte[] key = new byte[ks];
@@ -217,7 +217,7 @@ public class AESCTRPacketCipherTest
             return;
         }
 
-        AESCTRModePacketCipher ctr = AESPacketCipherEngine.createCTRPacketCipher();
+        AESCTRModePacketCipher ctr = AESCTRPacketCipher.newInstance();
         try
         {
             ctr.getOutputSize(false, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]), -1);
