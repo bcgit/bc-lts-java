@@ -260,6 +260,7 @@ public class AESGCMPacketCipherTest
         byte[] pt = new byte[packetCipher.getOutputSize(false, parameters, ct.length) + 5];
         Arrays.fill(pt, (byte) 0x01);
 
+        // Should be a one followed by zero bytes followed by four 0x01.
         byte[] expected = Arrays.clone(pt);
         Arrays.fill(expected, 1, 1 + msg.length, (byte) 0x00);
 

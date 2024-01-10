@@ -40,7 +40,7 @@ void handle_gcm_siv_result(JNIEnv *env, gcm_siv_err *err) {
 bool checkAEADStatus(JNIEnv *env, gcm_siv_ctx *ctx, size_t pLen) {
 
     /* Make sure that we haven't breached AEAD data limit */
-    if (ctx->theAEADHasher.numHashed > (ctx->max_dl - pLen)) {
+    if (pLen > ctx->max_dl - ctx->theAEADHasher.numHashed) {
         throw_java_invalid_state(env, "AEAD byte count exceeded");
         return false;
     }
@@ -174,10 +174,11 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
 
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
     if (!checkAEADStatus(env, ctx, 1)) {
-        return;
+        return; // exception thrown
     }
-    uint8_t theByte = (uint8_t) aadByte;
-    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, ctx->T, &theByte, 1, &ctx->theGHash);
+
+   uint8_t theByte = (uint8_t) aadByte;
+   gcm_siv_hasher_updateHash(&ctx->theAEADHasher, ctx->T, &theByte, 1, &ctx->theGHash);
 }
 
 /*
@@ -259,7 +260,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_doFi
         goto exit;
     }
 
-    int64_t minOutputLen = gcm_siv_get_output_size(ctx->encryption, (size_t)inLen);
+    int64_t minOutputLen = gcm_siv_get_output_size(ctx->encryption, (size_t) inLen);
 
     //
     // < 0 if the input size is impossibly small,
@@ -293,7 +294,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_doFi
 
 
     uint8_t *dest = output.critical + outOff;
-    err = gcm_siv_doFinal(ctx, input.critical, (size_t)inLen, dest, &written);
+    err = gcm_siv_doFinal(ctx, input.critical, (size_t) inLen, dest, &written);
 
     exit:
     release_critical_ctx(&input);

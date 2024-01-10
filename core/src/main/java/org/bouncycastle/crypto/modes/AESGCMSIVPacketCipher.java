@@ -213,17 +213,11 @@ public class AESGCMSIVPacketCipher
         }
         finally
         {
-
-
-            for (int[] ints : workingKey)
-            {
-                Arrays.fill(ints, 0);
-            }
+            Arrays.clear(workingKey);
             Arrays.clear(theGHash);
             Arrays.clear(theReverse);
             Arrays.clear(myNonceOwned);
             Arrays.clear(myKeyOwned);
-            Arrays.clear(workingKey);
             Arrays.clear(s);
         }
 

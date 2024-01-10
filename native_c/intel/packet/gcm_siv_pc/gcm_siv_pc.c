@@ -3,6 +3,7 @@
 #include "gcm_siv_pc.h"
 #include <memory.h>
 
+
 packet_err *
 gcm_siv_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *nonce, uint8_t *aad, size_t aadLen,
                           uint8_t *p_in, size_t inLen, uint8_t *p_out, size_t *outputLen) {

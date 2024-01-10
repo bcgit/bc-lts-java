@@ -217,6 +217,8 @@ public class AESGCMSIVPacketCipherTest
         //
         byte[] pt = new byte[gcmsivPS.getOutputSize(false,cp, ct.length)+5];
         Arrays.fill(pt, (byte) 0x11);
+
+        // Should be a one followed by zero bytes followed by four 0x01.
         byte[] expected = Arrays.clone(pt);
         Arrays.fill(expected,1,1+referenceMsg.length, (byte) 0x00);
 

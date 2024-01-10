@@ -122,7 +122,7 @@ public class AESCCMPacketCipherTest
         byte[] ctPk = new byte[ccm.getOutputSize(false,cp,correctPt.length)+5];
         Arrays.fill(ctPk, (byte) 0x01);
 
-        // Should be zero bytes followed by four 0x01.
+        // Should be a one followed by zero bytes followed by four 0x01.
         byte[] expected = Arrays.clone(ctPk);
         Arrays.fill(expected,1,1+msg.length, (byte) 0);
 

@@ -62,7 +62,7 @@ public class GCMSIVJavaAgreementTest extends TestCase
 
 
     byte[] generateCT(byte[] message, byte[] key, byte[] iv, boolean expectNative)
-            throws Exception
+    throws Exception
     {
         GCMSIVModeCipher gcm = GCMSIVBlockCipher.newInstance(AESEngine.newInstance());
 
@@ -86,7 +86,7 @@ public class GCMSIVJavaAgreementTest extends TestCase
     }
 
     byte[] generatePT(byte[] ct, byte[] key, byte[] iv, boolean expectNative)
-            throws Exception
+    throws Exception
     {
         GCMSIVModeCipher gcm = GCMSIVBlockCipher.newInstance(AESEngine.newInstance());
 
@@ -111,7 +111,7 @@ public class GCMSIVJavaAgreementTest extends TestCase
     }
 
     public void doTest(int keySize)
-            throws Exception
+    throws Exception
     {
         SecureRandom secureRandom = new SecureRandom();
 
@@ -183,11 +183,84 @@ public class GCMSIVJavaAgreementTest extends TestCase
 
     }
 
+
+    public void doTestFixed()
+    throws Exception
+    {
+        SecureRandom secureRandom = new SecureRandom();
+
+
+        byte[] javaPT = new byte[17];
+        Arrays.fill(javaPT, (byte) 1);
+        byte[] key = new byte[16];
+        Arrays.fill(key, (byte) 1);
+
+        byte[] iv = new byte[12];
+        Arrays.fill(iv, (byte) 2);
+
+        //
+        // Generate expected result from Java API.
+        //
+        CryptoServicesRegistrar.setNativeEnabled(false);
+        byte[] javaCT = generateCT(javaPT, key, iv, false);
+        TestCase.assertFalse(CryptoServicesRegistrar.getNativeServices().isEnabled());
+
+
+        //
+        // Turn on native
+        //
+        CryptoServicesRegistrar.setNativeEnabled(true);
+
+        {
+            //
+            // Original AES-NI not AXV etc
+            //
+            byte[] ct = generateCT(javaPT, key, iv, true);
+
+            if (!Arrays.areEqual(ct, javaCT))
+            {
+                System.out.println(javaPT.length);
+                System.out.println(Hex.toHexString(javaCT));
+                System.out.println(Hex.toHexString(ct));
+                for (int j = 0; j < javaCT.length; j++)
+                {
+                    if (javaCT[j] == ct[j])
+                    {
+                        System.out.print("  ");
+                    }
+                    else
+                    {
+                        System.out.print("^^");
+                    }
+                }
+                System.out.println();
+            }
+
+            TestCase.assertTrue(" AES-NI CT did not match", Arrays.areEqual(ct, javaCT));
+
+            byte[] pt = generatePT(javaCT, key, iv, true);
+
+
+            if (!Arrays.areEqual(pt, javaPT))
+            {
+                System.out.println(Hex.toHexString(pt));
+                System.out.println(Hex.toHexString(javaPT));
+            }
+
+
+            TestCase.assertTrue(" AES-NI PT did not match", Arrays.areEqual(pt, javaPT));
+        }
+
+    }
+
+
     @Test
-    public void testWithAAD() throws Exception
+    public void testWithAAD()
+    throws Exception
     {
 
-        if (skipIfNotSupported()) {
+        if (skipIfNotSupported())
+        {
             return;
         }
 
@@ -271,16 +344,18 @@ public class GCMSIVJavaAgreementTest extends TestCase
      * @throws Exception
      */
     @Test
-    public void testGCMSIVSpreadAgreement() throws Exception
+    public void testGCMSIVSpreadAgreement()
+    throws Exception
     {
 
-       if (skipIfNotSupported()) {
-           return;
-       }
+        if (skipIfNotSupported())
+        {
+            return;
+        }
 
         SecureRandom rand = new SecureRandom();
 
-        for (int ks : new int[]{16,  32})
+        for (int ks : new int[]{16, 32})
         {
             byte[] key = new byte[ks];
             rand.nextBytes(key);
@@ -367,7 +442,8 @@ public class GCMSIVJavaAgreementTest extends TestCase
     // 36864
 
 
-    private void writeAllAndClose(byte[] data, ByteArrayOutputStream bos, GCMSIVModeCipher os) throws Exception
+    private void writeAllAndClose(byte[] data, ByteArrayOutputStream bos, GCMSIVModeCipher os)
+    throws Exception
     {
 
         byte[] output = new byte[os.getOutputSize(data.length)];
@@ -384,25 +460,37 @@ public class GCMSIVJavaAgreementTest extends TestCase
 
     @Test
     public void testGCMSIVJavaAgreement_128()
-            throws Exception
+    throws Exception
     {
         if (skipIfNotSupported())
         {
             return;
         }
-    doTest(16);
+        doTest(16);
     }
 
 
     @Test
     public void testGCMSIVJavaAgreement_256()
-            throws Exception
+    throws Exception
     {
         if (skipIfNotSupported())
         {
             return;
         }
         doTest(32);
+    }
+
+
+    @Test
+    public void testGCMSIVJavaAgreementSingular_256()
+    throws Exception
+    {
+        if (skipIfNotSupported())
+        {
+            return;
+        }
+        doTestFixed();
     }
 
     private static GCMSIVModeCipher createOutputEncryptor(byte[] key, byte[] iv, int macSize)

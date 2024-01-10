@@ -374,7 +374,7 @@ public class GCMSIVNativeLimitTest extends TestCase
             }
         };
 
-        new AESNativeGCMSIV() // input len is negaive
+        new AESNativeGCMSIV() // input len is negative
         {
             {
                 long ref = makeInstance();

@@ -864,7 +864,7 @@ public class NativeSIVPacketCipherLimitTest extends TestCase
             return false;
         }
 
-        // May not be ported to native platform, so exercise java version only.
+        // May not be ported to native platform.
         return CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCMSIV_PC);
     }
 }
