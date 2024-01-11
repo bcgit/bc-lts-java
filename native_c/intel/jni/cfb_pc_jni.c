@@ -38,14 +38,15 @@ void handle_cfb_pc_result(JNIEnv *env, packet_err *err) {
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFBPacketCipher_processPacket
         (JNIEnv *env, jclass,
          jboolean encryption,
-         jbyteArray key_, jint keyLen,
-         jbyteArray nonce_, jint nonceLen,
+         jbyteArray key_,
+         jbyteArray nonce_,
          jbyteArray in, jint inOff, jint inLen,
          jbyteArray out, jint outOff, jint outLen) {
 
     java_bytearray_ctx key, iv, ad;
     critical_bytearray_ctx input, output;
     packet_err *err = NULL;
+    size_t outputLen = 0;
     init_critical_ctx(&input, env, in);
     init_critical_ctx(&output, env, out);
 
@@ -63,9 +64,10 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFBPacketCi
     }
 
 
-    if (!aes_keysize_is_valid_and_not_null_with_len(env, &key, keyLen)) {
+    if (!aes_keysize_is_valid_and_not_null(env, &key)) {
         goto exit;
     }
+
 
 
     //
@@ -76,7 +78,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFBPacketCi
         goto exit;
     }
 
-    if (!ivlen_is_16_and_not_null_with_len(env,&iv,nonceLen)) {
+    if (!ivlen_is_16_and_not_null(env, &iv)) {
         goto exit;
     }
 
@@ -136,13 +138,13 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFBPacketCi
 
     uint8_t *p_in = input.critical + inOff;
     uint8_t *p_out = output.critical + outOff;
-    size_t outputLen = 0;
+
     err = cfb_pc_process_packet(
             encryption == JNI_TRUE,
             key.bytearray,
-            (size_t) keyLen,
+            (size_t) key.size,
             iv.bytearray,
-            (size_t) nonceLen,
+            (size_t) iv.size,
             p_in,
             (size_t) inLen,
             p_out,
@@ -167,7 +169,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFBPacketCi
         (JNIEnv *env, jclass, jint len) {
     if (len < 0) {
         throw_java_illegal_argument(env, EM_INPUT_LEN_NEGATIVE);
-        return 0;
+        return -1;
     }
     return len;
 }

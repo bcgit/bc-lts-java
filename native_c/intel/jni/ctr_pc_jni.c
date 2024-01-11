@@ -38,8 +38,8 @@ void handle_ctr_pc_result(JNIEnv *env, packet_err *err) {
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTRPacketCipher_processPacket
         (JNIEnv *env, jclass cl,
          jboolean encryption,
-         jbyteArray key_, jint keyLen,
-         jbyteArray nonce_, jint nonceLen,
+         jbyteArray key_,
+         jbyteArray nonce_,
          jbyteArray in, jint inOff, jint inLen,
          jbyteArray out, jint outOff, jint outLen) {
 
@@ -61,7 +61,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTRPacketCi
         goto exit;
     }
 
-    if (!aes_keysize_is_valid_and_not_null_with_len(env, &key, keyLen)) {
+    if (!aes_keysize_is_valid_and_not_null(env, &key)) {
         goto exit;
     }
 
@@ -75,19 +75,12 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTRPacketCi
         goto exit;
     }
 
-    if (!bytearray_offset_and_len_are_in_range_not_null_msgs(
-            &iv,
-            0,
-            nonceLen,
-            env,
-            "nonce is null",
-            "nonce offset negative",
-            "nonce len is negative",
-            "nonce len past end of nonce array")) {
+    if (!bytearray_not_null(&iv, "nonce is null",env)) {
         goto exit;
     }
 
-    if (nonceLen < 8 || nonceLen > 16) {
+
+    if (iv.size < 8 || iv.size > 16) {
         throw_java_illegal_argument(env, "nonce len must be from 8 to 16 bytes");
         goto exit;
     }
@@ -154,9 +147,9 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTRPacketCi
     err = ctr_pc_process_packet(
             encryption == JNI_TRUE,
             key.bytearray,
-            (size_t) keyLen,
+            (size_t) key.size,
             iv.bytearray,
-            (size_t) nonceLen,
+            (size_t) iv.size,
             p_in,
             (size_t) inLen,
             p_out,
@@ -181,7 +174,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTRPacketCi
         (JNIEnv *env, jclass, jint len) {
     if (len < 0) {
         throw_java_illegal_argument(env, EM_INPUT_LEN_NEGATIVE);
-        return 0;
+        return -1;
     }
     return len;
 }

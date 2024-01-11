@@ -6,6 +6,7 @@
 #include <immintrin.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include "../util/util.h"
 
 #define BUF_SIZE_SHA224 64
 #define SHA224_SIZE 28

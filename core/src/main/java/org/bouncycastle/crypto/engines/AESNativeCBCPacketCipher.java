@@ -33,7 +33,7 @@ public class AESNativeCBCPacketCipher
     @Override
     public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
                              byte[] output, int outOff)
-            throws PacketCipherException
+    throws PacketCipherException
     {
         byte[] iv;
         byte[] key;
@@ -68,7 +68,7 @@ public class AESNativeCBCPacketCipher
         int result;
         try
         {
-            result = processPacket(encryption, key, key.length, iv, iv.length, input, inOff, len, output, outOff,
+            result = processPacket(encryption, key, iv, input, inOff, len, output, outOff,
                     outLen);
         }
         catch (Exception e)
@@ -80,7 +80,7 @@ public class AESNativeCBCPacketCipher
 
     static native int getOutputSize(int len);
 
-    static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce, int nonLen, byte[] in,
+    static native int processPacket(boolean encryption, byte[] key, byte[] nonce, byte[] in,
                                     int inOff, int inLen, byte[] out, int outOff, int outLen);
 
     @Override

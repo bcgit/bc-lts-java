@@ -158,8 +158,8 @@ unsigned char *from_hex(unsigned char *str, size_t len) {
 //
 void print_bytes(unsigned char *src, size_t len) {
     while (len-- > 0) {
-//        printf("%02X", *src);
-        printf("%d, ", (*src > 127) ? *src- 256: *src);
+        printf("%02X", *src);
+      //  printf("%d, ", (*src > 127) ? *src- 256: *src);
         src++;
     }
     printf("\n");

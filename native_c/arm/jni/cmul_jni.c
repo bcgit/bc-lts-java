@@ -24,24 +24,6 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_math_raw_Mul_cmulAcc
     init_critical_long_ctx(&z, env, zArr);
 
 
-    if (!load_critical_long_ctx(&x)) {
-        throw_java_invalid_state(env, "jvm did not return valid x array");
-        goto exit;
-    }
-
-    if (!load_critical_long_ctx(&y)) {
-        release_critical_long_ctx(&x);
-        throw_java_invalid_state(env, "jvm did not return valid y array");
-        goto exit;
-    }
-
-    if (!load_critical_long_ctx(&z)) {
-        release_critical_long_ctx(&x);
-        release_critical_long_ctx(&y);
-        throw_java_invalid_state(env, "jvm did not return valid z array");
-        goto exit;
-    }
-
     if (!critical_long_not_null(&x, "x array is null", env)) {
         goto exit;
     }
@@ -98,6 +80,25 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_math_raw_Mul_cmulAcc
         throw_java_invalid_state(env, "z is less than twice the size of x");
         goto exit;
     }
+
+    if (!load_critical_long_ctx(&x)) {
+        throw_java_invalid_state(env, "jvm did not return valid x array");
+        goto exit;
+    }
+
+    if (!load_critical_long_ctx(&y)) {
+        release_critical_long_ctx(&x);
+        throw_java_invalid_state(env, "jvm did not return valid y array");
+        goto exit;
+    }
+
+    if (!load_critical_long_ctx(&z)) {
+        release_critical_long_ctx(&x);
+        release_critical_long_ctx(&y);
+        throw_java_invalid_state(env, "jvm did not return valid z array");
+        goto exit;
+    }
+
 
     // offset sign and position within array asserted by this point.
     int64_t *x_start = x.critical + (size_t) x_off;

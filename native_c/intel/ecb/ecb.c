@@ -16,7 +16,7 @@ void ecb_free_ctx(ecb_ctx *ctx) {
     if (ctx == NULL) {
         return;
     }
-    memset(ctx,0, sizeof(ecb_ctx));
+    memzero(ctx, sizeof(ecb_ctx));
     free(ctx);
 }
 
@@ -26,7 +26,7 @@ void ecb_reset(ecb_ctx *ctx) {
 
 void ecb_init(ecb_ctx *pCtx, uint8_t *key) {
     assert(pCtx != NULL);
-    memset(pCtx->roundKeys, 0, sizeof(__m128i)*15);
+    memzero(pCtx->roundKeys, sizeof(__m128i) * 15);
     switch (pCtx->num_rounds) {
         case ROUNDS_128:
             init_128(pCtx->roundKeys, key, pCtx->encryption);

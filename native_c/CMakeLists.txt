@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
 
-
 FILE(TO_CMAKE_PATH "$ENV{JAVA_HOME}/include" JNI_INCLUDE)
 
 FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/../core" FIPS_JAVA_ROOT)
@@ -19,6 +18,7 @@ else ()
 endif ()
 
 
+
 FILE(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}/../core" LTS_JAVA_ROOT)
 
 message("JNI Include directory:  ${JNI_INCLUDE}")
@@ -28,6 +28,7 @@ message("LTS_JAVA_ROOT: ${LTS_JAVA_ROOT}")
 set(JNI_INCLUDE_PLATFORM "")
 set(LIBCRYPTO "")
 set(LTS_JAVA_HEADERS ${LTS_JAVA_ROOT}/build/generated/sources/headers/java/main)
+set(LTS_TEST_JAVA_HEADERS ${LTS_JAVA_ROOT}/build/generated/sources/headers/java/test)
 message("LTS_JAVA_HEADERS: " ${LTS_JAVA_HEADERS})
 
 option(ENABLE_CODE_ANALYSIS "Run code analysis" OFF)
@@ -98,7 +99,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
     endif ()
 
     MESSAGE("JNI_INCLUDE_PLATFORM " ${JNI_INCLUDE_PLATFORM})
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${JNI_INCLUDE} ${JNI_INCLUDE_PLATFORM} ${LTS_JAVA_HEADERS})
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${JNI_INCLUDE} ${JNI_INCLUDE_PLATFORM} ${LTS_JAVA_HEADERS} ${LTS_TEST_JAVA_HEADERS})
 
     set(PROBE arm/jni/variant_selector_arm.c)
     set(COMMON arm/jni/native_features.c arm/jni/ident_jni.c)
@@ -230,7 +231,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
     target_compile_definitions("${LIB_NATIVE}-neon-le" PUBLIC BC_NEON BC_VARIANT=\"neon-le\" BUILD_TS=\"${BUILD_TS}\")
 
 
-    # A Linux issue.
+                # A Linux issue.
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 
         #
@@ -318,12 +319,17 @@ else ()
     endif ()
 
     MESSAGE("JNI_INCLUDE_PLATFORM" ${JNI_INCLUDE_PLATFORM})
-    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${JNI_INCLUDE} ${JNI_INCLUDE_PLATFORM} ${LTS_JAVA_HEADERS})
+    include_directories(
+            ${CMAKE_CURRENT_SOURCE_DIR}/src
+            ${JNI_INCLUDE}
+            ${JNI_INCLUDE_PLATFORM}
+            ${LTS_JAVA_HEADERS}
+            ${LTS_TEST_JAVA_HEADERS})
 
 
     set(PROBE intel/jni/variant_selector_intel.c)
     set(IDENT_IMPL intel/jni/ident_jni.c intel/jni/native_features.c)
-    set(COMMON intel/common.c intel/common.h ${COMMON_ASM})
+    set(COMMON intel/common.c intel/common.h intel/util/util.c intel/util/util.h ${COMMON_ASM})
 
 
     set(MUL_AVX intel/jni/cmul_jni.c intel/mul/cmul.h intel/mul/cmul128.c)
@@ -688,7 +694,9 @@ else ()
     target_compile_options("${LIB_NATIVE}-vaes" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAES_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
     install(TARGETS "${LIB_NATIVE}-vaes" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaes)
     target_compile_definitions("${LIB_NATIVE}-vaes" PUBLIC BC_VAES BC_VARIANT=\"vaes\" BUILD_TS=\"${BUILD_TS}\")
-
+    if (DEFINED ENV{LTS_ZERO_DEBUG})
+        target_compile_definitions("${LIB_NATIVE}-vaes" PUBLIC BC_DEBUG_ZERO)
+    endif ()
 
     add_library(${LIB_NATIVE}-vaesf SHARED
             ${COMMON}
@@ -717,9 +725,10 @@ else ()
     install(TARGETS "${LIB_NATIVE}-vaesf" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaesf)
     target_compile_definitions("${LIB_NATIVE}-vaesf" PUBLIC BC_VAESF BC_VARIANT=\"vaesf\" BUILD_TS=\"${BUILD_TS}\")
 
-    # Uncomment to enable test project
-#     add_executable(tryit main.c ../../debug.h)
-#    target_link_libraries(tryit "${LIB_NATIVE}-avx")
+
+#     #Uncomment to enable test project
+#    add_executable(tryit main.c ../../debug.h)
+#    target_link_libraries(tryit "${LIB_NATIVE}-vaesf")
 #    target_compile_options("tryit" PRIVATE
 #	            $<$<COMPILE_LANGUAGE:C>: -g -Wpsabi -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mvpclmulqdq -mavx512f -mavx512bw ${OPTIONS}>
 #	      )

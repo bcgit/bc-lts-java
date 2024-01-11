@@ -25,62 +25,13 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         }
 
 
-        try
-        { // processPacket -- keylen negative
-            new AESNativeCFBPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[16], -1, new byte[13], 13, new byte[0], 0, 0,
-                            new byte[16], 0, 16);
-                    fail("keylen too small");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
-        }
-
-
-        try
-        { // processPacket -- keylen
-            new AESNativeCFBPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[16], 15, new byte[13], 13, new byte[0], 0, 0,
-                            new byte[16], 0, 16);
-                    fail("keylen too small");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
-        }
-
-
-        try
-        { // processPacket -- keylen ok but array len too small
-            new AESNativeCFBPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[15], 16, new byte[13], 13, new byte[0], 0, 0,
-                            new byte[16], 0, 16);
-                    fail("key array too small");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("key array is less than keyLen", ex.getMessage());
-        }
 
         try
         { // processPacket -- null key array
             new AESNativeCFBPacketCipher()
             {
                 {
-                    processPacket(true, null, 16, new byte[13], 13, new byte[0], 0, 0, new byte[16], 0,
+                    processPacket(true, null,  new byte[16],  new byte[0], 0, 0, new byte[16], 0,
                             16);
                     fail("key array too small");
                 }
@@ -92,54 +43,29 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         }
 
 
-        try
-        { // processPacket -- invalid key size
-            new AESNativeCFBPacketCipher()
-            {
+
+        //
+        // Invalid key sizes!
+        //
+        for (int len : new int[]{15,17, 23,25,31,33}) {
+            try
+            { // processPacket -- key len too small
+                new AESNativeCFBPacketCipher()
                 {
-                    processPacket(true, new byte[32], 17, new byte[13], 13, new byte[0], 0, 0,
-                            new byte[16], 0, 16);
-                    fail("key array long enough but len invalid");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
+                    {
+                        processPacket(true, new byte[len], new byte[13],  new byte[0], 0, 0,
+                                new byte[16], 0, 16);
+                        fail("keylen invalid");
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
+            }
+
         }
 
-
-        try
-        { // processPacket -- invalid key size
-            new AESNativeCFBPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[36], 25, new byte[13], 13, new byte[0], 0, 0,
-                            new byte[16], 0, 16);
-                    fail("key array long enough but len invalid");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
-        }
-
-        try
-        { // processPacket -- invalid key size
-            new AESNativeCFBPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[36], 33, new byte[13], 13, new byte[0], 0, 0,
-                            new byte[16], 0, 16);
-                    fail("key array long enough but len invalid");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
-        }
 
 
         // Valid cases
@@ -147,7 +73,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         new AESNativeCFBPacketCipher()
         {
             {
-                processPacket(true, new byte[16], 16, new byte[16], 16, new byte[16], 0, 0,
+                processPacket(true, new byte[16],  new byte[16],  new byte[16], 0, 0,
                         new byte[16], 0, 16);
             }
         };
@@ -155,7 +81,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         new AESNativeCFBPacketCipher()
         {
             {
-                processPacket(true, new byte[24], 24, new byte[17], 16, new byte[16], 0, 0,
+                processPacket(true, new byte[24],  new byte[16],  new byte[16], 0, 0,
                         new byte[16], 0, 16);
             }
         };
@@ -163,35 +89,12 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         new AESNativeCFBPacketCipher()
         {
             {
-                processPacket(true, new byte[32], 32, new byte[17], 16, new byte[16], 0, 0,
+                processPacket(true, new byte[32],  new byte[16],  new byte[16], 0, 0,
                         new byte[16], 0, 16);
             }
         };
 
 
-        new AESNativeCFBPacketCipher()
-        {
-            {
-                processPacket(true, new byte[33], 16, new byte[17], 16, new byte[16], 0, 0,
-                        new byte[16], 0, 16);
-            }
-        };
-
-        new AESNativeCFBPacketCipher()
-        {
-            {
-                processPacket(true, new byte[33], 24, new byte[17], 16, new byte[16], 0, 0,
-                        new byte[16], 0, 16);
-            }
-        };
-
-        new AESNativeCFBPacketCipher()
-        {
-            {
-                processPacket(true, new byte[33], 32, new byte[17], 16, new byte[16], 0, 0,
-                        new byte[16], 0, 16);
-            }
-        };
     }
 
 
@@ -211,28 +114,16 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         }
 
 
-        try
-        { // processPacket -- keylen negative
-            new AESNativeCFBPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[16], 16, new byte[16], -1, null, 0, 0, null, 0, 0);
-                    fail("nonce too small");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("iv must be only 16 bytes", ex.getMessage());
-        }
+
 
         try
-        { // processPacket -- keylen negative
+        { // processPacket -- invalid iv len
             new AESNativeCFBPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[16], 15, null, 0, 0, null, 0, 0);
-                    fail("nonce too small");
+                    processPacket(true, new byte[16],  new byte[15],  new byte[0], 0, 0, new byte[16], 0,
+                            16);
+                    fail("key array too small");
                 }
             };
         }
@@ -242,20 +133,8 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         }
 
 
-        try
-        { // processPacket -- keylen negative
-            new AESNativeCFBPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[16], 16, new byte[15], 16, null, 0, 0, null, 0, 0);
-                    fail("nonce array too small");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("iv array length is less than ivLen", ex.getMessage());
-        }
+
+
 
 
         // Valid cases
@@ -263,16 +142,10 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         new AESNativeCFBPacketCipher()
         {
             {
-                processPacket(true, new byte[16], 16, new byte[16], 16, new byte[16], 0, 16, new byte[16], 0, 16);
+                processPacket(true, new byte[16],  new byte[16],  new byte[16], 0, 16, new byte[16], 0, 16);
             }
         };
 
-        new AESNativeCFBPacketCipher()
-        {
-            {
-                processPacket(true, new byte[16], 16, new byte[17], 16, new byte[16], 0, 16, new byte[16], 0, 16);
-            }
-        };
 
     }
 
@@ -298,7 +171,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             new AESNativeCFBPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[16], 16, null, 0, 0, null, 0, 0);
+                    processPacket(true, new byte[16],  new byte[16],  null, 0, 0, null, 0, 0);
                     fail();
                 }
             };
@@ -314,7 +187,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             new AESNativeCFBPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[16], 16, new byte[16], -1, 0,
+                    processPacket(true, new byte[16],  new byte[16],  new byte[16], -1, 0,
                             new byte[0], 0, 0);
                     fail();
                 }
@@ -330,7 +203,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             new AESNativeCFBPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[16], 16, new byte[16], 0, -1,
+                    processPacket(true, new byte[16],  new byte[16],  new byte[16], 0, -1,
                             new byte[0], 0, 0);
                     fail();
                 }
@@ -347,7 +220,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             new AESNativeCFBPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[16], 16, new byte[16], 1, 16,
+                    processPacket(true, new byte[16],  new byte[16],  new byte[16], 1, 16,
                             new byte[0], 0, 0);
                     fail();
                 }
@@ -363,7 +236,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             new AESNativeCFBPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[16], 16, new byte[16], 0, 17,
+                    processPacket(true, new byte[16],  new byte[16],  new byte[16], 0, 17,
                             new byte[0], 0, 0);
                     fail();
                 }
@@ -380,8 +253,8 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         {
             {
                 processPacket(true,
-                        new byte[16], 16,
-                        new byte[16], 16,
+                        new byte[16],
+                        new byte[16],
                         new byte[0], 0, 0,
                         new byte[16], 0, 16);
             }
@@ -390,7 +263,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         new AESNativeCFBPacketCipher()
         {
             {
-                processPacket(true, new byte[16], 16, new byte[16], 16, new byte[15], 15, 0,
+                processPacket(true, new byte[16],  new byte[16],  new byte[15], 15, 0,
                         new byte[16], 0, 16);
             }
         };
@@ -417,7 +290,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             new AESNativeCFBPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[16], 16, new byte[0], 0, 0, null, 0, 0);
+                    processPacket(true, new byte[16],  new byte[16],  new byte[0], 0, 0, null, 0, 0);
                     fail();
                 }
             };
@@ -433,7 +306,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             new AESNativeCFBPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[16], 16, new byte[0], 0, 0,
+                    processPacket(true, new byte[16],  new byte[16],  new byte[0], 0, 0,
                             new byte[0], -1, 0);
                     fail();
                 }
@@ -449,7 +322,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             new AESNativeCFBPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[16], 16, new byte[0], 0, 0,
+                    processPacket(true, new byte[16], new byte[16],  new byte[0], 0, 0,
                             new byte[16], 0, -1);
                     fail();
                 }
@@ -466,7 +339,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             new AESNativeCFBPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[16], 16, new byte[0], 0, 0,
+                    processPacket(true, new byte[16],  new byte[16],  new byte[0], 0, 0,
                             new byte[16], 1, 16);
                     fail();
                 }
@@ -482,7 +355,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             new AESNativeCFBPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[16], 16, new byte[0], 0, 0,
+                    processPacket(true, new byte[16],  new byte[16],  new byte[0], 0, 0,
                             new byte[16], 0, 17);
                     fail();
                 }
@@ -500,7 +373,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             {
                 {
 
-                    processPacket(true, new byte[16], 16, new byte[16], 16, new byte[16], 0, 16,
+                    processPacket(true, new byte[16],  new byte[16],  new byte[16], 0, 16,
                             new byte[15], 0, 15);
                     fail();
                 }
@@ -517,7 +390,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         new AESNativeCFBPacketCipher()
         {
             {
-                processPacket(true, new byte[16], 16, new byte[16], 16, new byte[0], 0, 0, new byte[16],
+                processPacket(true, new byte[16],  new byte[16],  new byte[0], 0, 0, new byte[16],
                         0, 16);
             }
         };
@@ -525,7 +398,7 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         new AESNativeCFBPacketCipher()
         {
             {
-                processPacket(true, new byte[16], 16, new byte[16], 16, new byte[15], 15, 0,
+                processPacket(true, new byte[16],  new byte[16],  new byte[15], 15, 0,
                         new byte[17], 1, 16);
             }
         };
@@ -554,8 +427,8 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             {
                 {
                     processPacket(true,
-                            new byte[16], 16,
-                            new byte[16], 16,
+                            new byte[16],
+                            new byte[16],
                             new byte[1], 0, 1,
                             new byte[0], 0, 0);
                     fail();
@@ -574,8 +447,8 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             {
                 {
                     processPacket(true,
-                            new byte[16], 16,
-                            new byte[16], 16,
+                            new byte[16],
+                            new byte[16],
                             new byte[2], 1, 1,
                             new byte[1], 1, 0);
                     fail();
@@ -594,8 +467,8 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             {
                 {
                     processPacket(true,
-                            new byte[16], 16,
-                            new byte[16], 16,
+                            new byte[16],
+                            new byte[16],
                             new byte[2], 1, 1,
                             new byte[2], 2, 0);
                     fail();
@@ -614,8 +487,8 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
             {
                 {
                     processPacket(true,
-                            new byte[16], 16,
-                            new byte[16], 16,
+                            new byte[16],
+                            new byte[16],
                             new byte[4], 0, 4,
                             new byte[4], 1, 3);
                     fail();
@@ -634,8 +507,8 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         {
             {
                 processPacket(true,
-                        new byte[16], 16,
-                        new byte[16], 16,
+                        new byte[16],
+                        new byte[16],
                         new byte[4], 0, 4,
                         new byte[5], 1, 4);
             }
@@ -645,8 +518,8 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         {
             {
                 processPacket(true,
-                        new byte[16], 16,
-                        new byte[16], 16,
+                        new byte[16],
+                        new byte[16],
                         new byte[0], 0, 0,
                         new byte[0], 0, 0);
             }
@@ -656,8 +529,8 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         {
             {
                 processPacket(true,
-                        new byte[16], 16,
-                        new byte[16], 16,
+                        new byte[16],
+                        new byte[16],
                         new byte[0], 0, 0,
                         new byte[1], 1, 0);
             }
@@ -668,8 +541,8 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         {
             {
                 processPacket(true,
-                        new byte[16], 16,
-                        new byte[16], 16,
+                        new byte[16],
+                        new byte[16],
                         new byte[0], 0, 0,
                         new byte[8], 0, 8);
             }
@@ -679,8 +552,8 @@ public class NativeCFBPacketCipherLimitTest extends TestCase
         {
             {
                 processPacket(true,
-                        new byte[16], 16,
-                        new byte[16], 16,
+                        new byte[16],
+                        new byte[16],
                         new byte[2], 1, 1,
                         new byte[8], 0, 8);
             }

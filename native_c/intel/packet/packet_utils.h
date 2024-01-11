@@ -68,8 +68,6 @@ size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, 
 
 bool tag_verification(const uint8_t *left, const uint8_t *right, size_t len);
 
-bool tag_verification_16(const uint8_t *left, const uint8_t *right);
-
 //static inline void encrypt128(__m128i *d0, __m128i *d1, __m128i *roundKeys);
 //
 //static inline void encrypt192(__m128i *d0, __m128i *d1, __m128i *roundKeys);

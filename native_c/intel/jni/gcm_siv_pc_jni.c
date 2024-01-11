@@ -41,13 +41,14 @@ void handle_gcm_siv_pc_result(JNIEnv *env, packet_err *err) {
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIVPacketCipher_processPacket
         (JNIEnv *env, jclass,
          jboolean encryption,
-         jbyteArray key_, jint keyLen,
-         jbyteArray nonce_, jint nonceLen,
-         jbyteArray aad_, jint aadLen,
+         jbyteArray key_,
+         jbyteArray nonce_,
+         jbyteArray aad_,
          jbyteArray in, jint inOff, jint inLen,
          jbyteArray out, jint outOff, jint outLen) {
 
     packet_err *err = NULL;
+    size_t outputLen = 0;
     java_bytearray_ctx key, iv, ad;
     critical_bytearray_ctx input, output;
     init_critical_ctx(&input, env, in);
@@ -66,9 +67,10 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIVPacke
         goto exit;
     }
 
-    if (!aes_keysize_is_valid_and_not_null_with_len_not_24(env, &key, keyLen)) {
+    if (!aes_keysize_is_valid_and_not_null_not_24(env, &key)) {
         goto exit;
     }
+
 
 
     //
@@ -79,19 +81,11 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIVPacke
         goto exit;
     }
 
-    if (!bytearray_offset_and_len_are_in_range_not_null_msgs(
-            &iv,
-            0,
-            nonceLen,
-            env,
-            "nonce is null",
-            "nonce offset negative",
-            "nonce len is negative",
-            "nonce len past end of nonce array")) {
+    if (!bytearray_not_null(&iv,"nonce is null",env)) {
         goto exit;
     }
 
-    if (nonceLen != 12) {
+    if (iv.size != 12) {
         throw_java_illegal_argument(env, "invalid nonce");
         goto exit;
     }
@@ -106,27 +100,9 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIVPacke
     }
 
 
-    if (ad.array != NULL) {
-        if (!bytearray_offset_and_len_are_in_range_not_null_msgs(
-                &ad,
-                0,
-                aadLen,
-                env,
-                "ad is null",
-                "ad offset negative",
-                "ad len is negative",
-                "ad len past end of ad array")) {
-            goto exit;
-        }
-    } else {
-        if (aadLen != 0) {
-            throw_java_illegal_argument(env, "ad len non zero but ad array is null");
-            goto exit;
-        }
-    }
 
     //
-    // Check input array with offset and minOutputSize
+    // Check input array with offset and outputSize
     //
     if (!critical_offset_and_len_are_in_range_with_messages(
             &input,
@@ -142,7 +118,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIVPacke
 
 
     //
-    // Check output array with offset and minOutputSize
+    // Check output array with offset and outputSize
     //
     if (!critical_offset_and_len_are_in_range_with_messages(
             &output,
@@ -157,13 +133,14 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIVPacke
     }
 
 
-    int minOutputSize = get_aead_output_size(encryption == JNI_TRUE, inLen, BLOCK_SIZE);
-    if (minOutputSize < 0) {
+    int outputSize = get_aead_output_size(encryption == JNI_TRUE, inLen, BLOCK_SIZE);
+    if (outputSize < 0) {
         // macLen < input len on decryption asserted here
         throw_java_illegal_argument(env, EM_INPUT_SHORT); // inlen < macSize
         goto exit;
     }
-    if (outLen < minOutputSize) {
+
+    if (outLen < outputSize) {
         throw_java_illegal_argument(env, EM_OUTPUT_LENGTH);
         goto exit;
     }
@@ -174,7 +151,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIVPacke
     //
 
     if (!load_critical_ctx(&output)) {
-
         throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
         goto exit;
     }
@@ -188,14 +164,14 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIVPacke
 
     uint8_t *p_in = input.critical + inOff;
     uint8_t *p_out = output.critical + outOff;
-    size_t outputLen = 0;
+
     err = gcm_siv_pc_process_packet(
             encryption == JNI_TRUE,
             key.bytearray,
-            (size_t) keyLen,
+            (size_t) key.size,
             iv.bytearray,
             ad.bytearray,
-            (size_t) aadLen,
+            (size_t) ad.size,
             p_in,
             (size_t) inLen,
             p_out,
@@ -206,6 +182,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIVPacke
     release_bytearray_ctx(&ad);
     release_critical_ctx(&input);
     release_critical_ctx(&output);
+
     handle_gcm_siv_pc_result(env, err);
     return (jint) outputLen;
 }
@@ -226,6 +203,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIVPacke
     int result = get_aead_output_size(encryption == JNI_TRUE, (int) len, BLOCK_SIZE);
     if (result < 0) {
         throw_bc_data_length_exception(env, EM_INVALID_LEN);
+        return -1;
     }
     return result;
 }

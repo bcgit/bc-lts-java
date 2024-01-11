@@ -40,13 +40,13 @@ sha256_ctx *sha256_create_ctx() {
 }
 
 void sha256_free_ctx(sha256_ctx *ctx) {
-    memset(ctx, 0, sizeof(sha256_ctx));
+    memzero(ctx, sizeof(sha256_ctx));
     free(ctx);
 }
 
 void sha256_reset(sha256_ctx *ctx) {
 
-    memset(ctx->buf, 0, BUF_SIZE_SHA256);
+    memzero(ctx->buf, BUF_SIZE_SHA256);
     ctx->ident = SHA256_MAGIC;
     ctx->buf_index = 0;
     ctx->byteCount = 0;

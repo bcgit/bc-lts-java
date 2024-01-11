@@ -9,7 +9,8 @@ public class GCMSIVNativeLimitTest extends TestCase
 {
 
     @Test
-    public void testInitNative() throws Exception
+    public void testInitNative()
+    throws Exception
     {
         if (!isNativeVariant())
         {
@@ -153,7 +154,8 @@ public class GCMSIVNativeLimitTest extends TestCase
     }
 
     @Test
-    public void testUpdateAADBytes() throws Exception
+    public void testUpdateAADBytes()
+    throws Exception
     {
 
         if (!isNativeVariant())
@@ -341,7 +343,8 @@ public class GCMSIVNativeLimitTest extends TestCase
 
 
     @Test
-    public void testDoFinal() throws Exception
+    public void testDoFinal()
+    throws Exception
     {
 
         if (!isNativeVariant())
@@ -358,7 +361,7 @@ public class GCMSIVNativeLimitTest extends TestCase
 
                 {
                     initNative(ref, true, new byte[16], new byte[12], null);
-                    doFinal(ref, null,0, new byte[1], 1);
+                    doFinal(ref, null, 0, new byte[1], 1);
                     fail();
                 }
                 catch (Exception ex)
@@ -382,7 +385,7 @@ public class GCMSIVNativeLimitTest extends TestCase
 
                 {
                     initNative(ref, true, new byte[16], new byte[12], null);
-                    doFinal(ref, new byte[1],-1, new byte[1], 1);
+                    doFinal(ref, new byte[1], -1, new byte[1], 1);
                     fail();
                 }
                 catch (Exception ex)
@@ -407,7 +410,7 @@ public class GCMSIVNativeLimitTest extends TestCase
 
                 {
                     initNative(ref, true, new byte[16], new byte[12], null);
-                    doFinal(ref, new byte[1],2, new byte[1], 1);
+                    doFinal(ref, new byte[1], 2, new byte[1], 1);
                     fail();
                 }
                 catch (Exception ex)
@@ -428,11 +431,10 @@ public class GCMSIVNativeLimitTest extends TestCase
             {
                 long ref = makeInstance();
                 try
-
                 {
                     initNative(ref, true, new byte[16], new byte[12], null);
-                    test_set_max_dl(ref,2);
-                    doFinal(ref, new byte[3],3, new byte[1], 1);
+                    test_set_max_dl(ref, 2);
+                    doFinal(ref, new byte[3], 3, new byte[1], 1);
                     fail();
                 }
                 catch (Exception ex)
@@ -449,15 +451,32 @@ public class GCMSIVNativeLimitTest extends TestCase
         };
 
 
+        new AESNativeGCMSIV() // input passes checkStatus
+        {
+            {
+                long ref = makeInstance();
+                try
+                {
+                    initNative(ref, true, new byte[16], new byte[12], null);
+                    test_set_max_dl(ref, 2);
+                    doFinal(ref, new byte[3], 2, new byte[32], 0);
+                }
+                finally
+                {
+                    dispose(ref);
+                }
+            }
+        };
+
+
         new AESNativeGCMSIV() // output null
         {
             {
                 long ref = makeInstance();
                 try
-
                 {
                     initNative(ref, true, new byte[16], new byte[12], null);
-                    doFinal(ref, new byte[3], 3,null, 0);
+                    doFinal(ref, new byte[3], 3, null, 0);
                     fail();
                 }
                 catch (Exception ex)
@@ -479,10 +498,9 @@ public class GCMSIVNativeLimitTest extends TestCase
             {
                 long ref = makeInstance();
                 try
-
                 {
                     initNative(ref, true, new byte[16], new byte[12], null);
-                    doFinal(ref, new byte[3],3, new byte[0], -1);
+                    doFinal(ref, new byte[3], 3, new byte[0], -1);
                     fail();
                 }
                 catch (Exception ex)
@@ -506,7 +524,7 @@ public class GCMSIVNativeLimitTest extends TestCase
 
                 {
                     initNative(ref, true, new byte[16], new byte[12], null);
-                    doFinal(ref, new byte[3],3, new byte[0], 1);
+                    doFinal(ref, new byte[3], 3, new byte[0], 1);
                     fail();
                 }
                 catch (Exception ex)
@@ -531,7 +549,7 @@ public class GCMSIVNativeLimitTest extends TestCase
 
                 {
                     initNative(ref, true, new byte[16], new byte[12], null);
-                    doFinal(ref, new byte[1],1, new byte[0], 0);
+                    doFinal(ref, new byte[1], 1, new byte[0], 0);
                     fail();
                 }
                 catch (Exception ex)
@@ -555,7 +573,7 @@ public class GCMSIVNativeLimitTest extends TestCase
 
                 {
                     initNative(ref, true, new byte[16], new byte[12], null);
-                    doFinal(ref, new byte[1],1, new byte[1], 1);
+                    doFinal(ref, new byte[1], 1, new byte[1], 1);
                     fail();
                 }
                 catch (Exception ex)
@@ -579,7 +597,7 @@ public class GCMSIVNativeLimitTest extends TestCase
 
                 {
                     initNative(ref, true, new byte[16], new byte[12], null);
-                    doFinal(ref, new byte[2],2, new byte[1], 0);
+                    doFinal(ref, new byte[2], 2, new byte[1], 0);
                     fail();
                 }
                 catch (Exception ex)
@@ -604,7 +622,7 @@ public class GCMSIVNativeLimitTest extends TestCase
 
                 {
                     initNative(ref, false, new byte[16], new byte[12], null);
-                    doFinal(ref, new byte[15],15, new byte[1], 1);
+                    doFinal(ref, new byte[15], 15, new byte[1], 1);
                     fail();
                 }
                 catch (Exception ex)
@@ -620,7 +638,6 @@ public class GCMSIVNativeLimitTest extends TestCase
         };
 
 
-
         new AESNativeGCMSIV() // too short decryption
         {
             {
@@ -629,7 +646,7 @@ public class GCMSIVNativeLimitTest extends TestCase
 
                 {
                     initNative(ref, false, new byte[16], new byte[12], null);
-                    doFinal(ref, new byte[17],17, new byte[0], 0);
+                    doFinal(ref, new byte[17], 17, new byte[0], 0);
                     fail();
                 }
                 catch (Exception ex)

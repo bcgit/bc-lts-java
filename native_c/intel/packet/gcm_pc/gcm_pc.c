@@ -4,7 +4,7 @@
 #include "gcm_pc.h"
 #include <stdlib.h>
 #include "gcm_pcHash128.h"
-#include <memory.h>
+#include <string.h>
 
 
 packet_err *
@@ -28,10 +28,6 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
     __m128i last_block;
     size_t totalBytes;
     size_t atLength;
-    __m128i initialX;
-    __m128i initialY;
-    __m128i initialT;
-    __m128i initialH;
     __m128i hashKeys[HASHKEY_LEN];
     atLength = 0;
     totalBytes = 0;
@@ -40,11 +36,11 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
     last_block = _mm_setzero_si128();
 
     // Zero out mac block
-    memset(macBlock, 0, MAC_BLOCK_LEN);
+    memzero(macBlock, MAC_BLOCK_LEN);
 
     assert(macBlockLen <= MAC_BLOCK_LEN);
 
-    memset(bufBlock, 0, BUF_BLK_SIZE);
+    memzero(bufBlock, BUF_BLK_SIZE);
     bufBlockIndex = 0;
 
 #ifdef BC_VAESF
@@ -71,10 +67,10 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
         //
 
         uint8_t nonceBuf[16];
-        memset(nonceBuf, 0, 16);
+        memzero(nonceBuf, 16);
         memcpy(nonceBuf, nonce, nonceLen);
         Y = _mm_loadu_si128((__m128i *) nonceBuf);
-        memset(nonceBuf, 0, 16);
+        memzero(nonceBuf, 16);
 
         Y = _mm_insert_epi32(Y, 0x1000000, 3);
 
@@ -134,14 +130,6 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
     }
 
     //
-    // Capture initial state.
-    //
-    initialX = X;
-    initialY = Y;
-    initialT = T;
-    initialH = H;
-
-    //
     // Process any initial associated data.
     //
     if (initAD != NULL) {
@@ -183,8 +171,6 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
     ctr1 = _mm_shuffle_epi8(Y, *BSWAP_EPI64);
 
     blocksRemaining = BLOCKS_REMAINING_INIT;
-
-
 
     // Expand hash keys, key number varies with variant see gcm.h
     hashKeys[HASHKEY_0] = H;
@@ -262,17 +248,6 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
         }
         limit -= macBlockLen; // Limit of cipher text before tag.
         totalBytes -= macBlockLen;
-
-        // decryption so output buffer cannot be less than limit.
-        // bytes are to limit are the mac block (tag)
-//        if (*outputLen < limit) {
-//            return make_packet_error("output buffer too small", OUTPUT_LENGTH);
-//        }
-    } else {
-        // encryption, output must take remaining buffer + mac block
-//        if (*outputLen < bufBlockIndex + macBlockLen) {
-//            return make_packet_error("output buffer too small", OUTPUT_LENGTH);
-//        }
     }
 
     if (bufBlockIndex > 0) {
@@ -292,17 +267,10 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
             //
 
             for (; t < ((limit >> 4) << 4); t += BLOCK_SIZE) {
-                //process_block(ctx, &ctx->bufBlock[t], outPtr, outLen);
-                //uint8_t *in, uint8_t *out, size_t outputLen
                 if (blocksRemaining < 1) {
                     return make_packet_error("attempt to process too many blocks in GCM", ILLEGAL_ARGUMENT);
                 }
                 blocksRemaining -= 1;
-
-//                if (*outputLen < BLOCK_SIZE) {
-//                    return make_packet_error("output len too short", OUTPUT_LENGTH);
-//                }
-
                 int j;
                 ctr1 = _mm_add_epi32(ctr1, *ONE);
                 __m128i tmp3 = _mm_shuffle_epi8(ctr1, *BSWAP_EPI64);
@@ -433,7 +401,7 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
 
     // Copy into mac block
     memcpy(macBlock, tmpTag, macBlockLen);
-    memset(tmpTag, 0, BLOCK_SIZE);
+    memzero(tmpTag, BLOCK_SIZE);
 
 
     if (encryption) {
@@ -444,33 +412,12 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
     } else {
 
         if (!tag_verification(macBlock, bufBlock + limit, macBlockLen)) {
-            memset(output, 0, *outputLen);
+            memzero(output, *outputLen);
             return make_packet_error("mac check in GCM failed", ILLEGAL_CIPHER_TEXT);
         }
     }
 
-    atLength = 0;
-    totalBytes = 0;
-    bufBlockIndex = 0;
-    atBlockPos = 0;
-    atLengthPre = 0;
-    last_aad_block = _mm_setzero_si128();
-    last_block = _mm_setzero_si128();
-    S_atPre = _mm_setzero_si128();
-    S_at = _mm_setzero_si128();
-
-    memset(bufBlock, 0, BUF_BLK_SIZE);
-    X = initialX;
-    Y = initialY;
-    T = initialT;
-    H = initialH;
-
-
-    last_block = _mm_setzero_si128();
-    ctr1 = _mm_shuffle_epi8(Y, *BSWAP_EPI64);
-
-    blocksRemaining = BLOCKS_REMAINING_INIT;
-
+    memzero(bufBlock, BUF_BLK_SIZE);
     return err;
 }
 

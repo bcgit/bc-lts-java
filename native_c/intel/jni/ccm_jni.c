@@ -208,7 +208,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_g
 
 /*
  * Class:     org_bouncycastle_crypto_engines_AESNativeCCM
- * Method:    process_packet
+ * Method:    ccm_process_packet
  * Signature: (J[B[B[BI)V
  */
 JNIEXPORT int JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_processPacket
@@ -332,7 +332,7 @@ JNIEXPORT int JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_processP
     uint8_t *p_out = output.critical + outOff;
 
 
-    err = process_packet(
+    err = ccm_process_packet(
             ctx,
             p_in,
             (size_t) inLen,

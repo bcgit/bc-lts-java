@@ -7,7 +7,7 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 
 public class AESNativeCTRPacketCipher
-    implements AESCTRModePacketCipher
+        implements AESCTRModePacketCipher
 {
 
 
@@ -23,16 +23,17 @@ public class AESNativeCTRPacketCipher
     }
 
     @Override
-    public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len, byte[] output, int outOff)
-        throws PacketCipherException
+    public int processPacket(boolean encryption, CipherParameters parameters, byte[] input, int inOff, int len,
+                             byte[] output, int outOff)
+    throws PacketCipherException
     {
         byte[] iv;
         byte[] key;
         if (parameters instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV)parameters;
+            ParametersWithIV ivParam = (ParametersWithIV) parameters;
             iv = Arrays.clone(ivParam.getIV());
-            KeyParameter keyParameter = (KeyParameter)ivParam.getParameters();
+            KeyParameter keyParameter = (KeyParameter) ivParam.getParameters();
             if (keyParameter == null)
             {
                 throw PacketCipherException.from(new IllegalStateException(ExceptionMessages.CTR_CIPHER_UNITIALIZED));
@@ -46,7 +47,7 @@ public class AESNativeCTRPacketCipher
         int result;
         try
         {
-            result = processPacket(encryption, key, key.length, iv, iv.length, input, inOff, len, output, outOff, output.length-outOff);
+            result = processPacket(encryption, key, iv, input, inOff, len, output, outOff, output.length - outOff);
         }
         catch (Exception e)
         {
@@ -57,7 +58,9 @@ public class AESNativeCTRPacketCipher
 
     static native int getOutputSize(int len);
 
-    static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce, int nonceLen, byte[] in, int inOff, int inLen, byte[] out, int outOff, int outLen);
+    static native int processPacket(boolean encryption, byte[] key, byte[] nonce, byte[] in, int inOff, int inLen,
+                                    byte[] out, int outOff, int outLen);
+
     @Override
     public String toString()
     {

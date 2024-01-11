@@ -34,8 +34,6 @@ void handle_gcm_siv_result(JNIEnv *env, gcm_siv_err *err) {
 
 }
 
-// We need to be able to adjust this down for testing.
-
 
 bool checkAEADStatus(JNIEnv *env, gcm_siv_ctx *ctx, size_t pLen) {
 
@@ -56,7 +54,7 @@ bool checkStatus(JNIEnv *env, gcm_siv_ctx *ctx, size_t pLen, size_t size) {
     if (!ctx->encryption) {
         dataLimit += BLOCK_SIZE;
     }
-    if (size > dataLimit - pLen) {
+    if (pLen > dataLimit - size) {
         throw_java_invalid_state(env, "byte count exceeded");
         return false;
     }
@@ -177,8 +175,8 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
         return; // exception thrown
     }
 
-   uint8_t theByte = (uint8_t) aadByte;
-   gcm_siv_hasher_updateHash(&ctx->theAEADHasher, ctx->T, &theByte, 1, &ctx->theGHash);
+    uint8_t theByte = (uint8_t) aadByte;
+    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, ctx->T, &theByte, 1, &ctx->theGHash);
 }
 
 /*
@@ -244,14 +242,13 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_doFi
     //
     // check input can be processed even
     //
-    if (!checkStatus(env, ctx, 0, (size_t) input.size)) {
+    if (!checkStatus(env, ctx, (size_t) inLen, (size_t) 0)) {
         goto exit;
     }
 
     //
     // Validate output
     //
-
     if (!critical_not_null(&output, "output was null", env)) {
         goto exit;
     }
@@ -260,19 +257,19 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_doFi
         goto exit;
     }
 
-    int64_t minOutputLen = gcm_siv_get_output_size(ctx->encryption, (size_t) inLen);
+    int64_t outputSize = gcm_siv_get_output_size(ctx->encryption, (size_t) inLen);
 
     //
     // < 0 if the input size is impossibly small,
     // for example, in decryption and input len < tag len
     //
-    if (minOutputLen < 0) {
+    if (outputSize < 0) {
         throw_java_illegal_argument(env, "input less than tag len");
         goto exit;
     }
 
     // Assert space in buffer can contain the output len.
-    if (output.size - (size_t) outOff < minOutputLen) {
+    if (output.size - (size_t) outOff < outputSize) {
         throw_java_illegal_argument(env, "output at offset too short");
         goto exit;
     }
@@ -387,7 +384,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSI
     return out;
 }
 
-
+// We need to be able to adjust this down for testing.
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_test_1set_1max_1dl
         (JNIEnv *, jclass, jlong ref, jlong new_value) {
 
@@ -398,12 +395,13 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_test
 
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
 
-    size_t lastValue = ctx->max_dl;
-    ctx->max_dl = (size_t) new_value;
-
     //
     // Only be set lower than original
     //
-    assert(lastValue > ctx->max_dl);
+    assert((size_t) new_value < ctx->max_dl);
+
+    ctx->max_dl = (size_t) new_value;
+
+
 }
 

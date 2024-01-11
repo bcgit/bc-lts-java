@@ -19,10 +19,10 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
     uint64_t ctrMask = 0xFFFFFFFFFFFFFFFF;
     bool ctrAtEnd = false;
     int num_rounds = generate_key(true, key, roundKeys, keysize);
-    memset(buf, 0, BLOCK_SIZE);
+    memzero(buf, BLOCK_SIZE);
 
     buf_ptr = 0;
-    memset(macBlock, 0, BLOCK_SIZE);
+    memzero(macBlock, BLOCK_SIZE);
     macBlock[0] = (q - 1) & 0x7;
     memcpy(macBlock + 1, nonce, nonceLen);
 
@@ -32,7 +32,7 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
     IV_le = _mm_and_si128(IV_le, _mm_set_epi64x(-1, 0));
 
     // Zero out mac block
-    memset(macBlock, 0, BLOCK_SIZE);
+    memzero(macBlock, BLOCK_SIZE);
 
     if (q < 4) {
         int limitLen = 1 << (q << 3);
@@ -61,7 +61,7 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
                 0, 0, 0, 0, 0, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0};
         memcpy(macBlock, p_in + *outputLen, mac_size);
-        memset(macBlock + mac_size, 0, (BLOCK_SIZE - mac_size));
+        memzero(macBlock + mac_size, (BLOCK_SIZE - mac_size));
         ctr_pc_process_bytes(macBlock, BLOCK_SIZE, tmp, &written, &buf_pos, &ctr, initialCTR, ctrMask, &ctrAtEnd,
                              &IV_le, roundKeys, num_rounds, &partialBlock);
         ctr_pc_process_bytes(p_in, *outputLen, p_out, &written, &buf_pos, &ctr, initialCTR, ctrMask, &ctrAtEnd,
@@ -69,14 +69,12 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
         ccm_pc_calculateMac(p_out, *outputLen, initAD, initADLen, mac_size, nonce, nonceLen, buf, macBlock,
                             roundKeys, num_rounds, &buf_ptr);
 
-        uint8_t nonEqual = 0;
-        for (int i = 0; i < mac_size; i++) {
-            nonEqual |= (macBlock[i] ^ tmp[i]);
-        }
-        memset(tmp, 0, BLOCK_SIZE);
+
+        bool tagOk = tag_verification(macBlock, tmp, mac_size);
+        memzero(tmp, BLOCK_SIZE);
         //"mac check in CCM failed"
-        if (nonEqual) {
-            memset(p_out, 0, *outputLen);
+        if (!tagOk) {
+            memzero(p_out, *outputLen);
             return make_packet_error("mac check in CCM failed", ILLEGAL_CIPHER_TEXT);
         }
     }
@@ -117,21 +115,22 @@ void ccm_pc_calculateMac(uint8_t *input, size_t len, uint8_t *initAD, size_t ini
         if (initAD != NULL) {
             cbc_pc_mac_update(initAD, initADLen, buf, buf_index_ptr, macBlock, &chainblock, roundKeys, num_rounds);
         }
-        memset(buf + *buf_index_ptr, 0, (BLOCK_SIZE - *buf_index_ptr));
+        memzero(buf + *buf_index_ptr, (BLOCK_SIZE - *buf_index_ptr));
         cbc_pc_encrypt(buf, 1, macBlock, &chainblock, roundKeys, num_rounds);
         *buf_index_ptr = 0;
     }
     cbc_pc_mac_update(input, len, buf, buf_index_ptr, macBlock, &chainblock, roundKeys, num_rounds);
     if (*buf_index_ptr) {
-        memset(buf + *buf_index_ptr, 0, BLOCK_SIZE - *buf_index_ptr);
+        memzero(buf + *buf_index_ptr, BLOCK_SIZE - *buf_index_ptr);
         cbc_pc_encrypt(buf, 1, macBlock, &chainblock, roundKeys, num_rounds);
     }
-    memset(macBlock + mac_size, 0, BLOCK_SIZE - mac_size);
+    memzero(macBlock + mac_size, BLOCK_SIZE - mac_size);
 }
 
 
-void cbc_pc_mac_update(uint8_t *src, size_t len, uint8_t *buf, size_t *buf_index_ptr, uint8_t *macBlock, __m128i *chainblock,
-                       __m128i *roundKeys, int num_rounds) {
+void
+cbc_pc_mac_update(uint8_t *src, size_t len, uint8_t *buf, size_t *buf_index_ptr, uint8_t *macBlock, __m128i *chainblock,
+                  __m128i *roundKeys, int num_rounds) {
     size_t gapLen = BLOCK_SIZE - *buf_index_ptr;
     if (len > gapLen) {
         memcpy(buf + *buf_index_ptr, src, gapLen);

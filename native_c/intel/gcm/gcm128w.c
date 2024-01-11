@@ -8,6 +8,7 @@
 #include "gcmHash128.h"
 #include <memory.h>
 #include <assert.h>
+#include "../util/util.h"
 
 
 
@@ -742,7 +743,7 @@ gcm_err *gcm_doFinal(gcm_ctx *ctx, unsigned char *output, size_t outLen, size_t 
 
     // Copy into mac block
     memcpy(ctx->macBlock, tmpTag, ctx->macBlockLen);
-    memset(tmpTag, 0, BLOCK_SIZE);
+    memzero(tmpTag, BLOCK_SIZE);
 
 
     if (ctx->encryption) {

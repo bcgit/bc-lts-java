@@ -67,12 +67,11 @@ public class AESNativeCCMPacketCipher
     private static int processAEADPacketCipher(boolean forEncryption, byte[] input, int inOff, int len, byte[] output, int outOff, byte[] initialAssociatedText, byte[] key, byte[] nonce, int macSize)
         throws PacketCipherException
     {
-        final int iatLen = initialAssociatedText != null ? initialAssociatedText.length : 0;
         final int outLen = output != null ? output.length-outOff : 0;
         int result;
         try
         {
-            result = processPacket(forEncryption, key, key.length, nonce, nonce.length, initialAssociatedText, iatLen,
+            result = processPacket(forEncryption, key,  nonce,  initialAssociatedText,
                 macSize, input, inOff, len, output, outOff, outLen);
         }
         catch (Exception e)
@@ -84,8 +83,8 @@ public class AESNativeCCMPacketCipher
 
     static native int getOutputSize(boolean encryption, int len, int macSize);
 
-    static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce, int nonLen, byte[] aad,
-                                    int aadLen, int macSize, byte[] in, int inOff, int inLen, byte[] out, int outOff, int outLen);
+    static native int processPacket(boolean encryption, byte[] key, byte[] nonce, byte[] aad,
+                                    int macSize, byte[] in, int inOff, int inLen, byte[] out, int outOff, int outLen);
 
     @Override
     public String toString()

@@ -82,6 +82,7 @@ static inline void encrypt(__m128i *d0, __m128i *d1, __m128i *roundKeys, const i
     }
 }
 
+// Also used by CCM
 size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, __m128i *tmpCb, __m128i *roundKeys,
                       int num_rounds) {
     unsigned char *destStart = dest;
@@ -104,12 +105,6 @@ bool tag_verification(const uint8_t *left, const uint8_t *right, size_t len) {
         nonEqual |= (left[i] ^ right[i]);
     }
     return nonEqual == 0;
-}
-
-bool tag_verification_16(const uint8_t *macblock, const uint8_t *ciphertext) {
-    __m128i left = _mm_loadu_si128((const __m128i *) macblock);
-    __m128i right = _mm_loadu_si128((const __m128i *) ciphertext);
-    return _mm_test_all_zeros(_mm_xor_si128(left,right), _mm_set_epi64x(-1L, -1L)) == 1;
 }
 
 

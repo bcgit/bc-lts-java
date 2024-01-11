@@ -86,7 +86,7 @@ ccm_err *ccm_init(ccm_ctx *ctx, bool encryption, uint8_t *key, size_t keyLen, ui
                   uint8_t *intialText, size_t initialTextLen, uint32_t macBlockLenBytes);
 
 
-ccm_err *process_packet(
+ccm_err *ccm_process_packet(
         ccm_ctx *ref,
         uint8_t *in,
         size_t to_process,

@@ -29,62 +29,35 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         }
 
 
-        try
-        { // processPacket -- keylen negative
-            new AESNativeCCMPacketCipher()
-            {
+        //
+        // Invalid key sizes!
+        //
+        for (int len : new int[]{15,17, 23,25,31,33}) {
+            try
+            { // processPacket -- key len too small
+                new AESNativeCCMPacketCipher()
                 {
-                    processPacket(true, new byte[16], -1, new byte[13], 13, null, 0, 16, new byte[0], 0, 0,
-                            new byte[16], 0, 16);
-                    fail("keylen too small");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
-        }
-
-
-        try
-        { // processPacket -- keylen
-            new AESNativeCCMPacketCipher()
+                    {
+                        processPacket(true, new byte[len], new byte[13], null, 16, new byte[0], 0, 0,
+                                new byte[16], 0, 16);
+                        fail("keylen invalid");
+                    }
+                };
+            }
+            catch (Exception ex)
             {
-                {
-                    processPacket(true, new byte[16], 15, new byte[13], 13, null, 0, 16, new byte[0], 0, 0,
-                            new byte[16], 0, 16);
-                    fail("keylen too small");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
+                TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
+            }
+
         }
 
-
-        try
-        { // processPacket -- keylen ok but array len too small
-            new AESNativeCCMPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[15], 16, new byte[13], 13, null, 0, 16, new byte[0], 0, 0,
-                            new byte[16], 0, 16);
-                    fail("key array too small");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("key array is less than keyLen", ex.getMessage());
-        }
 
         try
         { // processPacket -- null key array
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(true, null, 16, new byte[13], 13, null, 0, 16, new byte[0], 0, 0, new byte[16], 0,
+                    processPacket(true, null, new byte[13], null, 16, new byte[0], 0, 0, new byte[16], 0,
                             16);
                     fail("key array too small");
                 }
@@ -96,54 +69,6 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         }
 
 
-        try
-        { // processPacket -- invalid key size
-            new AESNativeCCMPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[32], 17, new byte[13], 13, null, 0, 16, new byte[0], 0, 0,
-                            new byte[16], 0, 16);
-                    fail("key array long enough but len invalid");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
-        }
-
-
-        try
-        { // processPacket -- invalid key size
-            new AESNativeCCMPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[36], 25, new byte[13], 13, null, 0, 16, new byte[0], 0, 0,
-                            new byte[16], 0, 16);
-                    fail("key array long enough but len invalid");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
-        }
-
-        try
-        { // processPacket -- invalid key size
-            new AESNativeCCMPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[36], 33, new byte[13], 13, null, 0, 16, new byte[0], 0, 0,
-                            new byte[16], 0, 16);
-                    fail("key array long enough but len invalid");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("key must be only 16, 24 or 32 bytes long", ex.getMessage());
-        }
 
 
         // Valid cases
@@ -151,7 +76,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         new AESNativeCCMPacketCipher()
         {
             {
-                processPacket(true, new byte[16], 16, new byte[16], 13, null, 0, 16, new byte[16], 0, 0,
+                processPacket(true, new byte[16], new byte[13], null, 16, new byte[16], 0, 0,
                         new byte[16], 0, 16);
             }
         };
@@ -159,7 +84,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         new AESNativeCCMPacketCipher()
         {
             {
-                processPacket(true, new byte[24], 24, new byte[17], 13, null, 0, 16, new byte[16], 0, 0,
+                processPacket(true, new byte[24], new byte[13], null, 16, new byte[16], 0, 0,
                         new byte[16], 0, 16);
             }
         };
@@ -167,32 +92,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         new AESNativeCCMPacketCipher()
         {
             {
-                processPacket(true, new byte[32], 32, new byte[17], 13, null, 0, 16, new byte[16], 0, 0,
-                        new byte[16], 0, 16);
-            }
-        };
-
-
-        new AESNativeCCMPacketCipher()
-        {
-            {
-                processPacket(true, new byte[33], 16, new byte[17], 13, null, 0, 16, new byte[16], 0, 0,
-                        new byte[16], 0, 16);
-            }
-        };
-
-        new AESNativeCCMPacketCipher()
-        {
-            {
-                processPacket(true, new byte[33], 24, new byte[17], 13, null, 0, 16, new byte[16], 0, 0,
-                        new byte[16], 0, 16);
-            }
-        };
-
-        new AESNativeCCMPacketCipher()
-        {
-            {
-                processPacket(true, new byte[33], 32, new byte[17], 13, null, 0, 16, new byte[16], 0, 0,
+                processPacket(true, new byte[32], new byte[13], null, 16, new byte[16], 0, 0,
                         new byte[16], 0, 16);
             }
         };
@@ -219,7 +119,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, null, -1, null, 0, 16, null, 0, 0, null, 0, 0);
+                    processPacket(true, new byte[16], null, null, 16, null, 0, 0, null, 0, 0);
                     fail("nonce is null");
                 }
             };
@@ -231,44 +131,12 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
 
 
         try
-        { // processPacket -- nonce len negative
+        { // processPacket -- nonce too small
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[16], -1, null, 0, 16, null, 0, 0, null, 0, 0);
-                    fail("len is negative");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("nonce len is negative", ex.getMessage());
-        }
-
-
-        try
-        { // processPacket -- array less than len
-            new AESNativeCCMPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[16], 16, new byte[0], 1, null, 0, 16, null, 0, 0, null, 0, 0);
-                    fail("array less then len");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("nonce len past end of nonce array", ex.getMessage());
-        }
-
-
-        try
-        { // processPacket -- nonce len out of range
-            new AESNativeCCMPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[16], 16, new byte[14], 6, null, 0, 16, null, 0, 0, null, 0, 0);
-                    fail("len out of range");
+                    processPacket(true, new byte[16], new byte[6], null, 16, null, 0, 0, null, 0, 0);
+                    fail("nonce is null");
                 }
             };
         }
@@ -278,12 +146,12 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         }
 
         try
-        { // processPacket -- nonce len out of range
+        { // processPacket -- nonce too small
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[14], 14, null, 0, 16, null, 0, 0, null, 0, 0);
-                    fail("len out of range");
+                    processPacket(true, new byte[16], new byte[14], null, 16, null, 0, 0, null, 0, 0);
+                    fail("nonce is null");
                 }
             };
         }
@@ -291,6 +159,8 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         {
             TestCase.assertEquals("nonce must have length from 7 to 13 octets", ex.getMessage());
         }
+
+
 
 
         // Valid cases
@@ -298,7 +168,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         new AESNativeCCMPacketCipher()
         {
             {
-                processPacket(true, new byte[16], 16, new byte[14], 7, null, 0, 16, new byte[0], 0, 0, new byte[16],
+                processPacket(true, new byte[16], new byte[13], null, 16, new byte[0], 0, 0, new byte[16],
                         0, 16);
             }
         };
@@ -306,117 +176,14 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         new AESNativeCCMPacketCipher()
         {
             {
-                processPacket(true, new byte[16], 16, new byte[14], 13, null, 0, 16, new byte[0], 0, 0, new byte[16],
+                processPacket(true, new byte[16], new byte[13], null, 16, new byte[0], 0, 0, new byte[16],
                         0, 16);
 
             }
         };
     }
 
-    @Test
-    public void testProcessPacketAADLen()
-    {
-        if (TestUtil.skipPS())
-        {
-            System.out.println("Skipping packet cipher test.");
-            return;
-        }
-
-        if (!isNativeVariant())
-        {
-            System.out.println("Skipping as native is not available");
-            return;
-        }
-
-
-        // null aad is valid
-        new AESNativeCCMPacketCipher()
-        {
-            {
-                processPacket(true, new byte[16], 16, new byte[14], 13, null, 0, 16, new byte[0], 0, 0, new byte[16],
-                        0, 16);
-            }
-        };
-
-
-        try
-        { // ad null but length non zero
-            new AESNativeCCMPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[16], 16, new byte[13], 13, null, 1, 16, null, 0, 0, null, 0, 0);
-                    fail("null ad array with non zero length");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("ad len non zero but ad array is null", ex.getMessage());
-        }
-
-
-        try
-        { // ad len is negative
-            new AESNativeCCMPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[16], 16, new byte[13], 13, new byte[0], -1, 16, null, 0, 0, null, 0,
-                            0);
-                    fail("ad len negative");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("ad len is negative", ex.getMessage());
-        }
-
-        try
-        { // ad len past end of ad array
-            new AESNativeCCMPacketCipher()
-            {
-                {
-                    processPacket(true, new byte[16], 16, new byte[13], 13, new byte[0], 1, 16, null, 0, 0, null, 0, 0);
-                    fail("ad len past end of ad array");
-                }
-            };
-        }
-        catch (Exception ex)
-        {
-            TestCase.assertEquals("ad len past end of ad array", ex.getMessage());
-        }
-
-
-        // ad array zero and len zero
-        new AESNativeCCMPacketCipher()
-        {
-            {
-                processPacket(true, new byte[16], 16, new byte[14], 13, new byte[0], 0, 16, new byte[0], 0, 0,
-                        new byte[16], 0, 16);
-            }
-        };
-
-        // ad partial array
-        new AESNativeCCMPacketCipher()
-        {
-            {
-                processPacket(true, new byte[16], 16, new byte[14], 13, new byte[10], 5, 16, new byte[0], 0, 0,
-                        new byte[16], 0, 16);
-            }
-        };
-
-        // ad all of array
-        new AESNativeCCMPacketCipher()
-        {
-            {
-                processPacket(true, new byte[16], 16, new byte[14], 13, new byte[10], 10, 16, new byte[0], 0, 0,
-                        new byte[16], 0, 16);
-            }
-        };
-
-    }
-
-//
+    //
     @Test
     public void testProcessPacketOutputArray()
     {
@@ -438,7 +205,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[0], 0, 0, null, 0, 0);
+                    processPacket(true, new byte[16], new byte[13], null, 16, new byte[0], 0, 0, null, 0, 0);
                     fail();
                 }
             };
@@ -454,7 +221,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[0], 0, 0,
+                    processPacket(true, new byte[16], new byte[13], null, 16, new byte[0], 0, 0,
                             new byte[0], -1, 0);
                     fail();
                 }
@@ -470,7 +237,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[0], 0, 0,
+                    processPacket(true, new byte[16], new byte[13], null, 16, new byte[0], 0, 0,
                             new byte[16], 0, -1);
                     fail();
                 }
@@ -487,7 +254,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[0], 0, 0,
+                    processPacket(true, new byte[16], new byte[13], null, 16, new byte[0], 0, 0,
                             new byte[16], 1, 16);
                     fail();
                 }
@@ -503,7 +270,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[0], 0, 0,
+                    processPacket(true, new byte[16], new byte[13], null, 16, new byte[0], 0, 0,
                             new byte[16], 0, 17);
                     fail();
                 }
@@ -521,7 +288,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             {
                 {
 
-                    processPacket(true, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[16], 0, 16,
+                    processPacket(true, new byte[16], new byte[13], null, 16, new byte[16], 0, 16,
                             new byte[15], 0, 15);
                     fail();
                 }
@@ -538,7 +305,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         new AESNativeCCMPacketCipher()
         {
             {
-                processPacket(true, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[0], 0, 0, new byte[16],
+                processPacket(true, new byte[16], new byte[13], null, 16, new byte[0], 0, 0, new byte[16],
                         0, 16);
             }
         };
@@ -546,7 +313,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         new AESNativeCCMPacketCipher()
         {
             {
-                processPacket(true, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[15], 15, 0,
+                processPacket(true, new byte[16], new byte[13], null, 16, new byte[15], 15, 0,
                         new byte[17], 1, 16);
             }
         };
@@ -575,9 +342,9 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             {
                 {
 
-                    processPacket(true, new byte[16], 16,
-                            new byte[13], 13,
-                            null, 0,
+                    processPacket(true, new byte[16],
+                            new byte[13],
+                            null,
                             16,
                             new byte[16], 0, 16,
                             new byte[32], 0, 31); // one less than data + tag
@@ -596,9 +363,9 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             {
                 {
 
-                    processPacket(true, new byte[16], 16,
-                            new byte[13], 13,
-                            null, 0,
+                    processPacket(true, new byte[16],
+                            new byte[13],
+                            null,
                             16,
                             new byte[16], 0, 16,
                             new byte[48], 16, 31); // one less than data + tag
@@ -618,9 +385,9 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             {
                 {
 
-                    processPacket(false, new byte[16], 16,
-                            new byte[13], 13,
-                            null, 0,
+                    processPacket(false, new byte[16],
+                            new byte[13],
+                            null,
                             16,
                             new byte[15], 0, 15,
                             new byte[32], 0, 15); // one less than data + tag
@@ -658,7 +425,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[13], 13, null, 0, 16, null, 0, 0, null, 0, 0);
+                    processPacket(true, new byte[16], new byte[13], null, 16, null, 0, 0, null, 0, 0);
                     fail();
                 }
             };
@@ -674,7 +441,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[16], -1, 0,
+                    processPacket(true, new byte[16], new byte[13], null, 16, new byte[16], -1, 0,
                             new byte[0], 0, 0);
                     fail();
                 }
@@ -690,7 +457,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[16], 0, -1,
+                    processPacket(true, new byte[16], new byte[13], null, 16, new byte[16], 0, -1,
                             new byte[0], 0, 0);
                     fail();
                 }
@@ -707,7 +474,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[16], 1, 16,
+                    processPacket(true, new byte[16], new byte[13], null, 16, new byte[16], 1, 16,
                             new byte[0], 0, 0);
                     fail();
                 }
@@ -723,7 +490,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(true, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[16], 0, 17,
+                    processPacket(true, new byte[16], new byte[13], null, 16, new byte[16], 0, 17,
                             new byte[0], 0, 0);
                     fail();
                 }
@@ -740,9 +507,9 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         {
             {
                 processPacket(true,
-                        new byte[16], 16,
-                        new byte[13], 13,
-                        null, 0,
+                        new byte[16],
+                        new byte[13],
+                        null,
                         16,
                         new byte[0], 0, 0,
                         new byte[16], 0, 16);
@@ -752,7 +519,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         new AESNativeCCMPacketCipher()
         {
             {
-                processPacket(true, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[15], 15, 0,
+                processPacket(true, new byte[16], new byte[13], null, 16, new byte[15], 15, 0,
                         new byte[16], 0, 16);
             }
         };
@@ -780,9 +547,9 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             {
                 {
                     processPacket(true,
-                            new byte[16], 16,
-                            new byte[13], 13,
-                            null, 0,
+                            new byte[16],
+                            new byte[13],
+                            null,
                             -1,
                             new byte[15], 15, 0,
                             new byte[16], 0, 16);
@@ -802,9 +569,9 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             {
                 {
                     processPacket(true,
-                            new byte[16], 16,
-                            new byte[13], 13,
-                            null, 0,
+                            new byte[16],
+                            new byte[13],
+                            null,
                             3,
                             new byte[15], 15, 0,
                             new byte[16], 0, 16);
@@ -824,9 +591,9 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             {
                 {
                     processPacket(true,
-                            new byte[16], 16,
-                            new byte[13], 13,
-                            null, 0,
+                            new byte[16],
+                            new byte[13],
+                            null,
                             17,
                             new byte[15], 15, 0,
                             new byte[16], 0, 16);
@@ -893,9 +660,9 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
                     getOutputSize(true, 10, t);
 
                     processPacket(true,
-                            new byte[16], 16,
-                            new byte[13], 13,
-                            null, 0,
+                            new byte[16],
+                            new byte[13],
+                            null,
                             t,
                             new byte[15], 15, 0,
                             new byte[16], 0, 16);
@@ -929,7 +696,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(false, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[16], 1, 15,
+                    processPacket(false, new byte[16], new byte[13], null, 16, new byte[16], 1, 15,
                             new byte[0], 0, 0);
                     fail();
                 }
@@ -946,7 +713,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(false, new byte[16], 16, new byte[13], 13, null, 0, 16, new byte[15], 0, 15,
+                    processPacket(false, new byte[16], new byte[13], null, 16, new byte[15], 0, 15,
                             new byte[0], 0, 0);
                     fail();
                 }
@@ -963,7 +730,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(false, new byte[16], 16, new byte[13], 13, null, 0, 5, new byte[15], 0, 4,
+                    processPacket(false, new byte[16], new byte[13], null, 5, new byte[15], 0, 4,
                             new byte[0], 0, 0);
                     fail();
                 }
@@ -1053,7 +820,6 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         {
             TestCase.assertEquals("invalid mac size", ex.getMessage());
         }
-
 
 
         new AESNativeCCMPacketCipher()

@@ -11,7 +11,7 @@ cfb_ctx *cfb_create_ctx() {
 }
 
 void cfb_free_ctx(cfb_ctx *ctx) {
-    memset(ctx, 0, sizeof(cfb_ctx));
+    memzero(ctx, sizeof(cfb_ctx));
     free(ctx);
 }
 
@@ -23,7 +23,7 @@ void cfb_reset(cfb_ctx *ctx) {
 
 void cfb_init(cfb_ctx *pCtx, unsigned char *key, unsigned char *iv) {
     assert(pCtx != NULL);
-    memset(pCtx->roundKeys, 0, sizeof(__m128i) * 15);
+    memzero(pCtx->roundKeys, sizeof(__m128i) * 15);
     switch (pCtx->num_rounds) {
         case ROUNDS_128:
             init_128(pCtx->roundKeys, key, true);

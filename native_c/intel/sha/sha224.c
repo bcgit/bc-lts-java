@@ -40,13 +40,13 @@ sha224_ctx *sha224_create_ctx() {
 }
 
 void sha224_free_ctx(sha224_ctx *ctx) {
-    memset(ctx, 0, sizeof(sha224_ctx));
+    memzero(ctx, sizeof(sha224_ctx));
     free(ctx);
 }
 
 void sha224_reset(sha224_ctx *ctx) {
 
-    memset(ctx->buf, 0, BUF_SIZE_SHA224);
+    memzero(ctx->buf, BUF_SIZE_SHA224);
     ctx->ident = SHA224_MAGIC;
     ctx->buf_index = 0;
     ctx->byteCount = 0;

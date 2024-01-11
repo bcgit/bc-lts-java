@@ -50,7 +50,7 @@ public class AESNativeCFBPacketCipher
         int result;
         try
         {
-            result = processPacket(encryption, key, key.length, iv, iv.length, input, inOff, len, output, outOff, output.length-outOff);
+            result = processPacket(encryption, key,  iv,  input, inOff, len, output, outOff, output.length-outOff);
         }
         catch (Exception e)
         {
@@ -61,7 +61,7 @@ public class AESNativeCFBPacketCipher
 
     static native int getOutputSize(int len);
 
-    static native int processPacket(boolean encryption, byte[] key, int keyLen, byte[] nonce, int nonceLen, byte[] in,
+    static native int processPacket(boolean encryption, byte[] key, byte[] nonce,  byte[] in,
                                     int inOff, int inLen, byte[] out, int outOff, int outLen);
 
     @Override

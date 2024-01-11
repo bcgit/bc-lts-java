@@ -21,7 +21,7 @@ void init_192(__m128i *rk, uint8_t *uk, bool enc) {
             0, 0, 0, 0, 0, 0, 0};
     memcpy(key, uk, 24);
     _schedule_192(key, rk);
-    memset(key, 0, 24);
+    memzero(key, 32);
 
     if (!enc) {
         _inv_192(rk);
@@ -34,6 +34,7 @@ void init_128(__m128i *rk, uint8_t *uk, bool enc) {
         _inv_128(rk);
     }
 }
+
 
 
 

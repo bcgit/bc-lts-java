@@ -33,9 +33,10 @@ void handle_cbc_pc_result(JNIEnv *env, packet_err *err) {
 
 
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCipher_processPacket
-        (JNIEnv *env, jclass, jboolean encryption, jbyteArray key_, jint keyLen, jbyteArray nonce_, jint nonLen,
+        (JNIEnv *env, jclass, jboolean encryption, jbyteArray key_,  jbyteArray nonce_,
          jbyteArray in, jint inOff, jint inLen, jbyteArray out, jint outOff, jint outLen) {
-    java_bytearray_ctx key, iv, ad;
+
+    java_bytearray_ctx key, iv;
     critical_bytearray_ctx input, output;
     packet_err *err = NULL;
     init_critical_ctx(&input, env, in);
@@ -43,33 +44,26 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
 
     init_bytearray_ctx(&key);
     init_bytearray_ctx(&iv);
-    init_bytearray_ctx(&ad);
 
-    //
-    // Load and check key
-    //
+
     if (!load_bytearray_ctx(&key, env, key_)) {
-        throw_java_invalid_state(env, "unable to obtain ptr to valid key array");
+        throw_java_invalid_state(env, "unable to obtain ptr to valid array");
         goto exit;
     }
 
-    if (!aes_keysize_is_valid_and_not_null_with_len(env, &key, keyLen)) {
+    if (!aes_keysize_is_valid_and_not_null(env, &key)) {
         goto exit;
     }
-
-
-    //
-    // Load and check nonce
-    //
 
     if (!load_bytearray_ctx(&iv, env, nonce_)) {
-        throw_java_invalid_state(env, "unable to obtain ptr to valid iv array");
+        throw_java_invalid_state(env, "unable to obtain ptr to valid array");
         goto exit;
     }
 
-    if (!ivlen_is_16_and_not_null_with_len(env, &iv, nonLen)) {
+    if (!ivlen_is_16_and_not_null(env, &iv)) {
         goto exit;
     }
+
 
     //
     // Check input array with offset and len
@@ -141,7 +135,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
     err = cbc_pc_process_packet(
             encryption == JNI_TRUE,
             key.bytearray,
-            (size_t) keyLen,
+            (size_t) key.size,
             iv.bytearray,
             p_in,
             (size_t) inLen,
@@ -150,7 +144,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
     exit:
     release_bytearray_ctx(&key);
     release_bytearray_ctx(&iv);
-    release_bytearray_ctx(&ad);
     release_critical_ctx(&input);
     release_critical_ctx(&output);
     handle_cbc_pc_result(env, err);
@@ -163,12 +156,12 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
         (JNIEnv *env, jclass, jint len) {
     if (len < 0) {
         throw_java_illegal_argument(env, EM_INPUT_LEN_NEGATIVE);
-        return 0;
+        return -1;
     }
     int result = get_output_size((int) len);
     if (result < 0) {
         throw_java_illegal_argument(env, BLOCK_CIPHER_16_INPUT_LENGTH_INVALID);
-        return 0;
+        return -1;
     }
     return result;
 }

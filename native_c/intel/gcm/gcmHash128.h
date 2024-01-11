@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include "../util/util.h"
 
 
 static const int8_t __attribute__ ((aligned(16))) _one[16] = {

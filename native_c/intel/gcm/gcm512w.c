@@ -8,6 +8,7 @@
 #include "gcmHash512.h"
 
 
+
 bool areEqualCT(const uint8_t *left, const uint8_t *right, size_t len) {
 
     assert(left != NULL);
@@ -780,7 +781,7 @@ gcm_err *gcm_doFinal(gcm_ctx *ctx, unsigned char *output, size_t outLen, size_t 
 
     // Copy into mac block
     memcpy(ctx->macBlock, tmpTag, ctx->macBlockLen);
-    memset(tmpTag, 0, BLOCK_SIZE);
+    memzero(tmpTag, BLOCK_SIZE);
 
 
 

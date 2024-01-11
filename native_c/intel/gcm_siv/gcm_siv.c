@@ -79,7 +79,7 @@ static inline void encrypt256(__m128i *d0, __m128i *d1, __m128i *roundKeys) {
 }
 
 void generateKey(bool encryption, uint8_t *key, __m128i *roundKeys, size_t keyLen, encrypt_function *fun) {
-    memset(roundKeys, 0, sizeof(__m128i) * 15);
+    memzero(roundKeys, sizeof(__m128i) * 15);
     switch (keyLen) {
         case 16:
             *fun = (void (*)(__m128i *, __m128i *, __m128i *)) encrypt128;
@@ -113,22 +113,23 @@ void gcm_siv_err_free(gcm_siv_err *err) {
 
 gcm_siv_ctx *gcm_siv_create_ctx() {
     gcm_siv_ctx *ctx = calloc(1, sizeof(gcm_siv_ctx));
+    assert((size_t)MAX_DATALEN + BLOCK_SIZE > (size_t)MAX_DATALEN);
     ctx->max_dl = MAX_DATALEN;
     return ctx;
 }
 
 void gcm_siv_free(gcm_siv_ctx *ctx) {
     if (ctx->initAD != NULL) {
-        memset(ctx->initAD, 0, (size_t) ctx->initADLen);
+        memzero(ctx->initAD, (size_t) ctx->initADLen);
         free(ctx->initAD);
     }
-    memset(ctx, 0, sizeof(gcm_siv_ctx));
+    memzero(ctx, sizeof(gcm_siv_ctx));
     free(ctx);
 }
 
 void gcm_siv_reset(gcm_siv_ctx *ctx, bool keepMac) {
     if (!keepMac) {
-        memset(ctx->macBlock, 0, 16);
+        memzero(ctx->macBlock, 16);
     }
     resetStreams(ctx);
 }
@@ -161,7 +162,7 @@ gcm_siv_err *gcm_siv_init(
 
     // We had old initial text drop it here.
     if (ctx->initAD != NULL) {
-        memset(ctx->initAD, 0, (size_t) ctx->initADLen);
+        memzero(ctx->initAD, (size_t) ctx->initADLen);
         free(ctx->initAD);
         ctx->initAD = NULL;
         ctx->initADLen = 0;
@@ -180,7 +181,7 @@ gcm_siv_err *gcm_siv_init(
     }
 
     // Zero out mac block
-    memset(ctx->macBlock, 0, BLOCK_SIZE);
+    memzero(ctx->macBlock, BLOCK_SIZE);
     memcpy(ctx->nonce, nonce, NONCELEN);
     deriveKeys(ctx->T, &ctx->H, ctx->roundKeys, key, (char *) ctx->nonce, keyLen, &ctx->encrypt);
 
@@ -206,7 +207,7 @@ int64_t gcm_siv_get_output_size(bool encryption, size_t len) {
 void gcm_siv_hasher_reset(gcm_siv_hasher *p_gsh) {
     p_gsh->numActive = 0;
     p_gsh->numHashed = 0;
-    memset(p_gsh->theBuffer, 0, BLOCK_SIZE);
+    memzero(p_gsh->theBuffer, BLOCK_SIZE);
 }
 
 
@@ -248,7 +249,7 @@ void gcm_siv_hasher_updateHash(gcm_siv_hasher *p_gsh, __m128i *T, uint8_t *pBuff
 void gcm_siv_hasher_completeHash(gcm_siv_hasher *p_gsh, __m128i *T, __m128i *theGHash) {
     /* If we have remaining data */
     if (p_gsh->numActive > 0) {
-        memset(p_gsh->theBuffer + p_gsh->numActive, 0, (size_t) (BLOCK_SIZE - p_gsh->numActive));
+        memzero(p_gsh->theBuffer + p_gsh->numActive, (size_t) (BLOCK_SIZE - p_gsh->numActive));
         gHASH(T, theGHash, (__m128i *) p_gsh->theBuffer);
     }
 }
@@ -423,7 +424,7 @@ gcm_siv_err *gcm_siv_doFinal(gcm_siv_ctx *ctx, uint8_t *input, size_t len, uint8
         gcm_siv_hasher_updateHash(&ctx->theDataHasher, ctx->T, output, *written, &ctx->theGHash);
         calculateTag(&ctx->theDataHasher, &ctx->theAEADHasher, ctx->T, ctx->roundKeys,
                      &ctx->theGHash, (int8_t *) ctx->nonce, ctx->macBlock, &ctx->encrypt);
-        if (!tag_verification_16(ctx->macBlock, input + *written)) {
+        if (!tag_verification(ctx->macBlock, input + *written,BLOCK_SIZE)) {
             return make_gcm_siv_error("mac check  failed", ILLEGAL_CIPHER_TEXT);
         }
     }

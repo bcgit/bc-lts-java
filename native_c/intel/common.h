@@ -6,6 +6,7 @@
 #include <immintrin.h>
 #include <stdbool.h>
 #include <stdint-gcc.h>
+#include "util/util.h"
 
 #define ROUNDS_128 10
 #define ROUNDS_192 12
@@ -23,5 +24,6 @@ void _schedule_256(uint8_t *key, __m128i *roundKeys);
 void _inv_256(__m128i *roundKeys);
 void _inv_192(__m128i *roundKeys);
 void _inv_128(__m128i *roundKeys);
+
 
 #endif //BCN_COMMON_H

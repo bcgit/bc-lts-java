@@ -17,7 +17,7 @@ ctr_ctx *ctr_create_ctx() {
 }
 
 void ctr_free_ctx(ctr_ctx *ctx) {
-    memset(ctx, 0, sizeof(ctr_ctx));
+    memzero(ctx, sizeof(ctr_ctx));
     free(ctx);
 }
 
@@ -45,7 +45,7 @@ void ctr_init(ctr_ctx *pCtx, unsigned char *key, size_t keyLen, unsigned char *i
 
         assert(key != NULL);
 
-        memset(pCtx->roundKeys, 0, sizeof(__m128i) * 15);
+        memzero(pCtx->roundKeys, sizeof(__m128i) * 15);
         if (keyLen == 16) {
             init_128(pCtx->roundKeys, key, true);
             pCtx->num_rounds = ROUNDS_128;
