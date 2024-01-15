@@ -36,7 +36,7 @@ sha3_ctx *sha3_create_ctx(int bitLen) {
 }
 
 void sha3_free_ctx(sha3_ctx *ctx) {
-    memset(ctx, 0, sizeof(sha3_ctx));
+    memzero(ctx,  sizeof(sha3_ctx));
     free(ctx);
 }
 
@@ -45,8 +45,8 @@ void sha3_reset(sha3_ctx *ctx) {
     ctx->buf_u8_index = 0;
     ctx->byteCount = 0;
     ctx->rate_bytes = ctx->rate >> 3;
-    memset(ctx->state, 0, sizeof(uint64x2_t) * STATE_LEN);
-    memset(ctx->buf, 0, BUF_SIZE_SHA3);
+    memzero(ctx->state,  sizeof(uint64x2_t) * STATE_LEN);
+    memzero(ctx->buf,  BUF_SIZE_SHA3);
     ctx->squeezing = false;
 }
 
@@ -111,7 +111,7 @@ void sha3_digest(sha3_ctx *ctx, uint8_t *output) {
     // Padding will be set up inside the buffer so
     // we need to zero out any unused buffer first.
 
-    memset(buf + ctx->buf_u8_index, 0, toClear); // clear to end of buffer
+    memzero(buf + ctx->buf_u8_index,  toClear); // clear to end of buffer
     switch (ctx->bitLen) {
         case 224:
         case 256:

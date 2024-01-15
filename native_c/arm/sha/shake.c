@@ -6,7 +6,7 @@
 #include <memory.h>
 #include "shake.h"
 #include <stdbool.h>
-#include <printf.h>
+
 #include "../keccak/keccak.h"
 
 
@@ -37,7 +37,7 @@ shake_ctx *shake_create_ctx(int bitLen) {
 }
 
 void shake_free_ctx(shake_ctx *ctx) {
-    memset(ctx, 0, sizeof(shake_ctx));
+    memzero(ctx,  sizeof(shake_ctx));
     free(ctx);
 }
 
@@ -47,8 +47,8 @@ void shake_reset(shake_ctx *ctx) {
     ctx->buf_u8_index = 0;
     ctx->byteCount = 0;
     ctx->rate_bytes = ctx->rate >> 3;
-    memset(ctx->state, 0, sizeof(uint64x2_t) * STATE_LEN);
-    memset(buf, 0, BUF_SIZE_SHAKE);
+    memzero(ctx->state,  sizeof(uint64x2_t) * STATE_LEN);
+    memzero(buf,  BUF_SIZE_SHAKE);
     ctx->squeezing = false;
 }
 
@@ -112,7 +112,7 @@ void shake_digest(shake_ctx *ctx, uint8_t *output, size_t len) {
     // Padding will be set up inside the buffer so
     // we need to zero out any unused buffer first.
 
-    memset(buf + ctx->buf_u8_index, 0, toClear); // clear to end of buffer
+    memzero(buf + ctx->buf_u8_index,  toClear); // clear to end of buffer
     switch (ctx->bitLen) {
         case 128:
         case 256:

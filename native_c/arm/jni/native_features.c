@@ -182,6 +182,17 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeGCMSIV
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCMSIV
+        (JNIEnv * env, jclass cl) {
+    return JNI_FALSE;
+}
+
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
  * Method:    nativeGCMSIVPC
  * Signature: ()Z
  */
@@ -324,6 +335,16 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCM
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCCMPC
+        (JNIEnv *env, jclass cl) {
+    return JNI_FALSE;
+}
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeRSA
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeRSA
         (JNIEnv *env, jclass cl) {
     return JNI_FALSE;
 }

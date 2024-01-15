@@ -71,6 +71,11 @@ public class DumpInfo
             System.out.println(sBld);
 
         }
+        else
+        {
+            //-DM System.out.println
+            System.out.println("Native Features: None");
+        }
 
 
     }

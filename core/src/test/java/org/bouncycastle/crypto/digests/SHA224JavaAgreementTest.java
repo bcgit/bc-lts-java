@@ -6,6 +6,7 @@ import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.SavableDigest;
 import org.bouncycastle.crypto.engines.TestUtil;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.encoders.Hex;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -88,13 +89,13 @@ public class SHA224JavaAgreementTest extends TestCase
                 CryptoServicesRegistrar.setNativeEnabled(true);
                 byte[] nativeDigest = takeDigest(msg, true, j);
 
+                if (!Arrays.areEqual(java, nativeDigest)) {
+                    System.out.println(Hex.toHexString(java)+ " "+java.length );
+                    System.out.println(Hex.toHexString(nativeDigest));
+                }
+
                 TestCase.assertTrue(Arrays.areEqual(java, nativeDigest));
-
             }
-
         }
-
     }
-
-
 }

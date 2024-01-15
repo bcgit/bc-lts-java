@@ -15,7 +15,7 @@ ctr_ctx *ctr_create_ctx() {
 }
 
 void ctr_free_ctx(ctr_ctx *ctx) {
-    memset(ctx, 0, sizeof(ctr_ctx));
+    memzero(ctx,  sizeof(ctr_ctx));
     free(ctx);
 }
 

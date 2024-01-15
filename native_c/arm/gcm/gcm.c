@@ -36,11 +36,11 @@ gcm_ctx *gcm_create_ctx() {
 
 void gcm_free(gcm_ctx *ctx) {
     if (ctx->initAD != NULL) {
-        memset(ctx->initAD, 0, ctx->initADLen);
+        memzero(ctx->initAD,  ctx->initADLen);
         free(ctx->initAD);
     }
 
-    memset(ctx, 0, sizeof(gcm_ctx));
+    memzero(ctx,  sizeof(gcm_ctx));
     free(ctx);
 }
 
@@ -57,11 +57,11 @@ void gcm_reset(gcm_ctx *ctx, bool keepMac) {
     ctx->S_atPre = vdupq_n_u8(0);
     ctx->S_at = vdupq_n_u8(0);
 
-    memset(ctx->bufBlock, 0, BUF_BLK_SIZE);
+    memzero(ctx->bufBlock,  BUF_BLK_SIZE);
 
 
     if (!keepMac) {
-        memset(ctx->macBlock, 0, 16);
+        memzero(ctx->macBlock,  16);
     }
 
     ctx->X = ctx->initialX;
@@ -193,7 +193,7 @@ gcm_err *gcm_init(
 
     // We had old initial text drop it here.
     if (ctx->initAD != NULL) {
-        memset(ctx->initAD, 0, ctx->initADLen);
+        memzero(ctx->initAD, ctx->initADLen);
         free(ctx->initAD);
         ctx->initAD = NULL;
         ctx->initADLen = 0;
@@ -212,7 +212,7 @@ gcm_err *gcm_init(
     }
 
     // Zero out mac block
-    memset(ctx->macBlock, 0, MAC_BLOCK_LEN);
+    memzero(ctx->macBlock,  MAC_BLOCK_LEN);
 
     //
     // Setup new mac block len
@@ -220,7 +220,7 @@ gcm_err *gcm_init(
     ctx->macBlockLen = macBlockLenBits / 8;
     assert(ctx->macBlockLen <= MAC_BLOCK_LEN);
 
-    memset(ctx->bufBlock, 0, BUF_BLK_SIZE);
+    memzero(ctx->bufBlock,  BUF_BLK_SIZE);
     ctx->bufBlockIndex = 0;
 
     // TODO change for multi-block
@@ -245,7 +245,7 @@ gcm_err *gcm_init(
         memset(nonceBuf, 0, 16);
         memcpy(nonceBuf, nonce, nonceLen);
         ctx->Y = vld1q_u8(nonceBuf);
-        memset(nonceBuf, 0, 16);
+        memzero(nonceBuf,  16);
         ctx->Y = vorrq_u8(ctx->Y, insert_32);
 
         dual_block(&ctx->aesKey, ctx->X, ctx->Y, &ctx->H, &ctx->T);

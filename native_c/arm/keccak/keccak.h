@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 #include <arm_neon.h>
+#include "../util/util.h"
 
 #define ROL(a, offset) ((a << offset) ^ (a >> (64-offset)))
 

@@ -9,6 +9,7 @@
 #include "cbc.h"
 #include "../aes/aes_common_neon.h"
 
+
 cbc_ctx *cbc_create_ctx() {
     cbc_ctx *c = calloc(1, sizeof(cbc_ctx));
     assert(c != NULL);
@@ -19,7 +20,7 @@ void cbc_free_ctx(cbc_ctx *ctx) {
     if (ctx == NULL) {
         return;
     }
-    memset(ctx, 0, sizeof(cbc_ctx));
+    memzero(ctx, sizeof(cbc_ctx));
     free(ctx);
 }
 

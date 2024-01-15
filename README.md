@@ -14,6 +14,7 @@ LTS_JDK11 -- Java 11 Home
 
 LTS_JDK15 -- Java 15 Home
 
+
 Variables must point to the equivalent of JAVA_HOME for each of those Java JDKs.
 
 The build script does a sanity test on the presence of those variables, it does not validate
@@ -80,10 +81,15 @@ This will compile the java code and build the headers, the tests will be run dur
 
 Change into the ```<base_dir>/native``` directory.
 
-```
-# For linux
-./build_linux.sh
 
+```
+# For linux Intel & ARM
+./build_linux.sh
+```
+
+```
+# For darwin (OSX), ARM only
+./build_osx.sh
 ```
 
 This will create the native libraries and install it into the correct location for them to be
@@ -96,23 +102,19 @@ bundled into the LTS jar.
 Change into the ```<base_dir>/``` directory.
 
 ```
-./gradlew clean cleanNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars
+./gradlew clean cleanNative build copyJars
 ```
 
-This will build a java only variation and install it in the ```jars``` directory. The name of the jar is defined with
-the ```version=2.73.0-SNAPSHOT``` version property in ```gradle.properties```.
+This will build a java only variation and copy all the build jars into ```../bc-lts-java-jars/``` directory. The name of the jar is defined with
+the ```version=2.73.4-SNAPSHOT``` version property in ```gradle.properties```.
 
 Running the DumpInfo class from the jar will report something similar to:
 
 ```
-java -cp jars/bcprov-lts8on-2.73.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo
+java -cp ../bc-lts-java-jars/2.73.4-SNAPSHOT/bcprov-lts8on-2.73.4-SNAPSHOT.jar org.bouncycastle.util.DumpInfo
         
-BouncyCastle APIs (LTS edition) v1.0.0b
-Native Status: probe lib failed to load /native/linux/x86_64/probe/libbc-probe.so lib not found in jar
-Native Features: [NONE]
-
-
-# or the vebose version
+BouncyCastle APIs (LTS edition) v2.73.4-SNAPSHOT
+Native Features: None
 
 ```
 
@@ -127,28 +129,54 @@ Building a jar with native capabilities exercising only the java core tests, run
 capabilities is covered next.
 
 ```
-  ./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars
+ 
 
-# If you need to skip the tests
-
-./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars -x test
 ```
 
-After building a jar with the native libraries bundled in you can veryify they are getting loaded by
-doing the following on a modern Intel CPU.
+After building a jar with the native libraries bundled in you can verify they are getting loaded by
+doing the following on an ARM based Mac:
 
 ```
 #Running:
-java -cp jars/bcprov-lts8on-2.73.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo
 
-BouncyCastle APIs (LTS edition) v1.0.0b
-Native Status: successfully loaded
-Native Variant: vaesf
-Native Build Date: 2022-12-23T14:24:25Z
-Native Features: [SHA2, DRBG, AES/CFB, AES/GCM, NRBG, AES/ECB, AES/CBC]
+java -cp ../bc-lts-java-jars/2.73.4-SNAPSHOT/bcprov-lts8on-2.73.4-SNAPSHOT.jar org.bouncycastle.util.DumpInfo -a
+ 
+BouncyCastle APIs (LTS edition) v2.73.4-SNAPSHOT
+Native Build Date: 2024-01-15T15:33:43
+Native Status: READY
+Native Variant: neon-le
+Native Features: AES/CBC AES/CCM AES/CFB AES/CTR AES/ECB AES/GCM MULACC SHA2 SHA224 SHA256 SHA3 SHA384 SHA512 SHAKE
 
+
+CPU Features and Variant availability.
+--------------------------------------------------------------------------------
+Variant   CPU features + or -:                              Supported           
+--------------------------------------------------------------------------------
+neon-le   +aes +sha256 +sha512 +sha3 +neon                  Variant Supported
 
 ```
+
+On an Intel machine:
+
+```
+BouncyCastle APIs (LTS edition) v2.73.4-SNAPSHOT
+Native Build Date: 2024-01-11T19:24:03
+Native Status: READY
+Native Variant: vaesf
+Native Features: AES/CBC AES/CBC-PC AES/CCM AES/CCM-PC AES/CFB AES/CFB-PC AES/CTR AES/CTR-PC AES/ECB AES/GCM AES/GCM-PC AES/GCM-SIV AES/GCMSIV-PC DRBG NRBG SHA2 SHA224 SHA256
+
+
+CPU Features and Variant availability.
+--------------------------------------------------------------------------------
+Variant   CPU features + or -:                              Supported           
+--------------------------------------------------------------------------------
+VAESF     +vaes +avx512f +avx512bw +vpclmulqdq              Variant supported
+VAES      +vaes                                             Variant supported
+AVX       +avx                                              Variant supported
+
+```
+
+
 
 ###### Building and or testing native capabilities
 
@@ -161,6 +189,9 @@ compiled for certain CPU features.
 | avx          | x86_64 | avx sha aes pclmul rdrnd -rdseed lzcnt                  |
 | vaes         | x86_64 | avx sha aes pclmul rdrnd rdseed lzcnt vaes avx2         |
 | vaesf        | x86_64 | avx sha aes pclmul rdrnd rdseed lzcnt vaes avx2 avx512f |
+ | neon-le | ARM64| aes sha256 sha512 sha3 neon |
+
+NB: For the moment only Little Endian ARM is supported. 
 
 Attempting to test a variant on a CPU without matching hardware features will cause a fault.
 
@@ -169,10 +200,14 @@ Attempting to test a variant on a CPU without matching hardware features will ca
 # Using testXXX will run the java tests but with the native componnents swapped in
 # where appropriate. We don't need to rerun the java only tests again hence the '-x test'
 
-./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars testSSE -x test
-./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars testAVX -x test
-./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars testVAES -x test
-./gradlew clean cleanNative withNative prov:build util:build pg:build pkix:build tls:build mail:build copyJars testVAESF -x test
+# Intel
+./gradlew clean cleanNative withNative build testSSE -x test
+./gradlew clean cleanNative withNative build testAVX -x test
+./gradlew clean cleanNative withNative build testVAES -x test
+./gradlew clean cleanNative withNative build testVAESF -x test
+
+# ARM
+./gradlew clean cleanNative withNative build testNEON_LE -x test
 
 ```
 
@@ -180,17 +215,6 @@ Attempting to test a variant on a CPU without matching hardware features will ca
 
 The module can be used like any other jar file, it will manage the installation of native libraries into
 a temporary directory created in the same path as ```File.createTempFile()```.
-
-```
-java -cp jars/bcprov-lts8on-2.73.0-SNAPSHOT.jar org.bouncycastle.util.DumpInfo
-
-BouncyCastle APIs (LTS edition) v1.0.0b
-Native Status: successfully loaded
-Native Variant: vaesf
-Native Build Date: 2022-12-23T14:24:25Z
-Native Features: [SHA2, DRBG, AES/CFB, AES/GCM, NRBG, AES/ECB, AES/CBC]
-
-```
 
 ## Selecting a specific variant
 
@@ -200,16 +224,25 @@ native variation is the appropriate version to load.
 To override this use the ```-Dorg.bouncycastle.native.cpu_variant``` at the time of invocation or
 this value can be set within the security policy as well.
 
-For example, using -Dorg.bouncycastle.native.cpu_variant=sse:
+For example, using -Dorg.bouncycastle.native.cpu_variant=avx:
 
 ```
-java -cp jars/bcprov-lts8on-2.73.0-SNAPSHOT.jar -Dorg.bouncycastle.native.cpu_variant=sse  org.bouncycastle.util.DumpInfo
+# Intel
 
-BouncyCastle APIs (LTS edition) v1.0.0b
-Native Status: successfully loaded
-Native Variant: sse
-Native Build Date: 2022-12-23T14:24:25Z
-Native Features: [SHA2, DRBG, AES/CFB, AES/GCM, NRBG, AES/ECB, AES/CBC]
+BouncyCastle APIs (LTS edition) v2.73.4-SNAPSHOT
+Native Build Date: 2024-01-11T19:24:03
+Native Status: READY
+Native Variant: avx [<==== VARIANT!!!]
+Native Features: AES/CBC AES/CBC-PC AES/CCM AES/CCM-PC AES/CFB AES/CFB-PC AES/CTR AES/CTR-PC AES/ECB AES/GCM AES/GCM-PC AES/GCM-SIV AES/GCMSIV-PC DRBG NRBG SHA2 SHA224 SHA256
+
+
+CPU Features and Variant availability.
+--------------------------------------------------------------------------------
+Variant   CPU features + or -:                              Supported           
+--------------------------------------------------------------------------------
+VAESF     +vaes +avx512f +avx512bw +vpclmulqdq              Variant supported
+VAES      +vaes                                             Variant supported
+AVX       +avx                                              Variant supported
 
 ```
 
@@ -285,7 +318,7 @@ Some feature set optimisations, VAES and VAES with AFX512F
 [![Build Status](https://travis-ci.org/bcgit/bc-java.svg?branch=master)](https://travis-ci.org/bcgit/bc-java)
 
 The Bouncy Castle Crypto package is a Java implementation of cryptographic algorithms, it was developed by the Legion of
-the Bouncy Castle, a registered Australian Charity, with a little help! The Legion, and the latest goings on with this
+the Bouncy Castle, a registered Australian Charity, with a little help! The Legion, and the latest goings-on with this
 package, can be found at [https://www.bouncycastle.org](https://www.bouncycastle.org).
 
 The Legion also gratefully acknowledges the contributions made to this package by others (

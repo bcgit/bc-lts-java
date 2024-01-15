@@ -60,13 +60,13 @@ sha224_ctx *sha224_create_ctx() {
 }
 
 void sha224_free_ctx(sha224_ctx *ctx) {
-    memset(ctx, 0, sizeof(sha224_ctx));
+    memzero(ctx, sizeof(sha224_ctx));
     free(ctx);
 }
 
 void sha224_reset(sha224_ctx *ctx) {
 
-    memset(ctx->buf, 0, BUF_SIZE_SHA224);
+    memzero(ctx->buf, BUF_SIZE_SHA224);
     ctx->ident = SHA224_MAGIC;
     ctx->buf_index = 0;
     ctx->byteCount = 0;
@@ -152,20 +152,13 @@ void sha224_digest(sha224_ctx *ctx, uint8_t *output) {
     vst1q_u32(&ctx->state[0], ctx->s0);
     vst1q_u32(&ctx->state[4], ctx->s1);
 
+    uint64_t tmp[4] = {0, 0, 0, 0};
 
-    const uint32x4_t v0 =  vreinterpretq_u32_u8( vrev32q_u8(vreinterpretq_u8_u32( ctx->s0)));
-    const uint32x4_t v1 =  vreinterpretq_u32_u8( vrev32q_u8(vreinterpretq_u8_u32( ctx->s1)));
+    vst1q_u8((uint8_t *) &tmp[0], vrev32q_u8(vreinterpretq_u8_u32(ctx->s0)));
+    vst1q_u8((uint8_t *) &tmp[2], vrev32q_u8(vreinterpretq_u8_u32(ctx->s1)));
 
-    vst1q_u32((uint32_t *) &output[0 * 16], v0);
-    vst1q_lane_u64((uint64_t *)  &output[1 * 16], vreinterpretq_u64_u32( v1), 0);
-    vst1q_lane_u32((uint32_t *) &output[ (1 * 16)+8 ], v1, 2);
-
-    //vst1q_u32((uint32_t *) &output[1 * 16], vreinterpretq_u32_u8( vrev32q_u8(vreinterpretq_u8_u32( ctx->s1))));
-
-
-
-
-
+    memcpy(output, tmp, SHA224_SIZE);
+    memzero(tmp, sizeof(tmp));
     sha224_reset(ctx);
 }
 

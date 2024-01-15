@@ -85,7 +85,7 @@ sha384_ctx *sha384_create_ctx() {
 }
 
 void sha384_free_ctx(sha384_ctx *ctx) {
-    memset(ctx, 0, sizeof(sha384_ctx));
+    memzero(ctx,  sizeof(sha384_ctx));
     free(ctx);
 }
 

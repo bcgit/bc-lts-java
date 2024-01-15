@@ -8,6 +8,7 @@
 #include <arm_neon.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "../util/util.h"
 
 #define ROUNDS_128 10
 #define ROUNDS_192 12

@@ -85,7 +85,7 @@ sha512_ctx *sha512_create_ctx() {
 }
 
 void sha512_free_ctx(sha512_ctx *ctx) {
-    memset(ctx, 0, sizeof(sha512_ctx));
+    memzero(ctx,  sizeof(sha512_ctx));
     free(ctx);
 }
 

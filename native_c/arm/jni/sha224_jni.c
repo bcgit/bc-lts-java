@@ -104,7 +104,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_d
     init_bytearray_ctx(&out);
     jint outLen = 0;
 
-
     sha224_ctx *sha = (sha224_ctx *) ((void *) ref);
     int64_t remaining;
 
@@ -113,19 +112,15 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_d
         goto exit;
     }
 
-
     if (!bytearray_not_null(&out, "output was null", env)) {
         goto exit;
     }
-
 
     if (!bytearray_offset_is_in_range(&out, offset, env)) {
         goto exit;
     }
 
     remaining = (int64_t) out.size - (int64_t) offset;
-
-
 
     if (remaining < sha224_getSize(sha)) {
         throw_java_illegal_argument(env, "array + offset too short for digest output");
@@ -134,10 +129,8 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_d
 
     sha224_digest(sha, out.bytearray + offset);
     outLen = SHA224_SIZE;
-
     exit:
     release_bytearray_ctx(&out);
-
 
     return (jint) outLen;
 }

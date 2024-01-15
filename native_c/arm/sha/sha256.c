@@ -59,7 +59,7 @@ sha256_ctx *sha256_create_ctx() {
 }
 
 void sha256_free_ctx(sha256_ctx *ctx) {
-    memset(ctx, 0, sizeof(sha256_ctx));
+    memzero(ctx, sizeof(sha256_ctx));
     free(ctx);
 }
 
@@ -151,9 +151,8 @@ void sha256_digest(sha256_ctx *ctx, uint8_t *output) {
     vst1q_u32(&ctx->state[0], ctx->s0);
     vst1q_u32(&ctx->state[4], ctx->s1);
 
-
-    vst1q_u32((uint32_t *) &output[0 * 16], vreinterpretq_u32_u8( vrev32q_u8(vreinterpretq_u8_u32( ctx->s0))));
-    vst1q_u32((uint32_t *) &output[1 * 16], vreinterpretq_u32_u8( vrev32q_u8(vreinterpretq_u8_u32( ctx->s1))));
+    vst1q_u8((uint8_t *) &output[0 * 16],  vrev32q_u8(vreinterpretq_u8_u32( ctx->s0)));
+    vst1q_u8((uint8_t *) &output[1 * 16],  vrev32q_u8(vreinterpretq_u8_u32( ctx->s1)));
 
 
     sha256_reset(ctx);

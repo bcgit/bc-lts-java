@@ -8,6 +8,7 @@
 #include <stddef.h>
 #include <arm_neon.h>
 #include <stdbool.h>
+#include "../util/util.h"
 
 #define BUF_SIZE_SHA384 128
 #define SHA384_SIZE 48

@@ -102,7 +102,7 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${JNI_INCLUDE} ${JNI_INCLUDE_PLATFORM} ${LTS_JAVA_HEADERS} ${LTS_TEST_JAVA_HEADERS})
 
     set(PROBE arm/jni/variant_selector_arm.c)
-    set(COMMON arm/jni/native_features.c arm/jni/ident_jni.c)
+    set(COMMON arm/jni/native_features.c arm/jni/ident_jni.c arm/util/util.h arm/util/util.c)
     set(COMMON_NEON
             arm/aes/aes_common_neon.h
             arm/aes/aes_key.c

@@ -28,7 +28,7 @@ void init_aes_key(aes_key *key, uint8_t *user_key, size_t key_len, bool encrypti
 
 void clear_aes_key(aes_key *key) {
     if (key != NULL) {
-        memset(key, 0, sizeof(aes_key));
+       memzero(key, sizeof(aes_key));
     }
 }
 
