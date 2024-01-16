@@ -160,6 +160,10 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA3NativeDigest_doF
     return (jint) outLen;
 }
 
+
+
+
+
 /*
  * Class:     org_bouncycastle_crypto_digests_SHA3NativeDigest
  * Method:    reset

@@ -16,17 +16,18 @@
 typedef struct {
     uint32_t ident;
     uint32_t bitLen;
-    uint32_t rate;
     size_t rate_bytes;
     size_t buf_u8_index;
     uint64_t buf[BUF_SIZE_SHAKE / 8];
-    uint64_t byteCount;
     uint64x2_t state[STATE_LEN];
     bool squeezing;
+
+    size_t state_output_index;
+    bool initial_squeeze;
 } shake_ctx;
 
 
-shake_ctx * shake_create_ctx(int bitLen);
+shake_ctx *shake_create_ctx(int bitLen);
 
 void shake_free_ctx(shake_ctx *ctx);
 
@@ -35,6 +36,8 @@ void shake_reset(shake_ctx *ctx);
 void shake_update(shake_ctx *ctx, uint8_t *input, size_t len);
 
 void shake_update_byte(shake_ctx *ctx, uint8_t b);
+
+void shake_squeeze(shake_ctx *ctx, uint8_t *output, size_t len);
 
 void shake_digest(shake_ctx *ctx, uint8_t *output, size_t len);
 

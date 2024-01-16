@@ -108,8 +108,7 @@ public class SHAKENativeDigest
     @Override
     public int doFinal(byte[] output, int outOff)
     {
-        int i = doFinal(nativeRef.getReference(), output, outOff, getDigestSize(nativeRef.getReference()));
-        reset();
+        int i = doFinal(nativeRef.getReference(), output, outOff);
         return i;
     }
 
@@ -117,16 +116,13 @@ public class SHAKENativeDigest
     public int doFinal(byte[] out, int outOff, int outLen)
     {
         int i = doFinal(nativeRef.getReference(),out,outOff,outLen);
-        reset();
         return i;
     }
 
     @Override
     public int doOutput(byte[] out, int outOff, int outLen)
     {
-        int i = doFinal(nativeRef.getReference(),out,outOff,outLen);
-        reset();
-        return i;
+       return doOutput(nativeRef.getReference(),out,outOff,outLen);
     }
 
 
@@ -190,6 +186,10 @@ public class SHAKENativeDigest
     static native void update(long nativeRef, byte[] in, int inOff, int len);
 
     static native int doFinal(long nativeRef, byte[] out, int outOff, int len);
+
+    static native int doFinal(long nativeRef, byte[] out, int outOff);
+
+    static native int doOutput(long nativeRef, byte[] out, int outOff, int len);
 
     static native void reset(long nativeRef);
 

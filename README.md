@@ -2,9 +2,8 @@
 
 ## Environmental variables (IMPORTANT):
 
-JAVA_HOME needs to point to a jdk that is generally compatible with the version of gradle being used,
-we use a Java 8 version for this purpose on gradlew version of 7.6 A later version like 17 may result in class
-versioning issues from within gradle.
+JAVA_HOME needs to point to a Java 17 installation, this is required for the build tools.
+The java code will be complied to be compatible with Java 8 (Version 52) and above.
 
 This build uses Java 8, Java 11 and Java 15, so the following environmental variables need to be defined:
 
@@ -14,10 +13,9 @@ LTS_JDK11 -- Java 11 Home
 
 LTS_JDK15 -- Java 15 Home
 
-
 Variables must point to the equivalent of JAVA_HOME for each of those Java JDKs.
 
-The build script does a sanity test on the presence of those variables, it does not validate
+The gradle (7.6.xx) build script does a sanity test on the presence of those variables, it does not validate
 they are set to a valid value, and you may experience other errors if they are set incorrectly.
 
 Running gradle build without setting a variable, will result in an error similar to:
@@ -70,10 +68,11 @@ signatures on the native side.
 Change into the ```<base_dir>/``` directory and run:
 
 ```
-./gradlew clean cleanNative prov:build util:build pg:build pkix:build tls:build mail:build -x test
+./gradlew clean compileJava -x test
 
 # Run the tests later
 ```
+
 
 This will compile the java code and build the headers, the tests will be run during Step 3.
 
@@ -92,7 +91,9 @@ Change into the ```<base_dir>/native``` directory.
 ./build_osx.sh
 ```
 
-This will create the native libraries and install it into the correct location for them to be
+Remember: To ```cd ..``` and step back to the root of the project.
+
+This will create the native libraries and install them into the correct location for them to be
 bundled into the LTS jar.
 
 ##### Step 3 Build LTS jar
@@ -118,8 +119,6 @@ Native Features: None
 
 ```
 
-NB: ```probe lib failed to load /native/linux/x86_64/probe/libbc-probe.so lib not found in jar``` means there
-were no native libraries in the jar file.
 
 ###### Java with native capabilities build
 
@@ -183,13 +182,14 @@ AVX       +avx                                              Variant supported
 Use the following test targets to exercise the tests while using specific sets of native components
 compiled for certain CPU features.
 
-| Variant Name | Family | Requirements                                            |
-|--------------|--------|---------------------------------------------------------|
-| sse          | x86_64 | sse4.1 sha aes pclmul rdrnd rdseed                      |
-| avx          | x86_64 | avx sha aes pclmul rdrnd -rdseed lzcnt                  |
-| vaes         | x86_64 | avx sha aes pclmul rdrnd rdseed lzcnt vaes avx2         |
-| vaesf        | x86_64 | avx sha aes pclmul rdrnd rdseed lzcnt vaes avx2 avx512f |
- | neon-le | ARM64| aes sha256 sha512 sha3 neon |
+Table of variants:
+
+| Variant Name | Family | Requirements                                            | Test Target |
+|--------------|--------|---------------------------------------------------------|-------------|
+| avx          | x86_64 | avx sha aes pclmul rdrnd -rdseed lzcnt                  | testAVX     |
+| vaes         | x86_64 | avx sha aes pclmul rdrnd rdseed lzcnt vaes avx2         | testVAES    |
+| vaesf        | x86_64 | avx sha aes pclmul rdrnd rdseed lzcnt vaes avx2 avx512f | testVAESF   |
+| neon-le      | ARM64  | aes sha256 sha512 sha3 neon                             | testNEON_LE |
 
 NB: For the moment only Little Endian ARM is supported. 
 
@@ -198,7 +198,8 @@ Attempting to test a variant on a CPU without matching hardware features will ca
 ```
 
 # Using testXXX will run the java tests but with the native componnents swapped in
-# where appropriate. We don't need to rerun the java only tests again hence the '-x test'
+# where appropriate. In this case we are skipping the java only tests, hence the '-x test'
+# but that can be removed and it will test both java and native.
 
 # Intel
 ./gradlew clean cleanNative withNative build testSSE -x test
@@ -206,9 +207,15 @@ Attempting to test a variant on a CPU without matching hardware features will ca
 ./gradlew clean cleanNative withNative build testVAES -x test
 ./gradlew clean cleanNative withNative build testVAESF -x test
 
+# Intel + java (assuming you have a CPU with the features)
+./gradlew clean cleanNative withNative build testAVX testVAES testVAESF
+
+
 # ARM
 ./gradlew clean cleanNative withNative build testNEON_LE -x test
 
+# ARM with java
+./gradlew clean cleanNative withNative build testNEON_LE
 ```
 
 ## Using the module
@@ -313,9 +320,10 @@ the variable ```j``` in the following example:
 
 ## Optimisation status
 
-Some feature set optimisations, VAES and VAES with AFX512F
+HW accelerated features may vary between CPUs for example SHA3 support is available for ARM
+but not Intel.
 
-[![Build Status](https://travis-ci.org/bcgit/bc-java.svg?branch=master)](https://travis-ci.org/bcgit/bc-java)
+# Bouncy Castle
 
 The Bouncy Castle Crypto package is a Java implementation of cryptographic algorithms, it was developed by the Legion of
 the Bouncy Castle, a registered Australian Charity, with a little help! The Legion, and the latest goings-on with this

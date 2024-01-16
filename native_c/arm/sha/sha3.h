@@ -13,20 +13,20 @@
 #define SHA3_MAGIC 0x00030000
 #define STATE_LEN 25
 
+// This struct must not contain pointers is written out as
+// it is used as a memo.
 typedef struct {
     uint32_t ident;
     uint32_t bitLen;
-    uint32_t rate;
     size_t rate_bytes;
     size_t buf_u8_index;
     uint64_t buf[BUF_SIZE_SHA3 / 8];
-    uint64_t byteCount;
     uint64x2_t state[STATE_LEN];
     bool squeezing;
 } sha3_ctx;
 
 
-sha3_ctx * sha3_create_ctx(int bitLen);
+sha3_ctx *sha3_create_ctx(int bitLen);
 
 void sha3_free_ctx(sha3_ctx *ctx);
 

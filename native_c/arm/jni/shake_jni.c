@@ -46,7 +46,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_de
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_getDigestSize
         (JNIEnv *env, jclass cl, jlong ref) {
-    shake_ctx  *sha = (shake_ctx *) ((void *) ref);
+    shake_ctx *sha = (shake_ctx *) ((void *) ref);
     return (jint) shake_getSize(sha);
 
 }
@@ -115,35 +115,33 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_up
  * Method:    doFinal
  * Signature: (J[BI)I
  */
-JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_doFinal
-        (JNIEnv *env, jclass jc, jlong ref, jbyteArray array, jint offset, jint len) {
+JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_doFinal__J_3BI
+        (JNIEnv *env, jclass cl, jlong ref, jbyteArray array, jint offset) {
+
 
     java_bytearray_ctx out;
     init_bytearray_ctx(&out);
 
     shake_ctx *sha = (shake_ctx *) ((void *) ref);
-    int64_t remaining;
+
+    const int32_t len = (int32_t)shake_getSize(sha);
 
     if (!load_bytearray_ctx(&out, env, array)) {
         throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
         goto exit;
     }
 
-
-    if (!bytearray_not_null(&out, "output was null", env)) {
+    if (!bytearray_offset_and_len_are_in_range_not_null_msgs(
+            &out,
+            offset,
+            len,
+            env,
+            "output was null",
+            "output offset negative",
+            "output len is negative",
+            "array + offset too short for digest output")) {
         goto exit;
     }
-
-
-    if (!bytearray_offset_is_in_range(&out, offset, env)) {
-        goto exit;
-    }
-
-    if (len <0) {
-        throw_java_invalid_state(env, "output len is negative");
-        goto exit;
-    }
-
     //
     // Check we have enough space in the output.
     // len already asserted >=0
@@ -159,6 +157,94 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_do
 
     return (jint) len;
 }
+
+
+
+/*
+ * Class:     org_bouncycastle_crypto_digests_SHAKENativeDigest
+ * Method:    doFinal
+ * Signature: (J[BII)I
+ */
+JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_doFinal__J_3BII(
+        JNIEnv *env, jclass jc, jlong ref, jbyteArray array, jint offset, jint len) {
+
+    java_bytearray_ctx out;
+    init_bytearray_ctx(&out);
+
+    shake_ctx *sha = (shake_ctx *) ((void *) ref);
+
+    if (!load_bytearray_ctx(&out, env, array)) {
+        throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
+        goto exit;
+    }
+
+    if (!bytearray_offset_and_len_are_in_range_not_null_msgs(
+            &out,
+            offset,
+            len,
+            env,
+            "output was null",
+            "output offset negative",
+            "output len is negative",
+            "array + offset too short for digest output")) {
+        goto exit;
+    }
+    //
+    // Check we have enough space in the output.
+    // len already asserted >=0
+    if (!check_range(out.size, (size_t) offset, (size_t) len)) {
+        throw_bc_output_length_exception(env, "array + offset too short for digest output");
+        goto exit;
+    }
+
+    shake_digest(sha, out.bytearray + offset, (size_t) len);
+
+    exit:
+    release_bytearray_ctx(&out);
+
+    return (jint) len;
+}
+
+/*
+ * Class:     org_bouncycastle_crypto_digests_SHAKENativeDigest
+ * Method:    doOutput
+ * Signature: (J[BII)I
+ */
+JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_doOutput
+        (JNIEnv *env, jclass cl, jlong ref, jbyteArray array, jint offset, jint len) {
+
+    java_bytearray_ctx out;
+    init_bytearray_ctx(&out);
+
+    shake_ctx *sha = (shake_ctx *) ((void *) ref);
+
+    if (!load_bytearray_ctx(&out, env, array)) {
+        throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
+        goto exit;
+    }
+
+    if (!bytearray_offset_and_len_are_in_range_not_null_msgs(
+            &out,
+            offset,
+            len,
+            env,
+            "output was null",
+            "output offset negative",
+            "output len is negative",
+            "array + offset too short for digest output")) {
+        goto exit;
+    }
+
+    shake_squeeze(sha, out.bytearray + offset, (size_t) len);
+
+    exit:
+    release_bytearray_ctx(&out);
+
+    return (jint) len;
+
+}
+
+
 
 /*
  * Class:     org_bouncycastle_crypto_digests_SHAKENativeDigest

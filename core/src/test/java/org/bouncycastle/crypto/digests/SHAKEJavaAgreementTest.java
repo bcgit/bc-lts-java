@@ -47,7 +47,16 @@ public class SHAKEJavaAgreementTest extends TestCase
 
         byte[] res = new byte[len + outputOffset];
         dig.update(message, inputOffset, message.length - inputOffset);
-        dig.doFinal(res, outputOffset, len);
+        if (len < 2)
+        {
+            dig.doOutput(res, outputOffset, len);
+        }
+        else
+        {
+            int l = dig.doOutput(res, outputOffset, len / 2);
+            dig.doOutput(res, outputOffset + l, len - l);
+        }
+
         return res;
     }
 
@@ -139,12 +148,13 @@ public class SHAKEJavaAgreementTest extends TestCase
 
                         boolean equal = Arrays.areEqual(java, nativeDigest);
 
-                        if (!equal) {
+                        if (!equal)
+                        {
                             System.out.println(bitLen);
                             System.out.println(len);
-                            System.out.println(Hex.toHexString(msg));
-                            System.out.println(Hex.toHexString(java));
-                            System.out.println(Hex.toHexString(nativeDigest));
+                            System.out.println("MSG: " + Hex.toHexString(msg));
+                            System.out.println("JAV: " + Hex.toHexString(java));
+                            System.out.println("NAT: " + Hex.toHexString(nativeDigest));
                         }
 
                         TestCase.assertTrue(equal);
@@ -171,6 +181,124 @@ public class SHAKEJavaAgreementTest extends TestCase
 
     }
 
+
+    public void testXofMonteCarlo_128() throws Exception
+    {
+        if (!TestUtil.hasNativeService(NativeServices.SHAKE))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("shake"))
+            {
+                TestCase.fail("Skipping SHAKE Agreement Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+
+        SecureRandom rand = new SecureRandom();
+        byte[] msg = new byte[1023];
+        rand.nextBytes(msg);
+
+        SHAKEDigest javaDig = new SHAKEDigest(128);
+        javaDig.update(msg, 1, msg.length-1);
+
+        SHAKENativeDigest nativeDig = new SHAKENativeDigest(128);
+        nativeDig.update(msg, 1, msg.length-1);
+
+        int bl = 256;
+
+        byte[] outputBufJava = new byte[bl];
+        byte[] outputBufNative = new byte[bl];
+
+        for (int t = 0; t < 1000000; t++)
+        {
+            //
+            // Randomise offset, then fill to some random length
+            //
+            int offset = rand.nextInt(bl+1);
+            int l = rand.nextInt(bl - offset+1);
+
+            javaDig.doOutput(outputBufJava, offset, l);
+            nativeDig.doOutput(outputBufNative, offset, l);
+
+
+            if (!Arrays.areEqual(outputBufJava,outputBufNative)) {
+                System.out.println(Hex.toHexString(outputBufJava));
+                System.out.println(Hex.toHexString(outputBufNative));
+                for (int i =0; i < outputBufJava.length;i++) {
+                    if (outputBufJava[i] != outputBufNative[i]) {
+                        System.out.print("^^");
+                    } else {
+                        System.out.print("  ");
+                    }
+                }
+                System.out.println();
+            }
+
+            // This holds regardless of length
+            TestCase.assertTrue(Arrays.areEqual(outputBufJava, outputBufNative));
+
+        }
+
+    }
+
+    public void testXofMonteCarlo_256() throws Exception
+    {
+        if (!TestUtil.hasNativeService(NativeServices.SHAKE))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("shake"))
+            {
+                TestCase.fail("Skipping SHAKE Agreement Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+
+        SecureRandom rand = new SecureRandom();
+        byte[] msg = new byte[1023];
+        rand.nextBytes(msg);
+
+        SHAKEDigest javaDig = new SHAKEDigest(256);
+        javaDig.update(msg, 1, msg.length-1);
+
+        SHAKENativeDigest nativeDig = new SHAKENativeDigest(256);
+        nativeDig.update(msg, 1, msg.length-1);
+
+        int bl = 256;
+
+        byte[] outputBufJava = new byte[bl];
+        byte[] outputBufNative = new byte[bl];
+
+        for (int t = 0; t < 1000000; t++)
+        {
+            //
+            // Randomise offset, then fill to some random length
+            //
+            int offset = rand.nextInt(bl+1);
+            int l = rand.nextInt(bl - offset +1);
+
+            javaDig.doOutput(outputBufJava, offset, l);
+            nativeDig.doOutput(outputBufNative, offset, l);
+
+
+            if (!Arrays.areEqual(outputBufJava,outputBufNative)) {
+                System.out.println(Hex.toHexString(outputBufJava));
+                System.out.println(Hex.toHexString(outputBufNative));
+                for (int i =0; i < outputBufJava.length;i++) {
+                    if (outputBufJava[i] != outputBufNative[i]) {
+                        System.out.print("^^");
+                    } else {
+                        System.out.print("  ");
+                    }
+                }
+                System.out.println();
+            }
+
+            // This holds regardless of length
+            TestCase.assertTrue(Arrays.areEqual(outputBufJava, outputBufNative));
+
+        }
+
+    }
 
     /**
      * Test variable length random input from zero to 1025 bytes.

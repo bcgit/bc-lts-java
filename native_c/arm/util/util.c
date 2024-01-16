@@ -11,11 +11,11 @@ void memzero(void *const pnt, const size_t len) {
 
     size_t i = (size_t) 0U;
 
-//    const uint8x16_t zero128 = vdupq_n_u8(0);
-//    while (i + sizeof(uint8x16_t) <= len) {
-//        vst1q_u8((uint8_t *)&pnt_[i],zero128);
-//        i += sizeof(uint8x16_t);
-//    }
+    const uint8x16_t zero128 = vdupq_n_u8(0);
+    while (i + sizeof(uint8x16_t) <= len) {
+        vst1q_u8((uint8_t *) &pnt_[i], zero128);
+        i += sizeof(uint8x16_t);
+    }
 
     while (i < len) {
         pnt_[i++] = 0U;

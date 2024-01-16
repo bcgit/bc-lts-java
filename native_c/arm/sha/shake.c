@@ -7,6 +7,7 @@
 #include "shake.h"
 #include <stdbool.h>
 
+
 #include "../keccak/keccak.h"
 
 
@@ -28,27 +29,24 @@ static const uint64_t K[] = {
 
 shake_ctx *shake_create_ctx(int bitLen) {
     assert(bitLen == 128 || bitLen == 256);
-    shake_ctx *ptr = calloc(1, sizeof(shake_ctx));
-    assert(ptr != NULL);
-    ptr->bitLen = (uint32_t) bitLen;
-    ptr->rate = 1600 - ((uint32_t) bitLen << 1);
-    shake_reset(ptr);
-    return ptr;
+    shake_ctx *ctx = calloc(1, sizeof(shake_ctx));
+    assert(ctx != NULL);
+    ctx->bitLen = (uint32_t) bitLen;
+    ctx->rate_bytes = (1600 - ((uint32_t) bitLen << 1)) >> 3;
+    ctx->ident = SHAKE_MAGIC;
+    shake_reset(ctx);
+    return ctx;
 }
 
 void shake_free_ctx(shake_ctx *ctx) {
-    memzero(ctx,  sizeof(shake_ctx));
+    memzero(ctx, sizeof(shake_ctx));
     free(ctx);
 }
 
 void shake_reset(shake_ctx *ctx) {
-    uint8_t *buf = (uint8_t *) ctx->buf;
-    ctx->ident = SHAKE_MAGIC;
     ctx->buf_u8_index = 0;
-    ctx->byteCount = 0;
-    ctx->rate_bytes = ctx->rate >> 3;
-    memzero(ctx->state,  sizeof(uint64x2_t) * STATE_LEN);
-    memzero(buf,  BUF_SIZE_SHAKE);
+    memzero(ctx->state, sizeof(uint64x2_t) * STATE_LEN);
+    memzero(ctx->buf, BUF_SIZE_SHAKE);
     ctx->squeezing = false;
 }
 
@@ -57,7 +55,6 @@ void shake_update_byte(shake_ctx *ctx, uint8_t b) {
     uint8_t *buf = (uint8_t *) ctx->buf;
     const size_t rateBytes = ctx->rate_bytes;
     buf[ctx->buf_u8_index++] = b;
-    ctx->byteCount++;
     if (ctx->buf_u8_index == rateBytes) {
         keccak_absorb_buf(ctx->state, buf, rateBytes, K);
         ctx->buf_u8_index = 0;
@@ -98,21 +95,18 @@ void shake_update(shake_ctx *ctx, uint8_t *input, size_t len) {
         }
     }
 
-    ctx->byteCount += len;
 }
 
-void shake_digest(shake_ctx *ctx, uint8_t *output, size_t len) {
-
+void pad_and_switch_squeezing(shake_ctx *ctx) {
     uint8_t *buf = (uint8_t *) ctx->buf;
 
-    ctx->squeezing = true;
-    size_t rateBytes = ctx->rate_bytes;
+    const size_t rateBytes = ctx->rate_bytes;
     const size_t toClear = rateBytes - ctx->buf_u8_index;
 
     // Padding will be set up inside the buffer so
     // we need to zero out any unused buffer first.
 
-    memzero(buf + ctx->buf_u8_index,  toClear); // clear to end of buffer
+    memzero(buf + ctx->buf_u8_index, toClear); // clear to end of buffer
     switch (ctx->bitLen) {
         case 128:
         case 256:
@@ -135,33 +129,101 @@ void shake_digest(shake_ctx *ctx, uint8_t *output, size_t len) {
         p++;
     }
 
-    KF1600_StatePermute(ctx->state, K);
+    ctx->squeezing = true;
+    ctx->state_output_index = ctx->rate_bytes;
 
-    // Full
+
+}
+
+void do_squeeze(shake_ctx *ctx) {
+    if (ctx->state_output_index == ctx->rate_bytes) {
+        KF1600_StatePermute(ctx->state, K);
+        ctx->state_output_index = 0;
+    }
+}
+
+void shake_squeeze(shake_ctx *ctx, uint8_t *output, size_t len) {
+    if (!ctx->squeezing) {
+        pad_and_switch_squeezing(ctx);
+    }
+
+    if (len == 0) {
+        return;  // nothing to do
+    }
+
+    do_squeeze(ctx);
+
+    //
+    // We need to align on 8 byte boundary.
+    //
+    size_t partial = (ctx->state_output_index & 0x07);
+    if (partial > 0) {
+        size_t toCopy = sizeof(uint64_t) - partial;
+        toCopy = len < toCopy ? len : toCopy;
+        uint8_t *p  = ((uint8_t *)&ctx->state[(ctx->state_output_index >> 3)]);
+        memcpy(output, p + partial,toCopy); // TODO Endian issue on BE systems
+        ctx->state_output_index += toCopy;
+        len -= toCopy;
+        output+=toCopy;
+        assert(!(ctx->state_output_index & 0x07) || len == 0);
+    }
+
+    while (len >= 8) {
+        do_squeeze(ctx); // Has side effects
+        vst1_u8(output, (uint8x8_t) vgetq_lane_u64(ctx->state[(ctx->state_output_index >> 3)], 0));
+        output += 8;
+        len -= 8;
+        ctx->state_output_index += 8;
+    }
+
+    if (len > 0) {
+        assert((ctx->state_output_index & 0x07) == 0);
+        // sub 64 bit
+        do_squeeze(ctx);
+        memcpy(output, ((uint8_t *)&ctx->state[(ctx->state_output_index >> 3)]),len); // TODO Endian issue on BE systems
+        ctx->state_output_index += len;
+    }
+
+}
+
+
+// final
+void shake_digest(shake_ctx *ctx, uint8_t *output, size_t len) {
+
+    pad_and_switch_squeezing(ctx);
+
+    // squeeze final
+    // This needs to be reentrant and cope with 0, 1 to n bytes.
+    // Keep counter of output, when it hits rate_bytes do another permute again..
+
     while (len >= ctx->rate_bytes) {
+        KF1600_StatePermute(ctx->state, K);
         for (int t = 0; t < ctx->rate_bytes >> 3; t++) {
             vst1_u8(output, (uint8x8_t) vgetq_lane_u64(ctx->state[t], 0));
             output += 8;
             len -= 8;
         }
+    }
+
+    if (len > 0) {
         KF1600_StatePermute(ctx->state, K);
+
+        int stateIndex = 0;
+        // Partial
+        while (len >= 8) {
+            vst1_u8(output, (uint8x8_t) vgetq_lane_u64(ctx->state[stateIndex++], 0));
+            output += 8;
+            len -= 8;
+        }
+
+        if (len) {
+            assert(len < 8);
+            // sub 64 bit
+            memcpy(output, &ctx->state[stateIndex], len); // TODO Endian issue on BE systems
+        }
     }
 
-
-    int stateIndex = 0;
-    // Partial
-    while (len >= 8) {
-        vst1_u8(output, (uint8x8_t) vgetq_lane_u64(ctx->state[stateIndex++], 0));
-        output += 8;
-        len -= 8;
-    }
-
-    if (len) {
-        assert(len <8);
-        // sub 64 bit
-        memcpy(output, &ctx->state[stateIndex], len);
-    }
-
+    shake_reset(ctx);
 }
 
 uint32_t shake_getSize(shake_ctx *ctx) {
@@ -169,7 +231,7 @@ uint32_t shake_getSize(shake_ctx *ctx) {
 }
 
 uint32_t shake_getByteLen(shake_ctx *ctx) {
-    return ctx->rate >> 3;
+    return (uint32_t)ctx->rate_bytes;
 }
 
 bool shake_restoreFullState(shake_ctx *ctx, const uint8_t *oldState) {
@@ -189,8 +251,8 @@ bool shake_restoreFullState(shake_ctx *ctx, const uint8_t *oldState) {
     }
 
     // Recalculate these
-    newState.rate = 1600 - ((uint32_t) newState.bitLen << 1);
-    newState.rate_bytes = newState.rate >> 3;
+    newState.rate_bytes = (1600 - ((uint32_t) newState.bitLen << 1)) >> 3;
+
 
     if (newState.buf_u8_index >= BUF_SIZE_SHAKE) {
         return false;

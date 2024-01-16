@@ -266,16 +266,16 @@ static inline void KF1600_StatePermute(uint64x2_t *state, const uint64_t *K) {
 
 
 static inline void keccak_absorb_buf(uint64x2_t *state, uint8_t *buf, size_t rateBytes, const uint64_t *K) {
-    rateBytes >>= 3;
+    size_t rate_64 = rateBytes >> 3;
     uint64x2_t tmp;
     uint64x2_t *s = state;
 
-    while (rateBytes > 0) {
+    while (rate_64 > 0) {
         tmp = vsetq_lane_u64(vreinterpret_u64_u8(vld1_u8(buf))[0], k_zero, 0);
         *s = veorq_u64(*s, tmp);
         s++;
         buf += 8;
-        rateBytes--;
+        rate_64--;
     }
 
     KF1600_StatePermute(state, K);
