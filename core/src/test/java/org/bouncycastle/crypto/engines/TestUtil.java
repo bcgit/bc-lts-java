@@ -21,7 +21,7 @@ public class TestUtil
     }
 
     public static boolean skipPS() {
-         return "true".equals(System.getProperty("org.bouncycastle.test.skip_ps"));
+         return "true".equals(System.getProperty("org.bouncycastle.test.skip_pc"));
     }
 
     public static boolean isSkipSet(String label)

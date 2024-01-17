@@ -20,5 +20,5 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 java -Dorg.bouncycastle.native.cpu_variant=vaes -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo
 
-./gradlew -Pskip.pqc.tests testVAES -x test
+./gradlew -Pskip.pqc.tests testVAES testVAESNoPC -x test
 

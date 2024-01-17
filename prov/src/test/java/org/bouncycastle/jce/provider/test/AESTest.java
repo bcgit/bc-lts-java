@@ -477,7 +477,7 @@ public class AESTest
         }
 
 
-        if ("true".equals(System.getProperty("org.bouncycastle.test.skip_ps"))) {
+        if ("true".equals(System.getProperty("org.bouncycastle.test.skip_pc"))) {
             System.out.println("Skipping test on packetCipher");
             return;
         }

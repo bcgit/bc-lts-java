@@ -128,8 +128,7 @@ Building a jar with native capabilities exercising only the java core tests, run
 capabilities is covered next.
 
 ```
- 
-
+ ./gradlew clean cleanNative withNative build copyJars
 ```
 
 After building a jar with the native libraries bundled in you can verify they are getting loaded by
@@ -223,7 +222,7 @@ Attempting to test a variant on a CPU without matching hardware features will ca
 The module can be used like any other jar file, it will manage the installation of native libraries into
 a temporary directory created in the same path as ```File.createTempFile()```.
 
-## Selecting a specific variant
+### Selecting a specific variant
 
 The library includes a probe library that examines CPU features and advises the module which
 native variation is the appropriate version to load.
@@ -256,6 +255,14 @@ AVX       +avx                                              Variant supported
 NB: Forcing a variant that is compiled to use instructions not supported by the host CPU will
 case a fault and terminate the program. And you won't know until the JVM either errors or causes
 a segfault.
+
+### Properties
+
+| Property                               | Values                      | Description                                                                  |
+|----------------------------------------|-----------------------------|------------------------------------------------------------------------------|
+| org.bouncycastle.native.cpu_variant    | avx, vaes, vaesf or neon-le | Specify a variant to use  see "Selecting a specific variant" for warnings.   |
+| org.bouncycastle.packet_cipher_enabled | true or false               | False by default, enable or disable use of packet ciphers where appropriate. |
+
 
 # Things to watch out for
 

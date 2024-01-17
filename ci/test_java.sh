@@ -16,6 +16,6 @@ export PATH=$JAVA_HOME/bin:$PATH
 env
 
 
-./gradlew clean cleanNative build
+./gradlew clean cleanNative build testNoPC
 
 

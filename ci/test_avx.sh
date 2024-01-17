@@ -20,5 +20,5 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 java -Dorg.bouncycastle.native.cpu_variant=avx -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo
 
-./gradlew -Pskip.pqc.tests testAVX -x test
+./gradlew -Pskip.pqc.tests testAVX testAVXNoPC -x test
 

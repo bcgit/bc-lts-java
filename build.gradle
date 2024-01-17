@@ -152,6 +152,8 @@ subprojects {
         testLogging.showCauses = true
         testLogging.showExceptions = true
         testLogging.showStackTraces = true
+        maxParallelForks = 1;
+        forkEvery = 1;
 
         filter {
             includeTestsMatching "AllTest*"
@@ -164,7 +166,7 @@ subprojects {
         '-Dorg.bouncycastle.bks.enable_v1=true',
         '-Dtest.bclts.ignore.native=es,gcmsiv',
         '-Dorg.bouncycastle.native.cpu_variant=neon-le',
-        '-Dorg.bouncycastle.test.skip_ps=true'
+        '-Dorg.bouncycastle.test.skip_pc=true'
 
         reports {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
@@ -173,7 +175,7 @@ subprojects {
 
 
 
-    task('testVAESF', type: Test, dependsOn: "testVAESFNoPs") {
+    task('testVAESFNoPC', type: Test) {
         systemProperty 'bc.test.data.home', bcTestDataHome
         maxHeapSize = "4096m"
         minHeapSize = "2048m"
@@ -181,6 +183,35 @@ subprojects {
         testLogging.showCauses = true
         testLogging.showExceptions = true
         testLogging.showStackTraces = true
+        maxParallelForks = 1;
+        forkEvery = 1;
+
+        filter {
+            includeTestsMatching "AllTest*"
+        }
+        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
+                '-Dorg.bouncycastle.expected_jvm=1.8',
+                '-Dorg.bouncycastle.bks.enable_v1=true',
+                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
+                '-Dorg.bouncycastle.native.cpu_variant=vaesf',
+                '-Dorg.bouncycastle.test.skip_pc=true'
+
+        reports {
+            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+        }
+    }
+
+
+    task('testVAESF', type: Test) {
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        maxHeapSize = "4096m"
+        minHeapSize = "2048m"
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+        maxParallelForks = 1;
+        forkEvery = 1;
 
         filter {
             includeTestsMatching "AllTest*"
@@ -197,7 +228,7 @@ subprojects {
     }
 
 
-    task('testVAESNoPs', type: Test) {
+    task('testVAESNoPC', type: Test) {
         systemProperty 'bc.test.data.home', bcTestDataHome
         maxHeapSize = "4096m"
         minHeapSize = "2048m"
@@ -205,6 +236,8 @@ subprojects {
         testLogging.showCauses = true
         testLogging.showExceptions = true
         testLogging.showStackTraces = true
+        maxParallelForks = 1;
+        forkEvery = 1;
 
         filter {
             includeTestsMatching "AllTest*"
@@ -214,7 +247,7 @@ subprojects {
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=vaes',
-                '-Dorg.bouncycastle.test.skip_ps=true'
+                '-Dorg.bouncycastle.test.skip_pc=true'
 
         reports {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
@@ -223,7 +256,7 @@ subprojects {
     }
 
 
-    task('testVAES', type: Test, dependsOn: "testVAESNoPs") {
+    task('testVAES', type: Test) {
         systemProperty 'bc.test.data.home', bcTestDataHome
         maxHeapSize = "4096m"
         minHeapSize = "2048m"
@@ -231,6 +264,8 @@ subprojects {
         testLogging.showCauses = true
         testLogging.showExceptions = true
         testLogging.showStackTraces = true
+        maxParallelForks = 1;
+        forkEvery = 1;
 
         filter {
             includeTestsMatching "AllTest*"
@@ -248,7 +283,7 @@ subprojects {
     }
 
 
-    task('testAVXNoPs', type: Test) {
+    task('testAVXNoPC', type: Test) {
         systemProperty 'bc.test.data.home', bcTestDataHome
         maxHeapSize = "4096m"
         minHeapSize = "2048m"
@@ -256,6 +291,8 @@ subprojects {
         testLogging.showCauses = true
         testLogging.showExceptions = true
         testLogging.showStackTraces = true
+        maxParallelForks = 1;
+        forkEvery = 1;
 
         filter {
             includeTestsMatching "AllTest*"
@@ -270,14 +307,14 @@ subprojects {
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=avx',
-                '-Dorg.bouncycastle.test.skip_ps=true'
+                '-Dorg.bouncycastle.test.skip_pc=true'
 
         reports {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
         }
     }
 
-    task('testAVX', type: Test, dependsOn: "testAVXNoPs") {
+    task('testAVX', type: Test) {
         systemProperty 'bc.test.data.home', bcTestDataHome
         maxHeapSize = "4096m"
         minHeapSize = "2048m"
@@ -285,6 +322,8 @@ subprojects {
         testLogging.showCauses = true
         testLogging.showExceptions = true
         testLogging.showStackTraces = true
+        maxParallelForks = 1;
+        forkEvery = 1;
 
         filter {
             includeTestsMatching "AllTest*"
@@ -334,7 +373,7 @@ subprojects {
     }
 
 
-    task('testNoPS', type: Test) {
+    task('testNoPC', type: Test) {
         systemProperty 'bc.test.data.home', bcTestDataHome
         maxHeapSize = "4096m"
         minHeapSize = "2048m"
@@ -342,13 +381,15 @@ subprojects {
         testLogging.showCauses = true
         testLogging.showExceptions = true
         testLogging.showStackTraces = true
+        maxParallelForks = 1;
+        forkEvery = 1;
 
         jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
                 '-Dorg.bouncycastle.expected_jvm=1.8',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=java',
-                '-Dorg.bouncycastle.test.skip_ps=true'
+                '-Dorg.bouncycastle.test.skip_pc=true'
 
         finalizedBy jacocoTestReport
 
@@ -374,6 +415,8 @@ subprojects {
         testLogging.showCauses = true
         testLogging.showExceptions = true
         testLogging.showStackTraces = true
+        maxParallelForks = 1;
+        forkEvery = 1;
 
         jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
                 '-Dorg.bouncycastle.expected_jvm=1.8',
@@ -397,7 +440,6 @@ subprojects {
     }
 
 
-    test.dependsOn("testNoPS")
 
     dependencies {
         checkstyle files("$rootDir/config/checkstyle/lib/methodchecker.jar")
