@@ -1,119 +1,116 @@
-
-
 import static ExtraFunctions.propValsAsArgs
 
 buildscript {
-  repositories {
-    maven {
-      url "https://plugins.gradle.org/m2/"
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
     }
-  }
 
 }
 
 plugins {
-  id "io.spring.nohttp" version "0.0.8"
-  id "checkstyle"
-  id "jacoco"
-  id "java"
+    id "io.spring.nohttp" version "0.0.8"
+    id "checkstyle"
+    id "jacoco"
+    id "java"
 }
 
 println("Environment setup:")
 ["LTS_JDK8", "LTS_JDK11", "LTS_JDK15"].each({ it ->
-  println("Looking for JDK ENV '${it}' found  ${System.getenv(it)}");
-  if (System.getenv(it) == null) {
-    throw new RuntimeException("Looking for JDK ENV '${it}' but found null, see README 'Environmental variables'");
-  }
+    println("Looking for JDK ENV '${it}' found  ${System.getenv(it)}");
+    if (System.getenv(it) == null) {
+        throw new RuntimeException("Looking for JDK ENV '${it}' but found null, see README 'Environmental variables'");
+    }
 })
 
 
-if (JavaVersion.current().isJava8Compatible())
-{
-  allprojects {
-    tasks.withType(Javadoc) {
-      options.addStringOption('Xdoclint:none', '-quiet')
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
     }
-  }
 }
 
 // this needs to go here, otherwise it can't find config
 apply plugin: 'io.spring.nohttp'
 
 allprojects {
-  apply plugin: 'java'
-  apply plugin: 'java-library'
-  apply plugin: 'checkstyle'
-  apply plugin: 'jacoco'
-  
-  repositories {
-    mavenCentral()
-  }
+    apply plugin: 'java'
+    apply plugin: 'java-library'
+    apply plugin: 'checkstyle'
+    apply plugin: 'jacoco'
 
-  dependencies {
-    testImplementation 'junit:junit:4.13.2'
-  }
+    repositories {
+        mavenCentral()
+    }
 
-  test {
-    forkEvery=1
-    maxParallelForks=1
-  }
+    dependencies {
+        testImplementation 'junit:junit:4.13.2'
+    }
+
+    test {
+        forkEvery = 1
+        maxParallelForks = 1
+    }
 
 }
 
 ext {
-  bcTestDataHome = file('core/src/test/data').absolutePath
+    bcTestDataHome = file('core/src/test/data').absolutePath
 
-     vm_range = '8on'
+    vm_range = '8on'
 //     vm_source = 8
 //     vm_target = 8
 
-  lts_prov = "${rootProject.projectDir}/prov/build/libs/bcprov-lts${vm_range}-${version}.jar"
-  lts_util = "${rootProject.projectDir}/util/build/libs/bcutil-lts${vm_range}-${version}.jar"
-  lts_pkix = "${rootProject.projectDir}/pkix/build/libs/bcpkix-lts${vm_range}-${version}.jar"
+    lts_prov = "${rootProject.projectDir}/prov/build/libs/bcprov-lts${vm_range}-${version}.jar"
+    lts_util = "${rootProject.projectDir}/util/build/libs/bcutil-lts${vm_range}-${version}.jar"
+    lts_pkix = "${rootProject.projectDir}/pkix/build/libs/bcpkix-lts${vm_range}-${version}.jar"
 }
 
 task printProperties {
-  doLast {
-    println bcTestDataHome
-  }
+    doLast {
+        println bcTestDataHome
+    }
 }
 
 /**
  * Used for module tests, excludes tests that share a package with test subject.
  **/
 task modTestJar(type: Jar) {
-  from(project(":core").sourceSets.test.output)
-  exclude("org/bouncycastle/crypto/engines/*")
-  exclude("org/bouncycastle/crypto/NativeEntropyTests.*")
-  exclude("org/bouncycastle/crypto/NativeFailsafeTest.*")
-  exclude("org/bouncycastle/mail/smime/test/SignedMailValidatorTest.*")
-  from(project(":mail").sourceSets.test.output)
-  from(project(":pkix").sourceSets.test.output)
-  from(project(":prov").sourceSets.test.output)
-  from(project(":tls").sourceSets.test.output)
-  from(project(":util").sourceSets.test.output)
-  from(project(":test").sourceSets.test.output)
-  from(project(":pg").sourceSets.test.output)
-  classifier("tests")
+    from(project(":core").sourceSets.test.output)
+    exclude("org/bouncycastle/crypto/engines/*")
+    exclude("org/bouncycastle/crypto/NativeEntropyTests.*")
+    exclude("org/bouncycastle/crypto/NativeFailsafeTest.*")
+    exclude("org/bouncycastle/mail/smime/test/SignedMailValidatorTest.*")
+    from(project(":mail").sourceSets.test.output)
+    from(project(":pkix").sourceSets.test.output)
+    from(project(":prov").sourceSets.test.output)
+    from(project(":tls").sourceSets.test.output)
+    from(project(":util").sourceSets.test.output)
+    from(project(":test").sourceSets.test.output)
+    from(project(":pg").sourceSets.test.output)
+    classifier("tests")
 }
 
 /*
 * Use for running all tests on signed jars.
 */
 task allTestJar(type: Jar) {
-  duplicatesStrategy=DuplicatesStrategy.WARN
-  from(project(":core").sourceSets.test.output)
-  exclude("org/bouncycastle/crypto/engines/*")
-  exclude("org/bouncycastle/crypto/NativeEntropyTests.*")
-  exclude("org/bouncycastle/crypto/NativeFailsafeTest.*")
-  from(project(":mail").sourceSets.test.output)
-  from(project(":pkix").sourceSets.test.output)
-  from(project(":prov").sourceSets.test.output)
-  from(project(":tls").sourceSets.test.output)
-  from(project(":util").sourceSets.test.output)
-  from(project(":test").sourceSets.test.output)
-  from(project(":pg").sourceSets.test.output)
-  classifier("tests")
+    duplicatesStrategy = DuplicatesStrategy.WARN
+    from(project(":core").sourceSets.test.output)
+    exclude("org/bouncycastle/crypto/engines/*")
+    exclude("org/bouncycastle/crypto/NativeEntropyTests.*")
+    exclude("org/bouncycastle/crypto/NativeFailsafeTest.*")
+    from(project(":mail").sourceSets.test.output)
+    from(project(":pkix").sourceSets.test.output)
+    from(project(":prov").sourceSets.test.output)
+    from(project(":tls").sourceSets.test.output)
+    from(project(":util").sourceSets.test.output)
+    from(project(":test").sourceSets.test.output)
+    from(project(":pg").sourceSets.test.output)
+    classifier("tests")
 }
 
 allTestJar.dependsOn(compileTestJava);
@@ -123,195 +120,305 @@ allTestJar.dependsOn(compileTestJava);
 * Use for running all tests on signed jars.
 */
 task allTestUnisgnedJar(type: Jar) {
-  duplicatesStrategy=DuplicatesStrategy.WARN
-  from(project(":core").sourceSets.test.output)
-  from(project(":mail").sourceSets.test.output)
-  from(project(":pkix").sourceSets.test.output)
-  from(project(":prov").sourceSets.test.output)
-  from(project(":tls").sourceSets.test.output)
-  from(project(":util").sourceSets.test.output)
-  from(project(":test").sourceSets.test.output)
-  from(project(":pg").sourceSets.test.output)
-  classifier("unsigned-tests")
+    duplicatesStrategy = DuplicatesStrategy.WARN
+    from(project(":core").sourceSets.test.output)
+    from(project(":mail").sourceSets.test.output)
+    from(project(":pkix").sourceSets.test.output)
+    from(project(":prov").sourceSets.test.output)
+    from(project(":tls").sourceSets.test.output)
+    from(project(":util").sourceSets.test.output)
+    from(project(":test").sourceSets.test.output)
+    from(project(":pg").sourceSets.test.output)
+    classifier("unsigned-tests")
 }
 
 allTestUnisgnedJar.dependsOn(compileTestJava);
 
 subprojects {
-  apply plugin: 'eclipse'
+    apply plugin: 'eclipse'
 
-  java {
-    toolchain {
-      languageVersion = JavaLanguageVersion.of("8");
-    }
-  }
-
-
-  task('testNEON_LE', type: Test) {
-    systemProperty 'bc.test.data.home', bcTestDataHome
-    maxHeapSize = "4096m"
-    minHeapSize = "2048m"
-    testLogging.showStandardStreams = true
-    testLogging.showCauses = true
-    testLogging.showExceptions = true
-    testLogging.showStackTraces = true
-
-    filter {
-      includeTestsMatching "AllTest*"
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of("8");
+        }
     }
 
-    jvmArgs  '-Dorg.bouncycastle.expected_jvm=1.8', '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=es,gcmsiv',  '-Dorg.bouncycastle.native.cpu_variant=neon-le'
-    reports {
-      junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-    }
-  }
 
+    task('testNEON_LE', type: Test) {
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        maxHeapSize = "4096m"
+        minHeapSize = "2048m"
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
 
+        filter {
+            includeTestsMatching "AllTest*"
+        }
 
-  task('testVAESF', type: Test) {
-    systemProperty 'bc.test.data.home', bcTestDataHome
-    maxHeapSize = "4096m"
-    minHeapSize = "2048m"
-    testLogging.showStandardStreams = true
-    testLogging.showCauses = true
-    testLogging.showExceptions = true
-    testLogging.showStackTraces = true
+        // TODO 2.73.4 -- no packet ciphers implemented for ARM
 
-    filter {
-      includeTestsMatching "AllTest*"
-    }
-    jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8','-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',  '-Dorg.bouncycastle.native.cpu_variant=vaesf'
+        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
+        '-Dorg.bouncycastle.expected_jvm=1.8',
+        '-Dorg.bouncycastle.bks.enable_v1=true',
+        '-Dtest.bclts.ignore.native=es,gcmsiv',
+        '-Dorg.bouncycastle.native.cpu_variant=neon-le',
+        '-Dorg.bouncycastle.test.skip_ps=true'
 
-    reports {
-      junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-    }
-  }
-
-
-
-  task('testVAES', type: Test) {
-    systemProperty 'bc.test.data.home', bcTestDataHome
-    maxHeapSize = "4096m"
-    minHeapSize = "2048m"
-    testLogging.showStandardStreams = true
-    testLogging.showCauses = true
-    testLogging.showExceptions = true
-    testLogging.showStackTraces = true
-
-    filter {
-      includeTestsMatching "AllTest*"
-    }
-    jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8','-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',  '-Dorg.bouncycastle.native.cpu_variant=vaes'
-
-    reports {
-      junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+        reports {
+            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+        }
     }
 
-  }
 
-  task('testAVX', type: Test) {
-    systemProperty 'bc.test.data.home', bcTestDataHome
-    maxHeapSize = "4096m"
-    minHeapSize = "2048m"
-    testLogging.showStandardStreams = true
-    testLogging.showCauses = true
-    testLogging.showExceptions = true
-    testLogging.showStackTraces = true
 
-    filter {
-      includeTestsMatching "AllTest*"
+    task('testVAESF', type: Test, dependsOn: "testVAESFNoPs") {
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        maxHeapSize = "4096m"
+        minHeapSize = "2048m"
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
 
-      if (rootProject.hasProperty("skip.pqc.tests"))
-      {
-        exclude('**/pqc/**')
-      }
+        filter {
+            includeTestsMatching "AllTest*"
+        }
+        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
+                '-Dorg.bouncycastle.expected_jvm=1.8',
+                '-Dorg.bouncycastle.bks.enable_v1=true',
+                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
+                '-Dorg.bouncycastle.native.cpu_variant=vaesf'
+
+        reports {
+            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+        }
     }
 
-     jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8', '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake', '-Dorg.bouncycastle.native.cpu_variant=avx'
 
-    reports {
-      junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-    }
-  }
+    task('testVAESNoPs', type: Test) {
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        maxHeapSize = "4096m"
+        minHeapSize = "2048m"
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
 
+        filter {
+            includeTestsMatching "AllTest*"
+        }
+        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
+                '-Dorg.bouncycastle.expected_jvm=1.8',
+                '-Dorg.bouncycastle.bks.enable_v1=true',
+                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
+                '-Dorg.bouncycastle.native.cpu_variant=vaes',
+                '-Dorg.bouncycastle.test.skip_ps=true'
 
+        reports {
+            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+        }
 
-  task testFull(type: Test) {
-
-    testLogging.showStandardStreams = true
-    testLogging.showCauses = true
-    testLogging.showExceptions = true
-    testLogging.showStackTraces = true
-
-    systemProperties = [
-            'bc.test.data.home': bcTestDataHome,
-            'test.full'        : 'true'
-    ]
-    systemProperty 'bc.test.data.home', bcTestDataHome
-    maxHeapSize = "4096m"
-    minHeapSize = "2048m"
-
-    finalizedBy jacocoTestReport
-
-    jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8'
-
-    filter {
-      includeTestsMatching "AllTest*"
-    }
-    reports {
-      junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-    }
-  }
-
-  test {
-    systemProperty 'bc.test.data.home', bcTestDataHome
-    maxHeapSize = "4096m"
-    minHeapSize = "2048m"
-    testLogging.showStandardStreams = true
-    testLogging.showCauses = true
-    testLogging.showExceptions = true
-    testLogging.showStackTraces = true
-
-    jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8','-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake', '-Dorg.bouncycastle.native.cpu_variant=java'
-
-    finalizedBy jacocoTestReport
-
-    filter {
-      includeTestsMatching "AllTest*"
-
-      if (rootProject.hasProperty("skip.pqc.tests"))
-      {
-        exclude('**/pqc/**')
-      }
     }
 
-    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true','-Dtest.bclts.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr,ccm', '-Dorg.bouncycastle.native.cpu_variant=java'
-    reports {
-      junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+
+    task('testVAES', type: Test, dependsOn: "testVAESNoPs") {
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        maxHeapSize = "4096m"
+        minHeapSize = "2048m"
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+
+        filter {
+            includeTestsMatching "AllTest*"
+        }
+        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
+                '-Dorg.bouncycastle.expected_jvm=1.8',
+                '-Dorg.bouncycastle.bks.enable_v1=true',
+                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
+                '-Dorg.bouncycastle.native.cpu_variant=vaes'
+
+        reports {
+            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+        }
+
     }
-  }
 
 
-  dependencies {
-    checkstyle files("$rootDir/config/checkstyle/lib/methodchecker.jar")
-    checkstyle 'com.puppycrawl.tools:checkstyle:9.0'
-  }
+    task('testAVXNoPs', type: Test) {
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        maxHeapSize = "4096m"
+        minHeapSize = "2048m"
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+
+        filter {
+            includeTestsMatching "AllTest*"
+
+            if (rootProject.hasProperty("skip.pqc.tests")) {
+                exclude('**/pqc/**')
+            }
+        }
+
+        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
+                '-Dorg.bouncycastle.expected_jvm=1.8',
+                '-Dorg.bouncycastle.bks.enable_v1=true',
+                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
+                '-Dorg.bouncycastle.native.cpu_variant=avx',
+                '-Dorg.bouncycastle.test.skip_ps=true'
+
+        reports {
+            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+        }
+    }
+
+    task('testAVX', type: Test, dependsOn: "testAVXNoPs") {
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        maxHeapSize = "4096m"
+        minHeapSize = "2048m"
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+
+        filter {
+            includeTestsMatching "AllTest*"
+
+            if (rootProject.hasProperty("skip.pqc.tests")) {
+                exclude('**/pqc/**')
+            }
+        }
+
+        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
+                '-Dorg.bouncycastle.expected_jvm=1.8',
+                '-Dorg.bouncycastle.bks.enable_v1=true',
+                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
+                '-Dorg.bouncycastle.native.cpu_variant=avx'
+
+        reports {
+            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+        }
+    }
 
 
-  checkstyle {
-    configFile file("$rootDir/config/checkstyle/checkstyle.xml");
-    toolVersion '9.0'; // your choice here
-    sourceSets = [project.sourceSets.main]
-  }
+    task testFull(type: Test) {
+
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+
+        systemProperties = [
+                'bc.test.data.home': bcTestDataHome,
+                'test.full'        : 'true'
+        ]
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        maxHeapSize = "4096m"
+        minHeapSize = "2048m"
+
+        finalizedBy jacocoTestReport
+
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8'
+
+        filter {
+            includeTestsMatching "AllTest*"
+        }
+        reports {
+            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+        }
+    }
 
 
-  jacocoTestReport {
-    dependsOn test // tests are required to run before generating the report
-  }
+    task('testNoPS', type: Test) {
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        maxHeapSize = "4096m"
+        minHeapSize = "2048m"
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
 
-  jacoco {
-    reportsDirectory = layout.buildDirectory.dir("jacoco")
-  }
+        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
+                '-Dorg.bouncycastle.expected_jvm=1.8',
+                '-Dorg.bouncycastle.bks.enable_v1=true',
+                '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake',
+                '-Dorg.bouncycastle.native.cpu_variant=java',
+                '-Dorg.bouncycastle.test.skip_ps=true'
+
+        finalizedBy jacocoTestReport
+
+        filter {
+            includeTestsMatching "AllTest*"
+
+            if (rootProject.hasProperty("skip.pqc.tests")) {
+                exclude('**/pqc/**')
+            }
+        }
+
+        reports {
+            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+        }
+    }
+
+
+    test {
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        maxHeapSize = "4096m"
+        minHeapSize = "2048m"
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+
+        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
+                '-Dorg.bouncycastle.expected_jvm=1.8',
+                '-Dorg.bouncycastle.bks.enable_v1=true',
+                '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake',
+                '-Dorg.bouncycastle.native.cpu_variant=java'
+
+        finalizedBy jacocoTestReport
+
+        filter {
+            includeTestsMatching "AllTest*"
+
+            if (rootProject.hasProperty("skip.pqc.tests")) {
+                exclude('**/pqc/**')
+            }
+        }
+
+        reports {
+            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+        }
+    }
+
+
+    test.dependsOn("testNoPS")
+
+    dependencies {
+        checkstyle files("$rootDir/config/checkstyle/lib/methodchecker.jar")
+        checkstyle 'com.puppycrawl.tools:checkstyle:9.0'
+    }
+
+
+    checkstyle {
+        configFile file("$rootDir/config/checkstyle/checkstyle.xml");
+        toolVersion '9.0'; // your choice here
+        sourceSets = [project.sourceSets.main]
+    }
+
+
+    jacocoTestReport {
+        dependsOn test // tests are required to run before generating the report
+    }
+
+    jacoco {
+        reportsDirectory = layout.buildDirectory.dir("jacoco")
+    }
 
 }
 

@@ -76,7 +76,8 @@ public final class CryptoServicesRegistrar
 
     public static final String PACKET_CIPHER_ENABLE_PROP = "org.bouncycastle.packet_cipher_enabled";
 
-    private static boolean packetCipherEnabled = true;
+    // TODO Experimental at this point, off by default
+    private static boolean packetCipherEnabled = false;
 
     static
     {
@@ -154,9 +155,9 @@ public final class CryptoServicesRegistrar
         NativeLoader.loadDriver();
 
         nativeServices = new DefaultNativeServices();
-        if ("false".equals(Properties.getPropertyValue(PACKET_CIPHER_ENABLE_PROP)))
+        if ("true".equals(Properties.getPropertyValue(PACKET_CIPHER_ENABLE_PROP)))
         {
-            packetCipherEnabled = false;
+            packetCipherEnabled = true;
         }
 
 

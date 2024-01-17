@@ -1085,7 +1085,7 @@ public class BaseBlockCipher
     }
 
     /**
-     * Reset all packet cipher selection fields, the packet chipher instance field while destroying
+     * Reset all packet cipher selection fields, the packet cipher instance field while destroying
      * the packet cipher if necessary.
      */
     private void resetAndDestroyPacketCipher()

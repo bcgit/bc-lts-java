@@ -266,8 +266,9 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
     #
     # Main method for testing.
     #
-    add_executable("tryit" main.c debug_neon.h)
-    target_link_libraries("tryit" ${LIB_NATIVE}-neon-le)
+    #  add_executable("tryit" main.c debug_neon.h)
+    #  target_link_libraries("tryit" ${LIB_NATIVE}-neon-le)
+
 
 
 else ()
@@ -694,9 +695,7 @@ else ()
     target_compile_options("${LIB_NATIVE}-vaes" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAES_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
     install(TARGETS "${LIB_NATIVE}-vaes" LIBRARY DESTINATION ${PLATFORM_TARGET}/vaes)
     target_compile_definitions("${LIB_NATIVE}-vaes" PUBLIC BC_VAES BC_VARIANT=\"vaes\" BUILD_TS=\"${BUILD_TS}\")
-    if (DEFINED ENV{LTS_ZERO_DEBUG})
-        target_compile_definitions("${LIB_NATIVE}-vaes" PUBLIC BC_DEBUG_ZERO)
-    endif ()
+
 
     add_library(${LIB_NATIVE}-vaesf SHARED
             ${COMMON}

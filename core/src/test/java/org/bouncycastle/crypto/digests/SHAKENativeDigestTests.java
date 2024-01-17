@@ -73,7 +73,7 @@ public class SHAKENativeDigestTests
         };
         nd.update((byte) 1);
         byte[] o = new byte[512];
-        nd.doFinal(o, 0);
+        nd.doOutput(o, 0, 1);
         try
         {
             nd.update(new byte[2], 0, 2);
@@ -276,9 +276,9 @@ public class SHAKENativeDigestTests
             byte[] javaResult = new byte[javaDigest.getDigestSize()];
 
 
-            TestCase.assertEquals((len == 128)?32:64, dig.doFinal(d1Result, 0));
-            TestCase.assertEquals((len == 128)?32:64, dig2.doFinal(d2Result, 0));
-            TestCase.assertEquals((len == 128)?32:64, javaDigest.doFinal(javaResult, 0));
+            TestCase.assertEquals((len == 128) ? 32 : 64, dig.doFinal(d1Result, 0));
+            TestCase.assertEquals((len == 128) ? 32 : 64, dig2.doFinal(d2Result, 0));
+            TestCase.assertEquals((len == 128) ? 32 : 64, javaDigest.doFinal(javaResult, 0));
 
 
             TestCase.assertTrue(Arrays.areEqual(javaResult, d1Result) && Arrays.areEqual(javaResult, d2Result));
@@ -449,7 +449,7 @@ public class SHAKENativeDigestTests
                 }
                 catch (Exception ex)
                 {
-                    TestCase.assertTrue(ex.getMessage().contains("offset is negative"));
+                    TestCase.assertTrue(ex.getMessage().contains("output offset negative"));
                 }
             }
         };
@@ -465,7 +465,7 @@ public class SHAKENativeDigestTests
                 }
                 catch (Exception ex)
                 {
-                    TestCase.assertTrue(ex.getMessage().contains("offset past end of array"));
+                    TestCase.assertTrue(ex.getMessage().contains("array + offset too short for digest output"));
                 }
             }
         };
@@ -618,6 +618,7 @@ public class SHAKENativeDigestTests
             TestCase.assertTrue(ex.getMessage().contains("invalid shake encoded state"));
         }
 
+        int indexOfFive = 0;
 
         // At length should fail.
         try
@@ -626,14 +627,16 @@ public class SHAKENativeDigestTests
 
             byte[] state = Arrays.clone(saneState);
 
+            for (int t = 0; t < state.length; t++)
+            {
+                if (state[t] == 5)
+                {
+                    state[t] = (byte) 192;
+                    indexOfFive = t;
+                    break;
+                }
+            }
 
-            //
-            // Our sane state has four bytes written to it, so both bufPtr and byteCount should be four.
-            // Here we find every four in the state and set it to 64, because we cannot guarantee the position
-            // within in the struct that the LSB of bufPtr will be.
-            // This will enable us to assert that length checking of encoded bufPtr is correct.
-
-            state[24] = (byte) 192;
 
             new SHAKENativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value at 192");
@@ -652,7 +655,7 @@ public class SHAKENativeDigestTests
             byte[] state = Arrays.clone(saneState);
 
 
-            state[24] = (byte) 193;
+            state[indexOfFive] = (byte) 193;
 
             new SHAKENativeDigest().restoreFullState(state, 0);
             fail("should fail on bufPtr value exceeding 193");
@@ -728,22 +731,26 @@ public class SHAKENativeDigestTests
             TestCase.assertTrue(ex.getMessage().contains("invalid shake encoded state"));
         }
 
+        int indexOfFive = 0;
 
-        // At length should fail.
+        // Over length should fail
         try
         {
             // Check bufPtr limit test
 
             byte[] state = Arrays.clone(saneState);
 
+            // Length will be 5, find the first 5 in the state and set it too long
+            for (int t = 0; t < state.length; t++)
+            {
+                if (state[t] == 5)
+                {
+                    state[t] = (byte) 193;
+                    indexOfFive = t;
+                    break;
+                }
+            }
 
-            //
-            // Our sane state has four bytes written to it, so both bufPtr and byteCount should be four.
-            // Here we find every four in the state and set it to 64, because we cannot guarantee the position
-            // within in the struct that the LSB of bufPtr will be.
-            // This will enable us to assert that length checking of encoded bufPtr is correct.
-
-            state[24] = (byte) 193;
 
             new SHAKENativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value exceeding 193");
@@ -754,13 +761,13 @@ public class SHAKENativeDigestTests
         }
 
 
-        // Over length should fail
+        // At length should fail
         try
         {
             // Check bufPtr limit test
 
             byte[] state = Arrays.clone(saneState);
-            state[24] = (byte) 192;
+            state[indexOfFive] = (byte) 192;
 
             new SHAKENativeDigest().restoreState(state, 0);
             fail("should fail on bufPtr value exceeding 192");
@@ -809,5 +816,134 @@ public class SHAKENativeDigestTests
 
     }
 
+
+    public void testDoOutputLimitEnforcement()
+            throws Exception
+    {
+
+        if (!TestUtil.hasNativeService("SHAKE"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
+            {
+                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+
+        new SHAKENativeDigest() // null array
+        {
+            {
+                try
+                {
+                    doOutput(null, 0, 0);
+                    fail("accepted null byte array");
+                }
+                catch (Exception ex)
+                {
+                    TestCase.assertTrue(ex.getMessage().contains("output was null"));
+                }
+            }
+        };
+
+
+        new SHAKENativeDigest() // offset negative
+        {
+            {
+                try
+                {
+                    doOutput(new byte[0], -1, 0);
+                    fail("accepted negative output offset");
+                }
+                catch (Exception ex)
+                {
+                    TestCase.assertTrue(ex.getMessage().contains("output offset negative"));
+                }
+            }
+        };
+
+
+        new SHAKENativeDigest() // len negative
+        {
+            {
+                try
+                {
+                    doOutput(new byte[0], 0, -1);
+                    fail("accepted negative output offset");
+                }
+                catch (Exception ex)
+                {
+                    TestCase.assertTrue(ex.getMessage().contains("output len is negative"));
+                }
+            }
+        };
+
+
+        new SHAKENativeDigest()
+        {
+            {
+                try
+                {
+                    doOutput(new byte[0], 0, 1);
+                    fail("accept offset pas end of buffer");
+                }
+                catch (Exception ex)
+                {
+                    TestCase.assertTrue(ex.getMessage().contains("array + offset too short for digest output"));
+                }
+            }
+        };
+
+        new SHAKENativeDigest()
+        {
+            {
+                try
+                {
+                    doOutput(new byte[20], 0, 21);
+                    fail("accepted output array too small");
+                }
+                catch (Exception ex)
+                {
+                    TestCase.assertTrue(ex.getMessage().contains("array + offset too short for digest output"));
+                }
+            }
+        };
+
+
+        new SHAKENativeDigest()
+        {
+            {
+                try
+                {
+                    doOutput(new byte[20], 1, 20);
+                    fail("accepted specified len is past end of array .. offset");
+                }
+                catch (Exception ex)
+                {
+                    TestCase.assertTrue(ex.getMessage().contains("array + offset too short for digest output"));
+                }
+            }
+        };
+
+        new SHAKENativeDigest()
+        {
+            {
+                //
+                // Should result in result array with leading zero byte
+                // followed by no-input digest value.
+                //
+
+                byte[] res = new byte[getDigestSize() + 1];
+                TestCase.assertEquals(32, doOutput(res, 1, res.length - 1));
+                TestCase.assertTrue(
+                        Arrays.areEqual(
+                                Hex.decode("007f9c2ba4e88f827d616045507605853ed73b8093f6efbc88eb1a6eacfa66ef26"),
+                                res)
+                );
+
+            }
+        };
+
+    }
 
 }

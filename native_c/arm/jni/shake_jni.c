@@ -142,13 +142,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_do
             "array + offset too short for digest output")) {
         goto exit;
     }
-    //
-    // Check we have enough space in the output.
-    // len already asserted >=0
-    if (!check_range(out.size, (size_t) offset, (size_t) len)) {
-        throw_bc_output_length_exception(env, "array + offset too short for digest output");
-        goto exit;
-    }
 
     shake_digest(sha, out.bytearray + offset, (size_t) len);
 
@@ -189,13 +182,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_do
             "array + offset too short for digest output")) {
         goto exit;
     }
-    //
-    // Check we have enough space in the output.
-    // len already asserted >=0
-    if (!check_range(out.size, (size_t) offset, (size_t) len)) {
-        throw_bc_output_length_exception(env, "array + offset too short for digest output");
-        goto exit;
-    }
+
 
     shake_digest(sha, out.bytearray + offset, (size_t) len);
 
