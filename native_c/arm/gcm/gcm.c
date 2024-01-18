@@ -13,7 +13,7 @@
 #include <assert.h>
 #include "gcm.h"
 #include "gcm_hash.h"
-//#include "../debug_neon.h"
+
 
 
 gcm_err *make_gcm_error(const char *msg, int type) {

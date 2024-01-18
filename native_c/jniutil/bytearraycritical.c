@@ -54,9 +54,6 @@ void release_critical_ctx(critical_bytearray_ctx *ctx) {
         return;
     }
 
-//    printf("crit >> %p\n",ctx->critical);
-//    fflush(stdout);
-
     // ctx->array and ctx->env can't be NULL.
     (*(ctx->env))->ReleasePrimitiveArrayCritical(ctx->env, ctx->array, (jbyte *) ctx->critical, 0);
     ctx->critical = NULL;
