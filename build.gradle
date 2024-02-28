@@ -462,6 +462,10 @@ subprojects {
         reportsDirectory = layout.buildDirectory.dir("jacoco")
     }
 
+    tasks.withType(JavaCompile).configureEach {
+        options.debug = false;
+    }
+
 }
 
 
