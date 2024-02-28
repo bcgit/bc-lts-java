@@ -119,7 +119,7 @@ allTestJar.dependsOn(compileTestJava);
 /*
 * Use for running all tests on signed jars.
 */
-task allTestUnisgnedJar(type: Jar) {
+task allTestUnsignedJar(type: Jar) {
     duplicatesStrategy = DuplicatesStrategy.WARN
     from(project(":core").sourceSets.test.output)
     from(project(":mail").sourceSets.test.output)
@@ -132,7 +132,7 @@ task allTestUnisgnedJar(type: Jar) {
     classifier("unsigned-tests")
 }
 
-allTestUnisgnedJar.dependsOn(compileTestJava);
+allTestUnsignedJar.dependsOn(compileTestJava);
 
 subprojects {
     apply plugin: 'eclipse'
