@@ -159,7 +159,7 @@ subprojects {
             includeTestsMatching "AllTest*"
         }
 
-        // TODO 2.73.4 -- no packet ciphers implemented for ARM
+        // TODO 2.73.5 -- no packet ciphers implemented for ARM
 
         jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
         '-Dorg.bouncycastle.expected_jvm=1.8',
