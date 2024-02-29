@@ -32,6 +32,7 @@ test-java-code:
 
 test-code-avx:
   stage: testAVX
+  needs: []
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
@@ -52,6 +53,7 @@ test-code-avx:
 
 test-code-vaes:
   stage: testVAES
+  needs: []
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
@@ -72,6 +74,7 @@ test-code-vaes:
 
 test-code-vaesf:
   stage: testVAESF
+  needs: []
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
@@ -92,6 +95,7 @@ test-code-vaesf:
 
 test-java11-code:
   stage: test11
+  needs: []
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
@@ -105,6 +109,7 @@ test-java11-code:
 
 test-java17-code:
   stage: test17
+  needs: []
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
@@ -118,6 +123,7 @@ test-java17-code:
 
 test-java21-code:
   stage: test21
+  needs: []
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
