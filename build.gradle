@@ -36,6 +36,9 @@ if (JavaVersion.current().isJava8Compatible()) {
 // this needs to go here, otherwise it can't find config
 apply plugin: 'io.spring.nohttp'
 
+
+
+
 allprojects {
     apply plugin: 'java'
     apply plugin: 'java-library'
@@ -133,6 +136,10 @@ task allTestUnsignedJar(type: Jar) {
 }
 
 allTestUnsignedJar.dependsOn(compileTestJava);
+
+
+
+
 
 subprojects {
     apply plugin: 'eclipse'
@@ -462,6 +469,35 @@ subprojects {
         reportsDirectory = layout.buildDirectory.dir("jacoco")
     }
 
+    tasks.withType(JavaCompile).configureEach {
+        options.debug = false;
+    }
+
+    task('fopyJars', type:Copy) {
+        from new File(projectDir,"build/libs")
+        into new File(rootDir,"../bc-lts-java-jars/${project.version}/")
+    }
+
+}
+
+
+
+tasks.register("copyAndScanJars",DuplicateClassFinder) {
+    jarDir = "../bc-lts-java-jars/"
+    ignore.add("bccore-lts8on:bcprov-lts8on")
+    ignore.add("bcjmail-lts8on:bcmail-lts8on")
+    verbose = true
+}
+
+tasks.named("copyAndScanJars").configure {
+    var prj = [];
+    subprojects.each {
+        if (it.tasks.findByName("copyJars") != null) {
+            prj += ":${it.name}:copyJars";
+        }
+    }
+
+    dependsOn(prj)
 }
 
 
