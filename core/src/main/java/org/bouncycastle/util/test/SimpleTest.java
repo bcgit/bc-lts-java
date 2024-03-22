@@ -7,7 +7,7 @@ import java.util.Vector;
 import org.bouncycastle.util.Arrays;
 
 public abstract class SimpleTest
-        implements Test
+    implements Test
 {
     public abstract String getName();
 
@@ -17,13 +17,13 @@ public abstract class SimpleTest
     }
 
     protected void fail(
-            String message)
+        String message)
     {
         throw new TestFailedException(SimpleTestResult.failed(this, message));
     }
 
     protected void isTrue(
-            boolean value)
+        boolean value)
     {
         if (!value)
         {
@@ -32,8 +32,8 @@ public abstract class SimpleTest
     }
 
     protected void isTrue(
-            String message,
-            boolean value)
+        String message,
+        boolean value)
     {
         if (!value)
         {
@@ -42,8 +42,8 @@ public abstract class SimpleTest
     }
 
     protected void isEquals(
-            Object a,
-            Object b)
+        Object a,
+        Object b)
     {
         if (!a.equals(b))
         {
@@ -52,8 +52,8 @@ public abstract class SimpleTest
     }
 
     protected void isEquals(
-            int a,
-            int b)
+        int a,
+        int b)
     {
         if (a != b)
         {
@@ -62,8 +62,8 @@ public abstract class SimpleTest
     }
 
     protected void isEquals(
-            long a,
-            long b)
+        long a,
+        long b)
     {
         if (a != b)
         {
@@ -72,8 +72,8 @@ public abstract class SimpleTest
     }
 
     protected void isEquals(
-            boolean a,
-            boolean b)
+        boolean a,
+        boolean b)
     {
         if (a != b)
         {
@@ -82,9 +82,9 @@ public abstract class SimpleTest
     }
 
     protected void isEquals(
-            String message,
-            boolean a,
-            boolean b)
+        String message,
+        boolean a,
+        boolean b)
     {
         if (a != b)
         {
@@ -93,9 +93,9 @@ public abstract class SimpleTest
     }
 
     protected void isEquals(
-            String message,
-            long a,
-            long b)
+        String message,
+        long a,
+        long b)
     {
         if (a != b)
         {
@@ -104,9 +104,9 @@ public abstract class SimpleTest
     }
 
     protected void isEquals(
-            String message,
-            Object a,
-            Object b)
+        String message,
+        Object a,
+        Object b)
     {
         if (a == null && b == null)
         {
@@ -157,23 +157,23 @@ public abstract class SimpleTest
 
 
     protected void fail(
-            String message,
-            Throwable throwable)
+        String message,
+        Throwable throwable)
     {
         throw new TestFailedException(SimpleTestResult.failed(this, message, throwable));
     }
 
     protected void fail(
-            String message,
-            Object expected,
-            Object found)
+        String message,
+        Object expected,
+        Object found)
     {
         throw new TestFailedException(SimpleTestResult.failed(this, message, expected, found));
     }
 
     protected boolean areEqual(
-            byte[] a,
-            byte[] b)
+        byte[] a,
+        byte[] b)
     {
         return Arrays.areEqual(a, b);
     }
@@ -201,7 +201,7 @@ public abstract class SimpleTest
     }
 
     public abstract void performTest()
-            throws Exception;
+        throws Exception;
 
     public static void runTest(Test test)
     {
@@ -262,7 +262,7 @@ public abstract class SimpleTest
             while (e.hasMoreElements())
             {
                 // -DM System.out.print
-                System.out.println("=>  " + (TestResult) e.nextElement());
+                System.out.println("=>  " + (TestResult)e.nextElement());
             }
         }
     }
@@ -271,5 +271,29 @@ public abstract class SimpleTest
     {
         return System.getProperty("java.version", "").startsWith("1.8");
     }
+    
+    protected interface TestExceptionOperation
+    {
+        void operation()
+            throws Exception;
+    }
 
+    protected Exception testException(String failMessage, String exceptionClass, TestExceptionOperation operation)
+    {
+        try
+        {
+            operation.operation();
+            fail(failMessage);
+        }
+        catch (Exception e)
+        {
+            if (failMessage != null)
+            {
+                isTrue(e.getMessage(), e.getMessage().contains(failMessage));
+            }
+            isTrue(e.getClass().getName().contains(exceptionClass));
+            return e;
+        }
+        return null;
+    }
 }

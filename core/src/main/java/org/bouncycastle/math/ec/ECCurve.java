@@ -680,6 +680,14 @@ public abstract class ECCurve
         BigInteger q, r;
         ECPoint.Fp infinity;
 
+        /**
+         * @deprecated use constructor taking order/cofactor
+         */
+        public Fp(BigInteger q, BigInteger a, BigInteger b)
+        {
+            this(q, a, b, null, null);
+        }
+
         public Fp(BigInteger q, BigInteger a, BigInteger b, BigInteger order, BigInteger cofactor)
         {
             this(q, a, b, order, cofactor, false);
@@ -837,6 +845,11 @@ public abstract class ECCurve
 
         private static FiniteField buildField(int m, int k1, int k2, int k3)
         {
+            if (m > Properties.asInteger("org.bouncycastle.ec.max_f2m_field_size", 1142))  // twice 571
+            {
+                throw new IllegalArgumentException("field size out of range: " + m);
+            }
+
             int[] exponents = (k2 | k3) == 0
                 ? new int[]{ 0, k1, m }
                 : new int[]{ 0, k1, k2, k3, m };
@@ -998,11 +1011,6 @@ public abstract class ECCurve
             }
 
             int m = this.getFieldSize();
-
-            if (m > Properties.asInteger("org.bouncycastle.ec.max_f2m_field_size", 1142))  // twice 571
-            {
-                throw new IllegalStateException("field size out of range: " + m);
-            }
             
             // For odd m, use the half-trace 
             if (0 != (m & 1))
@@ -1137,6 +1145,30 @@ public abstract class ECCurve
          * @param b The coefficient <code>b</code> in the Weierstrass equation
          * for non-supersingular elliptic curves over
          * <code>F<sub>2<sup>m</sup></sub></code>.
+         * @deprecated use constructor taking order/cofactor
+         */
+        public F2m(
+            int m,
+            int k,
+            BigInteger a,
+            BigInteger b)
+        {
+            this(m, k, 0, 0, a, b, null, null);
+        }
+
+        /**
+         * Constructor for Trinomial Polynomial Basis (TPB).
+         * @param m  The exponent <code>m</code> of
+         * <code>F<sub>2<sup>m</sup></sub></code>.
+         * @param k The integer <code>k</code> where <code>x<sup>m</sup> +
+         * x<sup>k</sup> + 1</code> represents the reduction
+         * polynomial <code>f(z)</code>.
+         * @param a The coefficient <code>a</code> in the Weierstrass equation
+         * for non-supersingular elliptic curves over
+         * <code>F<sub>2<sup>m</sup></sub></code>.
+         * @param b The coefficient <code>b</code> in the Weierstrass equation
+         * for non-supersingular elliptic curves over
+         * <code>F<sub>2<sup>m</sup></sub></code>.
          * @param order The order of the main subgroup of the elliptic curve.
          * @param cofactor The cofactor of the elliptic curve, i.e.
          * <code>#E<sub>a</sub>(F<sub>2<sup>m</sup></sub>) = h * n</code>.
@@ -1150,6 +1182,38 @@ public abstract class ECCurve
             BigInteger cofactor)
         {
             this(m, k, 0, 0, a, b, order, cofactor);
+        }
+
+        /**
+         * Constructor for Pentanomial Polynomial Basis (PPB).
+         * @param m  The exponent <code>m</code> of
+         * <code>F<sub>2<sup>m</sup></sub></code>.
+         * @param k1 The integer <code>k1</code> where <code>x<sup>m</sup> +
+         * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
+         * represents the reduction polynomial <code>f(z)</code>.
+         * @param k2 The integer <code>k2</code> where <code>x<sup>m</sup> +
+         * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
+         * represents the reduction polynomial <code>f(z)</code>.
+         * @param k3 The integer <code>k3</code> where <code>x<sup>m</sup> +
+         * x<sup>k3</sup> + x<sup>k2</sup> + x<sup>k1</sup> + 1</code>
+         * represents the reduction polynomial <code>f(z)</code>.
+         * @param a The coefficient <code>a</code> in the Weierstrass equation
+         * for non-supersingular elliptic curves over
+         * <code>F<sub>2<sup>m</sup></sub></code>.
+         * @param b The coefficient <code>b</code> in the Weierstrass equation
+         * for non-supersingular elliptic curves over
+         * <code>F<sub>2<sup>m</sup></sub></code>.
+         * @deprecated use constructor taking order/cofactor
+         */
+        public F2m(
+            int m,
+            int k1,
+            int k2,
+            int k3,
+            BigInteger a,
+            BigInteger b)
+        {
+            this(m, k1, k2, k3, a, b, null, null);
         }
 
         /**
