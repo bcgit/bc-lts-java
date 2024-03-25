@@ -2941,7 +2941,7 @@ public class CertTest
         // null comp test
         try
         {
-            crl.verify(new CompositePublicKey(null, null));
+            crl.verify(new CompositePublicKey(new PublicKey[]{null, null}));
         }
         catch (InvalidKeyException e)
         {
