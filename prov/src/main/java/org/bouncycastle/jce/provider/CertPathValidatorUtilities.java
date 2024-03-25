@@ -125,7 +125,7 @@ class CertPathValidatorUtilities
     {
         PKIXExtendedParameters baseParams = paramsPKIX.getBaseParameters();
         PKIXCertStoreSelector certSelect = baseParams.getTargetConstraints();
-        LinkedHashSet targets = new LinkedHashSet();
+        Set targets = new LinkedHashSet();
 
         try
         {
@@ -662,7 +662,7 @@ class CertPathValidatorUtilities
      * that are matching the certSelect criteriums.
      *
      * @param certs
-     *            a {@link LinkedHashSet} to which the certificates will be added.
+     *            a {@link Set} to which the certificates will be added.
      * @param certSelect
      *            a {@link Selector} object that will be used to select the certificates
      * @param certStores
@@ -671,7 +671,7 @@ class CertPathValidatorUtilities
      * @return a Collection of all found {@link X509Certificate} May be empty but never
      *         <code>null</code>.
      */
-    protected static void findCertificates(LinkedHashSet certs, PKIXCertStoreSelector certSelect, List certStores)
+    protected static void findCertificates(Set certs, PKIXCertStoreSelector certSelect, List certStores)
         throws AnnotatedException
     {
         Iterator iter = certStores.iterator();
@@ -1363,7 +1363,7 @@ class CertPathValidatorUtilities
         }
 
         PKIXCertStoreSelector certSelect = new PKIXCertStoreSelector.Builder(selector).build();
-        LinkedHashSet certs = new LinkedHashSet();
+        Set certs = new LinkedHashSet();
 
         try
         {

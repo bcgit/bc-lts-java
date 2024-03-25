@@ -1,11 +1,15 @@
-module org.bouncycastle.lts.prov
+module org.bouncycastle.provider
 {
     requires java.sql;
+    requires java.logging;
     requires java.naming;
 
     provides java.security.Provider with org.bouncycastle.jce.provider.BouncyCastleProvider;
 
     opens org.bouncycastle.jcajce.provider.asymmetric.edec to java.base;
+    opens org.bouncycastle.pqc.jcajce.provider.lms to java.base;
+    opens org.bouncycastle.pqc.jcajce.provider.falcon to java.base;
+    opens org.bouncycastle.pqc.jcajce.provider.dilithium to java.base;
 
     exports org.bouncycastle;
     exports org.bouncycastle.asn1;
@@ -53,6 +57,7 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.crypto.engines;
     exports org.bouncycastle.crypto.fpe;
     exports org.bouncycastle.crypto.generators;
+    exports org.bouncycastle.crypto.hpke;
     exports org.bouncycastle.crypto.io;
     exports org.bouncycastle.crypto.kems;
     exports org.bouncycastle.crypto.macs;
@@ -74,9 +79,9 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.jcajce.provider.asymmetric.dsa;
     exports org.bouncycastle.jcajce.provider.asymmetric.dstu;
     exports org.bouncycastle.jcajce.provider.asymmetric.ec;
+    exports org.bouncycastle.jcajce.provider.asymmetric.edec;
     exports org.bouncycastle.jcajce.provider.asymmetric.ecgost;
     exports org.bouncycastle.jcajce.provider.asymmetric.ecgost12;
-    exports org.bouncycastle.jcajce.provider.asymmetric.edec;
     exports org.bouncycastle.jcajce.provider.asymmetric.elgamal;
     exports org.bouncycastle.jcajce.provider.asymmetric.gost;
     exports org.bouncycastle.jcajce.provider.asymmetric.ies;

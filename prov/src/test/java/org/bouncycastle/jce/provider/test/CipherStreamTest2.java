@@ -90,15 +90,13 @@ public class CipherStreamTest2
     {
         ByteArrayInputStream bytes = new ByteArrayInputStream(data);
         // cast required for earlier JDK
-        return useBc ? (InputStream) new CipherInputStream(bytes, cipher) :
-                (InputStream) new javax.crypto.CipherInputStream(bytes, cipher);
+        return useBc ? (InputStream) new CipherInputStream(bytes, cipher) : (InputStream) new javax.crypto.CipherInputStream(bytes, cipher);
     }
 
     private OutputStream createOutputStream(ByteArrayOutputStream bytes, Cipher cipher, boolean useBc)
     {
         // cast required for earlier JDK
-        return useBc ? (OutputStream) new CipherOutputStream(bytes, cipher) :
-                (OutputStream) new javax.crypto.CipherOutputStream(bytes, cipher);
+        return useBc ? (OutputStream) new CipherOutputStream(bytes, cipher) : (OutputStream) new javax.crypto.CipherOutputStream(bytes, cipher);
     }
 
     /**
@@ -513,16 +511,13 @@ public class CipherStreamTest2
                     "/CTR/NoPadding",
                     "/SIC/NoPadding"}, false);
             String jvm = System.getProperty("java.version");
-
-            if (jvm.length() > 2 && (jvm.charAt(2) == '5' || jvm.charAt(2) == '6'))
+            if (jvm.length() > 2 && (jvm.charAt(2) == '5' || jvm.charAt(2) == '6'))   // can't use GCM due to JVM bug in this case.
             {
-                // can't use GCM due to JVM bug in this case.
                 testModes(blockCiphers128[i], new String[]{"/CCM/NoPadding", "/EAX/NoPadding", "/OCB/NoPadding"}, true);
             }
             else
             {
-                testModes(blockCiphers128[i], new String[]{"/CCM/NoPadding", "/EAX/NoPadding", "/GCM/NoPadding",
-                        "/OCB/NoPadding"}, true);
+                testModes(blockCiphers128[i], new String[]{"/CCM/NoPadding", "/EAX/NoPadding", "/GCM/NoPadding", "/OCB/NoPadding"}, true);
             }
         }
 

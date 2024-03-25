@@ -1,6 +1,6 @@
 package org.bouncycastle.jcajce.provider.symmetric;
 
-import org.bouncycastle.crypto.BufferedBlockCipher;
+import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.CipherKeyGenerator;
 import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.engines.GOST3412_2015Engine;

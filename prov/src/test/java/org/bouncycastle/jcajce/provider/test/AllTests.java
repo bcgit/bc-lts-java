@@ -14,6 +14,7 @@ public class AllTests
 {
     public static void main(String[] args)
     {
+
         PrintTestResult.printResult(junit.textui.TestRunner.run(suite()));
     }
 
@@ -28,8 +29,9 @@ public class AllTests
         suite.addTestSuite(RandomTest.class);
         suite.addTestSuite(RFC3211WrapTest.class);
         suite.addTestSuite(SP80038GTest.class);
+        suite.addTestSuite(CompositeKeyTest.class);
+//        suite.addTestSuite(CompositeSignaturesTest.class);
         suite.addTestSuite(BouncyCastleProviderTest.class);
-        suite.addTestSuite(LMSTest.class);
 
         return new BCTestSetup(suite);
     }
