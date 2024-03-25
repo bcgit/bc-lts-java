@@ -18,7 +18,19 @@ do
     do
         hash=`echo $l | sed -e "s/ .*//"`
         file=`echo $l | sed -e "s/^[^ ]* //"`
-        current=`sha256sum $bc_java_dir/$file |  sed -e "s/ .*//"`
+        if [ $mod = core ]
+        then
+            match=`echo $file | egrep "org/bouncycastle/asn1/(cryptlib|edec|gnu|iana|isara|iso|kisa|microsoft|misc|mozilla|nsri|ntt|oiw|rosstandart)"`
+            if [ -n "$match" ]
+            then
+                loc=`echo $file | sed -e "s/core/util/"`
+        	current=`sha256sum $bc_java_dir/$loc |  sed -e "s/ .*//"`
+            else
+        	current=`sha256sum $bc_java_dir/$file |  sed -e "s/ .*//"`
+            fi
+        else
+        	current=`sha256sum $bc_java_dir/$file |  sed -e "s/ .*//"`
+        fi
         if [ $hash != $current ]
         then
             echo $file

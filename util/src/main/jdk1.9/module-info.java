@@ -25,6 +25,8 @@ module org.bouncycastle.lts.util
     exports org.bouncycastle.oer.its.ieee1609dot2;
     exports org.bouncycastle.oer.its.ieee1609dot2.basetypes;
     exports org.bouncycastle.oer.its.ieee1609dot2dot1;
+    exports org.bouncycastle.oer.its.etsi102941;
+    exports org.bouncycastle.oer.its.etsi102941.basetypes;
     exports org.bouncycastle.oer.its.template.etsi102941;
     exports org.bouncycastle.oer.its.template.etsi102941.basetypes;
     exports org.bouncycastle.oer.its.template.etsi103097;
