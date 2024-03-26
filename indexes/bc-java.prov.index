@@ -4,7 +4,6 @@ bca81a4d1aa1dd239dd1a54fb55c14b6d35e9308924aeb602b7ca241f8888817  prov/src/test/
 a8dc4515bee2f300f51f54beb691be0ae8a671259600501e79d97bd09a960b4a  prov/src/test/java/org/bouncycastle/jce/provider/test/Poly1305Test.java
 05b9c24073163989da404cd86ce553771c4671190a5e1bfbab89b580c75be1a4  prov/src/test/java/org/bouncycastle/jce/provider/test/AESTest.java
 d30f895076f4f0563f54c6c1c973251b33b554f1ed76325581a93c8770d3dd33  prov/src/test/java/org/bouncycastle/jce/provider/test/SigNameTest.java
-4be6289a4dbc8c0600210527a50526843d4151c3395b984ccbd8b4f0f71ddb29  prov/src/main/java/org/bouncycastle/jcajce/CompositePublicKey.java
 353fd056b1fa42522c9343e0854b95d1bbf8e0f7e6be1cd30690bdb4997ad812  prov/src/test/java/org/bouncycastle/jce/provider/test/ThreefishTest.java
 c09854807fe9e367b824391abab83f17b53440182a2d90a648cc9572d8b4fa61  prov/src/test/java/org/bouncycastle/jce/provider/test/AllTests.java
 37066185bbf7037187c6c9dd8ff4a12bf486ebf8b1d1a3650af2ca3c1b3de4c4  prov/src/test/java/org/bouncycastle/jce/provider/test/DHTest.java

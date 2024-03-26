@@ -75,6 +75,7 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.jcajce;
     exports org.bouncycastle.jcajce.io;
     exports org.bouncycastle.jcajce.provider.asymmetric;
+    exports org.bouncycastle.jcajce.provider.asymmetric.compositesignatures;
     exports org.bouncycastle.jcajce.provider.asymmetric.dh;
     exports org.bouncycastle.jcajce.provider.asymmetric.dsa;
     exports org.bouncycastle.jcajce.provider.asymmetric.dstu;
