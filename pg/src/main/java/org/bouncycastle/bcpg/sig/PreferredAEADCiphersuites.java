@@ -6,7 +6,7 @@ import org.bouncycastle.bcpg.SignatureSubpacketTags;
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
 
 public class PreferredAEADCiphersuites
-    extends SignatureSubpacket
+    extends PreferredAlgorithms
 {
 
     private final Combination[] algorithms;
