@@ -32,6 +32,7 @@ b3646955ada214aea6b2bc5114fcc202dedba125cef64813d08be0909f5c65e5  util/src/test/
 fb13bbaa97c0250d854e00e4eb23406aff4f649915004b86bfeb3054f1c6fc06  util/src/test/java/org/bouncycastle/asn1/cmc/test/CMCCertificationRequestTest.java
 edeee3adb5beb9e0a0a5f5d630bc178455c6cddef5c6effdfb1e2834143379cc  util/src/test/java/org/bouncycastle/asn1/cmc/test/BodyPartIDTest.java
 106c7b621953e45b5bc92bd8edd2f80d00baf34e0f3fd06b1dd6e9ef0b66d31f  util/src/test/java/org/bouncycastle/asn1/cmc/test/BodyPartReferenceTest.java
+0ca5a9ea17c47fcb97ec1170ebe7ba2b01752547960f4cf666cdf0ef651a3bf1  util/src/test/java/org/bouncycastle/asn1/misc/test/GetInstanceTest.java
 d80305b3e184f68d34183e79fa23788231a7022430ec2c19425a5fce1e7d5d47  util/src/test/java/org/bouncycastle/asn1/misc/test/CMPUpdates16Test.java
 b136db7c019729861eabda8d17ab484207177ae5881d5c4b99033c857210b40a  util/src/test/java/org/bouncycastle/asn1/esf/test/CommitmentTypeIndicationUnitTest.java
 3e89ba8981946746c818bf70ca74feb287cae3e3864bde95f429f89edf95f0b9  util/src/test/java/org/bouncycastle/asn1/esf/test/SignerLocationUnitTest.java
@@ -80,6 +81,7 @@ cf04ebfb7025f5e38af390abddec49da35133cec5d42eab039ef4963a6024b05  util/src/test/
 72e445ccc54216bd9a2df16a9edadd41737fa7b4143b2f2bd5c98790b781ee7d  util/src/test/java/org/bouncycastle/oer/test/TestFromVector.java
 3e9e6e5ed51d704d690474863e2f62d322e736711424020c4ad58d5f6d65f99d  util/src/test/java/org/bouncycastle/oer/test/TestBuilders.java
 c6f2d989dc8e8dac27d81f86b8570216e3007b1ed0cc122c11d60f7147345824  util/src/test/java/org/bouncycastle/oer/test/Populate.java
+09c83ad99913a4e6fca22cdeaed3978572bd203ea38579b45a0e6d83995074d5  util/src/main/jdk1.9/module-info.java
 fc1c90ca1e6d4ed6d6dedc1102db75657fb16e613e26675596bd1d5a2e47341e  util/src/main/java/org/bouncycastle/asn1/cmc/IdentityProofV2.java
 457be4f323553ea3d918563930acab4de45db4c861f8bf9a39b1182908289f27  util/src/main/java/org/bouncycastle/asn1/cmc/Utils.java
 bf0b1139bc934cf46b6d369ad9370edc15ea7e9d1f2dc44b045607a4994839a5  util/src/main/java/org/bouncycastle/asn1/cmc/PublishTrustAnchors.java
@@ -160,6 +162,7 @@ e5f6a7fe76d0b3865ad02c4dd33bbb96a95fdb03b787c1fcb34da6fcf5c213b2  util/src/main/
 a3ef9da82aa41ff74cb80bc0219b1c4db401ebf1b92cc95a95940b479b34ba85  util/src/main/java/org/bouncycastle/asn1/eac/CertificateHolderReference.java
 7349edf05c0c509e19cc541b87b1b6427996a933d1bf59b40dacaafab5a52ce5  util/src/main/java/org/bouncycastle/asn1/eac/Flags.java
 28334b7f17cb2173d36f76ce395fe620490b7fbb8488f161d611a8a57542b0c3  util/src/main/java/org/bouncycastle/asn1/eac/PackedDate.java
+1a252eeec9bcc7736a28af6963a909cbd960b7e0486d4be4c17135fa74bfbf4c  util/src/main/java/org/bouncycastle/asn1/eac/CertificateBody.java
 74be3967e524ec0f0e8da2bf6ecb507622c830411f52ee296699536e9a19ec60  util/src/main/java/org/bouncycastle/asn1/eac/CVCertificate.java
 8031268d37d4cee0a8ca5068f592399ec5bc83cf30f348fa817bfa3bb3455b40  util/src/main/java/org/bouncycastle/asn1/eac/PublicKeyDataObject.java
 661f6c278b90f137df3b709375f7828ce7e5e98b3c8a67b4d6b280bdc8e988c4  util/src/main/java/org/bouncycastle/asn1/eac/CertificationAuthorityReference.java
@@ -221,6 +224,7 @@ e33f06b168a990449ff61e8b6b5a9ad92427ef0968988138028bf0f3ab63d3f0  util/src/main/
 049102c3e911a86accd27e121bce5304417a38f2d54c104f622c5e9eeedbe495  util/src/main/java/org/bouncycastle/asn1/cmp/PKIFailureInfo.java
 3c1e00f1a1f44c6e87d169f9eee78de9dd4e5383b180e2ae0ec572eaa5f6cfa8  util/src/main/java/org/bouncycastle/asn1/cmp/PollRepContent.java
 776212d6b07901d1c3a4a56df0df61388c0352445d235ac7d8cb960891c53020  util/src/main/java/org/bouncycastle/asn1/cmp/CMPObjectIdentifiers.java
+0bf62e5f16fe13e8495ad4fbf8bfd5bd63a0c8fa58cc45fc04b29d70b297b940  util/src/main/java/org/bouncycastle/asn1/cmp/PKIMessage.java
 52375dbc238ad6f704f6ca1ccb0d20797499aeb9c1f73bb70016bcfa37220cf5  util/src/main/java/org/bouncycastle/asn1/cmp/RootCaKeyUpdateContent.java
 58ab7fc3efd565f08bc53b1912cf7971634a91f72e12cb0294b68abe63cc0cd5  util/src/main/java/org/bouncycastle/asn1/cmp/CertifiedKeyPair.java
 49a0e03ed30bf0fc9539a02217924a595f4bdc51bf3943d54f0f4d6634b2107d  util/src/main/java/org/bouncycastle/asn1/cmp/PKIStatus.java
@@ -228,6 +232,7 @@ a79be3a871ce6d1c780ece44d43cefc25933fcaa89b62a11c1d0af46e0ea99fd  util/src/main/
 08a9a282f4be83531afdb386d1c5010aa7ea562f616ad1be5447a561abd8034c  util/src/main/java/org/bouncycastle/asn1/cmp/InfoTypeAndValue.java
 b8e880e94179e783b7f4cf99df37a32d2413feedd0caebb2dc4273d539542db0  util/src/main/java/org/bouncycastle/asn1/cmp/RevDetails.java
 882a23d3de170ac2d4921b42bf3bec8db93abb7353cd0b439d6148538820f55f  util/src/main/java/org/bouncycastle/asn1/cmp/ErrorMsgContent.java
+694a30c77784355a23e90bb1e4a91d59b0e2181719ee0cb7ea761c24e03961cf  util/src/main/java/org/bouncycastle/asn1/cmp/PKIBody.java
 bdc99f3d841c5fab1e032ed8cd36a326b980c964eba3c8238fd0289cddf454fb  util/src/main/java/org/bouncycastle/asn1/cmp/OOBCert.java
 815efde83717ab3a82560f2c6caea03ccba4f223e1255a2c707cae710eb1feb4  util/src/main/java/org/bouncycastle/asn1/isismtt/ocsp/CertHash.java
 5fe813a92501c31d8ff060302c2c65e2c011fc9b4e0370c4cf79f9e33503ebed  util/src/main/java/org/bouncycastle/asn1/isismtt/ocsp/RequestedCertificate.java
@@ -296,6 +301,7 @@ e8e5fa38c85a3fe73c94c77885793b369c534d1165529e6780c23a6b3ed1583e  util/src/main/
 d89991f31f2a82407163daf1ebc40a8a7a50ee09b718e39ae66d09925ed2f7ea  util/src/main/java/org/bouncycastle/asn1/cms/EncryptedContentInfoParser.java
 61a6455a9b820abc58af4859ab94a580066053908e0169adbceb3f5b2360ae2d  util/src/main/java/org/bouncycastle/asn1/cms/OtherKeyAttribute.java
 f7a8ac0405a6c446e3bb93680e58aeebc7087f7f342cee9aad868e8e39dd3ee6  util/src/main/java/org/bouncycastle/asn1/cms/RecipientInfo.java
+076ace640df48dcd0b0888f627873c65368827727874b5bf74308a33e7f26951  util/src/main/java/org/bouncycastle/asn1/cms/CMSObjectIdentifiers.java
 989ab14bbac86a555d13aadb1288558de8687c2b72b25c89c7b01161d341736c  util/src/main/java/org/bouncycastle/asn1/cms/EnvelopedDataParser.java
 1cc0747233181637ed0ce6c78a5819f5252b22833afdfcf3e9dce75e07e39364  util/src/main/java/org/bouncycastle/asn1/cms/OriginatorPublicKey.java
 800a27107d51a32c8b8d98983ca77787a9493d10e1091b2d00829fec984b77d5  util/src/main/java/org/bouncycastle/asn1/cms/SignedDataParser.java
@@ -418,6 +424,7 @@ d00ef6841a0a34735c15715b93557b98d37df8b6b3f84c0c054e86076243f4a8  util/src/main/
 aa4ee5f374f316c1fa0d5a6a5d02a487078dc5b599abefd4cc4fc1e7854069f3  util/src/main/java/org/bouncycastle/oer/its/ieee1609dot2/basetypes/PolygonalRegion.java
 8a0bbbb502a8e11987ad35ea05adbdec3809d2d3807bcc21bc96f576753beec0  util/src/main/java/org/bouncycastle/oer/its/ieee1609dot2/basetypes/UnknownLongitude.java
 8310e8b108f3a8089101422bf327623baf15dbc043df6890beec0d0cbcca9744  util/src/main/java/org/bouncycastle/oer/its/ieee1609dot2/basetypes/UnknownLatitude.java
+ecabadc03859438e9e5601d464b78000572521910783100000ac0e4152c3899b  util/src/main/java/org/bouncycastle/oer/its/ieee1609dot2/basetypes/EccP256CurvePoint.java
 766d1e310751c7a8786193b9a9e30c7e808984fc83fbb86e0f03ab1a911b433f  util/src/main/java/org/bouncycastle/oer/its/ieee1609dot2/basetypes/SequenceOfPsidSspRange.java
 48ae50eb2327e4a0501b3fcbedb7f931e43941a968dd68078590c4034fceb4de  util/src/main/java/org/bouncycastle/oer/its/ieee1609dot2/basetypes/OneEightyDegreeInt.java
 13590164518ca2b8af274903536bbd266c8828811f520b308cb7cc7de5bd65c3  util/src/main/java/org/bouncycastle/oer/its/ieee1609dot2/basetypes/HashedId32.java
@@ -556,6 +563,7 @@ ab40bb4c68dfb02bd087c6b142677d332cdb7169e8e39928a7048fddf743749f  util/src/main/
 0463671cce113d0d3909610ccada7ee686821f9653fc2b64b2df6a71fa5dcd82  util/src/main/java/org/bouncycastle/oer/Element.java
 d1a82dc5e8986e825f06f6466312ccccdc40cf4ae076e1c30cf8b8031392bd09  util/src/main/java/org/bouncycastle/oer/OERDecoder.java
 b2e1347cf2c3af9006cec555cd5e5bb516fe1541382a44bfd1b7da360c0ab818  util/src/main/java/org/bouncycastle/oer/OERDefinition.java
+91ccf89ce4824af5f4c2e3f5a41a38ed9205568645631aaa11fded17fa4aa49b  util/src/main/java/org/bouncycastle/oer/OEROutputStream.java
 84625d8fa5c9edcdbfbe7348af5a07dae1059532f6b0aea76794678d0502bbae  util/src/main/java/org/bouncycastle/oer/Switch.java
 d96b788378cbb9393dc01bbef292f4ed09d0632ec624f3785d96d3c90ee9e1a4  util/src/main/java/org/bouncycastle/oer/OEROptional.java
 826150491e4cb688a2ab020e8285cf2fbe43a7c3d256ead32697285fd1fd82e6  util/src/main/java/org/bouncycastle/oer/BitBuilder.java
