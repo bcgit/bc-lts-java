@@ -83,7 +83,7 @@ b2f9646a310b75b153a652de6550a764a1e7645499d8fde2cdf386ef87f80213  pg/src/main/ja
 f15f92c16394b81fd226251d56aab71eff4231477ad440231520b0f254e0b145  pg/src/main/java/org/bouncycastle/bcpg/ExperimentalPacket.java
 be92f1e6542e2fca9dbdf1c043f3a0db6a9cbc263d61cb3771a2702884bfd7f8  pg/src/main/java/org/bouncycastle/bcpg/AEADUtils.java
 08dbf1308c0147070b49535e6b7d81c0337e547ba6c60a33328ea0bfa5089a3a  pg/src/main/java/org/bouncycastle/bcpg/InputStreamPacket.java
-8002a35325b58f8cf4dccf435927dd8a23ab504319cabaf8cd36824b8a5e4a00  pg/src/main/java/org/bouncycastle/bcpg/ArmoredOutputStream.java
+68ecede0fe9688b947d23236e479647a50f77d1b34875f934000de964de57826  pg/src/main/java/org/bouncycastle/bcpg/ArmoredOutputStream.java
 7aec5cafa75ddb465973c49287b38b1a4f8484235a2df49891e25043123db1b3  pg/src/main/java/org/bouncycastle/bcpg/S2K.java
 bcd4e52053cae62ac47a6923ce32d53893dba311990ed39b1f089f7ac06a2012  pg/src/main/java/org/bouncycastle/bcpg/CompressionAlgorithmTags.java
 06d0bf30eb99bfe30dfff7a3879d8d02e73d89e7e7afb12e79b0b7632bc30222  pg/src/main/java/org/bouncycastle/bcpg/FastCRC24.java
