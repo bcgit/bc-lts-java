@@ -102,6 +102,7 @@ public class ChaCha20Poly1305Test
         {
             if (aeadAvailable)
             {
+                System.err.println("exception name: " + e.getClass().getName());
                 if (!e.getClass().getName().equals("javax.crypto.AEADBadTagException"))
                 {
                     fail("Tampered AEAD ciphertext should fail with AEADBadTagException when available.");
