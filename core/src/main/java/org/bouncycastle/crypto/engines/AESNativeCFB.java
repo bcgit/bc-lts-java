@@ -109,15 +109,15 @@ class AESNativeCFB
         }
 
 
-        switch (key.length)
-        {
-        case 16:
-        case 24:
-        case 32:
-            break;
-        default:
-            throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
-        }
+//        switch (key.length)
+//        {
+//        case 16:
+//        case 24:
+//        case 32:
+//            break;
+//        default:
+//            throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
+//        }
 
 
         referenceWrapper = new CFBRefWrapper(makeNative(encrypting, key.length));
