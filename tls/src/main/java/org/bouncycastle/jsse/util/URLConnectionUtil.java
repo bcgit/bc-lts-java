@@ -33,6 +33,12 @@ public class URLConnectionUtil
         return configureConnection(url, url.openConnection(proxy));
     }
 
+    /** @deprecated Use {@link #openStream(URL)} instead */
+    public InputStream openInputStream(URL url) throws IOException
+    {
+        return openConnection(url).getInputStream();
+    }
+
     public InputStream openStream(URL url) throws IOException
     {
         return openConnection(url).getInputStream();
@@ -60,6 +66,6 @@ public class URLConnectionUtil
 
     protected SSLSocketFactory createSSLSocketFactory(SSLSocketFactory delegate, URL url)
     {
-        return new SNISocketFactory(delegate, url);
+        return new SetHostSocketFactory(delegate, url);
     }
 }

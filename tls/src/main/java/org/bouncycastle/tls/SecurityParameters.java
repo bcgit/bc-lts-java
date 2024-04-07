@@ -18,7 +18,6 @@ public class SecurityParameters
     short maxFragmentLength = -1;
     int prfAlgorithm = -1;
     int prfCryptoHashAlgorithm = -1;
-    short prfHashAlgorithm = -1;
     int prfHashLength = -1;
     int verifyDataLength = -1;
     TlsSecret baseKeyClient = null;
@@ -217,12 +216,12 @@ public class SecurityParameters
 
     /**
      * @return {@link HashAlgorithm} for the current {@link PRFAlgorithm}
-     * 
+     *
      * @deprecated Use {@link #getPRFCryptoHashAlgorithm()} instead.
      */
     public short getPRFHashAlgorithm()
     {
-        return prfHashAlgorithm;
+        return (short)getPRFCryptoHashAlgorithm();
     }
 
     public int getPRFHashLength()

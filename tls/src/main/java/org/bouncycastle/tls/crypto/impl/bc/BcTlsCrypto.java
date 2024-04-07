@@ -54,6 +54,8 @@ import org.bouncycastle.tls.crypto.TlsECConfig;
 import org.bouncycastle.tls.crypto.TlsECDomain;
 import org.bouncycastle.tls.crypto.TlsHMAC;
 import org.bouncycastle.tls.crypto.TlsHash;
+import org.bouncycastle.tls.crypto.TlsKemConfig;
+import org.bouncycastle.tls.crypto.TlsKemDomain;
 import org.bouncycastle.tls.crypto.TlsNonceGenerator;
 import org.bouncycastle.tls.crypto.TlsSRP6Client;
 import org.bouncycastle.tls.crypto.TlsSRP6Server;
@@ -211,6 +213,11 @@ public class BcTlsCrypto
         }
     }
 
+    public TlsKemDomain createKemDomain(TlsKemConfig kemConfig)
+    {
+        return null; // TODO: new BcTlsMLKemDomain(this, kemConfig);
+    }
+
     public TlsNonceGenerator createNonceGenerator(byte[] additionalSeedMaterial)
     {
         int cryptoHashAlgorithm = CryptoHashAlgorithm.sha256;
@@ -302,6 +309,11 @@ public class BcTlsCrypto
     public boolean hasECDHAgreement()
     {
         return true;
+    }
+     // TODO: One day!
+    public boolean hasKemAgreement()
+    {
+        return false;
     }
 
     public boolean hasEncryptionAlgorithm(int encryptionAlgorithm)
@@ -487,13 +499,13 @@ public class BcTlsCrypto
         case CryptoHashAlgorithm.sha1:
             return new SHA1Digest((SHA1Digest)digest);
         case CryptoHashAlgorithm.sha224:
-            return SHA224Digest.newInstance(digest);
+            return new SHA224Digest((SHA224Digest)digest);
         case CryptoHashAlgorithm.sha256:
             return SHA256Digest.newInstance(digest);
         case CryptoHashAlgorithm.sha384:
-            return SHA384Digest.newInstance(digest);
+            return new SHA384Digest((SHA384Digest)digest);
         case CryptoHashAlgorithm.sha512:
-            return SHA512Digest.newInstance(digest);
+            return new SHA512Digest((SHA512Digest)digest);
         case CryptoHashAlgorithm.sm3:
             return new SM3Digest((SM3Digest)digest);
         default:
@@ -510,13 +522,13 @@ public class BcTlsCrypto
         case CryptoHashAlgorithm.sha1:
             return new SHA1Digest();
         case CryptoHashAlgorithm.sha224:
-            return SHA224Digest.newInstance();
+            return new SHA224Digest();
         case CryptoHashAlgorithm.sha256:
             return new SHA256Digest();
         case CryptoHashAlgorithm.sha384:
-            return SHA384Digest.newInstance();
+            return new SHA384Digest();
         case CryptoHashAlgorithm.sha512:
-            return SHA512Digest.newInstance();
+            return new SHA512Digest();
         case CryptoHashAlgorithm.sm3:
             return new SM3Digest();
         default:
