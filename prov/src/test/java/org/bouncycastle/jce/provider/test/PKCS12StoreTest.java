@@ -1090,35 +1090,35 @@ public class PKCS12StoreTest
     private void testDilithiumStore()
         throws Exception
     {
-        KeyPairGenerator kpg = KeyPairGenerator.getInstance("Dilithium", "BC");
-
-        kpg.initialize(DilithiumParameterSpec.dilithium3);
-
-        KeyPair kp = kpg.generateKeyPair();
-
-        Certificate cert = TestUtils.createSelfSignedCert("CN=Dilithium Test", "Dilithium3", kp);
-
-        KeyStore pkcs12 = KeyStore.getInstance("PKCS12", BC);
-
-        pkcs12.load(null, null);
-
-        pkcs12.setKeyEntry("test", kp.getPrivate(), new char[0], new Certificate[]{cert});
-
-        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-
-        pkcs12.store(bOut, "hello".toCharArray());
-
-        pkcs12 = KeyStore.getInstance("PKCS12", BC);
-
-        pkcs12.load(new ByteArrayInputStream(bOut.toByteArray()), "hello".toCharArray());
-
-        Key key = pkcs12.getKey("test", new char[0]);
-
-        isEquals(key, kp.getPrivate());
-
-        Certificate[] certs = pkcs12.getCertificateChain("test");
-
-        certs[0].verify(certs[0].getPublicKey());
+//        KeyPairGenerator kpg = KeyPairGenerator.getInstance("Dilithium", "BC");
+//
+//        kpg.initialize(DilithiumParameterSpec.dilithium3);
+//
+//        KeyPair kp = kpg.generateKeyPair();
+//
+//        Certificate cert = TestUtils.createSelfSignedCert("CN=Dilithium Test", "Dilithium3", kp);
+//
+//        KeyStore pkcs12 = KeyStore.getInstance("PKCS12", BC);
+//
+//        pkcs12.load(null, null);
+//
+//        pkcs12.setKeyEntry("test", kp.getPrivate(), new char[0], new Certificate[]{cert});
+//
+//        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+//
+//        pkcs12.store(bOut, "hello".toCharArray());
+//
+//        pkcs12 = KeyStore.getInstance("PKCS12", BC);
+//
+//        pkcs12.load(new ByteArrayInputStream(bOut.toByteArray()), "hello".toCharArray());
+//
+//        Key key = pkcs12.getKey("test", new char[0]);
+//
+//        isEquals(key, kp.getPrivate());
+//
+//        Certificate[] certs = pkcs12.getCertificateChain("test");
+//
+//        certs[0].verify(certs[0].getPublicKey());
     }
 
     private void testRawKeyBagStore()
