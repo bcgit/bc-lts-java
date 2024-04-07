@@ -1518,3 +1518,4 @@ ea0d1a07b98350a456ffb5b5f1d42d29de7ad07eda4a6a041c4e431d113d06e4  core/src/test/
 34fcdbb051ba00fe3097c562141ea7fb4ed4a1a5f51899441672e5274ec99678  core/src/test/java/org/bouncycastle/pqc/crypto/lms/HSSTests.java
 57bdf742c83a187dbcd5b4b7b0be816b57c8a3faebe90e6c79dc0b3df384778a  core/src/test/java/org/bouncycastle/pqc/crypto/lms/LMSTests.java
 37218c2a7f3272d2d767f89a97e29c065f029c4c35559dd0c3c67bfcdb650c3a  core/src/main/java/org/bouncycastle/asn1/x509/DeltaCertificateDescriptor.java
+65ce5fdc7dca8f2f65715c90b91e8caaf3914fa0ffd3ef53078666efee36eb16  core/src/main/java/org/bouncycastle/crypto/tls/TlsRsaKeyExchange.java

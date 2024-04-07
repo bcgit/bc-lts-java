@@ -4,7 +4,7 @@ bca81a4d1aa1dd239dd1a54fb55c14b6d35e9308924aeb602b7ca241f8888817  prov/src/test/
 a8dc4515bee2f300f51f54beb691be0ae8a671259600501e79d97bd09a960b4a  prov/src/test/java/org/bouncycastle/jce/provider/test/Poly1305Test.java
 05b9c24073163989da404cd86ce553771c4671190a5e1bfbab89b580c75be1a4  prov/src/test/java/org/bouncycastle/jce/provider/test/AESTest.java
 d30f895076f4f0563f54c6c1c973251b33b554f1ed76325581a93c8770d3dd33  prov/src/test/java/org/bouncycastle/jce/provider/test/SigNameTest.java
-8800d80e722327f37e52527417d72ed6cabfd39fced8d3d0a5d0f430e8749dd6  prov/src/test/java/org/bouncycastle/jce/provider/test/EdECTest.java
+2d7100eba521286af9ec2a6b510b66a720020d3ff9477a4912968eb32525a68f  prov/src/test/java/org/bouncycastle/jce/provider/test/EdECTest.java
 353fd056b1fa42522c9343e0854b95d1bbf8e0f7e6be1cd30690bdb4997ad812  prov/src/test/java/org/bouncycastle/jce/provider/test/ThreefishTest.java
 c09854807fe9e367b824391abab83f17b53440182a2d90a648cc9572d8b4fa61  prov/src/test/java/org/bouncycastle/jce/provider/test/AllTests.java
 37066185bbf7037187c6c9dd8ff4a12bf486ebf8b1d1a3650af2ca3c1b3de4c4  prov/src/test/java/org/bouncycastle/jce/provider/test/DHTest.java
@@ -58,7 +58,7 @@ cb70e35e978d974848882b8a1ae6308c168c1221ce39d686ae7bf1f9f7f73cf5  prov/src/test/
 83e84d219bf11c3dc96549440c255e58e003055eb439a5972932c75e8cf14604  prov/src/test/java/org/bouncycastle/jce/provider/test/HMacTest.java
 b96ab97f7c58c298bdb06b537e5a34ce70be57a97538d4100047fa785e8d9838  prov/src/test/java/org/bouncycastle/jce/provider/test/GOST3410Test.java
 4dc9f59e669d1edee2de6a7e0d51bd381ba2dbc11945fa30548212814c45b869  prov/src/test/java/org/bouncycastle/jce/provider/test/AEADTest.java
-b6f7406f1ea2f5b72f393272877bd98f5e8fff8ee19a349a3da35b2da643df10  prov/src/test/java/org/bouncycastle/jce/provider/test/PKCS12StoreTest.java
+cbb7808b95c0393ee2fe960c5b8f3aeadc27788322dff60c041c59909cb4bee5  prov/src/test/java/org/bouncycastle/jce/provider/test/PKCS12StoreTest.java
 1acf8c4d23f688ebc406bba63383daee3dabe9168cafd154421c6905d17afb3f  prov/src/test/java/org/bouncycastle/jce/provider/test/DHIESTest.java
 082a4a8d82d60f45e6cf961e1a40cbaaa0d371aeb9d9cddd10d7d339d97437e6  prov/src/test/java/org/bouncycastle/jce/provider/test/PBETest.java
 b5b62a4e9b943d17ab2240bcfac6e05da5876db417d8f94422fe67c7101c6198  prov/src/test/java/org/bouncycastle/jce/provider/test/ARIATest.java
@@ -149,7 +149,7 @@ d24926a337acb58a854284efdf1fb7344b725cd08151b58556b1d68b87826a7a  prov/src/main/
 dc538d5b482f33bde904da381c0783bcc99b361f800910e3f3bd6bd8257ae220  prov/src/main/java/org/bouncycastle/jce/exception/ExtCertPathValidatorException.java
 23c5db868c986e92fa94aa64215b78d318137ee0133070e2e8558f0f0afd205e  prov/src/main/java/org/bouncycastle/jce/exception/ExtCertificateEncodingException.java
 c87ec460a13ee8f88ae8725a2bfeb2e5b425781bcde3bc90142ef3166815281a  prov/src/main/java/org/bouncycastle/jce/provider/BouncyCastleProviderConfiguration.java
-9c29b2e547f7baa40996886c3900d93b55c41ecc6d7277674f5f11c100531378  prov/src/main/java/org/bouncycastle/jce/provider/ProvOcspRevocationChecker.java
+ab5f81ef33ba6c502111da0f37ea1b04ce3d7ba98884b05d3bab4f2dc5c2eb91  prov/src/main/java/org/bouncycastle/jce/provider/ProvOcspRevocationChecker.java
 bf4b8c051e4061bc618b9ead39e5bd0cac4ad5856be0dc11bc1cff68d075485f  prov/src/main/java/org/bouncycastle/jce/provider/X509CertificateObject.java
 7d001d0556f4e8fea5577df9a807c0f56521a1c381c16dcab3d47ee6fc1ac7f2  prov/src/main/java/org/bouncycastle/jce/provider/JCEDHPrivateKey.java
 55ff7e0234b22951379cfa4834c5928313f0da2cd49c954b715d62ca185df2c4  prov/src/main/java/org/bouncycastle/jce/provider/MultiCertStoreSpi.java
@@ -213,7 +213,7 @@ d9ec9a173f7d7c5af9fc1016ffeb5138484ea897b436e8e2a7065f9ad0b2b25f  prov/src/main/
 182df9b773d8880669d1d63f430311b4aee39ea1ca34e7d90b9110e8d08df96b  prov/src/main/java/org/bouncycastle/jce/spec/ElGamalPrivateKeySpec.java
 0d8e47f22583db473d57d5837456f02c2cfaeef2e4fa622b07d89a49160c28f3  prov/src/main/java/org/bouncycastle/jce/ECKeyUtil.java
 2f0822a2a321456cf448f756f7fb796acff331d935403943fa44b13d905fc411  prov/src/main/java/org/bouncycastle/jce/PKCS12Util.java
-bf918e86340711df262c6a113a1173b40e29748c5cfc448907b5a6f6be80bcab  prov/src/main/java/org/bouncycastle/jce/netscape/NetscapeCertRequest.java
+5298edc7b650a7356cc0abf633383b9e56a46fe8cd85a049310d0aa5abc92f86  prov/src/main/java/org/bouncycastle/jce/netscape/NetscapeCertRequest.java
 a01f85f23106ff456cbeffb8317835d458bfa619b0201b87323c340cdb4c4ae8  prov/src/main/java/org/bouncycastle/jcajce/PKCS12KeyWithParameters.java
 a6aae448f29a4eb8d865b4cad3e20efcd74768e5338d21f0757ab7dd019bfbaf  prov/src/main/java/org/bouncycastle/jcajce/PKIXCertRevocationChecker.java
 ca550de3b102d73094e28930c9f9378c65b95ffa504216a7065c83f307cbe201  prov/src/main/java/org/bouncycastle/jcajce/PBKDF1Key.java
@@ -383,7 +383,7 @@ b3d1a32ddd9558792a6b300767bd070819f65a97128db28a024527e50dcefbed  prov/src/main/
 abd2e6a943a332391648fa112df6179663a22965860195cd19417c949966723e  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/rsa/BCRSAPrivateKey.java
 12437fe12ec408e589f4ca86454df6dced1a550a49c40e6e359bbd5b30c8b186  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/rsa/AlgorithmParametersSpi.java
 4ecf6c19dec095360ab79cd61619ae7230695a62cda1fb4bd2dc5ebd48bb1d37  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/rsa/BCRSAPublicKey.java
-4518b926d77ae3f5641e4d1665e501872f30f654110014adcf1bdb0fb322d9a9  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/rsa/CipherSpi.java
+9a7b34c245e3e415fae022083178b3d3af6e33c0147c2bc7bec4051f499c844b  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/rsa/CipherSpi.java
 968b4057edb9bc1acb1d72f00d9f3a65190291f182569075493a28bb9e9b6206  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/rsa/DigestSignatureSpi.java
 eded18c50f1b1e792c7d36bdfdb882451b6c3b3e7ddb7b38e303970d68933fff  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/rsa/BCRSAPrivateCrtKey.java
 c1d7948d0baee9a6dbb04b9d7e733f63263ba6065b42c687cda76c1c268ff80e  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/rsa/KeyPairGeneratorSpi.java
@@ -393,11 +393,11 @@ dd68b88566a85c18650c96d03c8eab4c571ca12bbd9d5f5e9564fbf41408032e  prov/src/main/
 62a44a0bfe9af50f4378eee16fabb36c4365c2256f17266393336a08831c4f6e  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/rsa/RSAUtil.java
 e9342f37f7a7a93c90c2e4c3dac5ab0fd767a41f0f720b29899d2e3fc1718be6  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/ElGamal.java
 12dd34dce9a7027e2a5d3eb1adb2d04b319c62f9dd22ab732694f27f6ad4e058  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/DH.java
-3b02e4608f6cb2bd332db0ec0210d8e3cc814c05503c114fd62b2f90808ea988  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/X509CertificateImpl.java
+da5637eaa643225564b422641af7680499be1d84ace0891bca12fe24d28a9689  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/X509CertificateImpl.java
 60033a90bcf1ca7178240d747df6fe1c62ef2d34624d5fd3ab4d44577d781447  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/X509CertificateObject.java
 d35a5234822a7dd042dd7a8ae28ccc6c0e6c720e9d7fc9dfb65cec41e0c553e9  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/X509CRLInternal.java
 f8258d7bbeb4c46c402d01fe481b3d0570022d6619416d71145dab946e796e1d  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/X509CRLEntryObject.java
-1f7142c313bf5c2b6ede35f5c36ce08ef060f23a32f3c97d570545b9a8493ce2  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/X509CRLImpl.java
+1c2ab2e57980959b878d28fae61c58067d6f3529fceb953ba790da223dba335b  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/X509CRLImpl.java
 ff2ecc50acdfae667b47a8548cfe6742a84a03fa7d32764f852cc342171f908d  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/X509SignatureUtil.java
 c2347dcf2050dc38208fc462b1abf8d5c0d492baea70570205531f67f0e4bfbd  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/PKIXCertPath.java
 16c25925cdc36c4e12e0704c8e3283ac04241ffe13300d0805a5f830ebb8ed49  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/KeyFactory.java
@@ -460,9 +460,9 @@ bf92de6746fe0d8ba3461e7b7b448524b84fe1a66de478f303d58da6c0c2de11  prov/src/main/
 7c8a2064d139e8edccd8c9e5d03d9c32ad3b6cb3f3a6609f2df4d8624e981354  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/util/AdaptingKeyStoreSpi.java
 7e98103060338043d7aaa012949ebc855909ba7a547f64f218371ae27099eb2c  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/util/ParameterUtil.java
 98d0c76f44d3c081bb80dd8b50bf8a22c7312e147427e428e2f0faf9f89af5ce  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/util/JKSKeyStoreSpi.java
-2fbff76f990f9faa2615bd3a5799c5a699a94db3f2960294ef6a4509e7b79a71  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/PKCS12.java
+813b725a35a23670ba913a75efd484a4860e63d77c15dfd77cc0da53c9a23ef4  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/PKCS12.java
 5ccfd5779156946a18e98da1e1bb3236ee2e697f08bf078b501f7364d2a6485a  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/bc/BcKeyStoreSpi.java
-4cdd45aa1bdb6cb64831b26ed7b370cd116a895fae21e64ba6cd7dce3eca5403  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/pkcs12/PKCS12KeyStoreSpi.java
+c9357cb8f1c59d87c87323178a182a440e79beca4b730105e03593e1020cb348  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/pkcs12/PKCS12KeyStoreSpi.java
 7fb4043b16e64303da2fd93ec96bfabab409cae507b2da5bbdb017d65d60e854  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/BC.java
 afbacbd0f254c079c41e9d1212fbd1b57292d13addc7efa99c4a693ad1c1d89b  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/BCFKS.java
 9b38a5816f6b3a1c7555487980390bfb527400b12212bd30c9d11c09461a881e  prov/src/main/java/org/bouncycastle/jcajce/provider/config/ProviderConfigurationPermission.java
@@ -508,7 +508,7 @@ fab8c1258560b98b7f357f76ebd6cf0d11db383f904375c6d612b0ddc43edf01  prov/src/main/
 ad3011e22821c984f1f493a040abff14188fcd1b9a26a275b46211aef4d0198e  prov/src/main/java/org/bouncycastle/jcajce/spec/MQVParameterSpec.java
 87cea7213bcd9e3d213295dcda35dafc4e7974ba202a4c0a9ae20c34e833b306  prov/src/main/java/org/bouncycastle/jcajce/spec/HybridValueParameterSpec.java
 de5557f5ba22525eae6c96921fcad84210e9e3c07b828b7d41763b47bcad411c  prov/src/main/java/org/bouncycastle/jcajce/PKIXCRLStoreSelector.java
-d35232302130ac87393c2529cd1fda74ecb7b53c71959f5e0076698875e1a14e  prov/src/main/java/org/bouncycastle/jcajce/CompositePrivateKey.java
+0c0d45c006a7bbadd311c2ba38ffddea3c8cc86de2704c6ffb2d5357eb514185  prov/src/main/java/org/bouncycastle/jcajce/CompositePrivateKey.java
 7441e2b837431f0743cabecb4b122bfb02596929a14e4a5c2e6512b76f3f7499  prov/src/main/java/org/bouncycastle/jcajce/util/JcaJceUtils.java
 eac9b9505e1e8c59ca60bdf3d43f11dc94bb826a990980ad35c6bcaf8257bee7  prov/src/main/java/org/bouncycastle/jcajce/util/AlgorithmParametersUtils.java
 b458f6388b1f65a3816dd3001a18e12cb3b4f78ad5751828b5b4ca6acab2a62f  prov/src/main/java/org/bouncycastle/jcajce/util/ECKeyUtil.java
@@ -528,7 +528,7 @@ e1a832b00a5bbaa43894dd1cf149a5c69b0e7c06fe5935a060f25a71390e4fc8  prov/src/main/
 3e7ea455d7e9f28a5e68548f6e1ff87e3148c83f466f0e2fe4d90b499e436e9f  prov/src/main/java/org/bouncycastle/jcajce/PBKDFKey.java
 600a3307ee2fcf1f1dd6da5a687c00ffa2172ad10d450b5cc15c3600198cb0bf  prov/src/main/java/org/bouncycastle/jcajce/PKIXExtendedParameters.java
 a2a2c4eb53cf1b3fad845219e8114f65f0370e71461a0aea7f2561fe24c96ce6  prov/src/main/java/org/bouncycastle/jcajce/PBKDF2KeyWithParameters.java
-424243eb660997bf3eac2153e3b0f17e98127fca9deb3c415617416235befcf3  prov/src/main/java/org/bouncycastle/jcajce/CompositePublicKey.java
+db68b656d08b6d684bea461e295e17b3dc901bf93cb30c69fda5d2c03c1c0357  prov/src/main/java/org/bouncycastle/jcajce/CompositePublicKey.java
 24877fe174c6e830ef035aef7f1671bd126c0b3f6e4c7ac43a38fd4f24843d81  prov/src/main/java/org/bouncycastle/jcajce/PKIXCertStore.java
 3bc24fd4c9128ab6e0c15779c4d401129f4a3ddda817335a51b3fb7d3e51ef12  prov/src/main/java/org/bouncycastle/pqc/jcajce/provider/lms/LMSKeyFactorySpi.java
 350c050a4f778b0bb4195e87140e4f996c71e517e034f3020d4f5c1f08363e67  prov/src/main/java/org/bouncycastle/pqc/jcajce/provider/lms/LMSSignatureSpi.java

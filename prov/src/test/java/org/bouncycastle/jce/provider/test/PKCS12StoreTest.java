@@ -2,6 +2,7 @@ package org.bouncycastle.jce.provider.test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.Key;
@@ -19,6 +20,8 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.RSAPrivateCrtKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.util.Enumeration;
+
+import javax.swing.KeyStroke;
 
 import org.bouncycastle.asn1.ASN1BMPString;
 import org.bouncycastle.asn1.ASN1Encodable;
@@ -48,12 +51,12 @@ import org.bouncycastle.jcajce.PKCS12StoreParameter;
 import org.bouncycastle.jce.PKCS12Util;
 import org.bouncycastle.jce.interfaces.PKCS12BagAttributeCarrier;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-//import org.bouncycastle.jce.provider.JDKPKCS12StoreParameter;
+import org.bouncycastle.jce.provider.JDKPKCS12StoreParameter;
 import org.bouncycastle.jce.provider.X509CertificateObject;
-//import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
-//import org.bouncycastle.pqc.jcajce.spec.FalconParameterSpec;
-//import org.bouncycastle.pqc.jcajce.spec.NTRUParameterSpec;
-//import org.bouncycastle.pqc.jcajce.spec.SPHINCSPlusParameterSpec;
+import org.bouncycastle.pqc.jcajce.spec.DilithiumParameterSpec;
+import org.bouncycastle.pqc.jcajce.spec.FalconParameterSpec;
+import org.bouncycastle.pqc.jcajce.spec.NTRUParameterSpec;
+import org.bouncycastle.pqc.jcajce.spec.SPHINCSPlusParameterSpec;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
@@ -1090,7 +1093,7 @@ public class PKCS12StoreTest
 
         isEquals(pk, pk2);
     }
-           /*
+
     private void testDilithiumStore()
         throws Exception
     {
@@ -1124,7 +1127,7 @@ public class PKCS12StoreTest
 
         certs[0].verify(certs[0].getPublicKey());
     }
-                    */
+
     private void testRawKeyBagStore()
         throws Exception
     {
@@ -1134,7 +1137,7 @@ public class PKCS12StoreTest
 
         isTrue(store.isKeyEntry("ONVIF_Test_Alias"));
     }
-                   /*
+
     private void testNTRUStore()
         throws Exception
     {
@@ -1244,7 +1247,7 @@ public class PKCS12StoreTest
 
         certs[0].verify(certs[0].getPublicKey());
     }
-          */
+
     public void testPKCS12Store()
         throws Exception
     {
@@ -1356,59 +1359,59 @@ public class PKCS12StoreTest
         //
         // save test using LoadStoreParameter  - old version
         //
-//        bOut = new ByteArrayOutputStream();
-//
-//        storeParam = new org.bouncycastle.jcajce.provider.config.PKCS12StoreParameter(bOut, passwd, true);
-//
-//        store.store(storeParam);
-//
-//        data = bOut.toByteArray();
-//
-//        stream = new ByteArrayInputStream(data);
-//        store.load(stream, passwd);
-//
-//        key = (PrivateKey)store.getKey(pName, null);
-//
-//        if (!((RSAPrivateKey)key).getModulus().equals(mod))
-//        {
-//            fail("Modulus doesn't match.");
-//        }
-//
-//        outer = new ASN1StreamParser(data).readObject();
-//        if (!(outer instanceof DLSequenceParser))
-//        {
-//            fail("Failed DER encoding test.");
-//        }
+        bOut = new ByteArrayOutputStream();
+
+        storeParam = new org.bouncycastle.jcajce.provider.config.PKCS12StoreParameter(bOut, passwd, true);
+
+        store.store(storeParam);
+
+        data = bOut.toByteArray();
+
+        stream = new ByteArrayInputStream(data);
+        store.load(stream, passwd);
+
+        key = (PrivateKey)store.getKey(pName, null);
+
+        if (!((RSAPrivateKey)key).getModulus().equals(mod))
+        {
+            fail("Modulus doesn't match.");
+        }
+
+        outer = new ASN1StreamParser(data).readObject();
+        if (!(outer instanceof DLSequenceParser))
+        {
+            fail("Failed DER encoding test.");
+        }
 
         //
         // save test using LoadStoreParameter
         //
         bOut = new ByteArrayOutputStream();
 
-//        JDKPKCS12StoreParameter oldParam = new JDKPKCS12StoreParameter();
-//        oldParam.setOutputStream(bOut);
-//        oldParam.setPassword(passwd);
-//        oldParam.setUseDEREncoding(true);
-//
-//        store.store(oldParam);
-//
-//        data = bOut.toByteArray();
-//
-//        stream = new ByteArrayInputStream(data);
-//        store.load(stream, passwd);
-//
-//        key = (PrivateKey)store.getKey(pName, null);
-//
-//        if (!((RSAPrivateKey)key).getModulus().equals(mod))
-//        {
-//            fail("Modulus doesn't match.");
-//        }
-//
-//        outer = new ASN1StreamParser(data).readObject();
-//        if (!(outer instanceof DLSequenceParser))
-//        {
-//            fail("Failed DER encoding test.");
-//        }
+        JDKPKCS12StoreParameter oldParam = new JDKPKCS12StoreParameter();
+        oldParam.setOutputStream(bOut);
+        oldParam.setPassword(passwd);
+        oldParam.setUseDEREncoding(true);
+
+        store.store(oldParam);
+
+        data = bOut.toByteArray();
+
+        stream = new ByteArrayInputStream(data);
+        store.load(stream, passwd);
+
+        key = (PrivateKey)store.getKey(pName, null);
+
+        if (!((RSAPrivateKey)key).getModulus().equals(mod))
+        {
+            fail("Modulus doesn't match.");
+        }
+
+        outer = new ASN1StreamParser(data).readObject();
+        if (!(outer instanceof DLSequenceParser))
+        {
+            fail("Failed DER encoding test.");
+        }
 
         //
         // delete test
@@ -2132,6 +2135,56 @@ public class PKCS12StoreTest
         isTrue(ks.isCertificateEntry("cert0"));
     }
 
+    private void testStoreType(String storeType, boolean isMacExpected)
+        throws Exception
+    {
+        KeyPairGenerator kpGen = KeyPairGenerator.getInstance("EC", "BC");
+        KeyPair kp = kpGen.generateKeyPair();
+        X509Certificate cert = TestUtils.createSelfSignedCert(new X500Name("CN=PKCS12 Test"), "SHA256withECDSA", kp);
+
+        KeyStore keyStore = KeyStore.getInstance(storeType, "BC");
+        keyStore.load(null, null);
+
+        keyStore.setKeyEntry("key", kp.getPrivate(), null, new Certificate[] { cert });
+
+        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+
+        keyStore.store(bOut, passwd);
+
+        KeyStore inStore = KeyStore.getInstance("PKCS12", "BC");
+
+        inStore.load(new ByteArrayInputStream(bOut.toByteArray()), passwd);
+
+        FileOutputStream fOut = new FileOutputStream("/tmp/" + storeType + ".p12");
+        fOut.write(bOut.toByteArray());
+        fOut.close();
+        Key k = inStore.getKey("key", null);
+
+        Pfx pfx = Pfx.getInstance(bOut.toByteArray());
+
+        if (isMacExpected)
+        {
+            isTrue(pfx.getMacData() != null);
+        }
+        else
+        {
+            isTrue(pfx.getMacData() == null);
+        }
+
+    }
+    
+    private void testAES256_AES128()
+        throws Exception
+    {
+        testStoreType("PKCS12-AES256-AES128", true);
+    }
+
+    private void testAES256GCM_AES128_GCM()
+        throws Exception
+    {
+        testStoreType("PKCS12-AES256-AES128-GCM", false);
+    }
+
     public void performTest()
         throws Exception
     {
@@ -2143,11 +2196,14 @@ public class PKCS12StoreTest
         testCertsOnly();
         testJKS();
         testLoadRepeatedLocalKeyID();
-//        testDilithiumStore();
-//        testFalconStore();
-//        testNTRUStore();
-//        testSphincsPlusStore();
+        testDilithiumStore();
+        testFalconStore();
+        testNTRUStore();
+        testSphincsPlusStore();
         testRawKeyBagStore();
+        testAES256_AES128();
+        testAES256GCM_AES128_GCM();
+
         // converter tests
 
         KeyStore kS = KeyStore.getInstance("PKCS12", BC);
