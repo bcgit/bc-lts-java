@@ -53,7 +53,7 @@ b8493c50074687dcd162487dd158c82cceae9bd2514517d5ad8d2e99d00e942d  pkix/src/test/
 faa75b884312657ddd9818316cb5c0dbd5416d44335bdf77742e91db8da896d5  pkix/src/test/java/org/bouncycastle/cert/test/X509ExtensionUtilsTest.java
 8588649dad930a06d6e990ec35dbc8627267aa77bb3b80f9fa10fb4cccdebc9c  pkix/src/test/java/org/bouncycastle/cert/test/BcAttrCertSelectorTest.java
 ba3d732dfff4800d521fe41d946de9bb99afd39ceabedbc218c5b5166226a84f  pkix/src/test/java/org/bouncycastle/cert/test/DANETest.java
-506250a76bde14bc88bc0384ece1969d29cf93cfa47e15c8b75b7fddeceb9f31  pkix/src/test/java/org/bouncycastle/cert/test/PKCS10Test.java
+ad831e92118f3213507c5a8c7f2bf60d3a8cbe02630f20ddaa4d62295a81e1b9  pkix/src/test/java/org/bouncycastle/cert/test/PKCS10Test.java
 dbc30e599de56b91716e006183f13ee779d667cbed5e674da973677019f41109  pkix/src/test/java/org/bouncycastle/cert/test/ConverterTest.java
 55dcf83d5f13451d0a545aaee5205d27cf29a4676fcd3f5afcd1291b640e2574  pkix/src/test/java/org/bouncycastle/cert/test/AttrCertTest.java
 461b7d005ff3528e642cb723c1b00de46b207e2aa6a48dfb763d863a2db5134a  pkix/src/test/java/org/bouncycastle/cert/test/PEMData.java
@@ -62,7 +62,7 @@ dbc30e599de56b91716e006183f13ee779d667cbed5e674da973677019f41109  pkix/src/test/
 acbe3dd44babf2e10b60565d4bc33088e21270b49bf1d294afd8fd568566503a  pkix/src/test/java/org/bouncycastle/cert/test/BcPKCS10Test.java
 4165ece3449d36144c18180c0eee2a13746cbd8b39fa82a8d42987d60563fb4e  pkix/src/test/java/org/bouncycastle/cert/ocsp/test/AllTests.java
 36892a87262f413363f1f414dde07068b209ecb70fb0aea6a5397ea67bb3a370  pkix/src/test/java/org/bouncycastle/cert/ocsp/test/PKIXRevocationTest.java
-54937837a142e593a6f8c3eb5e6004efcf8aacc11fe0b9f409b429c11bd7129f  pkix/src/test/java/org/bouncycastle/cert/ocsp/test/OCSPTest.java
+b87afe6e35e7c70e064e40f71b4912768f58860f1b804ba4873b4f65c700bbc3  pkix/src/test/java/org/bouncycastle/cert/ocsp/test/OCSPTest.java
 ad576edde7523b61eb5f16f4c50e57b271255037145b6381ac4bf949cf80d314  pkix/src/test/java/org/bouncycastle/cert/ocsp/test/OCSPTestUtil.java
 0d7bc16d737bbadfaf5fd5dcf70789f985e7372914a804a45e4970e3454fda3c  pkix/src/test/java/org/bouncycastle/cert/cmp/test/AllTests.java
 3f3abd602c70e708f3bba77e99d8749448cb7c1f11a675168adc3735204ad2d6  pkix/src/test/java/org/bouncycastle/cert/crmf/test/AllTests.java
@@ -496,7 +496,7 @@ ca83ef06e95edaa1f1f476ab0006779ddbc3784ffcec4ae564ea1b0b17c300d0  pkix/src/main/
 cc429aa7322af947ba1c31aa4529ed6a5188b1d437485094bbfb9e4e86cd9f22  pkix/src/main/java/org/bouncycastle/cert/CertUtils.java
 f913081c93245e86a8d56272842710812cb7c975606c17987bcc5ceec25d7df6  pkix/src/main/java/org/bouncycastle/cert/CertRuntimeException.java
 e3781bce0dd81cb9895c14828eca13778b3a8160eb5b70b0e4354c94258639d7  pkix/src/main/java/org/bouncycastle/cert/X509ContentVerifierProviderBuilder.java
-450c422c5b2c94c3a93ca2891c24fb4fea8fc2813a9bac40561e3fca296f2199  pkix/src/main/java/org/bouncycastle/mozilla/SignedPublicKeyAndChallenge.java
+f08c0ac25d6aa8a5e1418797b6b221cb37097234cc17a7c292372cca1615818a  pkix/src/main/java/org/bouncycastle/mozilla/SignedPublicKeyAndChallenge.java
 9323ce2f35b1104274a3d34f5cf4d73a3d2af942b2c08a0f1e60a53ff96fc898  pkix/src/main/java/org/bouncycastle/mozilla/jcajce/JcaSignedPublicKeyAndChallenge.java
 9f1b83244a600ceefcfeb6aa43d25906ee14400679b5d956d98f0b772825597d  pkix/src/main/java/org/bouncycastle/pkcs/PKCS8EncryptedPrivateKeyInfoBuilder.java
 79d661b4711079d8676da3e5ac728a84d2c3ad6ad3836b7f5c7be49f8e600545  pkix/src/main/java/org/bouncycastle/pkcs/PKCS12PfxPduBuilder.java
@@ -733,4 +733,4 @@ f5914b31048f9fa7615a0ca75f4cf2d3cd2ef254ff777379c8ce158e4752fc8e  pkix/src/main/
 aae24fed683435b0807cc12b9d0f86fcf667d4a0c06595f9b1774543edd2d25a  pkix/src/main/java/org/bouncycastle/pkcs/DeltaCertificateRequestAttributeValue.java
 330d0acaad58bf82aa839d060ac766934475a7fcfd35c17e40ac0461feafb41f  pkix/src/test/java/org/bouncycastle/cms/test/AuthEnvelopedDataTest.java
 00cc308543089b829dcbffa8c9b974977292aea1c0e3a3b5c7724d33bf5cf48b  pkix/src/test/java/org/bouncycastle/cms/test/CMSAuthEnvelopedDataStreamGeneratorTest.java
-b7383a84509838d9f71bd19b0882005f792b60d6bf76bc8ab8a15c5354a5ee3a  pkix/src/test/java/org/bouncycastle/cms/test/GOSTR3410_2012_256CmsSignVerifyDetached.java
+2a926c65e7daebbc47992d0dc956000177dc764ceb2035ac263186fb84e96635  pkix/src/test/java/org/bouncycastle/cms/test/GOSTR3410_2012_256CmsSignVerifyDetached.java
