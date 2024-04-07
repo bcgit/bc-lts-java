@@ -74,7 +74,10 @@ public interface TlsCrypto
      *
      * @return true if this instance can support KEM key agreement, false otherwise.
      */
-    boolean hasKemAgreement();
+    default boolean hasKemAgreement()
+    {
+          return false;
+    }
 
     /**
      * Return true if this TlsCrypto can support the passed in block/stream encryption algorithm.
@@ -226,7 +229,10 @@ public interface TlsCrypto
      * @param kemConfig the config describing the KEM parameters to use.
      * @return a TlsKemDomain supporting the parameters in kemConfig.
      */
-    TlsKemDomain createKemDomain(TlsKemConfig kemConfig);
+    default TlsKemDomain createKemDomain(TlsKemConfig kemConfig)
+    {
+        return null;
+    }
 
     /**
      * Adopt the passed in secret, creating a new copy of it.
