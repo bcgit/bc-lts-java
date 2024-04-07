@@ -223,7 +223,7 @@ aca73dbf7c17fd41da02513ef63f3f2a8fe801204ce736e5381195fc34fe4eec  util/src/main/
 e33f06b168a990449ff61e8b6b5a9ad92427ef0968988138028bf0f3ab63d3f0  util/src/main/java/org/bouncycastle/asn1/cmp/PKIHeader.java
 049102c3e911a86accd27e121bce5304417a38f2d54c104f622c5e9eeedbe495  util/src/main/java/org/bouncycastle/asn1/cmp/PKIFailureInfo.java
 3c1e00f1a1f44c6e87d169f9eee78de9dd4e5383b180e2ae0ec572eaa5f6cfa8  util/src/main/java/org/bouncycastle/asn1/cmp/PollRepContent.java
-776212d6b07901d1c3a4a56df0df61388c0352445d235ac7d8cb960891c53020  util/src/main/java/org/bouncycastle/asn1/cmp/CMPObjectIdentifiers.java
+f94309a45717b1428741ff87946d5e313ce2a0c5bf4b10d33461fb5800fc23e7  util/src/main/java/org/bouncycastle/asn1/cmp/CMPObjectIdentifiers.java
 0bf62e5f16fe13e8495ad4fbf8bfd5bd63a0c8fa58cc45fc04b29d70b297b940  util/src/main/java/org/bouncycastle/asn1/cmp/PKIMessage.java
 52375dbc238ad6f704f6ca1ccb0d20797499aeb9c1f73bb70016bcfa37220cf5  util/src/main/java/org/bouncycastle/asn1/cmp/RootCaKeyUpdateContent.java
 58ab7fc3efd565f08bc53b1912cf7971634a91f72e12cb0294b68abe63cc0cd5  util/src/main/java/org/bouncycastle/asn1/cmp/CertifiedKeyPair.java
@@ -232,7 +232,7 @@ a79be3a871ce6d1c780ece44d43cefc25933fcaa89b62a11c1d0af46e0ea99fd  util/src/main/
 08a9a282f4be83531afdb386d1c5010aa7ea562f616ad1be5447a561abd8034c  util/src/main/java/org/bouncycastle/asn1/cmp/InfoTypeAndValue.java
 b8e880e94179e783b7f4cf99df37a32d2413feedd0caebb2dc4273d539542db0  util/src/main/java/org/bouncycastle/asn1/cmp/RevDetails.java
 882a23d3de170ac2d4921b42bf3bec8db93abb7353cd0b439d6148538820f55f  util/src/main/java/org/bouncycastle/asn1/cmp/ErrorMsgContent.java
-694a30c77784355a23e90bb1e4a91d59b0e2181719ee0cb7ea761c24e03961cf  util/src/main/java/org/bouncycastle/asn1/cmp/PKIBody.java
+baaf7d77f5f70ac576ea4e59534ed766a96575f54208a5aae16233aafce979c1  util/src/main/java/org/bouncycastle/asn1/cmp/PKIBody.java
 bdc99f3d841c5fab1e032ed8cd36a326b980c964eba3c8238fd0289cddf454fb  util/src/main/java/org/bouncycastle/asn1/cmp/OOBCert.java
 815efde83717ab3a82560f2c6caea03ccba4f223e1255a2c707cae710eb1feb4  util/src/main/java/org/bouncycastle/asn1/isismtt/ocsp/CertHash.java
 5fe813a92501c31d8ff060302c2c65e2c011fc9b4e0370c4cf79f9e33503ebed  util/src/main/java/org/bouncycastle/asn1/isismtt/ocsp/RequestedCertificate.java
@@ -551,7 +551,7 @@ e2effb1f5f2686a73759a6af95fb946c20d0aac31913b067fc03e9e8248e81d1  util/src/main/
 a6cbc76de6797f74363491c7c5c86f1b2b7e341e0571d722ed261d50990739b4  util/src/main/java/org/bouncycastle/oer/its/template/etsi102941/EtsiTs102941TrustLists.java
 e73a17cbb643cf327bedbae8e7206c5bc6a7ac8ee322962e8a00f0788cb000ac  util/src/main/java/org/bouncycastle/oer/its/template/etsi102941/EtsiTs102941MessagesCa.java
 cdb58dd60c87f51e18ef1c6d34abcd607e60a160d2fc90aca284d45a4230aa8f  util/src/main/java/org/bouncycastle/oer/its/template/etsi103097/EtsiTs103097Module.java
-85c69524d0c60b12f3fed55c4d883568cf72b4feb18bdaaa789193a97bf9d4ab  util/src/main/java/org/bouncycastle/oer/its/template/etsi103097/extension/EtsiTs103097ExtensionModule.java
+11a61958384b5dea581812f6e1442e76384ff00641d419219510b84573f25027  util/src/main/java/org/bouncycastle/oer/its/template/etsi103097/extension/EtsiTs103097ExtensionModule.java
 3f77f69480b5e29db74bca28a143d31f489e3ffc5e92466e1afda29682e672bc  util/src/main/java/org/bouncycastle/oer/its/template/ieee1609dot2dot1/Ieee1609Dot2Dot1EeRaInterface.java
 d797c048dbe572d4e021db3869a9f10f25af2b83d2a98551ee222e1ced914d49  util/src/main/java/org/bouncycastle/oer/its/template/ieee1609dot2dot1/Ieee1609Dot2Dot1EcaEeInterface.java
 be73d325e12ab6b1ffbd47ed9e226fea2105485a32079678adb93753d2c76081  util/src/main/java/org/bouncycastle/oer/its/ieee1609dot2dot1/ButterflyParamsOriginal.java
