@@ -1,18 +1,13 @@
 package org.bouncycastle.jcajce.provider.asymmetric.compositesignatures;
 
-import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
-import java.security.spec.ECGenParameterSpec;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
@@ -344,32 +339,32 @@ public class KeyPairGeneratorSpi
         }
     }
 
-    public static final class Falcon512_Ed25519_SHA512
-        extends KeyPairGeneratorSpi
-    {
-        public Falcon512_Ed25519_SHA512()
-        {
-            super(CompositeSignaturesConstants.CompositeName.Falcon512_Ed25519_SHA512);
-        }
-    }
-
-    public static final class Falcon512_ECDSA_P256_SHA256
-        extends KeyPairGeneratorSpi
-    {
-        public Falcon512_ECDSA_P256_SHA256()
-        {
-            super(CompositeSignaturesConstants.CompositeName.Falcon512_ECDSA_P256_SHA256);
-        }
-    }
-
-    public static final class Falcon512_ECDSA_brainpoolP256r1_SHA256
-        extends KeyPairGeneratorSpi
-    {
-        public Falcon512_ECDSA_brainpoolP256r1_SHA256()
-        {
-            super(CompositeSignaturesConstants.CompositeName.Falcon512_ECDSA_brainpoolP256r1_SHA256);
-        }
-    }
+//    public static final class Falcon512_Ed25519_SHA512
+//        extends KeyPairGeneratorSpi
+//    {
+//        public Falcon512_Ed25519_SHA512()
+//        {
+//            super(CompositeSignaturesConstants.CompositeName.Falcon512_Ed25519_SHA512);
+//        }
+//    }
+//
+//    public static final class Falcon512_ECDSA_P256_SHA256
+//        extends KeyPairGeneratorSpi
+//    {
+//        public Falcon512_ECDSA_P256_SHA256()
+//        {
+//            super(CompositeSignaturesConstants.CompositeName.Falcon512_ECDSA_P256_SHA256);
+//        }
+//    }
+//
+//    public static final class Falcon512_ECDSA_brainpoolP256r1_SHA256
+//        extends KeyPairGeneratorSpi
+//    {
+//        public Falcon512_ECDSA_brainpoolP256r1_SHA256()
+//        {
+//            super(CompositeSignaturesConstants.CompositeName.Falcon512_ECDSA_brainpoolP256r1_SHA256);
+//        }
+//    }
 
 
 }

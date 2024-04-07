@@ -186,8 +186,8 @@ public interface MiscObjectIdentifiers
     // Falcon-based composites below were removed from the IETF draft in version 13 and are expected to be included in a later/separate standard.
     // Most likely due to the fact that the Falcon (FN-DSA) NIST standard is going to be released after the Dilithium (ML-DSA) standard.
     // However, we still leave their implementation for experimental usage.
-    ASN1ObjectIdentifier id_Falcon512_ECDSA_P256_SHA256 = id_composite_signatures.branch("14");
-    ASN1ObjectIdentifier id_Falcon512_ECDSA_brainpoolP256r1_SHA256 = id_composite_signatures.branch("15");
-    ASN1ObjectIdentifier id_Falcon512_Ed25519_SHA512 = id_composite_signatures.branch("16");
+//    ASN1ObjectIdentifier id_Falcon512_ECDSA_P256_SHA256 = id_composite_signatures.branch("14");
+//    ASN1ObjectIdentifier id_Falcon512_ECDSA_brainpoolP256r1_SHA256 = id_composite_signatures.branch("15");
+//    ASN1ObjectIdentifier id_Falcon512_Ed25519_SHA512 = id_composite_signatures.branch("16");
     // COMPOSITE SIGNATURES END
 }

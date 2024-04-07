@@ -21,16 +21,16 @@ import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.bc.BCObjectIdentifiers;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.sec.SECObjectIdentifiers;
+import org.bouncycastle.asn1.teletrust.TeleTrusTObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x9.X962Parameters;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
-import org.bouncycastle.asn1.bc.BCObjectIdentifiers;
 import org.bouncycastle.internal.asn1.edec.EdECObjectIdentifiers;
-import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
-import org.bouncycastle.asn1.sec.SECObjectIdentifiers;
-import org.bouncycastle.asn1.teletrust.TeleTrusTObjectIdentifiers;
 import org.bouncycastle.jcajce.CompositePrivateKey;
 import org.bouncycastle.jcajce.CompositePublicKey;
 import org.bouncycastle.jcajce.provider.asymmetric.util.BaseKeyFactorySpi;
@@ -203,15 +203,15 @@ public class KeyFactorySpi
             algorithmNames.add("Dilithium");
             algorithmNames.add("ECDSA");
             break;
-        case Falcon512_Ed25519_SHA512:
-            algorithmNames.add("Falcon");
-            algorithmNames.add("Ed25519");
-            break;
-        case Falcon512_ECDSA_P256_SHA256:
-        case Falcon512_ECDSA_brainpoolP256r1_SHA256:
-            algorithmNames.add("Falcon");
-            algorithmNames.add("ECDSA");
-            break;
+//        case Falcon512_Ed25519_SHA512:
+//            algorithmNames.add("Falcon");
+//            algorithmNames.add("Ed25519");
+//            break;
+//        case Falcon512_ECDSA_P256_SHA256:
+//        case Falcon512_ECDSA_brainpoolP256r1_SHA256:
+//            algorithmNames.add("Falcon");
+//            algorithmNames.add("ECDSA");
+//            break;
         default:
             throw new IllegalArgumentException("Cannot create KeyFactories. Unsupported algorithm identifier.");
         }
@@ -285,18 +285,18 @@ public class KeyFactorySpi
             keyInfos[0] = new SubjectPublicKeyInfo(dilithium5Identifier, subjectPublicKeys[0]);
             keyInfos[1] = new SubjectPublicKeyInfo(ecdsaBrainpoolP384r1Identifier, subjectPublicKeys[1]);
             break;
-        case Falcon512_Ed25519_SHA512:
-            keyInfos[0] = new SubjectPublicKeyInfo(falcon512Identifier, subjectPublicKeys[0]);
-            keyInfos[1] = new SubjectPublicKeyInfo(ed25519Identifier, subjectPublicKeys[1]);
-            break;
-        case Falcon512_ECDSA_P256_SHA256:
-            keyInfos[0] = new SubjectPublicKeyInfo(falcon512Identifier, subjectPublicKeys[0]);
-            keyInfos[1] = new SubjectPublicKeyInfo(ecdsaP256Identifier, subjectPublicKeys[1]);
-            break;
-        case Falcon512_ECDSA_brainpoolP256r1_SHA256:
-            keyInfos[0] = new SubjectPublicKeyInfo(falcon512Identifier, subjectPublicKeys[0]);
-            keyInfos[1] = new SubjectPublicKeyInfo(ecdsaBrainpoolP256r1Identifier, subjectPublicKeys[1]);
-            break;
+//        case Falcon512_Ed25519_SHA512:
+//            keyInfos[0] = new SubjectPublicKeyInfo(falcon512Identifier, subjectPublicKeys[0]);
+//            keyInfos[1] = new SubjectPublicKeyInfo(ed25519Identifier, subjectPublicKeys[1]);
+//            break;
+//        case Falcon512_ECDSA_P256_SHA256:
+//            keyInfos[0] = new SubjectPublicKeyInfo(falcon512Identifier, subjectPublicKeys[0]);
+//            keyInfos[1] = new SubjectPublicKeyInfo(ecdsaP256Identifier, subjectPublicKeys[1]);
+//            break;
+//        case Falcon512_ECDSA_brainpoolP256r1_SHA256:
+//            keyInfos[0] = new SubjectPublicKeyInfo(falcon512Identifier, subjectPublicKeys[0]);
+//            keyInfos[1] = new SubjectPublicKeyInfo(ecdsaBrainpoolP256r1Identifier, subjectPublicKeys[1]);
+//            break;
         default:
             throw new IllegalArgumentException("Cannot create key specs. Unsupported algorithm identifier.");
         }

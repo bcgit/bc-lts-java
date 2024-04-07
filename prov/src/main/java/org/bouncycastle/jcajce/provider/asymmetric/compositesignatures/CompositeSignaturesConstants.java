@@ -30,9 +30,9 @@ public abstract class CompositeSignaturesConstants
         MiscObjectIdentifiers.id_MLDSA87_ECDSA_P384_SHA512,
         MiscObjectIdentifiers.id_MLDSA87_ECDSA_brainpoolP384r1_SHA512,
         MiscObjectIdentifiers.id_MLDSA87_Ed448_SHA512,
-        MiscObjectIdentifiers.id_Falcon512_ECDSA_P256_SHA256,
-        MiscObjectIdentifiers.id_Falcon512_ECDSA_brainpoolP256r1_SHA256,
-        MiscObjectIdentifiers.id_Falcon512_Ed25519_SHA512,
+//        MiscObjectIdentifiers.id_Falcon512_ECDSA_P256_SHA256,
+//        MiscObjectIdentifiers.id_Falcon512_ECDSA_brainpoolP256r1_SHA256,
+//        MiscObjectIdentifiers.id_Falcon512_Ed25519_SHA512,
     };
 
     /**
@@ -52,10 +52,10 @@ public abstract class CompositeSignaturesConstants
         MLDSA65_Ed25519_SHA512("MLDSA65-Ed25519-SHA512"),
         MLDSA87_ECDSA_P384_SHA512("MLDSA87-ECDSA-P384-SHA512"),
         MLDSA87_ECDSA_brainpoolP384r1_SHA512("MLDSA87-ECDSA-brainpoolP384r1-SHA512"),
-        MLDSA87_Ed448_SHA512("MLDSA87-Ed448-SHA512"),
-        Falcon512_ECDSA_P256_SHA256("Falcon512-ECDSA-P256-SHA256"),
-        Falcon512_ECDSA_brainpoolP256r1_SHA256("Falcon512-ECDSA-brainpoolP256r1-SHA256"),
-        Falcon512_Ed25519_SHA512("Falcon512-Ed25519-SHA512");
+        MLDSA87_Ed448_SHA512("MLDSA87-Ed448-SHA512");
+//        Falcon512_ECDSA_P256_SHA256("Falcon512-ECDSA-P256-SHA256"),
+//        Falcon512_ECDSA_brainpoolP256r1_SHA256("Falcon512-ECDSA-brainpoolP256r1-SHA256"),
+//        Falcon512_Ed25519_SHA512("Falcon512-Ed25519-SHA512");
 
         private String id;
 
@@ -91,9 +91,9 @@ public abstract class CompositeSignaturesConstants
         compositeNameASN1IdentifierMap.put(CompositeName.MLDSA87_ECDSA_P384_SHA512, MiscObjectIdentifiers.id_MLDSA87_ECDSA_P384_SHA512);
         compositeNameASN1IdentifierMap.put(CompositeName.MLDSA87_ECDSA_brainpoolP384r1_SHA512, MiscObjectIdentifiers.id_MLDSA87_ECDSA_brainpoolP384r1_SHA512);
         compositeNameASN1IdentifierMap.put(CompositeName.MLDSA87_Ed448_SHA512, MiscObjectIdentifiers.id_MLDSA87_Ed448_SHA512);
-        compositeNameASN1IdentifierMap.put(CompositeName.Falcon512_ECDSA_P256_SHA256, MiscObjectIdentifiers.id_Falcon512_ECDSA_P256_SHA256);
-        compositeNameASN1IdentifierMap.put(CompositeName.Falcon512_ECDSA_brainpoolP256r1_SHA256, MiscObjectIdentifiers.id_Falcon512_ECDSA_brainpoolP256r1_SHA256);
-        compositeNameASN1IdentifierMap.put(CompositeName.Falcon512_Ed25519_SHA512, MiscObjectIdentifiers.id_Falcon512_Ed25519_SHA512);
+//        compositeNameASN1IdentifierMap.put(CompositeName.Falcon512_ECDSA_P256_SHA256, MiscObjectIdentifiers.id_Falcon512_ECDSA_P256_SHA256);
+//        compositeNameASN1IdentifierMap.put(CompositeName.Falcon512_ECDSA_brainpoolP256r1_SHA256, MiscObjectIdentifiers.id_Falcon512_ECDSA_brainpoolP256r1_SHA256);
+//        compositeNameASN1IdentifierMap.put(CompositeName.Falcon512_Ed25519_SHA512, MiscObjectIdentifiers.id_Falcon512_Ed25519_SHA512);
     }
 
     /**

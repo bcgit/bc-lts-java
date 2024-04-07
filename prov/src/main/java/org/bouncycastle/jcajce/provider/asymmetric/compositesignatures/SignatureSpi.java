@@ -99,17 +99,17 @@ public class SignatureSpi
                 componentSignatures.add(Signature.getInstance("SHA512withECDSA", "BC"));
                 this.digest = DigestFactory.createSHA512();
                 break;
-            case Falcon512_ECDSA_P256_SHA256:
-            case Falcon512_ECDSA_brainpoolP256r1_SHA256:
-                componentSignatures.add(Signature.getInstance("Falcon", "BC"));
-                componentSignatures.add(Signature.getInstance("SHA256withECDSA", "BC"));
-                this.digest = DigestFactory.createSHA256();
-                break;
-            case Falcon512_Ed25519_SHA512:
-                componentSignatures.add(Signature.getInstance("Falcon", "BC"));
-                componentSignatures.add(Signature.getInstance("Ed25519", "BC"));
-                this.digest = DigestFactory.createSHA512();
-                break;
+//            case Falcon512_ECDSA_P256_SHA256:
+//            case Falcon512_ECDSA_brainpoolP256r1_SHA256:
+//                componentSignatures.add(Signature.getInstance("Falcon", "BC"));
+//                componentSignatures.add(Signature.getInstance("SHA256withECDSA", "BC"));
+//                this.digest = DigestFactory.createSHA256();
+//                break;
+//            case Falcon512_Ed25519_SHA512:
+//                componentSignatures.add(Signature.getInstance("Falcon", "BC"));
+//                componentSignatures.add(Signature.getInstance("Ed25519", "BC"));
+//                this.digest = DigestFactory.createSHA512();
+//                break;
             default:
                 throw new RuntimeException("Unknown composite algorithm.");
             }
@@ -393,30 +393,30 @@ public class SignatureSpi
         }
     }
 
-    public final static class Falcon512_Ed25519_SHA512
-        extends SignatureSpi
-    {
-        public Falcon512_Ed25519_SHA512()
-        {
-            super(CompositeSignaturesConstants.CompositeName.Falcon512_Ed25519_SHA512);
-        }
-    }
-
-    public final static class Falcon512_ECDSA_P256_SHA256
-        extends SignatureSpi
-    {
-        public Falcon512_ECDSA_P256_SHA256()
-        {
-            super(CompositeSignaturesConstants.CompositeName.Falcon512_ECDSA_P256_SHA256);
-        }
-    }
-
-    public final static class Falcon512_ECDSA_brainpoolP256r1_SHA256
-        extends SignatureSpi
-    {
-        public Falcon512_ECDSA_brainpoolP256r1_SHA256()
-        {
-            super(CompositeSignaturesConstants.CompositeName.Falcon512_ECDSA_brainpoolP256r1_SHA256);
-        }
-    }
+//    public final static class Falcon512_Ed25519_SHA512
+//        extends SignatureSpi
+//    {
+//        public Falcon512_Ed25519_SHA512()
+//        {
+//            super(CompositeSignaturesConstants.CompositeName.Falcon512_Ed25519_SHA512);
+//        }
+//    }
+//
+//    public final static class Falcon512_ECDSA_P256_SHA256
+//        extends SignatureSpi
+//    {
+//        public Falcon512_ECDSA_P256_SHA256()
+//        {
+//            super(CompositeSignaturesConstants.CompositeName.Falcon512_ECDSA_P256_SHA256);
+//        }
+//    }
+//
+//    public final static class Falcon512_ECDSA_brainpoolP256r1_SHA256
+//        extends SignatureSpi
+//    {
+//        public Falcon512_ECDSA_brainpoolP256r1_SHA256()
+//        {
+//            super(CompositeSignaturesConstants.CompositeName.Falcon512_ECDSA_brainpoolP256r1_SHA256);
+//        }
+//    }
 }
