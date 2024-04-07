@@ -282,9 +282,9 @@ public class JcePublicKeyDataDecryptorFactoryBuilder
 
             return PGPPad.unpadSessionData(paddedSessionKey.getEncoded());
         }
-        catch (GeneralSecurityException | IOException e)
+        catch (Exception e)
         {
-            throw new PGPException("error setting asymmetric cipher", e);
+            throw new PGPException("error decrypting session data: " + e.getMessage(), e);
         }
     }
 
@@ -309,9 +309,9 @@ public class JcePublicKeyDataDecryptorFactoryBuilder
             symmetricKeyAlgorithm = enc[pLen + 1] & 0xff;
             return Arrays.concatenate(new byte[]{(byte)symmetricKeyAlgorithm}, paddedSessionKey.getEncoded());
         }
-        catch (GeneralSecurityException | IOException e)
+        catch (Exception e)
         {
-            throw new PGPException("error setting asymmetric cipher", e);
+            throw new PGPException("error decrypting session data: " + e.getMessage(), e);
         }
     }
 
