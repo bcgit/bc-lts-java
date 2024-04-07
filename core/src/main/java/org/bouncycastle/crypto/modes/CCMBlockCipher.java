@@ -2,13 +2,11 @@ package org.bouncycastle.crypto.modes;
 
 import java.io.ByteArrayOutputStream;
 
-
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.Mac;
-import org.bouncycastle.crypto.NativeBlockCipherProvider;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.macs.CBCBlockCipherMac;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -24,13 +22,13 @@ import org.bouncycastle.util.Arrays;
 public class CCMBlockCipher
     implements CCMModeCipher
 {
-    private BlockCipher cipher;
+    private BlockCipher           cipher;
     private int                   blockSize;
     private boolean               forEncryption;
     private byte[]                nonce;
     private byte[]                initialAssociatedText;
     private int                   macSize;
-    private CipherParameters keyParam;
+    private CipherParameters      keyParam;
     private byte[]                macBlock;
     private ExposedByteArrayOutputStream associatedText = new ExposedByteArrayOutputStream();
     private ExposedByteArrayOutputStream data = new ExposedByteArrayOutputStream();
@@ -54,6 +52,7 @@ public class CCMBlockCipher
      * Basic constructor.
      *
      * @param c the block cipher to be used.
+     * @deprecated use the CCMBlockCipher.newInstance() static method.
      */
     public CCMBlockCipher(BlockCipher c)
     {
@@ -267,9 +266,19 @@ public class CCMBlockCipher
         if (q < 4)
         {
             int limitLen = 1 << (8 * q);
-            if (inLen >= limitLen)
+
+            // no input length adjustment for encryption
+            int inputAdjustment = 0;
+
+            if (!forEncryption)
             {
-                throw new IllegalStateException("CCM packet too large for choice of q.");
+                // input includes 16 additional bytes: CCM flags and n+q values.
+                inputAdjustment = 1 /* flags */ + 15 /* n + q */;
+            }
+
+            if ((inLen-inputAdjustment) >= limitLen)
+            {
+                throw new IllegalStateException("CCM packet too large for choice of q");
             }
         }
 
@@ -277,7 +286,7 @@ public class CCMBlockCipher
         iv[0] = (byte)((q - 1) & 0x7);
         System.arraycopy(nonce, 0, iv, 1, nonce.length);
 
-        BlockCipher ctrCipher = new SICBlockCipher(cipher);
+        BlockCipher ctrCipher = SICBlockCipher.newInstance(cipher);
         ctrCipher.init(forEncryption, new ParametersWithIV(keyParam, iv));
 
         int outputLen;

@@ -32,8 +32,11 @@ public class Ed25519Test
         runTest(new Ed25519Test());
     }
 
-    public void performTest() throws Exception
+    public void performTest()
+        throws Exception
     {
+        basicSigTest();
+
         for (int i = 0; i < 10; ++i)
         {
             testConsistency(Ed25519.Algorithm.Ed25519, null);
@@ -43,7 +46,6 @@ public class Ed25519Test
             testConsistency(Ed25519.Algorithm.Ed25519ph, context);
         }
 
-        basicSigTest();
         testRegressionInfiniteLoop();
     }
 
@@ -90,7 +92,8 @@ public class Ed25519Test
         return context;
     }
 
-    private void testConsistency(int algorithm, byte[] context) throws Exception
+    private void testConsistency(int algorithm, byte[] context)
+        throws Exception
     {
         Ed25519KeyPairGenerator kpg = new Ed25519KeyPairGenerator();
         kpg.init(new Ed25519KeyGenerationParameters(RANDOM));
@@ -158,7 +161,8 @@ public class Ed25519Test
         }
     }
 
-    private void testRegressionInfiniteLoop() throws Exception
+    private void testRegressionInfiniteLoop()
+        throws Exception
     {
         String[] testCases = new String[]{
             "pub=MCowBQYDK2VwAyEA3/3evB5w/U2/UClcztEy9jyUhCYb4lsYC/Uc0Y3XU2A= priv=MC4CAQAwBQYDK2VwBCIEIPqycfmKBOt+r71r9rPfm/qHloKw1mi0u7EtapwiyLFq msg=XffXN58qcNEDB9bG0Bi4+rJx+YoE636vvWv2s9+b+oeWgrDWaLS7sS1qnCLIsWogbfSKviAwbnT17l1hipS+Qw== sig=ygsIhBS66Bh6JYI+7NS7WX/KXIIqjMX4zlgqbH8euNCg1mkdj1E9gTZ1fxSfws8ZywBfLY1Sy+7ldggN2tLIDQ== e=found 57 iterations",
@@ -801,8 +805,9 @@ public class Ed25519Test
             "pub=MCowBQYDK2VwAyEA69MJYVrwsGt5DugorT6VD7zSG3WQ4yOqXiRjUOP3LCQ= priv=MC4CAQAwBQYDK2VwBCIEIL2PFNE+QWZ53Ah9hoHeuEEEbw0Ew2ypwWts3l02nNOP msg=UG8S6ZNCvY8U0T5BZnncCH2Ggd64QQRvDQTDbKnBa2zeXTac04/SEviN0EcPRMD4b6uP03S9WDO2T2MYPkoXMw== sig=1Dgxn3qUqRaC+CMASAT16JtFBWL8qoF8SEBbQL8YYM/SPzN72c/7EbKCIUkdgrUD4iHVc2IHLCjHDeQPbSqnAw== e=infinite loop regression",
         };
 
-        for (String test : testCases)
+        for (int i = 0; i != testCases.length; i++)
         {
+            String test = testCases[i];
             String[] parts = test.split(" ", 5);
             if (!parts[0].startsWith("pub=") || !parts[1].startsWith("priv=") || !parts[2].startsWith("msg=") || !parts[3].startsWith("sig=") || !parts[4].startsWith("e="))
             {
@@ -822,7 +827,8 @@ public class Ed25519Test
             Ed25519PrivateKeyParameters priv = new Ed25519PrivateKeyParameters(privBytes);
             Ed25519PublicKeyParameters pubDerived = priv.generatePublicKey();
 
-            if (!Arrays.areEqual(pubDerived.getEncoded(), pub.getEncoded())) {
+            if (!Arrays.areEqual(pubDerived.getEncoded(), pub.getEncoded()))
+            {
                 fail("different derived public keys; expected=" + Hex.toHexString(pub.getEncoded()) + " derived=" + Hex.toHexString(pubDerived.getEncoded()));
             }
 
@@ -831,15 +837,16 @@ public class Ed25519Test
             signer.update(msg, 0, msg.length);
             byte[] sigDerived = signer.generateSignature();
 
-            if (!Arrays.areEqual(sigDerived, sig)) {
+            if (!Arrays.areEqual(sigDerived, sig))
+            {
                 fail("different signatures of message; expected=" + Hex.toHexString(sig) + " actual=" + Hex.toHexString(sigDerived));
             }
 
             signer.init(false, pub);
             signer.update(msg, 0, msg.length);
-            if (!signer.verifySignature(sig)) {
-                fail("signature verification failed for test vector: " + error);
-            }
+            boolean shouldVerify = signer.verifySignature(sig);
+
+            isTrue("signature verification failed for test vector: " + error, shouldVerify);
         }
     }
 }
