@@ -25,7 +25,7 @@ class NativeEntropySource
         //
         size = (sizeInBits + 7) / 8;
 
-        if (!NativeLoader.hasNativeService(NativeServices.DRBG) ||
+        if (!NativeLoader.hasNativeService(NativeServices.DRBG) &&
             !NativeLoader.hasNativeService(NativeServices.NRBG))
         {
             throw new IllegalStateException("no hardware support for random");
