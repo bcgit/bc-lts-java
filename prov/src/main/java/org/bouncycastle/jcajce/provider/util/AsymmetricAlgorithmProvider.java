@@ -1,9 +1,9 @@
 package org.bouncycastle.jcajce.provider.util;
 
-import java.util.Map;
-
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.jcajce.provider.config.ConfigurableProvider;
+
+import java.util.Map;
 
 public abstract class AsymmetricAlgorithmProvider
     extends AlgorithmProvider
@@ -15,8 +15,11 @@ public abstract class AsymmetricAlgorithmProvider
         ASN1ObjectIdentifier oid)
     {
         provider.addAlgorithm("Signature." + algorithm, className);
-        provider.addAlgorithm("Alg.Alias.Signature." + oid, algorithm);
-        provider.addAlgorithm("Alg.Alias.Signature.OID." + oid, algorithm);
+        if (oid != null)
+        {
+            provider.addAlgorithm("Alg.Alias.Signature." + oid, algorithm);
+            provider.addAlgorithm("Alg.Alias.Signature.OID." + oid, algorithm);
+        }
     }
 
     protected void addSignatureAlias(
