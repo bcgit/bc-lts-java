@@ -11,8 +11,8 @@ import java.security.spec.AlgorithmParameterSpec;
  * Parameter spec for doing KTS based wrapping via the Cipher API.
  */
 public class KTSParameterSpec
-    extends KEMKDFSpec
-    implements AlgorithmParameterSpec
+        extends KEMKDFSpec
+        implements AlgorithmParameterSpec
 {
     private final AlgorithmParameterSpec parameterSpec;
 
@@ -109,13 +109,14 @@ public class KTSParameterSpec
         }
     }
 
-    protected KTSParameterSpec(String algo) {
-        this(algo,256,null,null,null);
+    protected KTSParameterSpec(String algo)
+    {
+        this(algo, 256, null, null, null);
     }
 
     protected KTSParameterSpec(
-        String wrappingKeyAlgorithm, int keySizeInBits,
-        AlgorithmParameterSpec parameterSpec, AlgorithmIdentifier kdfAlgorithm, byte[] otherInfo)
+            String wrappingKeyAlgorithm, int keySizeInBits,
+            AlgorithmParameterSpec parameterSpec, AlgorithmIdentifier kdfAlgorithm, byte[] otherInfo)
     {
         super(kdfAlgorithm, otherInfo, wrappingKeyAlgorithm, keySizeInBits);
 
