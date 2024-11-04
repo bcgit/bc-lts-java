@@ -19,6 +19,9 @@ public class AllTests
         TestSuite suite = new TestSuite("Lightweight PQ Crypto Tests");
 
         suite.addTestSuite(LMSTest.class);
+        suite.addTestSuite(MLKEMTest.class);
+        suite.addTestSuite(SLHDSATest.class);
+        suite.addTestSuite(MLDSATest.class);
 
         return new BCTestSetup(suite);
     }
