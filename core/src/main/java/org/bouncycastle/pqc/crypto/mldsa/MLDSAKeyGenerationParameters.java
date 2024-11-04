@@ -1,8 +1,8 @@
 package org.bouncycastle.pqc.crypto.mldsa;
 
-import org.bouncycastle.crypto.KeyGenerationParameters;
-
 import java.security.SecureRandom;
+
+import org.bouncycastle.crypto.KeyGenerationParameters;
 
 public class MLDSAKeyGenerationParameters
     extends KeyGenerationParameters

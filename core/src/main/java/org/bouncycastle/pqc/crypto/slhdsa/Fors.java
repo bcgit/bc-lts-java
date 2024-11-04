@@ -1,9 +1,9 @@
 package org.bouncycastle.pqc.crypto.slhdsa;
 
-import org.bouncycastle.util.Arrays;
-
 import java.math.BigInteger;
 import java.util.LinkedList;
+
+import org.bouncycastle.util.Arrays;
 
 class Fors
 {

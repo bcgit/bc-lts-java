@@ -1,10 +1,10 @@
 package org.bouncycastle.pqc.crypto.mldsa;
 
+import java.security.SecureRandom;
+
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator;
 import org.bouncycastle.crypto.KeyGenerationParameters;
-
-import java.security.SecureRandom;
 
 public class MLDSAKeyPairGenerator
     implements AsymmetricCipherKeyPairGenerator

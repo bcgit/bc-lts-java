@@ -1,13 +1,11 @@
 package org.bouncycastle.pqc.crypto.util;
 
 import org.bouncycastle.asn1.*;
-import org.bouncycastle.asn1.bc.BCObjectIdentifiers;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
-import org.bouncycastle.internal.asn1.isara.IsaraObjectIdentifiers;
 
 import org.bouncycastle.pqc.crypto.lms.HSSPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.lms.LMSPublicKeyParameters;
@@ -40,6 +38,10 @@ public class PublicKeyFactory
 
         converters.put(PKCSObjectIdentifiers.id_alg_hss_lms_hashsig, new LMSConverter());
 
+
+        converters.put(NISTObjectIdentifiers.id_alg_ml_kem_512, new MLKEMConverter());
+        converters.put(NISTObjectIdentifiers.id_alg_ml_kem_768, new MLKEMConverter());
+        converters.put(NISTObjectIdentifiers.id_alg_ml_kem_1024, new MLKEMConverter());
 
         converters.put(NISTObjectIdentifiers.id_ml_dsa_44, new MLDSAConverter());
         converters.put(NISTObjectIdentifiers.id_ml_dsa_65, new MLDSAConverter());
@@ -250,5 +252,15 @@ public class PublicKeyFactory
         }
     }
 
+    private static class MLKEMConverter
+        extends SubjectPublicKeyInfoConverter
+    {
+        AsymmetricKeyParameter getPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
+            throws IOException
+        {
+            MLKEMParameters mlkemParameters = Utils.mlkemParamsLookup(keyInfo.getAlgorithm().getAlgorithm());
 
+            return new MLKEMPublicKeyParameters(mlkemParameters, keyInfo.getPublicKeyData().getOctets());
+        }
+    }
 }

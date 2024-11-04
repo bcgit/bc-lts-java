@@ -1,12 +1,12 @@
 package org.bouncycastle.pqc.crypto.slhdsa;
 
+import java.security.SecureRandom;
+
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.params.ParametersWithContext;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
 import org.bouncycastle.pqc.crypto.MessageSigner;
 import org.bouncycastle.util.Arrays;
-
-import java.security.SecureRandom;
 
 /**
  * SLH-DA signer.

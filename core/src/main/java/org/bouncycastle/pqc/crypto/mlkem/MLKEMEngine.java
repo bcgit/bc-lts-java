@@ -1,8 +1,8 @@
 package org.bouncycastle.pqc.crypto.mlkem;
 
-import org.bouncycastle.util.Arrays;
-
 import java.security.SecureRandom;
+
+import org.bouncycastle.util.Arrays;
 
 class MLKEMEngine
 {

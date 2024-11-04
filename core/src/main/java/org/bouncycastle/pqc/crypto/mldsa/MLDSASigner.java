@@ -1,5 +1,7 @@
 package org.bouncycastle.pqc.crypto.mldsa;
 
+import java.security.SecureRandom;
+
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoException;
 import org.bouncycastle.crypto.DataLengthException;
@@ -7,8 +9,6 @@ import org.bouncycastle.crypto.Signer;
 import org.bouncycastle.crypto.digests.SHAKEDigest;
 import org.bouncycastle.crypto.params.ParametersWithContext;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
-
-import java.security.SecureRandom;
 
 public class MLDSASigner
     implements Signer

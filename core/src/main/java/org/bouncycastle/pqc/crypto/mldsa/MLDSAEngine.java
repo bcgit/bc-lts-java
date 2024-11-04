@@ -1,9 +1,9 @@
 package org.bouncycastle.pqc.crypto.mldsa;
 
+import java.security.SecureRandom;
+
 import org.bouncycastle.crypto.digests.SHAKEDigest;
 import org.bouncycastle.util.Arrays;
-
-import java.security.SecureRandom;
 
 class MLDSAEngine
 {
