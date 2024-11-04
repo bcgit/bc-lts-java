@@ -104,7 +104,7 @@ public final class BouncyCastleProvider
     // later ones configure it.
     private static final String[] ASYMMETRIC_GENERIC =
             {
-                    "X509", "IES", "COMPOSITE", "EXTERNAL"
+                    "X509", "IES", "COMPOSITE", "EXTERNAL", "CompositeSignatures"
             };
 
     private static final String[] ASYMMETRIC_CIPHERS =

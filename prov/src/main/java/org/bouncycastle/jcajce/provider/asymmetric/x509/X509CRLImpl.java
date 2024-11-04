@@ -53,6 +53,7 @@ import org.bouncycastle.jcajce.CompositePublicKey;
 import org.bouncycastle.jcajce.io.OutputStreamFactory;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Strings;
 
 /**
@@ -142,16 +143,23 @@ abstract class X509CRLImpl
 
     public byte[] getExtensionValue(String oid)
     {
-        ASN1OctetString extValue = getExtensionValue(c, oid);
-        if (null != extValue)
+        if (oid != null)
         {
-            try
+            ASN1ObjectIdentifier asn1Oid = ASN1ObjectIdentifier.tryFromID(oid);
+            if (asn1Oid != null)
             {
-                return extValue.getEncoded();
-            }
-            catch (Exception e)
-            {
-                throw new IllegalStateException("error parsing " + e.toString());
+                ASN1OctetString extValue = getExtensionValue(c, asn1Oid);
+                if (null != extValue)
+                {
+                    try
+                    {
+                        return extValue.getEncoded();
+                    }
+                    catch (Exception e)
+                    {
+                        throw Exceptions.illegalStateException("error parsing " + e.getMessage(), e);
+                    }
+                }
             }
         }
         return null;
@@ -697,7 +705,7 @@ abstract class X509CRLImpl
         return false;
     }
 
-    protected static byte[] getExtensionOctets(CertificateList c, String oid)
+    static byte[] getExtensionOctets(CertificateList c, ASN1ObjectIdentifier oid)
     {
         ASN1OctetString extValue = getExtensionValue(c, oid);
         if (null != extValue)
@@ -707,12 +715,12 @@ abstract class X509CRLImpl
         return null;
     }
 
-    protected static ASN1OctetString getExtensionValue(CertificateList c, String oid)
+    static ASN1OctetString getExtensionValue(CertificateList c, ASN1ObjectIdentifier oid)
     {
         Extensions exts = c.getTBSCertList().getExtensions();
         if (null != exts)
         {
-            Extension ext = exts.getExtension(new ASN1ObjectIdentifier(oid));
+            Extension ext = exts.getExtension(oid);
             if (null != ext)
             {
                 return ext.getExtnValue();
@@ -721,4 +729,3 @@ abstract class X509CRLImpl
         return null;
     }
 }
-

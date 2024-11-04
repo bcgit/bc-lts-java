@@ -1,4 +1,4 @@
-module org.bouncycastle.lts.prov
+module org.bouncycastle.provider
 {
     requires java.sql;
     requires java.logging;
@@ -7,33 +7,20 @@ module org.bouncycastle.lts.prov
     provides java.security.Provider with org.bouncycastle.jce.provider.BouncyCastleProvider;
 
     opens org.bouncycastle.jcajce.provider.asymmetric.edec to java.base;
+    opens org.bouncycastle.jcajce.provider.asymmetric.mldsa to java.base;
+    opens org.bouncycastle.jcajce.provider.asymmetric.mlkem to java.base;
+    opens org.bouncycastle.jcajce.provider.asymmetric.slhdsa to java.base;
     opens org.bouncycastle.pqc.jcajce.provider.lms to java.base;
-    opens org.bouncycastle.pqc.jcajce.provider.falcon to java.base;
-    opens org.bouncycastle.pqc.jcajce.provider.dilithium to java.base;
 
     exports org.bouncycastle;
     exports org.bouncycastle.asn1;
     exports org.bouncycastle.asn1.anssi;
     exports org.bouncycastle.asn1.bc;
-    exports org.bouncycastle.asn1.cryptlib;
     exports org.bouncycastle.asn1.cryptopro;
-    exports org.bouncycastle.asn1.edec;
     exports org.bouncycastle.asn1.gm;
-    exports org.bouncycastle.asn1.gnu;
-    exports org.bouncycastle.asn1.iana;
-    exports org.bouncycastle.asn1.isara;
-    exports org.bouncycastle.asn1.iso;
-    exports org.bouncycastle.asn1.kisa;
-    exports org.bouncycastle.asn1.microsoft;
-    exports org.bouncycastle.asn1.misc;
-    exports org.bouncycastle.asn1.mozilla;
     exports org.bouncycastle.asn1.nist;
-    exports org.bouncycastle.asn1.nsri;
-    exports org.bouncycastle.asn1.ntt;
     exports org.bouncycastle.asn1.ocsp;
-    exports org.bouncycastle.asn1.oiw;
     exports org.bouncycastle.asn1.pkcs;
-    exports org.bouncycastle.asn1.rosstandart;
     exports org.bouncycastle.asn1.sec;
     exports org.bouncycastle.asn1.teletrust;
     exports org.bouncycastle.asn1.ua;
@@ -86,7 +73,10 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.jcajce.provider.asymmetric.elgamal;
     exports org.bouncycastle.jcajce.provider.asymmetric.gost;
     exports org.bouncycastle.jcajce.provider.asymmetric.ies;
+    exports org.bouncycastle.jcajce.provider.asymmetric.mldsa;
+    exports org.bouncycastle.jcajce.provider.asymmetric.mlkem;
     exports org.bouncycastle.jcajce.provider.asymmetric.rsa;
+    exports org.bouncycastle.jcajce.provider.asymmetric.slhdsa;
     exports org.bouncycastle.jcajce.provider.asymmetric.util;
     exports org.bouncycastle.jcajce.provider.asymmetric.x509;
     exports org.bouncycastle.jcajce.provider.config;
@@ -119,6 +109,15 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.math.ec.tools;
     exports org.bouncycastle.math.field;
     exports org.bouncycastle.math.raw;
+    exports org.bouncycastle.pqc.crypto;
+    exports org.bouncycastle.pqc.crypto.mldsa;
+    exports org.bouncycastle.pqc.crypto.mlkem;
+    exports org.bouncycastle.pqc.crypto.slhdsa;
+    exports org.bouncycastle.pqc.crypto.util;
+    exports org.bouncycastle.pqc.jcajce.interfaces;
+    exports org.bouncycastle.pqc.jcajce.provider.lms;
+    exports org.bouncycastle.pqc.jcajce.provider.util;
+    exports org.bouncycastle.pqc.jcajce.spec;
     exports org.bouncycastle.util;
     exports org.bouncycastle.util.encoders;
     exports org.bouncycastle.util.io;

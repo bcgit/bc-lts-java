@@ -30,14 +30,9 @@ public class AllTests
         suite.addTestSuite(RFC3211WrapTest.class);
         suite.addTestSuite(SP80038GTest.class);
         suite.addTestSuite(CompositeKeyTest.class);
-//        suite.addTestSuite(CompositeSignaturesTest.class);
+        suite.addTestSuite(CompositeSignaturesTest.class);
         suite.addTestSuite(BouncyCastleProviderTest.class);
-        suite.addTestSuite(MLKEMTest.class);
-        suite.addTestSuite(MLKEMKeyPairGeneratorTest.class);
-        suite.addTestSuite(MLDSATest.class);
-        suite.addTestSuite(MLDSAKeyPairGeneratorTest.class);
-        suite.addTestSuite(SLHDSATest.class);
-        suite.addTestSuite(SLHDSAKeyPairGeneratorTest.class);
+        suite.addTestSuite(PQCSignatureTest.class);
 
         return new BCTestSetup(suite);
     }

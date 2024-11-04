@@ -1,9 +1,9 @@
 package org.bouncycastle.jcajce.provider.util;
 
+import java.util.Map;
+
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.jcajce.provider.config.ConfigurableProvider;
-
-import java.util.Map;
 
 public abstract class AsymmetricAlgorithmProvider
     extends AlgorithmProvider
