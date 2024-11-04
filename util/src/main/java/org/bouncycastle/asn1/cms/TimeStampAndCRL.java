@@ -25,7 +25,13 @@ public class TimeStampAndCRL
 
     public TimeStampAndCRL(ContentInfo timeStamp)
     {
+        this(timeStamp, null);
+    }
+
+    public TimeStampAndCRL(ContentInfo timeStamp, CertificateList crl)
+    {
         this.timeStamp = timeStamp;
+        this.crl = crl;
     }
 
     private TimeStampAndCRL(ASN1Sequence seq)
@@ -67,6 +73,12 @@ public class TimeStampAndCRL
     public ContentInfo getTimeStampToken()
     {
         return this.timeStamp;
+    }
+
+    /** @deprecated use getCRL() */
+    public CertificateList getCertificateList()
+    {
+        return this.crl;
     }
 
     public CertificateList getCRL()
