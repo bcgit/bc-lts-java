@@ -42,7 +42,15 @@ public class ECVKOAgreement
     {
         return digest.getDigestSize();
     }
-    
+
+    /**
+     * @deprecated Will be removed
+     */
+    public int getFieldSize()
+    {
+        return key.getParameters().getCurve().getFieldElementEncodingLength();
+    }
+
     public byte[] calculateAgreement(CipherParameters pubKey)
     {
         ECPublicKeyParameters pub = (ECPublicKeyParameters)pubKey;

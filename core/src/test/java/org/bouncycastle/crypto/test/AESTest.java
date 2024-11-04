@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.test;
 
 import java.security.SecureRandom;
+import java.util.Random;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.BufferedBlockCipher;
@@ -10,11 +11,13 @@ import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.modes.CFBBlockCipher;
+import org.bouncycastle.crypto.modes.CTRModeCipher;
 import org.bouncycastle.crypto.modes.OFBBlockCipher;
 import org.bouncycastle.crypto.modes.SICBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
 
@@ -127,7 +130,7 @@ public class AESTest
     private void testNullSIC()
         throws InvalidCipherTextException
     {
-        BufferedBlockCipher b = new DefaultBufferedBlockCipher(new SICBlockCipher(AESEngine.newInstance()));
+        BufferedBlockCipher b = new DefaultBufferedBlockCipher(SICBlockCipher.newInstance(AESEngine.newInstance()));
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         b.init(true, new ParametersWithIV(kp, new byte[16]));
@@ -264,7 +267,7 @@ public class AESTest
     private void skipTest()
     {
         CipherParameters params = new ParametersWithIV(new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917")), Hex.decode("00000000000000000000000000000000"));
-        SICBlockCipher engine = new SICBlockCipher(AESEngine.newInstance());
+        CTRModeCipher engine = SICBlockCipher.newInstance(AESEngine.newInstance());
 
         engine.init(true, params);
 
@@ -393,7 +396,7 @@ public class AESTest
     private void ctrCounterTest()
     {
         CipherParameters params = new ParametersWithIV(new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917")), Hex.decode("000000000000000000000000000000"));
-        SICBlockCipher engine = new SICBlockCipher(AESEngine.newInstance());
+        CTRModeCipher engine = SICBlockCipher.newInstance(AESEngine.newInstance());
 
         engine.init(true, params);
 
@@ -426,7 +429,7 @@ public class AESTest
     private void testLastByte()
         throws Exception
     {
-        SICBlockCipher cipher = new SICBlockCipher(AESEngine.newInstance());
+        CTRModeCipher cipher = SICBlockCipher.newInstance(AESEngine.newInstance());
         byte[] iv = new byte[15];
         byte[] key = new byte[16];
 
@@ -464,7 +467,7 @@ public class AESTest
     private void ctrFragmentedTest()
         throws InvalidCipherTextException
     {
-        SICBlockCipher engine = new SICBlockCipher(AESEngine.newInstance());
+        CTRModeCipher engine = SICBlockCipher.newInstance(AESEngine.newInstance());
         KeyParameter kp = new KeyParameter(Hex.decode("5F060D3716B345C253F6749ABAC10917"));
 
         byte[] out = new byte[tData.length];
@@ -538,6 +541,59 @@ public class AESTest
         ctrCounterTest();
         ctrFragmentedTest();
         testLastByte();
+        testCounter();
+    }
+
+    static byte[] fileBytes = new byte[0];
+    static byte[] iv = new byte[]{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+    private void testCounter() {
+        Random random = new Random();
+        for (int i = 0; i < 255; i++) {
+            iv[iv.length - 1] += (byte) i;
+
+            String inStr = " 1234567890jl字符串";
+            for (int j = 1000; j > 0; j--) {
+                inStr += (char) ('a' + random.nextInt(26));
+                verify(inStr);
+                fileBytes = new byte[0];
+            }
+        }
+    }
+
+    private void verify(String inStr) {
+        SICBlockCipher cipher = newCipher();
+        byte[] bytes = Strings.toUTF8ByteArray(inStr);
+
+        appendFile(bytes, cipher);
+        appendFile(bytes, cipher);
+        appendFile(bytes, cipher);
+
+        byte[] out = new byte[fileBytes.length];
+        newCipher().processBytes(fileBytes, 0, fileBytes.length, out, 0);
+        String outStr = Strings.fromUTF8ByteArray(out);
+
+        if (!outStr.equals(inStr + inStr + inStr)) {
+            throw new RuntimeException("fail");
+        }
+    }
+
+    private void appendFile(byte[] bytes, SICBlockCipher cipher) {
+        cipher.seekTo(fileBytes.length);
+        byte[] out = new byte[bytes.length];
+        cipher.processBytes(bytes, 0, bytes.length, out, 0);
+
+        byte[] newFileBytes = Arrays.copyOf(fileBytes, fileBytes.length + out.length);
+        System.arraycopy(out, 0, newFileBytes, fileBytes.length, out.length);
+        fileBytes = newFileBytes;
+    }
+
+    private static SICBlockCipher newCipher() {
+        SICBlockCipher sicBlockCipher = new SICBlockCipher(new AESEngine());
+        byte[] key = "1234567890123456".getBytes();
+        ParametersWithIV parametersWithIV = new ParametersWithIV(new KeyParameter(key), iv);
+        sicBlockCipher.init(true, parametersWithIV);
+        return sicBlockCipher;
     }
 
     public static void main(

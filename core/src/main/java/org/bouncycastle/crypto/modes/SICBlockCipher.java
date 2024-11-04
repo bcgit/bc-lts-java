@@ -1,6 +1,10 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.OutputLengthException;
+import org.bouncycastle.crypto.StreamBlockCipher;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
@@ -28,11 +32,6 @@ public class SICBlockCipher
      */
     public static CTRModeCipher newInstance(BlockCipher cipher)
     {
-        if (cipher instanceof NativeBlockCipherProvider)
-        {
-            return ((NativeBlockCipherProvider)cipher).createCTR();
-        }
-
         return new SICBlockCipher(cipher);
     }
 
@@ -40,6 +39,7 @@ public class SICBlockCipher
      * Basic constructor.
      *
      * @param c the block cipher to be used.
+     * @deprecated use newInstance() method.
      */
     public SICBlockCipher(BlockCipher c)
     {
@@ -241,10 +241,8 @@ public class SICBlockCipher
     private void incrementCounter(int offSet)
     {
         byte old = counter[counter.length - 1];
-
-        counter[counter.length - 1] += offSet;
-
-        if (old != 0 && counter[counter.length - 1] < old)
+        counter[counter.length - 1] += (byte) offSet;
+        if ((old & 0xff) + offSet > 255)
         {
             incrementCounterAt(1);
         }
