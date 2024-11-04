@@ -1,19 +1,22 @@
 package org.bouncycastle.jcajce.provider.asymmetric.mlkem;
 
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-
-import org.bouncycastle.pqc.crypto.mlkem.*;
-import org.bouncycastle.pqc.jcajce.provider.util.SpecUtil;
-import org.bouncycastle.pqc.jcajce.spec.MLKEMParameterSpec;
-import org.bouncycastle.util.Strings;
-
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMKeyGenerationParameters;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMKeyPairGenerator;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMParameters;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMPrivateKeyParameters;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMPublicKeyParameters;
+import org.bouncycastle.pqc.jcajce.provider.util.SpecUtil;
+import org.bouncycastle.pqc.jcajce.spec.MLKEMParameterSpec;
+import org.bouncycastle.util.Strings;
 
 public class MLKEMKeyPairGeneratorSpi
     extends java.security.KeyPairGenerator
@@ -114,7 +117,7 @@ public class MLKEMKeyPairGeneratorSpi
         }
         else
         {
-            return Strings.toLowerCase(SpecUtil.getNameFrom(paramSpec));
+            return Strings.toUpperCase(SpecUtil.getNameFrom(paramSpec));
         }
     }
 

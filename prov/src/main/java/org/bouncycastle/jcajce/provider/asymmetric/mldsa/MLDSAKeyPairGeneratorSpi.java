@@ -1,12 +1,5 @@
 package org.bouncycastle.jcajce.provider.asymmetric.mldsa;
 
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.pqc.crypto.mldsa.*;
-import org.bouncycastle.pqc.jcajce.provider.util.SpecUtil;
-import org.bouncycastle.pqc.jcajce.spec.MLDSAParameterSpec;
-import org.bouncycastle.util.Strings;
-
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -14,6 +7,17 @@ import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.pqc.crypto.mldsa.MLDSAKeyGenerationParameters;
+import org.bouncycastle.pqc.crypto.mldsa.MLDSAKeyPairGenerator;
+import org.bouncycastle.pqc.crypto.mldsa.MLDSAParameters;
+import org.bouncycastle.pqc.crypto.mldsa.MLDSAPrivateKeyParameters;
+import org.bouncycastle.pqc.crypto.mldsa.MLDSAPublicKeyParameters;
+import org.bouncycastle.pqc.jcajce.provider.util.SpecUtil;
+import org.bouncycastle.pqc.jcajce.spec.MLDSAParameterSpec;
+import org.bouncycastle.util.Strings;
 
 public class MLDSAKeyPairGeneratorSpi
     extends java.security.KeyPairGenerator
@@ -124,7 +128,7 @@ public class MLDSAKeyPairGeneratorSpi
         }
         else
         {
-            return Strings.toLowerCase(SpecUtil.getNameFrom(paramSpec));
+            return Strings.toUpperCase(SpecUtil.getNameFrom(paramSpec));
         }
     }
 
