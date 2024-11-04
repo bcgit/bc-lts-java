@@ -109,6 +109,11 @@ public class KTSParameterSpec
         }
     }
 
+    protected KTSParameterSpec(String algo)
+    {
+        this(algo, 256, null, null, null);
+    }
+
     protected KTSParameterSpec(
         String wrappingKeyAlgorithm, int keySizeInBits,
         AlgorithmParameterSpec parameterSpec, AlgorithmIdentifier kdfAlgorithm, byte[] otherInfo)
