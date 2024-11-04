@@ -78,7 +78,7 @@ d39807955c26c41dad1bf01caae13e612b331f9f79e1624b1eb8c117210dd170  prov/src/test/
 ce6df5a2de4ee52e16b34802aab727968ff63e8de2610f3910cbfcd84f2da61e  prov/src/test/java/org/bouncycastle/jce/provider/test/TestUtils.java
 753b39ae2fe54db22e710cb6546f2bf0661fe62a16499568bf282b320cce5f86  prov/src/test/java/org/bouncycastle/jce/provider/test/CertPathBuilderTest.java
 8e43863970dbd20019062ef1586e01d0c1fa48fc4df027a3a2b197bbf2f5572e  prov/src/test/java/org/bouncycastle/jce/provider/test/PEMData.java
-c3c8b02eb83a19944236fbec1c414acc12de146893bf481358daf265d037e31c  prov/src/test/java/org/bouncycastle/jce/provider/test/SimpleTestTest.java
+850378ab6fb39387db025a5a0119c36e7bd0e88818bb856f20a71c757d8e65a4  prov/src/test/java/org/bouncycastle/jce/provider/test/SimpleTestTest.java
 e0f008ca29eb896e46cddc8867ce0f7aeb3ace6b2224e68d7a30ecf408cc423a  prov/src/test/java/org/bouncycastle/jce/provider/test/KeyStoreTest.java
 8165a6a9f2e4337ce0626e2dcbc6c5c681c415ea98b837207b5106d7f0ea01c0  prov/src/test/java/org/bouncycastle/jce/provider/test/PKIXNameConstraintsTest.java
 2e752602f526d5a0d5879d4773039b64ba0aede9f157f7c075545794a3c775c2  prov/src/test/java/org/bouncycastle/jce/provider/test/SignatureTest.java
@@ -114,7 +114,7 @@ a13de5a7845596f5c6c941a178a114a2122b489681e8b9b633e0d661d6b67be9  prov/src/test/
 e40e70869c84060d53b66fde7a44b3ced5fc40d57b3f2868329b1071c94a1b9e  prov/src/test/java/org/bouncycastle/jcajce/provider/test/RandomTest.java
 4f73f736cac9f0dc3b30cc50db44683e5b39d73afd56d6a04380ff30102b7293  prov/src/test/java/org/bouncycastle/jcajce/provider/test/CryptoServiceConstraintsTest.java
 95b436ceb65644e5b485385346011d0ede3226afbb8179dcdadb7c267b80b115  prov/src/test/java/org/bouncycastle/jcajce/provider/test/PrivateConstructorTest.java
-a9f1ec549f725f550aef6dad4c1fbaee5f2acb4e8020b451934455de551686bc  prov/src/main/jdk1.9/module-info.java
+04301b849e50a73bf93cae8fbcd03cc6c73b5b8de3b4dbf2d5dd10d862850781  prov/src/main/jdk1.9/module-info.java
 3ccafa6f6efb299b005c2b102e7cff06df61fc5fd75205aa7f2c67b05cdc7cd8  prov/src/main/jdk1.11/org/bouncycastle/jcajce/provider/asymmetric/edec/BC11XDHPrivateKey.java
 d07a02417c90610cfd8731f136e9cf712cf51651ad170f9568993865204359c7  prov/src/main/jdk1.11/org/bouncycastle/jcajce/provider/asymmetric/edec/BC11XDHPublicKey.java
 484047b0e7cab0ed2d01923b6de6973fb5af6012817958afa2a61dd907aa9fc5  prov/src/main/jdk1.11/org/bouncycastle/jcajce/provider/asymmetric/edec/KeyAgreementSpi.java
