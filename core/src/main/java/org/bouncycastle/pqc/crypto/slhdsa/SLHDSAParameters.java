@@ -138,7 +138,7 @@ public class SLHDSAParameters
 
         public SLHDSAEngine get()
         {
-            return new SLHDSAEngine.Sha2Engine(n, w, d, a, k, h);
+            return new SLHDSASha2Engine(n, w, d, a, k, h);
         }
     }
 
@@ -169,7 +169,7 @@ public class SLHDSAParameters
 
         public SLHDSAEngine get()
         {
-            return new SLHDSAEngine.Shake256Engine(n, w, d, a, k, h);
+            return new SLHDSAShakeEngine(n, w, d, a, k, h);
         }
     }
 }
