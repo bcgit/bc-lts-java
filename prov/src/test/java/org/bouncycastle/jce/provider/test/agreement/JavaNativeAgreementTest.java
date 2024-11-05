@@ -213,32 +213,32 @@ public class JavaNativeAgreementTest extends SimpleTest
                     SecretKeySpec spec = new SecretKeySpec(key, "AES");
 
                     CryptoServicesRegistrar.setNativeEnabled(false);
-                    Cipher gcmEncJava = Cipher.getInstance("AES/CTR/NoPadding",
+                    Cipher ctrEncJava = Cipher.getInstance("AES/CTR/NoPadding",
                             BouncyCastleProvider.PROVIDER_NAME);
-                    gcmEncJava.init(Cipher.ENCRYPT_MODE, spec, ivSpec);
+                    ctrEncJava.init(Cipher.ENCRYPT_MODE, spec, ivSpec);
 
-                    Cipher gcmDecJava = Cipher.getInstance("AES/CTR/NoPadding",
+                    Cipher ctrDecJava = Cipher.getInstance("AES/CTR/NoPadding",
                             BouncyCastleProvider.PROVIDER_NAME);
-                    gcmDecJava.init(Cipher.DECRYPT_MODE, spec, ivSpec);
+                    ctrDecJava.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
                     if (isJava8())
                     {
-                        TestCase.assertTrue(getEngineString(gcmDecJava).contains("SICBlockCipher"));
-                        TestCase.assertTrue(getEngineString(gcmEncJava).contains("SICBlockCipher"));
+                        TestCase.assertTrue(getEngineString(ctrDecJava).contains("SICBlockCipher"));
+                        TestCase.assertTrue(getEngineString(ctrEncJava).contains("SICBlockCipher"));
                     }
                     CryptoServicesRegistrar.setNativeEnabled(true);
-                    Cipher gcmEncNative = Cipher.getInstance("AES/CTR/NoPadding",
+                    Cipher ctrEncNative = Cipher.getInstance("AES/CTR/NoPadding",
                             BouncyCastleProvider.PROVIDER_NAME);
-                    gcmEncNative.init(Cipher.ENCRYPT_MODE, spec, ivSpec);
+                    ctrEncNative.init(Cipher.ENCRYPT_MODE, spec, ivSpec);
 
-                    Cipher gcmDecNative = Cipher.getInstance("AES/CTR/NoPadding",
+                    Cipher ctrDecNative = Cipher.getInstance("AES/CTR/NoPadding",
                             BouncyCastleProvider.PROVIDER_NAME);
-                    gcmDecNative.init(Cipher.DECRYPT_MODE, spec, ivSpec);
+                    ctrDecNative.init(Cipher.DECRYPT_MODE, spec, ivSpec);
 
                     if (isJava8())
                     {
-                        TestCase.assertTrue(getEngineString(gcmDecNative).contains("CTR[Native"));
-                        TestCase.assertTrue(getEngineString(gcmEncNative).contains("CTR[Native"));
+                        TestCase.assertTrue(getEngineString(ctrDecNative).contains("CTR[Native"));
+                        TestCase.assertTrue(getEngineString(ctrEncNative).contains("CTR[Native"));
                     }
 
                     byte[] msg = new byte[msgSize];
@@ -246,7 +246,7 @@ public class JavaNativeAgreementTest extends SimpleTest
 
 
                     ByteArrayOutputStream jCtext = new ByteArrayOutputStream();
-                    CipherOutputStream javaCos = new CipherOutputStream(jCtext, gcmEncJava);
+                    CipherOutputStream javaCos = new CipherOutputStream(jCtext, ctrEncJava);
                     javaCos.write(msg);
                     javaCos.flush();
                     javaCos.close();
@@ -255,7 +255,7 @@ public class JavaNativeAgreementTest extends SimpleTest
 
 
                     ByteArrayInputStream javaSrc = new ByteArrayInputStream(javaCt);
-                    CipherInputStream javaCin = new CipherInputStream(javaSrc, gcmDecJava);
+                    CipherInputStream javaCin = new CipherInputStream(javaSrc, ctrDecJava);
 
                     byte[] javaPt = Streams.readAll(javaCin);
 
@@ -266,7 +266,7 @@ public class JavaNativeAgreementTest extends SimpleTest
                     // Native
 
                     ByteArrayOutputStream nCtext = new ByteArrayOutputStream();
-                    CipherOutputStream nativeCos = new CipherOutputStream(nCtext, gcmEncNative);
+                    CipherOutputStream nativeCos = new CipherOutputStream(nCtext, ctrEncNative);
                     nativeCos.write(msg);
                     nativeCos.flush();
                     nativeCos.close();
@@ -275,7 +275,7 @@ public class JavaNativeAgreementTest extends SimpleTest
 
 
                     ByteArrayInputStream nativeSrc = new ByteArrayInputStream(nativeCt);
-                    CipherInputStream nativeCin = new CipherInputStream(nativeSrc, gcmDecNative);
+                    CipherInputStream nativeCin = new CipherInputStream(nativeSrc, ctrDecNative);
 
                     byte[] nativePt = Streams.readAll(nativeCin);
 
