@@ -17,7 +17,7 @@ plugins {
 }
 
 println("Environment setup:")
-["LTS_JDK8", "LTS_JDK11", "LTS_JDK15"].each({ it ->
+["LTS_JDK8", "LTS_JDK11", "LTS_JDK15","LTS_JDK21"].each({ it ->
     println("Looking for JDK ENV '${it}' found  ${System.getenv(it)}");
     if (System.getenv(it) == null) {
         throw new RuntimeException("Looking for JDK ENV '${it}' but found null, see README 'Environmental variables'");
