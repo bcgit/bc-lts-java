@@ -1,8 +1,8 @@
 package org.bouncycastle.bcpg;
 
-import org.bouncycastle.util.Arrays;
-
 import java.io.IOException;
+
+import org.bouncycastle.util.Arrays;
 
 public class UnknownPacket
         extends ContainedPacket
@@ -12,7 +12,13 @@ public class UnknownPacket
     public UnknownPacket(int tag, BCPGInputStream in)
             throws IOException
     {
-        super(tag);
+        this(tag, in, false);
+    }
+
+    public UnknownPacket(int tag, BCPGInputStream in, boolean newPacketFormat)
+            throws IOException
+    {
+        super(tag, newPacketFormat);
         this.contents = in.readAll();
     }
 
@@ -26,6 +32,6 @@ public class UnknownPacket
             BCPGOutputStream    out)
             throws IOException
     {
-        out.writePacket(getPacketTag(), contents);
+        out.writePacket(hasNewPacketFormat(), getPacketTag(), contents);
     }
 }

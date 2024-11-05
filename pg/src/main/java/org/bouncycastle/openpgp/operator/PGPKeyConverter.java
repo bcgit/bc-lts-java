@@ -25,7 +25,8 @@ public abstract class PGPKeyConverter
     }
 
     /**
-     * Reference: <a href="https://datatracker.ietf.org/doc/draft-ietf-openpgp-crypto-refresh/13/">RFC Draft-ietf-openpgp-crypto-refresh-13</a>
+     * Reference: <a href="https://www.rfc-editor.org/rfc/rfc9580.html">
+     *     RFC9580 - OpenPGP</a>
      * <p>
      * This class provides information about the recommended algorithms to use
      * depending on the key version and curve type in OpenPGP keys.
@@ -74,6 +75,11 @@ public abstract class PGPKeyConverter
      *     <td>SHA2-256</td>
      *     <td>AES-128</td>
      *   </tr>
+     *   <tr>
+     *     <td>Curve448Legacy (not in RFC Draft)</td>
+     *     <td>SHA2-512</td>
+     *     <td>AES-256</td>
+     *   </tr>
      * </table>
      */
     protected PGPKdfParameters implGetKdfParameters(ASN1ObjectIdentifier curveID, PGPAlgorithmParameters algorithmParameters)
@@ -89,7 +95,8 @@ public abstract class PGPKeyConverter
             {
                 return new PGPKdfParameters(HashAlgorithmTags.SHA384, SymmetricKeyAlgorithmTags.AES_192);
             }
-            else if (curveID.equals(SECObjectIdentifiers.secp521r1) || curveID.equals(TeleTrusTObjectIdentifiers.brainpoolP512r1))
+            else if (curveID.equals(SECObjectIdentifiers.secp521r1) || curveID.equals(TeleTrusTObjectIdentifiers.brainpoolP512r1)
+                || curveID.equals(EdECObjectIdentifiers.id_X448))
             {
                 return new PGPKdfParameters(HashAlgorithmTags.SHA512, SymmetricKeyAlgorithmTags.AES_256);
             }

@@ -8,7 +8,7 @@ import org.bouncycastle.util.Encodable;
 /**
  * Basic type for a PGP packet.
  */
-public abstract class ContainedPacket 
+public abstract class ContainedPacket
     extends Packet
     implements Encodable
 {
@@ -19,19 +19,27 @@ public abstract class ContainedPacket
 
     ContainedPacket(int packetTag)
     {
-        super(packetTag);
+        this(packetTag, false);
+    }
+
+    ContainedPacket(int packetTag, boolean newPacketFormat)
+    {
+        super(packetTag, newPacketFormat);
     }
 
     public byte[] getEncoded()
         throws IOException
     {
-        ByteArrayOutputStream    bOut = new ByteArrayOutputStream();
-        BCPGOutputStream         pOut = new BCPGOutputStream(bOut);
-        
+        return getEncoded(PacketFormat.ROUNDTRIP);
+    }
+
+    public byte[] getEncoded(PacketFormat format)
+            throws IOException
+    {
+        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+        BCPGOutputStream pOut = new BCPGOutputStream(bOut, format);
         pOut.writePacket(this);
-
         pOut.close();
-
         return bOut.toByteArray();
     }
     

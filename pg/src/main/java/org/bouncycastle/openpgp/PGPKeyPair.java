@@ -1,5 +1,7 @@
 package org.bouncycastle.openpgp;
 
+import org.bouncycastle.bcpg.KeyIdentifier;
+
 /**
  * General class to handle JCA key pairs and convert them into OpenPGP ones.
  * <p>
@@ -40,6 +42,16 @@ public class PGPKeyPair
     public long getKeyID()
     {
         return pub.getKeyID();
+    }
+
+    /**
+     * Return the {@link KeyIdentifier} associated with the public key.
+     *
+     * @return key identifier
+     */
+    public KeyIdentifier getKeyIdentifier()
+    {
+        return getPublicKey().getKeyIdentifier();
     }
     
     public PGPPublicKey getPublicKey()

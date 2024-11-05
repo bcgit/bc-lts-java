@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Collection;
 
 import org.bouncycastle.bcpg.AEADAlgorithmTags;
 import org.bouncycastle.bcpg.ArmoredInputStream;
@@ -25,6 +26,7 @@ import org.bouncycastle.bcpg.HashAlgorithmTags;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
 import org.bouncycastle.bcpg.RSAPublicBCPGKey;
 import org.bouncycastle.bcpg.RSASecretBCPGKey;
+import org.bouncycastle.bcpg.SignatureSubpacket;
 import org.bouncycastle.bcpg.SignatureSubpacketTags;
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
 import org.bouncycastle.bcpg.attr.ImageAttribute;
@@ -33,6 +35,7 @@ import org.bouncycastle.bcpg.sig.IntendedRecipientFingerprint;
 import org.bouncycastle.bcpg.sig.KeyFlags;
 import org.bouncycastle.bcpg.sig.NotationData;
 import org.bouncycastle.bcpg.sig.PolicyURI;
+import org.bouncycastle.bcpg.sig.PreferredAEADCiphersuites;
 import org.bouncycastle.bcpg.sig.RegularExpression;
 import org.bouncycastle.bcpg.sig.RevocationKey;
 import org.bouncycastle.bcpg.sig.RevocationKeyTags;
@@ -102,7 +105,7 @@ import org.bouncycastle.openpgp.operator.jcajce.JcePBEProtectionRemoverFactory;
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyEncryptorBuilder;
 import org.bouncycastle.openpgp.operator.jcajce.JcePublicKeyDataDecryptorFactoryBuilder;
-import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Objects;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.test.SimpleTest;
@@ -1005,6 +1008,7 @@ public class PGPGeneralTest
 
         // Tests for PGPSignatureSubpacketVector
         sigsubpacketTest();
+        sigsubpacketTest2();
         testParsingFromSignature();
         testPGPSignatureSubpacketVector();
 
@@ -1094,6 +1098,8 @@ public class PGPGeneralTest
         PGPPublicKey publicKey7 = PGPPublicKey.join(publicKey2, publicKey2, true, true);
         isTrue(publicKey7.getKeyID() == publicKey2.getKeyID());
         isTrue(areEqual(publicKey7.getFingerprint(), publicKey2.getFingerprint()));
+        isTrue(publicKey7.hasFingerprint(publicKey2.getFingerprint()));
+        isTrue(publicKey2.hasFingerprint(publicKey7.getFingerprint()));
 
         PGPPublicKeyRingCollection pgpRingCollection = new JcaPGPPublicKeyRingCollection(probExpPubKey);
         final long id5 = 6556488621521814541L;
@@ -1105,6 +1111,8 @@ public class PGPGeneralTest
         PGPPublicKey publicKey6 = PGPPublicKey.join(publicKey5, publicKey5, true, true);
         isTrue(publicKey6.getKeyID() == publicKey5.getKeyID());
         isTrue(areEqual(publicKey6.getFingerprint(), publicKey5.getFingerprint()));
+        isTrue(publicKey6.hasFingerprint(publicKey5.getFingerprint()));
+        isTrue(publicKey5.hasFingerprint(publicKey6.getFingerprint()));
     }
 
     private boolean messageIs(String message, String s)
@@ -1921,9 +1929,12 @@ public class PGPGeneralTest
 
         PGPSignatureSubpacketGenerator svg = new PGPSignatureSubpacketGenerator();
 
-        int[] aeadAlgs = new int[]{AEADAlgorithmTags.EAX,
-            AEADAlgorithmTags.OCB, AEADAlgorithmTags.GCM, AEADAlgorithmTags.GCM};
-        svg.setPreferredAEADAlgorithms(true, aeadAlgs);
+        PreferredAEADCiphersuites.Builder builder = PreferredAEADCiphersuites.builder(true);
+        builder.addCombination(SymmetricKeyAlgorithmTags.AES_256, AEADAlgorithmTags.EAX)
+            .addCombination(SymmetricKeyAlgorithmTags.AES_256, AEADAlgorithmTags.OCB)
+            .addCombination(SymmetricKeyAlgorithmTags.AES_256, AEADAlgorithmTags.GCM)
+            .addCombination(SymmetricKeyAlgorithmTags.AES_128, AEADAlgorithmTags.GCM);
+        svg.setPreferredAEADCiphersuites(builder);
         svg.setFeature(true, Features.FEATURE_MODIFICATION_DETECTION);
         svg.setKeyFlags(true, KeyFlags.CERTIFY_OTHER + KeyFlags.SIGN_DATA);
         PGPSignatureSubpacketVector hashedPcks = svg.generate();
@@ -1955,7 +1966,71 @@ public class PGPGeneralTest
                 {
                     PGPSignature sig = (PGPSignature)sit.next();
                     PGPSignatureSubpacketVector v = sig.getHashedSubPackets();
-                    if (!Arrays.areEqual(v.getPreferredAEADAlgorithms(), aeadAlgs))
+                    if (!Objects.areEqual(v.getPreferredAEADCiphersuites(), builder.build()))
+                    {
+                        fail("preferred aead algs don't match");
+                    }
+                }
+            }
+        }
+    }
+
+    private void sigsubpacketTest2()
+        throws Exception
+    {
+        char[] passPhrase = "test".toCharArray();
+        String identity = "TEST <test@test.org>";
+        Date date = new Date();
+
+        RSAKeyPairGenerator kpg = new RSAKeyPairGenerator();
+        kpg.init(new RSAKeyGenerationParameters(BigInteger.valueOf(0x11), new SecureRandom(), 2048, 25));
+        AsymmetricCipherKeyPair kpSgn = kpg.generateKeyPair();
+        AsymmetricCipherKeyPair kpEnc = kpg.generateKeyPair();
+
+        PGPKeyPair sgnKeyPair = new BcPGPKeyPair(PGPPublicKey.RSA_SIGN, kpSgn, date);
+        PGPKeyPair encKeyPair = new BcPGPKeyPair(PGPPublicKey.RSA_GENERAL, kpEnc, date);
+
+        PGPSignatureSubpacketGenerator svg = new PGPSignatureSubpacketGenerator();
+
+        PreferredAEADCiphersuites.Combination[] combinations = new PreferredAEADCiphersuites.Combination[]{
+            new PreferredAEADCiphersuites.Combination(SymmetricKeyAlgorithmTags.AES_256, AEADAlgorithmTags.EAX),
+            new PreferredAEADCiphersuites.Combination(SymmetricKeyAlgorithmTags.AES_256, AEADAlgorithmTags.OCB),
+            new PreferredAEADCiphersuites.Combination(SymmetricKeyAlgorithmTags.AES_256, AEADAlgorithmTags.GCM),
+            new PreferredAEADCiphersuites.Combination(SymmetricKeyAlgorithmTags.AES_128, AEADAlgorithmTags.GCM)
+        };
+        svg.setPreferredAEADCiphersuites(true, combinations);
+        svg.setFeature(true, Features.FEATURE_MODIFICATION_DETECTION);
+        svg.setKeyFlags(true, KeyFlags.CERTIFY_OTHER + KeyFlags.SIGN_DATA);
+        PGPSignatureSubpacketVector hashedPcks = svg.generate();
+
+        PGPKeyRingGenerator keyRingGen = new PGPKeyRingGenerator(PGPSignature.POSITIVE_CERTIFICATION,
+            sgnKeyPair, identity, new BcPGPDigestCalculatorProvider().get(HashAlgorithmTags.SHA1),
+            hashedPcks, null, new BcPGPContentSignerBuilder(PGPPublicKey.RSA_GENERAL, HashAlgorithmTags.SHA1), new BcPBESecretKeyEncryptorBuilder(PGPEncryptedData.AES_256).build(passPhrase));
+
+        svg = new PGPSignatureSubpacketGenerator();
+        svg.setKeyExpirationTime(true, 2L);
+        svg.setKeyFlags(true, KeyFlags.ENCRYPT_COMMS + KeyFlags.ENCRYPT_STORAGE);
+        svg.setPrimaryUserID(true, false);
+        svg.setFeature(true, Features.FEATURE_MODIFICATION_DETECTION);
+        hashedPcks = svg.generate();
+
+        keyRingGen.addSubKey(encKeyPair, hashedPcks, null);
+
+        byte[] encodedKeyRing = keyRingGen.generatePublicKeyRing().getEncoded();
+
+        PGPPublicKeyRing keyRing = new PGPPublicKeyRing(encodedKeyRing, new BcKeyFingerprintCalculator());
+
+        for (Iterator it = keyRing.getPublicKeys(); it.hasNext(); )
+        {
+            PGPPublicKey pKey = (PGPPublicKey)it.next();
+
+            if (!pKey.isEncryptionKey())
+            {
+                for (Iterator sit = pKey.getSignatures(); sit.hasNext(); )
+                {
+                    PGPSignature sig = (PGPSignature)sit.next();
+                    PGPSignatureSubpacketVector v = sig.getHashedSubPackets();
+                    if (!Objects.areEqual(v.getPreferredAEADCiphersuites(), new PreferredAEADCiphersuites(true, combinations)))
                     {
                         fail("preferred aead algs don't match");
                     }
@@ -2027,7 +2102,7 @@ public class PGPGeneralTest
         PGPSignatureSubpacketVector hashedPcks = sig.getHashedSubPackets();
 
         IntendedRecipientFingerprint[] intFig = hashedPcks.getIntendedRecipientFingerprints();
-        isTrue("mismatch on intended rec. fingerprint", Arrays.areEqual(secretKey.getPublicKey().getFingerprint(), intFig[0].getFingerprint()));
+        isTrue("mismatch on intended rec. fingerprint", secretKey.getPublicKey().hasFingerprint(intFig[0].getFingerprint()));
 
         // Tests for null value
         isTrue("issuer key id should be 0", hashedPcks.getIssuerKeyID() == 0);
@@ -2049,6 +2124,7 @@ public class PGPGeneralTest
         isTrue("RevocationReason should be null", hashedPcks.getRevocationReason() == null);
         isTrue("Trust should be null", hashedPcks.getTrust() == null);
         isTrue(hashedPcks.getIntendedRecipientFingerprint().getKeyVersion() == publicKey.getVersion());
+        isTrue(hashedPcks.getPreferredLibrePgpEncryptionModes() == null);
 
         String regexString = "example.org";
         RegularExpression regex = new RegularExpression(false, regexString);
@@ -2080,7 +2156,7 @@ public class PGPGeneralTest
         isTrue("Revocable should be false", !hashedPcks.isRevocable());
         isTrue("RevocationKeys should not be empty", hashedPcks.getRevocationKeys().length == 1);
         RevocationKey revocationKey = hashedPcks.getRevocationKeys()[0];
-        isTrue(areEqual(revocationKey.getFingerprint(), publicKey.getFingerprint()));
+        isTrue(publicKey.hasFingerprint(revocationKey.getFingerprint()));
         isTrue(revocationKey.getAlgorithm() == PublicKeyAlgorithmTags.DSA);
         // TODO: addRevocationKey has no parameter for setting signatureClass
         isTrue(revocationKey.getSignatureClass() == RevocationKeyTags.CLASS_DEFAULT);
@@ -2097,8 +2173,36 @@ public class PGPGeneralTest
         isTrue(hashedPcks.getIssuerFingerprint().getKeyVersion() == publicKey.getVersion());
         isTrue("isPrimaryUserID should be true", hashedPcks.isPrimaryUserID());
 
+        hashedPcks = PGPSignatureSubpacketVector.fromSubpackets(java.util.Arrays.asList(hashedPcks.toArray()));
 
-        PGPSignatureSubpacketVector hashedPcks2 = PGPSignatureSubpacketVector.fromSubpackets(null);
+        isTrue("IntendedRecipientFingerprint should not be null", hashedPcks.getIntendedRecipientFingerprint() == null);
+        isTrue("RegularExpression should not be null", hashedPcks.getRegularExpression() != null);
+        isTrue("RegularExpressions should be empty", hashedPcks.getRegularExpressions().length == 2);
+        isTrue("Revocable should not be null", hashedPcks.getRevocable() != null);
+        isTrue("Revocable should be false", !hashedPcks.isRevocable());
+        isTrue("RevocationKeys should not be empty", hashedPcks.getRevocationKeys().length == 1);
+        revocationKey = hashedPcks.getRevocationKeys()[0];
+        isTrue(publicKey.hasFingerprint(revocationKey.getFingerprint()));
+        isTrue(revocationKey.getAlgorithm() == PublicKeyAlgorithmTags.DSA);
+        // TODO: addRevocationKey has no parameter for setting signatureClass
+        isTrue(revocationKey.getSignatureClass() == RevocationKeyTags.CLASS_DEFAULT);
+        isTrue("IssuerKeyID should not be 0", hashedPcks.getIssuerKeyID() != 0L);
+        revocationReason = hashedPcks.getRevocationReason();
+        isTrue("RevocationReason should not be null", revocationReason != null);
+        isTrue(revocationReason.getRevocationReason() == RevocationReasonTags.KEY_SUPERSEDED);
+        isTrue(revocationReason.getRevocationDescription().equals(description));
+        trustSignature = hashedPcks.getTrust();
+        isTrue("Trust should be null", trustSignature != null);
+        isTrue("Trust level depth should be " + depth, trustSignature.getDepth() == depth);
+        isTrue("Trust amount should be " + trustAmount, trustSignature.getTrustAmount() == trustAmount);
+        isTrue("Exporable should be false", !hashedPcks.isExportable());
+        isTrue(hashedPcks.getIssuerFingerprint().getKeyVersion() == publicKey.getVersion());
+        isTrue("isPrimaryUserID should be true", hashedPcks.isPrimaryUserID());
+
+
+        PGPSignatureSubpacketVector hashedPcks2 = PGPSignatureSubpacketVector.fromSubpackets((SignatureSubpacket[])null);
+        isTrue("Empty PGPSignatureSubpacketVector", hashedPcks2.size() == 0);
+        hashedPcks2 = PGPSignatureSubpacketVector.fromSubpackets((Collection<SignatureSubpacket>)null);
         isTrue("Empty PGPSignatureSubpacketVector", hashedPcks2.size() == 0);
 
         hashedGen = new PGPSignatureSubpacketGenerator();

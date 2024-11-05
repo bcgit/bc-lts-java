@@ -50,10 +50,12 @@ import org.bouncycastle.openpgp.PGPSecretKeyRing;
 import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.bc.BcPGPObjectFactory;
 import org.bouncycastle.openpgp.jcajce.JcaPGPObjectFactory;
+import org.bouncycastle.openpgp.operator.PBESecretKeyDecryptor;
 import org.bouncycastle.openpgp.operator.PGPContentVerifier;
 import org.bouncycastle.openpgp.operator.PGPDigestCalculator;
 import org.bouncycastle.openpgp.operator.PGPDigestCalculatorProvider;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
+import org.bouncycastle.openpgp.operator.bc.BcPBESecretKeyDecryptorBuilder;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider;
 import org.bouncycastle.openpgp.operator.bc.BcPGPDataEncryptorBuilder;
 import org.bouncycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
@@ -101,9 +103,9 @@ public class OperatorBcTest
         testX25519HKDF();
         testKeyRings();
         testBcPGPKeyPair();
-//        testBcPGPDataEncryptorBuilder();
+        testBcPGPDataEncryptorBuilder();
         testBcPGPContentVerifierBuilderProvider();
-        //testBcPBESecretKeyDecryptorBuilder();
+        testBcPBESecretKeyDecryptorBuilder();
         testBcKeyFingerprintCalculator();
         testBcStandardDigests();
     }
@@ -145,12 +147,13 @@ public class OperatorBcTest
         KeyPairGenerator kpGen = KeyPairGenerator.getInstance("RSA", "BC");
         kpGen.initialize(1024);
         KeyPair kp = kpGen.generateKeyPair();
+        Date creationTime = new Date(1000 * (new Date().getTime() / 1000));
 
         JcaPGPKeyConverter converter = new JcaPGPKeyConverter().setProvider(new BouncyCastleProvider());
-        final PGPPublicKey pubKey = converter.getPGPPublicKey(PublicKeyAlgorithmTags.RSA_GENERAL, kp.getPublic(), new Date());
+        final PGPPublicKey pubKey = converter.getPGPPublicKey(PublicKeyPacket.VERSION_4, PublicKeyAlgorithmTags.RSA_GENERAL, kp.getPublic(), creationTime);
 
-        PublicKeyPacket pubKeyPacket = new PublicKeyPacket(6, PublicKeyAlgorithmTags.RSA_GENERAL, new Date(), pubKey.getPublicKeyPacket().getKey());
-        byte[] output = calculator.calculateFingerprint(new PublicKeyPacket(6, PublicKeyAlgorithmTags.RSA_GENERAL, new Date(), pubKey.getPublicKeyPacket().getKey()));
+        PublicKeyPacket pubKeyPacket = new PublicKeyPacket(6, PublicKeyAlgorithmTags.RSA_GENERAL, creationTime, pubKey.getPublicKeyPacket().getKey());
+        byte[] output = calculator.calculateFingerprint(new PublicKeyPacket(6, PublicKeyAlgorithmTags.RSA_GENERAL, creationTime, pubKey.getPublicKeyPacket().getKey()));
         byte[] kBytes = pubKeyPacket.getEncodedContents();
         SHA256Digest digest = new SHA256Digest();
 
@@ -167,24 +170,32 @@ public class OperatorBcTest
         digest.doFinal(digBuf, 0);
         isTrue(areEqual(output, digBuf));
 
-        final PublicKeyPacket pubKeyPacket2 = new PublicKeyPacket(5, PublicKeyAlgorithmTags.RSA_GENERAL, new Date(), pubKey.getPublicKeyPacket().getKey());
-        testException("Unsupported PGP key version: ", "UnsupportedPacketVersionException", new TestExceptionOperation()
-        {
-            @Override
-            public void operation()
-                throws Exception
-            {
-                calculator.calculateFingerprint(pubKeyPacket2);
-            }
-        });
+        final PublicKeyPacket pubKeyPacket2 = new PublicKeyPacket(5, PublicKeyAlgorithmTags.RSA_GENERAL, creationTime, pubKey.getPublicKeyPacket().getKey());
+        kBytes = pubKeyPacket2.getEncodedContents();
+        output = calculator.calculateFingerprint(pubKeyPacket2);
+
+        digest = new SHA256Digest();
+
+        digest.update((byte)0x9a);
+
+        digest.update((byte)(kBytes.length >> 24));
+        digest.update((byte)(kBytes.length >> 16));
+        digest.update((byte)(kBytes.length >> 8));
+        digest.update((byte)kBytes.length);
+
+        digest.update(kBytes, 0, kBytes.length);
+        digBuf = new byte[digest.getDigestSize()];
+
+        digest.doFinal(digBuf, 0);
+        isTrue(areEqual(output, digBuf));
     }
 
-//    public void testBcPBESecretKeyDecryptorBuilder()
-//        throws PGPException
-//    {
-//        final PBESecretKeyDecryptor decryptor = new BcPBESecretKeyDecryptorBuilder(new BcPGPDigestCalculatorProvider()).build(BcPGPDSAElGamalTest.pass);
-//        decryptor.recoverKeyData(SymmetricKeyAlgorithmTags.CAMELLIA_256, new byte[32], new byte[12], new byte[16], 0, 16);
-//    }
+    public void testBcPBESecretKeyDecryptorBuilder()
+        throws PGPException
+    {
+        final PBESecretKeyDecryptor decryptor = new BcPBESecretKeyDecryptorBuilder(new BcPGPDigestCalculatorProvider()).build(BcPGPDSAElGamalTest.pass);
+        decryptor.recoverKeyData(SymmetricKeyAlgorithmTags.CAMELLIA_256, new byte[32], new byte[12], new byte[16], 0, 16);
+    }
 
     public void testBcPGPContentVerifierBuilderProvider()
         throws Exception
@@ -204,7 +215,6 @@ public class OperatorBcTest
     {
         testException("null cipher specified", "IllegalArgumentException", new TestExceptionOperation()
         {
-            @Override
             public void operation()
                 throws Exception
             {
@@ -214,7 +224,6 @@ public class OperatorBcTest
 
         testException("AEAD algorithms can only be used with AES", "IllegalStateException", new TestExceptionOperation()
         {
-            @Override
             public void operation()
                 throws Exception
             {
@@ -224,7 +233,6 @@ public class OperatorBcTest
 
         testException("minimum chunkSize is 6", "IllegalArgumentException", new TestExceptionOperation()
         {
-            @Override
             public void operation()
                 throws Exception
             {
@@ -234,7 +242,6 @@ public class OperatorBcTest
 
         testException("invalid parameters:", "PGPException", new TestExceptionOperation()
         {
-            @Override
             public void operation()
                 throws Exception
             {
@@ -284,7 +291,6 @@ public class OperatorBcTest
     {
         testCreateKeyPair(algorithm, name, new KeyPairGeneratorOperation()
         {
-            @Override
             public void initialize(KeyPairGenerator gen)
                 throws Exception
             {
@@ -297,20 +303,18 @@ public class OperatorBcTest
     {
         testCreateKeyPair(algorithm1, algorithm2, name, new KeyPairGeneratorOperation()
         {
-            @Override
             public void initialize(KeyPairGenerator gen)
                 throws Exception
             {
             }
         });
     }
-
+    
     private void testCreateKeyPairEC(int algorithm, String name, final String curveName)
         throws Exception
     {
         testCreateKeyPair(algorithm, name, new KeyPairGeneratorOperation()
         {
-            @Override
             public void initialize(KeyPairGenerator gen)
                 throws Exception
             {
@@ -381,6 +385,7 @@ public class OperatorBcTest
     public void testKeyRings()
         throws Exception
     {
+        keyringTest("EdDSA", "Ed448", PublicKeyAlgorithmTags.EDDSA_LEGACY, "XDH", "X448", PublicKeyAlgorithmTags.ECDH, HashAlgorithmTags.SHA512, SymmetricKeyAlgorithmTags.AES_256);
         keyringTest("EdDSA", "Ed448", PublicKeyAlgorithmTags.Ed448, "XDH", "X448", PublicKeyAlgorithmTags.X448, HashAlgorithmTags.SHA512, SymmetricKeyAlgorithmTags.AES_256);
         keyringTest("EdDSA", "Ed25519", PublicKeyAlgorithmTags.EDDSA_LEGACY, "XDH", "X25519", PublicKeyAlgorithmTags.ECDH, HashAlgorithmTags.SHA256, SymmetricKeyAlgorithmTags.AES_128);
 
@@ -415,13 +420,13 @@ public class OperatorBcTest
 
         edKp.initialize(new ECNamedCurveGenParameterSpec(ed_str));
 
-        PGPKeyPair dsaKeyPair = new JcaPGPKeyPair(ed_num, edKp.generateKeyPair(), new Date());
+        PGPKeyPair dsaKeyPair = new JcaPGPKeyPair(PublicKeyPacket.VERSION_4, ed_num, edKp.generateKeyPair(), new Date());
 
         KeyPairGenerator dhKp = KeyPairGenerator.getInstance(algorithmName2, "BC");
 
         dhKp.initialize(new ECNamedCurveGenParameterSpec(x_str));
 
-        PGPKeyPair dhKeyPair = new JcaPGPKeyPair(x_num, new PGPKdfParameters(hashAlgorithm, symmetricWrapAlgorithm), dhKp.generateKeyPair(), new Date());
+        PGPKeyPair dhKeyPair = new JcaPGPKeyPair(PublicKeyPacket.VERSION_4, x_num, new PGPKdfParameters(hashAlgorithm, symmetricWrapAlgorithm), dhKp.generateKeyPair(), new Date());
 
         encryptDecryptTest(dhKeyPair.getPublicKey(), dhKeyPair.getPrivateKey());
         encryptDecryptBcTest(dhKeyPair.getPublicKey(), dhKeyPair.getPrivateKey());
@@ -464,7 +469,7 @@ public class OperatorBcTest
             {
                 count++;
                 sig.init(new JcaPGPContentVerifierBuilderProvider().setProvider("BC"), vKey);
-
+                   // TODO: appears to be failing on CI system
                 if (!sig.verifyCertification(vKey, sKey))
                 {
                     fail("failed to verify sub-key signature.");

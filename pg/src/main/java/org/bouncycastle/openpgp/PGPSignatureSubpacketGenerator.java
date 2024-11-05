@@ -15,9 +15,12 @@ import org.bouncycastle.bcpg.sig.IssuerFingerprint;
 import org.bouncycastle.bcpg.sig.IssuerKeyID;
 import org.bouncycastle.bcpg.sig.KeyExpirationTime;
 import org.bouncycastle.bcpg.sig.KeyFlags;
+import org.bouncycastle.bcpg.sig.LibrePGPPreferredEncryptionModes;
 import org.bouncycastle.bcpg.sig.NotationData;
 import org.bouncycastle.bcpg.sig.PolicyURI;
+import org.bouncycastle.bcpg.sig.PreferredAEADCiphersuites;
 import org.bouncycastle.bcpg.sig.PreferredAlgorithms;
+import org.bouncycastle.bcpg.sig.PreferredKeyServer;
 import org.bouncycastle.bcpg.sig.PrimaryUserID;
 import org.bouncycastle.bcpg.sig.RegularExpression;
 import org.bouncycastle.bcpg.sig.Revocable;
@@ -191,15 +194,79 @@ public class PGPSignatureSubpacketGenerator
     }
 
     /**
+     * This method is BROKEN!
      * Specify the preferred AEAD algorithms of this key.
      *
      * @param isCritical true if should be treated as critical, false otherwise.
      * @param algorithms array of algorithms in descending preference
+     * @deprecated use {@link #setPreferredAEADCiphersuites(boolean, PreferredAEADCiphersuites.Combination[])}
+     * or {@link #setPreferredLibrePgpEncryptionModes(boolean, int[])} instead.
      */
+    @Deprecated
     public void setPreferredAEADAlgorithms(boolean isCritical, int[] algorithms)
     {
         packets.add(new PreferredAlgorithms(SignatureSubpacketTags.PREFERRED_AEAD_ALGORITHMS, isCritical,
             algorithms));
+    }
+
+    /**
+     * Specify the preferred OpenPGP AEAD ciphersuites of this key.
+     *
+     * @see <a href="https://www.rfc-editor.org/rfc/rfc9580.html#name-preferred-aead-ciphersuites">
+     *     RFC9580: Preferred AEAD Ciphersuites</a>
+     *
+     * @param isCritical true, if this packet should be treated as critical, false otherwise.
+     * @param algorithms array of algorithms in descending preference
+     */
+    public void setPreferredAEADCiphersuites(boolean isCritical, PreferredAEADCiphersuites.Combination[] algorithms)
+    {
+        packets.add(new PreferredAEADCiphersuites(isCritical, algorithms));
+    }
+
+    /**
+     * Specify the preferred OpenPGP AEAD ciphersuites of this key.
+     *
+     * @see <a href="https://www.rfc-editor.org/rfc/rfc9580.html#name-preferred-aead-ciphersuites">
+     *     RFC9580: Preferred AEAD Ciphersuites</a>
+     *
+     * @param builder builder to build the ciphersuites packet from
+     */
+    public void setPreferredAEADCiphersuites(PreferredAEADCiphersuites.Builder builder)
+    {
+        packets.add(builder.build());
+    }
+
+    /**
+     * Set the preferred encryption modes for LibrePGP keys.
+     * Note: LibrePGP is not OpenPGP. An application strictly compliant to only the OpenPGP standard will not
+     * know how to handle LibrePGP encryption modes.
+     * The LibrePGP spec states that this subpacket shall be ignored and the application shall instead assume
+     * {@link org.bouncycastle.bcpg.AEADAlgorithmTags#OCB}.
+     *
+     * @see <a href="https://www.ietf.org/archive/id/draft-koch-librepgp-01.html#name-preferred-encryption-modes">
+     *     LibrePGP: Preferred Encryption Modes</a>
+     * @see org.bouncycastle.bcpg.AEADAlgorithmTags for possible algorithms
+     *
+     * @param isCritical whether the packet is critical
+     * @param algorithms list of algorithms
+     * @deprecated the use of this subpacket is deprecated in LibrePGP
+     */
+    @Deprecated
+    public void setPreferredLibrePgpEncryptionModes(boolean isCritical, int[] algorithms)
+    {
+        packets.add(new LibrePGPPreferredEncryptionModes(isCritical, algorithms));
+    }
+
+    /**
+     * Specify the preferred key server for the signed user-id / key.
+     * Note, that the key server might also be a http/ftp etc. URI pointing to the key itself.
+     *
+     * @param isCritical true if the subpacket should be treated as critical
+     * @param uri key server URI
+     */
+    public void setPreferredKeyServer(boolean isCritical, String uri)
+    {
+        packets.add(new PreferredKeyServer(isCritical, uri));
     }
 
     public void addPolicyURI(boolean isCritical, String policyUri)
@@ -368,8 +435,8 @@ public class PGPSignatureSubpacketGenerator
      *
      * @param isCritical   true if should be treated as critical, false otherwise.
      * @param keyAlgorithm algorithm of the revocation key
-     * @param fingerprint  fingerprint of the revocation key
-     * @deprecated use {@link #addRevocationKey(boolean, int, byte[])} instead.
+     * @param fingerprint  fingerprint of the revocation key (v4 only)
+     * @deprecated the revocation key mechanism is deprecated. Applications MUST NOT generate such a packet.
      */
     public void setRevocationKey(boolean isCritical, int keyAlgorithm, byte[] fingerprint)
     {
@@ -381,7 +448,8 @@ public class PGPSignatureSubpacketGenerator
      *
      * @param isCritical   true if should be treated as critical, false otherwise.
      * @param keyAlgorithm algorithm of the revocation key
-     * @param fingerprint  fingerprint of the revocation key
+     * @param fingerprint  fingerprint of the revocation key (v4 only)
+     * @deprecated the revocation key mechanism is deprecated. Applications MUST NOT generate such a packet.
      */
     public void addRevocationKey(boolean isCritical, int keyAlgorithm, byte[] fingerprint)
     {

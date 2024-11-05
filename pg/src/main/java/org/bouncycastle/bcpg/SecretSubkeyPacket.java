@@ -18,9 +18,16 @@ public class SecretSubkeyPacket
         BCPGInputStream in)
         throws IOException
     {
-        super(SECRET_SUBKEY, in);
+        this(in, false);
     }
 
+    SecretSubkeyPacket(
+            BCPGInputStream in,
+            boolean newPacketFormat)
+            throws IOException
+    {
+        super(SECRET_SUBKEY, in, newPacketFormat);
+    }
     /**
      * Create a secret subkey packet.
      * If the encryption algorithm is NOT {@link SymmetricKeyAlgorithmTags#NULL},
@@ -75,7 +82,7 @@ public class SecretSubkeyPacket
      * @param iv            optional iv for the AEAD algorithm or encryption algorithm
      * @param secKeyData    secret key data
      */
-    SecretSubkeyPacket(
+    public SecretSubkeyPacket(
         PublicKeyPacket pubKeyPacket,
         int encAlgorithm,
         int aeadAlgorithm,

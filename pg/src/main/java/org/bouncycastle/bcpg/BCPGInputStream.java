@@ -11,7 +11,8 @@ import org.bouncycastle.util.io.Streams;
  * Stream reader for PGP objects
  */
 public class BCPGInputStream
-    extends InputStream implements PacketTags
+    extends InputStream
+    implements PacketTags
 {
     /**
      * If the argument is a {@link BCPGInputStream}, return it.
@@ -29,19 +30,19 @@ public class BCPGInputStream
         return new BCPGInputStream(in);
     }
 
-    InputStream    in;
-    boolean        next = false;
-    int            nextB;
+    InputStream in;
+    boolean next = false;
+    int nextB;
 
-    boolean        mNext = false;
-    int            mNextB;
+    boolean mNext = false;
+    int mNextB;
 
     public BCPGInputStream(
-        InputStream    in)
+        InputStream in)
     {
         this.in = in;
     }
-    
+
     public int available()
         throws IOException
     {
@@ -113,9 +114,9 @@ public class BCPGInputStream
     }
 
     public void readFully(
-        byte[]    buf,
-        int       off,
-        int       len)
+        byte[] buf,
+        int off,
+        int len)
         throws IOException
     {
         if (Streams.readFully(this, buf, off, len) < len)
@@ -131,7 +132,7 @@ public class BCPGInputStream
     }
 
     public void readFully(
-        byte[]    buf)
+        byte[] buf)
         throws IOException
     {
         readFully(buf, 0, buf.length);
@@ -141,7 +142,6 @@ public class BCPGInputStream
      * Obtains the tag of the next packet in the stream.
      *
      * @return the {@link PacketTags tag number}.
-     *
      * @throws IOException if an error occurs reading the tag from the stream.
      */
     public int nextPacketTag()
@@ -176,12 +176,13 @@ public class BCPGInputStream
 
     /**
      * Reads the next packet from the stream.
+     *
      * @throws IOException
      */
     public Packet readPacket()
         throws IOException
     {
-        int    hdr = this.read();
+        int hdr = this.read();
 
         if (hdr < 0)
         {
@@ -193,36 +194,17 @@ public class BCPGInputStream
             throw new IOException("invalid header encountered");
         }
 
-        boolean    newPacket = (hdr & 0x40) != 0;
-        int        tag = 0;
-        int        bodyLen = 0;
-        boolean    partial = false;
+        boolean newPacket = (hdr & 0x40) != 0;
+        int tag = 0;
+        int bodyLen = 0;
+        boolean partial = false;
 
         if (newPacket)
         {
             tag = hdr & 0x3f;
-
-            int    l = this.read();
-
-            if (l < 192)
-            {
-                bodyLen = l;
-            }
-            else if (l <= 223)
-            {
-                int b = this.read();
-
-                bodyLen = ((l - 192) << 8) + (b) + 192;
-            }
-            else if (l == 255)
-            {
-                bodyLen = (this.read() << 24) | (this.read() << 16) |  (this.read() << 8)  | this.read();
-            }
-            else
-            {
-                partial = true;
-                bodyLen = 1 << (l & 0x1f);
-            }
+            boolean[] flags = new boolean[3];
+            bodyLen = StreamUtil.readBodyLen(this, flags);
+            partial = flags[StreamUtil.flag_partial];
         }
         else
         {
@@ -236,10 +218,10 @@ public class BCPGInputStream
                 bodyLen = this.read();
                 break;
             case 1:
-                bodyLen = (this.read() << 8) | this.read();
+                bodyLen = StreamUtil.read2OctetLength(this);
                 break;
             case 2:
-                bodyLen = (this.read() << 24) | (this.read() << 16) | (this.read() << 8) | this.read();
+                bodyLen = StreamUtil.read4OctetLength(this);
                 break;
             case 3:
                 partial = true;
@@ -249,7 +231,7 @@ public class BCPGInputStream
             }
         }
 
-        BCPGInputStream    objStream;
+        BCPGInputStream objStream;
 
         if (bodyLen == 0 && partial)
         {
@@ -260,63 +242,63 @@ public class BCPGInputStream
             objStream = new BCPGInputStream(
                 new BufferedInputStream(new PartialInputStream(this, partial, bodyLen)));
         }
-  
+
         switch (tag)
         {
         case RESERVED:
-            return new ReservedPacket(objStream);
+            return new ReservedPacket(objStream, newPacket);
         case PUBLIC_KEY_ENC_SESSION:
-            return new PublicKeyEncSessionPacket(objStream);
+            return new PublicKeyEncSessionPacket(objStream, newPacket);
         case SIGNATURE:
-            return new SignaturePacket(objStream);
+            return new SignaturePacket(objStream, newPacket);
         case SYMMETRIC_KEY_ENC_SESSION:
-            return new SymmetricKeyEncSessionPacket(objStream);
+            return new SymmetricKeyEncSessionPacket(objStream, newPacket);
         case ONE_PASS_SIGNATURE:
-            return new OnePassSignaturePacket(objStream);
+            return new OnePassSignaturePacket(objStream, newPacket);
         case SECRET_KEY:
-            return new SecretKeyPacket(objStream);
+            return new SecretKeyPacket(objStream, newPacket);
         case PUBLIC_KEY:
-            return new PublicKeyPacket(objStream);
+            return new PublicKeyPacket(objStream, newPacket);
         case SECRET_SUBKEY:
-            return new SecretSubkeyPacket(objStream);
+            return new SecretSubkeyPacket(objStream, newPacket);
         case COMPRESSED_DATA:
-            return new CompressedDataPacket(objStream);
+            return new CompressedDataPacket(objStream, newPacket);
         case SYMMETRIC_KEY_ENC:
-            return new SymmetricEncDataPacket(objStream);
+            return new SymmetricEncDataPacket(objStream, newPacket);
         case MARKER:
-            return new MarkerPacket(objStream);
+            return new MarkerPacket(objStream, newPacket);
         case LITERAL_DATA:
-            return new LiteralDataPacket(objStream);
+            return new LiteralDataPacket(objStream, newPacket);
         case TRUST:
-            return new TrustPacket(objStream);
+            return new TrustPacket(objStream, newPacket);
         case USER_ID:
-            return new UserIDPacket(objStream);
+            return new UserIDPacket(objStream, newPacket);
         case USER_ATTRIBUTE:
-            return new UserAttributePacket(objStream);
+            return new UserAttributePacket(objStream, newPacket);
         case PUBLIC_SUBKEY:
-            return new PublicSubkeyPacket(objStream);
+            return new PublicSubkeyPacket(objStream, newPacket);
         case SYM_ENC_INTEGRITY_PRO:
-            return new SymmetricEncIntegrityPacket(objStream);
+            return new SymmetricEncIntegrityPacket(objStream, newPacket);
         case MOD_DETECTION_CODE:
-            return new ModDetectionCodePacket(objStream);
+            return new ModDetectionCodePacket(objStream, newPacket);
         case AEAD_ENC_DATA:
-            return new AEADEncDataPacket(objStream);
+            return new AEADEncDataPacket(objStream, newPacket);
         case PADDING:
-            return new PaddingPacket(objStream);
+            return new PaddingPacket(objStream, newPacket);
         case EXPERIMENTAL_1:
         case EXPERIMENTAL_2:
         case EXPERIMENTAL_3:
         case EXPERIMENTAL_4:
-            return new ExperimentalPacket(tag, objStream);
+            return new ExperimentalPacket(tag, objStream, newPacket);
         default:
-            return new UnknownPacket(tag, objStream);
+            return new UnknownPacket(tag, objStream, newPacket);
         }
     }
 
     /**
-     * @deprecated use skipMarkerAndPaddingPackets
      * @return the tag for the next non-marker/padding packet
      * @throws IOException on a parsing issue.
+     * @deprecated use skipMarkerAndPaddingPackets
      */
     public int skipMarkerPackets()
         throws IOException
@@ -326,6 +308,7 @@ public class BCPGInputStream
 
     /**
      * skip any marker and padding packets found in the stream.
+     *
      * @return the tag for the next non-marker/padding packet
      * @throws IOException on a parsing issue.
      */
@@ -334,7 +317,7 @@ public class BCPGInputStream
     {
         int tag;
         while ((tag = nextPacketTag()) == PacketTags.MARKER
-             || tag == PacketTags.PADDING)
+            || tag == PacketTags.PADDING)
         {
             readPacket();
         }
@@ -350,20 +333,20 @@ public class BCPGInputStream
 
     /**
      * a stream that overlays our input stream, allowing the user to only read a segment of it.
-     *
+     * <p>
      * NB: dataLength will be negative if the segment length is in the upper range above 2**31.
      */
     private static class PartialInputStream
         extends InputStream
     {
-        private BCPGInputStream     in;
-        private boolean             partial;
-        private int                 dataLength;
+        private BCPGInputStream in;
+        private boolean partial;
+        private int dataLength;
 
         PartialInputStream(
-            BCPGInputStream  in,
-            boolean          partial,
-            int              dataLength)
+            BCPGInputStream in,
+            boolean partial,
+            int dataLength)
         {
             this.in = in;
             this.partial = partial;
@@ -392,32 +375,13 @@ public class BCPGInputStream
         private int loadDataLength()
             throws IOException
         {
-            int            l = in.read();
-
-            if (l < 0)
+            boolean[] flags = new boolean[3];
+            dataLength = StreamUtil.readBodyLen(in, flags);
+            if (flags[StreamUtil.flag_eof])
             {
                 return -1;
             }
-
-            partial = false;
-            if (l < 192)
-            {
-                dataLength = l;
-            }
-            else if (l <= 223)
-            {
-                dataLength = ((l - 192) << 8) + (in.read()) + 192;
-            }
-            else if (l == 255)
-            {
-                dataLength = (in.read() << 24) | (in.read() << 16) |  (in.read() << 8)  | in.read();
-            }
-            else
-            {
-                partial = true;
-                dataLength = 1 << (l & 0x1f);
-            }
-
+            partial = flags[StreamUtil.flag_partial];
             return dataLength;
         }
 

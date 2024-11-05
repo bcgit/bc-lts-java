@@ -12,16 +12,22 @@ public class PaddingPacket
     private final byte[] padding;
 
     public PaddingPacket(BCPGInputStream in)
+            throws IOException
+    {
+        this(in, true);
+    }
+
+    public PaddingPacket(BCPGInputStream in, boolean newPacketFormat)
         throws IOException
     {
-        super(PADDING);
+        super(PADDING, newPacketFormat);
 
         padding = Streams.readAll(in);
     }
 
     public PaddingPacket(byte[] padding)
     {
-        super(PADDING);
+        super(PADDING, true);
 
         this.padding = padding;
     }
@@ -33,6 +39,10 @@ public class PaddingPacket
 
     private static byte[] randomBytes(int octetCount, SecureRandom random)
     {
+        if (octetCount <= 0)
+        {
+            throw new IllegalArgumentException("Octet count MUST NOT be 0 nor negative.");
+        }
         byte[] bytes = new byte[octetCount];
         random.nextBytes(bytes);
         return bytes;
@@ -47,6 +57,6 @@ public class PaddingPacket
     public void encode(BCPGOutputStream pOut)
         throws IOException
     {
-        pOut.writePacket(PacketTags.PADDING, padding);
+        pOut.writePacket(hasNewPacketFormat(), PacketTags.PADDING, padding);
     }
 }

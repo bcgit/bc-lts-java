@@ -17,13 +17,15 @@ import java.util.logging.Logger;
 
 import org.bouncycastle.bcpg.ArmoredInputException;
 import org.bouncycastle.bcpg.BCPGInputStream;
+import org.bouncycastle.bcpg.BCPGOutputStream;
+import org.bouncycastle.bcpg.KeyIdentifier;
 import org.bouncycastle.bcpg.Packet;
+import org.bouncycastle.bcpg.PacketFormat;
 import org.bouncycastle.bcpg.PacketTags;
 import org.bouncycastle.bcpg.PublicKeyPacket;
 import org.bouncycastle.bcpg.TrustPacket;
 import org.bouncycastle.bcpg.UserDataPacket;
 import org.bouncycastle.openpgp.operator.KeyFingerPrintCalculator;
-import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Iterable;
 import org.bouncycastle.util.Longs;
 
@@ -184,13 +186,42 @@ public class PGPPublicKeyRing
         {
             PGPPublicKey k = (PGPPublicKey)keys.get(i);
 
-            if (Arrays.areEqual(fingerprint, k.getFingerprint()))
+            if (k.hasFingerprint(fingerprint))
             {
                 return k;
             }
         }
 
         return null;
+    }
+
+    @Override
+    public PGPPublicKey getPublicKey(KeyIdentifier identifier)
+    {
+        for (Iterator it = keys.iterator(); it.hasNext();)
+        {
+            PGPPublicKey k = (PGPPublicKey)it.next();
+            if (identifier.matches(k.getKeyIdentifier()))
+            {
+                return k;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Iterator<PGPPublicKey> getPublicKeys(KeyIdentifier identifier)
+    {
+        List<PGPPublicKey> matches = new ArrayList<PGPPublicKey>();
+        for (Iterator it = keys.iterator(); it.hasNext();)
+        {
+            PGPPublicKey k = (PGPPublicKey)it.next();
+            if (identifier.matches(k.getKeyIdentifier()))
+            {
+                matches.add(k);
+            }
+        }
+        return matches.iterator();
     }
 
     /**
@@ -218,6 +249,22 @@ public class PGPPublicKeyRing
         return keysWithSigs.iterator();
     }
 
+    @Override
+    public Iterator<PGPPublicKey> getKeysWithSignaturesBy(KeyIdentifier identifier)
+    {
+        List<PGPPublicKey> keysWithSigs = new ArrayList<PGPPublicKey>();
+        for (Iterator it = keys.iterator(); it.hasNext();)
+        {
+            PGPPublicKey k = (PGPPublicKey)it.next();
+            Iterator<PGPSignature> sigIt = k.getSignaturesForKey(identifier);
+            if (sigIt.hasNext())
+            {
+                keysWithSigs.add(k);
+            }
+        }
+        return keysWithSigs.iterator();
+    }
+
     /**
      * Return an iterator containing all the public keys.
      *
@@ -239,10 +286,16 @@ public class PGPPublicKeyRing
     public byte[] getEncoded()
         throws IOException
     {
+        return getEncoded(PacketFormat.ROUNDTRIP);
+    }
+
+    @Override
+    public byte[] getEncoded(PacketFormat format) throws IOException
+    {
         ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-
-        this.encode(bOut);
-
+        BCPGOutputStream pOut = new BCPGOutputStream(bOut, format);
+        this.encode(pOut);
+        pOut.close();
         return bOut.toByteArray();
     }
 
@@ -478,7 +531,7 @@ public class PGPPublicKeyRing
         boolean allowSubkeySigsOnNonSubkey)
         throws PGPException
     {
-        if (!Arrays.areEqual(first.getPublicKey().getFingerprint(), second.getPublicKey().getFingerprint()))
+        if (!second.getPublicKey().hasFingerprint(first.getPublicKey().getFingerprint()))
         {
             throw new IllegalArgumentException("Cannot merge certificates with differing primary keys.");
         }
