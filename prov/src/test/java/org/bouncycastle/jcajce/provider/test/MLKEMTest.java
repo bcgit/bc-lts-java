@@ -1,4 +1,21 @@
-package org.bouncycastle.jcajce.provider.test;
+package org.bouncycastle.pqc.jcajce.provider.test;
+
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 import junit.framework.TestCase;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
@@ -6,53 +23,41 @@ import org.bouncycastle.jcajce.SecretKeyWithEncapsulation;
 import org.bouncycastle.jcajce.spec.KEMExtractSpec;
 import org.bouncycastle.jcajce.spec.KEMGenerateSpec;
 import org.bouncycastle.jcajce.spec.KTSParameterSpec;
-
+import org.bouncycastle.jcajce.spec.MLKEMParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pqc.crypto.mlkem.MLKEMParameters;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-
-import org.bouncycastle.pqc.jcajce.spec.MLKEMParameterSpec;
-
 /**
  * KEM tests for MLKEM with the BC provider.
  */
 public class MLKEMTest
-        extends TestCase
+    extends TestCase
 {
     static private final String[] names = new String[]{
-            "ML-KEM-512",
-            "ML-KEM-768",
-            "ML-KEM-1024"
+        "ML-KEM-512",
+        "ML-KEM-768",
+        "ML-KEM-1024"
     };
-
+    
     public void setUp()
     {
         if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
         {
             Security.addProvider(new BouncyCastleProvider());
         }
-        Security.addProvider(new BouncyCastleProvider());
     }
 
     public void testParametersAndParamSpecs()
-            throws Exception
+        throws Exception
     {
         MLKEMParameters mldsaParameters[] = new MLKEMParameters[]
-                {
-                        MLKEMParameters.ml_kem_512,
-                        MLKEMParameters.ml_kem_768,
-                        MLKEMParameters.ml_kem_1024
-                };
+            {
+                MLKEMParameters.ml_kem_512,
+                MLKEMParameters.ml_kem_768,
+                MLKEMParameters.ml_kem_1024
+            };
 
         for (int i = 0; i != names.length; i++)
         {
@@ -64,9 +69,9 @@ public class MLKEMTest
             assertEquals(names[i], MLKEMParameterSpec.fromName(names[i]).getName());
         }
     }
-
+    
     public void testKeyFactory()
-            throws Exception
+        throws Exception
     {
         KeyFactory kFact = KeyFactory.getInstance("ML-KEM", "BC");
         KeyPairGenerator kpGen512 = KeyPairGenerator.getInstance("ML-KEM-512");
@@ -85,7 +90,7 @@ public class MLKEMTest
     }
 
     private void tryKeyFact(KeyFactory kFact, KeyPair kpValid, KeyPair kpInvalid, String oid)
-            throws Exception
+        throws Exception
     {
         kFact.generatePrivate(new PKCS8EncodedKeySpec(kpValid.getPrivate().getEncoded()));
         kFact.generatePublic(new X509EncodedKeySpec(kpValid.getPublic().getEncoded()));
@@ -111,7 +116,7 @@ public class MLKEMTest
     }
 
     public void testBasicKEMCamellia()
-            throws Exception
+        throws Exception
     {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("ML-KEM", "BC");
         kpg.initialize(MLKEMParameterSpec.ml_kem_512, new SecureRandom());
@@ -121,7 +126,7 @@ public class MLKEMTest
     }
 
     public void testBasicKEMSEED()
-            throws Exception
+        throws Exception
     {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("ML-KEM", "BC");
         kpg.initialize(MLKEMParameterSpec.ml_kem_512, new SecureRandom());
@@ -130,7 +135,7 @@ public class MLKEMTest
     }
 
     public void testBasicKEMARIA()
-            throws Exception
+        throws Exception
     {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("ML-KEM", "BC");
         kpg.initialize(MLKEMParameterSpec.ml_kem_512, new SecureRandom());
@@ -140,7 +145,7 @@ public class MLKEMTest
     }
 
     private void performKEMScipher(KeyPair kp, String algorithm, KTSParameterSpec ktsParameterSpec)
-            throws Exception
+        throws Exception
     {
         Cipher w1 = Cipher.getInstance(algorithm, "BC");
 
@@ -169,7 +174,7 @@ public class MLKEMTest
     }
 
     public void testGenerateAES()
-            throws Exception
+        throws Exception
     {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("ML-KEM", "BC");
         kpg.initialize(MLKEMParameterSpec.ml_kem_512, new SecureRandom());
@@ -180,14 +185,14 @@ public class MLKEMTest
 
         keyGen.init(new KEMGenerateSpec(kp.getPublic(), "AES", 128), new SecureRandom());
 
-        SecretKeyWithEncapsulation secEnc1 = (SecretKeyWithEncapsulation) keyGen.generateKey();
+        SecretKeyWithEncapsulation secEnc1 = (SecretKeyWithEncapsulation)keyGen.generateKey();
 
         assertEquals("AES", secEnc1.getAlgorithm());
         assertEquals(16, secEnc1.getEncoded().length);
 
         keyGen.init(new KEMExtractSpec(kp.getPrivate(), secEnc1.getEncapsulation(), "AES", 128));
 
-        SecretKeyWithEncapsulation secEnc2 = (SecretKeyWithEncapsulation) keyGen.generateKey();
+        SecretKeyWithEncapsulation secEnc2 = (SecretKeyWithEncapsulation)keyGen.generateKey();
 
         assertEquals("AES", secEnc2.getAlgorithm());
 
@@ -195,7 +200,7 @@ public class MLKEMTest
     }
 
     public void testGenerateAES256()
-            throws Exception
+        throws Exception
     {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("ML-KEM", "BC");
         kpg.initialize(MLKEMParameterSpec.ml_kem_1024, new SecureRandom());
@@ -206,14 +211,14 @@ public class MLKEMTest
 
         keyGen.init(new KEMGenerateSpec(kp.getPublic(), "AES"), new SecureRandom());
 
-        SecretKeyWithEncapsulation secEnc1 = (SecretKeyWithEncapsulation) keyGen.generateKey();
+        SecretKeyWithEncapsulation secEnc1 = (SecretKeyWithEncapsulation)keyGen.generateKey();
 
         assertEquals("AES", secEnc1.getAlgorithm());
         assertEquals(32, secEnc1.getEncoded().length);
 
         keyGen.init(new KEMExtractSpec(kp.getPrivate(), secEnc1.getEncapsulation(), "AES"));
 
-        SecretKeyWithEncapsulation secEnc2 = (SecretKeyWithEncapsulation) keyGen.generateKey();
+        SecretKeyWithEncapsulation secEnc2 = (SecretKeyWithEncapsulation)keyGen.generateKey();
 
         assertEquals("AES", secEnc2.getAlgorithm());
 
@@ -221,7 +226,7 @@ public class MLKEMTest
     }
 
     public void testRestrictedKeyPairGen()
-            throws Exception
+        throws Exception
     {
         doTestRestrictedKeyPairGen(MLKEMParameterSpec.ml_kem_512, MLKEMParameterSpec.ml_kem_1024);
         doTestRestrictedKeyPairGen(MLKEMParameterSpec.ml_kem_768, MLKEMParameterSpec.ml_kem_1024);
@@ -229,7 +234,7 @@ public class MLKEMTest
     }
 
     private void doTestRestrictedKeyPairGen(MLKEMParameterSpec spec, MLKEMParameterSpec altSpec)
-            throws Exception
+        throws Exception
     {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(spec.getName(), "BC");
 
@@ -255,7 +260,7 @@ public class MLKEMTest
     }
 
     public void testRestrictedKeyGen()
-            throws Exception
+        throws Exception
     {
         doTestRestrictedKeyGen(MLKEMParameterSpec.ml_kem_512, MLKEMParameterSpec.ml_kem_1024);
         doTestRestrictedKeyGen(MLKEMParameterSpec.ml_kem_768, MLKEMParameterSpec.ml_kem_1024);
@@ -263,7 +268,7 @@ public class MLKEMTest
     }
 
     private void doTestRestrictedKeyGen(MLKEMParameterSpec spec, MLKEMParameterSpec altSpec)
-            throws Exception
+        throws Exception
     {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(spec.getName(), "BC");
 
@@ -281,11 +286,11 @@ public class MLKEMTest
 
         keyGen.init(new KEMGenerateSpec(kp.getPublic(), "AES"), new SecureRandom());
 
-        SecretKeyWithEncapsulation secEnc1 = (SecretKeyWithEncapsulation) keyGen.generateKey();
+        SecretKeyWithEncapsulation secEnc1 = (SecretKeyWithEncapsulation)keyGen.generateKey();
 
         keyGen.init(new KEMExtractSpec(kp.getPrivate(), secEnc1.getEncapsulation(), "AES"));
 
-        SecretKeyWithEncapsulation secEnc2 = (SecretKeyWithEncapsulation) keyGen.generateKey();
+        SecretKeyWithEncapsulation secEnc2 = (SecretKeyWithEncapsulation)keyGen.generateKey();
 
         assertTrue(Arrays.areEqual(secEnc1.getEncoded(), secEnc2.getEncoded()));
 
@@ -317,7 +322,7 @@ public class MLKEMTest
     }
 
     public void testRestrictedCipher()
-            throws Exception
+        throws Exception
     {
         doTestRestrictedCipher(MLKEMParameterSpec.ml_kem_512, MLKEMParameterSpec.ml_kem_1024, new byte[16]);
         doTestRestrictedCipher(MLKEMParameterSpec.ml_kem_768, MLKEMParameterSpec.ml_kem_1024, new byte[24]);
@@ -325,7 +330,7 @@ public class MLKEMTest
     }
 
     private void doTestRestrictedCipher(MLKEMParameterSpec spec, MLKEMParameterSpec altSpec, byte[] keyBytes)
-            throws Exception
+        throws Exception
     {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance(spec.getName(), "BC");
 

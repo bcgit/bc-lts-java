@@ -1,32 +1,37 @@
 package org.bouncycastle.jcajce.provider.test;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.security.AlgorithmParameters;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.Signature;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+
 import junit.framework.TestCase;
 import org.bouncycastle.asn1.ASN1BitString;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-
+import org.bouncycastle.jcajce.interfaces.MLDSAKey;
+import org.bouncycastle.jcajce.interfaces.MLDSAPrivateKey;
 import org.bouncycastle.jcajce.spec.ContextParameterSpec;
-
+import org.bouncycastle.jcajce.spec.MLDSAParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pqc.crypto.mldsa.MLDSAParameters;
-import org.bouncycastle.pqc.jcajce.interfaces.MLDSAKey;
-import org.bouncycastle.pqc.jcajce.interfaces.MLDSAPrivateKey;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
-
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.security.*;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
-
-import org.bouncycastle.pqc.jcajce.spec.MLDSAParameterSpec;
 
 /**
  * MLDSA now in BC provider
@@ -51,7 +56,6 @@ public class MLDSATest
         {
             Security.addProvider(new BouncyCastleProvider());
         }
-        Security.addProvider(new BouncyCastleProvider());
     }
 
     public void testParametersAndParamSpecs()
@@ -140,7 +144,7 @@ public class MLDSATest
     {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("ML-DSA", "BC");
 
-        kpg.initialize(MLDSAParameterSpec.ml_dsa_65, new RiggedRandom());
+        kpg.initialize(MLDSAParameterSpec.ml_dsa_65, new MLDSATest.RiggedRandom());
 
         KeyPair kp = kpg.generateKeyPair();
 
@@ -170,7 +174,7 @@ public class MLDSATest
     {
         KeyPairGenerator kpg = KeyPairGenerator.getInstance("ML-DSA", "BC");
 
-        kpg.initialize(MLDSAParameterSpec.ml_dsa_87, new RiggedRandom());
+        kpg.initialize(MLDSAParameterSpec.ml_dsa_87, new MLDSATest.RiggedRandom());
 
         KeyPair kp = kpg.generateKeyPair();
 

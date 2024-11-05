@@ -1,22 +1,21 @@
 package org.bouncycastle.jcajce.provider.asymmetric.mldsa;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+
 import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-
+import org.bouncycastle.jcajce.interfaces.MLDSAPrivateKey;
+import org.bouncycastle.jcajce.interfaces.MLDSAPublicKey;
+import org.bouncycastle.jcajce.spec.MLDSAParameterSpec;
 import org.bouncycastle.pqc.crypto.mldsa.MLDSAPrivateKeyParameters;
 import org.bouncycastle.pqc.crypto.util.PrivateKeyFactory;
-import org.bouncycastle.pqc.jcajce.interfaces.MLDSAPrivateKey;
-import org.bouncycastle.pqc.jcajce.interfaces.MLDSAPublicKey;
 import org.bouncycastle.pqc.jcajce.provider.util.KeyUtil;
-import org.bouncycastle.pqc.jcajce.spec.MLDSAParameterSpec;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Fingerprint;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
-
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 
 public class BCMLDSAPrivateKey
     implements MLDSAPrivateKey

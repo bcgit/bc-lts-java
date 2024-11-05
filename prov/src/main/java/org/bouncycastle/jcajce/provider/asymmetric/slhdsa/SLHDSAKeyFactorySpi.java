@@ -1,11 +1,5 @@
 package org.bouncycastle.jcajce.provider.asymmetric.slhdsa;
 
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
-import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.pqc.jcajce.provider.util.BaseKeyFactorySpi;
-
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.Key;
@@ -17,6 +11,12 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.pqc.jcajce.provider.util.BaseKeyFactorySpi;
 
 public class SLHDSAKeyFactorySpi
     extends BaseKeyFactorySpi

@@ -1,10 +1,10 @@
-package org.bouncycastle.pqc.jcajce.interfaces;
+package org.bouncycastle.jcajce.interfaces;
 
 
-
-import org.bouncycastle.pqc.jcajce.spec.SLHDSAParameterSpec;
 
 import java.security.Key;
+
+import org.bouncycastle.jcajce.spec.SLHDSAParameterSpec;
 
 public interface SLHDSAKey
     extends Key

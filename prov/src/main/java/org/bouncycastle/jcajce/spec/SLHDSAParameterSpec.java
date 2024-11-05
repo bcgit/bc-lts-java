@@ -1,10 +1,10 @@
-package org.bouncycastle.pqc.jcajce.spec;
-
-import org.bouncycastle.util.Strings;
+package org.bouncycastle.jcajce.spec;
 
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.bouncycastle.util.Strings;
 
 /**
  * AlgorithmSpec for SLH-DSA

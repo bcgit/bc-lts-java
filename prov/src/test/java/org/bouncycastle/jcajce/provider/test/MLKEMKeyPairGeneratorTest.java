@@ -1,23 +1,30 @@
 package org.bouncycastle.jcajce.provider.test;
 
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.SecureRandom;
+import java.security.Security;
+
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-
+import org.bouncycastle.jcajce.interfaces.MLKEMPrivateKey;
+import org.bouncycastle.jcajce.interfaces.MLKEMPublicKey;
+import org.bouncycastle.jcajce.provider.test.KeyPairGeneratorTest;
+import org.bouncycastle.jcajce.spec.MLKEMParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.pqc.jcajce.interfaces.MLKEMPrivateKey;
-import org.bouncycastle.pqc.jcajce.interfaces.MLKEMPublicKey;
-import org.bouncycastle.pqc.jcajce.spec.MLKEMParameterSpec;
+import org.bouncycastle.jce.spec.ECNamedCurveGenParameterSpec;
 import org.bouncycastle.util.Arrays;
-
-import java.security.*;
+import org.bouncycastle.util.Strings;
 
 /**
  * KeyFactory/KeyPairGenerator tests for MLKEM with BCPQC provider.
  */
 public class MLKEMKeyPairGeneratorTest
-        extends KeyPairGeneratorTest
+    extends MainProvKeyPairGeneratorTest
 {
     protected void setUp()
     {
@@ -29,28 +36,77 @@ public class MLKEMKeyPairGeneratorTest
     }
 
     public void testKeyFactory()
-            throws Exception
+        throws Exception
     {
         kf = KeyFactory.getInstance("ML-KEM", "BC");
     }
 
+    public void testKeyPairGeneratorNames()
+        throws Exception
+    {
+        ASN1ObjectIdentifier[] oids = new ASN1ObjectIdentifier[]{
+            NISTObjectIdentifiers.id_alg_ml_kem_512,
+            NISTObjectIdentifiers.id_alg_ml_kem_768,
+            NISTObjectIdentifiers.id_alg_ml_kem_1024
+        };
+
+        String[] algs = new String[]{
+            "ML-KEM-512",
+            "ML-KEM-768",
+            "ML-KEM-1024"
+        };
+
+        for (int i = 0; i != oids.length; i++)
+        {
+            KeyPairGenerator kpGen = KeyPairGenerator.getInstance(oids[i].getId(), "BC");
+
+            KeyPair kp = kpGen.generateKeyPair();
+
+            assertEquals(algs[i], kp.getPrivate().getAlgorithm());
+            assertEquals(algs[i], kp.getPublic().getAlgorithm());
+        }
+
+        //
+        // a bit of a cheat as we just look for "getName()" on the parameter spec.
+        //
+        for (int i = 0; i != algs.length; i++)
+        {
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance(algs[i], "BC");
+            kpg.initialize(new ECNamedCurveGenParameterSpec(Strings.toLowerCase(algs[i])));
+            kpg.initialize(new ECNamedCurveGenParameterSpec(Strings.toUpperCase(algs[i])));
+            kpg.initialize(new ECNamedCurveGenParameterSpec(Strings.toLowerCase(algs[i])), new SecureRandom());
+            kpg.initialize(new ECNamedCurveGenParameterSpec(Strings.toUpperCase(algs[i])), new SecureRandom());
+        }
+
+        try
+        {
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance(algs[0], "BC");
+            kpg.initialize(new ECNamedCurveGenParameterSpec(Strings.toLowerCase("Not Valid")));
+            fail("no exception");
+        }
+        catch (InvalidAlgorithmParameterException e)
+        {
+            assertEquals("unknown parameter set name: NOT VALID", e.getMessage());
+        }
+    }
+
     public void testKeyPairEncoding()
-            throws Exception
+        throws Exception
     {
         MLKEMParameterSpec[] params =
-                new MLKEMParameterSpec[]
-                        {
-                                MLKEMParameterSpec.ml_kem_512,
-                                MLKEMParameterSpec.ml_kem_768,
-                                MLKEMParameterSpec.ml_kem_1024,
-                        };
+            new MLKEMParameterSpec[]
+                {
+                    MLKEMParameterSpec.ml_kem_512,
+                    MLKEMParameterSpec.ml_kem_768,
+                    MLKEMParameterSpec.ml_kem_1024,
+                };
         // expected object identifiers
         ASN1ObjectIdentifier[] oids =
-                {
-                        NISTObjectIdentifiers.id_alg_ml_kem_512,
-                        NISTObjectIdentifiers.id_alg_ml_kem_768,
-                        NISTObjectIdentifiers.id_alg_ml_kem_1024,
-                };
+            {
+                NISTObjectIdentifiers.id_alg_ml_kem_512,
+                NISTObjectIdentifiers.id_alg_ml_kem_768,
+                NISTObjectIdentifiers.id_alg_ml_kem_1024,
+            };
         kf = KeyFactory.getInstance("ML-KEM", "BC");
 
         kpg = KeyPairGenerator.getInstance("ML-KEM", "BC");

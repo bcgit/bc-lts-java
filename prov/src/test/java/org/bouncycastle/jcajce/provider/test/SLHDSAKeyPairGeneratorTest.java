@@ -1,18 +1,27 @@
-package org.bouncycastle.jcajce.provider.test;
+package org.bouncycastle.pqc.jcajce.provider.test;
+
+import java.security.InvalidAlgorithmParameterException;
+import java.security.Key;
+import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.SecureRandom;
+import java.security.Security;
+import java.security.Signature;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-
+import org.bouncycastle.jcajce.interfaces.SLHDSAPrivateKey;
+import org.bouncycastle.jcajce.interfaces.SLHDSAPublicKey;
+import org.bouncycastle.jcajce.provider.test.MainProvKeyPairGeneratorTest;
+import org.bouncycastle.jcajce.spec.SLHDSAParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.pqc.jcajce.interfaces.SLHDSAPrivateKey;
-import org.bouncycastle.pqc.jcajce.interfaces.SLHDSAPublicKey;
-import org.bouncycastle.pqc.jcajce.spec.SLHDSAParameterSpec;
+import org.bouncycastle.jce.spec.ECNamedCurveGenParameterSpec;
 import org.bouncycastle.util.Arrays;
-
-import java.security.*;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.security.spec.X509EncodedKeySpec;
+import org.bouncycastle.util.Strings;
 
 
 /**
@@ -152,6 +161,29 @@ public class SLHDSAKeyPairGeneratorTest
             assertNotNull(((SLHDSAPublicKey)keyPair.getPublic()).getParameterSpec());
             assertEquals(oids[i], SubjectPublicKeyInfo.getInstance(keyPair.getPublic().getEncoded()).getAlgorithm().getAlgorithm());
             assertTrue(oids[i].toString(), Arrays.areEqual(((SLHDSAPublicKey)keyPair.getPublic()).getPublicData(), ((SLHDSAPrivateKey)keyPair.getPrivate()).getPublicKey().getPublicData()));
+        }
+
+        //
+        // a bit of a cheat as we just look for "getName()" on the parameter spec.
+        //
+        for (int i = 0; i != params.length; i++)
+        {
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance(params[i].getName(), "BC");
+            kpg.initialize(new ECNamedCurveGenParameterSpec(Strings.toLowerCase(params[i].getName())));
+            kpg.initialize(new ECNamedCurveGenParameterSpec(Strings.toUpperCase(params[i].getName())));
+            kpg.initialize(new ECNamedCurveGenParameterSpec(Strings.toLowerCase(params[i].getName())), new SecureRandom());
+            kpg.initialize(new ECNamedCurveGenParameterSpec(Strings.toUpperCase(params[i].getName())), new SecureRandom());
+        }
+
+        try
+        {
+            KeyPairGenerator kpg = KeyPairGenerator.getInstance(params[0].getName(), "BC");
+            kpg.initialize(new ECNamedCurveGenParameterSpec(Strings.toLowerCase("Not Valid")));
+            fail("no exception");
+        }
+        catch (InvalidAlgorithmParameterException e)
+        {
+            assertEquals("unknown parameter set name: NOT VALID", e.getMessage());
         }
     }
 

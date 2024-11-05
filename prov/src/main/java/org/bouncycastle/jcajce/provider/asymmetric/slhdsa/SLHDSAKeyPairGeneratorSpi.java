@@ -1,13 +1,5 @@
 package org.bouncycastle.jcajce.provider.asymmetric.slhdsa;
 
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-
-import org.bouncycastle.pqc.crypto.slhdsa.*;
-import org.bouncycastle.pqc.jcajce.provider.util.SpecUtil;
-import org.bouncycastle.pqc.jcajce.spec.SLHDSAParameterSpec;
-import org.bouncycastle.util.Strings;
-
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -15,6 +7,17 @@ import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.HashMap;
 import java.util.Map;
+
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.jcajce.spec.SLHDSAParameterSpec;
+import org.bouncycastle.pqc.crypto.slhdsa.SLHDSAKeyGenerationParameters;
+import org.bouncycastle.pqc.crypto.slhdsa.SLHDSAKeyPairGenerator;
+import org.bouncycastle.pqc.crypto.slhdsa.SLHDSAParameters;
+import org.bouncycastle.pqc.crypto.slhdsa.SLHDSAPrivateKeyParameters;
+import org.bouncycastle.pqc.crypto.slhdsa.SLHDSAPublicKeyParameters;
+import org.bouncycastle.pqc.jcajce.provider.util.SpecUtil;
+import org.bouncycastle.util.Strings;
 
 public class SLHDSAKeyPairGeneratorSpi
     extends java.security.KeyPairGenerator
@@ -89,7 +92,12 @@ public class SLHDSAKeyPairGeneratorSpi
 
         if (name != null)
         {
-            param = new SLHDSAKeyGenerationParameters(random, (SLHDSAParameters)parameters.get(name));
+            SLHDSAParameters parameters = (SLHDSAParameters)SLHDSAKeyPairGeneratorSpi.parameters.get(name);
+            if (parameters == null)
+            {
+                throw new InvalidAlgorithmParameterException("unknown parameter set name: " + name);
+            }
+            param = new SLHDSAKeyGenerationParameters(random, parameters);
 
             engine.init(param);
             initialised = true;
@@ -133,7 +141,7 @@ public class SLHDSAKeyPairGeneratorSpi
         }
         else
         {
-            return Strings.toLowerCase(SpecUtil.getNameFrom(paramSpec));
+            return Strings.toUpperCase(SpecUtil.getNameFrom(paramSpec));
         }
     }
 

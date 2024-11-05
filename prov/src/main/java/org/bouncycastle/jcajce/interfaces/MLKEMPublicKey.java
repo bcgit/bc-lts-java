@@ -1,4 +1,4 @@
-package org.bouncycastle.pqc.jcajce.interfaces;
+package org.bouncycastle.jcajce.interfaces;
 
 import java.security.PublicKey;
 
