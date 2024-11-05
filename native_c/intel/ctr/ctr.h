@@ -13,7 +13,7 @@
 #define CTR_BLOCK_SIZE 16
 
 // matches java one
-#define CTR_ERROR_MSG "Counter in CTR mode out of range."
+#define CTR_ERROR_MSG "Counter in CTR/SIC mode out of range."
 
 typedef struct {
     __m128i roundKeys[15];
