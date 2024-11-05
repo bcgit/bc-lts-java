@@ -28,7 +28,7 @@ c187283f03801893de3dfa528b7fe534dc4ba4239c45ed9fb88a4143866b321c  mail/src/main/
 758188c3445c7fe70eb233bcd88a0978c593022f053bc8ca51ff9d286817e34b  mail/src/main/java/org/bouncycastle/mail/smime/util/CRLFOutputStream.java
 c78f1d6696055a918467572785dd87df026f36f1ed2f900c62a59d0fb923ec0c  mail/src/main/java/org/bouncycastle/mail/smime/util/SharedFileInputStream.java
 2b5da60b35af84575119f3a6d3ee66ff40f6297b077d462977ff8de96ed4a421  mail/src/main/java/org/bouncycastle/mail/smime/util/FileBackedMimeBodyPart.java
-8e6346273c8d8eea737377007ce24c2af8c876673e7f5baf8bf5815b5cbc6efd  mail/src/main/java/org/bouncycastle/mail/smime/handlers/multipart_signed.java
+924aa3fb2011b28fdd7bb84cfc3d385c810aa5d72b73463f4655cdc5b7eba335  mail/src/main/java/org/bouncycastle/mail/smime/handlers/multipart_signed.java
 fdeae9c7312d3e1aa059b7ab78ca8f3fa92a8cdc40092350ddf35a1c709c2d84  mail/src/main/java/org/bouncycastle/mail/smime/handlers/PKCS7ContentHandler.java
 d66b6ab2007fd0806b12b6603899eca71b43885145561140fc3cf7cf38968e75  mail/src/main/java/org/bouncycastle/mail/smime/handlers/x_pkcs7_signature.java
 57dc3ac363536f616d73745a94111659a072aa881a07dd222f376fef65dcdbc8  mail/src/main/java/org/bouncycastle/mail/smime/handlers/x_pkcs7_mime.java
