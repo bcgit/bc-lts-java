@@ -1,4 +1,4 @@
-package org.bouncycastle.pqc.jcajce.provider.test;
+package org.bouncycastle.jcajce.provider.test;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.Key;

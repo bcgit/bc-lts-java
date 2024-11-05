@@ -33,6 +33,13 @@ public class AllTests
         suite.addTestSuite(CompositeSignaturesTest.class);
         suite.addTestSuite(BouncyCastleProviderTest.class);
         suite.addTestSuite(PQCSignatureTest.class);
+        suite.addTestSuite(LMSTest.class);
+        suite.addTestSuite(MLKEMTest.class);
+        suite.addTestSuite(MLKEMKeyPairGeneratorTest.class);
+        suite.addTestSuite(MLDSATest.class);
+        suite.addTestSuite(MLDSAKeyPairGeneratorTest.class);
+        suite.addTestSuite(SLHDSATest.class);
+        suite.addTestSuite(SLHDSAKeyPairGeneratorTest.class);
 
         return new BCTestSetup(suite);
     }
