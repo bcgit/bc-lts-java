@@ -285,5 +285,13 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
     return JNI_FALSE;
 }
 
-
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeSlhDSASha256
+ * Signature: ()Z
+ */
+__attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSlhDSASha256
+        (JNIEnv *env, jclass cl) {
+    return Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA256(env,cl);
+}
 

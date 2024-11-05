@@ -215,6 +215,10 @@ class DefaultNativeServices
             {
                 set.add(SHAKE);
             }
+
+            if (NativeFeatures.hasSlhDSASha256()) {
+                set.add(SLHDSA_SHA256);
+            }
         }
 
         if (set.isEmpty())

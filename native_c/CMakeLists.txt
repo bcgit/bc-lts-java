@@ -330,7 +330,7 @@ else ()
 
     set(PROBE intel/jni/variant_selector_intel.c)
     set(IDENT_IMPL intel/jni/ident_jni.c intel/jni/native_features.c)
-    set(COMMON intel/common.c intel/common.h intel/util/util.c intel/util/util.h ${COMMON_ASM})
+    set(COMMON intel/common.c intel/common.h intel/util/util.c intel/util/util.h intel/util/xor.h ${COMMON_ASM})
 
 
     set(MUL_AVX intel/jni/cmul_jni.c intel/mul/cmul.h intel/mul/cmul128.c)
@@ -627,6 +627,12 @@ else ()
             intel/packet/ctr_pc/ctr_pc_utils.h
     )
 
+    set(SLHDSA_SHA256
+            intel/jni/slhdsa_sha256_jni.c
+            intel/slhdsa/slhdsa_sha256.c
+            intel/slhdsa/slhdsa_sha256.h
+    )
+
     # Probe project a simple lib for probing the CPUs features
     #
     add_library(${LIB_PROBE} SHARED ${PROBE})
@@ -662,6 +668,7 @@ else ()
             ${CCM}
             ${CCM_PC}
             ${SHA224}
+            ${SLHDSA_SHA256}
             )
     target_include_directories("${LIB_NATIVE}-avx" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-avx" PRIVATE $<$<COMPILE_LANGUAGE:C>:${AVX_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -690,6 +697,7 @@ else ()
             ${CCM_PC_VAES}
             ${CCM_VAES}
             ${SHA224}
+            ${SLHDSA_SHA256}
             )
     target_include_directories("${LIB_NATIVE}-vaes" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-vaes" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAES_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)
@@ -718,6 +726,7 @@ else ()
             ${CCM_VAESF}
             ${CCM_PC_VAESF}
             ${SHA224}
+            ${SLHDSA_SHA256}
             )
     target_include_directories("${LIB_NATIVE}-vaesf" PUBLIC ${JNI_INCLUDES})
     target_compile_options("${LIB_NATIVE}-vaesf" PRIVATE $<$<COMPILE_LANGUAGE:C>:${VAESF_OPTIONS}> $<$<COMPILE_LANGUAGE:ASM>: ${ASM_OPTIONS} ${ASM_FLAGS}>)

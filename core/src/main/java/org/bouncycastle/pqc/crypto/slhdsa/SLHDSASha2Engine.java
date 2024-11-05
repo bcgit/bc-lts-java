@@ -1,6 +1,8 @@
 package org.bouncycastle.pqc.crypto.slhdsa;
 
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.Digest;
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.generators.MGF1BytesGenerator;
@@ -13,7 +15,7 @@ import org.bouncycastle.util.Memoable;
 import org.bouncycastle.util.Pack;
 
 class SLHDSASha2Engine
-    extends SLHDSAEngine
+        extends SLHDSAEngine
 {
     private final HMac treeHMac;
     private final MGF1BytesGenerator mgf1;
@@ -27,7 +29,21 @@ class SLHDSASha2Engine
     private Memoable msgMemo;
     private Memoable sha256Memo;
 
-    public SLHDSASha2Engine(int n, int w, int d, int a, int k, int h)
+
+    public static SLHDSAEngine newInstance(int n, int w, int d, int a, int k, int h)
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SLHDSA_SHA256))
+        {
+            if (n == 16)
+            {
+                return new SLHDSASha2NativeEngine(n, w, d, a, k, h);
+            }
+        }
+        return new SLHDSASha2Engine(n, w, d, a, k, h);
+    }
+
+
+    private SLHDSASha2Engine(int n, int w, int d, int a, int k, int h)
     {
         super(n, w, d, a, k, h);
         if (n == 16)
@@ -55,13 +71,13 @@ class SLHDSASha2Engine
 
         msgDigest.update(pkSeed, 0, pkSeed.length);
         msgDigest.update(padding, 0, bl - N); // toByte(0, 64 - n)
-        msgMemo = ((Memoable)msgDigest).copy();
+        msgMemo = ((Memoable) msgDigest).copy();
 
         msgDigest.reset();
 
         sha256.update(pkSeed, 0, pkSeed.length);
         sha256.update(padding, 0, 64 - pkSeed.length); // toByte(0, 64 - n)
-        sha256Memo = ((Memoable)sha256).copy();
+        sha256Memo = ((Memoable) sha256).copy();
 
         sha256.reset();
     }
@@ -70,7 +86,7 @@ class SLHDSASha2Engine
     {
         byte[] compressedADRS = compressedADRS(adrs);
 
-        ((Memoable)sha256).reset(sha256Memo);
+        ((Memoable) sha256).reset(sha256Memo);
 
         sha256.update(compressedADRS, 0, compressedADRS.length);
         sha256.update(m1, 0, m1.length);
@@ -83,7 +99,7 @@ class SLHDSASha2Engine
     {
         byte[] compressedADRS = compressedADRS(adrs);
 
-        ((Memoable)msgDigest).reset(msgMemo);
+        ((Memoable) msgDigest).reset(msgMemo);
 
         msgDigest.update(compressedADRS, 0, compressedADRS.length);
 
@@ -138,7 +154,7 @@ class SLHDSASha2Engine
     {
         byte[] compressedADRS = compressedADRS(adrs);
 
-        ((Memoable)msgDigest).reset(msgMemo);
+        ((Memoable) msgDigest).reset(msgMemo);
 
         msgDigest.update(compressedADRS, 0, compressedADRS.length);
         msgDigest.update(m, 0, m.length);
@@ -151,7 +167,7 @@ class SLHDSASha2Engine
     {
         int n = skSeed.length;
 
-        ((Memoable)sha256).reset(sha256Memo);
+        ((Memoable) sha256).reset(sha256Memo);
 
         byte[] compressedADRS = compressedADRS(adrs);
 

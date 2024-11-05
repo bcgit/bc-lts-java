@@ -36,6 +36,8 @@ public interface NativeServices
     String SHAKE = "SHAKE";
     String MULACC = "MULACC";
 
+    String SLHDSA_SHA256 = "SLHDSA_SHA256";
+
     String NONE = "NONE";
 
     String getStatusMessage();

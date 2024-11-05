@@ -400,6 +400,23 @@ class NativeFeatures
         }
     }
 
+    static boolean hasSlhDSASha256()
+    {
+        try
+        {
+            return nativeSlhDSASha256();
+        }
+        catch (UnsatisfiedLinkError ule)
+        {
+            if (LOG.isLoggable(Level.FINE))
+            {
+                LOG.log(Level.FINE, "native shake exception: " + ule.getMessage(), ule);
+            }
+            return false;
+        }
+    }
+
+
     private static native boolean nativeSHAKE();
 
     private static native boolean nativeSHA3();
@@ -415,4 +432,6 @@ class NativeFeatures
     private static native boolean nativeMulAcc();
 
     private static native boolean nativeRSA();
+
+    private static native boolean nativeSlhDSASha256();
 }

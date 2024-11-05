@@ -138,7 +138,7 @@ public class SLHDSAParameters
 
         public SLHDSAEngine get()
         {
-            return new SLHDSASha2Engine(n, w, d, a, k, h);
+            return  SLHDSASha2Engine.newInstance(n, w, d, a, k, h);
         }
     }
 
