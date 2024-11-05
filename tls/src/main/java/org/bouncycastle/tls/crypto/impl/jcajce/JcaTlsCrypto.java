@@ -237,9 +237,12 @@ public class JcaTlsCrypto
                 // NOTE: Ignores macAlgorithm
                 return createCipher_SM4_GCM(cryptoParams);
 
+            case EncryptionAlgorithm._28147_CNT_IMIT:
             case EncryptionAlgorithm.DES40_CBC:
             case EncryptionAlgorithm.DES_CBC:
             case EncryptionAlgorithm.IDEA_CBC:
+            case EncryptionAlgorithm.KUZNYECHIK_CTR_OMAC:
+            case EncryptionAlgorithm.MAGMA_CTR_OMAC:
             case EncryptionAlgorithm.RC2_CBC_40:
             case EncryptionAlgorithm.RC4_128:
             case EncryptionAlgorithm.RC4_40:
@@ -408,6 +411,8 @@ public class JcaTlsCrypto
             return "HmacSHA512";
         case CryptoHashAlgorithm.sm3:
             return "HmacSM3";
+        case CryptoHashAlgorithm.gostr3411_2012_256:
+            return "HmacGOST3411-2012-256";
         default:
             throw new IllegalArgumentException("invalid CryptoHashAlgorithm: " + cryptoHashAlgorithm);
         }
@@ -438,21 +443,22 @@ public class JcaTlsCrypto
         {
             return DHUtil.getAlgorithmParameters(this, TlsDHUtils.getNamedDHGroup(namedGroup));
         }
-//        else if (NamedGroup.refersToASpecificKem(namedGroup))
-//        {
-//            switch (namedGroup)
-//            {
-//            /*
-//             * TODO[tls-kem] Return AlgorithmParameters to check against disabled algorithms?
-//             */
-//            case NamedGroup.OQS_mlkem512:
-//            case NamedGroup.OQS_mlkem768:
-//            case NamedGroup.OQS_mlkem1024:
-//            case NamedGroup.DRAFT_mlkem768:
-//            case NamedGroup.DRAFT_mlkem1024:
-//                return null;
-//            }
-//        }
+        else if (NamedGroup.refersToASpecificKem(namedGroup))
+        {
+            switch (namedGroup)
+            {
+            /*
+             * TODO[tls-kem] Return AlgorithmParameters to check against disabled algorithms?
+             */
+            case NamedGroup.OQS_mlkem512:
+            case NamedGroup.OQS_mlkem768:
+            case NamedGroup.OQS_mlkem1024:
+            case NamedGroup.MLKEM512:
+            case NamedGroup.MLKEM768:
+            case NamedGroup.MLKEM1024:
+                return null;
+            }
+        }
 
         throw new IllegalArgumentException("NamedGroup not supported: " + NamedGroup.getText(namedGroup));
     }
@@ -555,7 +561,7 @@ public class JcaTlsCrypto
         case CryptoSignatureAlgorithm.rsa_pss_pss_sha512:
             return true;
 
-        // TODO[draft-smyshlyaev-tls12-gost-suites-10]
+        // TODO[RFC 9189]
         case CryptoSignatureAlgorithm.gostr34102012_256:
         case CryptoSignatureAlgorithm.gostr34102012_512:
 
@@ -576,10 +582,10 @@ public class JcaTlsCrypto
     {
         return true;
     }
-                      // TODO: One day
+    
     public boolean hasKemAgreement()
     {
-        return false;
+        return true;
     }
 
     public boolean hasEncryptionAlgorithm(int encryptionAlgorithm)
@@ -737,11 +743,13 @@ public class JcaTlsCrypto
         case SignatureAlgorithm.ecdsa_brainpoolP512r1tls13_sha512:
             return true;
 
-        // TODO[draft-smyshlyaev-tls12-gost-suites-10]
+        // TODO[RFC 9189]
         case SignatureAlgorithm.gostr34102012_256:
         case SignatureAlgorithm.gostr34102012_512:
+
         // TODO[RFC 8998]
 //        case SignatureAlgorithm.sm2:
+
         default:
             return false;
         }
@@ -848,7 +856,7 @@ public class JcaTlsCrypto
     
     public TlsKemDomain createKemDomain(TlsKemConfig kemConfig)
     {
-        return null; // TODO: new JceTlsMLKemDomain(this, kemConfig);
+        return new JceTlsMLKemDomain(this, kemConfig);
     }
 
     public TlsSecret hkdfInit(int cryptoHashAlgorithm)
@@ -1050,39 +1058,6 @@ public class JcaTlsCrypto
         }
     }
 
-    protected TlsStreamSigner createVerifyingStreamSigner(SignatureAndHashAlgorithm algorithm, PrivateKey privateKey,
-        boolean needsRandom, PublicKey publicKey) throws IOException
-    {
-        String algorithmName = JcaUtils.getJcaAlgorithmName(algorithm);
-
-        return createVerifyingStreamSigner(algorithmName, null, privateKey, needsRandom, publicKey);
-    }
-
-    protected TlsStreamSigner createVerifyingStreamSigner(String algorithmName, AlgorithmParameterSpec parameter,
-        PrivateKey privateKey, boolean needsRandom, PublicKey publicKey) throws IOException
-    {
-        try
-        {
-            Signature signer = getHelper().createSignature(algorithmName);
-            Signature verifier = getHelper().createSignature(algorithmName);
-
-            if (null != parameter)
-            {
-                signer.setParameter(parameter);
-                verifier.setParameter(parameter);
-            }
-
-            signer.initSign(privateKey, needsRandom ? getSecureRandom() : null);
-            verifier.initVerify(publicKey);
-
-            return new JcaVerifyingStreamSigner(signer, verifier);
-        }
-        catch (GeneralSecurityException e)
-        {
-            throw new TlsFatalAlert(AlertDescription.internal_error, e);
-        }
-    }
-
     protected Boolean isSupportedEncryptionAlgorithm(int encryptionAlgorithm)
     {
         switch (encryptionAlgorithm)
@@ -1132,9 +1107,12 @@ public class JcaTlsCrypto
         case EncryptionAlgorithm.SM4_GCM:
             return isUsableCipher("SM4/GCM/NoPadding", 128);
 
+        case EncryptionAlgorithm._28147_CNT_IMIT:
         case EncryptionAlgorithm.DES_CBC:
         case EncryptionAlgorithm.DES40_CBC:
         case EncryptionAlgorithm.IDEA_CBC:
+        case EncryptionAlgorithm.KUZNYECHIK_CTR_OMAC:
+        case EncryptionAlgorithm.MAGMA_CTR_OMAC:
         case EncryptionAlgorithm.RC2_CBC_40:
         case EncryptionAlgorithm.RC4_128:
         case EncryptionAlgorithm.RC4_40:
@@ -1332,6 +1310,8 @@ public class JcaTlsCrypto
             return "SHA-512";
         case CryptoHashAlgorithm.sm3:
             return "SM3";
+        case CryptoHashAlgorithm.gostr3411_2012_256:
+            return "GOST3411-2012-256";
         default:
             throw new IllegalArgumentException("invalid CryptoHashAlgorithm: " + cryptoHashAlgorithm);
         }

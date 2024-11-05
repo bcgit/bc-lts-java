@@ -61,7 +61,7 @@ public class NamedGroup
     public static final int brainpoolP512r1tls13 = 33;
 
     /*
-     * draft-smyshlyaev-tls12-gost-suites-10
+     * RFC 9189
      */
     public static final int GC256A = 34;
     public static final int GC256B = 35;
@@ -102,20 +102,19 @@ public class NamedGroup
     public static final int arbitrary_explicit_prime_curves = 0xFF01;
     public static final int arbitrary_explicit_char2_curves = 0xFF02;
 
-//    /** Experimental API (unstable): unofficial value from Open Quantum Safe project. */
-//    public static final int OQS_mlkem512 = 0x0247;
-//    /** Experimental API (unstable): unofficial value from Open Quantum Safe project. */
-//    public static final int OQS_mlkem768 = 0x0248;
-//    /** Experimental API (unstable): unofficial value from Open Quantum Safe project. */
-//    public static final int OQS_mlkem1024 = 0x0249;
-//
-//    /*
-//     * draft-connolly-tls-mlkem-key-agreement-01
-//     */
-//    /** Experimental API (unstable): draft value requested in draft-connolly-tls-mlkem-key-agreement. */
-//    public static final int DRAFT_mlkem768 = 0x0768;
-//    /** Experimental API (unstable): draft value requested in draft-connolly-tls-mlkem-key-agreement. */
-//    public static final int DRAFT_mlkem1024 = 0x1024;
+    /** @deprecated Experimental API (unstable): unofficial value from Open Quantum Safe project. */
+    public static final int OQS_mlkem512 = 0x0247;
+    /** @deprecated Experimental API (unstable): unofficial value from Open Quantum Safe project. */
+    public static final int OQS_mlkem768 = 0x0248;
+    /** @deprecated Experimental API (unstable): unofficial value from Open Quantum Safe project. */
+    public static final int OQS_mlkem1024 = 0x0249;
+
+    /*
+     * draft-connolly-tls-mlkem-key-agreement-03
+     */
+    public static final int MLKEM512 = 0x0512;
+    public static final int MLKEM768 = 0x0768;
+    public static final int MLKEM1024 = 0x1024;
 
     /* Names of the actual underlying elliptic curves (not necessarily matching the NamedGroup names). */
     private static final String[] CURVE_NAMES = new String[] { "sect163k1", "sect163r1", "sect163r2", "sect193r1",
@@ -302,14 +301,15 @@ public class NamedGroup
     {
         switch (namedGroup)
         {
-//        case OQS_mlkem512:
-//            return "ML-KEM-512";
-//        case OQS_mlkem768:
-//        case DRAFT_mlkem768:
-//            return "ML-KEM-768";
-//        case OQS_mlkem1024:
-//        case DRAFT_mlkem1024:
-//            return "ML-KEM-1024";
+        case OQS_mlkem512:
+        case MLKEM512:
+            return "ML-KEM-512";
+        case OQS_mlkem768:
+        case MLKEM768:
+            return "ML-KEM-768";
+        case OQS_mlkem1024:
+        case MLKEM1024:
+            return "ML-KEM-1024";
         default:
             return null;
         }
@@ -370,16 +370,18 @@ public class NamedGroup
             return "GC512C";
         case curveSM2:
             return "curveSM2";
-//        case OQS_mlkem512:
-//            return "OQS_mlkem512";
-//        case OQS_mlkem768:
-//            return "OQS_mlkem768";
-//        case OQS_mlkem1024:
-//            return "OQS_mlkem1024";
-//        case DRAFT_mlkem768:
-//            return "DRAFT_mlkem768";
-//        case DRAFT_mlkem1024:
-//            return "DRAFT_mlkem1024";
+        case OQS_mlkem512:
+            return "OQS_mlkem512";
+        case OQS_mlkem768:
+            return "OQS_mlkem768";
+        case OQS_mlkem1024:
+            return "OQS_mlkem1024";
+        case MLKEM512:
+            return "MLKEM512";
+        case MLKEM768:
+            return "MLKEM768";
+        case MLKEM1024:
+            return "MLKEM1024";
         case arbitrary_explicit_prime_curves:
             return "arbitrary_explicit_prime_curves";
         case arbitrary_explicit_char2_curves:
@@ -492,18 +494,17 @@ public class NamedGroup
 
     public static boolean refersToASpecificKem(int namedGroup)
     {
-        // TODO: one day!
-//        switch (namedGroup)
-//        {
-//        case OQS_mlkem512:
-//        case OQS_mlkem768:
-//        case OQS_mlkem1024:
-//        case DRAFT_mlkem768:
-//        case DRAFT_mlkem1024:
-//            return true;
-//        default:
-//            return false;
-//        }
-        return false;
+        switch (namedGroup)
+        {
+        case OQS_mlkem512:
+        case OQS_mlkem768:
+        case OQS_mlkem1024:
+        case MLKEM512:
+        case MLKEM768:
+        case MLKEM1024:
+            return true;
+        default:
+            return false;
+        }
     }
 }
