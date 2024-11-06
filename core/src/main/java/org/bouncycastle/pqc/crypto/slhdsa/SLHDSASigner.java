@@ -19,9 +19,9 @@ import org.bouncycastle.util.Arrays;
  * </p>
  */
 public class SLHDSASigner
-    implements MessageSigner
+        implements MessageSigner
 {
-    private static final byte[] DEFAULT_PREFIX = new byte[]{ 0, 0 };
+    private static final byte[] DEFAULT_PREFIX = new byte[]{0, 0};
 
     private byte[] msgPrefix;
     private SLHDSAPublicKeyParameters pubKey;
@@ -39,7 +39,7 @@ public class SLHDSASigner
     {
         if (param instanceof ParametersWithContext)
         {
-            ParametersWithContext withContext = (ParametersWithContext)param;
+            ParametersWithContext withContext = (ParametersWithContext) param;
             param = withContext.getParameters();
 
             int ctxLength = withContext.getContextLength();
@@ -50,7 +50,7 @@ public class SLHDSASigner
 
             msgPrefix = new byte[2 + ctxLength];
             msgPrefix[0] = 0;
-            msgPrefix[1] = (byte)ctxLength;
+            msgPrefix[1] = (byte) ctxLength;
             withContext.copyContextTo(msgPrefix, 2, ctxLength);
         }
         else
@@ -65,13 +65,13 @@ public class SLHDSASigner
 
             if (param instanceof ParametersWithRandom)
             {
-                ParametersWithRandom withRandom = (ParametersWithRandom)param;
-                privKey = (SLHDSAPrivateKeyParameters)withRandom.getParameters();
+                ParametersWithRandom withRandom = (ParametersWithRandom) param;
+                privKey = (SLHDSAPrivateKeyParameters) withRandom.getParameters();
                 random = withRandom.getRandom();
             }
             else
             {
-                privKey = (SLHDSAPrivateKeyParameters)param;
+                privKey = (SLHDSAPrivateKeyParameters) param;
                 random = null;
             }
 
@@ -79,7 +79,7 @@ public class SLHDSASigner
         }
         else
         {
-            pubKey = (SLHDSAPublicKeyParameters)param;
+            pubKey = (SLHDSAPublicKeyParameters) param;
             privKey = null;
             random = null;
 
@@ -125,10 +125,10 @@ public class SLHDSASigner
     }
 
     private static boolean internalVerifySignature(SLHDSAPublicKeyParameters pubKey, byte[] msgPrefix, byte[] msg,
-        byte[] signature)
+                                                   byte[] signature)
     {
         // TODO Check init via pubKey != null
-        
+
         //# Input: Message M, signature SIG, public key PK
         //# Output: Boolean
 
@@ -177,10 +177,10 @@ public class SLHDSASigner
     }
 
     private static byte[] internalGenerateSignature(SLHDSAPrivateKeyParameters privKey, byte[] msgPrefix, byte[] msg,
-        byte[] optRand)
+                                                    byte[] optRand)
     {
         // TODO Check init via privKey != null
-        
+
         SLHDSAEngine engine = privKey.getParameters().getEngine();
         engine.init(privKey.pk.seed);
 

@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <memory.h>
 #include "slhdsa_sha256.h"
-#include "../util/xor.h"
+
 
 
 slhdsa_sha256 *slhdsa_sha256_create_ctx() {
@@ -138,7 +138,7 @@ void slhdsa_sha256_mgf256_mask(slhdsa_sha256 *ctx,
     } while (tgtIndex < 4);
 
     memzero(seedCtr, seedCtrLen);
-
+    memzero(&sha256Ctx, sizeof(sha256_ctx));
 
 }
 

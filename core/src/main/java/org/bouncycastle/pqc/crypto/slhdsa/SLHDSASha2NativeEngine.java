@@ -16,14 +16,10 @@ class SLHDSASha2NativeEngine
 
     private final HMac treeHMac;
     private final byte[] hmacBuf;
-    // private final Digest msgDigest;
     private final byte[] msgDigestBuf;
     private final int bl;
-    // private final Digest sha256 = SHA256Digest.newInstance();
     private final byte[] sha256Buf = new byte[32];
 
-    private Memoable msgMemo;
-    private Memoable sha256Memo;
 
     protected SLHDSASha2NativeEngine(int n, int w, int d, int a, int k, int h)
     {
@@ -33,33 +29,18 @@ class SLHDSASha2NativeEngine
 
         assert n == 16;
 
-        // this.msgDigest = SHA256Digest.newInstance();
         this.treeHMac = new HMac(SHA256Digest.newInstance());
         this.bl = 64;
         this.hmacBuf = new byte[treeHMac.getMacSize()];
-        this.msgDigestBuf = new byte[32]; //msgDigest.getDigestSize()];
+        this.msgDigestBuf = new byte[32];
     }
 
     void init(byte[] pkSeed)
     {
-//        final byte[] padding = new byte[bl];
-
-//        msgDigest.update(pkSeed, 0, pkSeed.length);
-//        msgDigest.update(padding, 0, bl - N); // toByte(0, 64 - n)
-//        msgMemo = ((Memoable) msgDigest).copy();
-//
-//
-//        msgDigest.reset();
-
-//        sha256.update(pkSeed, 0, pkSeed.length);
-//        sha256.update(padding, 0, 64 - pkSeed.length); // toByte(0, 64 - n)
-//        sha256Memo = ((Memoable) sha256).copy();
 
         final byte[] padding2 = new byte[bl];
         initMemoStates(ref.getReference(), pkSeed, padding2, bl - N, 64 - pkSeed.length);
 
-
-        //sha256.reset();
     }
 
     static native void initMemoStates(long ref, byte[] pkSeed, byte[] padding, int padLen1, int padLen2);
@@ -68,39 +49,14 @@ class SLHDSASha2NativeEngine
     public byte[] F(byte[] pkSeed, ADRS adrs, byte[] m1)
     {
         byte[] compressedADRS = compressedADRS(adrs);
-
-        //  ((Memoable) sha256).reset(sha256Memo);
-
-//        sha256.update(compressedADRS, 0, compressedADRS.length);
-//        sha256.update(m1, 0, m1.length);
-//        sha256.doFinal(sha256Buf, 0);
-
-        // byte[] orig = Arrays.clone(sha256Buf);
-
         return sha256DigestAndReturnRange(ref.getReference(), true, sha256Buf, new byte[N], compressedADRS, m1, null, null);
-
-        // return Arrays.copyOfRange(sha256Buf, 0, N);
     }
 
 
     public byte[] H(byte[] pkSeed, ADRS adrs, byte[] m1, byte[] m2)
     {
         byte[] compressedADRS = compressedADRS(adrs);
-
-//        ((Memoable) msgDigest).reset(msgMemo);
-//
-//        msgDigest.update(compressedADRS, 0, compressedADRS.length);
-//
-//        msgDigest.update(m1, 0, m1.length);
-//        msgDigest.update(m2, 0, m2.length);
-//
-//        msgDigest.doFinal(msgDigestBuf, 0);
-
-
         return msgDigestAndReturnRange(ref.getReference(), true, msgDigestBuf, new byte[N], compressedADRS, m1, m2, null, null);
-
-
-        // return Arrays.copyOfRange(msgDigestBuf, 0, N);
     }
 
     IndexedDigest H_msg(byte[] prf, byte[] pkSeed, byte[] pkRoot, byte[] msgPrefix, byte[] msg)
@@ -113,17 +69,6 @@ class SLHDSASha2NativeEngine
         int m = forsMsgBytes + leafBytes + treeBytes;
         byte[] out = new byte[m];
         byte[] dig = new byte[32];
-
-//        msgDigest.update(prf, 0, prf.length);
-//        msgDigest.update(pkSeed, 0, pkSeed.length);
-//        msgDigest.update(pkRoot, 0, pkRoot.length);
-//        if (msgPrefix != null)
-//        {
-//            msgDigest.update(msgPrefix, 0, msgPrefix.length);
-//        }
-//        msgDigest.update(msg, 0, msg.length);
-//        msgDigest.doFinal(dig, 0);
-
 
         msgDigestAndReturnRange(ref.getReference(), false, dig, null, prf, pkSeed, pkRoot, msgPrefix, msg);
 
@@ -149,35 +94,15 @@ class SLHDSASha2NativeEngine
     public byte[] T_l(byte[] pkSeed, ADRS adrs, byte[] m)
     {
         byte[] compressedADRS = compressedADRS(adrs);
-
-//        ((Memoable) msgDigest).reset(msgMemo);
-//
-//        msgDigest.update(compressedADRS, 0, compressedADRS.length);
-//        msgDigest.update(m, 0, m.length);
-//        msgDigest.doFinal(msgDigestBuf, 0);
-
-
         msgDigestAndReturnRange(ref.getReference(), true, msgDigestBuf, new byte[N], compressedADRS, m, null, null, null);
-
-
         return Arrays.copyOfRange(msgDigestBuf, 0, N);
     }
 
     byte[] PRF(byte[] pkSeed, byte[] skSeed, ADRS adrs)
     {
         int n = skSeed.length;
-
-//        ((Memoable) sha256).reset(sha256Memo);
-
         byte[] compressedADRS = compressedADRS(adrs);
-
-//        sha256.update(compressedADRS, 0, compressedADRS.length);
-//        sha256.update(skSeed, 0, skSeed.length);
-//        sha256.doFinal(sha256Buf, 0);
-
         return sha256DigestAndReturnRange(ref.getReference(), true, sha256Buf, new byte[n], compressedADRS, skSeed, null, null);
-
-        // return Arrays.copyOfRange(sha256Buf, 0, n);
     }
 
     public byte[] PRF_msg(byte[] prf, byte[] randomiser, byte[] msgPrefix, byte[] msg)
@@ -209,37 +134,8 @@ class SLHDSASha2NativeEngine
     {
         byte[] mask = new byte[m.length];
         bitmask(ref.getReference(), key, mask, m, null, null, null);
-
-//        byte[] foo = Arrays.clone(mask);
-//
-////        byte[] mask = new byte[m.length];
-//        mgf1.init(new MGFParameters(key));
-//        mgf1.generateBytes(mask, 0, mask.length);
-//        Bytes.xorTo(m.length, m, mask);
-////        return mask;
         return mask;
     }
-
-//    protected byte[] bitmask(byte[] key, byte[] m1, byte[] m2)
-//    {
-//        byte[] mask = new byte[m1.length + m2.length];
-//        mgf1.init(new MGFParameters(key));
-//        mgf1.generateBytes(mask, 0, mask.length);
-//        Bytes.xorTo(m1.length, m1, mask);
-//        Bytes.xorTo(m2.length, m2, 0, mask, m1.length);
-//        return mask;
-//    }
-//
-//    protected byte[] bitmask256(byte[] key, byte[] m)
-//    {
-//        byte[] mask = new byte[m.length];
-//        MGF1BytesGenerator mgf1 = new MGF1BytesGenerator(new SHA256Digest());
-//        mgf1.init(new MGFParameters(key));
-//        mgf1.generateBytes(mask, 0, mask.length);
-//        Bytes.xorTo(m.length, m, mask);
-//        return mask;
-//    }
-
 
     private class Disposer
             extends NativeDisposer
@@ -252,7 +148,6 @@ class SLHDSASha2NativeEngine
         @Override
         protected void dispose(long reference)
         {
-
             SLHDSASha2NativeEngine.dispose(reference);
         }
     }

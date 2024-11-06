@@ -430,6 +430,12 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_pqc_crypto_slhdsa_SLHDSASha2NativeE
         goto exit;
     }
 
+    if (key.size < 48) {
+        throw_java_illegal_argument(env,"key less than 48 bytes");
+        goto exit;
+    }
+
+
     if (!critical_not_null(&result, "result is null", env)) {
         goto exit;
     }
