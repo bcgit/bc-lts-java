@@ -228,10 +228,11 @@ public final class BouncyCastleProvider
                         public Service run()
                         {
                             Service service = BouncyCastleProvider.super.getService(type, algorithm);
-                            if (service == null)
-                            {
-                                return null;
-                            }
+                            // from Java21 services started to return with null class names...
+                             if (service == null || service.getClassName() == null)
+                             {
+                                 return null;
+                             }
                             serviceMap.put(key, service);
                             // remove legacy entry and swap to service entry
                             BouncyCastleProvider.super.remove(service.getType() + "." + service.getAlgorithm());
