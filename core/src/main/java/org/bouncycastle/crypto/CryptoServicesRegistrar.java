@@ -169,7 +169,7 @@ public final class CryptoServicesRegistrar
 
     public static String getInfo()
     {
-        return "BouncyCastle APIs (LTS edition) v2.73.6";
+        return "BouncyCastle APIs (LTS edition) v2.73.7";
     }
 
     public static boolean isNativeEnabled()
