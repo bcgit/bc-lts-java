@@ -394,7 +394,7 @@ subprojects {
         jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
                 '-Dorg.bouncycastle.expected_jvm=1.8',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake',
+                '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake,slhdsa_sha256',
                 '-Dorg.bouncycastle.native.cpu_variant=java',
                 '-Dorg.bouncycastle.test.skip_pc=true'
 
