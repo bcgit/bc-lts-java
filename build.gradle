@@ -470,7 +470,7 @@ subprojects {
     }
 
     tasks.withType(JavaCompile).configureEach {
-        options.debug = true;
+        options.debug = false;
     }
 
     task('fopyJars', type:Copy) {
