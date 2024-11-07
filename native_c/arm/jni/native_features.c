@@ -348,3 +348,13 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeRSA
         (JNIEnv *env, jclass cl) {
     return JNI_FALSE;
 }
+
+/*
+ * Class:     org_bouncycastle_crypto_NativeFeatures
+ * Method:    nativeSlhDSASha256
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSlhDSASha256
+        (JNIEnv *, jclass) {
+    return JNI_FALSE;
+}
