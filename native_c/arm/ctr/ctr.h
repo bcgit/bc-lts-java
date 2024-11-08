@@ -5,7 +5,7 @@
 #define BC_LTS_C_CTR_H
 
 #define CTR_BLOCK_SIZE 16
-#define CTR_ERROR_MSG "Counter in CTR mode out of range."
+#define CTR_ERROR_MSG "Counter in CTR/SIC mode out of range."
 
 #include "arm_neon.h"
 #include "stdbool.h"
