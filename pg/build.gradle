@@ -34,6 +34,8 @@ dependencies {
 
 compileJava {
     options.release = 8
+    dependsOn(':prov:jar')
+    dependsOn(':util:jar')
 }
 
 compileJava9Java {

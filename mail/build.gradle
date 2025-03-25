@@ -39,6 +39,10 @@ dependencies {
 
 compileJava {
     options.release = 8
+    dependsOn(':prov:jar')
+    dependsOn(':util:jar')
+    dependsOn(':pkix:jar')
+
 }
 
 compileJava9Java {
