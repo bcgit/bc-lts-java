@@ -47,9 +47,7 @@ dependencies {
 }
 
 compileJava {
-  javaCompiler = javaToolchains.compilerFor {
-    languageVersion = JavaLanguageVersion.of(8)
-  }
+  options.release = 8
 }
 
 task copyTask(type: Copy) {
@@ -63,11 +61,7 @@ task copyTask(type: Copy) {
 compileJava.dependsOn(copyTask)
 
 compileJava9Java {
-  javaCompiler = javaToolchains.compilerFor {
-    languageVersion = JavaLanguageVersion.of(11)
-  }
-  sourceCompatibility = 9
-  targetCompatibility = 9
+  options.release = 9
 
   options.compilerArgs += [
                     '--module-path', "$lts_prov:$lts_util:$lts_pkix:${rootProject.projectDir}/libs/jakarta.mail-2.0.1.jar:${rootProject.projectDir}/libs/jakarta.activation-api-2.0.0.jar"
@@ -89,7 +83,7 @@ jar {
 task sourcesJar(type: Jar) {
   duplicatesStrategy = 'include'
   archiveBaseName = jar.archiveBaseName
-  classifier = 'sources'
+  archiveClassifier = 'sources'
   from sourceSets.main.allSource
   from rootProject.project(':mail').sourceSets.main.allSource
     filter { String line -> line.contains('javax.mail') ? line.replace('javax.mail', 'jakarta.mail') : line }
@@ -97,9 +91,13 @@ task sourcesJar(type: Jar) {
   into('META-INF/versions/9') {
     from sourceSets.java9.allSource
   }
+    dependsOn(':jmail:copyTask')
+
 }
 
 javadoc {
+  dependsOn(':prov:jar')
+  dependsOn(':pkix:jar')
   title = "Bouncy Castle Library (LTS Edition) ${version} JakartaMail API"
   options.windowTitle = "Bouncy Castle Library (LTS Edition) ${version} JakartaMail API"
   options.overview = "overview.html"
@@ -107,7 +105,7 @@ javadoc {
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
   archiveBaseName = jar.archiveBaseName
-  classifier = 'javadoc'
+  archiveClassifier = 'javadoc'
   from javadoc.destinationDir
 }
 
@@ -122,3 +120,8 @@ task('copyJars', type:Copy) {
     into new File(rootDir,"../bc-lts-java-jars/${version}/")
 }
 
+checkstyleMain {
+    dependsOn(':prov:jar')
+    dependsOn(':util:jar')
+    dependsOn(':pkix:jar')
+}

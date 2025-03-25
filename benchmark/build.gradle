@@ -1,9 +1,6 @@
-
-
-
 dependencies {
-   implementation project(path: ':prov')
-   implementation project(path: ':core')
+    implementation project(path: ':prov')
+    implementation project(path: ':core')
 }
 
 processResources {
@@ -14,5 +11,13 @@ test {
 
 }
 
-jar.baseName = "bc-benchmark-java"
+jar.archiveBaseName = "bc-benchmark-java"
 version = "0.1"
+
+compileJava {
+    options.release = 8
+}
+
+compileTestJava {
+    options.release = 8
+}

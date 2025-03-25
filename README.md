@@ -2,38 +2,8 @@
 
 ## Environmental variables (IMPORTANT):
 
-JAVA_HOME needs to point to a Java 17 installation, this is required for the build tools.
+JAVA_HOME needs to point to a Java 21 installation, this is required for the build tools.
 The java code will be complied to be compatible with Java 8 (Version 52) and above.
-
-This build uses Java 8, Java 11 and Java 15, so the following environmental variables need to be defined:
-
-LTS_JDK8 -- Java 8 Home
-
-LTS_JDK11 -- Java 11 Home
-
-LTS_JDK15 -- Java 15 Home
-
-Variables must point to the equivalent of JAVA_HOME for each of those Java JDKs.
-
-The gradle (7.6.xx) build script does a sanity test on the presence of those variables, it does not validate
-they are set to a valid value, and you may experience other errors if they are set incorrectly.
-
-Running gradle build without setting a variable, will result in an error similar to:
-
-```
-* What went wrong:
-A problem occurred evaluating root project 'bc-fips-java'.
-> Looking for JDK ENV 'LTS_JDK8' but found null
-
-```
-
-When the variables are set:
-
-```
-Looking for JDK ENV 'LTS_JDK8' found  /Users/auser/openjdk/zulu8.64.0.19-ca-jdk8.0.345-macosx_aarch64
-Looking for JDK ENV 'LTS_JDK11' found  /Users/auser/openjdk/zulu11.58.23-ca-jdk11.0.16.1-macosx_aarch64
-Looking for JDK ENV 'LTS_JDK15' found  /Users/auser/openjdk/zulu15.42.15-ca-jdk15.0.8-macosx_aarch64
-```
 
 # Native support
 

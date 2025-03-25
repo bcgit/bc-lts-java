@@ -5,7 +5,7 @@ import java.nio.file.StandardCopyOption
 import static ExtraFunctions.*
 
 plugins {
-  id "biz.aQute.bnd.builder" version "7.0.0"
+    id "biz.aQute.bnd.builder" version "7.0.0"
 }
 
 jar.archiveBaseName = "bcmail-lts${vm_range}"
@@ -19,83 +19,89 @@ sourceSets {
 }
 
 dependencies {
-  implementation project(':prov')
-  implementation project(':util')
-  implementation project(':pkix')
+    implementation project(':prov')
+    implementation project(':util')
+    implementation project(':pkix')
 
-  implementation group: 'javax.mail', name: 'mail', version: '1.4'
-  implementation files("$lts_prov")
-  implementation files("$lts_util")
-  implementation files("$lts_pkix")
+    implementation group: 'javax.mail', name: 'mail', version: '1.4'
+    implementation files("$lts_prov")
+    implementation files("$lts_util")
+    implementation files("$lts_pkix")
     implementation project(path: ':core')
 
     java9Implementation project(':prov')
-  java9Implementation project(':util')
-  java9Implementation project(':pkix')
-  java9Implementation files(sourceSets.main.output.classesDirs) {
-     builtBy compileJava
-  }
+    java9Implementation project(':util')
+    java9Implementation project(':pkix')
+    java9Implementation files(sourceSets.main.output.classesDirs) {
+        builtBy compileJava
+    }
 }
 
 compileJava {
-  javaCompiler = javaToolchains.compilerFor {
-    languageVersion = JavaLanguageVersion.of(8)
-  }
+    options.release = 8
 }
 
 compileJava9Java {
-  javaCompiler = javaToolchains.compilerFor {
-    languageVersion = JavaLanguageVersion.of(11)
-  }
-  sourceCompatibility = 9
-  targetCompatibility = 9
+    options.release = 9
 
-  options.compilerArgs += [
-                    '--module-path', "$lts_prov:$lts_util:$lts_pkix"
-  ]
-  options.sourcepath = files(['src/main/java', 'src/main/jdk1.9'])
+    options.compilerArgs += [
+            '--module-path', "$lts_prov:$lts_util:$lts_pkix"
+    ]
+    options.sourcepath = files(['src/main/java', 'src/main/jdk1.9'])
 }
 
 jar {
-  from sourceSets.main.output
-  into('META-INF/versions/9') {
-    from sourceSets.java9.output
-  }
-  manifest.attributes('Multi-Release': 'true')
-  manifest.attributes('Bundle-RequiredExecutionEnvironment': 'JavaSE-1.8')
-  manifest.attributes('Export-Package': 'org.bouncycastle.mail.*')
-  manifest.attributes('Import-Package': 'java.*;resolution:=optional;javax.*;resolution:=optional;org.bouncycastle.*;version="[2.73,2.74)"')
+    from sourceSets.main.output
+    into('META-INF/versions/9') {
+        from sourceSets.java9.output
+    }
+    manifest.attributes('Multi-Release': 'true')
+    manifest.attributes('Bundle-RequiredExecutionEnvironment': 'JavaSE-1.8')
+    manifest.attributes('Export-Package': 'org.bouncycastle.mail.*')
+    manifest.attributes('Import-Package': 'java.*;resolution:=optional;javax.*;resolution:=optional;org.bouncycastle.*;version="[2.73,2.74)"')
 }
 
 task sourcesJar(type: Jar) {
-  archiveBaseName = jar.archiveBaseName
-  classifier = 'sources'
-  from sourceSets.main.allSource
-  into('META-INF/versions/9') {
-    from sourceSets.java9.allSource
-  }
+    archiveBaseName = jar.archiveBaseName
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
+    into('META-INF/versions/9') {
+        from sourceSets.java9.allSource
+    }
+    dependsOn(':prov:jar')
+    dependsOn(':util:jar')
+    dependsOn(':pkix:jar')
 }
 
 javadoc {
-  title = "Bouncy Castle Library (LTS Edition) ${version} JavaMail API"
-  options.windowTitle = "Bouncy Castle Library (LTS Edition) ${version} JavaMail API"
-  options.overview = "overview.html"
+    title = "Bouncy Castle Library (LTS Edition) ${version} JavaMail API"
+    options.windowTitle = "Bouncy Castle Library (LTS Edition) ${version} JavaMail API"
+    options.overview = "overview.html"
+    dependsOn(':prov:jar')
+    dependsOn(':util:jar')
+    dependsOn(':pkix:jar')
+
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-  archiveBaseName = jar.archiveBaseName
-  classifier = 'javadoc'
-  from javadoc.destinationDir
+    archiveBaseName = jar.archiveBaseName
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
 }
 
 artifacts {
-  archives jar
-  archives javadocJar
-  archives sourcesJar
+    archives jar
+    archives javadocJar
+    archives sourcesJar
 }
 
-task('copyJars', type:Copy) {
-  from new File(projectDir,"build/libs")
-  into new File(rootDir,"../bc-lts-java-jars/${version}/")
+task('copyJars', type: Copy) {
+    from new File(projectDir, "build/libs")
+    into new File(rootDir, "../bc-lts-java-jars/${version}/")
 }
 
+checkstyleMain {
+    dependsOn(':prov:jar')
+    dependsOn(':util:jar')
+    dependsOn(':pkix:jar')
+}

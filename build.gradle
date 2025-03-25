@@ -10,19 +10,19 @@ buildscript {
 }
 
 plugins {
-    id "io.spring.nohttp" version "0.0.8"
+    id "io.spring.nohttp" version "0.0.11"
     id "checkstyle"
     id "jacoco"
     id "java"
 }
 
-println("Environment setup:")
-["LTS_JDK8", "LTS_JDK11", "LTS_JDK15","LTS_JDK21"].each({ it ->
-    println("Looking for JDK ENV '${it}' found  ${System.getenv(it)}");
-    if (System.getenv(it) == null) {
-        throw new RuntimeException("Looking for JDK ENV '${it}' but found null, see README 'Environmental variables'");
-    }
-})
+//println("Environment setup:")
+//["LTS_JDK8", "LTS_JDK11", "LTS_JDK15","LTS_JDK21"].each({ it ->
+//    println("Looking for JDK ENV '${it}' found  ${System.getenv(it)}");
+//    if (System.getenv(it) == null) {
+//        println("Looking for JDK ENV '${it}' but found null, see README 'Environmental variables'");
+//    }
+//})
 
 
 if (JavaVersion.current().isJava8Compatible()) {
@@ -94,7 +94,8 @@ task modTestJar(type: Jar) {
     from(project(":util").sourceSets.test.output)
     from(project(":test").sourceSets.test.output)
     from(project(":pg").sourceSets.test.output)
-    classifier("tests")
+    archiveClassifier="tests"
+   // classifier("tests")
 }
 
 /*
@@ -113,7 +114,8 @@ task allTestJar(type: Jar) {
     from(project(":util").sourceSets.test.output)
     from(project(":test").sourceSets.test.output)
     from(project(":pg").sourceSets.test.output)
-    classifier("tests")
+    archiveClassifier="tests"
+    //classifier("tests")
 }
 
 allTestJar.dependsOn(compileTestJava);
@@ -132,7 +134,8 @@ task allTestUnsignedJar(type: Jar) {
     from(project(":util").sourceSets.test.output)
     from(project(":test").sourceSets.test.output)
     from(project(":pg").sourceSets.test.output)
-    classifier("unsigned-tests")
+    archiveClassifier="unsigned-tests"
+   // classifier("unsigned-tests")
 }
 
 allTestUnsignedJar.dependsOn(compileTestJava);
@@ -143,13 +146,6 @@ allTestUnsignedJar.dependsOn(compileTestJava);
 
 subprojects {
     apply plugin: 'eclipse'
-
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of("8");
-        }
-    }
-
 
     task('testNEON_LE', type: Test) {
         systemProperty 'bc.test.data.home', bcTestDataHome

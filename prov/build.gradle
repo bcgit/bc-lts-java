@@ -5,7 +5,7 @@ import java.nio.file.StandardCopyOption
 import static ExtraFunctions.*
 
 plugins {
-  id "biz.aQute.bnd.builder" version "7.0.0"
+    id "biz.aQute.bnd.builder" version "7.0.0"
 }
 
 jar.archiveBaseName = "bcprov-lts$vm_range"
@@ -42,123 +42,115 @@ sourceSets {
 }
 
 dependencies {
-  implementation project(path: ':core')
-  java9Implementation files([sourceSets.main.output.classesDirs]) {
-     builtBy compileJava
-  }
+    implementation project(path: ':core')
+    java9Implementation files([sourceSets.main.output.classesDirs]) {
+        builtBy compileJava
+    }
 
-  java11Implementation files([sourceSets.main.output.classesDirs, sourceSets.java9.output.classesDirs]) {
-     builtBy compileJava9Java
-  }
+    java11Implementation files([sourceSets.main.output.classesDirs, sourceSets.java9.output.classesDirs]) {
+        builtBy compileJava9Java
+    }
 
-  java15Implementation files([sourceSets.main.output.classesDirs, sourceSets.java9.output.classesDirs, sourceSets.java11.output.classesDirs]) {
-     builtBy compileJava11Java
-  }
+    java15Implementation files([sourceSets.main.output.classesDirs, sourceSets.java9.output.classesDirs, sourceSets.java11.output.classesDirs]) {
+        builtBy compileJava11Java
+    }
 
-    java21Implementation files([sourceSets.main.output.classesDirs, sourceSets.java9.output.classesDirs, sourceSets.java11.output.classesDirs,sourceSets.java15.output.classesDirs]) {
+    java21Implementation files([sourceSets.main.output.classesDirs, sourceSets.java9.output.classesDirs, sourceSets.java11.output.classesDirs, sourceSets.java15.output.classesDirs]) {
         builtBy compileJava15Java
     }
 }
 
 compileJava {
-  javaCompiler = javaToolchains.compilerFor {
-    languageVersion = JavaLanguageVersion.of(8)
-  }
+    options.release = 8
 }
 
 compileJava9Java {
-  javaCompiler = javaToolchains.compilerFor {
-    languageVersion = JavaLanguageVersion.of(11)
-  }
-  sourceCompatibility = 9
-  targetCompatibility = 9
-  options.sourcepath = files(['../core/src/main/java', 'src/main/java', 'src/main/jdk1.9'])
+    options.release = 9
+    options.sourcepath = files(['../core/src/main/java', 'src/main/java', 'src/main/jdk1.9'])
 }
 
 compileJava11Java {
-  javaCompiler = javaToolchains.compilerFor {
-    languageVersion = JavaLanguageVersion.of(11)
-  }
+    options.release = 11
 }
 
 compileJava15Java {
-  javaCompiler = javaToolchains.compilerFor {
-    languageVersion = JavaLanguageVersion.of(15)
-  }
+    options.release = 15
 }
 
 compileJava21Java {
-    javaCompiler = javaToolchains.compilerFor {
-        languageVersion = JavaLanguageVersion.of(21)
-    }
+    options.release = 21
+}
+
+compileTestJava {
+    options.release = 8
 }
 
 
 jar {
-  from sourceSets.main.output
-  into('META-INF/versions/9') {
-    from sourceSets.java9.output
-  }
-  into('META-INF/versions/11') {
-    from sourceSets.java11.output
-  }
-  into('META-INF/versions/15') {
-    from sourceSets.java15.output
-  }
-  into('META-INF/versions/21') {
-    from sourceSets.java21.output
-  }
+    from sourceSets.main.output
+    into('META-INF/versions/9') {
+        from sourceSets.java9.output
+    }
+    into('META-INF/versions/11') {
+        from sourceSets.java11.output
+    }
+    into('META-INF/versions/15') {
+        from sourceSets.java15.output
+    }
+    into('META-INF/versions/21') {
+        from sourceSets.java21.output
+    }
 
-  manifest.attributes('Multi-Release': 'true')
-  manifest.attributes('Bundle-RequiredExecutionEnvironment': 'JavaSE-1.8')
-  manifest.attributes('Export-Package': 'org.bouncycastle.*')
-  manifest.attributes('Import-Package': 'java.*;resolution:=optional,javax.*;resolution:=optional')
+    manifest.attributes('Multi-Release': 'true')
+    manifest.attributes('Bundle-RequiredExecutionEnvironment': 'JavaSE-1.8')
+    manifest.attributes('Export-Package': 'org.bouncycastle.*')
+    manifest.attributes('Import-Package': 'java.*;resolution:=optional,javax.*;resolution:=optional')
 }
 
 task sourcesJar(type: Jar) {
-  archiveBaseName = jar.archiveBaseName
-  classifier = 'sources'
-  from sourceSets.main.allSource
+    archiveBaseName = jar.archiveBaseName
+    archiveClassifier = 'sources'
+    from sourceSets.main.allSource
     exclude("**/*.so")
-  into('META-INF/versions/9') {
-    from sourceSets.java9.allSource
-  }
-  into('META-INF/versions/11') {
-    from sourceSets.java11.allSource
-  }
-  into('META-INF/versions/15') {
-    from sourceSets.java15.allSource
-  }
-  into('native/intel') {
-    from '../native_c/intel'
-  }
-  into('native/jniutil') {
-    from '../native_c/jniutil'
-  }
+    into('META-INF/versions/9') {
+        from sourceSets.java9.allSource
+    }
+    into('META-INF/versions/11') {
+        from sourceSets.java11.allSource
+    }
+    into('META-INF/versions/15') {
+        from sourceSets.java15.allSource
+    }
+    into('native/intel') {
+        from '../native_c/intel'
+    }
+    into('native/jniutil') {
+        from '../native_c/jniutil'
+    }
 }
 
 task fullJavaDoc(type: Javadoc) {
-  title = "Bouncy Castle Library (LTS Edition) ${version} Provider API"
-  options.windowTitle = "Bouncy Castle Library (LTS Edition) ${version} Provider API"
-  options.overview = "overview.html"
-  source = files([sourceSets.main.allJava])
+    title = "Bouncy Castle Library (LTS Edition) ${version} Provider API"
+    options.windowTitle = "Bouncy Castle Library (LTS Edition) ${version} Provider API"
+    options.overview = "overview.html"
+    source = files([sourceSets.main.allJava])
 }
 
 task javadocJar(type: Jar, dependsOn: fullJavaDoc) {
-  archiveBaseName = jar.archiveBaseName
-  classifier = 'javadoc'
-  from javadoc.destinationDir
+    archiveBaseName = jar.archiveBaseName
+    archiveClassifier = 'javadoc'
+    from javadoc.destinationDir
 }
 
 artifacts {
-  archives jar
-  archives javadocJar
-  archives sourcesJar
+    archives jar
+    archives javadocJar
+    archives sourcesJar
 }
 
-task('copyJars', type:Copy) {
-    from new File(projectDir,"build/libs")
-    into new File(rootDir,"../bc-lts-java-jars/${version}/")
+task('copyJars', type: Copy) {
+    from new File(projectDir, "build/libs")
+    into new File(rootDir, "../bc-lts-java-jars/${version}/")
 }
 
 

@@ -29,10 +29,10 @@ then
     java -Xmx2g -Dorg.bouncycastle.native.cpu_variant=vaes -cp "$ltsLib:./build/libs/bc-benchmark-java-0.1.jar" org.bouncycastle.benchmark.Benchmark cbc
 fi
 
-echo "CBC-NI (avx)"
+echo "CBC-NI (AVX)"
 java -Xmx2g -Dorg.bouncycastle.native.cpu_variant=avx -cp "$ltsLib:./build/libs/bc-benchmark-java-0.1.jar" org.bouncycastle.benchmark.Benchmark cbc
 
-echo "CBC-NI (java)"
+echo "CBC-NI (JAVA)"
 java -Xmx2g -Dorg.bouncycastle.native.cpu_variant=java -cp "$ltsLib:./build/libs/bc-benchmark-java-0.1.jar" org.bouncycastle.benchmark.Benchmark cbc
 
 if [ -n "$vaesf" ]

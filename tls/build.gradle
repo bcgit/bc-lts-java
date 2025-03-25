@@ -41,22 +41,19 @@ dependencies {
 }
 
 compileJava {
-  javaCompiler = javaToolchains.compilerFor {
-    languageVersion = JavaLanguageVersion.of(8)
-  }
+ options.release = 8
 }
 
 compileJava9Java {
-  javaCompiler = javaToolchains.compilerFor {
-    languageVersion = JavaLanguageVersion.of(11)
-  }
-  sourceCompatibility = 9
-  targetCompatibility = 9
+  options.release = 9
 
   options.compilerArgs += [
                     '--module-path', "$lts_prov:$lts_util"
   ]
   options.sourcepath = files(['src/main/jdk1.5', 'src/main/java', 'src/main/jdk1.9'])
+
+  dependsOn(':prov:jar')
+  dependsOn(':util:jar')
 }
 
 jar {
@@ -72,22 +69,26 @@ jar {
 
 task sourcesJar(type: Jar) {
   archiveBaseName = jar.archiveBaseName
-  classifier = 'sources'
+  archiveClassifier = 'sources'
   from sourceSets.main.allSource
   into('META-INF/versions/9') {
     from sourceSets.java9.allSource
   }
+  dependsOn(':prov:jar')
+  dependsOn(':util:jar')
 }
 
 javadoc {
   title = "Bouncy Castle Library (LTS Edition) ${version} TLS API"
   options.windowTitle = "Bouncy Castle Library (LTS Edition) ${version} TLS API"
   options.overview = "overview.html"
+  dependsOn(':prov:jar')
+  dependsOn(':util:jar')
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
   archiveBaseName = jar.archiveBaseName
-  classifier = 'javadoc'
+  archiveClassifier = 'javadoc'
   from javadoc.destinationDir
 }
 
@@ -102,3 +103,7 @@ task('copyJars', type:Copy) {
   into new File(rootDir,"../bc-lts-java-jars/${version}/")
 }
 
+checkstyleMain {
+  dependsOn(':prov:jar')
+  dependsOn(':util:jar')
+}

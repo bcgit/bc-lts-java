@@ -32,9 +32,14 @@ jar {
     from sourceSets.main.output
 }
 
+compileJava {
+    options.release = 8
+}
+
+
 task sourcesJar(type: Jar) {
     archiveBaseName = jar.archiveBaseName
-    classifier = 'sources'
+    archiveClassifier = 'sources'
     from sourceSets.main.allSource
     exclude("**/*.so")
     into('native/intel') {
@@ -53,7 +58,7 @@ javadoc {
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     archiveBaseName = jar.archiveBaseName
-    classifier = 'javadoc'
+    archiveClassifier = 'javadoc'
     from javadoc.destinationDir
 }
 
