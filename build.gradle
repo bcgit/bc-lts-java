@@ -492,6 +492,10 @@ subprojects {
         into new File(rootDir,"../bc-lts-java-jars/${project.version}/")
     }
 
+    compileTestJava {
+        options.release = 8
+    }
+
 }
 
 

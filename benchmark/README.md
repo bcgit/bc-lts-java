@@ -21,17 +21,18 @@ First ensure the bc-lts-java-jars is checked out at the same level as the bc-lts
 Change into ```<path to>/bc-lts-java/benchmark```
 
 #### Java Version
-This build uses gradle 7.x.x you will need to have Java17 + on your path to run it, please note that gradle 7 has an upper limit
-for which java it can support.
+This build uses gradle 8.13.x you will need to have Java21 + on your path to run a build because it needs
+to produce JDK21 code.
 
 For example:
 
 ```
 java -version
 
-openjdk version "17.0.7" 2023-04-18 LTS
-OpenJDK Runtime Environment Zulu17.42+21-CRaC-CA (build 17.0.7+7-LTS)
-OpenJDK 64-Bit Server VM Zulu17.42+21-CRaC-CA (build 17.0.7+7-LTS, mixed mode, sharing)
+openjdk version "21" 2023-09-19
+OpenJDK Runtime Environment Zulu21.28+85-CA (build 21+35)
+OpenJDK 64-Bit Server VM Zulu21.28+85-CA (build 21+35, mixed mode, sharing)
+
 ```
 
 #### Run a benchmark
