@@ -1,5 +1,6 @@
 #!/bin/bash
-
+# usage: benchmark_linux_ecb.sh <version>
+# where <version> is one the versions in the bc-lts-java-jars repository
 
 export ltsLib="../../bc-lts-java-jars/$1/bcprov-lts8on-$1.jar"
 
