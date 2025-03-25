@@ -15,14 +15,13 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_pqc_crypto_slhdsa_SLHDSASha2NativeE
         (JNIEnv *env, jclass cl, jlong ref, jbyteArray _seed, jbyteArray _padding, jint pad1Len, jint pad2Len) {
     slhdsa_sha256 *ctx = (slhdsa_sha256 *) ((void *) ref);
 
-    critical_bytearray_ctx seed;
+    critical_bytearray_ctx seed, padding;
     init_critical_ctx(&seed, env, _seed);
+    init_critical_ctx(&padding, env, _padding);
+
     if (!critical_not_null(&seed, "seed was null", env)) {
         goto exit;
     }
-
-    critical_bytearray_ctx padding;
-    init_critical_ctx(&padding, env, _padding);
 
     if (!critical_offset_and_len_are_in_range_with_messages(
             &padding,
@@ -45,6 +44,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_pqc_crypto_slhdsa_SLHDSASha2NativeE
             "padding too short")) {
         goto exit;
     }
+
 
     // Attempt to obtain pointer to seed
     if (!load_critical_ctx(&seed)) {
@@ -431,7 +431,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_pqc_crypto_slhdsa_SLHDSASha2NativeE
     }
 
     if (key.size < 48) {
-        throw_java_illegal_argument(env,"key less than 48 bytes");
+        throw_java_illegal_argument(env, "key less than 48 bytes");
         goto exit;
     }
 
@@ -511,12 +511,12 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_pqc_crypto_slhdsa_SLHDSASha2NativeE
     }
 
     slhdsa_sha256_mgf256_mask(ctx,
-                          key.critical, key.size,
-                          result.critical,
-                          in0.critical, in0.size,
-                          in1.critical, in1.size,
-                          in2.critical, in2.size,
-                          in3.critical, in3.size
+                              key.critical, key.size,
+                              result.critical,
+                              in0.critical, in0.size,
+                              in1.critical, in1.size,
+                              in2.critical, in2.size,
+                              in3.critical, in3.size
     );
 
 

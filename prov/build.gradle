@@ -178,7 +178,6 @@ test {
     testLogging.showExceptions = true
     testLogging.showStackTraces = true
 
-
     jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true',
             '-Dtest.bclts.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr,ccm',
             '-Dorg.bouncycastle.native.cpu_variant=java'

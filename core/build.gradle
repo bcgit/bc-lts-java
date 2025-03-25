@@ -16,7 +16,6 @@ test {
     testLogging.showExceptions = true
     testLogging.showStackTraces = true
 
-
    jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8',
            '-Dorg.bouncycastle.bks.enable_v1=true',
            '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake,slhdsa_sha256',

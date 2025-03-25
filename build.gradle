@@ -158,6 +158,8 @@ subprojects {
         maxParallelForks = 1;
         forkEvery = 1;
 
+        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
+
         filter {
             includeTestsMatching "AllTest*"
         }
@@ -189,6 +191,8 @@ subprojects {
         maxParallelForks = 1;
         forkEvery = 1;
 
+        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
+
         filter {
             includeTestsMatching "AllTest*"
         }
@@ -216,6 +220,8 @@ subprojects {
         maxParallelForks = 1;
         forkEvery = 1;
 
+        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
+
         filter {
             includeTestsMatching "AllTest*"
         }
@@ -241,6 +247,8 @@ subprojects {
         testLogging.showStackTraces = true
         maxParallelForks = 1;
         forkEvery = 1;
+
+        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
 
         filter {
             includeTestsMatching "AllTest*"
@@ -270,6 +278,8 @@ subprojects {
         maxParallelForks = 1;
         forkEvery = 1;
 
+        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
+
         filter {
             includeTestsMatching "AllTest*"
         }
@@ -296,6 +306,8 @@ subprojects {
         testLogging.showStackTraces = true
         maxParallelForks = 1;
         forkEvery = 1;
+
+        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
 
         filter {
             includeTestsMatching "AllTest*"
@@ -327,6 +339,8 @@ subprojects {
         testLogging.showStackTraces = true
         maxParallelForks = 1;
         forkEvery = 1;
+
+        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
 
         filter {
             includeTestsMatching "AllTest*"
@@ -387,6 +401,8 @@ subprojects {
         maxParallelForks = 1;
         forkEvery = 1;
 
+        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
+
         jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
                 '-Dorg.bouncycastle.expected_jvm=1.8',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
@@ -420,6 +436,8 @@ subprojects {
         testLogging.showStackTraces = true
         maxParallelForks = 1;
         forkEvery = 1;
+
+        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
 
         jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
                 '-Dorg.bouncycastle.expected_jvm=1.8',

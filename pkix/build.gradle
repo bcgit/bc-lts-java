@@ -99,3 +99,8 @@ checkstyleMain {
     dependsOn(':prov:jar')
     dependsOn(':util:jar')
 }
+
+compileTestJava {
+    dependsOn(':prov:jar')
+    dependsOn(':util:jar')
+}

@@ -105,3 +105,9 @@ checkstyleMain {
     dependsOn(':util:jar')
     dependsOn(':pkix:jar')
 }
+
+compileTestJava {
+    dependsOn(":prov:jar")
+    dependsOn(":util:jar")
+    dependsOn(":pkix:jar")
+}

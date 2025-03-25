@@ -93,3 +93,7 @@ task('copyJars', type: Copy) {
 checkstyleMain {
     dependsOn(':prov:jar')
 }
+
+compileTestJava {
+    dependsOn(':prov:jar')
+}
