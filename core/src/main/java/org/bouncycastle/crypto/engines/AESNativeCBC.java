@@ -17,7 +17,6 @@ class AESNativeCBC
     private CBCRefWrapper referenceWrapper;
 
     byte[] IV = new byte[16];
-    byte[] oldKey;
     int keySize;
 
     private boolean encrypting;
@@ -60,14 +59,14 @@ class AESNativeCBC
                     throw new IllegalArgumentException("cannot change encrypting state without providing key");
                 }
 
-                if (oldKey == null)
+                if (referenceWrapper == null)
                 {
                     throw new IllegalStateException("IV change attempted but not previously initialized with a key");
                 }
 
                 // We need to use the old key because
                 // the native layer requires a both key and iv each time.
-                init(new KeyParameter(oldKey));
+                init(new KeyParameter(referenceWrapper.oldKey));
 
             }
         }
@@ -88,14 +87,14 @@ class AESNativeCBC
                     throw new IllegalArgumentException("cannot change encrypting state without providing key.");
                 }
 
-                if (oldKey == null)
+                if (referenceWrapper == null)
                 {
                     throw new IllegalStateException("IV change attempted but not previously initialized with a key");
                 }
 
                 // We need to use the old key because the
                 // native layer requires a both key and iv each time.
-                init(new KeyParameter(oldKey));
+                init(new KeyParameter(referenceWrapper.oldKey));
 
             }
         }
@@ -118,15 +117,13 @@ class AESNativeCBC
             throw new IllegalArgumentException("key must be only 16,24,or 32 bytes long.");
         }
 
-        referenceWrapper = new CBCRefWrapper(makeNative(key.length, encrypting));
+        referenceWrapper = new CBCRefWrapper(makeNative(key.length, encrypting), Arrays.clone(key));
 
         if (referenceWrapper.getReference() == 0)
         {
             throw new IllegalStateException("Native CBC native instance returned a null pointer.");
         }
-
-        oldKey = Arrays.clone(key);
-
+        
         init(referenceWrapper.getReference(), key, IV);
         keySize = key.length * 8;
     }
@@ -210,24 +207,26 @@ class AESNativeCBC
     public BlockCipher getUnderlyingCipher()
     {
         MultiBlockCipher eng = AESEngine.newInstance();
-        eng.init(encrypting, new KeyParameter(oldKey));
+        eng.init(encrypting, new KeyParameter(referenceWrapper.oldKey));
         return eng;
     }
 
 
-    private class Disposer
+    private static class Disposer
         extends NativeDisposer
     {
-        Disposer(long ref)
+        private final byte[] oldKey;
+
+        Disposer(long ref, byte[] oldKey)
         {
             super(ref);
+            this.oldKey = oldKey;
         }
 
         @Override
         protected void dispose(long reference)
         {
-            Arrays.clear(oldKey);
-            Arrays.clear(IV);
+            Arrays.clear(this.oldKey);
             AESNativeCBC.dispose(reference);
         }
     }
@@ -235,16 +234,18 @@ class AESNativeCBC
     private class CBCRefWrapper
         extends NativeReference
     {
+        private final byte[] oldKey;
 
-        public CBCRefWrapper(long reference)
+        public CBCRefWrapper(long reference, byte[] oldKey)
         {
-            super(reference,"CBC");
+            super(reference, "CBC");
+            this.oldKey = oldKey;
         }
 
         @Override
         public Runnable createAction()
         {
-            return new Disposer(reference);
+            return new Disposer(reference, this.oldKey);
         }
     }
 
