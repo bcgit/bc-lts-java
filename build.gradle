@@ -33,6 +33,18 @@ if (JavaVersion.current().isJava8Compatible()) {
     }
 }
 
+def String deriveOSGIVersion(String prjVersion) {
+    if (prjVersion.contains("-SNAPSHOT")) {
+        // Snapshots always extend to fourth level and terminate with time in seconds since epoch.
+        prjVersion = prjVersion.replace("-SNAPSHOT", "");
+        while (prjVersion.count(".") < 2) {
+            prjVersion = prjVersion + ".0";
+        }
+        prjVersion = prjVersion + "." + System.currentTimeMillis().intdiv(1000L).intdiv(60).intdiv(60).intdiv(24);
+    }
+    return prjVersion
+}
+
 // this needs to go here, otherwise it can't find config
 apply plugin: 'io.spring.nohttp'
 
@@ -61,6 +73,7 @@ allprojects {
 }
 
 ext {
+    bundle_version = deriveOSGIVersion(version.toString());
     bcTestDataHome = file('core/src/test/data').absolutePath
 
     vm_range = '8on'

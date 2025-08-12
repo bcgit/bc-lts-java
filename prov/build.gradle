@@ -1,7 +1,3 @@
-import java.nio.file.CopyOption
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
 import static ExtraFunctions.*
 
 plugins {
@@ -101,10 +97,19 @@ jar {
         from sourceSets.java21.output
     }
 
+    String v = "${rootProject.extensions.ext.bundle_version}"
     manifest.attributes('Multi-Release': 'true')
+    manifest.attributes('Bundle-Name': 'bcprov')
+    manifest.attributes('Bundle-SymbolicName': 'bcprov')
     manifest.attributes('Bundle-RequiredExecutionEnvironment': 'JavaSE-1.8')
-    manifest.attributes('Export-Package': 'org.bouncycastle.*')
+    manifest.attributes('Export-Package': "!org.bouncycastle.internal.*,org.bouncycastle.*;version=${v}")
     manifest.attributes('Import-Package': 'java.*;resolution:=optional,javax.*;resolution:=optional')
+    manifest.attributes('Bundle-Version': "${v}")
+    manifest.attributes('Permissions': 'all-permissions')
+    manifest.attributes('Codebase': '*')
+    manifest.attributes('Application-Library-Allowable-Codebase': '*')
+    manifest.attributes('Caller-Allowable-Codebase': '*')
+    manifest.attributes('Trusted-Library': 'true')
 }
 
 task sourcesJar(type: Jar) {
