@@ -96,7 +96,7 @@ public class SLHDSAParameters
         return preHashDigest;
     }
 
-    int getN()
+    public int getN()
     {
         return engineProvider.getN();
     }
@@ -138,7 +138,7 @@ public class SLHDSAParameters
 
         public SLHDSAEngine get()
         {
-            return  SLHDSASha2Engine.newInstance(n, w, d, a, k, h);
+            return new SLHDSAEngine.Sha2Engine(n, w, d, a, k, h);
         }
     }
 
@@ -169,7 +169,7 @@ public class SLHDSAParameters
 
         public SLHDSAEngine get()
         {
-            return new SLHDSAShakeEngine(n, w, d, a, k, h);
+            return new SLHDSAEngine.Shake256Engine(n, w, d, a, k, h);
         }
     }
 }

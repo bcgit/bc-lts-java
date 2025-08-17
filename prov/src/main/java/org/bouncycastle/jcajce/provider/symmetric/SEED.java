@@ -9,7 +9,6 @@ import javax.crypto.spec.IvParameterSpec;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherKeyGenerator;
-import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.engines.SEEDEngine;
 import org.bouncycastle.crypto.engines.SEEDWrapEngine;
@@ -40,7 +39,7 @@ public final class SEED
     {
         public ECB()
         {
-            super(new BlockCipherProvider()
+            super(128, new BlockCipherProvider()
             {
                 public BlockCipher get()
                 {
@@ -55,7 +54,7 @@ public final class SEED
     {
         public CBC()
         {
-            super(new CBCBlockCipher(new SEEDEngine()), 128);
+            super(128, new CBCBlockCipher(new SEEDEngine()), 128);
         }
     }
 
@@ -64,7 +63,7 @@ public final class SEED
     {
         public Wrap()
         {
-            super(new SEEDWrapEngine());
+            super(128, new SEEDWrapEngine());
         }
     }
 

@@ -1,6 +1,12 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
+import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.OutputLengthException;
+import org.bouncycastle.crypto.StreamBlockCipher;
+import org.bouncycastle.util.Arrays;
 
 /**
  * A Cipher Text Stealing (CTS) mode cipher. CTS allows block ciphers to
@@ -19,7 +25,7 @@ public class CTSBlockCipher
     public CTSBlockCipher(
         BlockCipher     cipher)
     {
-        if (cipher instanceof StreamCipher)
+        if (cipher instanceof StreamBlockCipher)
         {
             throw new IllegalArgumentException("CTSBlockCipher can only accept ECB, or CBC ciphers");
         }
@@ -141,14 +147,18 @@ public class CTSBlockCipher
         if (len > gapLen)
         {
             System.arraycopy(in, inOff, buf, bufOff, gapLen);
-
+            inOff += gapLen;
+            len -= gapLen;
+            if (in == out && Arrays.segmentsOverlap(inOff, len, outOff, length))
+            {
+                in = new byte[len];
+                System.arraycopy(out, inOff, in, 0, len);
+                inOff = 0;
+            }
             resultLen += cipher.processBlock(buf, 0, out, outOff);
             System.arraycopy(buf, blockSize, buf, 0, blockSize);
 
             bufOff = blockSize;
-
-            len -= gapLen;
-            inOff += gapLen;
 
             while (len > blockSize)
             {

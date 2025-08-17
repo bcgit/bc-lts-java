@@ -40,6 +40,7 @@ import org.bouncycastle.tls.crypto.TlsECConfig;
 import org.bouncycastle.tls.crypto.TlsEncryptor;
 import org.bouncycastle.tls.crypto.TlsHash;
 import org.bouncycastle.tls.crypto.TlsHashOutputStream;
+import org.bouncycastle.tls.crypto.TlsHybridAgreement;
 import org.bouncycastle.tls.crypto.TlsKemConfig;
 import org.bouncycastle.tls.crypto.TlsSecret;
 import org.bouncycastle.tls.crypto.TlsStreamSigner;
@@ -1149,7 +1150,7 @@ public class TlsUtils
 
     public static void addIfSupported(Vector supportedGroups, TlsCrypto crypto, int namedGroup)
     {
-        if (crypto.hasNamedGroup(namedGroup))
+        if (isSupportedNamedGroup(crypto, namedGroup))
         {
             supportedGroups.addElement(Integers.valueOf(namedGroup));
         }
@@ -1193,13 +1194,13 @@ public class TlsUtils
         /*
          * RFC 5246 7.4.1.4.1. If the client does not send the signature_algorithms extension,
          * the server MUST do the following:
-         * 
+         *
          * - If the negotiated key exchange algorithm is one of (RSA, DHE_RSA, DH_RSA, RSA_PSK,
          * ECDH_RSA, ECDHE_RSA), behave as if client had sent the value {sha1,rsa}.
-         * 
+         *
          * - If the negotiated key exchange algorithm is one of (DHE_DSS, DH_DSS), behave as if
          * the client had sent the value {sha1,dsa}.
-         * 
+         *
          * - If the negotiated key exchange algorithm is one of (ECDH_ECDSA, ECDHE_ECDSA),
          * behave as if the client had sent value {sha1,ecdsa}.
          */
@@ -1244,14 +1245,14 @@ public class TlsUtils
      * @deprecated Will be removed
      */
     public static SignatureAndHashAlgorithm getSignatureAndHashAlgorithm(TlsContext context,
-        TlsCredentialedSigner signerCredentials)
+                                                                         TlsCredentialedSigner signerCredentials)
         throws IOException
     {
         return getSignatureAndHashAlgorithm(context.getServerVersion(), signerCredentials);
     }
 
     static SignatureAndHashAlgorithm getSignatureAndHashAlgorithm(ProtocolVersion negotiatedVersion,
-        TlsCredentialedSigner credentialedSigner) throws IOException
+                                                                  TlsCredentialedSigner credentialedSigner) throws IOException
     {
         SignatureAndHashAlgorithm signatureAndHashAlgorithm = null;
         if (isSignatureAlgorithmsExtensionAllowed(negotiatedVersion))
@@ -1274,7 +1275,7 @@ public class TlsUtils
     }
 
     public static boolean hasExpectedEmptyExtensionData(Hashtable extensions, Integer extensionType,
-        short alertDescription) throws IOException
+                                                        short alertDescription) throws IOException
     {
         byte[] extension_data = getExtensionData(extensions, extensionType);
         if (extension_data == null)
@@ -1532,14 +1533,14 @@ public class TlsUtils
     }
 
     public static void verifySupportedSignatureAlgorithm(Vector supportedSignatureAlgorithms,
-        SignatureAndHashAlgorithm signatureAlgorithm) throws IOException
+                                                         SignatureAndHashAlgorithm signatureAlgorithm) throws IOException
     {
         verifySupportedSignatureAlgorithm(supportedSignatureAlgorithms, signatureAlgorithm,
             AlertDescription.illegal_parameter);
     }
 
     static void verifySupportedSignatureAlgorithm(Vector supportedSignatureAlgorithms,
-        SignatureAndHashAlgorithm signatureAlgorithm, short alertDescription) throws IOException
+                                                  SignatureAndHashAlgorithm signatureAlgorithm, short alertDescription) throws IOException
     {
         if (supportedSignatureAlgorithms == null || supportedSignatureAlgorithms.size() < 1
             || supportedSignatureAlgorithms.size() >= (1 << 15))
@@ -1589,7 +1590,7 @@ public class TlsUtils
     }
 
     public static TlsSecret PRF(SecurityParameters securityParameters, TlsSecret secret, String asciiLabel, byte[] seed,
-        int length)
+                                int length)
     {
         return secret.deriveUsingPRF(securityParameters.getPRFAlgorithm(), asciiLabel, seed, length);
     }
@@ -1644,7 +1645,7 @@ public class TlsUtils
     }
 
     static byte[] calculateEndPointHash(TlsContext context, TlsCertificate certificate, byte[] enc, int encOff,
-        int encLen) throws IOException
+                                        int encLen) throws IOException
     {
         short hashAlgorithm = HashAlgorithm.none;
 
@@ -1696,7 +1697,7 @@ public class TlsUtils
         {
             TlsHash hash = createHash(context.getCrypto(), hashAlgorithm);
             if (hash != null)
-            {                
+            {
                 hash.update(enc, encOff, encLen);
                 return hash.calculateHash();
             }
@@ -1725,16 +1726,16 @@ public class TlsUtils
     }
 
     private static byte[] calculateFinishedHMAC(SecurityParameters securityParameters, TlsSecret baseKey,
-        byte[] transcriptHash) throws IOException
+                                                byte[] transcriptHash) throws IOException
     {
         int prfCryptoHashAlgorithm = securityParameters.getPRFCryptoHashAlgorithm();
-        int prfHashLength = securityParameters.getPRFHashLength(); 
+        int prfHashLength = securityParameters.getPRFHashLength();
 
         return calculateFinishedHMAC(prfCryptoHashAlgorithm, prfHashLength, baseKey, transcriptHash);
     }
 
     private static byte[] calculateFinishedHMAC(int prfCryptoHashAlgorithm, int prfHashLength, TlsSecret baseKey,
-        byte[] transcriptHash) throws IOException
+                                                byte[] transcriptHash) throws IOException
     {
         TlsSecret finishedKey = TlsCryptoUtils.hkdfExpandLabel(baseKey, prfCryptoHashAlgorithm, "finished", EMPTY_BYTES,
             prfHashLength);
@@ -1770,7 +1771,7 @@ public class TlsUtils
     }
 
     static byte[] calculatePSKBinder(TlsCrypto crypto, boolean isExternalPSK, int pskCryptoHashAlgorithm,
-        TlsSecret earlySecret, byte[] transcriptHash) throws IOException
+                                     TlsSecret earlySecret, byte[] transcriptHash) throws IOException
     {
         int prfHashLength = TlsCryptoUtils.getHashOutputSize(pskCryptoHashAlgorithm);
 
@@ -1859,7 +1860,7 @@ public class TlsUtils
     }
 
     private static void establish13TrafficSecrets(TlsContext context, byte[] transcriptHash, TlsSecret phaseSecret,
-        String clientLabel, String serverLabel, RecordStream recordStream) throws IOException
+                                                  String clientLabel, String serverLabel, RecordStream recordStream) throws IOException
     {
         SecurityParameters securityParameters = context.getSecurityParametersHandshake();
 
@@ -1878,7 +1879,7 @@ public class TlsUtils
     }
 
     static void establish13PhaseApplication(TlsContext context, byte[] serverFinishedTranscriptHash,
-        RecordStream recordStream) throws IOException
+                                            RecordStream recordStream) throws IOException
     {
         SecurityParameters securityParameters = context.getSecurityParametersHandshake();
         TlsSecret phaseSecret = securityParameters.getMasterSecret();
@@ -1910,7 +1911,7 @@ public class TlsUtils
     }
 
     static void establish13PhaseHandshake(TlsContext context, byte[] serverHelloTranscriptHash,
-        RecordStream recordStream) throws IOException
+                                          RecordStream recordStream) throws IOException
     {
         SecurityParameters securityParameters = context.getSecurityParametersHandshake();
         TlsSecret phaseSecret = securityParameters.getHandshakeSecret();
@@ -2326,7 +2327,7 @@ public class TlsUtils
     }
 
     static byte[] calculateSignatureHash(TlsContext context, SignatureAndHashAlgorithm algorithm,
-        byte[] extraSignatureInput, DigestInputBuffer buf)
+                                         byte[] extraSignatureInput, DigestInputBuffer buf)
     {
         TlsCrypto crypto = context.getCrypto();
 
@@ -2350,7 +2351,7 @@ public class TlsUtils
     }
 
     static void sendSignatureInput(TlsContext context, byte[] extraSignatureInput, DigestInputBuffer buf,
-        OutputStream output) throws IOException
+                                   OutputStream output) throws IOException
     {
         SecurityParameters sp = context.getSecurityParametersHandshake();
         // NOTE: The implicit copy here is intended (and important)
@@ -2368,8 +2369,8 @@ public class TlsUtils
     }
 
     static DigitallySigned generateCertificateVerifyClient(TlsClientContext clientContext,
-        TlsCredentialedSigner clientAuthSigner, SignatureAndHashAlgorithm clientAuthAlgorithm,
-        TlsStreamSigner clientAuthStreamSigner, TlsHandshakeHash handshakeHash) throws IOException
+                                                           TlsCredentialedSigner clientAuthSigner, SignatureAndHashAlgorithm clientAuthAlgorithm,
+                                                           TlsStreamSigner clientAuthStreamSigner, TlsHandshakeHash handshakeHash) throws IOException
     {
         SecurityParameters securityParameters = clientContext.getSecurityParametersHandshake();
         if (isTLSv13(securityParameters.getNegotiatedVersion()))
@@ -2403,7 +2404,7 @@ public class TlsUtils
     }
 
     static DigitallySigned generate13CertificateVerify(TlsContext context, TlsCredentialedSigner credentialedSigner,
-        TlsHandshakeHash handshakeHash) throws IOException
+                                                       TlsHandshakeHash handshakeHash) throws IOException
     {
         SignatureAndHashAlgorithm signatureAndHashAlgorithm = credentialedSigner.getSignatureAndHashAlgorithm();
         if (null == signatureAndHashAlgorithm)
@@ -2422,8 +2423,8 @@ public class TlsUtils
     }
 
     private static byte[] generate13CertificateVerify(TlsCrypto crypto, TlsCredentialedSigner credentialedSigner,
-        String contextString, TlsHandshakeHash handshakeHash, SignatureAndHashAlgorithm signatureAndHashAlgorithm)
-            throws IOException
+                                                      String contextString, TlsHandshakeHash handshakeHash, SignatureAndHashAlgorithm signatureAndHashAlgorithm)
+        throws IOException
     {
         TlsStreamSigner streamSigner = credentialedSigner.getStreamSigner();
 
@@ -2446,7 +2447,7 @@ public class TlsUtils
     }
 
     static void verifyCertificateVerifyClient(TlsServerContext serverContext, CertificateRequest certificateRequest,
-        DigitallySigned certificateVerify, TlsHandshakeHash handshakeHash) throws IOException
+                                              DigitallySigned certificateVerify, TlsHandshakeHash handshakeHash) throws IOException
     {
         SecurityParameters securityParameters = serverContext.getSecurityParametersHandshake();
         Certificate clientCertificate = securityParameters.getPeerCertificate();
@@ -2514,7 +2515,7 @@ public class TlsUtils
     }
 
     static void verify13CertificateVerifyClient(TlsServerContext serverContext, TlsHandshakeHash handshakeHash,
-        CertificateVerify certificateVerify) throws IOException
+                                                CertificateVerify certificateVerify) throws IOException
     {
         SecurityParameters securityParameters = serverContext.getSecurityParametersHandshake();
 
@@ -2526,7 +2527,7 @@ public class TlsUtils
     }
 
     static void verify13CertificateVerifyServer(TlsClientContext clientContext, TlsHandshakeHash handshakeHash,
-        CertificateVerify certificateVerify) throws IOException
+                                                CertificateVerify certificateVerify) throws IOException
     {
         SecurityParameters securityParameters = clientContext.getSecurityParametersHandshake();
 
@@ -2538,7 +2539,7 @@ public class TlsUtils
     }
 
     private static void verify13CertificateVerify(Vector supportedAlgorithms, String contextString,
-        TlsHandshakeHash handshakeHash, TlsCertificate certificate, CertificateVerify certificateVerify)
+                                                  TlsHandshakeHash handshakeHash, TlsCertificate certificate, CertificateVerify certificateVerify)
         throws IOException
     {
         // Verify the CertificateVerify message contains a correct signature.
@@ -2593,7 +2594,7 @@ public class TlsUtils
     }
 
     static void generateServerKeyExchangeSignature(TlsContext context, TlsCredentialedSigner credentials,
-        byte[] extraSignatureInput, DigestInputBuffer digestBuffer) throws IOException
+                                                   byte[] extraSignatureInput, DigestInputBuffer digestBuffer) throws IOException
     {
         /*
          * RFC 5246 4.7. digitally-signed element needs SignatureAndHashAlgorithm from TLS 1.2
@@ -2619,7 +2620,7 @@ public class TlsUtils
     }
 
     static void verifyServerKeyExchangeSignature(TlsContext context, InputStream signatureInput,
-        TlsCertificate serverCertificate, byte[] extraSignatureInput, DigestInputBuffer digestBuffer)
+                                                 TlsCertificate serverCertificate, byte[] extraSignatureInput, DigestInputBuffer digestBuffer)
         throws IOException
     {
         DigitallySigned digitallySigned = DigitallySigned.parse(context, signatureInput);
@@ -2668,7 +2669,7 @@ public class TlsUtils
     }
 
     static void trackHashAlgorithmClient(TlsHandshakeHash handshakeHash,
-        SignatureAndHashAlgorithm signatureAndHashAlgorithm)
+                                         SignatureAndHashAlgorithm signatureAndHashAlgorithm)
     {
         int cryptoHashAlgorithm = SignatureScheme.getCryptoHashAlgorithm(signatureAndHashAlgorithm);
         if (cryptoHashAlgorithm >= 0)
@@ -4119,7 +4120,7 @@ public class TlsUtils
     }
 
     static boolean isValidKeyShareSelection(ProtocolVersion negotiatedVersion, int[] clientSupportedGroups,
-        Hashtable clientAgreements, int keyShareGroup)
+                                            Hashtable clientAgreements, int keyShareGroup)
     {
         return null != clientSupportedGroups
             && Arrays.contains(clientSupportedGroups, keyShareGroup)
@@ -4197,13 +4198,13 @@ public class TlsUtils
     }
 
     public static SignatureAndHashAlgorithm chooseSignatureAndHashAlgorithm(TlsContext context, Vector sigHashAlgs,
-        short signatureAlgorithm) throws IOException
+                                                                            short signatureAlgorithm) throws IOException
     {
         return chooseSignatureAndHashAlgorithm(context.getServerVersion(), sigHashAlgs, signatureAlgorithm);
     }
 
     public static SignatureAndHashAlgorithm chooseSignatureAndHashAlgorithm(ProtocolVersion negotiatedVersion,
-        Vector sigHashAlgs, short signatureAlgorithm) throws IOException
+                                                                            Vector sigHashAlgs, short signatureAlgorithm) throws IOException
     {
         if (!isTLSv12(negotiatedVersion))
         {
@@ -4290,7 +4291,7 @@ public class TlsUtils
     }
 
     public static int getCommonCipherSuite13(ProtocolVersion negotiatedVersion, int[] peerCipherSuites,
-        int[] localCipherSuites, boolean useLocalOrder)
+                                             int[] localCipherSuites, boolean useLocalOrder)
     {
         int[] ordered = peerCipherSuites, unordered = localCipherSuites;
         if (useLocalOrder)
@@ -4423,8 +4424,8 @@ public class TlsUtils
         case KeyExchangeAlgorithm.ECDHE_ECDSA:
             return crypto.hasECDHAgreement()
                 && (crypto.hasSignatureAlgorithm(SignatureAlgorithm.ecdsa)
-                    || crypto.hasSignatureAlgorithm(SignatureAlgorithm.ed25519)
-                    || crypto.hasSignatureAlgorithm(SignatureAlgorithm.ed448));
+                || crypto.hasSignatureAlgorithm(SignatureAlgorithm.ed25519)
+                || crypto.hasSignatureAlgorithm(SignatureAlgorithm.ed448));
 
         case KeyExchangeAlgorithm.ECDHE_RSA:
             return crypto.hasECDHAgreement()
@@ -4455,6 +4456,17 @@ public class TlsUtils
         default:
             return false;
         }
+    }
+
+    public static boolean isSupportedNamedGroup(TlsCrypto crypto, int namedGroup)
+    {
+        if (!NamedGroup.refersToASpecificHybrid(namedGroup))
+        {
+            return crypto.hasNamedGroup(namedGroup);
+        }
+
+        return crypto.hasNamedGroup(NamedGroup.getHybridFirst(namedGroup))
+            && crypto.hasNamedGroup(NamedGroup.getHybridSecond(namedGroup));
     }
 
     static boolean hasAnyRSASigAlgs(TlsCrypto crypto)
@@ -4737,7 +4749,7 @@ public class TlsUtils
                 short signatureAlgorithm = getLegacySignatureAlgorithmServerCert(
                     securityParameters.getKeyExchangeAlgorithm());
 
-                valid = (signatureAlgorithm == sigAndHashAlg.getSignature()); 
+                valid = (signatureAlgorithm == sigAndHashAlg.getSignature());
             }
             else
             {
@@ -4773,7 +4785,8 @@ public class TlsUtils
             {
                 if (!(tlsFeaturesSeq.getObjectAt(i) instanceof ASN1Integer))
                 {
-                    throw new TlsFatalAlert(AlertDescription.bad_certificate);
+                    throw new TlsFatalAlert(AlertDescription.bad_certificate,
+                        "Server certificate has invalid TLS Features extension");
                 }
             }
 
@@ -4787,7 +4800,8 @@ public class TlsUtils
                     Integer extensionType = Integers.valueOf(tlsExtension.intValue());
                     if (clientExtensions.containsKey(extensionType) && !serverExtensions.containsKey(extensionType))
                     {
-                        throw new TlsFatalAlert(AlertDescription.certificate_unknown);
+                        throw new TlsFatalAlert(AlertDescription.certificate_unknown,
+                            "Server extensions missing TLS Feature " + extensionType);
                     }
                 }
             }
@@ -4795,7 +4809,7 @@ public class TlsUtils
     }
 
     static void processClientCertificate(TlsServerContext serverContext, Certificate clientCertificate,
-        TlsKeyExchange keyExchange, TlsServer server) throws IOException
+                                         TlsKeyExchange keyExchange, TlsServer server) throws IOException
     {
         SecurityParameters securityParameters = serverContext.getSecurityParametersHandshake();
         if (null != securityParameters.getPeerCertificate())
@@ -4836,8 +4850,8 @@ public class TlsUtils
     }
 
     static void processServerCertificate(TlsClientContext clientContext,
-        CertificateStatus serverCertificateStatus, TlsKeyExchange keyExchange, TlsAuthentication clientAuthentication,
-        Hashtable clientExtensions, Hashtable serverExtensions) throws IOException
+                                         CertificateStatus serverCertificateStatus, TlsKeyExchange keyExchange, TlsAuthentication clientAuthentication,
+                                         Hashtable clientExtensions, Hashtable serverExtensions) throws IOException
     {
         SecurityParameters securityParameters = clientContext.getSecurityParametersHandshake();
         boolean isTLSv13 = isTLSv13(securityParameters.getNegotiatedVersion());
@@ -5084,7 +5098,7 @@ public class TlsUtils
     }
 
     private static void checkClientCertificateType(CertificateRequest certificateRequest, short clientCertificateType,
-        short alertDescription) throws IOException
+                                                   short alertDescription) throws IOException
     {
         if (clientCertificateType < 0
             || !Arrays.contains(certificateRequest.getCertificateTypes(), clientCertificateType))
@@ -5165,7 +5179,7 @@ public class TlsUtils
     }
 
     private static boolean isSafeRenegotiationServerCertificate(TlsClientContext clientContext,
-        Certificate serverCertificate)
+                                                                Certificate serverCertificate)
     {
         SecurityParameters securityParametersConnection = clientContext.getSecurityParametersConnection();
         if (securityParametersConnection != null)
@@ -5181,7 +5195,7 @@ public class TlsUtils
     }
 
     static TlsAuthentication receiveServerCertificate(TlsClientContext clientContext, TlsClient client,
-        ByteArrayInputStream buf, Hashtable serverExtensions) throws IOException
+                                                      ByteArrayInputStream buf, Hashtable serverExtensions) throws IOException
     {
         SecurityParameters securityParameters = clientContext.getSecurityParametersHandshake();
         if (KeyExchangeAlgorithm.isAnonymous(securityParameters.getKeyExchangeAlgorithm())
@@ -5193,7 +5207,7 @@ public class TlsUtils
         ByteArrayOutputStream endPointHash = new ByteArrayOutputStream();
 
         Certificate.ParseOptions options = new Certificate.ParseOptions()
-            .setCertificateType(securityParameters.getServerCertificateType())            
+            .setCertificateType(securityParameters.getServerCertificateType())
             .setMaxChainLength(client.getMaxCertificateChainLength());
 
         Certificate serverCertificate = Certificate.parse(options, clientContext, buf, endPointHash);
@@ -5225,7 +5239,7 @@ public class TlsUtils
     }
 
     static TlsAuthentication receive13ServerCertificate(TlsClientContext clientContext, TlsClient client,
-        ByteArrayInputStream buf, Hashtable serverExtensions) throws IOException
+                                                        ByteArrayInputStream buf, Hashtable serverExtensions) throws IOException
     {
         SecurityParameters securityParameters = clientContext.getSecurityParametersHandshake();
         if (null != securityParameters.getPeerCertificate())
@@ -5234,7 +5248,7 @@ public class TlsUtils
         }
 
         Certificate.ParseOptions options = new Certificate.ParseOptions()
-            .setCertificateType(securityParameters.getServerCertificateType())            
+            .setCertificateType(securityParameters.getServerCertificateType())
             .setMaxChainLength(client.getMaxCertificateChainLength());
 
         Certificate serverCertificate = Certificate.parse(options, clientContext, buf, null);
@@ -5304,7 +5318,7 @@ public class TlsUtils
     }
 
     static Hashtable addKeyShareToClientHello(TlsClientContext clientContext, TlsClient client,
-        Hashtable clientExtensions) throws IOException
+                                              Hashtable clientExtensions) throws IOException
     {
         /*
          * RFC 8446 9.2. If containing a "supported_groups" extension, it MUST also contain a
@@ -5322,7 +5336,7 @@ public class TlsUtils
         Hashtable clientAgreements = new Hashtable(3);
         Vector clientShares = new Vector(2);
 
-        collectKeyShares(clientContext, supportedGroups, keyShareGroups, clientAgreements, clientShares);
+        collectKeyShares(clientContext.getCrypto(), supportedGroups, keyShareGroups, clientAgreements, clientShares);
 
         // TODO[tls13-psk] When clientShares empty, consider not adding extension if pre_shared_key in use
         TlsExtensionsUtils.addKeyShareClientHello(clientExtensions, clientShares);
@@ -5331,14 +5345,14 @@ public class TlsUtils
     }
 
     static Hashtable addKeyShareToClientHelloRetry(TlsClientContext clientContext, Hashtable clientExtensions,
-        int keyShareGroup) throws IOException
+                                                   int keyShareGroup) throws IOException
     {
         int[] supportedGroups = new int[]{ keyShareGroup };
         Vector keyShareGroups = vectorOfOne(Integers.valueOf(keyShareGroup));
         Hashtable clientAgreements = new Hashtable(1, 1.0f);
         Vector clientShares = new Vector(1);
 
-        collectKeyShares(clientContext, supportedGroups, keyShareGroups, clientAgreements, clientShares);
+        collectKeyShares(clientContext.getCrypto(), supportedGroups, keyShareGroups, clientAgreements, clientShares);
 
         TlsExtensionsUtils.addKeyShareClientHello(clientExtensions, clientShares);
 
@@ -5351,10 +5365,9 @@ public class TlsUtils
         return clientAgreements;
     }
 
-    private static void collectKeyShares(TlsClientContext clientContext, int[] supportedGroups, Vector keyShareGroups,
-        Hashtable clientAgreements, Vector clientShares) throws IOException
+    private static void collectKeyShares(TlsCrypto crypto, int[] supportedGroups, Vector keyShareGroups,
+                                         Hashtable clientAgreements, Vector clientShares) throws IOException
     {
-        TlsCrypto crypto = clientContext.getCrypto();
         if (isNullOrEmpty(supportedGroups))
         {
             return;
@@ -5369,37 +5382,14 @@ public class TlsUtils
             int supportedGroup = supportedGroups[i];
             Integer supportedGroupElement = Integers.valueOf(supportedGroup);
 
-            if (!keyShareGroups.contains(supportedGroupElement)
-                || clientAgreements.containsKey(supportedGroupElement)
-                || !crypto.hasNamedGroup(supportedGroup))
+            if (!keyShareGroups.contains(supportedGroupElement) ||
+                clientAgreements.containsKey(supportedGroupElement))
             {
                 continue;
             }
 
-            TlsAgreement agreement = null;
-            if (NamedGroup.refersToAnECDHCurve(supportedGroup))
-            {
-                if (crypto.hasECDHAgreement())
-                {
-                    agreement = crypto.createECDomain(new TlsECConfig(supportedGroup)).createECDH();
-                }
-            }
-            else if (NamedGroup.refersToASpecificFiniteField(supportedGroup))
-            {
-                if (crypto.hasDHAgreement())
-                {
-                    agreement = crypto.createDHDomain(new TlsDHConfig(supportedGroup, true)).createDH();
-                }
-            }
-            else if (NamedGroup.refersToASpecificKem(supportedGroup))
-            {
-                if (crypto.hasKemAgreement())
-                {
-                    agreement = crypto.createKemDomain(new TlsKemConfig(supportedGroup, false)).createKem();
-                }
-            }
-
-            if (null != agreement)
+            TlsAgreement agreement = createKeyShare(crypto, supportedGroup, false);
+            if (agreement != null)
             {
                 byte[] key_exchange = agreement.generateEphemeral();
                 KeyShareEntry clientShare = new KeyShareEntry(supportedGroup, key_exchange);
@@ -5410,7 +5400,80 @@ public class TlsUtils
         }
     }
 
-    static KeyShareEntry selectKeyShare(Vector clientShares, int keyShareGroup)
+    static TlsAgreement createKeyShare(TlsCrypto crypto, int keyShareGroup, boolean isServer)
+    {
+        if (!NamedGroup.refersToASpecificHybrid(keyShareGroup))
+        {
+            return createKeyShareSimple(crypto, keyShareGroup, isServer);
+        }
+
+        int hybridFirst = NamedGroup.getHybridFirst(keyShareGroup);
+        TlsAgreement firstAgreement = createKeyShareSimple(crypto, hybridFirst, isServer);
+        if (firstAgreement == null)
+        {
+            return null;
+        }
+
+        int hybridSecond = NamedGroup.getHybridSecond(keyShareGroup);
+        TlsAgreement secondAgreement = createKeyShareSimple(crypto, hybridSecond, isServer);
+        if (secondAgreement == null)
+        {
+            return null;
+        }
+
+        int peerValueSplit = isServer
+            ? NamedGroup.getHybridSplitClientShare(hybridFirst)
+            : NamedGroup.getHybridSplitServerShare(hybridFirst);
+
+        return new TlsHybridAgreement(crypto, firstAgreement, secondAgreement, peerValueSplit);
+    }
+
+    private static TlsAgreement createKeyShareSimple(TlsCrypto crypto, int keyShareGroup, boolean isServer)
+    {
+        if (crypto.hasNamedGroup(keyShareGroup))
+        {
+            if (NamedGroup.refersToAnECDHCurve(keyShareGroup))
+            {
+                if (crypto.hasECDHAgreement())
+                {
+                    return crypto.createECDomain(new TlsECConfig(keyShareGroup)).createECDH();
+                }
+            }
+            else if (NamedGroup.refersToASpecificFiniteField(keyShareGroup))
+            {
+                if (crypto.hasDHAgreement())
+                {
+                    return crypto.createDHDomain(new TlsDHConfig(keyShareGroup, true)).createDH();
+                }
+            }
+            else if (NamedGroup.refersToASpecificKem(keyShareGroup))
+            {
+                if (crypto.hasKemAgreement())
+                {
+                    return crypto.createKemDomain(new TlsKemConfig(keyShareGroup, isServer)).createKem();
+                }
+            }
+        }
+        return null;
+    }
+
+    static KeyShareEntry findEarlyKeyShare(Vector clientShares, int keyShareGroup)
+    {
+        if (null != clientShares)
+        {
+            for (int i = 0; i < clientShares.size(); ++i)
+            {
+                KeyShareEntry clientShare = (KeyShareEntry)clientShares.elementAt(i);
+                if (null != clientShare && clientShare.getNamedGroup() == keyShareGroup)
+                {
+                    return clientShare;
+                }
+            }
+        }
+        return null;
+    }
+
+    static KeyShareEntry getRetryKeyShare(Vector clientShares, int keyShareGroup)
     {
         if (null != clientShares && 1 == clientShares.size())
         {
@@ -5423,81 +5486,58 @@ public class TlsUtils
         return null;
     }
 
-    static KeyShareEntry selectKeyShare(TlsCrypto crypto, ProtocolVersion negotiatedVersion, Vector clientShares,
-        int[] clientSupportedGroups, int[] serverSupportedGroups)
-    {
-        if (null != clientShares && !isNullOrEmpty(clientSupportedGroups) && !isNullOrEmpty(serverSupportedGroups))
-        {
-            for (int i = 0; i < clientShares.size(); ++i)
-            {
-                KeyShareEntry clientShare = (KeyShareEntry)clientShares.elementAt(i);
-
-                int group = clientShare.getNamedGroup();
-
-                if (!NamedGroup.canBeNegotiated(group, negotiatedVersion))
-                {
-                    continue;
-                }
-
-                if (!Arrays.contains(serverSupportedGroups, group) ||
-                    !Arrays.contains(clientSupportedGroups, group))
-                {
-                    continue;
-                }
-
-                if (!crypto.hasNamedGroup(group))
-                {
-                    continue;
-                }
-
-                if ((NamedGroup.refersToAnECDHCurve(group) && !crypto.hasECDHAgreement()) ||
-                    (NamedGroup.refersToASpecificFiniteField(group) && !crypto.hasDHAgreement()) ||
-                    (NamedGroup.refersToASpecificKem(group) && !crypto.hasKemAgreement()))
-                {
-                    continue;
-                }
-
-                return clientShare;
-            }
-        }
-        return null;
-    }
-
     static int selectKeyShareGroup(TlsCrypto crypto, ProtocolVersion negotiatedVersion,
-        int[] clientSupportedGroups, int[] serverSupportedGroups)
+                                   int[] clientSupportedGroups, int[] serverSupportedGroups, boolean useServerOrder)
     {
         if (!isNullOrEmpty(clientSupportedGroups) && !isNullOrEmpty(serverSupportedGroups))
         {
-            for (int i = 0; i < clientSupportedGroups.length; ++i)
+            int[] ordered = useServerOrder ? serverSupportedGroups : clientSupportedGroups;
+            int[] unordered = useServerOrder ? clientSupportedGroups : serverSupportedGroups;
+
+            for (int i = 0; i < ordered.length; ++i)
             {
-                int group = clientSupportedGroups[i];
+                int candidate = ordered[i];
 
-                if (!NamedGroup.canBeNegotiated(group, negotiatedVersion))
+                if (Arrays.contains(unordered, candidate) &&
+                    NamedGroup.canBeNegotiated(candidate, negotiatedVersion) &&
+                    supportsKeyShareGroup(crypto, candidate))
                 {
-                    continue;
+                    return candidate;
                 }
-
-                if (!Arrays.contains(serverSupportedGroups, group))
-                {
-                    continue;
-                }
-
-                if (!crypto.hasNamedGroup(group))
-                {
-                    continue;
-                }
-
-                if ((NamedGroup.refersToAnECDHCurve(group) && !crypto.hasECDHAgreement()) ||
-                    (NamedGroup.refersToASpecificFiniteField(group) && !crypto.hasDHAgreement()) ||
-                    (NamedGroup.refersToASpecificKem(group) && !crypto.hasKemAgreement()))
-                {
-                    continue;
-                }
-
-                return group;
             }
         }
         return -1;
+    }
+
+    private static boolean supportsKeyShareGroup(TlsCrypto crypto, int keyShareGroup)
+    {
+        if (!NamedGroup.refersToASpecificHybrid(keyShareGroup))
+        {
+            return supportsKeyShareGroupSimple(crypto, keyShareGroup);
+        }
+
+        return supportsKeyShareGroupSimple(crypto, NamedGroup.getHybridFirst(keyShareGroup))
+            && supportsKeyShareGroupSimple(crypto, NamedGroup.getHybridSecond(keyShareGroup));
+    }
+
+    private static boolean supportsKeyShareGroupSimple(TlsCrypto crypto, int keyShareGroup)
+    {
+        if (crypto.hasNamedGroup(keyShareGroup))
+        {
+            if (NamedGroup.refersToAnECDHCurve(keyShareGroup))
+            {
+                return crypto.hasECDHAgreement();
+            }
+            else if (NamedGroup.refersToASpecificFiniteField(keyShareGroup))
+            {
+                return crypto.hasDHAgreement();
+            }
+            else if (NamedGroup.refersToASpecificKem(keyShareGroup))
+            {
+                return crypto.hasKemAgreement();
+            }
+        }
+        return false;
     }
 
     static byte[] readEncryptedPMS(TlsContext context, InputStream input) throws IOException
@@ -5555,13 +5595,13 @@ public class TlsUtils
     }
 
     static TlsCredentials establishClientCredentials(TlsAuthentication clientAuthentication,
-        CertificateRequest certificateRequest) throws IOException
+                                                     CertificateRequest certificateRequest) throws IOException
     {
         return validateCredentials(clientAuthentication.getClientCredentials(certificateRequest));
     }
 
     static TlsCredentialedSigner establish13ClientCredentials(TlsAuthentication clientAuthentication,
-        CertificateRequest certificateRequest) throws IOException
+                                                              CertificateRequest certificateRequest) throws IOException
     {
         return validate13Credentials(clientAuthentication.getClientCredentials(certificateRequest));
     }
@@ -5767,7 +5807,7 @@ public class TlsUtils
     }
 
     static TlsSecret deriveSecret(SecurityParameters securityParameters, TlsSecret secret, String label,
-        byte[] transcriptHash) throws IOException
+                                  byte[] transcriptHash) throws IOException
     {
         int prfCryptoHashAlgorithm = securityParameters.getPRFCryptoHashAlgorithm();
         int prfHashLength = securityParameters.getPRFHashLength();
@@ -5776,7 +5816,7 @@ public class TlsUtils
     }
 
     static TlsSecret deriveSecret(int prfCryptoHashAlgorithm, int prfHashLength, TlsSecret secret, String label,
-        byte[] transcriptHash) throws IOException
+                                  byte[] transcriptHash) throws IOException
     {
         if (transcriptHash.length != prfHashLength)
         {
@@ -5944,7 +5984,7 @@ public class TlsUtils
      * Generate a pre_master_secret and send it encrypted to the server.
      */
     public static TlsSecret generateEncryptedPreMasterSecret(TlsContext context, TlsEncryptor encryptor,
-        OutputStream output) throws IOException
+                                                             OutputStream output) throws IOException
     {
         ProtocolVersion version = context.getRSAPreMasterSecretVersion();
         TlsSecret preMasterSecret = context.getCrypto().generateRSAPreMasterSecret(version);
@@ -5968,7 +6008,7 @@ public class TlsUtils
     }
 
     static OfferedPsks.BindersConfig addPreSharedKeyToClientHello(TlsClientContext clientContext, TlsClient client,
-        Hashtable clientExtensions, int[] offeredCipherSuites) throws IOException
+                                                                  Hashtable clientExtensions, int[] offeredCipherSuites) throws IOException
     {
         if (!isTLSv13(clientContext.getClientVersion()))
         {
@@ -5999,7 +6039,7 @@ public class TlsUtils
     }
 
     static OfferedPsks.BindersConfig addPreSharedKeyToClientHelloRetry(TlsClientContext clientContext,
-        OfferedPsks.BindersConfig clientBinders, Hashtable clientExtensions) throws IOException
+                                                                       OfferedPsks.BindersConfig clientBinders, Hashtable clientExtensions) throws IOException
     {
         SecurityParameters securityParameters = clientContext.getSecurityParametersHandshake();
 
@@ -6018,11 +6058,11 @@ public class TlsUtils
         {
             TlsPSK[] psks = new TlsPSK[count];
             TlsSecret[] earlySecrets = new TlsSecret[count];
-    
+
             for (int i = 0; i < count; ++i)
             {
                 int j = ((Integer)pskIndices.elementAt(i)).intValue();
-    
+
                 psks[i] = clientBinders.psks[j];
                 earlySecrets[i] = clientBinders.earlySecrets[j];
             }
@@ -6039,8 +6079,8 @@ public class TlsUtils
     }
 
     static OfferedPsks.SelectedConfig selectPreSharedKey(TlsServerContext serverContext, TlsServer server,
-        Hashtable clientHelloExtensions, HandshakeMessageInput clientHelloMessage, TlsHandshakeHash handshakeHash,
-        boolean afterHelloRetryRequest) throws IOException
+                                                         Hashtable clientHelloExtensions, HandshakeMessageInput clientHelloMessage, TlsHandshakeHash handshakeHash,
+                                                         boolean afterHelloRetryRequest) throws IOException
     {
         boolean handshakeHashUpdated = false;
 
@@ -6181,7 +6221,7 @@ public class TlsUtils
     }
 
     static short processMaxFragmentLengthExtension(Hashtable clientExtensions, Hashtable serverExtensions,
-        short alertDescription)
+                                                   short alertDescription)
         throws IOException
     {
         short maxFragmentLength = TlsExtensionsUtils.getMaxFragmentLengthExtension(serverExtensions);
@@ -6198,7 +6238,7 @@ public class TlsUtils
     }
 
     static short processClientCertificateTypeExtension(Hashtable clientExtensions, Hashtable serverExtensions,
-        short alertDescription)
+                                                       short alertDescription)
         throws IOException
     {
         short serverValue = TlsExtensionsUtils.getClientCertificateTypeExtensionServer(serverExtensions);
@@ -6222,7 +6262,7 @@ public class TlsUtils
     }
 
     static short processClientCertificateTypeExtension13(Hashtable clientExtensions, Hashtable serverExtensions,
-        short alertDescription)
+                                                         short alertDescription)
         throws IOException
     {
         short certificateType = processClientCertificateTypeExtension(clientExtensions, serverExtensions,
@@ -6232,7 +6272,7 @@ public class TlsUtils
     }
 
     static short processServerCertificateTypeExtension(Hashtable clientExtensions, Hashtable serverExtensions,
-        short alertDescription)
+                                                       short alertDescription)
         throws IOException
     {
         short serverValue = TlsExtensionsUtils.getServerCertificateTypeExtensionServer(serverExtensions);
@@ -6256,7 +6296,7 @@ public class TlsUtils
     }
 
     static short processServerCertificateTypeExtension13(Hashtable clientExtensions, Hashtable serverExtensions,
-        short alertDescription)
+                                                         short alertDescription)
         throws IOException
     {
         short certificateType = processServerCertificateTypeExtension(clientExtensions, serverExtensions,

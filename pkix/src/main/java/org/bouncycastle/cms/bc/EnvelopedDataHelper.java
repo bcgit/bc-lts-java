@@ -58,7 +58,7 @@ class EnvelopedDataHelper
         {
             public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
             {
-                return SHA224Digest.newInstance();
+                return new SHA224Digest();
             }
         });
         table.put(PKCSObjectIdentifiers.id_hmacWithSHA256, new BcDigestProvider()
@@ -72,14 +72,14 @@ class EnvelopedDataHelper
         {
             public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
             {
-                return SHA384Digest.newInstance();
+                return new SHA384Digest();
             }
         });
         table.put(PKCSObjectIdentifiers.id_hmacWithSHA512, new BcDigestProvider()
         {
             public ExtendedDigest get(AlgorithmIdentifier digestAlgorithmIdentifier)
             {
-                return SHA512Digest.newInstance();
+                return new SHA512Digest();
             }
         });
 
@@ -99,12 +99,13 @@ class EnvelopedDataHelper
         MAC_ALG_NAMES.put(CMSAlgorithm.AES256_CBC, "AESMac");
         MAC_ALG_NAMES.put(CMSAlgorithm.RC2_CBC, "RC2Mac");
 
-        authEnvelopedAlgorithms.add(NISTObjectIdentifiers.id_aes128_GCM);
-        authEnvelopedAlgorithms.add(NISTObjectIdentifiers.id_aes192_GCM);
-        authEnvelopedAlgorithms.add(NISTObjectIdentifiers.id_aes256_GCM);
-        authEnvelopedAlgorithms.add(NISTObjectIdentifiers.id_aes128_CCM);
-        authEnvelopedAlgorithms.add(NISTObjectIdentifiers.id_aes192_CCM);
-        authEnvelopedAlgorithms.add(NISTObjectIdentifiers.id_aes256_CCM);
+        authEnvelopedAlgorithms.add(CMSAlgorithm.AES128_GCM);
+        authEnvelopedAlgorithms.add(CMSAlgorithm.AES192_GCM);
+        authEnvelopedAlgorithms.add(CMSAlgorithm.AES256_GCM);
+        authEnvelopedAlgorithms.add(CMSAlgorithm.AES128_CCM);
+        authEnvelopedAlgorithms.add(CMSAlgorithm.AES192_CCM);
+        authEnvelopedAlgorithms.add(CMSAlgorithm.AES256_CCM);
+        authEnvelopedAlgorithms.add(CMSAlgorithm.ChaCha20Poly1305);
     }
 
     EnvelopedDataHelper()

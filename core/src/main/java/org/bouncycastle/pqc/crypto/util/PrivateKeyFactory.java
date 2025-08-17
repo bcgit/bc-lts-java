@@ -1,6 +1,5 @@
 package org.bouncycastle.pqc.crypto.util;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -12,8 +11,6 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
-import org.bouncycastle.asn1.ASN1TaggedObject;
-import org.bouncycastle.asn1.BERTags;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.bc.BCObjectIdentifiers;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
@@ -28,6 +25,7 @@ import org.bouncycastle.pqc.crypto.mldsa.MLDSAPrivateKeyParameters;
 import org.bouncycastle.pqc.crypto.mldsa.MLDSAPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.mlkem.MLKEMParameters;
 import org.bouncycastle.pqc.crypto.mlkem.MLKEMPrivateKeyParameters;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.slhdsa.SLHDSAParameters;
 import org.bouncycastle.pqc.crypto.slhdsa.SLHDSAPrivateKeyParameters;
 import org.bouncycastle.util.Arrays;
@@ -46,7 +44,7 @@ public class PrivateKeyFactory
      * @throws IOException on an error decoding the key
      */
     public static AsymmetricKeyParameter createKey(byte[] privateKeyInfoData)
-            throws IOException
+        throws IOException
     {
         if (privateKeyInfoData == null)
         {
@@ -68,7 +66,7 @@ public class PrivateKeyFactory
      * @throws IOException on an error decoding the key
      */
     public static AsymmetricKeyParameter createKey(InputStream inStr)
-            throws IOException
+        throws IOException
     {
         return createKey(PrivateKeyInfo.getInstance(new ASN1InputStream(inStr).readObject()));
     }
@@ -81,7 +79,7 @@ public class PrivateKeyFactory
      * @throws IOException on an error decoding the key
      */
     public static AsymmetricKeyParameter createKey(PrivateKeyInfo keyInfo)
-            throws IOException
+        throws IOException
     {
         if (keyInfo == null)
         {
@@ -91,68 +89,364 @@ public class PrivateKeyFactory
         AlgorithmIdentifier algId = keyInfo.getPrivateKeyAlgorithm();
         ASN1ObjectIdentifier algOID = algId.getAlgorithm();
 
+//        if (algOID.on(PQCObjectIdentifiers.qTESLA))
+//        {
+//            ASN1OctetString qTESLAPriv = ASN1OctetString.getInstance(keyInfo.parsePrivateKey());
+//
+//            return new QTESLAPrivateKeyParameters(Utils.qTeslaLookupSecurityCategory(algId), qTESLAPriv.getOctets());
+//        }
+//        else if (algOID.equals(PQCObjectIdentifiers.sphincs256))
+//        {
+//            return new SPHINCSPrivateKeyParameters(ASN1OctetString.getInstance(keyInfo.parsePrivateKey()).getOctets(),
+//                Utils.sphincs256LookupTreeAlgName(SPHINCS256KeyParams.getInstance(algId.getParameters())));
+//        }
+//        else if (algOID.equals(PQCObjectIdentifiers.newHope))
+//        {
+//            return new NHPrivateKeyParameters(convert(ASN1OctetString.getInstance(keyInfo.parsePrivateKey()).getOctets()));
+//        }
         if (algOID.equals(PKCSObjectIdentifiers.id_alg_hss_lms_hashsig))
         {
-            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePrivateKey()).getOctets();
+            ASN1OctetString lmsKey = parseOctetString(keyInfo.getPrivateKey(), 64);
+            byte[] keyEnc = lmsKey.getOctets();
             ASN1BitString pubKey = keyInfo.getPublicKeyData();
 
-            if (Pack.bigEndianToInt(keyEnc, 0) == 1)
+            if (pubKey != null)
             {
-                if (pubKey != null)
-                {
-                    byte[] pubEnc = pubKey.getOctets();
+                byte[] pubEnc = pubKey.getOctets();
 
-                    return LMSPrivateKeyParameters.getInstance(Arrays.copyOfRange(keyEnc, 4, keyEnc.length), Arrays.copyOfRange(pubEnc, 4, pubEnc.length));
-                }
-                return LMSPrivateKeyParameters.getInstance(Arrays.copyOfRange(keyEnc, 4, keyEnc.length));
+                return HSSPrivateKeyParameters.getInstance(Arrays.copyOfRange(keyEnc, 4, keyEnc.length), pubEnc);
             }
-            else
-            {
-                if (pubKey != null)
-                {
-                    byte[] pubEnc = pubKey.getOctets();
-
-                    return HSSPrivateKeyParameters.getInstance(Arrays.copyOfRange(keyEnc, 4, keyEnc.length), pubEnc);
-                }
-                return HSSPrivateKeyParameters.getInstance(Arrays.copyOfRange(keyEnc, 4, keyEnc.length));
-            }
+            return HSSPrivateKeyParameters.getInstance(Arrays.copyOfRange(keyEnc, 4, keyEnc.length));
         }
-        else if (Utils.shldsaParams.containsKey(algOID))
+//        else if (algOID.on(BCObjectIdentifiers.sphincsPlus) || algOID.on(BCObjectIdentifiers.sphincsPlus_interop))
+//        {
+//            SPHINCSPlusParameters spParams = Utils.sphincsPlusParamsLookup(algOID);
+//
+//            ASN1Encodable obj = keyInfo.parsePrivateKey();
+//            if (obj instanceof ASN1Sequence)
+//            {
+//                SPHINCSPLUSPrivateKey spKey = SPHINCSPLUSPrivateKey.getInstance(obj);
+//                SPHINCSPLUSPublicKey publicKey = spKey.getPublicKey();
+//                return new SPHINCSPlusPrivateKeyParameters(spParams, spKey.getSkseed(), spKey.getSkprf(),
+//                    publicKey.getPkseed(), publicKey.getPkroot());
+//            }
+//            else
+//            {
+//                return new SPHINCSPlusPrivateKeyParameters(spParams, ASN1OctetString.getInstance(obj).getOctets());
+//            }
+//        }
+        else if (Utils.slhdsaParams.containsKey(algOID))
         {
-            ASN1OctetString slhdsaKey = parseOctetString(keyInfo.getPrivateKey());
             SLHDSAParameters spParams = Utils.slhdsaParamsLookup(algOID);
+            ASN1OctetString slhdsaKey = parseOctetString(keyInfo.getPrivateKey(), spParams.getN() * 4);
 
             return new SLHDSAPrivateKeyParameters(spParams, slhdsaKey.getOctets());
         }
+//        else if (algOID.on(BCObjectIdentifiers.picnic))
+//        {
+//            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePrivateKey()).getOctets();
+//            PicnicParameters pParams = Utils.picnicParamsLookup(algOID);
+//
+//            return new PicnicPrivateKeyParameters(pParams, keyEnc);
+//        }
+//        else if (algOID.on(BCObjectIdentifiers.pqc_kem_mceliece))
+//        {
+//            CMCEPrivateKey cmceKey = CMCEPrivateKey.getInstance(keyInfo.parsePrivateKey());
+//            CMCEParameters spParams = Utils.mcElieceParamsLookup(algOID);
+//
+//            return new CMCEPrivateKeyParameters(spParams, cmceKey.getDelta(), cmceKey.getC(), cmceKey.getG(), cmceKey.getAlpha(), cmceKey.getS());
+//        }
+//        else if (algOID.on(BCObjectIdentifiers.pqc_kem_frodo))
+//        {
+//            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePrivateKey()).getOctets();
+//            FrodoParameters spParams = Utils.frodoParamsLookup(algOID);
+//
+//            return new FrodoPrivateKeyParameters(spParams, keyEnc);
+//        }
+//        else if (algOID.on(BCObjectIdentifiers.pqc_kem_saber))
+//        {
+//            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePrivateKey()).getOctets();
+//            SABERParameters spParams = Utils.saberParamsLookup(algOID);
+//
+//            return new SABERPrivateKeyParameters(spParams, keyEnc);
+//        }
+//        else if (algOID.on(BCObjectIdentifiers.pqc_kem_ntru))
+//        {
+//            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePrivateKey()).getOctets();
+//            NTRUParameters spParams = Utils.ntruParamsLookup(algOID);
+//
+//            return new NTRUPrivateKeyParameters(spParams, keyEnc);
+//        }
         else if (algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_512) ||
-                algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_768) ||
-                algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_1024))
+            algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_768) ||
+            algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_1024))
         {
-            ASN1OctetString mlkemKey = parseOctetString(keyInfo.getPrivateKey());
+            ASN1Primitive mlkemKey = parsePrimitiveString(keyInfo.getPrivateKey(), 64);
             MLKEMParameters mlkemParams = Utils.mlkemParamsLookup(algOID);
 
-            return new MLKEMPrivateKeyParameters(mlkemParams, mlkemKey.getOctets());
+            MLKEMPublicKeyParameters pubParams = null;
+            if (keyInfo.getPublicKeyData() != null)
+            {
+                pubParams = PublicKeyFactory.MLKEMConverter.getPublicKeyParams(mlkemParams, keyInfo.getPublicKeyData());
+            }
+
+            if (mlkemKey instanceof ASN1OctetString)
+            {
+                // TODO This should be explicitly EXPANDED_KEY or SEED (tag already removed) but is length-flexible
+                return new MLKEMPrivateKeyParameters(mlkemParams, ((ASN1OctetString)mlkemKey).getOctets(), pubParams);
+            }
+            else if (mlkemKey instanceof ASN1Sequence)
+            {
+                ASN1Sequence keySeq = (ASN1Sequence)mlkemKey;
+                byte[] seed = ASN1OctetString.getInstance(keySeq.getObjectAt(0)).getOctets();
+                byte[] encoding = ASN1OctetString.getInstance(keySeq.getObjectAt(1)).getOctets();
+
+                // TODO This should only allow seed but is length-flexible
+                MLKEMPrivateKeyParameters mlkemPriv = new MLKEMPrivateKeyParameters(mlkemParams, seed, pubParams);
+                if (!Arrays.constantTimeAreEqual(mlkemPriv.getEncoded(), encoding))
+                {
+                    throw new IllegalArgumentException("inconsistent " + mlkemParams.getName() + " private key");
+                }
+
+                return mlkemPriv;
+            }
+
+            throw new IllegalArgumentException("invalid " + mlkemParams.getName() + " private key");
         }
+//        else if (algOID.on(BCObjectIdentifiers.pqc_kem_ntrulprime))
+//        {
+//            ASN1Sequence keyEnc = ASN1Sequence.getInstance(keyInfo.parsePrivateKey());
+//
+//            NTRULPRimeParameters spParams = Utils.ntrulprimeParamsLookup(algOID);
+//
+//            return new NTRULPRimePrivateKeyParameters(spParams,
+//                ASN1OctetString.getInstance(keyEnc.getObjectAt(0)).getOctets(),
+//                ASN1OctetString.getInstance(keyEnc.getObjectAt(1)).getOctets(),
+//                ASN1OctetString.getInstance(keyEnc.getObjectAt(2)).getOctets(),
+//                ASN1OctetString.getInstance(keyEnc.getObjectAt(3)).getOctets());
+//        }
+//        else if (algOID.on(BCObjectIdentifiers.pqc_kem_sntruprime))
+//        {
+//            ASN1Sequence keyEnc = ASN1Sequence.getInstance(keyInfo.parsePrivateKey());
+//
+//            SNTRUPrimeParameters spParams = Utils.sntruprimeParamsLookup(algOID);
+//
+//            return new SNTRUPrimePrivateKeyParameters(spParams,
+//                ASN1OctetString.getInstance(keyEnc.getObjectAt(0)).getOctets(),
+//                ASN1OctetString.getInstance(keyEnc.getObjectAt(1)).getOctets(),
+//                ASN1OctetString.getInstance(keyEnc.getObjectAt(2)).getOctets(),
+//                ASN1OctetString.getInstance(keyEnc.getObjectAt(3)).getOctets(),
+//                ASN1OctetString.getInstance(keyEnc.getObjectAt(4)).getOctets());
+//        }
         else if (Utils.mldsaParams.containsKey(algOID))
         {
-            ASN1Encodable keyObj = parseOctetString(keyInfo.getPrivateKey());
-            MLDSAParameters spParams = Utils.mldsaParamsLookup(algOID);
+            ASN1Encodable mldsaKey = parsePrimitiveString(keyInfo.getPrivateKey(), 32);
+            MLDSAParameters mldsaParams = Utils.mldsaParamsLookup(algOID);
 
-            if (keyObj instanceof DEROctetString)
+            MLDSAPublicKeyParameters pubParams = null;
+            if (keyInfo.getPublicKeyData() != null)
             {
-                byte[] data = ASN1OctetString.getInstance(keyObj).getOctets();
-                if (keyInfo.getPublicKeyData() != null)
+                pubParams = PublicKeyFactory.MLDSAConverter.getPublicKeyParams(mldsaParams, keyInfo.getPublicKeyData());
+            }
+
+            if (mldsaKey instanceof ASN1OctetString)
+            {
+                // TODO This should be explicitly EXPANDED_KEY or SEED (tag already removed) but is length-flexible
+                return new MLDSAPrivateKeyParameters(mldsaParams, ((ASN1OctetString)mldsaKey).getOctets(), pubParams);
+            }
+            else if (mldsaKey instanceof ASN1Sequence)
+            {
+                ASN1Sequence keySeq = (ASN1Sequence)mldsaKey;
+                byte[] seed = ASN1OctetString.getInstance(keySeq.getObjectAt(0)).getOctets();
+                byte[] encoding = ASN1OctetString.getInstance(keySeq.getObjectAt(1)).getOctets();
+
+                // TODO This should only allow seed but is length-flexible
+                MLDSAPrivateKeyParameters mldsaPriv = new MLDSAPrivateKeyParameters(mldsaParams, seed, pubParams);
+                if (!Arrays.constantTimeAreEqual(mldsaPriv.getEncoded(), encoding))
                 {
-                    MLDSAPublicKeyParameters pubParams = PublicKeyFactory.MLDSAConverter.getPublicKeyParams(spParams, keyInfo.getPublicKeyData());
-                    return new MLDSAPrivateKeyParameters(spParams, data, pubParams);
+                    throw new IllegalArgumentException("inconsistent " + mldsaParams.getName() + " private key");
                 }
-                return new MLDSAPrivateKeyParameters(spParams, data);
+
+                return mldsaPriv;
             }
-            else
-            {
-                throw new IOException("not supported");
-            }
+
+            throw new IllegalArgumentException("invalid " + mldsaParams.getName() + " private key");
         }
+//        else if (algOID.equals(BCObjectIdentifiers.dilithium2)
+//            || algOID.equals(BCObjectIdentifiers.dilithium3) || algOID.equals(BCObjectIdentifiers.dilithium5))
+//        {
+//            ASN1Encodable keyObj = keyInfo.parsePrivateKey();
+//            DilithiumParameters dilParams = Utils.dilithiumParamsLookup(algOID);
+//
+//            if (keyObj instanceof ASN1Sequence)
+//            {
+//                ASN1Sequence keyEnc = ASN1Sequence.getInstance(keyObj);
+//
+//                int version = ASN1Integer.getInstance(keyEnc.getObjectAt(0)).intValueExact();
+//                if (version != 0)
+//                {
+//                    throw new IOException("unknown private key version: " + version);
+//                }
+//
+//                if (keyInfo.getPublicKeyData() != null)
+//                {
+//                    DilithiumPublicKeyParameters pubParams = PublicKeyFactory.DilithiumConverter.getPublicKeyParams(dilParams, keyInfo.getPublicKeyData());
+//
+//                    return new DilithiumPrivateKeyParameters(dilParams,
+//                        ASN1BitString.getInstance(keyEnc.getObjectAt(1)).getOctets(),
+//                        ASN1BitString.getInstance(keyEnc.getObjectAt(2)).getOctets(),
+//                        ASN1BitString.getInstance(keyEnc.getObjectAt(3)).getOctets(),
+//                        ASN1BitString.getInstance(keyEnc.getObjectAt(4)).getOctets(),
+//                        ASN1BitString.getInstance(keyEnc.getObjectAt(5)).getOctets(),
+//                        ASN1BitString.getInstance(keyEnc.getObjectAt(6)).getOctets(),
+//                        pubParams.getT1()); // encT1
+//                }
+//                else
+//                {
+//                    return new DilithiumPrivateKeyParameters(dilParams,
+//                        ASN1BitString.getInstance(keyEnc.getObjectAt(1)).getOctets(),
+//                        ASN1BitString.getInstance(keyEnc.getObjectAt(2)).getOctets(),
+//                        ASN1BitString.getInstance(keyEnc.getObjectAt(3)).getOctets(),
+//                        ASN1BitString.getInstance(keyEnc.getObjectAt(4)).getOctets(),
+//                        ASN1BitString.getInstance(keyEnc.getObjectAt(5)).getOctets(),
+//                        ASN1BitString.getInstance(keyEnc.getObjectAt(6)).getOctets(),
+//                        null);
+//                }
+//            }
+//            else if (keyObj instanceof DEROctetString)
+//            {
+//                byte[] data = ASN1OctetString.getInstance(keyObj).getOctets();
+//                if (keyInfo.getPublicKeyData() != null)
+//                {
+//                    DilithiumPublicKeyParameters pubParams = PublicKeyFactory.DilithiumConverter.getPublicKeyParams(dilParams, keyInfo.getPublicKeyData());
+//                    return new DilithiumPrivateKeyParameters(dilParams, data, pubParams);
+//                }
+//                return new DilithiumPrivateKeyParameters(dilParams, data, null);
+//            }
+//            else
+//            {
+//                throw new IOException("not supported");
+//            }
+//        }
+//        else if (algOID.equals(BCObjectIdentifiers.falcon_512) || algOID.equals(BCObjectIdentifiers.falcon_1024))
+//        {
+//            FalconPrivateKey falconKey = FalconPrivateKey.getInstance(keyInfo.parsePrivateKey());
+//            FalconParameters falconParams = Utils.falconParamsLookup(algOID);
+//
+//            return new FalconPrivateKeyParameters(falconParams, falconKey.getf(), falconKey.getG(), falconKey.getF(), falconKey.getPublicKey().getH());
+//        }
+//        else if (algOID.on(BCObjectIdentifiers.pqc_kem_bike))
+//        {
+//            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePrivateKey()).getOctets();
+//            BIKEParameters bikeParams = Utils.bikeParamsLookup(algOID);
+//
+//            byte[] h0 = Arrays.copyOfRange(keyEnc, 0, bikeParams.getRByte());
+//            byte[] h1 = Arrays.copyOfRange(keyEnc, bikeParams.getRByte(), 2 * bikeParams.getRByte());
+//            byte[] sigma = Arrays.copyOfRange(keyEnc, 2 * bikeParams.getRByte(), keyEnc.length);
+//            return new BIKEPrivateKeyParameters(bikeParams, h0, h1, sigma);
+//        }
+//        else if (algOID.on(BCObjectIdentifiers.pqc_kem_hqc))
+//        {
+//            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePrivateKey()).getOctets();
+//            HQCParameters hqcParams = Utils.hqcParamsLookup(algOID);
+//
+//            return new HQCPrivateKeyParameters(hqcParams, keyEnc);
+//        }
+//        else if (algOID.on(BCObjectIdentifiers.rainbow))
+//        {
+//            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePrivateKey()).getOctets();
+//            RainbowParameters rainbowParams = Utils.rainbowParamsLookup(algOID);
+//
+//            return new RainbowPrivateKeyParameters(rainbowParams, keyEnc);
+//        }
+//        else if (algOID.equals(PQCObjectIdentifiers.xmss))
+//        {
+//            XMSSKeyParams keyParams = XMSSKeyParams.getInstance(algId.getParameters());
+//            ASN1ObjectIdentifier treeDigest = keyParams.getTreeDigest().getAlgorithm();
+//
+//            XMSSPrivateKey xmssPrivateKey = XMSSPrivateKey.getInstance(keyInfo.parsePrivateKey());
+//
+//            try
+//            {
+//                XMSSPrivateKeyParameters.Builder keyBuilder = new XMSSPrivateKeyParameters
+//                    .Builder(new XMSSParameters(keyParams.getHeight(), Utils.getDigest(treeDigest)))
+//                    .withIndex(xmssPrivateKey.getIndex())
+//                    .withSecretKeySeed(xmssPrivateKey.getSecretKeySeed())
+//                    .withSecretKeyPRF(xmssPrivateKey.getSecretKeyPRF())
+//                    .withPublicSeed(xmssPrivateKey.getPublicSeed())
+//                    .withRoot(xmssPrivateKey.getRoot());
+//
+//                if (xmssPrivateKey.getVersion() != 0)
+//                {
+//                    keyBuilder.withMaxIndex(xmssPrivateKey.getMaxIndex());
+//                }
+//
+//                if (xmssPrivateKey.getBdsState() != null)
+//                {
+//                    BDS bds = (BDS)XMSSUtil.deserialize(xmssPrivateKey.getBdsState(), BDS.class);
+//                    keyBuilder.withBDSState(bds.withWOTSDigest(treeDigest));
+//                }
+//
+//                return keyBuilder.build();
+//            }
+//            catch (ClassNotFoundException e)
+//            {
+//                throw new IOException("ClassNotFoundException processing BDS state: " + e.getMessage());
+//            }
+//        }
+//        else if (algOID.equals(PQCObjectIdentifiers.xmss_mt))
+//        {
+//            XMSSMTKeyParams keyParams = XMSSMTKeyParams.getInstance(algId.getParameters());
+//            ASN1ObjectIdentifier treeDigest = keyParams.getTreeDigest().getAlgorithm();
+//
+//            try
+//            {
+//                XMSSMTPrivateKey xmssMtPrivateKey = XMSSMTPrivateKey.getInstance(keyInfo.parsePrivateKey());
+//
+//                XMSSMTPrivateKeyParameters.Builder keyBuilder = new XMSSMTPrivateKeyParameters
+//                    .Builder(new XMSSMTParameters(keyParams.getHeight(), keyParams.getLayers(), Utils.getDigest(treeDigest)))
+//                    .withIndex(xmssMtPrivateKey.getIndex())
+//                    .withSecretKeySeed(xmssMtPrivateKey.getSecretKeySeed())
+//                    .withSecretKeyPRF(xmssMtPrivateKey.getSecretKeyPRF())
+//                    .withPublicSeed(xmssMtPrivateKey.getPublicSeed())
+//                    .withRoot(xmssMtPrivateKey.getRoot());
+//
+//                if (xmssMtPrivateKey.getVersion() != 0)
+//                {
+//                    keyBuilder.withMaxIndex(xmssMtPrivateKey.getMaxIndex());
+//                }
+//
+//                if (xmssMtPrivateKey.getBdsState() != null)
+//                {
+//                    BDSStateMap bdsState = (BDSStateMap)XMSSUtil.deserialize(xmssMtPrivateKey.getBdsState(), BDSStateMap.class);
+//                    keyBuilder.withBDSState(bdsState.withWOTSDigest(treeDigest));
+//                }
+//
+//                return keyBuilder.build();
+//            }
+//            catch (ClassNotFoundException e)
+//            {
+//                throw new IOException("ClassNotFoundException processing BDS state: " + e.getMessage());
+//            }
+//        }
+//        else if (algOID.equals(PQCObjectIdentifiers.mcElieceCca2))
+//        {
+//            McElieceCCA2PrivateKey mKey = McElieceCCA2PrivateKey.getInstance(keyInfo.parsePrivateKey());
+//
+//            return new McElieceCCA2PrivateKeyParameters(mKey.getN(), mKey.getK(), mKey.getField(), mKey.getGoppaPoly(), mKey.getP(), Utils.getDigestName(mKey.getDigest().getAlgorithm()));
+//        }
+//        else if (algOID.on(BCObjectIdentifiers.mayo))
+//        {
+//            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePrivateKey()).getOctets();
+//            MayoParameters mayoParams = Utils.mayoParamsLookup(algOID);
+//            return new MayoPrivateKeyParameters(mayoParams, keyEnc);
+//        }
+//        else if (algOID.on(BCObjectIdentifiers.snova))
+//        {
+//            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePrivateKey()).getOctets();
+//            SnovaParameters snovaParams = Utils.snovaParamsLookup(algOID);
+//            return new SnovaPrivateKeyParameters(snovaParams, keyEnc);
+//        }
         else
         {
             throw new RuntimeException("algorithm identifier in private key not recognised");
@@ -162,51 +456,61 @@ public class PrivateKeyFactory
     /**
      * So it seems for the new PQC algorithms, there's a couple of approaches to what goes in the OCTET STRING
      */
-    private static ASN1OctetString parseOctetString(ASN1OctetString octStr)
+    private static ASN1OctetString parseOctetString(ASN1OctetString octStr, int expectedLength)
+        throws IOException
     {
-        ByteArrayInputStream bIn = new ByteArrayInputStream(octStr.getOctets());
+        byte[] data = octStr.getOctets();
+        //
+        // it's the right length for a RAW encoding, just return it.
+        //
+        if (data.length == expectedLength)
+        {
+            return octStr;
+        }
 
-        int tag = bIn.read();
-        int len = readLen(bIn);
-        if (tag == BERTags.OCTET_STRING)
+        //
+        // possible internal OCTET STRING, possibly long form with or without the internal OCTET STRING
+        ASN1OctetString obj = Utils.parseOctetData(data);
+
+        if (obj != null)
         {
-            if (len == bIn.available())
-            {
-                return ASN1OctetString.getInstance(octStr.getOctets());
-            }
-        }
-        if (tag == BERTags.CONTEXT_SPECIFIC)
-        {
-            if (len == bIn.available())
-            {
-                return ASN1OctetString.getInstance(ASN1TaggedObject.getInstance(octStr.getOctets()), false);
-            }
-        }
-        if (tag == (BERTags.CONTEXT_SPECIFIC | BERTags.CONSTRUCTED))
-        {
-            if (len == bIn.available())
-            {
-                return ASN1OctetString.getInstance(ASN1TaggedObject.getInstance(octStr.getOctets()), true);
-            }
+            return ASN1OctetString.getInstance(obj);
         }
 
         return octStr;
     }
 
-    private static int readLen(ByteArrayInputStream bIn)
+    /**
+     * So it seems for the new PQC algorithms, there's a couple of approaches to what goes in the OCTET STRING
+     * and in this case there may also be SEQUENCE.
+     */
+    private static ASN1Primitive parsePrimitiveString(ASN1OctetString octStr, int expectedLength)
+        throws IOException
     {
-        int length = bIn.read();
-        if (length != (length & 0x7f))
+        byte[] data = octStr.getOctets();
+        //
+        // it's the right length for a RAW encoding, just return it.
+        //
+        if (data.length == expectedLength)
         {
-            int count = length & 0x7f;
-            length = 0;
-            while (count-- != 0)
-            {
-                length = (length << 8) + bIn.read();
-            }
+            return octStr;
         }
 
-        return length;
+        //
+        // possible internal OCTET STRING, possibly long form with or without the internal OCTET STRING
+        // or possible SEQUENCE
+        ASN1Encodable obj = Utils.parseData(data);
+
+        if (obj instanceof ASN1OctetString)
+        {
+            return ASN1OctetString.getInstance(obj);
+        }
+        if (obj instanceof ASN1Sequence)
+        {
+            return ASN1Sequence.getInstance(obj);
+        }
+
+        return octStr;
     }
 
     private static short[] convert(byte[] octets)

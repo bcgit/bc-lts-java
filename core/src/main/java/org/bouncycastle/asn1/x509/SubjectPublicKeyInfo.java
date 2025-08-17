@@ -5,7 +5,6 @@ import java.util.Enumeration;
 
 import org.bouncycastle.asn1.ASN1BitString;
 import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
@@ -72,7 +71,10 @@ public class SubjectPublicKeyInfo
         this.algId = algId;
     }
 
-    private SubjectPublicKeyInfo(
+    /**
+     @deprecated use SubjectPublicKeyInfo.getInstance()
+     */
+    public SubjectPublicKeyInfo(
         ASN1Sequence  seq)
     {
         if (seq.size() != 2)
@@ -91,6 +93,7 @@ public class SubjectPublicKeyInfo
     {
         return algId;
     }
+
 
     /**
      * for when the public key is an encoded object - if the bitstring
@@ -126,11 +129,6 @@ public class SubjectPublicKeyInfo
      */
     public ASN1Primitive toASN1Primitive()
     {
-        ASN1EncodableVector v = new ASN1EncodableVector(2);
-
-        v.add(algId);
-        v.add(keyData);
-
-        return new DERSequence(v);
+        return new DERSequence(algId, keyData);
     }
 }

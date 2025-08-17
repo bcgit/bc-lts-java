@@ -88,7 +88,7 @@ public class X509CertificateHolder
     {
         return x509Certificate.getVersionNumber();
     }
-    
+
     /**
      * Return whether or not the holder's certificate contains extensions.
      *
@@ -217,6 +217,11 @@ public class X509CertificateHolder
     public SubjectPublicKeyInfo getSubjectPublicKeyInfo()
     {
         return x509Certificate.getSubjectPublicKeyInfo();
+    }
+
+    public TBSCertificate getTBSCertificate()
+    {
+        return x509Certificate.getTBSCertificate();
     }
 
     /**

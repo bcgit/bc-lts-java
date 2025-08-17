@@ -61,8 +61,25 @@ public class CMSTestUtil
     public static KeyPairGenerator ecDsaKpg;
     public static KeyPairGenerator ed25519Kpg;
     public static KeyPairGenerator ed448Kpg;
-    public static KeyPairGenerator mlKemKpg;
+    public static KeyPairGenerator mlDsa44Kpg;
+    public static KeyPairGenerator mlDsa65Kpg;
+    public static KeyPairGenerator mlDsa87Kpg;
+    public static KeyPairGenerator mlKem512Kpg;
+    public static KeyPairGenerator mlKem768Kpg;
+    public static KeyPairGenerator mlKem1024Kpg;
     public static KeyPairGenerator ntruKpg;
+    public static KeyPairGenerator slhDsa_Sha2_128f_Kpg;
+    public static KeyPairGenerator slhDsa_Sha2_128s_Kpg;
+    public static KeyPairGenerator slhDsa_Sha2_192f_Kpg;
+    public static KeyPairGenerator slhDsa_Sha2_192s_Kpg;
+    public static KeyPairGenerator slhDsa_Sha2_256f_Kpg;
+    public static KeyPairGenerator slhDsa_Sha2_256s_Kpg;
+    public static KeyPairGenerator slhDsa_Shake_128f_Kpg;
+    public static KeyPairGenerator slhDsa_Shake_128s_Kpg;
+    public static KeyPairGenerator slhDsa_Shake_192f_Kpg;
+    public static KeyPairGenerator slhDsa_Shake_192s_Kpg;
+    public static KeyPairGenerator slhDsa_Shake_256f_Kpg;
+    public static KeyPairGenerator slhDsa_Shake_256s_Kpg;
     public static KeyGenerator     aes192kg;
     public static KeyGenerator     desede128kg;
     public static KeyGenerator     desede192kg;
@@ -79,46 +96,46 @@ public class CMSTestUtil
     public static final boolean DEBUG = true;
 
     private static byte[]  attrCert = Base64.decode(
-                "MIIHQDCCBqkCAQEwgZChgY2kgYowgYcxHDAaBgkqhkiG9w0BCQEWDW1sb3JjaEB2"
-              + "dC5lZHUxHjAcBgNVBAMTFU1hcmt1cyBMb3JjaCAobWxvcmNoKTEbMBkGA1UECxMS"
-              + "VmlyZ2luaWEgVGVjaCBVc2VyMRAwDgYDVQQLEwdDbGFzcyAyMQswCQYDVQQKEwJ2"
-              + "dDELMAkGA1UEBhMCVVMwgYmkgYYwgYMxGzAZBgkqhkiG9w0BCQEWDHNzaGFoQHZ0"
-              + "LmVkdTEbMBkGA1UEAxMSU3VtaXQgU2hhaCAoc3NoYWgpMRswGQYDVQQLExJWaXJn"
-              + "aW5pYSBUZWNoIFVzZXIxEDAOBgNVBAsTB0NsYXNzIDExCzAJBgNVBAoTAnZ0MQsw"
-              + "CQYDVQQGEwJVUzANBgkqhkiG9w0BAQQFAAIBBTAiGA8yMDAzMDcxODE2MDgwMloY"
-              + "DzIwMDMwNzI1MTYwODAyWjCCBU0wggVJBgorBgEEAbRoCAEBMYIFORaCBTU8UnVs"
-              + "ZSBSdWxlSWQ9IkZpbGUtUHJpdmlsZWdlLVJ1bGUiIEVmZmVjdD0iUGVybWl0Ij4K"
-              + "IDxUYXJnZXQ+CiAgPFN1YmplY3RzPgogICA8U3ViamVjdD4KICAgIDxTdWJqZWN0"
-              + "TWF0Y2ggTWF0Y2hJZD0idXJuOm9hc2lzOm5hbWVzOnRjOnhhY21sOjEuMDpmdW5j"
-              + "dGlvbjpzdHJpbmctZXF1YWwiPgogICAgIDxBdHRyaWJ1dGVWYWx1ZSBEYXRhVHlw"
-              + "ZT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEjc3RyaW5nIj4KICAg"
-              + "ICAgIENOPU1hcmt1cyBMb3JjaDwvQXR0cmlidXRlVmFsdWU+CiAgICAgPFN1Ympl"
-              + "Y3RBdHRyaWJ1dGVEZXNpZ25hdG9yIEF0dHJpYnV0ZUlkPSJ1cm46b2FzaXM6bmFt"
-              + "ZXM6dGM6eGFjbWw6MS4wOnN1YmplY3Q6c3ViamVjdC1pZCIgRGF0YVR5cGU9Imh0"
-              + "dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hI3N0cmluZyIgLz4gCiAgICA8"
-              + "L1N1YmplY3RNYXRjaD4KICAgPC9TdWJqZWN0PgogIDwvU3ViamVjdHM+CiAgPFJl"
-              + "c291cmNlcz4KICAgPFJlc291cmNlPgogICAgPFJlc291cmNlTWF0Y2ggTWF0Y2hJ"
-              + "ZD0idXJuOm9hc2lzOm5hbWVzOnRjOnhhY21sOjEuMDpmdW5jdGlvbjpzdHJpbmct"
-              + "ZXF1YWwiPgogICAgIDxBdHRyaWJ1dGVWYWx1ZSBEYXRhVHlwZT0iaHR0cDovL3d3"
-              + "dy53My5vcmcvMjAwMS9YTUxTY2hlbWEjYW55VVJJIj4KICAgICAgaHR0cDovL3p1"
-              + "bmkuY3MudnQuZWR1PC9BdHRyaWJ1dGVWYWx1ZT4KICAgICA8UmVzb3VyY2VBdHRy"
-              + "aWJ1dGVEZXNpZ25hdG9yIEF0dHJpYnV0ZUlkPSJ1cm46b2FzaXM6bmFtZXM6dGM6"
-              + "eGFjbWw6MS4wOnJlc291cmNlOnJlc291cmNlLWlkIiBEYXRhVHlwZT0iaHR0cDov"
-              + "L3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEjYW55VVJJIiAvPiAKICAgIDwvUmVz"
-              + "b3VyY2VNYXRjaD4KICAgPC9SZXNvdXJjZT4KICA8L1Jlc291cmNlcz4KICA8QWN0"
-              + "aW9ucz4KICAgPEFjdGlvbj4KICAgIDxBY3Rpb25NYXRjaCBNYXRjaElkPSJ1cm46"
-              + "b2FzaXM6bmFtZXM6dGM6eGFjbWw6MS4wOmZ1bmN0aW9uOnN0cmluZy1lcXVhbCI+"
-              + "CiAgICAgPEF0dHJpYnV0ZVZhbHVlIERhdGFUeXBlPSJodHRwOi8vd3d3LnczLm9y"
-              + "Zy8yMDAxL1hNTFNjaGVtYSNzdHJpbmciPgpEZWxlZ2F0ZSBBY2Nlc3MgICAgIDwv"
-              + "QXR0cmlidXRlVmFsdWU+CgkgIDxBY3Rpb25BdHRyaWJ1dGVEZXNpZ25hdG9yIEF0"
-              + "dHJpYnV0ZUlkPSJ1cm46b2FzaXM6bmFtZXM6dGM6eGFjbWw6MS4wOmFjdGlvbjph"
-              + "Y3Rpb24taWQiIERhdGFUeXBlPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNj"
-              + "aGVtYSNzdHJpbmciIC8+IAogICAgPC9BY3Rpb25NYXRjaD4KICAgPC9BY3Rpb24+"
-              + "CiAgPC9BY3Rpb25zPgogPC9UYXJnZXQ+CjwvUnVsZT4KMA0GCSqGSIb3DQEBBAUA"
-              + "A4GBAGiJSM48XsY90HlYxGmGVSmNR6ZW2As+bot3KAfiCIkUIOAqhcphBS23egTr"
-              + "6asYwy151HshbPNYz+Cgeqs45KkVzh7bL/0e1r8sDVIaaGIkjHK3CqBABnfSayr3"
-              + "Rd1yBoDdEv8Qb+3eEPH6ab9021AsLEnJ6LWTmybbOpMNZ3tv");
-    
+        "MIIHQDCCBqkCAQEwgZChgY2kgYowgYcxHDAaBgkqhkiG9w0BCQEWDW1sb3JjaEB2"
+            + "dC5lZHUxHjAcBgNVBAMTFU1hcmt1cyBMb3JjaCAobWxvcmNoKTEbMBkGA1UECxMS"
+            + "VmlyZ2luaWEgVGVjaCBVc2VyMRAwDgYDVQQLEwdDbGFzcyAyMQswCQYDVQQKEwJ2"
+            + "dDELMAkGA1UEBhMCVVMwgYmkgYYwgYMxGzAZBgkqhkiG9w0BCQEWDHNzaGFoQHZ0"
+            + "LmVkdTEbMBkGA1UEAxMSU3VtaXQgU2hhaCAoc3NoYWgpMRswGQYDVQQLExJWaXJn"
+            + "aW5pYSBUZWNoIFVzZXIxEDAOBgNVBAsTB0NsYXNzIDExCzAJBgNVBAoTAnZ0MQsw"
+            + "CQYDVQQGEwJVUzANBgkqhkiG9w0BAQQFAAIBBTAiGA8yMDAzMDcxODE2MDgwMloY"
+            + "DzIwMDMwNzI1MTYwODAyWjCCBU0wggVJBgorBgEEAbRoCAEBMYIFORaCBTU8UnVs"
+            + "ZSBSdWxlSWQ9IkZpbGUtUHJpdmlsZWdlLVJ1bGUiIEVmZmVjdD0iUGVybWl0Ij4K"
+            + "IDxUYXJnZXQ+CiAgPFN1YmplY3RzPgogICA8U3ViamVjdD4KICAgIDxTdWJqZWN0"
+            + "TWF0Y2ggTWF0Y2hJZD0idXJuOm9hc2lzOm5hbWVzOnRjOnhhY21sOjEuMDpmdW5j"
+            + "dGlvbjpzdHJpbmctZXF1YWwiPgogICAgIDxBdHRyaWJ1dGVWYWx1ZSBEYXRhVHlw"
+            + "ZT0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEjc3RyaW5nIj4KICAg"
+            + "ICAgIENOPU1hcmt1cyBMb3JjaDwvQXR0cmlidXRlVmFsdWU+CiAgICAgPFN1Ympl"
+            + "Y3RBdHRyaWJ1dGVEZXNpZ25hdG9yIEF0dHJpYnV0ZUlkPSJ1cm46b2FzaXM6bmFt"
+            + "ZXM6dGM6eGFjbWw6MS4wOnN1YmplY3Q6c3ViamVjdC1pZCIgRGF0YVR5cGU9Imh0"
+            + "dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hI3N0cmluZyIgLz4gCiAgICA8"
+            + "L1N1YmplY3RNYXRjaD4KICAgPC9TdWJqZWN0PgogIDwvU3ViamVjdHM+CiAgPFJl"
+            + "c291cmNlcz4KICAgPFJlc291cmNlPgogICAgPFJlc291cmNlTWF0Y2ggTWF0Y2hJ"
+            + "ZD0idXJuOm9hc2lzOm5hbWVzOnRjOnhhY21sOjEuMDpmdW5jdGlvbjpzdHJpbmct"
+            + "ZXF1YWwiPgogICAgIDxBdHRyaWJ1dGVWYWx1ZSBEYXRhVHlwZT0iaHR0cDovL3d3"
+            + "dy53My5vcmcvMjAwMS9YTUxTY2hlbWEjYW55VVJJIj4KICAgICAgaHR0cDovL3p1"
+            + "bmkuY3MudnQuZWR1PC9BdHRyaWJ1dGVWYWx1ZT4KICAgICA8UmVzb3VyY2VBdHRy"
+            + "aWJ1dGVEZXNpZ25hdG9yIEF0dHJpYnV0ZUlkPSJ1cm46b2FzaXM6bmFtZXM6dGM6"
+            + "eGFjbWw6MS4wOnJlc291cmNlOnJlc291cmNlLWlkIiBEYXRhVHlwZT0iaHR0cDov"
+            + "L3d3dy53My5vcmcvMjAwMS9YTUxTY2hlbWEjYW55VVJJIiAvPiAKICAgIDwvUmVz"
+            + "b3VyY2VNYXRjaD4KICAgPC9SZXNvdXJjZT4KICA8L1Jlc291cmNlcz4KICA8QWN0"
+            + "aW9ucz4KICAgPEFjdGlvbj4KICAgIDxBY3Rpb25NYXRjaCBNYXRjaElkPSJ1cm46"
+            + "b2FzaXM6bmFtZXM6dGM6eGFjbWw6MS4wOmZ1bmN0aW9uOnN0cmluZy1lcXVhbCI+"
+            + "CiAgICAgPEF0dHJpYnV0ZVZhbHVlIERhdGFUeXBlPSJodHRwOi8vd3d3LnczLm9y"
+            + "Zy8yMDAxL1hNTFNjaGVtYSNzdHJpbmciPgpEZWxlZ2F0ZSBBY2Nlc3MgICAgIDwv"
+            + "QXR0cmlidXRlVmFsdWU+CgkgIDxBY3Rpb25BdHRyaWJ1dGVEZXNpZ25hdG9yIEF0"
+            + "dHJpYnV0ZUlkPSJ1cm46b2FzaXM6bmFtZXM6dGM6eGFjbWw6MS4wOmFjdGlvbjph"
+            + "Y3Rpb24taWQiIERhdGFUeXBlPSJodHRwOi8vd3d3LnczLm9yZy8yMDAxL1hNTFNj"
+            + "aGVtYSNzdHJpbmciIC8+IAogICAgPC9BY3Rpb25NYXRjaD4KICAgPC9BY3Rpb24+"
+            + "CiAgPC9BY3Rpb25zPgogPC9UYXJnZXQ+CjwvUnVsZT4KMA0GCSqGSIb3DQEBBAUA"
+            + "A4GBAGiJSM48XsY90HlYxGmGVSmNR6ZW2As+bot3KAfiCIkUIOAqhcphBS23egTr"
+            + "6asYwy151HshbPNYz+Cgeqs45KkVzh7bL/0e1r8sDVIaaGIkjHK3CqBABnfSayr3"
+            + "Rd1yBoDdEv8Qb+3eEPH6ab9021AsLEnJ6LWTmybbOpMNZ3tv");
+
     static
     {
         try
@@ -144,14 +161,14 @@ public class CMSTestUtil
 
             gostKpg  = KeyPairGenerator.getInstance("GOST3410", "BC");
             GOST3410ParameterSpec gost3410P = new GOST3410ParameterSpec(CryptoProObjectIdentifiers.gostR3410_94_CryptoPro_A.getId());
-            
+
             gostKpg.initialize(gost3410P, new SecureRandom());
-            
+
             dsaKpg = KeyPairGenerator.getInstance("DSA", "BC");
             DSAParameterSpec dsaSpec = new DSAParameterSpec(
-                        new BigInteger("7434410770759874867539421675728577177024889699586189000788950934679315164676852047058354758883833299702695428196962057871264685291775577130504050839126673"),
-                        new BigInteger("1138656671590261728308283492178581223478058193247"),
-                        new BigInteger("4182906737723181805517018315469082619513954319976782448649747742951189003482834321192692620856488639629011570381138542789803819092529658402611668375788410"));
+                new BigInteger("7434410770759874867539421675728577177024889699586189000788950934679315164676852047058354758883833299702695428196962057871264685291775577130504050839126673"),
+                new BigInteger("1138656671590261728308283492178581223478058193247"),
+                new BigInteger("4182906737723181805517018315469082619513954319976782448649747742951189003482834321192692620856488639629011570381138542789803819092529658402611668375788410"));
 
             dsaKpg.initialize(dsaSpec, new SecureRandom());
 
@@ -167,8 +184,28 @@ public class CMSTestUtil
             ed25519Kpg = KeyPairGenerator.getInstance("Ed25519", "BC");
             ed448Kpg = KeyPairGenerator.getInstance("Ed448", "BC");
 
-           // ntruKpg = KeyPairGenerator.getInstance(BCObjectIdentifiers.ntruhps2048509.getId(), "BC");
-            mlKemKpg = KeyPairGenerator.getInstance("ML-KEM-768", "BC");
+            //ntruKpg = KeyPairGenerator.getInstance(BCObjectIdentifiers.ntruhps2048509.getId(), "BC");
+
+            mlDsa44Kpg = KeyPairGenerator.getInstance("ML-DSA-44", "BC");
+            mlDsa65Kpg = KeyPairGenerator.getInstance("ML-DSA-65", "BC");
+            mlDsa87Kpg = KeyPairGenerator.getInstance("ML-DSA-87", "BC");
+
+            mlKem512Kpg = KeyPairGenerator.getInstance("ML-KEM-512", "BC");
+            mlKem768Kpg = KeyPairGenerator.getInstance("ML-KEM-768", "BC");
+            mlKem1024Kpg = KeyPairGenerator.getInstance("ML-KEM-1024", "BC");
+
+            slhDsa_Sha2_128f_Kpg = KeyPairGenerator.getInstance("SLH-DSA-SHA2-128F", "BC");
+            slhDsa_Sha2_128s_Kpg = KeyPairGenerator.getInstance("SLH-DSA-SHA2-128S", "BC");
+            slhDsa_Sha2_192f_Kpg = KeyPairGenerator.getInstance("SLH-DSA-SHA2-192F", "BC");
+            slhDsa_Sha2_192s_Kpg = KeyPairGenerator.getInstance("SLH-DSA-SHA2-192S", "BC");
+            slhDsa_Sha2_256f_Kpg = KeyPairGenerator.getInstance("SLH-DSA-SHA2-256F", "BC");
+            slhDsa_Sha2_256s_Kpg = KeyPairGenerator.getInstance("SLH-DSA-SHA2-256S", "BC");
+            slhDsa_Shake_128f_Kpg = KeyPairGenerator.getInstance("SLH-DSA-SHAKE-128F", "BC");
+            slhDsa_Shake_128s_Kpg = KeyPairGenerator.getInstance("SLH-DSA-SHAKE-128S", "BC");
+            slhDsa_Shake_192f_Kpg = KeyPairGenerator.getInstance("SLH-DSA-SHAKE-192F", "BC");
+            slhDsa_Shake_192s_Kpg = KeyPairGenerator.getInstance("SLH-DSA-SHAKE-192S", "BC");
+            slhDsa_Shake_256f_Kpg = KeyPairGenerator.getInstance("SLH-DSA-SHAKE-256F", "BC");
+            slhDsa_Shake_256s_Kpg = KeyPairGenerator.getInstance("SLH-DSA-SHAKE-256S", "BC");
 
             aes192kg = KeyGenerator.getInstance("AES", "BC");
             aes192kg.init(192, rand);
@@ -181,10 +218,10 @@ public class CMSTestUtil
 
             rc240kg = KeyGenerator.getInstance("RC2", "BC");
             rc240kg.init(40, rand);
-            
+
             rc264kg = KeyGenerator.getInstance("RC2", "BC");
             rc264kg.init(64, rand);
-            
+
             rc2128kg = KeyGenerator.getInstance("RC2", "BC");
             rc2128kg.init(128, rand);
 
@@ -193,7 +230,7 @@ public class CMSTestUtil
             seedKg = KeyGenerator.getInstance("SEED", "BC");
 
             camelliaKg = KeyGenerator.getInstance("Camellia", "BC");
-            
+
             serialNumber = new BigInteger("1");
         }
         catch (Exception ex)
@@ -211,9 +248,9 @@ public class CMSTestUtil
         byte[]  data)
     {
         StringBuffer    buf = new StringBuffer();
-        
+
         data = Base64.encode(data);
-        
+
         for (int i = 0; i < data.length; i += 64)
         {
             if (i + 64 < data.length)
@@ -226,7 +263,7 @@ public class CMSTestUtil
             }
             buf.append('\n');
         }
-        
+
         return buf.toString();
     }
 
@@ -281,9 +318,94 @@ public class CMSTestUtil
         return ntruKpg.generateKeyPair();
     }
 
-    public static KeyPair makeMLKemKeyPair()
+    public static KeyPair makeMLKem512KeyPair()
     {
-        return mlKemKpg.generateKeyPair();
+        return mlKem512Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeMLKem768KeyPair()
+    {
+        return mlKem768Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeMLKem1024KeyPair()
+    {
+        return mlKem1024Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeMLDsa44KeyPair()
+    {
+        return mlDsa44Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeMLDsa65KeyPair()
+    {
+        return mlDsa65Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeMLDsa87KeyPair()
+    {
+        return mlDsa87Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeSlhDsa_Sha2_128f_KeyPair()
+    {
+        return slhDsa_Sha2_128f_Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeSlhDsa_Sha2_128s_KeyPair()
+    {
+        return slhDsa_Sha2_128s_Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeSlhDsa_Sha2_192f_KeyPair()
+    {
+        return slhDsa_Sha2_192f_Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeSlhDsa_Sha2_192s_KeyPair()
+    {
+        return slhDsa_Sha2_192s_Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeSlhDsa_Sha2_256f_KeyPair()
+    {
+        return slhDsa_Sha2_256f_Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeSlhDsa_Sha2_256s_KeyPair()
+    {
+        return slhDsa_Sha2_256s_Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeSlhDsa_Shake_128f_KeyPair()
+    {
+        return slhDsa_Shake_128f_Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeSlhDsa_Shake_128s_KeyPair()
+    {
+        return slhDsa_Shake_128s_Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeSlhDsa_Shake_192f_KeyPair()
+    {
+        return slhDsa_Shake_192f_Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeSlhDsa_Shake_192s_KeyPair()
+    {
+        return slhDsa_Shake_192s_Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeSlhDsa_Shake_256f_KeyPair()
+    {
+        return slhDsa_Shake_256f_Kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeSlhDsa_Shake_256s_KeyPair()
+    {
+        return slhDsa_Shake_256s_Kpg.generateKeyPair();
     }
 
     public static SecretKey makeDesede128Key()
@@ -334,21 +456,21 @@ public class CMSTestUtil
     }
 
     public static X509Certificate makeCertificate(KeyPair _subKP,
-            String _subDN, KeyPair _issKP, String _issDN)
+                                                  String _subDN, KeyPair _issKP, String _issDN)
         throws GeneralSecurityException, IOException, OperatorCreationException
     {
         return makeCertificate(_subKP, _subDN, _issKP, _issDN, false);
     }
 
     public static X509Certificate makeOaepCertificate(KeyPair _subKP,
-            String _subDN, KeyPair _issKP, String _issDN)
+                                                      String _subDN, KeyPair _issKP, String _issDN)
         throws GeneralSecurityException, IOException, OperatorCreationException
     {
         return makeOaepCertificate(_subKP, _subDN, _issKP, _issDN, false);
     }
 
     public static X509Certificate makeCACertificate(KeyPair _subKP,
-            String _subDN, KeyPair _issKP, String _issDN)
+                                                    String _subDN, KeyPair _issKP, String _issDN)
         throws GeneralSecurityException, IOException, OperatorCreationException
     {
         return makeCertificate(_subKP, _subDN, _issKP, _issDN, true);
@@ -387,7 +509,7 @@ public class CMSTestUtil
         PublicKey  subPub  = subKP.getPublic();
         PrivateKey issPriv = issKP.getPrivate();
         PublicKey  issPub  = issKP.getPublic();
-        
+
         X509v3CertificateBuilder v3CertGen = new JcaX509v3CertificateBuilder(
             new X500Name(_issDN),
             allocateSerialNumber(),
@@ -504,6 +626,10 @@ public class CMSTestUtil
 
     private static JcaContentSignerBuilder makeContentSignerBuilder(PublicKey issPub)
     {
+        /*
+         * NOTE: Current ALL test certificates are issued under a SHA1withRSA root, so this list is mostly
+         * redundant (and also incomplete in that it doesn't handle EdDSA or ML-DSA issuers).
+         */
         JcaContentSignerBuilder contentSignerBuilder;
         if (issPub instanceof RSAPublicKey)
         {
@@ -521,9 +647,13 @@ public class CMSTestUtil
         {
             contentSignerBuilder = new JcaContentSignerBuilder("GOST3411withECGOST3410");
         }
-        else
+        else if (issPub.getAlgorithm().equals("GOST3410"))
         {
             contentSignerBuilder = new JcaContentSignerBuilder("GOST3411WithGOST3410");
+        }
+        else
+        {
+            throw new UnsupportedOperationException("Algorithm handlers incomplete");
         }
 
         contentSignerBuilder.setProvider(BouncyCastleProvider.PROVIDER_NAME);
@@ -547,11 +677,11 @@ public class CMSTestUtil
         return new JcaX509CRLConverter().setProvider("BC").getCRL(crlGen.build(new JcaContentSignerBuilder("SHA256WithRSAEncryption").setProvider("BC").build(pair.getPrivate())));
     }
 
-    /*  
-     *  
+    /*
+     *
      *  INTERNAL METHODS
-     *  
-     */ 
+     *
+     */
 
     private static final X509ExtensionUtils extUtils = new X509ExtensionUtils(new SHA1DigestCalculator());
 
@@ -582,19 +712,19 @@ public class CMSTestUtil
         serialNumber = serialNumber.add(BigInteger.ONE);
         return _tmp;
     }
-    
+
     public static byte[] streamToByteArray(
-        InputStream in) 
+        InputStream in)
         throws IOException
     {
         ByteArrayOutputStream bOut = new ByteArrayOutputStream();
         int ch;
-        
+
         while ((ch = in.read()) >= 0)
         {
             bOut.write(ch);
         }
-        
+
         return bOut.toByteArray();
     }
 }

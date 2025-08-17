@@ -2,7 +2,6 @@ package org.bouncycastle.asn1.cms;
 
 import java.math.BigInteger;
 
-import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -57,7 +56,10 @@ public class IssuerAndSerialNumber
         return null;
     }
 
-    private IssuerAndSerialNumber(
+    /**
+     * @deprecated  use getInstance() method.
+     */
+    public IssuerAndSerialNumber(
         ASN1Sequence    seq)
     {
         this.name = X500Name.getInstance(seq.getObjectAt(0));
@@ -91,11 +93,6 @@ public class IssuerAndSerialNumber
 
     public ASN1Primitive toASN1Primitive()
     {
-        ASN1EncodableVector v = new ASN1EncodableVector(2);
-
-        v.add(name);
-        v.add(serialNumber);
-
-        return new DERSequence(v);
+        return new DERSequence(name, serialNumber);
     }
 }

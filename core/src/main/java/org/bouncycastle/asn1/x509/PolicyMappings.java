@@ -1,7 +1,11 @@
 package org.bouncycastle.asn1.x509;
 
+import java.util.Enumeration;
+import java.util.Hashtable;
+
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Object;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.DERSequence;
@@ -48,11 +52,7 @@ public class PolicyMappings
 
     public PolicyMappings(CertPolicyId issuerDomainPolicy, CertPolicyId subjectDomainPolicy)
     {
-        ASN1EncodableVector dv = new ASN1EncodableVector(2);
-        dv.add(issuerDomainPolicy);
-        dv.add(subjectDomainPolicy);
-
-        seq = new DERSequence(new DERSequence(dv));
+        seq = new DERSequence(new DERSequence(issuerDomainPolicy, subjectDomainPolicy));
     }
 
     public PolicyMappings(CertPolicyId[] issuerDomainPolicy, CertPolicyId[] subjectDomainPolicy)
@@ -61,10 +61,7 @@ public class PolicyMappings
 
         for (int i = 0; i != issuerDomainPolicy.length; i++)
         {
-            ASN1EncodableVector dv = new ASN1EncodableVector(2);
-            dv.add(issuerDomainPolicy[i]);
-            dv.add(subjectDomainPolicy[i]);
-            dev.add(new DERSequence(dv));
+            dev.add(new DERSequence(issuerDomainPolicy[i], subjectDomainPolicy[i]));
         }
 
         seq = new DERSequence(dev);

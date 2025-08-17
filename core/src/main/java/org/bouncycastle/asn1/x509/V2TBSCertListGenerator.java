@@ -37,18 +37,18 @@ import org.bouncycastle.asn1.x500.X500Name;
  */
 public class V2TBSCertListGenerator
 {
-    private ASN1Integer         version = new ASN1Integer(1);
+    private ASN1Integer version = new ASN1Integer(1);
     private AlgorithmIdentifier signature;
-    private X500Name            issuer;
-    private Time                thisUpdate, nextUpdate=null;
-    private Extensions          extensions = null;
+    private X500Name issuer;
+    private Time thisUpdate, nextUpdate = null;
+    private Extensions extensions = null;
     private ASN1EncodableVector crlentries = new ASN1EncodableVector();
 
     private final static ASN1Sequence[] reasons;
 
     static
     {
-       reasons = new ASN1Sequence[11];
+        reasons = new ASN1Sequence[11];
 
         reasons[0] = createReasonExtension(CRLReason.unspecified);
         reasons[1] = createReasonExtension(CRLReason.keyCompromise);
@@ -69,7 +69,7 @@ public class V2TBSCertListGenerator
 
 
     public void setSignature(
-        AlgorithmIdentifier    signature)
+        AlgorithmIdentifier signature)
     {
         this.signature = signature;
     }
@@ -177,17 +177,17 @@ public class V2TBSCertListGenerator
 
         v.add(userCertificate);
         v.add(revocationDate);
-        
+
         if (extensions != null)
         {
             v.add(extensions);
         }
-        
+
         addCRLEntry(new DERSequence(v));
     }
 
     public void setExtensions(
-        Extensions    extensions)
+        Extensions extensions)
     {
         this.extensions = extensions;
     }
@@ -198,7 +198,7 @@ public class V2TBSCertListGenerator
         {
             throw new IllegalStateException("not all mandatory fields set in V2 TBSCertList generator");
         }
-        
+
         return new TBSCertList(generateTBSCertStructure());
     }
 
@@ -218,7 +218,7 @@ public class V2TBSCertListGenerator
 
     private ASN1Sequence generateTBSCertStructure()
     {
-        ASN1EncodableVector  v = new ASN1EncodableVector(7);
+        ASN1EncodableVector v = new ASN1EncodableVector(7);
 
         v.add(version);
         if (signature != null)
@@ -249,37 +249,27 @@ public class V2TBSCertListGenerator
 
     private static ASN1Sequence createReasonExtension(int reasonCode)
     {
-        ASN1EncodableVector v = new ASN1EncodableVector(2);
-
         CRLReason crlReason = CRLReason.lookup(reasonCode);
 
         try
         {
-            v.add(Extension.reasonCode);
-            v.add(new DEROctetString(crlReason.getEncoded()));
+            return new DERSequence(Extension.reasonCode, new DEROctetString(crlReason.getEncoded()));
         }
         catch (IOException e)
         {
             throw new IllegalArgumentException("error encoding reason: " + e);
         }
-
-        return new DERSequence(v);
     }
 
     private static ASN1Sequence createInvalidityDateExtension(ASN1GeneralizedTime invalidityDate)
     {
-        ASN1EncodableVector v = new ASN1EncodableVector(2);
-
         try
         {
-            v.add(Extension.invalidityDate);
-            v.add(new DEROctetString(invalidityDate.getEncoded()));
+            return new DERSequence(Extension.invalidityDate, new DEROctetString(invalidityDate.getEncoded()));
         }
         catch (IOException e)
         {
             throw new IllegalArgumentException("error encoding reason: " + e);
         }
-
-        return new DERSequence(v);
     }
 }

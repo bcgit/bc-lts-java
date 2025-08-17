@@ -89,8 +89,8 @@ public final class Arrays
      * @return true if arrays equal, false otherwise.
      */
     public static boolean constantTimeAreEqual(
-            byte[] expected,
-            byte[] supplied)
+        byte[]  expected,
+        byte[]  supplied)
     {
         if (expected == null || supplied == null)
         {
@@ -159,8 +159,8 @@ public final class Arrays
      * @return true if arrays equal, false otherwise.
      */
     public static boolean constantTimeAreEqual(
-            char[] expected,
-            char[] supplied)
+        char[] expected,
+        char[] supplied)
     {
         if (expected == null || supplied == null)
         {
@@ -184,7 +184,7 @@ public final class Arrays
         // If supplied is longer than expected, iterate over rest of supplied with NOPs
         for (int i = len; i < supplied.length; i++)
         {
-            nonEqual |= ((byte) supplied[i] ^ (byte) ~supplied[i]);
+            nonEqual |= ((byte)supplied[i] ^ (byte)~supplied[i]);
         }
 
         return nonEqual == 0;
@@ -491,9 +491,9 @@ public final class Arrays
         {
             long di = data[i];
             hc *= 257;
-            hc ^= (int) di;
+            hc ^= (int)di;
             hc *= 257;
-            hc ^= (int) (di >>> 32);
+            hc ^= (int)(di >>> 32);
         }
 
         return hc;
@@ -513,9 +513,9 @@ public final class Arrays
         {
             long di = data[off + i];
             hc *= 257;
-            hc ^= (int) di;
+            hc ^= (int)di;
             hc *= 257;
-            hc ^= (int) (di >>> 32);
+            hc ^= (int)(di >>> 32);
         }
 
         return hc;
@@ -741,9 +741,13 @@ public final class Arrays
      * Make a copy of a range of bytes from the passed in array. The range can extend beyond the end
      * of the input array, in which case the returned array will be padded with zeroes.
      *
-     * @param original the array from which the data is to be copied.
-     * @param from     the start index at which the copying should take place.
-     * @param to       the final index of the range (exclusive).
+     * @param original
+     *            the array from which the data is to be copied.
+     * @param from
+     *            the start index at which the copying should take place.
+     * @param to
+     *            the final index of the range (exclusive).
+     *
      * @return a new byte array containing the range given.
      */
     public static byte[] copyOfRange(byte[] original, int from, int to)
@@ -808,7 +812,7 @@ public final class Arrays
     {
         if (a == null)
         {
-            return new byte[]{b};
+            return new byte[]{ b };
         }
 
         int length = a.length;
@@ -822,7 +826,7 @@ public final class Arrays
     {
         if (a == null)
         {
-            return new short[]{b};
+            return new short[]{ b };
         }
 
         int length = a.length;
@@ -836,7 +840,7 @@ public final class Arrays
     {
         if (a == null)
         {
-            return new int[]{b};
+            return new int[]{ b };
         }
 
         int length = a.length;
@@ -850,7 +854,7 @@ public final class Arrays
     {
         if (a == null)
         {
-            return new String[]{b};
+            return new String[]{ b };
         }
 
         int length = a.length;
@@ -915,10 +919,8 @@ public final class Arrays
 
         byte[] r = new byte[a.length + b.length + c.length];
         int pos = 0;
-        System.arraycopy(a, 0, r, pos, a.length);
-        pos += a.length;
-        System.arraycopy(b, 0, r, pos, b.length);
-        pos += b.length;
+        System.arraycopy(a, 0, r, pos, a.length);       pos += a.length;
+        System.arraycopy(b, 0, r, pos, b.length);       pos += b.length;
         System.arraycopy(c, 0, r, pos, c.length);
         return r;
     }
@@ -944,12 +946,9 @@ public final class Arrays
 
         byte[] r = new byte[a.length + b.length + c.length + d.length];
         int pos = 0;
-        System.arraycopy(a, 0, r, pos, a.length);
-        pos += a.length;
-        System.arraycopy(b, 0, r, pos, b.length);
-        pos += b.length;
-        System.arraycopy(c, 0, r, pos, c.length);
-        pos += c.length;
+        System.arraycopy(a, 0, r, pos, a.length);       pos += a.length;
+        System.arraycopy(b, 0, r, pos, b.length);       pos += b.length;
+        System.arraycopy(c, 0, r, pos, c.length);       pos += c.length;
         System.arraycopy(d, 0, r, pos, d.length);
         return r;
     }
@@ -997,7 +996,7 @@ public final class Arrays
     {
         if (a == null)
         {
-            return new byte[]{b};
+            return new byte[]{ b };
         }
 
         int length = a.length;
@@ -1011,7 +1010,7 @@ public final class Arrays
     {
         if (a == null)
         {
-            return new short[]{b};
+            return new short[]{ b };
         }
 
         int length = a.length;
@@ -1025,7 +1024,7 @@ public final class Arrays
     {
         if (a == null)
         {
-            return new int[]{b};
+            return new int[]{ b };
         }
 
         int length = a.length;
@@ -1149,7 +1148,7 @@ public final class Arrays
      * Iterator backed by a specific array.
      */
     public static class Iterator<T>
-            implements java.util.Iterator<T>
+        implements java.util.Iterator<T>
     {
         private final T[] dataArray;
 
@@ -1212,7 +1211,7 @@ public final class Arrays
     {
         if (null != data)
         {
-            java.util.Arrays.fill(data, (byte) 0x00);
+            java.util.Arrays.fill(data, (byte)0x00);
         }
     }
 
@@ -1224,6 +1223,13 @@ public final class Arrays
         }
     }
 
+    public static void clear(long[] data)
+    {
+        if (null != data)
+        {
+            java.util.Arrays.fill(data, 0);
+        }
+    }
 
     public static void clear(int[][] data)
     {
@@ -1279,5 +1285,39 @@ public final class Arrays
     public static boolean isNullOrEmpty(Object[] array)
     {
         return null == array || array.length < 1;
+    }
+
+    public static boolean segmentsOverlap(int aOff, int aLen, int bOff, int bLen)
+    {
+        return aLen > 0
+            && bLen > 0
+            && aOff - bOff < bLen
+            && bOff - aOff < aLen;
+    }
+
+    public static void validateRange(byte[] buf, int from, int to)
+    {
+        if (buf == null)
+        {
+            throw new NullPointerException("'buf' cannot be null");
+        }
+        if ((from | (buf.length - from) | (to - from) | (buf.length - to)) < 0)
+        {
+            throw new IndexOutOfBoundsException("buf.length: " + buf.length + ", from: " + from + ", to: " + to);
+        }
+    }
+
+    public static void validateSegment(byte[] buf, int off, int len)
+    {
+        if (buf == null)
+        {
+            throw new NullPointerException("'buf' cannot be null");
+        }
+        int available = buf.length - off;
+        int remaining = available - len;
+        if ((off | len | available | remaining) < 0)
+        {
+            throw new IndexOutOfBoundsException("buf.length: " + buf.length + ", off: " + off + ", len: " + len);
+        }
     }
 }
