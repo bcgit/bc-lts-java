@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 
-import junit.framework.TestCase;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.hpke.AEAD;
@@ -16,12 +15,16 @@ import org.bouncycastle.crypto.hpke.HPKE;
 import org.bouncycastle.crypto.hpke.HPKEContext;
 import org.bouncycastle.crypto.hpke.HPKEContextWithEncapsulation;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+import org.bouncycastle.math.ec.rfc7748.X25519;
+import org.bouncycastle.math.ec.rfc7748.X448;
 import org.bouncycastle.test.TestResourceFinder;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 
+import junit.framework.TestCase;
+
 public class HPKETestVectors
-        extends TestCase
+    extends TestCase
 {
 
     static class Export
@@ -56,10 +59,10 @@ public class HPKETestVectors
     }
 
     public void testBaseOneShotPairwise()
-            throws Exception
+        throws Exception
     {
         // test base oneshot pairwise
-        HPKE hpke = new HPKE((byte) 0, (short) 16, (short) 1, (short) 1);
+        HPKE hpke = new HPKE((byte)0, (short)16, (short)1, (short)1);
 
         AsymmetricCipherKeyPair kp = hpke.generatePrivateKey();
         byte[][] output = hpke.seal(kp.getPublic(), "info".getBytes(), "aad".getBytes(), "message".getBytes(), null, null, null);
@@ -67,7 +70,7 @@ public class HPKETestVectors
         byte[] encap = output[1];
 
         byte[] message = hpke.open(encap, kp, "info".getBytes(), "aad".getBytes(), ct, null, null, null);
-        assertTrue( "Failed", Arrays.areEqual(message, "message".getBytes()));
+        assertTrue("Failed", Arrays.areEqual(message, "message".getBytes()));
 
         try
         {
@@ -80,11 +83,12 @@ public class HPKETestVectors
             assertEquals("Failed", "mac check in GCM failed", e.getMessage());
         }
     }
+
     public void testAuthOneShotPairwise()
-            throws Exception
+        throws Exception
     {
         // test base oneshot pairwise
-        HPKE hpke = new HPKE((byte) 2, (short) 18, (short) 1, (short) 1);
+        HPKE hpke = new HPKE((byte)2, (short)18, (short)1, (short)1);
 
         AsymmetricCipherKeyPair reciever = hpke.generatePrivateKey();
         AsymmetricCipherKeyPair sender = hpke.generatePrivateKey();
@@ -94,7 +98,7 @@ public class HPKETestVectors
         byte[] encap = output[1];
 
         byte[] message = hpke.open(encap, reciever, "info".getBytes(), "aad".getBytes(), ct, null, null, sender.getPublic());
-        assertTrue( "Failed", Arrays.areEqual(message, "message".getBytes()));
+        assertTrue("Failed", Arrays.areEqual(message, "message".getBytes()));
 
         // incorrect ct/tag
         try
@@ -122,9 +126,9 @@ public class HPKETestVectors
     }
 
     public void testBasePairwise()
-            throws Exception
+        throws Exception
     {
-        HPKE hpke = new HPKE((byte) 0, (short) 16, (short) 1, (short) 1);
+        HPKE hpke = new HPKE((byte)0, (short)16, (short)1, (short)1);
 
         AsymmetricCipherKeyPair receiver = hpke.generatePrivateKey();
 
@@ -147,9 +151,9 @@ public class HPKETestVectors
     }
 
     public void testAuthPairwise()
-            throws Exception
+        throws Exception
     {
-        HPKE hpke = new HPKE((byte) 2, (short) 16, (short) 1, (short) 1);
+        HPKE hpke = new HPKE((byte)2, (short)16, (short)1, (short)1);
 
         AsymmetricCipherKeyPair receiver = hpke.generatePrivateKey();
         AsymmetricCipherKeyPair sender = hpke.generatePrivateKey();
@@ -173,12 +177,11 @@ public class HPKETestVectors
     }
 
 
-
     //todo test for not implemented for export only aead
 
 
     public void testVectors()
-            throws Exception
+        throws Exception
     {
         InputStream src = TestResourceFinder.findTestResource("crypto", "hpke.txt");
         BufferedReader bin = new BufferedReader(new InputStreamReader(src));
@@ -201,7 +204,7 @@ public class HPKETestVectors
                     byte mode = Byte.parseByte((String)buf.get("mode"));
                     short kem_id = Short.parseShort((String)buf.get("kem_id"));
                     short kdf_id = Short.parseShort((String)buf.get("kdf_id"));
-                    short aead_id = (short) Integer.parseInt((String)buf.get("aead_id"));
+                    short aead_id = (short)Integer.parseInt((String)buf.get("aead_id"));
                     byte[] info = Hex.decode((String)buf.get("info"));
                     byte[] ikmR = Hex.decode((String)buf.get("ikmR"));
                     byte[] ikmS = null;    // -> mode 2, 3
@@ -243,13 +246,13 @@ public class HPKETestVectors
                     // init aead with key and nonce
                     AEAD aead = new AEAD(aead_id, key, base_nonce);
                     // enumerate encryptions
-                    for (Iterator it = encryptions.iterator(); it.hasNext();)
+                    for (Iterator it = encryptions.iterator(); it.hasNext(); )
                     {
                         Encryption encryption = (Encryption)it.next();
 
                         // seal with aad and pt and check if output is the same as ct
                         byte[] got_ct = aead.seal(encryption.aad, encryption.pt);
-                        assertTrue( "AEAD failed Sealing:", Arrays.areEqual(got_ct, encryption.ct));
+                        assertTrue("AEAD failed Sealing:", Arrays.areEqual(got_ct, encryption.ct));
                     }
 
                     // Testing main ( different modes )
@@ -259,26 +262,50 @@ public class HPKETestVectors
                     // generate a private key from skRm and pkRm
                     AsymmetricCipherKeyPair kp = hpke.deserializePrivateKey(skRm, pkRm);
 
+                    byte[] skRm_serialized = Arrays.clone(skRm);
+                    byte[] skSm_serialized = Arrays.clone(skSm);
+                    byte[] skEm_serialized = Arrays.clone(skEm);
+
+                    switch (kem_id)
+                    {
+                    case HPKE.kem_X25519_SHA256:
+                        X25519.clampPrivateKey(skRm_serialized);
+                        if (mode == 2 || mode == 3)
+                        {
+                            X25519.clampPrivateKey(skSm_serialized);
+                        }
+                        X25519.clampPrivateKey(skEm_serialized);
+                        break;
+                    case HPKE.kem_X448_SHA512:
+                        X448.clampPrivateKey(skRm_serialized);
+                        if (mode == 2 || mode == 3)
+                        {
+                            X448.clampPrivateKey(skSm_serialized);
+                        }
+                        X448.clampPrivateKey(skEm_serialized);
+                        break;
+                    }
+
                     // tesing serialize
                     assertTrue("serialize public key failed", Arrays.areEqual(pkRm, hpke.serializePublicKey(kp.getPublic())));
-                    assertTrue("serialize private key failed", Arrays.areEqual(skRm, hpke.serializePrivateKey(kp.getPrivate())));
+                    assertTrue("serialize private key failed", Arrays.areEqual(skRm_serialized, hpke.serializePrivateKey(kp.getPrivate())));
 
                     // testing receiver derive key pair
                     assertTrue("receiver derived public key pair incorrect", Arrays.areEqual(pkRm, hpke.serializePublicKey(derivedKeyPairR.getPublic())));
-                    assertTrue("receiver derived secret key pair incorrect", Arrays.areEqual(skRm, hpke.serializePrivateKey(derivedKeyPairR.getPrivate())));
+                    assertTrue("receiver derived secret key pair incorrect", Arrays.areEqual(skRm_serialized, hpke.serializePrivateKey(derivedKeyPairR.getPrivate())));
 
                     // testing sender's derived key pair
                     if (mode == 2 || mode == 3)
                     {
                         AsymmetricCipherKeyPair derivedSenderKeyPair = hpke.deriveKeyPair(ikmS);
                         assertTrue("sender derived public key pair incorrect", Arrays.areEqual(pkSm, hpke.serializePublicKey(derivedSenderKeyPair.getPublic())));
-                        assertTrue("sender derived private key pair incorrect", Arrays.areEqual(skSm, hpke.serializePrivateKey(derivedSenderKeyPair.getPrivate())));
+                        assertTrue("sender derived private key pair incorrect", Arrays.areEqual(skSm_serialized, hpke.serializePrivateKey(derivedSenderKeyPair.getPrivate())));
                     }
 
                     // testing ephemeral derived key pair
                     AsymmetricCipherKeyPair derivedEKeyPair = hpke.deriveKeyPair(ikmE);
                     assertTrue("ephemeral derived public key pair incorrect", Arrays.areEqual(pkEm, hpke.serializePublicKey(derivedEKeyPair.getPublic())));
-                    assertTrue("ephemeral derived private key pair incorrect", Arrays.areEqual(skEm, hpke.serializePrivateKey(derivedEKeyPair.getPrivate())));
+                    assertTrue("ephemeral derived private key pair incorrect", Arrays.areEqual(skEm_serialized, hpke.serializePrivateKey(derivedEKeyPair.getPrivate())));
 
                     // create a context with setupRecv
                     // use pkEm as encap, private key from above, info as info
@@ -287,22 +314,22 @@ public class HPKETestVectors
                     AsymmetricKeyParameter senderPub = null;
                     switch (mode)
                     {
-                        case 0:
-                            c = hpke.setupBaseR(pkEm, kp, info);
-                            break;
-                        case 1:
-                            c = hpke.setupPSKR(pkEm, kp, info, psk, psk_id);
-                            break;
-                        case 2:
-                            senderPub = hpke.deserializePublicKey(pkSm);
-                            c = hpke.setupAuthR(pkEm, kp, info, senderPub);
-                            break;
-                        case 3:
-                            senderPub = hpke.deserializePublicKey(pkSm);
-                            c = hpke.setupAuthPSKR(pkEm, kp, info, psk, psk_id, senderPub);
-                            break;
-                        default:
-                            fail("invalid mode");
+                    case 0:
+                        c = hpke.setupBaseR(pkEm, kp, info);
+                        break;
+                    case 1:
+                        c = hpke.setupPSKR(pkEm, kp, info, psk, psk_id);
+                        break;
+                    case 2:
+                        senderPub = hpke.deserializePublicKey(pkSm);
+                        c = hpke.setupAuthR(pkEm, kp, info, senderPub);
+                        break;
+                    case 3:
+                        senderPub = hpke.deserializePublicKey(pkSm);
+                        c = hpke.setupAuthPSKR(pkEm, kp, info, psk, psk_id, senderPub);
+                        break;
+                    default:
+                        fail("invalid mode");
                     }
 
                     // enumerate encryptions
@@ -326,7 +353,7 @@ public class HPKETestVectors
                     }
 
                     // enumerate exports
-                    for (Iterator it = exports.iterator(); it.hasNext();)
+                    for (Iterator it = exports.iterator(); it.hasNext(); )
                     {
                         Export export = (Export)it.next();
                         // use context export with exporter context and L
@@ -389,9 +416,9 @@ public class HPKETestVectors
                     }
                     if (line.equals("<"))
                     {
-                        byte[] exporterContext = Hex.decode((String) expBuf.get("exporter_context"));
+                        byte[] exporterContext = Hex.decode((String)expBuf.get("exporter_context"));
                         int L = Integer.parseInt((String)expBuf.get("L"));
-                        byte[] exportedValue = Hex.decode((String) expBuf.get("exported_value"));
+                        byte[] exportedValue = Hex.decode((String)expBuf.get("exported_value"));
                         exports.add(new Export(exporterContext, L, exportedValue));
                         expBuf.clear();
                     }

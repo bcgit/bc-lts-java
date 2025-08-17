@@ -58,6 +58,8 @@ import org.bouncycastle.tls.crypto.TlsSRPConfig;
 import org.bouncycastle.tls.crypto.TlsSecret;
 import org.bouncycastle.tls.crypto.TlsStreamSigner;
 import org.bouncycastle.tls.crypto.TlsStreamVerifier;
+import org.bouncycastle.tls.crypto.impl.AEADNonceGenerator;
+import org.bouncycastle.tls.crypto.impl.AEADNonceGeneratorFactory;
 import org.bouncycastle.tls.crypto.impl.AbstractTlsCrypto;
 import org.bouncycastle.tls.crypto.impl.TlsAEADCipher;
 import org.bouncycastle.tls.crypto.impl.TlsAEADCipherImpl;
@@ -75,14 +77,15 @@ import org.bouncycastle.util.Strings;
 /**
  * Class for providing cryptographic services for TLS based on implementations in the JCA/JCE.
  * <p>
- *     This class provides default implementations for everything. If you need to customise it, extend the class
- *     and override the appropriate methods.
+ * This class provides default implementations for everything. If you need to customise it, extend the class
+ * and override the appropriate methods.
  * </p>
  */
 public class JcaTlsCrypto
     extends AbstractTlsCrypto
 {
     private final JcaJceHelper helper;
+    private final JcaJceHelper altHelper;
     private final SecureRandom entropySource;
     private final SecureRandom nonceEntropySource;
 
@@ -93,13 +96,28 @@ public class JcaTlsCrypto
     /**
      * Base constructor.
      *
-     * @param helper a JCA/JCE helper configured for the class's default provider.
-     * @param entropySource primary entropy source, used for key generation.
+     * @param helper             a JCA/JCE helper configured for the class's default provider.
+     * @param entropySource      primary entropy source, used for key generation.
      * @param nonceEntropySource secondary entropy source, used for nonce and IV generation.
      */
     protected JcaTlsCrypto(JcaJceHelper helper, SecureRandom entropySource, SecureRandom nonceEntropySource)
     {
+        this(helper, null, entropySource, nonceEntropySource);
+    }
+
+    /**
+     * Base constructor.
+     *
+     * @param helper             a JCA/JCE helper configured for the class's default provider.
+     * @param altHelper          a JCA/JCE helper configured for the class's secondary provider (tried for private keys).
+     * @param entropySource      primary entropy source, used for key generation.
+     * @param nonceEntropySource secondary entropy source, used for nonce and IV generation.
+     */
+    protected JcaTlsCrypto(JcaJceHelper helper, JcaJceHelper altHelper, SecureRandom entropySource,
+                           SecureRandom nonceEntropySource)
+    {
         this.helper = helper;
+        this.altHelper = altHelper;
         this.entropySource = entropySource;
         this.nonceEntropySource = nonceEntropySource;
     }
@@ -109,7 +127,8 @@ public class JcaTlsCrypto
         return new JceTlsSecret(this, data);
     }
 
-    Cipher createRSAEncryptionCipher() throws GeneralSecurityException
+    Cipher createRSAEncryptionCipher()
+        throws GeneralSecurityException
     {
         try
         {
@@ -324,7 +343,7 @@ public class JcaTlsCrypto
         final SRP6Client srpClient = new SRP6Client();
 
         BigInteger[] ng = srpConfig.getExplicitNG();
-        SRP6Group srpGroup= new SRP6Group(ng[0], ng[1]);
+        SRP6Group srpGroup = new SRP6Group(ng[0], ng[1]);
         srpClient.init(srpGroup, createHash(CryptoHashAlgorithm.sha1), this.getSecureRandom());
 
         return new TlsSRP6Client()
@@ -353,7 +372,7 @@ public class JcaTlsCrypto
     {
         final SRP6Server srpServer = new SRP6Server();
         BigInteger[] ng = srpConfig.getExplicitNG();
-        SRP6Group srpGroup= new SRP6Group(ng[0], ng[1]);
+        SRP6Group srpGroup = new SRP6Group(ng[0], ng[1]);
         srpServer.init(srpGroup, srpVerifier, createHash(CryptoHashAlgorithm.sha1), this.getSecureRandom());
         return new TlsSRP6Server()
         {
@@ -418,22 +437,18 @@ public class JcaTlsCrypto
         }
     }
 
-    public AlgorithmParameters getNamedGroupAlgorithmParameters(int namedGroup) throws GeneralSecurityException
+    public AlgorithmParameters getNamedGroupAlgorithmParameters(int namedGroup)
+        throws GeneralSecurityException
     {
         if (NamedGroup.refersToAnXDHCurve(namedGroup))
         {
-            switch (namedGroup)
-            {
             /*
-             * TODO Return AlgorithmParameters to check against disabled algorithms
-             * 
+             * TODO Return AlgorithmParameters to check against disabled algorithms?
+             *
              * NOTE: The JDK doesn't even support AlgorithmParameters for XDH, so SunJSSE also winds
              * up using null AlgorithmParameters when checking algorithm constraints.
              */
-            case NamedGroup.x25519:
-            case NamedGroup.x448:
-                return null;
-            }
+            return null;
         }
         else if (NamedGroup.refersToAnECDSACurve(namedGroup))
         {
@@ -445,19 +460,12 @@ public class JcaTlsCrypto
         }
         else if (NamedGroup.refersToASpecificKem(namedGroup))
         {
-            switch (namedGroup)
-            {
             /*
-             * TODO[tls-kem] Return AlgorithmParameters to check against disabled algorithms?
+             * TODO Return AlgorithmParameters to check against disabled algorithms?
+             *
+             * NOTE: See what the JDK/SunJSSE implementation does.
              */
-            case NamedGroup.OQS_mlkem512:
-            case NamedGroup.OQS_mlkem768:
-            case NamedGroup.OQS_mlkem1024:
-            case NamedGroup.MLKEM512:
-            case NamedGroup.MLKEM768:
-            case NamedGroup.MLKEM1024:
-                return null;
-            }
+            return null;
         }
 
         throw new IllegalArgumentException("NamedGroup not supported: " + NamedGroup.getText(namedGroup));
@@ -565,7 +573,7 @@ public class JcaTlsCrypto
         case CryptoSignatureAlgorithm.gostr34102012_256:
         case CryptoSignatureAlgorithm.gostr34102012_512:
 
-        // TODO[RFC 8998]
+            // TODO[RFC 8998]
         case CryptoSignatureAlgorithm.sm2:
 
         default:
@@ -579,11 +587,6 @@ public class JcaTlsCrypto
     }
 
     public boolean hasECDHAgreement()
-    {
-        return true;
-    }
-    
-    public boolean hasKemAgreement()
     {
         return true;
     }
@@ -634,6 +637,11 @@ public class JcaTlsCrypto
         default:
             return false;
         }
+    }
+
+    public boolean hasKemAgreement()
+    {
+        return true;
     }
 
     public boolean hasMacAlgorithm(int macAlgorithm)
@@ -747,7 +755,7 @@ public class JcaTlsCrypto
         case SignatureAlgorithm.gostr34102012_256:
         case SignatureAlgorithm.gostr34102012_512:
 
-        // TODO[RFC 8998]
+            // TODO[RFC 8998]
 //        case SignatureAlgorithm.sm2:
 
         default:
@@ -776,12 +784,16 @@ public class JcaTlsCrypto
         switch (signatureScheme)
         {
         case SignatureScheme.sm2sig_sm3:
+            // TODO[tls] Implement before adding
+        case SignatureScheme.DRAFT_mldsa44:
+        case SignatureScheme.DRAFT_mldsa65:
+        case SignatureScheme.DRAFT_mldsa87:
             return false;
         default:
         {
             short signature = SignatureScheme.getSignatureAlgorithm(signatureScheme);
 
-            switch(SignatureScheme.getCryptoHashAlgorithm(signatureScheme))
+            switch (SignatureScheme.getCryptoHashAlgorithm(signatureScheme))
             {
             case CryptoHashAlgorithm.md5:
                 return SignatureAlgorithm.rsa == signature && hasSignatureAlgorithm(signature);
@@ -798,6 +810,11 @@ public class JcaTlsCrypto
     public boolean hasSRPAuthentication()
     {
         return true;
+    }
+
+    public TlsSecret createHybridSecret(TlsSecret s1, TlsSecret s2)
+    {
+        return adoptLocalSecret(Arrays.concatenate(s1.extract(), s2.extract()));
     }
 
     public TlsSecret createSecret(byte[] data)
@@ -853,7 +870,7 @@ public class JcaTlsCrypto
             return new JceTlsECDomain(this, ecConfig);
         }
     }
-    
+
     public TlsKemDomain createKemDomain(TlsKemConfig kemConfig)
     {
         return new JceTlsMLKemDomain(this, kemConfig);
@@ -891,8 +908,7 @@ public class JcaTlsCrypto
      * @throws GeneralSecurityException in case of failure.
      */
     protected TlsBlockCipherImpl createBlockCipher(String cipherName, String algorithm, int keySize,
-        boolean isEncrypting)
-        throws GeneralSecurityException
+                                                   boolean isEncrypting) throws GeneralSecurityException
     {
         return new JceBlockCipherImpl(this, helper.createCipher(cipherName), algorithm, keySize, isEncrypting);
     }
@@ -908,8 +924,7 @@ public class JcaTlsCrypto
      * @throws GeneralSecurityException in case of failure.
      */
     protected TlsBlockCipherImpl createBlockCipherWithCBCImplicitIV(String cipherName, String algorithm, int keySize,
-        boolean isEncrypting)
-        throws GeneralSecurityException
+                                                                    boolean isEncrypting) throws GeneralSecurityException
     {
         return new JceBlockCipherWithCBCImplicitIVImpl(this, helper.createCipher(cipherName), algorithm, isEncrypting);
     }
@@ -932,7 +947,7 @@ public class JcaTlsCrypto
      *
      * @param macAlgorithm the name of the algorithm supporting the MAC.
      * @return a null cipher suite implementation.
-     * @throws IOException in case of failure.
+     * @throws IOException              in case of failure.
      * @throws GeneralSecurityException in case of a specific failure in the JCA/JCE layer.
      */
     protected TlsNullCipher createNullCipher(TlsCryptoParameters cryptoParams, int macAlgorithm)
@@ -943,7 +958,7 @@ public class JcaTlsCrypto
     }
 
     protected TlsStreamSigner createStreamSigner(SignatureAndHashAlgorithm algorithm, PrivateKey privateKey,
-        boolean needsRandom) throws IOException
+                                                 boolean needsRandom) throws IOException
     {
         String algorithmName = JcaUtils.getJcaAlgorithmName(algorithm);
 
@@ -951,44 +966,25 @@ public class JcaTlsCrypto
     }
 
     protected TlsStreamSigner createStreamSigner(String algorithmName, AlgorithmParameterSpec parameter,
-        PrivateKey privateKey, boolean needsRandom) throws IOException
+                                                 PrivateKey privateKey, boolean needsRandom) throws IOException
     {
+        SecureRandom random = needsRandom ? getSecureRandom() : null;
+
         try
         {
-            SecureRandom random = needsRandom ? getSecureRandom() : null;
-
-            JcaJceHelper helper = getHelper();
-
             try
             {
-                if (null != parameter)
-                {
-                    Signature dummySigner = helper.createSignature(algorithmName);
-                    dummySigner.initSign(privateKey, random);
-                    helper = new ProviderJcaJceHelper(dummySigner.getProvider());
-                }
-
-                Signature signer = helper.createSignature(algorithmName);
-                if (null != parameter)
-                {
-                    signer.setParameter(parameter);
-                }
-                signer.initSign(privateKey, random);
-                return new JcaTlsStreamSigner(signer);
+                return createStreamSigner(getHelper(), algorithmName, parameter, privateKey, random);
             }
             catch (InvalidKeyException e)
             {
-                String upperAlg = Strings.toUpperCase(algorithmName);
-                if (upperAlg.endsWith("MGF1"))
-                {
-                    // ANDMGF1 has vanished from the Sun PKCS11 provider.
-                    algorithmName = upperAlg.replace("ANDMGF1", "SSA-PSS");
-                    return createStreamSigner(algorithmName, parameter, privateKey, needsRandom);
-                }
-                else
+                JcaJceHelper altHelper = getAltHelper();
+                if (altHelper == null)
                 {
                     throw e;
                 }
+
+                return createStreamSigner(altHelper, algorithmName, parameter, privateKey, random);
             }
         }
         catch (GeneralSecurityException e)
@@ -997,7 +993,64 @@ public class JcaTlsCrypto
         }
     }
 
-    protected TlsStreamVerifier createStreamVerifier(DigitallySigned digitallySigned, PublicKey publicKey) throws IOException
+    protected TlsStreamSigner createStreamSigner(JcaJceHelper helper, String algorithmName,
+                                                 AlgorithmParameterSpec parameter, PrivateKey privateKey, SecureRandom random) throws GeneralSecurityException
+    {
+        try
+        {
+            if (null != parameter)
+            {
+                Signature dummySigner;
+                try
+                {
+                    dummySigner = helper.createSignature(algorithmName);
+                }
+                catch (NoSuchAlgorithmException e)
+                {
+                    // more PKCS#11 mischief
+                    String upperAlg = Strings.toUpperCase(algorithmName);
+                    if (upperAlg.endsWith("ANDMGF1"))
+                    {
+                        // ANDMGF1 has vanished from the Sun PKCS11 provider.
+                        algorithmName = upperAlg.replace("ANDMGF1", "SSA-PSS");
+                        dummySigner = helper.createSignature(algorithmName);
+                    }
+                    else
+                    {
+                        throw e;
+                    }
+                }
+
+                dummySigner.initSign(privateKey, random);
+                helper = new ProviderJcaJceHelper(dummySigner.getProvider());
+            }
+
+            Signature signer = helper.createSignature(algorithmName);
+            if (null != parameter)
+            {
+                signer.setParameter(parameter);
+            }
+            signer.initSign(privateKey, random);
+            return new JcaTlsStreamSigner(signer);
+        }
+        catch (InvalidKeyException e)
+        {
+            String upperAlg = Strings.toUpperCase(algorithmName);
+            if (upperAlg.endsWith("ANDMGF1"))
+            {
+                // ANDMGF1 has vanished from the Sun PKCS11 provider.
+                algorithmName = upperAlg.replace("ANDMGF1", "SSA-PSS");
+                return createStreamSigner(helper, algorithmName, parameter, privateKey, random);
+            }
+            else
+            {
+                throw e;
+            }
+        }
+    }
+
+    protected TlsStreamVerifier createStreamVerifier(DigitallySigned digitallySigned, PublicKey publicKey)
+        throws IOException
     {
         String algorithmName = JcaUtils.getJcaAlgorithmName(digitallySigned.getAlgorithm());
 
@@ -1005,7 +1058,7 @@ public class JcaTlsCrypto
     }
 
     protected TlsStreamVerifier createStreamVerifier(String algorithmName, AlgorithmParameterSpec parameter,
-        byte[] signature, PublicKey publicKey) throws IOException
+                                                     byte[] signature, PublicKey publicKey) throws IOException
     {
         try
         {
@@ -1032,7 +1085,7 @@ public class JcaTlsCrypto
     }
 
     protected Tls13Verifier createTls13Verifier(String algorithmName, AlgorithmParameterSpec parameter,
-        PublicKey publicKey) throws IOException
+                                                PublicKey publicKey) throws IOException
     {
         try
         {
@@ -1155,8 +1208,7 @@ public class JcaTlsCrypto
             }
             else if (NamedGroup.refersToASpecificKem(namedGroup))
             {
-                // TODO[tls-kem] When implemented via provider, need to check for support dynamically
-                return Boolean.TRUE;
+                return Boolean.valueOf(KemUtil.isKemSupported(this, NamedGroup.getKemName(namedGroup)));
             }
             else if (NamedGroup.refersToAnECDSACurve(namedGroup))
             {
@@ -1207,8 +1259,13 @@ public class JcaTlsCrypto
         return helper;
     }
 
+    public JcaJceHelper getAltHelper()
+    {
+        return altHelper;
+    }
+
     protected TlsBlockCipherImpl createCBCBlockCipherImpl(TlsCryptoParameters cryptoParams, String algorithm,
-        int cipherKeySize, boolean forEncryption) throws GeneralSecurityException
+                                                          int cipherKeySize, boolean forEncryption) throws GeneralSecurityException
     {
         String cipherName = algorithm + "/CBC/NoPadding";
 
@@ -1226,7 +1283,7 @@ public class JcaTlsCrypto
         throws IOException, GeneralSecurityException
     {
         return new TlsAEADCipher(cryptoParams, new JceChaCha20Poly1305(this, helper, true),
-            new JceChaCha20Poly1305(this, helper, false), 32, 16, TlsAEADCipher.AEAD_CHACHA20_POLY1305);
+            new JceChaCha20Poly1305(this, helper, false), 32, 16, TlsAEADCipher.AEAD_CHACHA20_POLY1305, null);
     }
 
     private TlsAEADCipher createCipher_AES_CCM(TlsCryptoParameters cryptoParams, int cipherKeySize, int macSize)
@@ -1234,7 +1291,7 @@ public class JcaTlsCrypto
     {
         return new TlsAEADCipher(cryptoParams, createAEADCipher("AES/CCM/NoPadding", "AES", cipherKeySize, true),
             createAEADCipher("AES/CCM/NoPadding", "AES", cipherKeySize, false), cipherKeySize, macSize,
-            TlsAEADCipher.AEAD_CCM);
+            TlsAEADCipher.AEAD_CCM, null);
     }
 
     private TlsAEADCipher createCipher_AES_GCM(TlsCryptoParameters cryptoParams, int cipherKeySize, int macSize)
@@ -1242,7 +1299,7 @@ public class JcaTlsCrypto
     {
         return new TlsAEADCipher(cryptoParams, createAEADCipher("AES/GCM/NoPadding", "AES", cipherKeySize, true),
             createAEADCipher("AES/GCM/NoPadding", "AES", cipherKeySize, false), cipherKeySize, macSize,
-            TlsAEADCipher.AEAD_GCM);
+            TlsAEADCipher.AEAD_GCM, getFipsGCMNonceGeneratorFactory());
     }
 
     private TlsAEADCipher createCipher_ARIA_GCM(TlsCryptoParameters cryptoParams, int cipherKeySize, int macSize)
@@ -1250,7 +1307,7 @@ public class JcaTlsCrypto
     {
         return new TlsAEADCipher(cryptoParams, createAEADCipher("ARIA/GCM/NoPadding", "ARIA", cipherKeySize, true),
             createAEADCipher("ARIA/GCM/NoPadding", "ARIA", cipherKeySize, false), cipherKeySize, macSize,
-            TlsAEADCipher.AEAD_GCM);
+            TlsAEADCipher.AEAD_GCM, getFipsGCMNonceGeneratorFactory());
     }
 
     private TlsAEADCipher createCipher_Camellia_GCM(TlsCryptoParameters cryptoParams, int cipherKeySize, int macSize)
@@ -1259,11 +1316,11 @@ public class JcaTlsCrypto
         return new TlsAEADCipher(cryptoParams,
             createAEADCipher("Camellia/GCM/NoPadding", "Camellia", cipherKeySize, true),
             createAEADCipher("Camellia/GCM/NoPadding", "Camellia", cipherKeySize, false), cipherKeySize, macSize,
-            TlsAEADCipher.AEAD_GCM);
+            TlsAEADCipher.AEAD_GCM, getFipsGCMNonceGeneratorFactory());
     }
 
     protected TlsCipher createCipher_CBC(TlsCryptoParameters cryptoParams, String algorithm, int cipherKeySize,
-        int macAlgorithm) throws GeneralSecurityException, IOException
+                                         int macAlgorithm) throws GeneralSecurityException, IOException
     {
         TlsBlockCipherImpl encrypt = createCBCBlockCipherImpl(cryptoParams, algorithm, cipherKeySize, true);
         TlsBlockCipherImpl decrypt = createCBCBlockCipherImpl(cryptoParams, algorithm, cipherKeySize, false);
@@ -1280,7 +1337,7 @@ public class JcaTlsCrypto
         int cipherKeySize = 16, macSize = 16;
         return new TlsAEADCipher(cryptoParams, createAEADCipher("SM4/CCM/NoPadding", "SM4", cipherKeySize, true),
             createAEADCipher("SM4/CCM/NoPadding", "SM4", cipherKeySize, false), cipherKeySize, macSize,
-            TlsAEADCipher.AEAD_CCM);
+            TlsAEADCipher.AEAD_CCM, null);
     }
 
     private TlsAEADCipher createCipher_SM4_GCM(TlsCryptoParameters cryptoParams)
@@ -1289,7 +1346,27 @@ public class JcaTlsCrypto
         int cipherKeySize = 16, macSize = 16;
         return new TlsAEADCipher(cryptoParams, createAEADCipher("SM4/GCM/NoPadding", "SM4", cipherKeySize, true),
             createAEADCipher("SM4/GCM/NoPadding", "SM4", cipherKeySize, false), cipherKeySize, macSize,
-            TlsAEADCipher.AEAD_GCM);
+            TlsAEADCipher.AEAD_GCM, getFipsGCMNonceGeneratorFactory());
+    }
+
+    /**
+     * Optionally return an {@link AEADNonceGeneratorFactory} that creates {@link AEADNonceGenerator}
+     * instances suitable for generating TLS 1.2 GCM nonces in a FIPS approved way (or null). It is not needed
+     * or intended to be used in a non-FIPS context.
+     * <p/>
+     * Clients of this {@link JcaTlsCrypto} instance MAY assume from a non-null return value that the
+     * resulting {@link AEADNonceGenerator} implementation(s) are FIPS compliant; implementations that violate
+     * this assumption risk FIPS compliance failures.
+     * <p/>
+     * In particular, when BCJSSE is configured in FIPS mode, GCM cipher suites are enabled for TLS 1.2 if
+     * (and only if) a call to this method returns a non-null value. This can be achieved by configuring
+     * BCJSSE with a user-defined {@link JcaTlsCryptoProvider} subclass, which in turn creates instances of a
+     * {@link JcaTlsCrypto} subclass, with this method overridden to return a suitable
+     * {@link AEADNonceGeneratorFactory}.
+     */
+    public AEADNonceGeneratorFactory getFipsGCMNonceGeneratorFactory()
+    {
+        return GCMFipsUtil.getDefaultFipsGCMNonceGeneratorFactory();
     }
 
     String getDigestName(int cryptoHashAlgorithm)

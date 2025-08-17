@@ -3,10 +3,13 @@ package org.bouncycastle.crypto.test;
 import java.security.SecureRandom;
 
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.macs.SipHash;
+import org.bouncycastle.crypto.modes.CTSBlockCipher;
 import org.bouncycastle.crypto.modes.ChaCha20Poly1305;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.Times;
 import org.bouncycastle.util.encoders.Hex;
@@ -15,30 +18,30 @@ import org.bouncycastle.util.test.SimpleTest;
 public class ChaCha20Poly1305Test
     extends SimpleTest
 {
-    private static final String[][] TEST_VECTORS = new String[][] {
-    {
-        "Test Case 1",
-        "808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f",
-        "4c616469657320616e642047656e746c"
-        + "656d656e206f662074686520636c6173"
-        + "73206f66202739393a20496620492063"
-        + "6f756c64206f6666657220796f75206f"
-        + "6e6c79206f6e652074697020666f7220"
-        + "746865206675747572652c2073756e73"
-        + "637265656e20776f756c642062652069"
-        + "742e",
-        "50515253c0c1c2c3c4c5c6c7",
-        "070000004041424344454647",
-        "d31a8d34648e60db7b86afbc53ef7ec2"
-        + "a4aded51296e08fea9e2b5a736ee62d6"
-        + "3dbea45e8ca9671282fafb69da92728b"
-        + "1a71de0a9e060b2905d6a5b67ecd3b36"
-        + "92ddbd7f2d778b8c9803aee328091b58"
-        + "fab324e4fad675945585808b4831d7bc"
-        + "3ff4def08e4b7a9de576d26586cec64b"
-        + "6116",
-        "1ae10b594f09e26a7e902ecbd0600691",
-    },
+    private static final String[][] TEST_VECTORS = new String[][]{
+        {
+            "Test Case 1",
+            "808182838485868788898a8b8c8d8e8f909192939495969798999a9b9c9d9e9f",
+            "4c616469657320616e642047656e746c"
+                + "656d656e206f662074686520636c6173"
+                + "73206f66202739393a20496620492063"
+                + "6f756c64206f6666657220796f75206f"
+                + "6e6c79206f6e652074697020666f7220"
+                + "746865206675747572652c2073756e73"
+                + "637265656e20776f756c642062652069"
+                + "742e",
+            "50515253c0c1c2c3c4c5c6c7",
+            "070000004041424344454647",
+            "d31a8d34648e60db7b86afbc53ef7ec2"
+                + "a4aded51296e08fea9e2b5a736ee62d6"
+                + "3dbea45e8ca9671282fafb69da92728b"
+                + "1a71de0a9e060b2905d6a5b67ecd3b36"
+                + "92ddbd7f2d778b8c9803aee328091b58"
+                + "fab324e4fad675945585808b4831d7bc"
+                + "3ff4def08e4b7a9de576d26586cec64b"
+                + "6116",
+            "1ae10b594f09e26a7e902ecbd0600691",
+        },
     };
 
     public String getName()
@@ -46,8 +49,10 @@ public class ChaCha20Poly1305Test
         return "ChaCha20Poly1305";
     }
 
-    public void performTest() throws Exception
+    public void performTest()
+        throws Exception
     {
+        testOverlapping();
         for (int i = 0; i < TEST_VECTORS.length; ++i)
         {
             runTestCase(TEST_VECTORS[i]);
@@ -59,13 +64,13 @@ public class ChaCha20Poly1305Test
     }
 
     private void checkTestCase(
-        ChaCha20Poly1305    encCipher,
-        ChaCha20Poly1305    decCipher,
-        String              testName,
-        byte[]              SA,
-        byte[]              P,
-        byte[]              C,
-        byte[]              T)
+        ChaCha20Poly1305 encCipher,
+        ChaCha20Poly1305 decCipher,
+        String testName,
+        byte[] SA,
+        byte[] P,
+        byte[] C,
+        byte[] T)
         throws InvalidCipherTextException
     {
         byte[] enc = new byte[encCipher.getOutputSize(P.length)];
@@ -184,7 +189,8 @@ public class ChaCha20Poly1305Test
         }
     }
 
-    private void randomTests() throws InvalidCipherTextException
+    private void randomTests()
+        throws InvalidCipherTextException
     {
         SecureRandom random = new SecureRandom();
         random.setSeed(Times.nanoTime());
@@ -195,7 +201,8 @@ public class ChaCha20Poly1305Test
         }
     }
 
-    private void randomTest(SecureRandom random) throws InvalidCipherTextException
+    private void randomTest(SecureRandom random)
+        throws InvalidCipherTextException
     {
         int kLength = 32;
         byte[] K = new byte[kLength];
@@ -328,13 +335,13 @@ public class ChaCha20Poly1305Test
     }
 
     private void runTestCase(
-        String  testName,
-        byte[]  K,
-        byte[]  N,
-        byte[]  A,
-        byte[]  P,
-        byte[]  C,
-        byte[]  T)
+        String testName,
+        byte[] K,
+        byte[] N,
+        byte[] A,
+        byte[] P,
+        byte[] C,
+        byte[] T)
         throws InvalidCipherTextException
     {
         byte[] fa = new byte[A.length / 2];
@@ -348,14 +355,14 @@ public class ChaCha20Poly1305Test
     }
 
     private void runTestCase(
-        String  testName,
-        byte[]  K,
-        byte[]  N,
-        byte[]  A,
-        byte[]  SA,
-        byte[]  P,
-        byte[]  C,
-        byte[]  T)
+        String testName,
+        byte[] K,
+        byte[] N,
+        byte[] A,
+        byte[] SA,
+        byte[] P,
+        byte[] C,
+        byte[] T)
         throws InvalidCipherTextException
     {
         AEADParameters parameters = new AEADParameters(new KeyParameter(K), T.length * 8, N, A);
@@ -379,7 +386,8 @@ public class ChaCha20Poly1305Test
         }
     }
 
-    private void testExceptions() throws InvalidCipherTextException
+    private void testExceptions()
+        throws InvalidCipherTextException
     {
         ChaCha20Poly1305 c = new ChaCha20Poly1305();
 
@@ -436,6 +444,55 @@ public class ChaCha20Poly1305Test
         catch (IllegalArgumentException e)
         {
             isTrue("wrong message", e.getMessage().equals("cannot reuse nonce for ChaCha20Poly1305 encryption"));
+        }
+    }
+
+    private void testOverlapping()
+        throws Exception
+    {
+        SecureRandom random = new SecureRandom();
+        int kLength = 32;
+        byte[] K = new byte[kLength];
+        random.nextBytes(K);
+
+        int aLength = random.nextInt() >>> 24;
+        byte[] A = new byte[aLength];
+        random.nextBytes(A);
+
+        int nonceLength = 12;
+        byte[] nonce = new byte[nonceLength];
+        random.nextBytes(nonce);
+
+        AEADParameters parameters = new AEADParameters(new KeyParameter(K), 16 * 8, nonce, A);
+
+        ChaCha20Poly1305 bc = initCipher(true, parameters);
+
+        final int blockSize = 64;
+        int offset = 1 + random.nextInt(blockSize - 1) + blockSize;
+        byte[] data = new byte[blockSize * 4 + offset];
+        byte[] expected = new byte[bc.getOutputSize(blockSize * 3)];
+        random.nextBytes(data);
+
+
+        int len = bc.processBytes(data, 0, blockSize * 3, expected, 0);
+        bc.doFinal(expected, len);
+        bc = initCipher(true, parameters);
+        len = bc.processBytes(data, 0, blockSize * 3, data, offset);
+        bc.doFinal(data, offset + len);
+
+        if (!areEqual(expected, Arrays.copyOfRange(data, offset, offset + expected.length)))
+        {
+            fail("failed for overlapping encryption");
+        }
+
+        bc = initCipher(false, parameters);
+        bc.processBytes(data, 0, expected.length, expected, 0);
+        bc = initCipher(false, parameters);
+        bc.processBytes(data, 0, expected.length, data, offset);
+
+        if (!areEqual(expected, Arrays.copyOfRange(data, offset, offset + expected.length)))
+        {
+            fail("failed for overlapping decryption");
         }
     }
 

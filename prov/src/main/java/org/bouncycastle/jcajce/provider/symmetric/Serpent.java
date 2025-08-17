@@ -1,7 +1,6 @@
 package org.bouncycastle.jcajce.provider.symmetric;
 
 import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CipherKeyGenerator;
 import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.engines.SerpentEngine;
@@ -41,6 +40,51 @@ public final class Serpent
         }
     }
 
+    public static class ECB128
+        extends BaseBlockCipher
+    {
+        public ECB128()
+        {
+            super(128, new BlockCipherProvider()
+            {
+                public BlockCipher get()
+                {
+                    return new SerpentEngine();
+                }
+            });
+        }
+    }
+
+    public static class ECB192
+        extends BaseBlockCipher
+    {
+        public ECB192()
+        {
+            super(192, new BlockCipherProvider()
+            {
+                public BlockCipher get()
+                {
+                    return new SerpentEngine();
+                }
+            });
+        }
+    }
+
+    public static class ECB256
+        extends BaseBlockCipher
+    {
+        public ECB256()
+        {
+            super(256, new BlockCipherProvider()
+            {
+                public BlockCipher get()
+                {
+                    return new SerpentEngine();
+                }
+            });
+        }
+    }
+
     public static class TECB
         extends BaseBlockCipher
     {
@@ -65,6 +109,33 @@ public final class Serpent
         }
     }
 
+    public static class CBC128
+        extends BaseBlockCipher
+    {
+        public CBC128()
+        {
+            super(128, new CBCBlockCipher(new SerpentEngine()), 128);
+        }
+    }
+
+    public static class CBC192
+        extends BaseBlockCipher
+    {
+        public CBC192()
+        {
+            super(192, new CBCBlockCipher(new SerpentEngine()), 128);
+        }
+    }
+
+    public static class CBC256
+        extends BaseBlockCipher
+    {
+        public CBC256()
+        {
+            super(256, new CBCBlockCipher(new SerpentEngine()), 128);
+        }
+    }
+
     public static class CFB
         extends BaseBlockCipher
     {
@@ -74,12 +145,66 @@ public final class Serpent
         }
     }
 
+    public static class CFB128
+        extends BaseBlockCipher
+    {
+        public CFB128()
+        {
+            super(128, new DefaultBufferedBlockCipher(new CFBBlockCipher(new SerpentEngine(), 128)), 128);
+        }
+    }
+
+    public static class CFB192
+        extends BaseBlockCipher
+    {
+        public CFB192()
+        {
+            super(192, new DefaultBufferedBlockCipher(new CFBBlockCipher(new SerpentEngine(), 128)), 128);
+        }
+    }
+
+    public static class CFB256
+        extends BaseBlockCipher
+    {
+        public CFB256()
+        {
+            super(256, new DefaultBufferedBlockCipher(new CFBBlockCipher(new SerpentEngine(), 128)), 128);
+        }
+    }
+
     public static class OFB
         extends BaseBlockCipher
     {
         public OFB()
         {
             super(new DefaultBufferedBlockCipher(new OFBBlockCipher(new SerpentEngine(), 128)), 128);
+        }
+    }
+
+    public static class OFB128
+        extends BaseBlockCipher
+    {
+        public OFB128()
+        {
+            super(128, new DefaultBufferedBlockCipher(new OFBBlockCipher(new SerpentEngine(), 128)), 128);
+        }
+    }
+
+    public static class OFB192
+        extends BaseBlockCipher
+    {
+        public OFB192()
+        {
+            super(192, new DefaultBufferedBlockCipher(new OFBBlockCipher(new SerpentEngine(), 128)), 128);
+        }
+    }
+
+    public static class OFB256
+        extends BaseBlockCipher
+    {
+        public OFB256()
+        {
+            super(256, new DefaultBufferedBlockCipher(new OFBBlockCipher(new SerpentEngine(), 128)), 128);
         }
     }
 
@@ -175,21 +300,21 @@ public final class Serpent
             provider.addAlgorithm("KeyGenerator.Tnepres", PREFIX + "$TKeyGen");
             provider.addAlgorithm("AlgorithmParameters.Tnepres", PREFIX + "$TAlgParams");
 
-            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_128_ECB, PREFIX + "$ECB");
-            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_192_ECB, PREFIX + "$ECB");
-            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_256_ECB, PREFIX + "$ECB");
+            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_128_ECB, PREFIX + "$ECB128");
+            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_192_ECB, PREFIX + "$ECB192");
+            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_256_ECB, PREFIX + "$ECB256");
 
-            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_128_CBC, PREFIX + "$CBC");
-            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_192_CBC, PREFIX + "$CBC");
-            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_256_CBC, PREFIX + "$CBC");
+            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_128_CBC, PREFIX + "$CBC128");
+            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_192_CBC, PREFIX + "$CBC192");
+            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_256_CBC, PREFIX + "$CBC256");
 
-            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_128_CFB, PREFIX + "$CFB");
-            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_192_CFB, PREFIX + "$CFB");
-            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_256_CFB, PREFIX + "$CFB");
+            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_128_CFB, PREFIX + "$CFB128");
+            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_192_CFB, PREFIX + "$CFB192");
+            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_256_CFB, PREFIX + "$CFB256");
 
-            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_128_OFB, PREFIX + "$OFB");
-            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_192_OFB, PREFIX + "$OFB");
-            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_256_OFB, PREFIX + "$OFB");
+            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_128_OFB, PREFIX + "$OFB128");
+            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_192_OFB, PREFIX + "$OFB192");
+            provider.addAlgorithm("Cipher", GNUObjectIdentifiers.Serpent_256_OFB, PREFIX + "$OFB256");
 
             addGMacAlgorithm(provider, "SERPENT", PREFIX + "$SerpentGMAC", PREFIX + "$KeyGen");
             addGMacAlgorithm(provider, "TNEPRES", PREFIX + "$TSerpentGMAC", PREFIX + "$TKeyGen");

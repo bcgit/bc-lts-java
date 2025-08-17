@@ -26,7 +26,7 @@ public class SignaturePacket
 
     private int                    version;
     private int                    signatureType;
-    private long                   creationTime;
+    private long                   creationTime; // millis
     private long                   keyID;
     private int                    keyAlgorithm;
     private int                    hashAlgorithm;
@@ -254,23 +254,14 @@ public class SignaturePacket
                 signature[0] = v;
                 break;
             case DSA:
+            case ELGAMAL_ENCRYPT: // yep, this really does happen sometimes.
+            case ELGAMAL_GENERAL:
                 MPInteger    r = new MPInteger(in);
                 MPInteger    s = new MPInteger(in);
 
                 signature = new MPInteger[2];
                 signature[0] = r;
                 signature[1] = s;
-                break;
-            case ELGAMAL_ENCRYPT: // yep, this really does happen sometimes.
-            case ELGAMAL_GENERAL:
-                MPInteger       p = new MPInteger(in);
-                MPInteger       g = new MPInteger(in);
-                MPInteger       y = new MPInteger(in);
-
-                signature = new MPInteger[3];
-                signature[0] = p;
-                signature[1] = g;
-                signature[2] = y;
                 break;
             case Ed448:
                 signatureEncoding = new byte[org.bouncycastle.math.ec.rfc8032.Ed448.SIGNATURE_SIZE];
@@ -362,7 +353,22 @@ public class SignaturePacket
         byte[]                  fingerPrint,
         MPInteger[]             signature)
     {
-        super(SIGNATURE);
+        this(version, false, signatureType, keyID, keyAlgorithm, hashAlgorithm, hashedData, unhashedData, fingerPrint, signature);
+    }
+
+    public SignaturePacket(
+            int                     version,
+            boolean                 hasNewPacketFormat,
+            int                     signatureType,
+            long                    keyID,
+            int                     keyAlgorithm,
+            int                     hashAlgorithm,
+            SignatureSubpacket[]    hashedData,
+            SignatureSubpacket[]    unhashedData,
+            byte[]                  fingerPrint,
+            MPInteger[]             signature)
+    {
+        super(SIGNATURE, hasNewPacketFormat);
 
         this.version = version;
         this.signatureType = signatureType;
@@ -392,7 +398,7 @@ public class SignaturePacket
             byte[]                  signatureEncoding,
             byte[]                  salt)
     {
-        super(SIGNATURE);
+        super(SIGNATURE, true);
 
         this.version = version;
         this.signatureType = signatureType;
@@ -422,7 +428,7 @@ public class SignaturePacket
         MPInteger[] signature,
         byte[] salt)
     {
-        super(SIGNATURE);
+        super(SIGNATURE, true);
 
         this.version = version;
         this.signatureType = signatureType;
@@ -647,10 +653,8 @@ public class SignaturePacket
         {
             pOut.write(5); // the length of the next block
 
-            long    time = creationTime / 1000;
-
             pOut.write(signatureType);
-            StreamUtil.writeTime(pOut, time);
+            StreamUtil.writeTime(pOut, creationTime);
 
             StreamUtil.writeKeyID(pOut, keyID);
 

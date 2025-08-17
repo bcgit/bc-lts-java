@@ -4,7 +4,6 @@ import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.NativeBlockCipherProvider;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.modes.gcm.BasicGCMExponentiator;
 import org.bouncycastle.crypto.modes.gcm.GCMExponentiator;
@@ -27,32 +26,32 @@ public class GCMBlockCipher
     private static final int BLOCK_SIZE = 16;
 
     // not final due to a compiler bug
-    private BlockCipher cipher;
+    private BlockCipher   cipher;
     private GCMMultiplier multiplier;
     private GCMExponentiator exp;
 
     // These fields are set by init and not modified by processing
-    private boolean forEncryption;
-    private boolean initialised;
-    private int macSize;
-    private byte[] lastKey;
-    private byte[] nonce;
-    private byte[] initialAssociatedText;
-    private byte[] H;
-    private byte[] J0;
+    private boolean             forEncryption;
+    private boolean             initialised;
+    private int                 macSize;
+    private byte[]              lastKey;
+    private byte[]              nonce;
+    private byte[]              initialAssociatedText;
+    private byte[]              H;
+    private byte[]              J0;
 
     // These fields are modified during processing
-    private byte[] bufBlock;
-    private byte[] macBlock;
-    private byte[] S, S_at, S_atPre;
-    private byte[] counter;
-    private int blocksRemaining;
-    private int bufOff;
-    private long totalLength;
-    private byte[] atBlock;
-    private int atBlockPos;
-    private long atLength;
-    private long atLengthPre;
+    private byte[]      bufBlock;
+    private byte[]      macBlock;
+    private byte[]      S, S_at, S_atPre;
+    private byte[]      counter;
+    private int         blocksRemaining;
+    private int         bufOff;
+    private long        totalLength;
+    private byte[]      atBlock;
+    private int         atBlockPos;
+    private long        atLength;
+    private long        atLengthPre;
 
     /**
      * Return a new GCM mode cipher based on the passed in base cipher
@@ -61,13 +60,6 @@ public class GCMBlockCipher
      */
     public static GCMModeCipher newInstance(BlockCipher cipher)
     {
-        if (cipher instanceof NativeBlockCipherProvider)
-        {
-            NativeBlockCipherProvider engine = (NativeBlockCipherProvider)cipher;
-
-            return engine.createGCM();
-        }
-
         return new GCMBlockCipher(cipher);
     }
 
@@ -75,18 +67,31 @@ public class GCMBlockCipher
      * Return a new GCM mode cipher based on the passed in base cipher and multiplier.
      *
      * @param cipher the base cipher for the GCM mode.
-     * @param m      the GCM multiplier to use.
+     * @param m the GCM multiplier to use.
      */
     public static GCMModeCipher newInstance(BlockCipher cipher, GCMMultiplier m)
     {
         return new GCMBlockCipher(cipher, m);
     }
 
+    /**
+     * Base constructor - GCM mode over base cipher c.
+     *
+     * @param c the base cipher.
+     * @deprecated use the GCMBlockCipher.newInstance() static method.
+     */
     public GCMBlockCipher(BlockCipher c)
     {
         this(c, null);
     }
 
+    /**
+     * Base constructor - GCM mode over base cipher c over base multiplier m.
+     *
+     * @param c the base cipher.
+     * @param m the GCM multiplier to use.
+     * @deprecated use the CBCBlockCipher.newInstance() static method.
+     */
     public GCMBlockCipher(BlockCipher c, GCMMultiplier m)
     {
         if (c.getBlockSize() != BLOCK_SIZE)
@@ -149,7 +154,7 @@ public class GCMBlockCipher
             ParametersWithIV param = (ParametersWithIV)params;
 
             newNonce = param.getIV();
-            initialAssociatedText = null;
+            initialAssociatedText  = null;
             macSize = 16;
             keyParam = (KeyParameter)param.getParameters();
         }
@@ -161,9 +166,9 @@ public class GCMBlockCipher
         int bufLength = forEncryption ? BLOCK_SIZE : (BLOCK_SIZE + macSize);
         this.bufBlock = new byte[bufLength];
 
-        if (newNonce == null || newNonce.length < 12)
+        if (newNonce == null || newNonce.length < 1)
         {
-            throw new IllegalArgumentException("IV must be at least 12 byte");
+            throw new IllegalArgumentException("IV must be at least 1 byte");
         }
 
         if (forEncryption)
@@ -378,7 +383,12 @@ public class GCMBlockCipher
         {
             throw new DataLengthException("Input buffer too short");
         }
-
+        if (in == out && Arrays.segmentsOverlap(inOff, len, outOff, getUpdateOutputSize(len)))
+        {
+            in = new byte[len];
+            System.arraycopy(out, inOff, in, 0, len);
+            inOff = 0;
+        }
         int resultLen = 0;
 
         if (forEncryption)
@@ -725,17 +735,10 @@ public class GCMBlockCipher
         blocksRemaining--;
 
         int c = 1;
-        c += counter[15] & 0xFF;
-        counter[15] = (byte)c;
-        c >>>= 8;
-        c += counter[14] & 0xFF;
-        counter[14] = (byte)c;
-        c >>>= 8;
-        c += counter[13] & 0xFF;
-        counter[13] = (byte)c;
-        c >>>= 8;
-        c += counter[12] & 0xFF;
-        counter[12] = (byte)c;
+        c += counter[15] & 0xFF; counter[15] = (byte)c; c >>>= 8;
+        c += counter[14] & 0xFF; counter[14] = (byte)c; c >>>= 8;
+        c += counter[13] & 0xFF; counter[13] = (byte)c; c >>>= 8;
+        c += counter[12] & 0xFF; counter[12] = (byte)c;
 
         cipher.processBlock(counter, 0, block, 0);
     }
@@ -750,11 +753,5 @@ public class GCMBlockCipher
             }
             throw new IllegalStateException("GCM cipher needs to be initialised");
         }
-    }
-
-    @Override
-    public String toString()
-    {
-        return "GCM[Java](" + cipher.toString() + ")";
     }
 }

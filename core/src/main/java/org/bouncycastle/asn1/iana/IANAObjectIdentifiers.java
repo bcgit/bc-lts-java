@@ -27,7 +27,7 @@ public interface IANAObjectIdentifiers
     static final ASN1ObjectIdentifier   mail           = internet.branch("7");
 
 
-    // id-SHA1 OBJECT IDENTIFIER ::=    
+    // id-SHA1 OBJECT IDENTIFIER ::=
     // {iso(1) identified-organization(3) dod(6) internet(1) security(5) mechanisms(5) ipsec(8) isakmpOakley(1)}
     //
 
@@ -37,9 +37,8 @@ public interface IANAObjectIdentifiers
     /** IANA security nametypes;  1.3.6.1.5.6 */
     static final ASN1ObjectIdentifier    security_nametypes   = security.branch("6");
 
-    /** PKIX base OID:            1.3.6.1.5.6.6 */
-    static final ASN1ObjectIdentifier    pkix                 = security_mechanisms.branch("6");
-
+    /** PKIX base OID:            1.3.6.1.5.5.7 */
+    static final ASN1ObjectIdentifier    pkix                 = security_mechanisms.branch("7");
 
     /** IPSEC base OID:                        1.3.6.1.5.5.8 */
     static final ASN1ObjectIdentifier    ipsec                = security_mechanisms.branch("8");
@@ -50,10 +49,10 @@ public interface IANAObjectIdentifiers
     static final ASN1ObjectIdentifier    hmacMD5              = isakmpOakley.branch("1");
     /** IPSEC ISAKMP-Oakley hmacSHA1 OID:      1.3.6.1.5.5.8.1.2 */
     static final ASN1ObjectIdentifier    hmacSHA1             = isakmpOakley.branch("2");
-    
+
     /** IPSEC ISAKMP-Oakley hmacTIGER OID:     1.3.6.1.5.5.8.1.3 */
     static final ASN1ObjectIdentifier    hmacTIGER            = isakmpOakley.branch("3");
-    
+
     /** IPSEC ISAKMP-Oakley hmacRIPEMD160 OID: 1.3.6.1.5.5.8.1.4 */
     static final ASN1ObjectIdentifier    hmacRIPEMD160        = isakmpOakley.branch("4");
 

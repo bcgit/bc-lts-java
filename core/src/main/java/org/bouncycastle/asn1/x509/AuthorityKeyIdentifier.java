@@ -13,6 +13,8 @@ import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERTaggedObject;
+import org.bouncycastle.crypto.Digest;
+import org.bouncycastle.crypto.digests.SHA1Digest;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 
@@ -33,15 +35,13 @@ import org.bouncycastle.util.encoders.Hex;
 public class AuthorityKeyIdentifier
     extends ASN1Object
 {
-    ASN1OctetString keyidentifier = null;
+    ASN1OctetString keyIdentifier = null;
     GeneralNames certissuer = null;
     ASN1Integer certserno = null;
 
-    public static AuthorityKeyIdentifier getInstance(
-        ASN1TaggedObject obj,
-        boolean          explicit)
+    public static AuthorityKeyIdentifier getInstance(ASN1TaggedObject obj, boolean explicit)
     {
-        return getInstance(ASN1Sequence.getInstance(obj, explicit));
+        return new AuthorityKeyIdentifier(ASN1Sequence.getInstance(obj, explicit));
     }
 
     public static AuthorityKeyIdentifier getInstance(
@@ -76,7 +76,7 @@ public class AuthorityKeyIdentifier
             switch (o.getTagNo())
             {
             case 0:
-                this.keyidentifier = ASN1OctetString.getInstance(o, false);
+                this.keyIdentifier = ASN1OctetString.getInstance(o, false);
                 break;
             case 1:
                 this.certissuer = GeneralNames.getInstance(o, false);
@@ -102,13 +102,13 @@ public class AuthorityKeyIdentifier
     }
 
     /**
-      * create an AuthorityKeyIdentifier with a precomputed key identifier
-      */
-     public AuthorityKeyIdentifier(
-         byte[]                  keyIdentifier)
-     {
-         this(keyIdentifier, null, null);
-     }
+     * create an AuthorityKeyIdentifier with a precomputed key identifier
+     */
+    public AuthorityKeyIdentifier(
+        byte[]                  keyIdentifier)
+    {
+        this(keyIdentifier, null, null);
+    }
 
     /**
      * create an AuthorityKeyIdentifier with a precomputed key identifier
@@ -119,36 +119,49 @@ public class AuthorityKeyIdentifier
         GeneralNames            name,
         BigInteger              serialNumber)
     {
-        this.keyidentifier = (keyIdentifier != null) ? new DEROctetString(Arrays.clone(keyIdentifier)) : null;
+        this.keyIdentifier = (keyIdentifier != null) ? new DEROctetString(Arrays.clone(keyIdentifier)) : null;
         this.certissuer = name;
         this.certserno = (serialNumber != null) ? new ASN1Integer(serialNumber) : null;
     }
-    
+
+    /**
+     * @deprecated Use {@link #getKeyIdentifierOctets()} instead.
+     */
     public byte[] getKeyIdentifier()
     {
-        if (keyidentifier != null)
+        return getKeyIdentifierOctets();
+    }
+
+    public byte[] getKeyIdentifierOctets()
+    {
+        if (keyIdentifier != null)
         {
-            return keyidentifier.getOctets();
+            return keyIdentifier.getOctets();
         }
 
         return null;
+    }
+
+    public ASN1OctetString getKeyIdentifierObject()
+    {
+        return keyIdentifier;
     }
 
     public GeneralNames getAuthorityCertIssuer()
     {
         return certissuer;
     }
-    
+
     public BigInteger getAuthorityCertSerialNumber()
     {
         if (certserno != null)
         {
             return certserno.getValue();
         }
-        
+
         return null;
     }
-    
+
     /**
      * Produce an object suitable for an ASN1OutputStream.
      */
@@ -156,9 +169,9 @@ public class AuthorityKeyIdentifier
     {
         ASN1EncodableVector v = new ASN1EncodableVector(3);
 
-        if (keyidentifier != null)
+        if (keyIdentifier != null)
         {
-            v.add(new DERTaggedObject(false, 0, keyidentifier));
+            v.add(new DERTaggedObject(false, 0, keyIdentifier));
         }
 
         if (certissuer != null)
@@ -177,7 +190,7 @@ public class AuthorityKeyIdentifier
     public String toString()
     {
         // -DM Hex.toHexString
-        String keyID = (keyidentifier != null) ? Hex.toHexString(keyidentifier.getOctets()) : "null";
+        String keyID = (keyIdentifier != null) ? Hex.toHexString(keyIdentifier.getOctets()) : "null";
 
         return "AuthorityKeyIdentifier: KeyID(" + keyID + ")";
     }

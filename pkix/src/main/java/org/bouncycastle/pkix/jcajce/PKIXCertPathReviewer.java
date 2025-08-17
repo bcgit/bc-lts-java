@@ -2524,7 +2524,7 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
                 }
                 else
                 {
-                    byte[] keyID = authID.getKeyIdentifier();
+                    byte[] keyID = authID.getKeyIdentifierOctets();
                     if (keyID != null)
                     {
                         certSelectX509.setSubjectKeyIdentifier(new DEROctetString(keyID).getEncoded());

@@ -117,6 +117,16 @@ class BcFKSKeyStoreSpi
         oidMap.put("HMACSHA256", PKCSObjectIdentifiers.id_hmacWithSHA256);
         oidMap.put("HMACSHA384", PKCSObjectIdentifiers.id_hmacWithSHA384);
         oidMap.put("HMACSHA512", PKCSObjectIdentifiers.id_hmacWithSHA512);
+        oidMap.put("HMACSHA512/224", PKCSObjectIdentifiers.id_hmacWithSHA512_224);
+        oidMap.put("HMACSHA512/256", PKCSObjectIdentifiers.id_hmacWithSHA512_256);
+        oidMap.put("HMACSHA512(224)", PKCSObjectIdentifiers.id_hmacWithSHA512_224);
+        oidMap.put("HMACSHA512(256)", PKCSObjectIdentifiers.id_hmacWithSHA512_256);
+        oidMap.put("HMACSHA3-224", NISTObjectIdentifiers.id_hmacWithSHA3_224);
+        oidMap.put("HMACSHA3-256", NISTObjectIdentifiers.id_hmacWithSHA3_256);
+        oidMap.put("HMACSHA3-384", NISTObjectIdentifiers.id_hmacWithSHA3_384);
+        oidMap.put("HMACSHA3-512", NISTObjectIdentifiers.id_hmacWithSHA3_512);
+        oidMap.put("KMAC128", NISTObjectIdentifiers.id_Kmac128);
+        oidMap.put("KMAC256", NISTObjectIdentifiers.id_Kmac256);
         oidMap.put("SEED", KISAObjectIdentifiers.id_seedCBC);
 
         oidMap.put("CAMELLIA.128", NTTObjectIdentifiers.id_camellia128_cbc);
@@ -756,7 +766,7 @@ class BcFKSKeyStoreSpi
 
             if (pbkdf2Params.getPrf().getAlgorithm().equals(PKCSObjectIdentifiers.id_hmacWithSHA512))
             {
-                PKCS5S2ParametersGenerator pGen = new PKCS5S2ParametersGenerator(SHA512Digest.newInstance());
+                PKCS5S2ParametersGenerator pGen = new PKCS5S2ParametersGenerator(new SHA512Digest());
 
                 pGen.init(Arrays.concatenate(encPassword, differentiator), pbkdf2Params.getSalt(), pbkdf2Params.getIterationCount().intValue());
 
@@ -764,7 +774,7 @@ class BcFKSKeyStoreSpi
             }
             else if (pbkdf2Params.getPrf().getAlgorithm().equals(NISTObjectIdentifiers.id_hmacWithSHA3_512))
             {
-                PKCS5S2ParametersGenerator pGen = new PKCS5S2ParametersGenerator(SHA3Digest.newInstance(512));
+                PKCS5S2ParametersGenerator pGen = new PKCS5S2ParametersGenerator(new SHA3Digest(512));
 
                 pGen.init(Arrays.concatenate(encPassword, differentiator), pbkdf2Params.getSalt(), pbkdf2Params.getIterationCount().intValue());
 
@@ -864,9 +874,9 @@ class BcFKSKeyStoreSpi
                 }
 
                 char[] password = ParameterUtil.extractPassword(bcParam);
-                
+
                 EncryptedObjectStoreData encStoreData = getEncryptedObjectStoreData(signatureAlgorithm, password);
-                
+
                 try
                 {
                     Signature sig = helper.createSignature(signatureAlgorithm.getAlgorithm().getId());
@@ -1088,8 +1098,8 @@ class BcFKSKeyStoreSpi
             if (inputStream != null)
             {
                 if (//!presetHmacAlgorithm.equals(hmacAlgorithm)
-                     !isSimilarHmacPbkd(bcParam.getStorePBKDFConfig(), hmacPkbdAlgorithm)
-                    || !presetStoreEncryptionAlgorithm.equals(storeEncryptionAlgorithm))
+                    !isSimilarHmacPbkd(bcParam.getStorePBKDFConfig(), hmacPkbdAlgorithm)
+                        || !presetStoreEncryptionAlgorithm.equals(storeEncryptionAlgorithm))
                 {
                     throw new IOException("configuration parameters do not match existing store");
                 }
@@ -1152,7 +1162,7 @@ class BcFKSKeyStoreSpi
 
         return true;
     }
-    
+
     public void engineLoad(InputStream inputStream, char[] password)
         throws IOException, NoSuchAlgorithmException, CertificateException
     {
@@ -1232,7 +1242,7 @@ class BcFKSKeyStoreSpi
                     for (int i = 0; i != certs.length; i++)
                     {
                         certs[i] = (X509Certificate)certFact.generateCertificate(
-                                        new ByteArrayInputStream(certificates[i].getEncoded()));
+                            new ByteArrayInputStream(certificates[i].getEncoded()));
                     }
 
                     if (validator.isValid(certs))

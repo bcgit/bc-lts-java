@@ -1,19 +1,27 @@
 package org.bouncycastle.pqc.crypto.test;
 
+import java.security.SecureRandom;
+
 import junit.framework.TestCase;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.pqc.crypto.ExhaustedPrivateKeyException;
-import org.bouncycastle.pqc.crypto.lms.*;
+import org.bouncycastle.pqc.crypto.lms.HSSPrivateKeyParameters;
+import org.bouncycastle.pqc.crypto.lms.LMOtsParameters;
+import org.bouncycastle.pqc.crypto.lms.LMSKeyGenerationParameters;
+import org.bouncycastle.pqc.crypto.lms.LMSKeyPairGenerator;
+import org.bouncycastle.pqc.crypto.lms.LMSParameters;
+import org.bouncycastle.pqc.crypto.lms.LMSPrivateKeyParameters;
+import org.bouncycastle.pqc.crypto.lms.LMSPublicKeyParameters;
+import org.bouncycastle.pqc.crypto.lms.LMSSigner;
+import org.bouncycastle.pqc.crypto.lms.LMSigParameters;
 import org.bouncycastle.pqc.crypto.util.PrivateKeyFactory;
 import org.bouncycastle.pqc.crypto.util.PrivateKeyInfoFactory;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
-
-import java.security.SecureRandom;
 
 public class LMSTest
     extends TestCase
@@ -104,6 +112,7 @@ public class LMSTest
         LMSSigner signer = new LMSSigner();
 
         assertEquals(2, privKey.getUsagesRemaining());
+        assertEquals(2, privKey.getIndexLimit());
         assertEquals(0, privKey.getIndex());
 
         signer.init(true, privKey);
@@ -151,7 +160,7 @@ public class LMSTest
         PrivateKeyInfo pInfo = PrivateKeyInfoFactory.createPrivateKeyInfo(kp.getPrivate());
         AsymmetricKeyParameter pKey = PrivateKeyFactory.createKey(pInfo.getEncoded());
 
-        signer.init(false, ((LMSPrivateKeyParameters)pKey).getPublicKey());
+        signer.init(false, ((HSSPrivateKeyParameters)pKey).getPublicKey());
 
         assertTrue(signer.verifySignature(msg1, sig1));
     }

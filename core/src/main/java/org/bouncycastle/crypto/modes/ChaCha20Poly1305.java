@@ -307,6 +307,12 @@ public class ChaCha20Poly1305
         {
             throw new IllegalArgumentException("'outOff' cannot be negative");
         }
+        if (in == out && Arrays.segmentsOverlap(inOff, len, outOff, getUpdateOutputSize(len)))
+        {
+            in = new byte[len];
+            System.arraycopy(out, inOff, in, 0, len);
+            inOff = 0;
+        }
 
         checkData();
 

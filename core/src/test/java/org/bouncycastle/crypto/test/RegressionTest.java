@@ -186,7 +186,7 @@ public class RegressionTest
             new AsymmetricConstraintsTest(),
             new DigestConstraintsTest(),
             new RadixConverterTest(),
-            new Grain128AEADTest()
+            new Grain128AEADTest(),
         };
 
     public static void main(String[] args)

@@ -1,7 +1,6 @@
 package org.bouncycastle.asn1.tsp;
 
 import org.bouncycastle.asn1.ASN1Encodable;
-import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Primitive;
@@ -45,7 +44,7 @@ public class EncryptionInfo
      * The value of EncryptionInfo
      */
     private ASN1Encodable encryptionInfoValue;
-    
+
     public static EncryptionInfo getInstance(final Object obj)
     {
         if (obj instanceof EncryptionInfo)
@@ -64,7 +63,7 @@ public class EncryptionInfo
         ASN1TaggedObject obj,
         boolean explicit)
     {
-        return getInstance(ASN1Sequence.getInstance(obj, explicit));
+        return getInstance((Object)ASN1Sequence.getInstance(obj, explicit));
     }
 
     private EncryptionInfo(ASN1Sequence sequence)
@@ -97,10 +96,6 @@ public class EncryptionInfo
 
     public ASN1Primitive toASN1Primitive()
     {
-        ASN1EncodableVector v = new ASN1EncodableVector(2);
-        v.add(encryptionInfoType);
-        v.add(encryptionInfoValue);
-
-        return new DLSequence(v);
+        return new DLSequence(encryptionInfoType, encryptionInfoValue);
     }
 }

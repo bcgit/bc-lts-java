@@ -29,7 +29,7 @@ public class GMSignatureSpi
 
     private final SM2Signer signer;
 
-    GMSignatureSpi(SM2Signer signer)
+    protected GMSignatureSpi(SM2Signer signer)
     {
         this.signer = signer;
     }
@@ -188,7 +188,7 @@ public class GMSignatureSpi
 //    {
 //        public sha224WithSM2()
 //        {
-//            super(new SM2Signer(SHA224Digest.newInstance()));
+//            super(new SM2Signer(new SHA224Digest()));
 //        }
 //    }
 

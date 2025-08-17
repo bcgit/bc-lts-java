@@ -25,7 +25,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.pkix.jcajce.PKIXCertPathReviewer;
 import org.bouncycastle.test.TestResourceFinder;
 
-public class CheckNameConstraintsTest 
+public class CheckNameConstraintsTest
     extends TestCase
 {
     public void testPKIXCertPathReviewer()
@@ -83,9 +83,9 @@ public class CheckNameConstraintsTest
         PKIXBuilderParameters buildParams = new PKIXBuilderParameters(Collections.singleton(new TrustAnchor(rootCert, null)), pathConstraints);
 
         buildParams.addCertStore(store);
-        buildParams.setDate(new Date());
+        buildParams.setDate(new Date(1744869361113L)); // 17th April 2025
         buildParams.setRevocationEnabled(false);
-        
+
         PKIXCertPathBuilderResult result = (PKIXCertPathBuilderResult)builder.build(buildParams);
         CertPath                  path = result.getCertPath();
 
@@ -104,7 +104,7 @@ public class CheckNameConstraintsTest
 
         X509Certificate rootCert = (X509Certificate) cf.generateCertificate(TestResourceFinder.findTestResource("pkix", "mal-root.crt"));
         X509Certificate endCert = (X509Certificate) cf.generateCertificate(TestResourceFinder.findTestResource("pkix", "mal-ca1.crt"));
-        
+
         List list = new ArrayList();
         list.add(endCert);
 
@@ -116,6 +116,7 @@ public class CheckNameConstraintsTest
         CertPathValidator cpv = CertPathValidator.getInstance("PKIX", "BC");
         PKIXParameters param = new PKIXParameters(trust);
         param.setRevocationEnabled(false);
+        param.setDate(new Date(1744869361113L)); // 17th April 2025
 
         cpv.validate(certPath, param);
     }

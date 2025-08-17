@@ -110,6 +110,7 @@ public class EnvelopedDataHelper
         MAC_ALG_NAMES.put(CMSAlgorithm.AES192_CBC,  "AESMac");
         MAC_ALG_NAMES.put(CMSAlgorithm.AES256_CBC,  "AESMac");
         MAC_ALG_NAMES.put(CMSAlgorithm.RC2_CBC,  "RC2Mac");
+        MAC_ALG_NAMES.put(CMSAlgorithm.ChaCha20Poly1305, "ChaCha20Poly1305Mac");
 
         PBKDF2_ALG_NAMES.put(PasswordRecipient.PRF.HMacSHA1.getAlgorithmID(), "PBKDF2WITHHMACSHA1");
         PBKDF2_ALG_NAMES.put(PasswordRecipient.PRF.HMacSHA224.getAlgorithmID(), "PBKDF2WITHHMACSHA224");
@@ -123,6 +124,7 @@ public class EnvelopedDataHelper
         authEnvelopedAlgorithms.add(NISTObjectIdentifiers.id_aes128_CCM);
         authEnvelopedAlgorithms.add(NISTObjectIdentifiers.id_aes192_CCM);
         authEnvelopedAlgorithms.add(NISTObjectIdentifiers.id_aes256_CCM);
+        authEnvelopedAlgorithms.add(PKCSObjectIdentifiers.id_alg_AEADChaCha20Poly1305);
     }
 
     private static final short[] rc2Table = {
@@ -347,7 +349,7 @@ public class EnvelopedDataHelper
 
         try
         {
-             return helper.createCipher(cipherName);
+            return helper.createCipher(cipherName);
         }
         catch (GeneralSecurityException e)
         {
@@ -738,7 +740,7 @@ public class EnvelopedDataHelper
             if (effKeyBits != -1)
             {
                 int parameterVersion;
-                            
+
                 if (effKeyBits < 256)
                 {
                     parameterVersion = rc2Table[effKeyBits];
@@ -787,7 +789,7 @@ public class EnvelopedDataHelper
         }
         catch (GeneralSecurityException e)
         {
-             throw new CMSException("Unable to calculate derived key from password: " + e.getMessage(), e);
+            throw new CMSException("Unable to calculate derived key from password: " + e.getMessage(), e);
         }
     }
 

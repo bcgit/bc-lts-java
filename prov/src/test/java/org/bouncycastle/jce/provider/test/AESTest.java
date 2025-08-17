@@ -29,7 +29,6 @@ import org.bouncycastle.crypto.prng.FixedSecureRandom;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
-import org.bouncycastle.util.test.Test;
 import org.bouncycastle.util.test.TestRandomData;
 
 /**

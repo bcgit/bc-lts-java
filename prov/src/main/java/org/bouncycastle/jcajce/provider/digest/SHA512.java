@@ -9,6 +9,7 @@ import org.bouncycastle.crypto.macs.HMac;
 import org.bouncycastle.jcajce.provider.config.ConfigurableProvider;
 import org.bouncycastle.jcajce.provider.symmetric.util.BaseKeyGenerator;
 import org.bouncycastle.jcajce.provider.symmetric.util.BaseMac;
+import org.bouncycastle.jcajce.provider.symmetric.util.BaseSecretKeyFactory;
 
 public class SHA512
 {
@@ -23,14 +24,14 @@ public class SHA512
     {
         public Digest()
         {
-            super(SHA512Digest.newInstance());
+            super(new SHA512Digest());
         }
 
         public Object clone()
             throws CloneNotSupportedException
         {
             Digest d = (Digest)super.clone();
-            d.digest = SHA512Digest.newInstance(digest);
+            d.digest = new SHA512Digest((SHA512Digest)digest);
 
             return d;
         }
@@ -78,7 +79,7 @@ public class SHA512
     {
         public HashMac()
         {
-            super(new HMac(SHA512Digest.newInstance()));
+            super(new HMac(new SHA512Digest()));
         }
     }
 
@@ -97,6 +98,33 @@ public class SHA512
         public HashMacT256()
         {
             super(new HMac(new SHA512tDigest(256)));
+        }
+    }
+
+    static public class KeyFactory
+        extends BaseSecretKeyFactory
+    {
+        public KeyFactory()
+        {
+            super("HmacSHA512", null);
+        }
+    }
+
+    static public class KeyFactory224
+        extends BaseSecretKeyFactory
+    {
+        public KeyFactory224()
+        {
+            super("HmacSHA512/224", null);
+        }
+    }
+
+    static public class KeyFactory256
+        extends BaseSecretKeyFactory
+    {
+        public KeyFactory256()
+        {
+            super("HmacSHA512/256", null);
         }
     }
 
@@ -166,6 +194,17 @@ public class SHA512
 
             addHMACAlgorithm(provider, "SHA512/224", PREFIX + "$HashMacT224",  PREFIX + "$KeyGeneratorT224");
             addHMACAlgorithm(provider, "SHA512/256", PREFIX + "$HashMacT256",  PREFIX + "$KeyGeneratorT256");
+
+            provider.addAlgorithm("SecretKeyFactory.HMACSHA512", PREFIX + "$KeyFactory");
+            provider.addAlgorithm("Alg.Alias.SecretKeyFactory." + PKCSObjectIdentifiers.id_hmacWithSHA512, "HMACSHA512");
+
+            provider.addAlgorithm("SecretKeyFactory.HMACSHA512/224", PREFIX + "$KeyFactory224");
+            provider.addAlgorithm("Alg.Alias.SecretKeyFactory.HMACSHA512(224)", "HMACSHA512/224");
+            provider.addAlgorithm("Alg.Alias.SecretKeyFactory." + PKCSObjectIdentifiers.id_hmacWithSHA512_224, "HMACSHA512/224");
+
+            provider.addAlgorithm("SecretKeyFactory.HMACSHA512/256", PREFIX + "$KeyFactory256");
+            provider.addAlgorithm("Alg.Alias.SecretKeyFactory.HMACSHA512(256)", "HMACSHA512/256");
+            provider.addAlgorithm("Alg.Alias.SecretKeyFactory." + PKCSObjectIdentifiers.id_hmacWithSHA512_256, "HMACSHA512/256");
         }
     }
 

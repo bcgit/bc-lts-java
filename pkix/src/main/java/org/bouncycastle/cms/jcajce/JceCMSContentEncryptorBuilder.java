@@ -274,7 +274,7 @@ public class JceCMSContentEncryptorBuilder
             {
                 params = helper.generateParameters(encryptionOID, encKey, random);
             }
-            
+
             if (params != null)
             {
                 algorithmIdentifier = helper.getAlgorithmIdentifier(encryptionOID, params);
@@ -302,7 +302,7 @@ public class JceCMSContentEncryptorBuilder
                 // algorithm parameter generation explicitly but instead generate them under the hood.
                 //
                 try
-                { 
+                {
                     cipher.init(Cipher.ENCRYPT_MODE, encKey, params, random);
                 }
                 catch (GeneralSecurityException e)
@@ -376,10 +376,17 @@ public class JceCMSContentEncryptorBuilder
             {
                 algId = algorithmIdentifier;
             }
-            
-            // TODO: works for CCM too, but others will follow.
-            GCMParameters p = GCMParameters.getInstance(algId.getParameters());
-            macOut = new MacCaptureStream(dOut, p.getIcvLen());
+
+            if (algorithmIdentifier.getAlgorithm().equals(PKCSObjectIdentifiers.id_alg_AEADChaCha20Poly1305))
+            {
+                macOut = new MacCaptureStream(dOut, 16);
+            }
+            else
+            {
+                // TODO: works for CCM too, but others will follow.
+                GCMParameters p = GCMParameters.getInstance(algId.getParameters());
+                macOut = new MacCaptureStream(dOut, p.getIcvLen());
+            }
             return new CipherOutputStream(macOut, cipher);
         }
 
