@@ -14,6 +14,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.jar.JarException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -43,6 +44,13 @@ class NativeLoader
     private static boolean javaSupportOnly = true;
 
     private static final NativeServices nativeServices = new DefaultNativeServices();
+
+    private static AtomicBoolean loadAttempted = new AtomicBoolean(false);
+
+    static
+    {
+        loadDriver();
+    }
 
     static synchronized boolean isJavaSupportOnly()
     {
@@ -167,9 +175,13 @@ class NativeLoader
     static synchronized void loadDriver()
     {
 
-
         LOG.log(Level.FINE, "native loader start");
 
+        if (loadAttempted.getAndSet(true))
+        {
+            LOG.log(Level.FINE, "native loader already attempted load");
+            return;
+        }
 
         String forcedVariant = Properties.getPropertyValue(BCLTS_LIB_CPU_VARIANT);
 

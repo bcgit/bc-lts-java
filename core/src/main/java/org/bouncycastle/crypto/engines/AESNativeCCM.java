@@ -11,6 +11,7 @@ import org.bouncycastle.crypto.modes.CCMModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
@@ -18,10 +19,8 @@ class AESNativeCCM
         implements CCMModeCipher
 {
     private CCMRefWrapper refWrapper;
-    private byte[] lastKey;
     private boolean forEncryption = false;
     private boolean initialised = false;
-
     private final ExposedByteArrayOutputStream associatedText = new ExposedByteArrayOutputStream();
     private final ExposedByteArrayOutputStream data = new ExposedByteArrayOutputStream();
 
@@ -29,10 +28,12 @@ class AESNativeCCM
     public BlockCipher getUnderlyingCipher()
     {
         BlockCipher engine = AESEngine.newInstance();
-        if (lastKey != null)
+
+        if (refWrapper != null && refWrapper.key != null)
         {
-            engine.init(true, new KeyParameter(lastKey));
+            engine.init(true, new KeyParameter(refWrapper.key));
         }
+
         return engine;
     }
 
@@ -78,27 +79,29 @@ class AESNativeCCM
 
         if (keyParam != null)
         {
-            lastKey = keyParam.getKey();
-            if (lastKey == null)
+            byte[] key = keyParam.getKey();
+            if (key == null)
             {
                 throw new IllegalArgumentException("key was null");
             }
-            initRef(lastKey.length);
+            initRef(key);
         }
+
+        assert refWrapper != null;
 
         int iatLen = initialAssociatedText != null ? initialAssociatedText.length : 0;
         initNative(
                 refWrapper.getReference(),
-                forEncryption, lastKey,
+                forEncryption, refWrapper.getKey(),
                 nonce, initialAssociatedText, iatLen, macSize * 8);
         reset();
         initialised = true;
     }
 
 
-    private void initRef(int keySize)
+    private void initRef(byte[] key)
     {
-        refWrapper = new CCMRefWrapper(makeInstance());
+        refWrapper = new CCMRefWrapper(makeInstance(), Arrays.clone(key));
     }
 
 
@@ -172,7 +175,9 @@ class AESNativeCCM
         {
             throw new DataLengthException("array too short for offset + len");
         }
+
         data.write(in, inOff, len);
+
 
         return 0;
     }
@@ -194,13 +199,12 @@ class AESNativeCCM
             {
                 throw new IllegalArgumentException("offset is negative");
             }
-            byte[] input = data.toByteArray();
-            byte[] aad = associatedText.toByteArray();
+
             if (getOutputSize(0) > out.length - outOff)
             {
                 throw new OutputLengthException("output buffer too short");
             }
-            len = processPacket(refWrapper.getReference(), input, 0, input.length, aad, 0, aad.length, out, outOff);
+            len = processPacket(refWrapper.getReference(), data.getBuffer(), 0, data.size(), associatedText.getBuffer(), 0, associatedText.size(), out, outOff);
             resetKeepMac();
             //
             // BlockCipherTest, testing ShortTagException.
@@ -302,8 +306,7 @@ class AESNativeCCM
     public int processPacket(byte[] inBuf, int inOff, int length, byte[] outBuf, int outOff)
             throws InvalidCipherTextException
     {
-        byte[] aad = associatedText.toByteArray();
-        int result = processPacket(refWrapper.getReference(), inBuf, inOff, length, aad, 0, aad.length, outBuf, outOff);
+        int result = processPacket(refWrapper.getReference(), inBuf, inOff, length, associatedText.getBuffer(), 0, associatedText.size(), outBuf, outOff);
         reset();
         return result;
     }
@@ -318,36 +321,51 @@ class AESNativeCCM
         return out;
     }
 
-    private class CCMRefWrapper
+    private static class CCMRefWrapper
             extends NativeReference
     {
-        public CCMRefWrapper(long reference)
+
+        private final byte[] key;
+
+        public CCMRefWrapper(long reference, byte[] key)
         {
             super(reference, "CCM");
+            this.key = key;
         }
 
         @Override
         public Runnable createAction()
         {
-            return new Disposer(reference);
+            return new Disposer(reference, key);
         }
 
+
+        public byte[] getKey()
+        {
+            return key;
+        }
     }
 
 
-    private class Disposer
+    private static class Disposer
             extends NativeDisposer
     {
-        Disposer(long ref)
+
+        private final byte[] key;
+
+
+        public Disposer(long reference, byte[] key)
         {
-            super(ref);
+            super(reference);
+            this.key = key;
+
         }
+
 
         @Override
         protected void dispose(long reference)
         {
-            data.reset();
-            associatedText.reset();
+            Arrays.clear(key);
             AESNativeCCM.dispose(reference);
         }
     }
@@ -355,9 +373,9 @@ class AESNativeCCM
     @Override
     public String toString()
     {
-        if (lastKey != null)
+        if (refWrapper != null && refWrapper.key != null)
         {
-            return "CCM[Native](AES[Native](" + (lastKey.length * 8) + "))";
+            return "CCM[Native](AES[Native](" + (refWrapper.key.length * 8) + "))";
         }
         return "CCM[Native](AES[Native](not initialized))";
     }

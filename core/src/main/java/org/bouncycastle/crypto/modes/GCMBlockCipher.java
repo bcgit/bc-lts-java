@@ -1,10 +1,6 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.OutputLengthException;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.modes.gcm.BasicGCMExponentiator;
 import org.bouncycastle.crypto.modes.gcm.GCMExponentiator;
 import org.bouncycastle.crypto.modes.gcm.GCMMultiplier;
@@ -60,6 +56,13 @@ public class GCMBlockCipher
      */
     public static GCMModeCipher newInstance(BlockCipher cipher)
     {
+        if (cipher instanceof NativeBlockCipherProvider)
+        {
+            NativeBlockCipherProvider engine = (NativeBlockCipherProvider)cipher;
+
+            return engine.createGCM();
+        }
+
         return new GCMBlockCipher(cipher);
     }
 
@@ -753,5 +756,11 @@ public class GCMBlockCipher
             }
             throw new IllegalStateException("GCM cipher needs to be initialised");
         }
+    }
+
+    @Override
+    public String toString()
+    {
+        return "GCM[Java](" + cipher.toString() + ")";
     }
 }

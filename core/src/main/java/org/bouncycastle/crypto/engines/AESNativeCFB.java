@@ -10,12 +10,11 @@ import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 class AESNativeCFB
-    implements CFBModeCipher
+        implements CFBModeCipher
 {
     private final int bitSize;
     private CFBRefWrapper referenceWrapper;
 
-    private byte[] oldKey;
     private byte[] oldIv;
     private boolean encrypting;
 
@@ -29,16 +28,16 @@ class AESNativeCFB
         this.bitSize = bitSize;
         switch (bitSize)
         {
-        case 128:
-            break;
-        default:
-            throw new IllegalArgumentException("native feedback bit size can only be 128");
+            case 128:
+                break;
+            default:
+                throw new IllegalArgumentException("native feedback bit size can only be 128");
         }
     }
 
     @Override
     public void init(boolean forEncryption, CipherParameters params)
-        throws IllegalArgumentException
+            throws IllegalArgumentException
     {
 
         boolean oldEncrypting = this.encrypting;
@@ -50,7 +49,7 @@ class AESNativeCFB
 
         if (params instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV)params;
+            ParametersWithIV ivParam = (ParametersWithIV) params;
             iv = ivParam.getIV();
 
             if (iv.length > getBlockSize() || iv.length < 1)
@@ -69,18 +68,18 @@ class AESNativeCFB
 
             if (ivParam.getParameters() != null)
             {
-                key = ((KeyParameter)ivParam.getParameters()).getKey();
+                key = Arrays.clone(((KeyParameter) ivParam.getParameters()).getKey());
             }
 
             if (key != null)
             {
                 oldEncrypting = encrypting; // Can change because key is supplied.
-                oldKey = Arrays.clone(key);
+                key = Arrays.clone(key);
             }
             else
             {
                 // Use old key, it may be null but that is tested later.
-                key = oldKey;
+                key =  referenceWrapper!=null? referenceWrapper.getKey():null;
             }
         }
         else
@@ -91,8 +90,7 @@ class AESNativeCFB
 
             if (params instanceof KeyParameter)
             {
-                key = ((KeyParameter)params).getKey();
-                oldKey = Arrays.clone(key);
+                key = Arrays.clone(((KeyParameter) params).getKey());
                 iv = oldIv;
             }
 
@@ -109,18 +107,7 @@ class AESNativeCFB
         }
 
 
-//        switch (key.length)
-//        {
-//        case 16:
-//        case 24:
-//        case 32:
-//            break;
-//        default:
-//            throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
-//        }
-
-
-        referenceWrapper = new CFBRefWrapper(makeNative(encrypting, key.length));
+        referenceWrapper = new CFBRefWrapper(makeNative(encrypting, key.length), key);
         init(referenceWrapper.getReference(), key, iv);
 
     }
@@ -140,7 +127,7 @@ class AESNativeCFB
 
     @Override
     public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
-        throws DataLengthException
+            throws DataLengthException
     {
 
         if (referenceWrapper == null)
@@ -161,7 +148,7 @@ class AESNativeCFB
 
     @Override
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
-        throws DataLengthException, IllegalStateException
+            throws DataLengthException, IllegalStateException
     {
 
         if (referenceWrapper == null)
@@ -194,9 +181,8 @@ class AESNativeCFB
 
     @Override
     public int processBlocks(byte[] in, int inOff, int blockCount, byte[] out, int outOff)
-        throws DataLengthException, IllegalStateException
+            throws DataLengthException, IllegalStateException
     {
-
 
 
         if (referenceWrapper == null)
@@ -211,7 +197,7 @@ class AESNativeCFB
     private static native byte processByte(long ref, byte in);
 
     private static native int processBytes(long ref, byte[] in, int inOff, int len, byte[] out, int outOff)
-        throws DataLengthException;
+            throws DataLengthException;
 
     static native long makeNative(boolean encrypting, int keyLen);
 
@@ -225,41 +211,53 @@ class AESNativeCFB
 
 
     private static class Disposer
-        extends NativeDisposer
+            extends NativeDisposer
     {
-        Disposer(long ref)
+        private final byte[] key;
+
+        Disposer(long ref, byte[] key)
         {
             super(ref);
+            this.key = key;
         }
 
         @Override
         protected void dispose(long reference)
         {
+            Arrays.clear(key);
             AESNativeCFB.dispose(reference);
         }
     }
 
     private static class CFBRefWrapper
-        extends NativeReference
+            extends NativeReference
     {
 
-        public CFBRefWrapper(long reference)
+        private final byte[] key;
+
+        public CFBRefWrapper(long reference, byte[] key)
         {
-            super(reference,"CFB");
+            super(reference, "CFB");
+            this.key = key;
+        }
+
+        public byte[] getKey()
+        {
+            return key;
         }
 
         @Override
         public Runnable createAction()
         {
-            return new Disposer(reference);
+            return new Disposer(reference, key);
         }
     }
 
     public String toString()
     {
-        if (oldKey != null)
+        if (referenceWrapper != null && referenceWrapper.getKey() != null)
         {
-            return "CFB[Native](AES[Native](" + (oldKey.length * 8) + "))";
+            return "CFB[Native](AES[Native](" + (referenceWrapper.getKey().length * 8) + "))";
         }
         return "CFB[Native](AES[Native](not initialized))";
     }

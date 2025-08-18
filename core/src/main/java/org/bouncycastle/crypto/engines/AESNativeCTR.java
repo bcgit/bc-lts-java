@@ -9,12 +9,12 @@ import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 public class AESNativeCTR
-    implements CTRModeCipher
+        implements CTRModeCipher
 {
 
     private CTRRefWrapper referenceWrapper = null;
     private int keyLen;
-    private byte[] lastKey;
+
 
     public AESNativeCTR()
     {
@@ -24,13 +24,16 @@ public class AESNativeCTR
     public BlockCipher getUnderlyingCipher()
     {
         BlockCipher engine = AESEngine.newInstance();
-        if (lastKey != null)
+        if (referenceWrapper != null)
         {
-            engine.init(true, new KeyParameter(lastKey));
+            byte[] k = referenceWrapper.getKey();
+            if (k != null)
+            {
+                engine.init(true, new KeyParameter(referenceWrapper.getKey()));
+            }
         }
         return engine;
     }
-
 
 
     @Override
@@ -42,27 +45,8 @@ public class AESNativeCTR
 
     @Override
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
-        throws DataLengthException, IllegalStateException
+            throws DataLengthException, IllegalStateException
     {
-//        if (inOff < 0)
-//        {
-//            throw new DataLengthException("inOff is negative");
-//        }
-//
-//        if (outOff < 0)
-//        {
-//            throw new DataLengthException("outOff is negative");
-//        }
-//
-//        if ((inOff + getBlockSize()) > in.length)
-//        {
-//            throw new DataLengthException("input buffer too short");
-//        }
-//
-//        if (outOff + getBlockSize() > out.length)
-//        {
-//            throw new DataLengthException("output buffer too short");
-//        }
 
         if (referenceWrapper == null)
         {
@@ -76,40 +60,15 @@ public class AESNativeCTR
     @Override
     public int getMultiBlockSize()
     {
-        return getMultiBlockSize(referenceWrapper.getReference());
+        return getMultiBlockSize(0);
     }
 
     @Override
     public int processBlocks(byte[] in, int inOff, int blockCount, byte[] out, int outOff)
-        throws DataLengthException, IllegalStateException
+            throws DataLengthException, IllegalStateException
     {
 
-//        if (inOff < 0)
-//        {
-//            throw new DataLengthException("inOff is negative");
-//        }
-//
-//        if (outOff < 0)
-//        {
-//            throw new DataLengthException("outOff is negative");
-//        }
-//
-//        if (blockCount < 0)
-//        {
-//            throw new DataLengthException("blockCount is negative");
-//        }
-//
         int extent = getBlockSize() * blockCount;
-//
-//        if (inOff + extent > in.length)
-//        {
-//            throw new DataLengthException("input buffer too short");
-//        }
-//
-//        if (outOff + extent > out.length)
-//        {
-//            throw new DataLengthException("output buffer too short");
-//        }
 
         if (referenceWrapper == null)
         {
@@ -153,11 +112,11 @@ public class AESNativeCTR
 
     @Override
     public void init(boolean forEncryption, CipherParameters params)
-        throws IllegalArgumentException
+            throws IllegalArgumentException
     {
         if (params instanceof ParametersWithIV)
         {
-            ParametersWithIV ivParam = (ParametersWithIV)params;
+            ParametersWithIV ivParam = (ParametersWithIV) params;
             byte[] iv = ivParam.getIV();
 
             int blockSize = getBlockSize();
@@ -169,33 +128,36 @@ public class AESNativeCTR
                 throw new IllegalArgumentException("CTR mode requires IV of at least: " + (blockSize - maxCounterSize) + " bytes.");
             }
 
-            if (referenceWrapper == null)
-            {
-                referenceWrapper = new CTRRefWrapper(makeCTRInstance());
-            }
-
+            //
             // if null it's an IV changed only.
             if (ivParam.getParameters() == null)
             {
-                init(referenceWrapper.getReference(), null, iv);
+                if (referenceWrapper == null)
+                {
+                    referenceWrapper = new CTRRefWrapper(makeCTRInstance(), null);
+                }
+                init(referenceWrapper.getReference(), referenceWrapper.getKey(), iv);
             }
             else
             {
-                byte[] key = ((KeyParameter)ivParam.getParameters()).getKey();
+                byte[] key = ((KeyParameter) ivParam.getParameters()).getKey();
 
                 switch (key.length)
                 {
-                case 16:
-                case 24:
-                case 32:
-                    break;
-                default:
-                    throw new IllegalArgumentException("invalid key length, key must be 16,24 or 32 bytes");
+                    case 16:
+                    case 24:
+                    case 32:
+                        break;
+                    default:
+                        throw new IllegalArgumentException("invalid key length, key must be 16,24 or 32 bytes");
                 }
 
-                init(referenceWrapper.getReference(), key, iv);
-                lastKey = Arrays.clone(key);
+
                 keyLen = key.length * 8;
+
+                referenceWrapper = new CTRRefWrapper(makeCTRInstance(), key);
+                init(referenceWrapper.getReference(), referenceWrapper.getKey(), iv);
+
             }
 
             reset();
@@ -226,32 +188,8 @@ public class AESNativeCTR
 
     @Override
     public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
-        throws DataLengthException
+            throws DataLengthException
     {
-//        if (inOff < 0)
-//        {
-//            throw new DataLengthException("inOff is negative");
-//        }
-//
-//        if (outOff < 0)
-//        {
-//            throw new DataLengthException("outOff is negative");
-//        }
-//
-//        if (len < 0)
-//        {
-//            throw new DataLengthException("len is negative");
-//        }
-//
-//        if (inOff + len > in.length)
-//        {
-//            throw new DataLengthException("input buffer too short");
-//        }
-//
-//        if (outOff + len > out.length)
-//        {
-//            throw new DataLengthException("output buffer too short");
-//        }
 
         if (referenceWrapper == null)
         {
@@ -294,33 +232,46 @@ public class AESNativeCTR
 
 
     private static class CTRRefWrapper
-        extends NativeReference
+            extends NativeReference
     {
-        public CTRRefWrapper(long reference)
+        private final byte[] key;
+
+        public CTRRefWrapper(long reference, byte[] key)
         {
-            super(reference,"CTR");
+            super(reference, "CTR");
+            this.key = key;
+        }
+
+        public byte[] getKey()
+        {
+            return key;
         }
 
         @Override
         public Runnable createAction()
         {
-            return new Disposer(reference);
+            return new Disposer(reference, key);
         }
+
 
     }
 
 
     private static class Disposer
-        extends NativeDisposer
+            extends NativeDisposer
     {
-        Disposer(long ref)
+        private final byte[] key;
+
+        Disposer(long ref, byte[] key)
         {
             super(ref);
+            this.key = key;
         }
 
         @Override
         protected void dispose(long reference)
         {
+            Arrays.clear(key);
             AESNativeCTR.dispose(reference);
         }
     }

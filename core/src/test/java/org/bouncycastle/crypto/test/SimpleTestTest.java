@@ -12,6 +12,8 @@ public class SimpleTestTest
 
         for (int i = 0; i != tests.length; i++)
         {
+
+
             SimpleTestResult result = (SimpleTestResult)tests[i].perform();
 
             if (!result.isSuccessful())
@@ -20,6 +22,7 @@ public class SimpleTestTest
                 {
                     result.getException().printStackTrace();
                 }
+                System.out.println("Running test: " + tests[i]);
                 fail(i + " -> " + result.toString());
             }
         }

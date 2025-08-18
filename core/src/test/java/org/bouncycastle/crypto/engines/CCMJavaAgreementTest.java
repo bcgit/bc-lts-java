@@ -20,42 +20,24 @@ public class CCMJavaAgreementTest extends TestCase
 {
     private static final String BCFIPS_LIB_CPU_VARIANT = "org.bouncycastle.native.cpu_variant";
 
-//    public static void main(
-//            String[] args)
-//            throws Exception
-//    {
-//        CCMJavaAgreementTest test = new CCMJavaAgreementTest();
-//        test.testInterleavedAAD();
-//        test.testCCMSpreadAgreement();
-//        test.testCCMJavaAgreement_128();
-//        test.testCCMJavaAgreement_192();
-//        test.testCCMJavaAgreement_256();
-//        System.out.println("Pass the CCMJavaAgreementTest");
-//    }
 
     @Before
     public void setUp()
     {
-
-//        ConsoleHandler consoleHandler = new ConsoleHandler();
-//        consoleHandler.setLevel(Level.FINE);
-//        Logger foo = Logger.getLogger("org.bouncycastle.util.dispose.DisposalDaemon");
-//        foo.setLevel(Level.FINE);
-//        foo.addHandler(consoleHandler);
-        //  Logger.getLogger("org.bouncycastle.util.dispose.DisposalDaemon").addHandler(consoleHandler);
 
 
         String forcedVariant = System.getProperty(BCFIPS_LIB_CPU_VARIANT);
         if (forcedVariant != null)
         {
             String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
-            if (variant == null) {
+            if (variant == null)
+            {
                 variant = "java";
             }
 
             if (!forcedVariant.equals(variant))
             {
-                System.out.println("Forced variant not the same as loaded variant: "+forcedVariant + " " + CryptoServicesRegistrar.getNativeServices().getVariant());
+                System.out.println("Forced variant not the same as loaded variant: " + forcedVariant + " " + CryptoServicesRegistrar.getNativeServices().getVariant());
                 throw new RuntimeException("Forced variant not the same as loaded variant: " + forcedVariant + " " + CryptoServicesRegistrar.getNativeServices().getVariant());
             }
         }
@@ -290,6 +272,7 @@ public class CCMJavaAgreementTest extends TestCase
 
         SecureRandom rand = new SecureRandom();
 
+
         for (int ks : new int[]{16, 24, 32})
         {
             byte[] key = new byte[ks];
@@ -346,8 +329,8 @@ public class CCMJavaAgreementTest extends TestCase
                     }
                 }
             }
-
         }
+
     }
 
 

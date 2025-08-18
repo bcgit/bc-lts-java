@@ -6,6 +6,7 @@ import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
+import org.bouncycastle.util.encoders.Hex;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -521,7 +522,8 @@ public class GCMNativeLimitTest extends TestCase
                 // Key changing
                 //
 
-                AEADParameters piv = new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[16]);
+
+                AEADParameters piv = new AEADParameters(new KeyParameter(Hex.decode("01000000000000000000000000000000")), 128, new byte[16]);
                 init(true, piv);
                 try
                 {

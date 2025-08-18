@@ -70,7 +70,7 @@ public class CipherStreamTest
     {
         testWriteRead(cipher, params, false);
         testWriteRead(cipher, params, true);
-        testReadWrite(cipher, params, false);
+        testReadWrite(cipher, params, false); // fail
         testReadWrite(cipher, params, true);
 
         if (!(cipher instanceof CTSBlockCipher || cipher instanceof NISTCTSBlockCipher))
@@ -473,7 +473,9 @@ public class CipherStreamTest
     public void performTest()
         throws Exception
     {
-        int[] testSizes = new int[]{0, 1, 7, 8, 9, 15, 16, 17, 1023, 1024, 1025, 2047, 2048, 2049, 4095, 4096, 4097};
+        int[] testSizes = new int[]{
+                0, 1, 7, 8, 9, 15, 16, 17,1023,1024, 1025, 2047, 2048, 2049, 4095, 4096, 4097
+        };
         for (int i = 0; i < testSizes.length; i++)
         {
             this.streamSize = testSizes[i];
