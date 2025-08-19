@@ -3,6 +3,7 @@ package org.bouncycastle.jce.provider.test.agreement;
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.jcajce.spec.AEADParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
@@ -50,6 +51,7 @@ public class JavaNativeAgreementTest extends SimpleTest
             Security.addProvider(new BouncyCastleProvider());
         }
 
+
     }
 
 
@@ -62,7 +64,7 @@ public class JavaNativeAgreementTest extends SimpleTest
     @Test
     public void testGCMJavaAgreement() throws Exception
     {
-
+        CryptoServicesRegistrar.setNativeEnabled(true);
         if (!hasNativeService("AES/GCM"))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
@@ -183,7 +185,7 @@ public class JavaNativeAgreementTest extends SimpleTest
     @Test
     public void testCTRJavaAgreement() throws Exception
     {
-
+        CryptoServicesRegistrar.setNativeEnabled(true);
         if (!hasNativeService("AES/CTR"))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
@@ -296,7 +298,7 @@ public class JavaNativeAgreementTest extends SimpleTest
     @Test
     public void testCFBJavaAgreement() throws Exception
     {
-
+        CryptoServicesRegistrar.setNativeEnabled(true);
         if (!hasNativeService("AES/CFB"))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("cfb"))
@@ -411,6 +413,7 @@ public class JavaNativeAgreementTest extends SimpleTest
     @Test
     public void testCBCJavaAgreement() throws Exception
     {
+        CryptoServicesRegistrar.setNativeEnabled(true);
 
         if (!hasNativeService("AES/CBC"))
         {
@@ -528,7 +531,7 @@ public class JavaNativeAgreementTest extends SimpleTest
     @Test
     public void testECBJavaAgreement() throws Exception
     {
-
+        CryptoServicesRegistrar.setNativeEnabled(true);
         if (!hasNativeService("AES/ECB"))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("ecb"))
@@ -634,7 +637,7 @@ public class JavaNativeAgreementTest extends SimpleTest
     @Test
     public void testSHA256Agreement() throws Exception
     {
-
+        CryptoServicesRegistrar.setNativeEnabled(true);
         if (!hasNativeService("SHA2"))
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("sha"))
