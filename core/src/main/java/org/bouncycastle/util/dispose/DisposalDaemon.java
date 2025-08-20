@@ -37,22 +37,39 @@ public class DisposalDaemon
 
     static
     {
-        cleanupDelay = Properties.asInteger(CLEANUP_DELAY_PROP, 5);
+
+        String cleanupDelayProp = Properties.getPropertyValue(CLEANUP_DELAY_PROP, "0").trim();
+        if (cleanupDelayProp.endsWith("ms"))
+        {
+            cleanupDelay = Math.max(Long.parseLong(cleanupDelayProp.replace("ms", "")), 0);
+        }
+        else
+        {
+            cleanupDelay = Math.max(Long.parseLong(cleanupDelayProp) * 1000L, 0);
+        }
+
 
         //
         // Clean up executor accepts references that are no longer needed
         // and disposes of them in turn.
         //
-        cleanupExecutor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory()
+        if (cleanupDelay > 0)
         {
-            @Override
-            public Thread newThread(Runnable r)
+            cleanupExecutor = Executors.newSingleThreadScheduledExecutor(new ThreadFactory()
             {
-                Thread t = new Thread(r, "BC Cleanup Executor");
-                t.setDaemon(true);
-                return t;
-            }
-        });
+                @Override
+                public Thread newThread(Runnable r)
+                {
+                    Thread t = new Thread(r, "BC Cleanup Executor");
+                    t.setDaemon(true);
+                    return t;
+                }
+            });
+        }
+        else
+        {
+            cleanupExecutor = null;
+        }
 
         //
         // Sets up the daemon thread that deals with items on the reference
@@ -117,23 +134,34 @@ public class DisposalDaemon
                         (ReferenceWrapperWithDisposerRunnable) referenceQueue.remove();
                 refs.remove(item);
 
-                //
-                // Delay in order to avoid freeing a reference that the GC has
-                // decided is unreachable concurrently with its last use.
-                //
-                cleanupExecutor.schedule(new Runnable()
-                {
-                    @Override
-                    public void run()
-                    {
-                        if (LOG.isLoggable(Level.FINE))
-                        {
-                            LOG.fine("Disposed: " + item);
-                        }
-                        item.dispose();
-                    }
-                }, cleanupDelay, TimeUnit.SECONDS);
 
+                if (cleanupExecutor == null)
+                {
+                    if (LOG.isLoggable(Level.FINE))
+                    {
+                        LOG.fine("Disposed: " + item);
+                    }
+                    item.dispose();
+                }
+                else
+                {
+                    //
+                    // Delay in order to avoid freeing a reference that the GC has
+                    // decided is unreachable concurrently with its last use.
+                    //
+                    cleanupExecutor.schedule(new Runnable()
+                    {
+                        @Override
+                        public void run()
+                        {
+                            if (LOG.isLoggable(Level.FINE))
+                            {
+                                LOG.fine("Disposed: " + item);
+                            }
+                            item.dispose();
+                        }
+                    }, cleanupDelay, TimeUnit.MILLISECONDS);
+                }
 
             }
             catch (InterruptedException iex)

@@ -9,6 +9,8 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
+import java.lang.ref.Reference;
+
 class AESNativeCFB
         implements CFBModeCipher
 {
@@ -39,7 +41,7 @@ class AESNativeCFB
     public void init(boolean forEncryption, CipherParameters params)
             throws IllegalArgumentException
     {
-        synchronized (this)
+        try
         {
             boolean oldEncrypting = this.encrypting;
 
@@ -111,6 +113,10 @@ class AESNativeCFB
             referenceWrapper = new CFBRefWrapper(makeNative(encrypting, key.length), key);
             init(referenceWrapper.getReference(), key, iv);
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
 
@@ -123,9 +129,13 @@ class AESNativeCFB
     @Override
     public byte returnByte(byte in)
     {
-        synchronized (this)
+        try
         {
             return processByte(referenceWrapper.getReference(), in);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -133,8 +143,7 @@ class AESNativeCFB
     public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
             throws DataLengthException
     {
-
-        synchronized (this)
+        try
         {
             if (referenceWrapper == null)
             {
@@ -143,6 +152,10 @@ class AESNativeCFB
 
 
             return processBytes(referenceWrapper.getReference(), in, inOff, len, out, outOff);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -157,7 +170,8 @@ class AESNativeCFB
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
             throws DataLengthException, IllegalStateException
     {
-        synchronized (this)
+
+        try
         {
             if (referenceWrapper == null)
             {
@@ -166,12 +180,16 @@ class AESNativeCFB
 
             return processBytes(referenceWrapper.getReference(), in, inOff, getBlockSize(), out, outOff);
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public void reset()
     {
-        synchronized (this)
+        try
         {
             // skip over spurious resets that may occur before init is called.
             if (referenceWrapper == null)
@@ -181,7 +199,10 @@ class AESNativeCFB
 
             reset(referenceWrapper.getReference());
         }
-
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
 
@@ -195,15 +216,19 @@ class AESNativeCFB
     public int processBlocks(byte[] in, int inOff, int blockCount, byte[] out, int outOff)
             throws DataLengthException, IllegalStateException
     {
-
-        synchronized (this)
+        try
         {
+
             if (referenceWrapper == null)
             {
                 throw new IllegalStateException("CFB engine not initialized");
             }
 
             return processBytes(in, inOff, blockCount * getBlockSize(), out, outOff);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -269,13 +294,17 @@ class AESNativeCFB
 
     public String toString()
     {
-        synchronized (this)
+        try
         {
             if (referenceWrapper != null && referenceWrapper.getKey() != null)
             {
                 return "CFB[Native](AES[Native](" + (referenceWrapper.getKey().length * 8) + "))";
             }
             return "CFB[Native](AES[Native](not initialized))";
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 

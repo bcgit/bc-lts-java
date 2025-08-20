@@ -228,10 +228,30 @@ a segfault.
 
 ### Properties
 
-| Property                               | Values                      | Description                                                                  |
-|----------------------------------------|-----------------------------|------------------------------------------------------------------------------|
-| org.bouncycastle.native.cpu_variant    | avx, vaes, vaesf or neon-le | Specify a variant to use  see "Selecting a specific variant" for warnings.   |
-| org.bouncycastle.packet_cipher_enabled | true or false               | False by default, enable or disable use of packet ciphers where appropriate. |
+| Property                                | Values                      | Description                                                                                          |
+|-----------------------------------------|-----------------------------|------------------------------------------------------------------------------------------------------|
+| org.bouncycastle.native.cpu_variant     | avx, vaes, vaesf or neon-le | Specify a variant to use  see "Selecting a specific variant" for warnings.                           |
+| org.bouncycastle.packet_cipher_enabled  | true or false               | False by default, enable or disable use of packet ciphers where appropriate.                         |
+| org.bouncycastle.native.cleanup_delay   | 1000ms / 1                  | Delays freeing of native allocations by the given time in milliseconds or seconds, the default is 0. |
+
+
+### Disposal Daemon / Freeing native allocations
+The library tacks classes and when they become available for garbage collection, and we free any underlying native allocations.
+
+Overly aggressive garbage collectors may signal that a class is available for collection while another thread is accessing
+that class. On busy multicore machines this may occur during the last call to that class causing use after free situation.
+
+To deal with this we have employed either the reachability fence, applicable on java 9 and above or synchronized blocks for
+java 8.
+
+If this proves to be unreliable users can also set a cleanup delay via the ```org.bouncycastle.native.cleanup_delay``` property.
+For example:
+
+```-Dorg.bouncycastle.native.cleanup_delay=10ms``` would set a delay of 10 milliseconds, and
+```-Dorg.bouncycastle.native.cleanup_delay=1``` would set a delay of 1 second.
+
+The default cleanup delay is zero and native allocations will be cleaned up immediately upon notification that the relevant
+class is available to GC.
 
 
 # Things to watch out for

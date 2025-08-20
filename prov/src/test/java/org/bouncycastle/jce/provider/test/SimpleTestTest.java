@@ -1,13 +1,13 @@
 package org.bouncycastle.jce.provider.test;
 
-import java.security.Security;
-
 import junit.framework.TestCase;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.test.SimpleTestResult;
 
+import java.security.Security;
+
 public class SimpleTestTest
-    extends TestCase
+        extends TestCase
 {
     public void testJCE()
     {
@@ -22,7 +22,7 @@ public class SimpleTestTest
 
         for (int i = 0; i != tests.length; i++)
         {
-            SimpleTestResult result = (SimpleTestResult)tests[i].perform();
+            SimpleTestResult result = (SimpleTestResult) tests[i].perform();
 
             if (!result.isSuccessful())
             {
@@ -30,6 +30,7 @@ public class SimpleTestTest
                 {
                     result.getException().printStackTrace();
                 }
+                System.out.println("Test failed: " + tests[i]);
                 fail("index " + i + " " + result.toString());
             }
         }

@@ -17,7 +17,7 @@ sourceSets {
     }
     java9 {
         java {
-            srcDirs = ['src/main/jdk1.9']
+            srcDirs = ['src/main/jdk1.9','../core/src/main/java9' ]
         }
     }
     java11 {
@@ -62,7 +62,7 @@ compileJava {
 
 compileJava9Java {
     options.release = 9
-    options.sourcepath = files(['../core/src/main/java', 'src/main/java', 'src/main/jdk1.9'])
+    options.sourcepath = files(['../core/src/main/java', 'src/main/java', 'src/main/jdk1.9','../core/src/main/java9'])
 }
 
 compileJava11Java {

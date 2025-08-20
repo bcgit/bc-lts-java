@@ -11,8 +11,10 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
+import java.lang.ref.Reference;
+
 class AESNativeCBC
-    implements CBCModeCipher
+        implements CBCModeCipher
 {
     private CBCRefWrapper referenceWrapper;
 
@@ -23,10 +25,9 @@ class AESNativeCBC
 
     @Override
     public void init(boolean forEncryption, CipherParameters params)
-        throws IllegalArgumentException
+            throws IllegalArgumentException
     {
-
-        synchronized (this)
+        try
         {
             boolean oldEncrypting = this.encrypting;
 
@@ -101,13 +102,18 @@ class AESNativeCBC
 
                 }
             }
+
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
     private void init(KeyParameter parameters)
     {
 
-        synchronized (this)
+        try
         {
             byte[] key = ((KeyParameter) parameters).getKey();
 
@@ -132,6 +138,10 @@ class AESNativeCBC
             init(referenceWrapper.getReference(), key, IV);
             keySize = key.length * 8;
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
 
@@ -150,10 +160,10 @@ class AESNativeCBC
 
     @Override
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
-        throws DataLengthException, IllegalStateException
+            throws DataLengthException, IllegalStateException
     {
 
-        synchronized (this)
+        try
         {
             if (referenceWrapper == null)
             {
@@ -162,12 +172,16 @@ class AESNativeCBC
 
             return process(referenceWrapper.getReference(), in, inOff, 1, out, outOff);
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public void reset()
     {
-        synchronized (this)
+        try
         {
             // skip over spurious resets that may occur before init is called.
             if (referenceWrapper == null)
@@ -177,20 +191,31 @@ class AESNativeCBC
 
             reset(referenceWrapper.getReference());
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
 
     @Override
     public int getMultiBlockSize()
     {
-        return getMultiBlockSize(0);
+        try
+        {
+            return getMultiBlockSize(0);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public int processBlocks(byte[] in, int inOff, int blockCount, byte[] out, int outOff)
-        throws DataLengthException, IllegalStateException
+            throws DataLengthException, IllegalStateException
     {
-        synchronized (this)
+        try
         {
 
             if (referenceWrapper == null)
@@ -199,6 +224,10 @@ class AESNativeCBC
             }
 
             return process(referenceWrapper.getReference(), in, inOff, blockCount, out, outOff);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -219,17 +248,20 @@ class AESNativeCBC
     @Override
     public BlockCipher getUnderlyingCipher()
     {
-        synchronized (this)
+        try
         {
             MultiBlockCipher eng = AESEngine.newInstance();
             eng.init(encrypting, new KeyParameter(referenceWrapper.oldKey));
             return eng;
+        } finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
 
     private static class Disposer
-        extends NativeDisposer
+            extends NativeDisposer
     {
         private final byte[] oldKey;
 
@@ -248,7 +280,7 @@ class AESNativeCBC
     }
 
     private class CBCRefWrapper
-        extends NativeReference
+            extends NativeReference
     {
         private final byte[] oldKey;
 

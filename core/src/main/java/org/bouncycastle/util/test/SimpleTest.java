@@ -203,12 +203,12 @@ public abstract class SimpleTest
     public abstract void performTest()
         throws Exception;
 
-    public static void runTest(Test test)
+    public static boolean runTest(Test test)
     {
-        runTest(test, System.out);
+       return runTest(test, System.out);
     }
 
-    public static void runTest(Test test, PrintStream out)
+    public static boolean runTest(Test test, PrintStream out)
     {
         TestResult result = test.perform();
 
@@ -218,6 +218,7 @@ public abstract class SimpleTest
         }
         // -DM out.println
         out.println(result);
+        return result.isSuccessful();
     }
 
     public static void runTests(Test[] tests)

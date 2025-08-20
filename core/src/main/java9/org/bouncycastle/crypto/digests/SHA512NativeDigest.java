@@ -8,6 +8,8 @@ import org.bouncycastle.util.Memoable;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
+import java.lang.ref.Reference;
+
 /**
  * SHA512 implementation.
  */
@@ -47,10 +49,14 @@ class SHA512NativeDigest
 
     SHA512NativeDigest restoreState(byte[] state, int offset)
     {
-        synchronized (this)
+        try
         {
             restoreFullState(nativeRef.getReference(), state, offset);
             return this;
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -61,15 +67,24 @@ class SHA512NativeDigest
     @Override
     public String getAlgorithmName()
     {
-        return "SHA-512";
+        try
+        {
+            return "SHA-512";
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public int getDigestSize()
     {
-        synchronized (this)
+        try {
+        return getDigestSize(nativeRef.getReference());
+        } finally
         {
-            return getDigestSize(nativeRef.getReference());
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -77,9 +92,12 @@ class SHA512NativeDigest
     @Override
     public void update(byte in)
     {
-        synchronized (this)
+
+        try {
+        update(nativeRef.getReference(), in);
+        } finally
         {
-            update(nativeRef.getReference(), in);
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -87,9 +105,11 @@ class SHA512NativeDigest
     @Override
     public void update(byte[] input, int inOff, int len)
     {
-        synchronized (this)
+        try {
+        update(nativeRef.getReference(), input, inOff, len);
+        } finally
         {
-            update(nativeRef.getReference(), input, inOff, len);
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -97,9 +117,11 @@ class SHA512NativeDigest
     @Override
     public int doFinal(byte[] output, int outOff)
     {
-        synchronized (this)
+        try {
+        return doFinal(nativeRef.getReference(), output, outOff);
+        } finally
         {
-            return doFinal(nativeRef.getReference(), output, outOff);
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -107,9 +129,11 @@ class SHA512NativeDigest
     @Override
     public void reset()
     {
-        synchronized (this)
+        try {
+        reset(nativeRef.getReference());
+        } finally
         {
-            reset(nativeRef.getReference());
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -117,9 +141,11 @@ class SHA512NativeDigest
     @Override
     public int getByteLength()
     {
-        synchronized (this)
+        try {
+        return getByteLength(nativeRef.getReference());
+        } finally
         {
-            return getByteLength(nativeRef.getReference());
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -127,40 +153,48 @@ class SHA512NativeDigest
     @Override
     public Memoable copy()
     {
-        synchronized (this)
+        try {
+        return new SHA512NativeDigest(this);
+        } finally
         {
-            return new SHA512NativeDigest(this);
+            Reference.reachabilityFence(this);
         }
     }
 
     @Override
     public void reset(Memoable other)
     {
-        synchronized (this)
+        try {
+        SHA512NativeDigest dig = (SHA512NativeDigest) other;
+        restoreFullState(nativeRef.getReference(), dig.getEncodedState(), 0);
+        } finally
         {
-            SHA512NativeDigest dig = (SHA512NativeDigest) other;
-            restoreFullState(nativeRef.getReference(), dig.getEncodedState(), 0);
+            Reference.reachabilityFence(this);
         }
     }
 
 
     public byte[] getEncodedState()
     {
-        synchronized (this)
+        try {
+        int l = encodeFullState(nativeRef.getReference(), null, 0);
+        byte[] state = new byte[l];
+        encodeFullState(nativeRef.getReference(), state, 0);
+        return state;
+        } finally
         {
-            int l = encodeFullState(nativeRef.getReference(), null, 0);
-            byte[] state = new byte[l];
-            encodeFullState(nativeRef.getReference(), state, 0);
-            return state;
+            Reference.reachabilityFence(this);
         }
     }
 
 
     void restoreFullState(byte[] encoded, int offset)
     {
-        synchronized (this)
+        try {
+        restoreFullState(nativeRef.getReference(), encoded, offset);
+        } finally
         {
-            restoreFullState(nativeRef.getReference(), encoded, offset);
+            Reference.reachabilityFence(this);
         }
     }
 

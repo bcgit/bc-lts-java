@@ -69,8 +69,11 @@ public class SHAKENativeDigest
 
     SHAKENativeDigest restoreState(byte[] state, int offset)
     {
-        restoreFullState(nativeRef.getReference(), state, offset);
-        return this;
+        synchronized (this)
+        {
+            restoreFullState(nativeRef.getReference(), state, offset);
+            return this;
+        }
     }
 
     //
@@ -87,85 +90,121 @@ public class SHAKENativeDigest
     @Override
     public int getDigestSize()
     {
-        return getDigestSize(nativeRef.getReference());
+        synchronized (this)
+        {
+            return getDigestSize(nativeRef.getReference());
+        }
     }
 
 
     @Override
     public void update(byte in)
     {
-        update(nativeRef.getReference(), in);
+        synchronized (this)
+        {
+            update(nativeRef.getReference(), in);
+        }
     }
 
 
     @Override
     public void update(byte[] input, int inOff, int len)
     {
-        update(nativeRef.getReference(), input, inOff, len);
+        synchronized (this)
+        {
+            update(nativeRef.getReference(), input, inOff, len);
+        }
     }
 
 
     @Override
     public int doFinal(byte[] output, int outOff)
     {
-        int i = doFinal(nativeRef.getReference(), output, outOff);
-        return i;
+        synchronized (this)
+        {
+            int i = doFinal(nativeRef.getReference(), output, outOff);
+            return i;
+        }
     }
 
     @Override
     public int doFinal(byte[] out, int outOff, int outLen)
     {
-        int i = doFinal(nativeRef.getReference(),out,outOff,outLen);
-        return i;
+        synchronized (this)
+        {
+            int i = doFinal(nativeRef.getReference(), out, outOff, outLen);
+            return i;
+        }
     }
 
     @Override
     public int doOutput(byte[] out, int outOff, int outLen)
     {
-       return doOutput(nativeRef.getReference(),out,outOff,outLen);
+        synchronized (this)
+        {
+            return doOutput(nativeRef.getReference(), out, outOff, outLen);
+        }
     }
 
 
     @Override
     public void reset()
     {
-        reset(nativeRef.getReference());
+        synchronized (this)
+        {
+            reset(nativeRef.getReference());
+        }
     }
 
 
     @Override
     public int getByteLength()
     {
-        return getByteLength(nativeRef.getReference());
+        synchronized (this)
+        {
+            return getByteLength(nativeRef.getReference());
+        }
     }
 
 
     @Override
     public Memoable copy()
     {
-        return new SHAKENativeDigest(this);
+        synchronized (this)
+        {
+            return new SHAKENativeDigest(this);
+        }
     }
 
     @Override
     public void reset(Memoable other)
     {
-        SHAKENativeDigest dig = (SHAKENativeDigest) other;
-        restoreFullState(nativeRef.getReference(), dig.getEncodedState(), 0);
+        synchronized (this)
+        {
+            SHAKENativeDigest dig = (SHAKENativeDigest) other;
+            restoreFullState(nativeRef.getReference(), dig.getEncodedState(), 0);
+        }
     }
 
 
     public byte[] getEncodedState()
     {
-        int l = encodeFullState(nativeRef.getReference(), null, 0);
-        byte[] state = new byte[l];
-        encodeFullState(nativeRef.getReference(), state, 0);
-        return state;
+        synchronized (this)
+        {
+            int l = encodeFullState(nativeRef.getReference(), null, 0);
+            byte[] state = new byte[l];
+            encodeFullState(nativeRef.getReference(), state, 0);
+            return state;
+        }
     }
 
 
     void restoreFullState(byte[] encoded, int offset)
     {
-        restoreFullState(nativeRef.getReference(), encoded, offset);
+        synchronized (this)
+        {
+            restoreFullState(nativeRef.getReference(), encoded, offset);
+        }
     }
 
 

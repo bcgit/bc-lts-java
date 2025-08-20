@@ -10,6 +10,8 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
+import java.lang.ref.Reference;
+
 public class AESNativeCTR
         implements CTRModeCipher
 {
@@ -25,7 +27,7 @@ public class AESNativeCTR
 
     public BlockCipher getUnderlyingCipher()
     {
-        synchronized (this)
+        try
         {
             BlockCipher engine = AESEngine.newInstance();
             if (referenceWrapper != null)
@@ -37,6 +39,10 @@ public class AESNativeCTR
                 }
             }
             return engine;
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -52,7 +58,8 @@ public class AESNativeCTR
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
             throws DataLengthException, IllegalStateException
     {
-        synchronized (this)
+
+        try
         {
             if (referenceWrapper == null)
             {
@@ -61,23 +68,23 @@ public class AESNativeCTR
 
             return processBytes(referenceWrapper.getReference(), in, inOff, getBlockSize(), out, outOff);
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public int getMultiBlockSize()
     {
-        synchronized (this)
-        {
-            return getMultiBlockSize(0);
-        }
+        return getMultiBlockSize(0);
     }
 
     @Override
     public int processBlocks(byte[] in, int inOff, int blockCount, byte[] out, int outOff)
             throws DataLengthException, IllegalStateException
     {
-
-        synchronized (this)
+        try
         {
             int extent = getBlockSize() * blockCount;
 
@@ -88,13 +95,16 @@ public class AESNativeCTR
 
             return processBytes(referenceWrapper.getReference(), in, inOff, extent, out, outOff);
         }
-
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public long skip(long numberOfBytes)
     {
-        synchronized (this)
+        try
         {
             if (referenceWrapper == null)
             {
@@ -102,12 +112,16 @@ public class AESNativeCTR
             }
             return skip(referenceWrapper.getReference(), numberOfBytes);
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public long seekTo(long position)
     {
-        synchronized (this)
+        try
         {
             if (referenceWrapper == null)
             {
@@ -115,18 +129,26 @@ public class AESNativeCTR
             }
             return seekTo(referenceWrapper.getReference(), position);
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public long getPosition()
     {
-        synchronized (this)
+        try
         {
             if (referenceWrapper == null)
             {
                 throw new IllegalStateException("not initialized");
             }
             return getPosition(referenceWrapper.getReference());
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -135,7 +157,7 @@ public class AESNativeCTR
     public void init(boolean forEncryption, CipherParameters params)
             throws IllegalArgumentException
     {
-        synchronized (this)
+        try
         {
             if (params instanceof ParametersWithIV)
             {
@@ -190,6 +212,10 @@ public class AESNativeCTR
                 throw new IllegalArgumentException("CTR mode requires ParametersWithIV");
             }
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     static native long makeCTRInstance();
@@ -203,7 +229,7 @@ public class AESNativeCTR
     @Override
     public byte returnByte(byte in)
     {
-        synchronized (this)
+        try
         {
             if (referenceWrapper == null)
             {
@@ -211,13 +237,17 @@ public class AESNativeCTR
             }
             return returnByte(referenceWrapper.getReference(), in);
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
             throws DataLengthException
     {
-        synchronized (this)
+        try
         {
             if (referenceWrapper == null)
             {
@@ -226,13 +256,17 @@ public class AESNativeCTR
 
             return processBytes(referenceWrapper.getReference(), in, inOff, len, out, outOff);
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
 
     @Override
     public void reset()
     {
-        synchronized (this)
+        try
         {
             if (referenceWrapper == null)
             {
@@ -240,6 +274,9 @@ public class AESNativeCTR
             }
 
             reset(referenceWrapper.getReference());
+        } finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 

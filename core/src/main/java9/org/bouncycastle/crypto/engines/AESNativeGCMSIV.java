@@ -10,6 +10,7 @@ import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
 import java.io.ByteArrayOutputStream;
+import java.lang.ref.Reference;
 
 public class AESNativeGCMSIV
         implements GCMSIVModeCipher
@@ -20,36 +21,36 @@ public class AESNativeGCMSIV
     /**
      * The encryptedDataStream
      */
-    private GCMSIVCache theEncData = new GCMSIVCache();
+    private final GCMSIVCache theEncData = new GCMSIVCache();
 
     /**
      * Are we encrypting?
      */
     private boolean forEncryption;
 
-    /**
-     * The initialAEAD.
-     */
-    private byte[] theInitialAEAD;
-
 
     /**
      * The nonce.
      */
     private byte[] theNonce;
-    private byte[] lastKey;
+    private byte[] theInitialAEAD;
+
 
     @Override
     public BlockCipher getUnderlyingCipher()
     {
-        synchronized (this)
+        try
         {
             BlockCipher engine = AESEngine.newInstance();
-            if (lastKey != null)
+            if (refWrapper != null && refWrapper.key != null)
             {
-                engine.init(true, new KeyParameter(lastKey));
+                engine.init(true, new KeyParameter(refWrapper.key));
             }
             return engine;
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -57,7 +58,7 @@ public class AESNativeGCMSIV
     public void init(boolean forEncryption, CipherParameters cipherParameters)
             throws IllegalArgumentException
     {
-        synchronized (this)
+        try
         {
             this.forEncryption = forEncryption;
             keptMac = null;
@@ -88,10 +89,13 @@ public class AESNativeGCMSIV
             }
 
             /* Reset details */
+            /**
+             * The initialAEAD.
+             */
             theInitialAEAD = myInitialAEAD;
             theNonce = myNonce;
-            lastKey = myKey.getKey();
-            switch (lastKey.length)
+            byte[] keyBytes = myKey.getKey();
+            switch (keyBytes.length)
             {
                 case 16:
                 case 24:
@@ -101,19 +105,23 @@ public class AESNativeGCMSIV
                     throw new IllegalStateException(ExceptionMessages.AES_KEY_LENGTH);
             }
 
-            initRef();
+            initRef(keyBytes);
 
 
             initNative(
                     refWrapper.getReference(),
-                    forEncryption, lastKey,
+                    forEncryption, refWrapper.key,
                     theNonce, theInitialAEAD);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
-    private void initRef()
+    private void initRef(byte[] key)
     {
-        refWrapper = new GCMSIVRefWrapper(makeInstance());
+        refWrapper = new GCMSIVRefWrapper(makeInstance(), key);
     }
 
     @Override
@@ -125,7 +133,7 @@ public class AESNativeGCMSIV
     @Override
     public void processAADByte(byte in)
     {
-        synchronized (this)
+        try
         {
             if (refWrapper == null)
             {
@@ -133,12 +141,16 @@ public class AESNativeGCMSIV
             }
             processAADByte(refWrapper.getReference(), in);
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public void processAADBytes(byte[] in, int inOff, int len)
     {
-        synchronized (this)
+        try
         {
             if (refWrapper == null)
             {
@@ -146,13 +158,17 @@ public class AESNativeGCMSIV
             }
             processAADBytes(refWrapper.getReference(), in, inOff, len);
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public int processByte(byte in, byte[] out, int outOff)
             throws DataLengthException
     {
-        synchronized (this)
+        try
         {
             if (refWrapper == null)
             {
@@ -161,13 +177,17 @@ public class AESNativeGCMSIV
             theEncData.write(in);
             return 0;
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
             throws DataLengthException
     {
-        synchronized (this)
+        try
         {
             if (refWrapper == null)
             {
@@ -176,13 +196,18 @@ public class AESNativeGCMSIV
             theEncData.write(in, inOff, len);
             return 0;
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public int doFinal(byte[] out, int outOff)
             throws IllegalStateException, InvalidCipherTextException
     {
-        synchronized (this)
+
+        try
         {
             int len = doFinal(refWrapper.getReference(), theEncData.getBuffer(), theEncData.size(), out, outOff);
             //resetKeepMac
@@ -190,12 +215,16 @@ public class AESNativeGCMSIV
             reset();
             return len;
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public byte[] getMac()
     {
-        synchronized (this)
+        try
         {
             if (refWrapper == null)
             {
@@ -208,12 +237,16 @@ public class AESNativeGCMSIV
             }
             return getMac(refWrapper.getReference());
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public int getUpdateOutputSize(int len)
     {
-        synchronized (this)
+        try
         {
             if (refWrapper == null)
             {
@@ -221,12 +254,16 @@ public class AESNativeGCMSIV
             }
             return getUpdateOutputSize(refWrapper.getReference(), len, theEncData.size());
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public int getOutputSize(int len)
     {
-        synchronized (this)
+        try
         {
             if (refWrapper == null)
             {
@@ -234,13 +271,17 @@ public class AESNativeGCMSIV
             }
             return getOutputSize(refWrapper.getReference(), len);
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
 
     @Override
     public void reset()
     {
-        synchronized (this)
+        try
         {
             theEncData.clearBuffer();
             if (refWrapper == null)
@@ -249,30 +290,48 @@ public class AESNativeGCMSIV
                 return;
             }
             reset(refWrapper.getReference());
+            initNative(
+                    refWrapper.getReference(),
+                    forEncryption, refWrapper.key,
+                    theNonce, theInitialAEAD);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
     public String toString()
     {
-        if (lastKey != null)
+        try
         {
-            return "GCMSIV[Native](AES[Native](" + (lastKey.length * 8) + "))";
+            if (refWrapper != null && refWrapper.key != null)
+            {
+                return "GCMSIV[Native](AES[Native](" + (refWrapper.key.length * 8) + "))";
+            }
+            return "GCMSIV[Native](AES[Native](not initialized))";
         }
-        return "GCMSIV[Native](AES[Native](not initialized))";
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     private static class GCMSIVRefWrapper
             extends NativeReference
     {
-        public GCMSIVRefWrapper(long reference)
+        private final byte[] key;
+
+        public GCMSIVRefWrapper(long reference, byte[] key)
         {
             super(reference, "GCM-SIV");
+            this.key = key;
         }
 
         @Override
         public Runnable createAction()
         {
-            return new Disposer(reference);
+            return new Disposer(reference, key);
         }
 
     }
@@ -280,14 +339,18 @@ public class AESNativeGCMSIV
     private static class Disposer
             extends NativeDisposer
     {
-        Disposer(long ref)
+        private final byte[] key;
+
+        Disposer(long ref, byte[] key)
         {
             super(ref);
+            this.key = key;
         }
 
         @Override
         protected void dispose(long reference)
         {
+            Arrays.clear(key);
             AESNativeGCMSIV.dispose(reference);
         }
     }

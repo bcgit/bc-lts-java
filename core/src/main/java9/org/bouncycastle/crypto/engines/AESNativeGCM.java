@@ -12,6 +12,8 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
+import java.lang.ref.Reference;
+
 class AESNativeGCM
         implements GCMModeCipher
 {
@@ -25,7 +27,7 @@ class AESNativeGCM
     @Override
     public BlockCipher getUnderlyingCipher()
     {
-        synchronized (this)
+        try
         {
             BlockCipher engine = AESEngine.newInstance();
             if (refWrapper != null && refWrapper.key != null)
@@ -34,13 +36,17 @@ class AESNativeGCM
             }
             return engine;
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
 
     public void init(boolean forEncryption, CipherParameters params)
             throws IllegalArgumentException
     {
-        synchronized (this)
+        try
         {
             this.forEncryption = forEncryption;
             KeyParameter keyParam;
@@ -134,12 +140,23 @@ class AESNativeGCM
 
             initialised = true;
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
 
     private void initRef(byte[] key)
     {
-        refWrapper = new GCMRefWrapper(makeInstance(key.length, forEncryption), key);
+        try
+        {
+            refWrapper = new GCMRefWrapper(makeInstance(key.length, forEncryption), key);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
 
@@ -152,9 +169,13 @@ class AESNativeGCM
     @Override
     public void processAADByte(byte in)
     {
-        synchronized (this)
+        try
         {
             processAADByte(refWrapper.getReference(), in);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -162,15 +183,19 @@ class AESNativeGCM
     @Override
     public void processAADBytes(byte[] in, int inOff, int len)
     {
-        synchronized (this)
+
+        try
         {
-//
             if (refWrapper == null)
             {
                 throw new IllegalStateException("GCM is uninitialized");
             }
 
             processAADBytes(refWrapper.getReference(), in, inOff, len);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -179,15 +204,19 @@ class AESNativeGCM
     public int processByte(byte in, byte[] out, int outOff)
             throws DataLengthException
     {
-        synchronized (this)
-        {
 
+        try
+        {
             if (refWrapper == null)
             {
                 throw new IllegalStateException("GCM is uninitialized");
             }
 
             return processByte(refWrapper.getReference(), in, out, outOff);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -196,7 +225,7 @@ class AESNativeGCM
     public int processBytes(byte[] in, int inOff, int len, byte[] out, int outOff)
             throws DataLengthException
     {
-        synchronized (this)
+        try
         {
             if (refWrapper == null)
             {
@@ -204,6 +233,10 @@ class AESNativeGCM
             }
 
             return processBytes(refWrapper.getReference(), in, inOff, len, out, outOff);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -213,7 +246,7 @@ class AESNativeGCM
             throws IllegalStateException, InvalidCipherTextException
     {
 
-        synchronized (this)
+        try
         {
             checkStatus();
 
@@ -227,13 +260,17 @@ class AESNativeGCM
             resetKeepMac();
             return len;
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
 
     @Override
     public byte[] getMac()
     {
-        synchronized (this)
+        try
         {
             if (keptMac != null)
             {
@@ -241,15 +278,23 @@ class AESNativeGCM
             }
             return getMac(refWrapper.getReference());
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
 
     @Override
     public int getUpdateOutputSize(int len)
     {
-        synchronized (this)
+        try
         {
             return getUpdateOutputSize(refWrapper.getReference(), len);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -257,9 +302,13 @@ class AESNativeGCM
     @Override
     public int getOutputSize(int len)
     {
-        synchronized (this)
+        try
         {
             return getOutputSize(refWrapper.getReference(), len);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -267,7 +316,7 @@ class AESNativeGCM
     @Override
     public void reset()
     {
-        synchronized (this)
+        try
         {
             if (refWrapper == null)
             {
@@ -278,12 +327,15 @@ class AESNativeGCM
             reset(refWrapper.getReference());
             initialised = false;
         }
-
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     private void resetKeepMac()
     {
-        synchronized (this)
+        try
         {
             if (refWrapper == null)
             {
@@ -294,6 +346,10 @@ class AESNativeGCM
             keptMac = getMac();
             reset(refWrapper.getReference());
             initialised = false;
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -307,60 +363,6 @@ class AESNativeGCM
                 throw new IllegalStateException("GCM cipher cannot be reused for encryption");
             }
             throw new IllegalStateException("GCM cipher needs to be initialised");
-        }
-    }
-
-
-
-    @Override
-    public String toString()
-    {
-        synchronized (this)
-        {
-            if (refWrapper.key != null)
-            {
-                return "GCM[Native](AES[Native](" + (refWrapper.key.length * 8) + "))";
-            }
-            return "GCM[Native](AES[Native](not initialized))";
-        }
-    }
-
-    private static class GCMRefWrapper
-            extends NativeReference
-    {
-        private final byte[] key;
-
-        public GCMRefWrapper(long reference, byte[] key)
-        {
-            super(reference, "GCM");
-            this.key = key;
-        }
-
-        @Override
-        public Runnable createAction()
-        {
-            return new Disposer(reference, key);
-        }
-
-    }
-
-
-    private static class Disposer
-            extends NativeDisposer
-    {
-        private final byte[] key;
-
-        Disposer(long ref, byte[] key)
-        {
-            super(ref);
-            this.key = key;
-        }
-
-        @Override
-        protected void dispose(long reference)
-        {
-            Arrays.clear(key);
-            AESNativeGCM.dispose(reference);
         }
     }
 
@@ -402,9 +404,12 @@ class AESNativeGCM
      */
     void setBlocksRemainingDown(long value)
     {
-        synchronized (this)
+        try
         {
             setBlocksRemainingDown(refWrapper.getReference(), value);
+        } finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -414,4 +419,59 @@ class AESNativeGCM
     private native void setBlocksRemainingDown(long nativeRef, long value);
 
 
+    private static class GCMRefWrapper
+            extends NativeReference
+    {
+        private final byte[] key;
+
+        public GCMRefWrapper(long reference, byte[] key)
+        {
+            super(reference, "GCM");
+            this.key = key;
+        }
+
+        @Override
+        public Runnable createAction()
+        {
+            return new Disposer(reference, key);
+        }
+
+    }
+
+
+    private static class Disposer
+            extends NativeDisposer
+    {
+        private final byte[] key;
+
+        Disposer(long ref, byte[] key)
+        {
+            super(ref);
+            this.key = key;
+        }
+
+        @Override
+        protected void dispose(long reference)
+        {
+            Arrays.clear(key);
+            AESNativeGCM.dispose(reference);
+        }
+    }
+
+    @Override
+    public String toString()
+    {
+        try
+        {
+            if (refWrapper.key != null)
+            {
+                return "GCM[Native](AES[Native](" + (refWrapper.key.length * 8) + "))";
+            }
+            return "GCM[Native](AES[Native](not initialized))";
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
+    }
 }

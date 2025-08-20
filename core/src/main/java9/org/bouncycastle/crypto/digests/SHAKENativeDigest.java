@@ -1,56 +1,83 @@
 package org.bouncycastle.crypto.digests;
 
-import org.bouncycastle.crypto.CryptoServiceProperties;
-import org.bouncycastle.crypto.CryptoServicePurpose;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.SavableDigest;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.util.Memoable;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
+import java.lang.ref.Reference;
+
 /**
- * SHA512 implementation.
+ * SHAKE implementation.
  */
-class SHA512NativeDigest
-        implements SavableDigest
+public class SHAKENativeDigest
+        implements SavableDigestXof
 {
     private final CryptoServicePurpose purpose;
 
     protected DigestRefWrapper nativeRef = null;
+    private int bitLen;
 
-    SHA512NativeDigest(CryptoServicePurpose purpose)
+
+    public SHAKENativeDigest(CryptoServicePurpose purpose)
     {
+        this(128, purpose);
+    }
+
+    public SHAKENativeDigest(int bitLen, CryptoServicePurpose purpose)
+    {
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA3))
+        {
+            throw new IllegalStateException("no native SHAKE support");
+        }
+
         this.purpose = purpose;
-        nativeRef = new DigestRefWrapper(makeNative());
+        this.bitLen = bitLen;
+        nativeRef = new DigestRefWrapper(makeNative(bitLen));
         reset();
         CryptoServicesRegistrar.checkConstraints(cryptoServiceProperties());
     }
 
-    SHA512NativeDigest()
+    public SHAKENativeDigest(int bitLen)
+    {
+        this(bitLen, CryptoServicePurpose.ANY);
+    }
+
+    public SHAKENativeDigest()
     {
         this(CryptoServicePurpose.ANY);
     }
 
-    SHA512NativeDigest(SHA512NativeDigest src)
+    public SHAKENativeDigest(SHAKENativeDigest src)
     {
-
         this(CryptoServicePurpose.ANY);
-
         byte[] state = src.getEncodedState();
-
         restoreFullState(nativeRef.getReference(), state, 0);
     }
 
-    //
-    // From BC-LTS, used for testing in FIPS api only.
-    // ----------------------- Start Testing only methods.
-
-    SHA512NativeDigest restoreState(byte[] state, int offset)
+    public SHAKENativeDigest(byte[] encoded, CryptoServicePurpose purpose)
     {
-        synchronized (this)
+        this(purpose);
+        restoreFullState(nativeRef.getReference(), encoded, 0);
+    }
+
+    public SHAKENativeDigest(byte[] encoded)
+    {
+        this();
+        restoreFullState(nativeRef.getReference(), encoded, 0);
+    }
+
+
+    SHAKENativeDigest restoreState(byte[] state, int offset)
+    {
+        try
         {
             restoreFullState(nativeRef.getReference(), state, offset);
             return this;
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -61,15 +88,20 @@ class SHA512NativeDigest
     @Override
     public String getAlgorithmName()
     {
-        return "SHA-512";
+
+        return "SHAKE" + bitLen;
     }
 
     @Override
     public int getDigestSize()
     {
-        synchronized (this)
+        try
         {
             return getDigestSize(nativeRef.getReference());
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -77,9 +109,13 @@ class SHA512NativeDigest
     @Override
     public void update(byte in)
     {
-        synchronized (this)
+        try
         {
             update(nativeRef.getReference(), in);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -87,9 +123,13 @@ class SHA512NativeDigest
     @Override
     public void update(byte[] input, int inOff, int len)
     {
-        synchronized (this)
+        try
         {
             update(nativeRef.getReference(), input, inOff, len);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -97,9 +137,41 @@ class SHA512NativeDigest
     @Override
     public int doFinal(byte[] output, int outOff)
     {
-        synchronized (this)
+        try
         {
-            return doFinal(nativeRef.getReference(), output, outOff);
+            int i = doFinal(nativeRef.getReference(), output, outOff);
+            return i;
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
+    }
+
+    @Override
+    public int doFinal(byte[] out, int outOff, int outLen)
+    {
+        try
+        {
+            int i = doFinal(nativeRef.getReference(), out, outOff, outLen);
+            return i;
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
+    }
+
+    @Override
+    public int doOutput(byte[] out, int outOff, int outLen)
+    {
+        try
+        {
+            return doOutput(nativeRef.getReference(), out, outOff, outLen);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -107,9 +179,13 @@ class SHA512NativeDigest
     @Override
     public void reset()
     {
-        synchronized (this)
+        try
         {
             reset(nativeRef.getReference());
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -117,9 +193,13 @@ class SHA512NativeDigest
     @Override
     public int getByteLength()
     {
-        synchronized (this)
+        try
         {
             return getByteLength(nativeRef.getReference());
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -127,40 +207,56 @@ class SHA512NativeDigest
     @Override
     public Memoable copy()
     {
-        synchronized (this)
+        try
         {
-            return new SHA512NativeDigest(this);
+            return new SHAKENativeDigest(this);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
     @Override
     public void reset(Memoable other)
     {
-        synchronized (this)
+        try
         {
-            SHA512NativeDigest dig = (SHA512NativeDigest) other;
+            SHAKENativeDigest dig = (SHAKENativeDigest) other;
             restoreFullState(nativeRef.getReference(), dig.getEncodedState(), 0);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
 
     public byte[] getEncodedState()
     {
-        synchronized (this)
+        try
         {
             int l = encodeFullState(nativeRef.getReference(), null, 0);
             byte[] state = new byte[l];
             encodeFullState(nativeRef.getReference(), state, 0);
             return state;
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
 
     void restoreFullState(byte[] encoded, int offset)
     {
-        synchronized (this)
+        try
         {
             restoreFullState(nativeRef.getReference(), encoded, offset);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -168,10 +264,10 @@ class SHA512NativeDigest
     @Override
     public String toString()
     {
-        return "SHA512[Native]()";
+        return "SHAKE[Native]()";
     }
 
-    static native long makeNative();
+    static native long makeNative(int bitLen);
 
     static native void destroy(long nativeRef);
 
@@ -181,7 +277,11 @@ class SHA512NativeDigest
 
     static native void update(long nativeRef, byte[] in, int inOff, int len);
 
+    static native int doFinal(long nativeRef, byte[] out, int outOff, int len);
+
     static native int doFinal(long nativeRef, byte[] out, int outOff);
+
+    static native int doOutput(long nativeRef, byte[] out, int outOff, int len);
 
     static native void reset(long nativeRef);
 
@@ -193,7 +293,7 @@ class SHA512NativeDigest
 
     protected CryptoServiceProperties cryptoServiceProperties()
     {
-        return Utils.getDefaultProperties(this, 512, purpose);
+        return Utils.getDefaultProperties(this, bitLen, purpose);
     }
 
 
@@ -213,13 +313,13 @@ class SHA512NativeDigest
         }
     }
 
-    private static class DigestRefWrapper
+    protected static class DigestRefWrapper
             extends NativeReference
     {
 
         public DigestRefWrapper(long reference)
         {
-            super(reference, "SHA512");
+            super(reference, "SHAKE");
         }
 
         @Override

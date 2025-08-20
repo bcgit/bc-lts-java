@@ -1,12 +1,6 @@
 package org.bouncycastle.crypto.engines;
 
-import java.io.ByteArrayOutputStream;
-
-import org.bouncycastle.crypto.BlockCipher;
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.InvalidCipherTextException;
-import org.bouncycastle.crypto.OutputLengthException;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.modes.CCMModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -14,6 +8,9 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
+
+import java.io.ByteArrayOutputStream;
+import java.lang.ref.Reference;
 
 class AESNativeCCM
         implements CCMModeCipher
@@ -27,7 +24,7 @@ class AESNativeCCM
     @Override
     public BlockCipher getUnderlyingCipher()
     {
-        synchronized (this)
+        try
         {
             BlockCipher engine = AESEngine.newInstance();
 
@@ -38,13 +35,17 @@ class AESNativeCCM
 
             return engine;
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
 
     public void init(boolean forEncryption, CipherParameters params)
             throws IllegalArgumentException
     {
-        synchronized (this)
+        try
         {
             this.forEncryption = forEncryption;
             CipherParameters cipherParameters;
@@ -97,10 +98,14 @@ class AESNativeCCM
             int iatLen = initialAssociatedText != null ? initialAssociatedText.length : 0;
             initNative(
                     refWrapper.getReference(),
-                    forEncryption, refWrapper.key,
+                    forEncryption, refWrapper.getKey(),
                     nonce, initialAssociatedText, iatLen, macSize * 8);
             reset();
             initialised = true;
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -120,6 +125,7 @@ class AESNativeCCM
     @Override
     public void processAADByte(byte in)
     {
+
         associatedText.write(in);
     }
 
@@ -127,6 +133,7 @@ class AESNativeCCM
     @Override
     public void processAADBytes(byte[] in, int inOff, int len)
     {
+
         if (inOff < 0)
         {
             throw new IllegalArgumentException("offset is negative");
@@ -140,6 +147,7 @@ class AESNativeCCM
             throw new IllegalArgumentException("array too short for offset + len");
         }
         associatedText.write(in, inOff, len);
+
     }
 
 
@@ -193,7 +201,7 @@ class AESNativeCCM
     public int doFinal(byte[] out, int outOff)
             throws IllegalStateException, InvalidCipherTextException
     {
-        synchronized (this)
+        try
         {
             int len;
             try
@@ -226,15 +234,23 @@ class AESNativeCCM
 
             return len;
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
 
     @Override
     public byte[] getMac()
     {
-        synchronized (this)
+        try
         {
             return getMac(refWrapper.getReference());
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -249,9 +265,13 @@ class AESNativeCCM
     @Override
     public int getOutputSize(int len)
     {
-        synchronized (this)
+        try
         {
             return getOutputSize(refWrapper.getReference(), len + data.size());
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -259,7 +279,7 @@ class AESNativeCCM
     @Override
     public void reset()
     {
-        synchronized (this)
+        try
         {
             if (refWrapper == null)
             {
@@ -270,11 +290,49 @@ class AESNativeCCM
             data.reset();
             reset(refWrapper.getReference(), false);
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
+
+    @Override
+    public int processPacket(byte[] inBuf, int inOff, int length, byte[] outBuf, int outOff)
+            throws InvalidCipherTextException
+    {
+        try
+        {
+            int result = processPacket(refWrapper.getReference(), inBuf, inOff, length, associatedText.getBuffer(), 0, associatedText.size(), outBuf, outOff);
+            reset();
+            return result;
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
+    }
+
+    @Override
+    public byte[] processPacket(byte[] input, int inOff, int length)
+            throws InvalidCipherTextException
+    {
+        try
+        {
+            byte[] out = new byte[getOutputSize(length)];
+            processPacket(input, inOff, length, out, 0);
+            reset();
+            return out;
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
+    }
+
 
     private void resetKeepMac()
     {
-        synchronized (this)
+        try
         {
             if (refWrapper == null)
             {
@@ -284,6 +342,10 @@ class AESNativeCCM
             associatedText.reset();
             data.reset();
             reset(refWrapper.getReference(), true);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -299,6 +361,7 @@ class AESNativeCCM
             throw new IllegalStateException("CCM cipher needs to be initialised");
         }
     }
+
 
     private native void reset(long ref, boolean keepMac);
 
@@ -323,30 +386,6 @@ class AESNativeCCM
     static native int processPacket(long ref, byte[] in, int inOff, int inLen, byte[] aad, int aadOff, int aadlen,
                                     byte[] out, int outOff);
 
-    @Override
-    public int processPacket(byte[] inBuf, int inOff, int length, byte[] outBuf, int outOff)
-            throws InvalidCipherTextException
-    {
-        synchronized (this)
-        {
-            int result = processPacket(refWrapper.getReference(), inBuf, inOff, length, associatedText.getBuffer(), 0, associatedText.size(), outBuf, outOff);
-            reset();
-            return result;
-        }
-    }
-
-    @Override
-    public byte[] processPacket(byte[] input, int inOff, int length)
-            throws InvalidCipherTextException
-    {
-        synchronized (this)
-        {
-            byte[] out = new byte[getOutputSize(length)];
-            processPacket(input, inOff, length, out, 0);
-            reset();
-            return out;
-        }
-    }
 
     private static class CCMRefWrapper
             extends NativeReference
@@ -366,6 +405,11 @@ class AESNativeCCM
             return new Disposer(reference, key);
         }
 
+
+        public byte[] getKey()
+        {
+            return key;
+        }
     }
 
 
@@ -395,14 +439,11 @@ class AESNativeCCM
     @Override
     public String toString()
     {
-        synchronized (this)
+        if (refWrapper != null && refWrapper.key != null)
         {
-            if (refWrapper != null && refWrapper.key != null)
-            {
-                return "CCM[Native](AES[Native](" + (refWrapper.key.length * 8) + "))";
-            }
-            return "CCM[Native](AES[Native](not initialized))";
+            return "CCM[Native](AES[Native](" + (refWrapper.key.length * 8) + "))";
         }
+        return "CCM[Native](AES[Native](not initialized))";
     }
 
 

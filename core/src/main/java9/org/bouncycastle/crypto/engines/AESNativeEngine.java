@@ -1,40 +1,17 @@
 package org.bouncycastle.crypto.engines;
 
-import org.bouncycastle.crypto.CipherParameters;
-import org.bouncycastle.crypto.CryptoServicePurpose;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.DataLengthException;
-import org.bouncycastle.crypto.DefaultMultiBlockCipher;
-import org.bouncycastle.crypto.NativeBlockCipherProvider;
-import org.bouncycastle.crypto.NativeServices;
+import org.bouncycastle.crypto.*;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
-import org.bouncycastle.crypto.modes.CBCBlockCipher;
-import org.bouncycastle.crypto.modes.CBCModeCipher;
-import org.bouncycastle.crypto.modes.CCMBlockCipher;
-import org.bouncycastle.crypto.modes.CCMModeCipher;
-import org.bouncycastle.crypto.modes.CFBBlockCipher;
-import org.bouncycastle.crypto.modes.CFBModeCipher;
-import org.bouncycastle.crypto.modes.CTRModeCipher;
-import org.bouncycastle.crypto.modes.EAXBlockCipher;
-import org.bouncycastle.crypto.modes.EAXModeCipher;
-import org.bouncycastle.crypto.modes.GCMBlockCipher;
-import org.bouncycastle.crypto.modes.GCMModeCipher;
-import org.bouncycastle.crypto.modes.GCMSIVBlockCipher;
-import org.bouncycastle.crypto.modes.GCMSIVModeCipher;
-import org.bouncycastle.crypto.modes.NativeCCMProvider;
-import org.bouncycastle.crypto.modes.NativeEAXProvider;
-import org.bouncycastle.crypto.modes.NativeGCMSIVProvider;
-import org.bouncycastle.crypto.modes.NativeOCBProvider;
-import org.bouncycastle.crypto.modes.OCBBlockCipher;
-import org.bouncycastle.crypto.modes.OCBModeCipher;
-import org.bouncycastle.crypto.modes.SICBlockCipher;
+import org.bouncycastle.crypto.modes.*;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.dispose.NativeDisposer;
 import org.bouncycastle.util.dispose.NativeReference;
 
+import java.lang.ref.Reference;
+
 class AESNativeEngine
-    extends DefaultMultiBlockCipher
-    implements NativeBlockCipherProvider, NativeCCMProvider, NativeEAXProvider, NativeOCBProvider, NativeGCMSIVProvider
+        extends DefaultMultiBlockCipher
+        implements NativeBlockCipherProvider, NativeCCMProvider, NativeEAXProvider, NativeOCBProvider, NativeGCMSIVProvider
 {
     protected NativeReference wrapper = null;
     private int keyLen = 0;
@@ -46,9 +23,9 @@ class AESNativeEngine
 
     @Override
     public void init(boolean forEncryption, CipherParameters params)
-        throws IllegalArgumentException
+            throws IllegalArgumentException
     {
-        synchronized (this)
+        try
         {
             if (params instanceof KeyParameter)
             {
@@ -80,10 +57,15 @@ class AESNativeEngine
                 keyLen = key.length * 8;
 
                 return;
+
             }
 
 
             throw new IllegalArgumentException("invalid parameter passed to AES init - " + params.getClass().getName());
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -101,17 +83,20 @@ class AESNativeEngine
 
     @Override
     public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
-        throws DataLengthException, IllegalStateException
+            throws DataLengthException, IllegalStateException
     {
-        synchronized (this)
+        try
         {
-
             if (wrapper == null)
             {
                 throw new IllegalStateException("not initialized");
             }
 
             return process(wrapper.getReference(), in, inOff, 1, out, outOff);
+        }
+        finally
+        {
+            Reference.reachabilityFence(this);
         }
     }
 
@@ -124,11 +109,11 @@ class AESNativeEngine
 
     @Override
     public int processBlocks(byte[] in, int inOff, int blockCount, byte[] out, int outOff)
-        throws DataLengthException, IllegalStateException
+            throws DataLengthException, IllegalStateException
     {
-        synchronized (this)
-        {
 
+        try
+        {
             if (wrapper == null)
             {
                 throw new IllegalStateException("not initialized");
@@ -137,12 +122,16 @@ class AESNativeEngine
 
             return process(wrapper.getReference(), in, inOff, blockCount, out, outOff);
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
 
     @Override
     public void reset()
     {
-        synchronized (this)
+        try
         {
             // skip over spurious resets that may occur before init is called.
             if (wrapper == null)
@@ -151,8 +140,11 @@ class AESNativeEngine
             }
             reset(wrapper.getReference());
         }
+        finally
+        {
+            Reference.reachabilityFence(this);
+        }
     }
-
 
 
     @Override
@@ -238,7 +230,7 @@ class AESNativeEngine
     }
 
     private static class Disposer
-        extends NativeDisposer
+            extends NativeDisposer
     {
         Disposer(long ref)
         {
@@ -253,12 +245,12 @@ class AESNativeEngine
     }
 
     private static class ECBNativeRef
-        extends NativeReference
+            extends NativeReference
     {
 
         public ECBNativeRef(long reference)
         {
-            super(reference,"ECB");
+            super(reference, "ECB");
         }
 
         @Override
@@ -286,5 +278,4 @@ class AESNativeEngine
     static native void dispose(long ref);
 
     static native void init(long nativeRef, byte[] key);
-
 }

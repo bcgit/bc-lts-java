@@ -17,12 +17,12 @@ public class SHA3NativeDigest
     private int bitLen;
 
 
-  public   SHA3NativeDigest(CryptoServicePurpose purpose)
+    public SHA3NativeDigest(CryptoServicePurpose purpose)
     {
         this(256, purpose);
     }
 
-   public  SHA3NativeDigest(int bitLen, CryptoServicePurpose purpose)
+    public SHA3NativeDigest(int bitLen, CryptoServicePurpose purpose)
     {
         if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA3))
         {
@@ -71,8 +71,11 @@ public class SHA3NativeDigest
 
     SHA3NativeDigest restoreState(byte[] state, int offset)
     {
-        restoreFullState(nativeRef.getReference(), state, offset);
-        return this;
+        synchronized (this)
+        {
+            restoreFullState(nativeRef.getReference(), state, offset);
+            return this;
+        }
     }
 
     //
@@ -89,44 +92,62 @@ public class SHA3NativeDigest
     @Override
     public int getDigestSize()
     {
-        return getDigestSize(nativeRef.getReference());
+        synchronized (this)
+        {
+            return getDigestSize(nativeRef.getReference());
+        }
     }
 
 
     @Override
     public void update(byte in)
     {
-        update(nativeRef.getReference(), in);
+        synchronized (this)
+        {
+            update(nativeRef.getReference(), in);
+        }
     }
 
 
     @Override
     public void update(byte[] input, int inOff, int len)
     {
-        update(nativeRef.getReference(), input, inOff, len);
+        synchronized (this)
+        {
+            update(nativeRef.getReference(), input, inOff, len);
+        }
     }
 
 
     @Override
     public int doFinal(byte[] output, int outOff)
     {
-        int i = doFinal(nativeRef.getReference(), output, outOff);
-        reset();
-        return i;
+        synchronized (this)
+        {
+            int i = doFinal(nativeRef.getReference(), output, outOff);
+            reset();
+            return i;
+        }
     }
 
 
     @Override
     public void reset()
     {
-        reset(nativeRef.getReference());
+        synchronized (this)
+        {
+            reset(nativeRef.getReference());
+        }
     }
 
 
     @Override
     public int getByteLength()
     {
-        return getByteLength(nativeRef.getReference());
+        synchronized (this)
+        {
+            return getByteLength(nativeRef.getReference());
+        }
     }
 
 
@@ -139,23 +160,32 @@ public class SHA3NativeDigest
     @Override
     public void reset(Memoable other)
     {
-        SHA3NativeDigest dig = (SHA3NativeDigest) other;
-        restoreFullState(nativeRef.getReference(), dig.getEncodedState(), 0);
+        synchronized (this)
+        {
+            SHA3NativeDigest dig = (SHA3NativeDigest) other;
+            restoreFullState(nativeRef.getReference(), dig.getEncodedState(), 0);
+        }
     }
 
 
     public byte[] getEncodedState()
     {
-        int l = encodeFullState(nativeRef.getReference(), null, 0);
-        byte[] state = new byte[l];
-        encodeFullState(nativeRef.getReference(), state, 0);
-        return state;
+        synchronized (this)
+        {
+            int l = encodeFullState(nativeRef.getReference(), null, 0);
+            byte[] state = new byte[l];
+            encodeFullState(nativeRef.getReference(), state, 0);
+            return state;
+        }
     }
 
 
     void restoreFullState(byte[] encoded, int offset)
     {
-        restoreFullState(nativeRef.getReference(), encoded, offset);
+        synchronized (this)
+        {
+            restoreFullState(nativeRef.getReference(), encoded, offset);
+        }
     }
 
 

@@ -47,8 +47,11 @@ class SHA384NativeDigest
 
     SHA384NativeDigest restoreState(byte[] state, int offset)
     {
-        restoreFullState(nativeRef.getReference(), state, offset);
-        return this;
+        synchronized (this)
+        {
+            restoreFullState(nativeRef.getReference(), state, offset);
+            return this;
+        }
     }
 
     //
@@ -64,76 +67,102 @@ class SHA384NativeDigest
     @Override
     public int getDigestSize()
     {
-        return getDigestSize(nativeRef.getReference());
+        synchronized (this)
+        {
+            return getDigestSize(nativeRef.getReference());
+        }
     }
 
 
     @Override
     public void update(byte in)
     {
-
-        update(nativeRef.getReference(), in);
+        synchronized (this)
+        {
+            update(nativeRef.getReference(), in);
+        }
     }
 
 
     @Override
     public void update(byte[] input, int inOff, int len)
     {
-        update(nativeRef.getReference(), input, inOff, len);
+        synchronized (this)
+        {
+            update(nativeRef.getReference(), input, inOff, len);
+        }
     }
 
 
     @Override
     public int doFinal(byte[] output, int outOff)
     {
-        return doFinal(nativeRef.getReference(), output, outOff);
+        synchronized (this)
+        {
+            return doFinal(nativeRef.getReference(), output, outOff);
+        }
     }
 
 
     @Override
     public void reset()
     {
-        reset(nativeRef.getReference());
+        synchronized (this)
+        {
+            reset(nativeRef.getReference());
+        }
     }
 
 
     @Override
     public int getByteLength()
     {
-        return getByteLength(nativeRef.getReference());
+        synchronized (this)
+        {
+            return getByteLength(nativeRef.getReference());
+        }
     }
 
 
     @Override
     public Memoable copy()
     {
-        return new SHA384NativeDigest(this);
+        synchronized (this)
+        {
+            return new SHA384NativeDigest(this);
+        }
     }
 
     @Override
     public void reset(Memoable other)
     {
-        SHA384NativeDigest dig = (SHA384NativeDigest) other;
-        restoreFullState(nativeRef.getReference(), dig.getEncodedState(), 0);
+        synchronized (this)
+        {
+            SHA384NativeDigest dig = (SHA384NativeDigest) other;
+            restoreFullState(nativeRef.getReference(), dig.getEncodedState(), 0);
+        }
     }
 
 
     public byte[] getEncodedState()
     {
-        int l = encodeFullState(nativeRef.getReference(), null, 0);
-        byte[] state = new byte[l];
-        encodeFullState(nativeRef.getReference(), state, 0);
-        return state;
+        synchronized (this)
+        {
+            int l = encodeFullState(nativeRef.getReference(), null, 0);
+            byte[] state = new byte[l];
+            encodeFullState(nativeRef.getReference(), state, 0);
+            return state;
+        }
     }
-
-
 
 
     void restoreFullState(byte[] encoded, int offset)
     {
-        restoreFullState(nativeRef.getReference(), encoded, offset);
+        synchronized (this)
+        {
+            restoreFullState(nativeRef.getReference(), encoded, offset);
+        }
     }
-
 
 
     @Override
@@ -190,7 +219,7 @@ class SHA384NativeDigest
 
         public DigestRefWrapper(long reference)
         {
-            super(reference,"SHA384");
+            super(reference, "SHA384");
         }
 
         @Override
