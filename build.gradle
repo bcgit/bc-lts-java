@@ -1,5 +1,3 @@
-import static ExtraFunctions.propValsAsArgs
-
 buildscript {
     repositories {
         maven {
@@ -47,8 +45,6 @@ def String deriveOSGIVersion(String prjVersion) {
 
 // this needs to go here, otherwise it can't find config
 apply plugin: 'io.spring.nohttp'
-
-
 
 
 allprojects {
@@ -107,8 +103,8 @@ task modTestJar(type: Jar) {
     from(project(":util").sourceSets.test.output)
     from(project(":test").sourceSets.test.output)
     from(project(":pg").sourceSets.test.output)
-    archiveClassifier="tests"
-   // classifier("tests")
+    archiveClassifier = "tests"
+    // classifier("tests")
 }
 
 /*
@@ -127,7 +123,7 @@ task allTestJar(type: Jar) {
     from(project(":util").sourceSets.test.output)
     from(project(":test").sourceSets.test.output)
     from(project(":pg").sourceSets.test.output)
-    archiveClassifier="tests"
+    archiveClassifier = "tests"
     //classifier("tests")
 }
 
@@ -147,8 +143,8 @@ task allTestUnsignedJar(type: Jar) {
     from(project(":util").sourceSets.test.output)
     from(project(":test").sourceSets.test.output)
     from(project(":pg").sourceSets.test.output)
-    archiveClassifier="unsigned-tests"
-   // classifier("unsigned-tests")
+    archiveClassifier = "unsigned-tests"
+    // classifier("unsigned-tests")
 }
 
 allTestUnsignedJar.dependsOn(compileTestJava);
@@ -160,7 +156,7 @@ allTestUnsignedJar.dependsOn(compileTestJava);
 subprojects {
     apply plugin: 'eclipse'
 
-    task('testNEON_LE', type: Test) {
+    tasks.register('testNEON_LE', Test) {
         systemProperty 'bc.test.data.home', bcTestDataHome
         maxHeapSize = "4096m"
         minHeapSize = "2048m"
@@ -171,7 +167,7 @@ subprojects {
         maxParallelForks = 1;
         forkEvery = 1;
 
-        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
+        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
 
         filter {
             includeTestsMatching "AllTest*"
@@ -180,20 +176,24 @@ subprojects {
         // TODO 2.73.5 -- no packet ciphers implemented for ARM
 
         jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-        '-Dorg.bouncycastle.expected_jvm=1.8',
-        '-Dorg.bouncycastle.bks.enable_v1=true',
-        '-Dtest.bclts.ignore.native=es,gcmsiv,slhdsa_sha256',
-        '-Dorg.bouncycastle.native.cpu_variant=neon-le',
-        '-Dorg.bouncycastle.test.skip_pc=true'
+                '-Dorg.bouncycastle.expected_jvm=1.8',
+                '-Dorg.bouncycastle.bks.enable_v1=true',
+                '-Dtest.bclts.ignore.native=es,gcmsiv,slhdsa_sha256',
+                '-Dorg.bouncycastle.native.cpu_variant=neon-le',
+                '-Dorg.bouncycastle.test.skip_pc=true'
 
         reports {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
         }
     }
 
+    tasks.register('test11NEON_LE', Test) {
+        onlyIf { System.getenv("LTS_JDK11") != null }
 
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(11);
+        }
 
-    task('testVAESFNoPC', type: Test) {
         systemProperty 'bc.test.data.home', bcTestDataHome
         maxHeapSize = "4096m"
         minHeapSize = "2048m"
@@ -204,7 +204,120 @@ subprojects {
         maxParallelForks = 1;
         forkEvery = 1;
 
-        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
+
+        dependsOn(jar)
+
+        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
+
+        println(jar.archiveFile);
+
+        filter {
+            includeTestsMatching "AllTest*"
+        }
+
+        // TODO 2.73.5 -- no packet ciphers implemented for ARM
+
+        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
+                '-Dorg.bouncycastle.expected_jvm=11.',
+                '-Dorg.bouncycastle.bks.enable_v1=true',
+                '-Dtest.bclts.ignore.native=es,gcmsiv,slhdsa_sha256',
+                '-Dorg.bouncycastle.native.cpu_variant=neon-le',
+                '-Dorg.bouncycastle.test.skip_pc=true'
+
+        reports {
+            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+        }
+    }
+
+    tasks.register('test17NEON_LE', Test) {
+
+        onlyIf { System.getenv("LTS_JDK17") != null }
+
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        maxHeapSize = "4096m"
+        minHeapSize = "2048m"
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+        maxParallelForks = 1;
+        forkEvery = 1;
+
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(17);
+        }
+
+        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
+
+        filter {
+            includeTestsMatching "AllTest*"
+        }
+
+        // TODO 2.73.5 -- no packet ciphers implemented for ARM
+
+        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
+                '-Dorg.bouncycastle.expected_jvm=11.',
+                '-Dorg.bouncycastle.bks.enable_v1=true',
+                '-Dtest.bclts.ignore.native=es,gcmsiv,slhdsa_sha256',
+                '-Dorg.bouncycastle.native.cpu_variant=neon-le',
+                '-Dorg.bouncycastle.test.skip_pc=true'
+
+        reports {
+            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+        }
+    }
+
+    tasks.register('test21NEON_LE',Test) {
+
+        onlyIf { System.getenv("LTS_JDK21") != null }
+
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        maxHeapSize = "4096m"
+        minHeapSize = "2048m"
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+        maxParallelForks = 1;
+        forkEvery = 1;
+
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(21);
+        }
+
+        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
+
+        filter {
+            includeTestsMatching "AllTest*"
+        }
+
+        // TODO 2.73.5 -- no packet ciphers implemented for ARM
+
+        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
+                '-Dorg.bouncycastle.expected_jvm=11.',
+                '-Dorg.bouncycastle.bks.enable_v1=true',
+                '-Dtest.bclts.ignore.native=es,gcmsiv,slhdsa_sha256',
+                '-Dorg.bouncycastle.native.cpu_variant=neon-le',
+                '-Dorg.bouncycastle.test.skip_pc=true'
+
+        reports {
+            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
+        }
+    }
+
+
+    tasks.register('testVAESFNoPC',Test) {
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        maxHeapSize = "4096m"
+        minHeapSize = "2048m"
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+        maxParallelForks = 1;
+        forkEvery = 1;
+
+        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
 
         filter {
             includeTestsMatching "AllTest*"
@@ -222,7 +335,7 @@ subprojects {
     }
 
 
-    task('testVAESF', type: Test) {
+    tasks.register('testVAESF', Test) {
         systemProperty 'bc.test.data.home', bcTestDataHome
         maxHeapSize = "4096m"
         minHeapSize = "2048m"
@@ -233,7 +346,7 @@ subprojects {
         maxParallelForks = 1;
         forkEvery = 1;
 
-        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
+        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
 
         filter {
             includeTestsMatching "AllTest*"
@@ -250,7 +363,7 @@ subprojects {
     }
 
 
-    task('testVAESNoPC', type: Test) {
+    tasks.register('testVAESNoPC', Test) {
         systemProperty 'bc.test.data.home', bcTestDataHome
         maxHeapSize = "4096m"
         minHeapSize = "2048m"
@@ -261,7 +374,7 @@ subprojects {
         maxParallelForks = 1;
         forkEvery = 1;
 
-        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
+        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
 
         filter {
             includeTestsMatching "AllTest*"
@@ -280,7 +393,7 @@ subprojects {
     }
 
 
-    task('testVAES', type: Test) {
+    tasks.register('testVAES', Test) {
         systemProperty 'bc.test.data.home', bcTestDataHome
         maxHeapSize = "4096m"
         minHeapSize = "2048m"
@@ -291,7 +404,7 @@ subprojects {
         maxParallelForks = 1;
         forkEvery = 1;
 
-        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
+        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
 
         filter {
             includeTestsMatching "AllTest*"
@@ -309,7 +422,7 @@ subprojects {
     }
 
 
-    task('testAVXNoPC', type: Test) {
+    tasks.register('testAVXNoPC', Test) {
         systemProperty 'bc.test.data.home', bcTestDataHome
         maxHeapSize = "4096m"
         minHeapSize = "2048m"
@@ -320,7 +433,7 @@ subprojects {
         maxParallelForks = 1;
         forkEvery = 1;
 
-        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
+        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
 
         filter {
             includeTestsMatching "AllTest*"
@@ -342,7 +455,7 @@ subprojects {
         }
     }
 
-    task('testAVX', type: Test) {
+    tasks.register('testAVX', Test) {
         systemProperty 'bc.test.data.home', bcTestDataHome
         maxHeapSize = "4096m"
         minHeapSize = "2048m"
@@ -353,7 +466,7 @@ subprojects {
         maxParallelForks = 1;
         forkEvery = 1;
 
-        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
+        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
 
         filter {
             includeTestsMatching "AllTest*"
@@ -400,6 +513,31 @@ subprojects {
         reports {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
         }
+
+
+        //
+        // Keep these at bottom of subprojects block
+        //
+
+        if (System.getenv("LTS_JDK11") != null) {
+            var tsk = tasks.getByName("testNEON_LE")
+            System.out.println("${project.name}: Adding test11NEON_LE as dependency for testNEON_LE task because LTS_JDK17 is defined")
+            tsk.dependsOn("test11NEON_LE")
+        }
+
+        if (System.getenv("LTS_JDK17") != null) {
+            var tsk = tasks.getByName("testNEON_LE")
+            System.out.println("${project.name}: Adding test17NEON_LE as dependency for testNEON_LE task because LTS_JDK17 is defined")
+            tsk.dependsOn("test17NEON_LE")
+        }
+
+        if (System.getenv("LTS_JDK21") != null) {
+            var tsk = tasks.getByName("testNEON_LE")
+            System.out.println("${project.name}: Adding test21NEON_LE as dependency for testNEON_LE task because LTS_JDK21 is defined")
+            tsk.dependsOn("test21NEON_LE")
+        }
+
+
     }
 
 
@@ -414,7 +552,7 @@ subprojects {
         maxParallelForks = 1;
         forkEvery = 1;
 
-        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
+        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
 
         jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
                 '-Dorg.bouncycastle.expected_jvm=1.8',
@@ -450,7 +588,7 @@ subprojects {
         maxParallelForks = 1;
         forkEvery = 1;
 
-        classpath = files(jar.archiveFile)+ sourceSets.test.runtimeClasspath
+        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
 
         jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
                 '-Dorg.bouncycastle.expected_jvm=1.8',
@@ -472,7 +610,6 @@ subprojects {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
         }
     }
-
 
 
     dependencies {
@@ -500,9 +637,9 @@ subprojects {
         options.debug = true;
     }
 
-    task('fopyJars', type:Copy) {
-        from new File(projectDir,"build/libs")
-        into new File(rootDir,"../bc-lts-java-jars/${project.version}/")
+    task('fopyJars', type: Copy) {
+        from new File(projectDir, "build/libs")
+        into new File(rootDir, "../bc-lts-java-jars/${project.version}/")
     }
 
     compileTestJava {
@@ -512,8 +649,7 @@ subprojects {
 }
 
 
-
-tasks.register("copyAndScanJars",DuplicateClassFinder) {
+tasks.register("copyAndScanJars", DuplicateClassFinder) {
     jarDir = "../bc-lts-java-jars/"
     ignore.add("bccore-lts8on:bcprov-lts8on")
     ignore.add("bcjmail-lts8on:bcmail-lts8on")
