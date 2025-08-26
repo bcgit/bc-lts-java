@@ -284,7 +284,7 @@ subprojects {
         // TODO 2.73.5 -- no packet ciphers implemented for ARM
 
         jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=11.',
+                '-Dorg.bouncycastle.expected_jvm=11',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=es,gcmsiv,slhdsa_sha256',
                 '-Dorg.bouncycastle.native.cpu_variant=neon-le',
@@ -321,7 +321,7 @@ subprojects {
         // TODO 2.73.5 -- no packet ciphers implemented for ARM
 
         jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=17.',
+                '-Dorg.bouncycastle.expected_jvm=17',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=es,gcmsiv,slhdsa_sha256',
                 '-Dorg.bouncycastle.native.cpu_variant=neon-le',
@@ -331,6 +331,7 @@ subprojects {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
         }
     }
+
     tasks.register('test21NEON_LE', Test) {
 
         onlyIf { System.getenv("LTS_JDK21") != null }
@@ -358,7 +359,7 @@ subprojects {
         // TODO 2.73.5 -- no packet ciphers implemented for ARM
 
         jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=21.',
+                '-Dorg.bouncycastle.expected_jvm=21',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=es,gcmsiv,slhdsa_sha256',
                 '-Dorg.bouncycastle.native.cpu_variant=neon-le',
