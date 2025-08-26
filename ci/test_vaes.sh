@@ -21,8 +21,7 @@ export PATH=$JAVA_HOME/bin:$PATH
 java -Dorg.bouncycastle.native.cpu_variant=vaes -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo
 
 
+# testVAES will run against jdk 21, we can skip test21VAES test target in this case.
 
-# testVAES and testVAESNoPC task will run against jdk 21, we can skip the specific test target for that JVM in this case
-
-./gradlew -Pdebug_build=true -Pskip.pqc.tests testVAES testVAESNoPC -x test -x test21VAES -x test21VAESNoP
+./gradlew -Pdebug_build=true -Pskip.pqc.tests testVAES  -x test -x test21VAES
 

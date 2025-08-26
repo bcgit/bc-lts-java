@@ -1,14 +1,11 @@
 package org.bouncycastle.jce.provider.test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.lang.reflect.Field;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.Key;
-import java.security.SecureRandom;
-import java.security.Security;
+import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
+import org.bouncycastle.crypto.prng.FixedSecureRandom;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.encoders.Hex;
+import org.bouncycastle.util.test.TestRandomData;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -16,20 +13,13 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-
-import junit.framework.TestCase;
-import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
-import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.modes.CBCBlockCipher;
-import org.bouncycastle.crypto.modes.CBCModeCipher;
-import org.bouncycastle.crypto.params.KeyParameter;
-import org.bouncycastle.crypto.params.ParametersWithIV;
-import org.bouncycastle.crypto.prng.FixedSecureRandom;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.util.Arrays;
-import org.bouncycastle.util.encoders.Hex;
-import org.bouncycastle.util.test.TestRandomData;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.Key;
+import java.security.Security;
 
 /**
  * basic test class for the AES cipher vectors from FIPS-197
@@ -466,73 +456,9 @@ public class AESTest
     }
 
 
-    public void packetCipher() throws Exception
-    {
-        // Trigger use of packet cipher in test
-
-        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
-        {
-            Security.addProvider(new BouncyCastleProvider());
-        }
-
-
-        if ("true".equals(System.getProperty("org.bouncycastle.test.skip_pc"))) {
-            System.out.println("Skipping test on packetCipher");
-            return;
-        }
-
-        SecureRandom rand = new SecureRandom();
-
-        byte[] key = new byte[16];
-        byte[] iv = new byte[16];
-        byte[] msg = new byte[32];
-        byte[] expected = null;
-
-        rand.nextBytes(key);
-        rand.nextBytes(iv);
-        rand.nextBytes(msg);
-
-        CryptoServicesRegistrar.setNativeEnabled(false);
-
-        // Produce a test vector with the low level api
-        CBCModeCipher cbc = CBCBlockCipher.newInstance(AESEngine.newInstance());
-        cbc.init(true, new ParametersWithIV(new KeyParameter(key), iv));
-
-        TestCase.assertTrue(cbc.toString().contains("CBC[Java](AES[Java]")); // Must be java version
-
-        expected = new byte[msg.length];
-        cbc.processBlocks(msg, 0, 2, expected, 0);
-
-        Cipher javaC = Cipher.getInstance("AES/CBC/NOPADDING", BouncyCastleProvider.PROVIDER_NAME);
-
-        javaC.init(Cipher.ENCRYPT_MODE, new SecretKeySpec(key, "AES"), new IvParameterSpec(iv));
-
-        if (isJava8())
-        {
-            TestCase.assertTrue(getPacketCipherToString(javaC).contains("BlockCipher(CBC[Java](AES[Java]")); //
-            // Should be null as not call to do final has occurred.
-        }
-        byte[] out = new byte[javaC.getOutputSize(msg.length)];
-        TestCase.assertEquals(out.length, expected.length);
-
-        javaC.doFinal(msg, 0, msg.length, out, 0);
-
-        if (isJava8())
-        {
-            TestCase.assertTrue(getPacketCipherToString(javaC).contains("CBC-PS[Java](AES[Java])")); //
-        }
-
-        TestCase.assertTrue(Arrays.areEqual(expected, out));
-
-
-    }
-
-
     public void performTest()
             throws Exception
     {
-
-        packetCipher();
 
         for (int i = 0; i != cipherTests.length; i += 4)
         {
@@ -625,23 +551,5 @@ public class AESTest
         runTest(new AESTest());
     }
 
-
-    private static String getPacketCipherToString(Cipher cipher)
-    {
-        try
-        {
-            Class cl = cipher.getClass();
-            Field f = cl.getDeclaredField("spi");
-            f.setAccessible(true);
-            Object k = f.get(cipher);
-            return k == null ? null : k.toString();
-
-        }
-        catch (Exception ex)
-        {
-            throw new RuntimeException(ex.getMessage(), ex);
-        }
-
-    }
 
 }

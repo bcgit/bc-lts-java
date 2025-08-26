@@ -1,24 +1,5 @@
 package org.bouncycastle.crypto;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.net.URL;
-import java.security.AccessController;
-import java.security.Permission;
-import java.security.PrivilegedAction;
-import java.security.Provider;
-import java.security.SecureRandom;
-import java.security.SecureRandomSpi;
-import java.security.Security;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Logger;
-
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.macs.HMac;
@@ -34,6 +15,19 @@ import org.bouncycastle.util.Pack;
 import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.BigInteger;
+import java.net.URL;
+import java.security.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Logger;
 
 /**
  * Basic registrar class for providing defaults for cryptography services in this module.
@@ -74,10 +68,8 @@ public final class CryptoServicesRegistrar
 
     private static final NativeServices nativeServices;
 
-    public static final String PACKET_CIPHER_ENABLE_PROP = "org.bouncycastle.packet_cipher_enabled";
 
-    // TODO Experimental at this point, off by default
-    private static boolean packetCipherEnabled = false;
+
 
     static
     {
@@ -155,12 +147,6 @@ public final class CryptoServicesRegistrar
         NativeLoader.loadDriver();
 
         nativeServices = new DefaultNativeServices();
-        if ("true".equals(Properties.getPropertyValue(PACKET_CIPHER_ENABLE_PROP)))
-        {
-            packetCipherEnabled = true;
-        }
-
-
     }
 
 
@@ -191,14 +177,15 @@ public final class CryptoServicesRegistrar
         return nativeServices;
     }
 
+    @Deprecated
     public static void setPacketCipherEnabled(boolean enabled)
     {
-        packetCipherEnabled = enabled;
     }
 
+    @Deprecated
     public static boolean isPacketCipherEnabled()
     {
-        return packetCipherEnabled;
+        return false;
     }
 
     public static boolean hasEnabledService(String feature)

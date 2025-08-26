@@ -1638,4 +1638,13 @@ public class BaseBlockCipher
             }
         }
     }
+
+    @Override
+    public String toString()
+    {
+        return cipher.toString();
+    }
+
+
+
 }

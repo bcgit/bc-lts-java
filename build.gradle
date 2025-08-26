@@ -212,8 +212,6 @@ subprojects {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
         }
     }
-
-
     tasks.register('test8NEON_LE', Test) {
         onlyIf { System.getenv("LTS_JDK8") != null }
 
@@ -255,8 +253,6 @@ subprojects {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
         }
     }
-
-
     tasks.register('test11NEON_LE', Test) {
         onlyIf { System.getenv("LTS_JDK11") != null }
 
@@ -298,7 +294,6 @@ subprojects {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
         }
     }
-
     tasks.register('test17NEON_LE', Test) {
 
         onlyIf { System.getenv("LTS_JDK17") != null }
@@ -336,7 +331,6 @@ subprojects {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
         }
     }
-
     tasks.register('test21NEON_LE', Test) {
 
         onlyIf { System.getenv("LTS_JDK21") != null }
@@ -374,181 +368,8 @@ subprojects {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
         }
     }
-    tasks.register('testVAESFNoPC', Test) {
-
-        //
-        // Run on the java version used by gradle, other factors may effect what java version you can use
-        //
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-        }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=any',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=vaesf',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
 
 
-    tasks.register('test8VAESFNoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK8") != null }
-
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(8);
-        }
-
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-        }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=1.8',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=vaesf',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
-    tasks.register('test11VAESFNoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK11") != null }
-
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(11);
-        }
-
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-        }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=11',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=vaesf',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
-    tasks.register('test17VAESFNoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK17") != null }
-
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(17);
-        }
-
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-        }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=17',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=vaesf',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
-
-    tasks.register('test21VAESFNoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK21") != null }
-
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(21);
-        }
-
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-        }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=21',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=vaesf',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
 
 
     // ----
@@ -575,8 +396,7 @@ subprojects {
         filter {
             includeTestsMatching "AllTest*"
         }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=any',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=any',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=vaesf'
@@ -608,8 +428,7 @@ subprojects {
         filter {
             includeTestsMatching "AllTest*"
         }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=1.8',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=vaesf'
@@ -640,8 +459,7 @@ subprojects {
         filter {
             includeTestsMatching "AllTest*"
         }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=11',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=11',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=vaesf'
@@ -673,8 +491,7 @@ subprojects {
         filter {
             includeTestsMatching "AllTest*"
         }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=17',
+        jvmArgs  '-Dorg.bouncycastle.expected_jvm=17',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=vaesf'
@@ -683,7 +500,7 @@ subprojects {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
         }
     }
-    tasks.register('test21VAESF', Test) {
+    tasks.register('test21VAESF', Test)   {
 
         onlyIf { System.getenv("LTS_JDK21") != null }
 
@@ -706,8 +523,7 @@ subprojects {
         filter {
             includeTestsMatching "AllTest*"
         }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=21',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=21',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=vaesf'
@@ -716,180 +532,6 @@ subprojects {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
         }
     }
-
-    tasks.register('testVAESNoPC', Test) {
-
-        //
-        // Run on the java version used by gradle, other factors may effect what java version you can use
-        //
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-        }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=any',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=vaes',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-
-    }
-    tasks.register('test8VAESNoPC', Test) {
-        onlyIf { System.getenv("LTS_JDK8") != null }
-
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(8);
-        }
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-        }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=8',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=vaes',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-
-    }
-    tasks.register('test11VAESNoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK11") != null }
-
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(11);
-        }
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-        }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=11',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=vaes',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-
-    }
-    tasks.register('test17VAESNoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK17") != null }
-
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(17);
-        }
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-        }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=17',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=vaes',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-
-    }
-    tasks.register('test21VAESNoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK21") != null }
-
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(21);
-        }
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-        }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=21',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=vaes',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-
-    }
-
 
     tasks.register('testVAES', Test) {
 
@@ -912,8 +554,7 @@ subprojects {
         filter {
             includeTestsMatching "AllTest*"
         }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=any',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=any',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=vaes'
@@ -923,8 +564,7 @@ subprojects {
         }
 
     }
-
-    tasks.register('test8VAES', Test) {
+    tasks.register('test8VAES', Test)  {
 
         onlyIf { System.getenv("LTS_JDK8") != null }
 
@@ -947,8 +587,7 @@ subprojects {
         filter {
             includeTestsMatching "AllTest*"
         }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=1.8',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=vaes'
@@ -957,7 +596,6 @@ subprojects {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
         }
     }
-
     tasks.register('test11VAES', Test) {
 
         onlyIf { System.getenv("LTS_JDK11") != null }
@@ -981,8 +619,7 @@ subprojects {
         filter {
             includeTestsMatching "AllTest*"
         }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=11',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=11',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=vaes'
@@ -1015,8 +652,7 @@ subprojects {
         filter {
             includeTestsMatching "AllTest*"
         }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=17',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=17',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=vaes'
@@ -1049,8 +685,7 @@ subprojects {
         filter {
             includeTestsMatching "AllTest*"
         }
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=21',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=21',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=vaes'
@@ -1061,204 +696,7 @@ subprojects {
 
     }
 
-
-    tasks.register('testAVXNoPC', Test) {
-
-        //
-        // Run on the java version used by gradle, other factors may effect what java version you can use
-        //
-
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-
-            if (rootProject.hasProperty("skip.pqc.tests")) {
-                exclude('**/pqc/**')
-            }
-        }
-
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=any',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=avx',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
-    tasks.register('testAVX8NoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK8") != null }
-
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(8);
-        }
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-
-            if (rootProject.hasProperty("skip.pqc.tests")) {
-                exclude('**/pqc/**')
-            }
-        }
-
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=1.8',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=avx',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
-    tasks.register('testAVX11NoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK11") != null }
-
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(11);
-        }
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-
-            if (rootProject.hasProperty("skip.pqc.tests")) {
-                exclude('**/pqc/**')
-            }
-        }
-
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=11',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=avx',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
-    tasks.register('testAVX17NoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK17") != null }
-
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(17);
-        }
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-
-            if (rootProject.hasProperty("skip.pqc.tests")) {
-                exclude('**/pqc/**')
-            }
-        }
-
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=17',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=avx',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
-    tasks.register('testAVX21NoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK21") != null }
-
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(21);
-        }
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        filter {
-            includeTestsMatching "AllTest*"
-
-            if (rootProject.hasProperty("skip.pqc.tests")) {
-                exclude('**/pqc/**')
-            }
-        }
-
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=21',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
-                '-Dorg.bouncycastle.native.cpu_variant=avx',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
-
-
-    tasks.register('testAVX', Test) {
+    tasks.register('testAVX', Test)  {
 
         //
         // Run on the java version used by gradle, other factors may effect what java version you can use
@@ -1284,8 +722,7 @@ subprojects {
             }
         }
 
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=any',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=any',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=avx'
@@ -1323,8 +760,7 @@ subprojects {
             }
         }
 
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=1.8',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=avx'
@@ -1362,8 +798,7 @@ subprojects {
             }
         }
 
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=11',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=11',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=avx'
@@ -1401,8 +836,7 @@ subprojects {
             }
         }
 
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=17',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=17',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=avx'
@@ -1440,218 +874,10 @@ subprojects {
             }
         }
 
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=21',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=21',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha512,sha384,sha3,shake',
                 '-Dorg.bouncycastle.native.cpu_variant=avx'
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
-
-
-    tasks.register('testNoPC', Test) {
-
-        //
-        // Run on whatever Gradle is running on, other factors may effect what version you can use.
-        //
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=any',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake,slhdsa_sha256',
-                '-Dorg.bouncycastle.native.cpu_variant=java',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        finalizedBy jacocoTestReport
-
-        filter {
-            includeTestsMatching "AllTest*"
-
-            if (rootProject.hasProperty("skip.pqc.tests")) {
-                exclude('**/pqc/**')
-            }
-        }
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
-
-    tasks.register('test8NoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK8") != null }
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(8);
-        }
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=1.8',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake,slhdsa_sha256',
-                '-Dorg.bouncycastle.native.cpu_variant=java',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        finalizedBy jacocoTestReport
-
-        filter {
-            includeTestsMatching "AllTest*"
-
-            if (rootProject.hasProperty("skip.pqc.tests")) {
-                exclude('**/pqc/**')
-            }
-        }
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
-
-    tasks.register('test11NoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK11") != null }
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(11);
-        }
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=11',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake,slhdsa_sha256',
-                '-Dorg.bouncycastle.native.cpu_variant=java',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        finalizedBy jacocoTestReport
-
-        filter {
-            includeTestsMatching "AllTest*"
-
-            if (rootProject.hasProperty("skip.pqc.tests")) {
-                exclude('**/pqc/**')
-            }
-        }
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
-
-
-    tasks.register('test17NoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK17") != null }
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(17);
-        }
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=17',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake,slhdsa_sha256',
-                '-Dorg.bouncycastle.native.cpu_variant=java',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        finalizedBy jacocoTestReport
-
-        filter {
-            includeTestsMatching "AllTest*"
-
-            if (rootProject.hasProperty("skip.pqc.tests")) {
-                exclude('**/pqc/**')
-            }
-        }
-
-        reports {
-            junitXml.outputLocation = layout.buildDirectory.dir("test-results")
-        }
-    }
-
-
-    tasks.register('test21NoPC', Test) {
-
-        onlyIf { System.getenv("LTS_JDK21") != null }
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(21);
-        }
-
-        systemProperty 'bc.test.data.home', bcTestDataHome
-        maxHeapSize = "4096m"
-        minHeapSize = "2048m"
-        testLogging.showStandardStreams = true
-        testLogging.showCauses = true
-        testLogging.showExceptions = true
-        testLogging.showStackTraces = true
-        maxParallelForks = 1;
-        forkEvery = 1;
-
-        classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
-
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=false',
-                '-Dorg.bouncycastle.expected_jvm=21',
-                '-Dorg.bouncycastle.bks.enable_v1=true',
-                '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake,slhdsa_sha256',
-                '-Dorg.bouncycastle.native.cpu_variant=java',
-                '-Dorg.bouncycastle.test.skip_pc=true'
-
-        finalizedBy jacocoTestReport
-
-        filter {
-            includeTestsMatching "AllTest*"
-
-            if (rootProject.hasProperty("skip.pqc.tests")) {
-                exclude('**/pqc/**')
-            }
-        }
 
         reports {
             junitXml.outputLocation = layout.buildDirectory.dir("test-results")
@@ -1673,8 +899,7 @@ subprojects {
 
         classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
 
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=any',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=any',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake,slhdsa_sha256',
                 '-Dorg.bouncycastle.native.cpu_variant=java'
@@ -1714,8 +939,7 @@ subprojects {
 
         classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
 
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=1.8',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake,slhdsa_sha256',
                 '-Dorg.bouncycastle.native.cpu_variant=java'
@@ -1757,8 +981,7 @@ subprojects {
 
         classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
 
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=11',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=11',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake,slhdsa_sha256',
                 '-Dorg.bouncycastle.native.cpu_variant=java'
@@ -1799,8 +1022,7 @@ subprojects {
 
         classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
 
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=17',
+        jvmArgs   '-Dorg.bouncycastle.expected_jvm=17',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake,slhdsa_sha256',
                 '-Dorg.bouncycastle.native.cpu_variant=java'
@@ -1841,8 +1063,7 @@ subprojects {
 
         classpath = files(jar.archiveFile) + sourceSets.test.runtimeClasspath
 
-        jvmArgs '-Dorg.bouncycastle.packet_cipher_enabled=true',
-                '-Dorg.bouncycastle.expected_jvm=21',
+        jvmArgs '-Dorg.bouncycastle.expected_jvm=21',
                 '-Dorg.bouncycastle.bks.enable_v1=true',
                 '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake,slhdsa_sha256',
                 '-Dorg.bouncycastle.native.cpu_variant=java'
@@ -1936,41 +1157,26 @@ subprojects {
             // If the EnvVar is not null, the primary task depend on the specific task.
             //
 
-            new Tuple("LTS_JDK8", "testAVXNoPC", "test8AVXNoPC"),
-            new Tuple("LTS_JDK11", "testAVXNoPC", "test11AVXNoPC"),
-            new Tuple("LTS_JDK17", "testAVXNoPC", "test17AVXNoPC"),
-            new Tuple("LTS_JDK21", "testAVXNoPC", "test21AVXNoPC"),
+
+            new Tuple("LTS_JDK8", "testNEON_LE", "test8NEON_LE"),
+            new Tuple("LTS_JDK11", "testNEON_LE", "test11NEON_LE"),
+            new Tuple("LTS_JDK17", "testNEON_LE", "test17NEON_LE"),
+            new Tuple("LTS_JDK21", "testNEON_LE", "test21NEON_LE"),
 
             new Tuple("LTS_JDK8", "testAVX", "test8AVX"),
             new Tuple("LTS_JDK11", "testAVX", "test11AVX"),
             new Tuple("LTS_JDK17", "testAVX", "test17AVX"),
             new Tuple("LTS_JDK21", "testAVX", "test21AVX"),
 
-            new Tuple("LTS_JDK8", "testVAESNoPC", "test8VAESNoPC"),
-            new Tuple("LTS_JDK11", "testVAESNoPC", "test11VAESNoPC"),
-            new Tuple("LTS_JDK17", "testVAESNoPC", "test17VAESNoPC"),
-            new Tuple("LTS_JDK21", "testVAESNoPC", "test21VAESNoPC"),
-
             new Tuple("LTS_JDK8", "testVAES", "test8VAES"),
             new Tuple("LTS_JDK11", "testVAES", "test11VAES"),
             new Tuple("LTS_JDK17", "testVAES", "test17VAES"),
             new Tuple("LTS_JDK21", "testVAES", "test21VAES"),
 
-            new Tuple("LTS_JDK8", "testVAESFNoPC", "test8VAESFNoPC"),
-            new Tuple("LTS_JDK11", "testVAESFNoPC", "test11VAESFNoPC"),
-            new Tuple("LTS_JDK17", "testVAESFNoPC", "test17VAESFNoPC"),
-            new Tuple("LTS_JDK21", "testVAESFNoPC", "test21VAESFNoPC"),
-
             new Tuple("LTS_JDK8", "testVAESF", "test8VAESF"),
             new Tuple("LTS_JDK11", "testVAESF", "test11VAESF"),
             new Tuple("LTS_JDK17", "testVAESF", "test17VAESF"),
             new Tuple("LTS_JDK21", "testVAESF", "test21VAESF"),
-
-
-            new Tuple("LTS_JDK8", "testNoPC", "test8NoPC"),
-            new Tuple("LTS_JDK11", "testNoPC", "test11NoPC"),
-            new Tuple("LTS_JDK17", "testNoPC", "test17NoPC"),
-            new Tuple("LTS_JDK21", "testNoPC", "test21NoPC"),
 
             new Tuple("LTS_JDK8", "test", "test8"),
             new Tuple("LTS_JDK11", "test", "test11"),
