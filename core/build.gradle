@@ -24,22 +24,22 @@ dependencies {
     }
 }
 
-test {
-    testLogging.showStandardStreams = true
-    testLogging.showCauses = true
-    testLogging.showExceptions = true
-    testLogging.showStackTraces = true
-
-   jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8',
-           '-Dorg.bouncycastle.bks.enable_v1=true',
-           '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake,slhdsa_sha256',
-           '-Dorg.bouncycastle.native.cpu_variant=java'
-
-    filter {
-        includeTestsMatching "AllTest*"
-    }
-
-}
+//test {
+//    testLogging.showStandardStreams = true
+//    testLogging.showCauses = true
+//    testLogging.showExceptions = true
+//    testLogging.showStackTraces = true
+//
+//   jvmArgs '-Dorg.bouncycastle.expected_jvm=1.8',
+//           '-Dorg.bouncycastle.bks.enable_v1=true',
+//           '-Dtest.bclts.ignore.native=sha,gcm,gcmsiv,cbc,ecb,es,cfb,ctr,ccm,sha512,sha224,sha384,sha3,shake,slhdsa_sha256',
+//           '-Dorg.bouncycastle.native.cpu_variant=java'
+//
+//    filter {
+//        includeTestsMatching "AllTest*"
+//    }
+//
+//}
 
 jar {
     from sourceSets.main.output

@@ -20,5 +20,7 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 java -Dorg.bouncycastle.native.cpu_variant=vaesf -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo
 
-./gradlew -Pskip.pqc.tests testVAESF testVAESFNoPC -x test
+# testVAESF and testVAESFNoPC task will run against jdk 21, we can skip the specific test target for that JVM in this case
+
+./gradlew -Pdebug_build=true -Pskip.pqc.tests testVAESF testVAESFNoPC -x test -x test21VAESF -x test21VAESFNoPC
 

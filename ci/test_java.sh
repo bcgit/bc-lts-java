@@ -15,7 +15,8 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 env
 
+# test21 and test21NoPC task will run against jdk 21, we can skip the specific test target for that JVM in this case
 
-./gradlew clean cleanNative build testNoPC
+./gradlew clean cleanNative build testNoPC -x test21 -x test21NoPC
 
 

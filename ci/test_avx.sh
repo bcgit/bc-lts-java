@@ -20,5 +20,8 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 java -Dorg.bouncycastle.native.cpu_variant=avx -cp prov/build/libs/bcprov-lts8on-`./version.sh`.jar org.bouncycastle.util.DumpInfo
 
-./gradlew -Pskip.pqc.tests testAVX testAVXNoPC -x test
+
+# testAVX task will run against jdk 21, we can skip the specific test target for that JVM.
+
+./gradlew -Pdebug_build=true -Pskip.pqc.tests testAVX testAVXNoPC -x test -x test21AVX -x test21AVXNoPC
 

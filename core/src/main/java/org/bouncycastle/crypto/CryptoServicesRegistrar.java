@@ -42,6 +42,8 @@ public final class CryptoServicesRegistrar
 {
     private static final Logger LOG = Logger.getLogger(CryptoServicesRegistrar.class.getName());
 
+    private static final String infoString = "BouncyCastle APIs (LTS edition) v2.73.8";
+
     private static final Permission CanSetDefaultProperty =
             new CryptoServicesPermission(CryptoServicesPermission.GLOBAL_CONFIG);
     private static final Permission CanSetThreadProperty =
@@ -169,7 +171,7 @@ public final class CryptoServicesRegistrar
 
     public static String getInfo()
     {
-        return "BouncyCastle APIs (LTS edition) v2.73.7";
+        return infoString;
     }
 
     public static boolean isNativeEnabled()

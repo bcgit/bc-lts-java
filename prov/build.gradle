@@ -4,7 +4,7 @@ plugins {
     id "biz.aQute.bnd.builder" version "7.0.0"
 }
 
-jar.archiveBaseName = "bcprov-lts$vm_range"
+jar.archiveBaseName = "bcprov-lts${vm_range}${rootProject.ext.debugSuffix}"
 
 sourceSets {
     main {
@@ -58,27 +58,33 @@ dependencies {
 
 compileJava {
     options.release = 8
+    options.debug = rootProject.ext.debugBuild
 }
 
 compileJava9Java {
     options.release = 9
+    options.debug = rootProject.ext.debugBuild
     options.sourcepath = files(['../core/src/main/java', 'src/main/java', 'src/main/jdk1.9','../core/src/main/java9'])
 }
 
 compileJava11Java {
     options.release = 11
+    options.debug = rootProject.ext.debugBuild
 }
 
 compileJava15Java {
     options.release = 15
+    options.debug = rootProject.ext.debugBuild
 }
 
 compileJava21Java {
     options.release = 21
+    options.debug = rootProject.ext.debugBuild
 }
 
 compileTestJava {
     options.release = 8
+    options.debug = true
 }
 
 

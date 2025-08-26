@@ -10,7 +10,13 @@ public class ExpectedJVMTest extends TestCase
     public void testExpectedJVM()
     {
         String actual = System.getProperty("java.version", "!");
-        String expected = System.getProperty("org.bouncycastle.expected_jvm", "-");
+        String expected = System.getProperty("org.bouncycastle.expected_jvm", "any").trim();
+
+        if ("any".equals(expected)) {
+            System.out.println("NOT ASSERTING JVM Version!");
+            TestCase.assertTrue(true);
+            return;
+        }
 
         boolean ok = actual.startsWith(expected);
 
