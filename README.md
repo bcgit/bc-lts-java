@@ -236,7 +236,7 @@ a segfault.
 
 
 ### Disposal Daemon / Freeing native allocations
-The library tacks classes and when they become available for garbage collection, and we free any underlying native allocations.
+The library tracks classes and when they become available for garbage collection, and we free any underlying native allocations.
 
 Overly aggressive garbage collectors may signal that a class is available for collection while another thread is accessing
 that class. On busy multicore machines this may occur during the last call to that class causing use after free situation.
