@@ -103,6 +103,11 @@ artifacts {
 }
 
 task('copyJars', type: Copy) {
+
+    dependsOn("jar")
+    dependsOn("sourcesJar")
+    dependsOn("javadocJar")
+
     from new File(projectDir, "build/libs")
     into new File(rootDir, "../bc-lts-java-jars/${version}/")
 }

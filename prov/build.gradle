@@ -17,7 +17,7 @@ sourceSets {
     }
     java9 {
         java {
-            srcDirs = ['src/main/jdk1.9','../core/src/main/java9' ]
+            srcDirs = ['src/main/jdk1.9','../core/src/main/java9/org']
         }
     }
     java11 {
@@ -64,7 +64,7 @@ compileJava {
 compileJava9Java {
     options.release = 9
     options.debug = rootProject.ext.debugBuild
-    options.sourcepath = files(['../core/src/main/java', 'src/main/java', 'src/main/jdk1.9','../core/src/main/java9'])
+    options.sourcepath = files(['../core/src/main/java', 'src/main/java', 'src/main/jdk1.9','../core/src/main/java9/org'])
 }
 
 compileJava11Java {
@@ -160,6 +160,10 @@ artifacts {
 }
 
 task('copyJars', type: Copy) {
+    dependsOn("jar")
+    dependsOn("sourcesJar")
+    dependsOn("javadocJar")
+
     from new File(projectDir, "build/libs")
     into new File(rootDir, "../bc-lts-java-jars/${version}/")
 }
