@@ -77,14 +77,14 @@ Change into the ```<base_dir>/``` directory.
 ```
 
 This will build a java only variation and copy all the build jars into ```../bc-lts-java-jars/``` directory. The name of the jar is defined with
-the ```version=2.73.7``` version property in ```gradle.properties```.
+the ```version=2.73.8``` version property in ```gradle.properties```.
 
 Running the DumpInfo class from the jar will report something similar to:
 
 ```
-java -cp ../bc-lts-java-jars/2.73.7/bcprov-lts8on-2.73.7.jar org.bouncycastle.util.DumpInfo
+java -cp ../bc-lts-java-jars/2.73.8/bcprov-lts8on-2.73.8.jar org.bouncycastle.util.DumpInfo
         
-BouncyCastle APIs (LTS edition) v2.73.7
+BouncyCastle APIs (LTS edition) v2.73.8
 Native Features: None
 
 ```
@@ -107,9 +107,9 @@ doing the following on an ARM based Mac:
 ```
 #Running:
 
-java -cp ../bc-lts-java-jars/2.73.7/bcprov-lts8on-2.73.7.jar org.bouncycastle.util.DumpInfo -a
+java -cp ../bc-lts-java-jars/2.73.8/bcprov-lts8on-2.73.8.jar org.bouncycastle.util.DumpInfo -a
  
-BouncyCastle APIs (LTS edition) v2.73.7
+BouncyCastle APIs (LTS edition) v2.73.8
 Native Build Date: 2024-01-15T15:33:43
 Native Status: READY
 Native Variant: neon-le
@@ -127,7 +127,7 @@ neon-le   +aes +sha256 +sha512 +sha3 +neon                  Variant Supported
 On an Intel machine:
 
 ```
-BouncyCastle APIs (LTS edition) v2.73.7
+BouncyCastle APIs (LTS edition) v2.73.8
 Native Build Date: 2024-01-11T19:24:03
 Native Status: READY
 Native Variant: vaesf
@@ -205,7 +205,7 @@ For example, using -Dorg.bouncycastle.native.cpu_variant=avx:
 ```
 # Intel
 
-BouncyCastle APIs (LTS edition) v2.73.7
+BouncyCastle APIs (LTS edition) v2.73.8
 Native Build Date: 2024-01-11T19:24:03
 Native Status: READY
 Native Variant: avx [<==== VARIANT!!!]
