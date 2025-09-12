@@ -1,10 +1,12 @@
 package org.bouncycastle.crypto.digests;
 
-
-import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.CryptoServicePurpose;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.NativeServices;
+import org.bouncycastle.crypto.SavableDigest;
+import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.util.Memoable;
 import org.bouncycastle.util.Pack;
-
 
 /**
  * implementation of SHA-3 based on following KeccakNISTInterface.c from https://keccak.noekeon.org/
@@ -12,7 +14,8 @@ import org.bouncycastle.util.Pack;
  * Following the naming conventions used in the C source code to enable easy review of the implementation.
  */
 public class SHA3Digest
-        extends KeccakDigest implements SavableDigest
+    extends KeccakDigest
+    implements SavableDigest
 {
     private static int checkBitLength(int bitLength)
     {
@@ -149,8 +152,8 @@ public class SHA3Digest
     public int doFinal(byte[] out, int outOff)
     {
         absorbBits(0x02, 2);
-
-        return super.doFinal(out, outOff);
+        
+        return super.doFinal(out,  outOff);
     }
 
     /*
@@ -168,57 +171,32 @@ public class SHA3Digest
 
         if (finalBits >= 8)
         {
-            absorb((byte) finalInput);
+            absorb((byte)finalInput);
             finalBits -= 8;
             finalInput >>>= 8;
         }
 
-        return super.doFinal(out, outOff, (byte) finalInput, finalBits);
+        return super.doFinal(out, outOff, (byte)finalInput, finalBits);
     }
 
-
-    @Override
     public byte[] getEncodedState()
     {
-        byte[] out = new byte[1 + 12 + (state.length * 8)];
-        Pack.intToBigEndian(bitsInQueue, out, 0);
-        Pack.intToBigEndian(rate, out, 4);
-        Pack.intToBigEndian(squeezing ? Integer.MIN_VALUE : 0, out, 8);
-        Pack.intToBigEndian(fixedOutputLength, out, 12);
-        int p = 16;
-        for (long s : state)
-        {
-            Pack.longToBigEndian(s, out, p += 8);
-        }
-        state[state.length - 1] = (byte) purpose.ordinal();
-        return out;
+        byte[] encState = new byte[state.length * 8 + dataQueue.length + 12 + 2];
+
+        super.getEncodedState(encState);
+        
+        return encState;
     }
 
-    @Override
     public Memoable copy()
     {
         return new SHA3Digest(this);
     }
 
-    @Override
     public void reset(Memoable other)
     {
-        if (!(other instanceof SHA3Digest))
-        {
-            throw new IllegalArgumentException("no SHA3Digest instance");
-        }
+        SHA3Digest d = (SHA3Digest)other;
 
-        this.bitsInQueue = ((SHA3Digest) other).bitsInQueue;
-        this.rate = ((SHA3Digest) other).rate;
-        this.squeezing = ((SHA3Digest) other).squeezing;
-        this.fixedOutputLength = ((SHA3Digest) other).fixedOutputLength;
-        System.arraycopy(((SHA3Digest) other).state, 0, this.state, 0, this.state.length);
-        this.purpose = ((SHA3Digest) other).purpose;
-    }
-
-    @Override
-    public String toString()
-    {
-        return "SHA3[Java]";
+        copyIn(d);
     }
 }
