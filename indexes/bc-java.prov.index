@@ -538,7 +538,7 @@ f3f885e0a3922e6ad1e1c226acc41c8865cd1fa77d6f675647e753eab6c51ddb  prov/src/main/
 e1249a8ada573d1ebdad3f6e44a046366cbca716c3786ea5ec3db4b603bc4554  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mldsa/SignatureSpi.java
 fc5e188960e1cf527b24e4a8f5c090c066248999f8693a202c3e9465ae733905  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mlkem/BCMLKEMPrivateKey.java
 58b6533b56ebfcc4b7da6ce08888aff2922c9371af5b9d92c97f00c2b2df5765  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mlkem/BCMLKEMPublicKey.java
-256cb72390566c8f8333af4fd0f979f2190ac1a5cde81b8653e7a5fb2f107c12  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mlkem/MLKEMCipherSpi.java
+8f3e9401215fb16b3bc926923fb7975dc4a7239f1a273a4e7124d2373f693a3e  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mlkem/MLKEMCipherSpi.java
 ba9fee4663c12219204afcf3d3704dcf20a287ab5169c1087505b17932082b51  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mlkem/MLKEMKeyFactorySpi.java
 88232baf00c1f2c770015dee89408825942f503b0ab6a310f30b8418caf2aab9  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mlkem/MLKEMKeyGeneratorSpi.java
 f7b499d117473c07e2640b82a5c0e575b183f30cfe8e708134a0187cb65eac38  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mlkem/MLKEMKeyPairGeneratorSpi.java
