@@ -10,7 +10,6 @@ module org.bouncycastle.lts.util
     exports org.bouncycastle.asn1.crmf;
     exports org.bouncycastle.asn1.dvcs;
     exports org.bouncycastle.asn1.eac;
-    exports org.bouncycastle.asn1.edec;
     exports org.bouncycastle.asn1.esf;
     exports org.bouncycastle.asn1.ess;
     exports org.bouncycastle.asn1.est;
@@ -18,8 +17,6 @@ module org.bouncycastle.lts.util
     exports org.bouncycastle.asn1.isismtt;
     exports org.bouncycastle.asn1.isismtt.ocsp;
     exports org.bouncycastle.asn1.isismtt.x509;
-    exports org.bouncycastle.asn1.oiw;
-    exports org.bouncycastle.asn1.rosstandart;
     exports org.bouncycastle.asn1.smime;
     exports org.bouncycastle.asn1.tsp;
     exports org.bouncycastle.oer;
