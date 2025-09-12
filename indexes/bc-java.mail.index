@@ -1,10 +1,10 @@
-21ad8ffb06174e3b6cc8aa8b1fa2549a23b92940d297951fe7579377d3b24129  mail/src/test/java/org/bouncycastle/mail/smime/test/AllTests.java
+e920a9207bc793a637637339246ef7f60e78914eb3f76c2593cd993090e80c19  mail/src/test/java/org/bouncycastle/mail/smime/test/AllTests.java
 55b954483f4596b94e27a253b6afe60f845662d740677b3bd80fef079379ccc7  mail/src/test/java/org/bouncycastle/mail/smime/test/DummyCertPathReviewer.java
-fed9f37fa84230fa42fdb53a795f2782950b17993a60af02765a6731eb3ed2fd  mail/src/test/java/org/bouncycastle/mail/smime/test/SMIMEToolkitTest.java
-579da7350e312d1555aebf53f43bc19d235c49ae103e7a89e50f7ff55049427e  mail/src/test/java/org/bouncycastle/mail/smime/test/NewSMIMEEnvelopedTest.java
+7cd300360b6eb2745155aa70af4c8b32768a74d1695819b070e6e1346b02f225  mail/src/test/java/org/bouncycastle/mail/smime/test/SMIMEToolkitTest.java
+8898d6c0028a120caea7c2c98be7460d3826d30c0d1ed5a49217806bba14dc7c  mail/src/test/java/org/bouncycastle/mail/smime/test/NewSMIMEEnvelopedTest.java
 a9f498e24bf7188defdb68a158f011d9e4fc733ab0742c9b506dc7c970e1c198  mail/src/test/java/org/bouncycastle/mail/smime/test/SHA1DigestCalculator.java
 32528e63f4922d2ec1ff32d3d450cc56b49321ff0dc4a715b777022b777f9183  mail/src/test/java/org/bouncycastle/mail/smime/test/SMIMETestUtil.java
-a3a800d55bd8b5a6138048c3908acef08355300dc05551ece52d77f1e3c4dbae  mail/src/test/java/org/bouncycastle/mail/smime/test/SignedMailValidatorTest.java
+ee91dac4f04c6a256612e4f3b4a833a0b816f544f2675d8340f4c912fcec7ffc  mail/src/test/java/org/bouncycastle/mail/smime/test/SignedMailValidatorTest.java
 e85d6acc9416cf269cee5e6d2c57c134b655074775d1ff5008dbfcdb6bd31858  mail/src/test/java/org/bouncycastle/mail/smime/test/SMIMECompressedTest.java
 12fade0424a672d5e4afbaba6a48727376e2adb13f5f2d51fe75f4704ebdf594  mail/src/test/java/org/bouncycastle/mail/smime/test/SMIMEMiscTest.java
 935a031b1015f515476e6d273e976013043a955fbe3ef447adfe034785b0b35c  mail/src/test/java/org/bouncycastle/mail/smime/test/NewSMIMESignedTest.java
@@ -19,8 +19,8 @@ b81f7e6c823c534c65bcb7a2eda395e3de68b83239147ccf5e5416cef2c3fd4e  mail/src/main/
 06ac0b7414e432fdb88dbd2fe9ebfa1cffcf2a0bdd695da28f02510cd14201e2  mail/src/main/java/org/bouncycastle/mail/smime/CMSProcessableBodyPartInbound.java
 0b580d080bedabf0eb94da085863ef369aeee5e9ede803959e610f74270f7e52  mail/src/main/java/org/bouncycastle/mail/smime/SMIMEUtil.java
 aa0b15725e8715c08b3cb4a7099ef14bc2035896975973739ba5f940350d6e1f  mail/src/main/java/org/bouncycastle/mail/smime/SMIMEEnveloped.java
-7ee2a80a1477140390f6397eb9ce620cf6957b0ce60dcd94488992bbbbdbe631  mail/src/main/java/org/bouncycastle/mail/smime/SMIMEEnvelopedGenerator.java
-c187283f03801893de3dfa528b7fe534dc4ba4239c45ed9fb88a4143866b321c  mail/src/main/java/org/bouncycastle/mail/smime/SMIMESigned.java
+379fcb05ebd144ee53c7142a497b1cb5da94a5e37c9a3c26c9cbd36a37d303e6  mail/src/main/java/org/bouncycastle/mail/smime/SMIMEEnvelopedGenerator.java
+953cc39756de098d40ce3df099928ce58df53d9c29a82e27ff2af2111a9b10f4  mail/src/main/java/org/bouncycastle/mail/smime/SMIMESigned.java
 98146dadae56147a0fab2a5884bb6f1f988869fd663d9f4dc6efbb5ecef5395a  mail/src/main/java/org/bouncycastle/mail/smime/CMSProcessableBodyPart.java
 3b568c98320bbd7012ce0b846a3a8f0f6bb33fe5940aa8142e7f5b725cb1c0da  mail/src/main/java/org/bouncycastle/mail/smime/SMIMESignedGenerator.java
 3b0693f7444f88deb05a9581aecabc24c50298a3d0d2b975759321e1327ee54e  mail/src/main/java/org/bouncycastle/mail/smime/MailcapUtil.java
@@ -37,7 +37,7 @@ d66b6ab2007fd0806b12b6603899eca71b43885145561140fc3cf7cf38968e75  mail/src/main/
 989b0ed3a216e8c1151c0af3d650877b0d315190bafdc4feda6be2e159a9e4bc  mail/src/main/java/org/bouncycastle/mail/smime/SMIMECompressedParser.java
 14e9f5206cbc54e2b820fa0468214a99ae85daf9192ee9f70ae2855b41b75adb  mail/src/main/java/org/bouncycastle/mail/smime/SMIMECompressedGenerator.java
 21fe3606709bb8ba8109b3a11c1b8c778837a9ca1c6793440b5b7adb05340d77  mail/src/main/java/org/bouncycastle/mail/smime/validator/SignedMailValidatorException.java
-d638decd42bb5c3a292948bc4228a39b82ff6c04897cc3a0a369e33a28687aac  mail/src/main/java/org/bouncycastle/mail/smime/validator/SignedMailValidator.java
+74e50b26546a8ae1379a013c4b7ec3fc8e44f7fee9202f325425d35b9ca96093  mail/src/main/java/org/bouncycastle/mail/smime/validator/SignedMailValidator.java
 a24e533a052ff6f3b7761108e6fa5f96cf66ebaa6b8109ffe4b4d47be949500f  mail/src/main/java/org/bouncycastle/mail/smime/SMIMEException.java
-344c0056bfb25093db0315f022ee98ed07b19880345d083bc5d60c105f1afa8b  mail/src/main/java/org/bouncycastle/mail/smime/SMIMEToolkit.java
-c1d750f119ad409ced0343cd94932f53dbc3a895d496f1c239c3f9683b3ba069  mail/src/main/java/org/bouncycastle/mail/smime/SMIMESignedParser.java
+919f2f54e72ca929848ba88bb7b50dcd523621ba7e34baf49515b95973fe12e4  mail/src/main/java/org/bouncycastle/mail/smime/SMIMEToolkit.java
+d34bd51e99d4074d380a2a7e78f3457a4ba89a74811dc24852af944c90476a2c  mail/src/main/java/org/bouncycastle/mail/smime/SMIMESignedParser.java

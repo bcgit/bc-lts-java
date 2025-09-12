@@ -220,7 +220,7 @@ f7a34bda264a29f89cb7b059cba4fd2a8579086af98d866f153611c3a2d61989  core/src/test/
 53bedbdf051583d9650caab980f207e32b1df32f3a7ebae1ff2fd8e1dfc2f245  core/src/test/java/org/bouncycastle/crypto/prng/test/X931Test.java
 719f325b0cb4a989c06a1bfb15d5cbc97db4d2a4ce182c2f14616aac7bc10d70  core/src/test/java/org/bouncycastle/crypto/prng/test/HashDRBGTest.java
 ed41f6c04cc87cf299f284952a7ef40a5f62e30d3337396645aedb51c68e9c1d  core/src/test/java/org/bouncycastle/crypto/prng/test/DRBGTestVector.java
-607b5c61bd949d9ecd0038e91166990b4b01bc2dc725fe0eb405f3ba471132f3  core/src/test/java/org/bouncycastle/crypto/agreement/test/AllTests.java
+eb5d46bfe5eecb1c1eb85374f778efe85affd81f9d7f373e7be322eef30ebf56  core/src/test/java/org/bouncycastle/crypto/agreement/test/AllTests.java
 4058ce3f030ea4c9bb4788d2690434bc0c4c7c8174c4cc29b8fed4a5002ec511  core/src/test/java/org/bouncycastle/crypto/agreement/test/JPAKEParticipantTest.java
 04619677dd94600340b7cdc88df5c072b758844e82edd1a0493e4feb9d9dc5e5  core/src/test/java/org/bouncycastle/crypto/agreement/test/JPAKEPrimeOrderGroupTest.java
 6a6f62ca872402fb379b87d279a0b4354994cf42cdb32b134c205a86be8212fc  core/src/test/java/org/bouncycastle/crypto/agreement/test/JPAKEUtilTest.java
@@ -1152,11 +1152,11 @@ a5e3b032b68fe11e514be212a66321e8c8f07f4b8d44fdcee9925b384e9ce841  core/src/main/
 bb6a5b2073900939ecfec84ee790c9ad0c2f0e7433c34f855e4c821c1267995c  core/src/main/java/org/bouncycastle/asn1/x509/GeneralNames.java
 c549028db6c37d112f8efd2dcdb14403858ad114bfcb83961d6fdc802d8a8ed7  core/src/main/java/org/bouncycastle/asn1/x509/X509AttributeIdentifiers.java
 f8177bac3ccdef1da0c73af260c1aab978bf57b39301c217824d02fec734b665  core/src/main/java/org/bouncycastle/asn1/BEROutputStream.java
-03f9938c3608e1ed204948f5c26d4a2e78d460c576edd5d7f77361c81d389591  core/src/main/java/org/bouncycastle/asn1/ASN1TaggedObject.java
+bd6335a0900fbf71579b428625248999552f2a121c34130b8287a3601c6333db  core/src/main/java/org/bouncycastle/asn1/ASN1TaggedObject.java
 40184c85f6a06443c90344ab375b69206c15c7e4509392eaf8ba8bfcc9a58df4  core/src/main/java/org/bouncycastle/asn1/ASN1VideotexString.java
 2a84b39bb0527289fd7a0985866202c0829b72f3449f567200ce4d3d62304cb4  core/src/main/java/org/bouncycastle/asn1/util/ASN1Dump.java
 e07b920f5351fee90826a5fd5398004fe7231b7cb175c8767d0b0f560e7f27fd  core/src/main/java/org/bouncycastle/asn1/ASN1ParsingException.java
-87afd8d004e87b369ddd3919b027b7075786f650a5b2950d242b0a7c87281d0b  core/src/main/java/org/bouncycastle/asn1/gm/GMObjectIdentifiers.java
+a4ed0c8d934e697d1f7d21562b7c202dbdc3cee2c11d1ff57f9e31855b8e4283  core/src/main/java/org/bouncycastle/asn1/gm/GMObjectIdentifiers.java
 49c57aa104fc5a640ed887b50d553c76761643c69d11f2b601482db8cde9d132  core/src/main/java/org/bouncycastle/asn1/gm/GMNamedCurves.java
 5fcbe5b4585e94e40acdfb7a3983482464a70f5ed2d00670304c23e5d41925c2  core/src/main/java/org/bouncycastle/asn1/ASN1External.java
 3bd09f35353ecd6803405e6de9cb1214c1104f2b65635a1c19476a89bbafca8a  core/src/main/java/org/bouncycastle/asn1/bc/LinkedCertificate.java
@@ -1318,7 +1318,7 @@ f9421eba0978d2bd3b0e613395666489cf3af738d84e216b0bffa0eb70f4dbfd  core/src/main/
 5ead7fa08227c8ff7071582442561c1e68054be875136b7cba6afc269e08d10a  core/src/main/java/org/bouncycastle/math/ec/ECLookupTable.java
 971e36abaf0dc22004f4d6ac3c5d6872a81e51d447b19a67685d3f04b0ef15e5  core/src/main/java/org/bouncycastle/math/ec/AbstractECLookupTable.java
 6f9916abeacfe93f97218b2284f4c13975aa05cf69c325c4c4effbe2d129051b  core/src/main/java/org/bouncycastle/math/ec/WNafPreCompInfo.java
-986654a59aa8ef38b25ea7b7f7dd7184d8ff1600b538106073378c2d0f36d952  core/src/main/java/org/bouncycastle/math/ec/ECCurve.java
+61f5877a7447c0260f9f07cc7e59720454d5ffc85cf90b0312983c07d051517f  core/src/main/java/org/bouncycastle/math/ec/ECCurve.java
 b3a69266d29309238cb035fddad688c85d56a5d9fe615762ee7c62646c0966b2  core/src/main/java/org/bouncycastle/math/ec/SimpleLookupTable.java
 930c67080c5d0cf13efda349d31a11487420bdceb2e045b3bff03e4a8cb8c52c  core/src/main/java/org/bouncycastle/math/ec/FixedPointUtil.java
 aa712016978fa327c1b62a03e4ef59799544c334115af8996953b1682de1b483  core/src/main/java/org/bouncycastle/math/ec/LongArray.java
