@@ -1,17 +1,5 @@
 package org.bouncycastle.pqc.crypto.test;
 
-import junit.framework.TestCase;
-import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.SecretWithEncapsulation;
-import org.bouncycastle.crypto.util.DEROtherInfo;
-import org.bouncycastle.internal.asn1.oiw.OIWObjectIdentifiers;
-import org.bouncycastle.pqc.crypto.mlkem.*;
-import org.bouncycastle.pqc.crypto.util.*;
-import org.bouncycastle.test.TestResourceFinder;
-import org.bouncycastle.util.Arrays;
-import org.bouncycastle.util.encoders.Hex;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +7,28 @@ import java.io.InputStreamReader;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
+
+import junit.framework.TestCase;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.SecretWithEncapsulation;
+import org.bouncycastle.crypto.util.DEROtherInfo;
+import org.bouncycastle.internal.asn1.oiw.OIWObjectIdentifiers;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMExtractor;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMGenerator;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMKeyGenerationParameters;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMKeyPairGenerator;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMParameters;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMPrivateKeyParameters;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMPublicKeyParameters;
+import org.bouncycastle.pqc.crypto.util.PQCOtherInfoGenerator;
+import org.bouncycastle.pqc.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.pqc.crypto.util.PrivateKeyInfoFactory;
+import org.bouncycastle.pqc.crypto.util.PublicKeyFactory;
+import org.bouncycastle.pqc.crypto.util.SubjectPublicKeyInfoFactory;
+import org.bouncycastle.test.TestResourceFinder;
+import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.encoders.Hex;
 
 public class MLKEMTest
     extends TestCase
@@ -404,20 +414,14 @@ public class MLKEMTest
                 byte[] key = Hex.decode(line);
                 MLKEMParameters parameters = params[fileIndex];
 
-                MLKEMPublicKeyParameters pubParams = (MLKEMPublicKeyParameters) PublicKeyFactory.createKey(
-                    SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(new MLKEMPublicKeyParameters(parameters, key)));
-
-                // KEM Enc
-                SecureRandom random = new SecureRandom();
-                MLKEMGenerator generator = new MLKEMGenerator(random);
                 try
                 {
-                    SecretWithEncapsulation secWenc = generator.generateEncapsulated(pubParams);
-                    byte[] generated_cipher_text = secWenc.getEncapsulation();
+                    new MLKEMPublicKeyParameters(parameters, key);
                     fail();
                 }
-                catch (Exception ignored)
+                catch (IllegalArgumentException e)
                 {
+                    assertEquals("Modulus check failed for ML-KEM public key", e.getMessage());
                 }
             }
         }
