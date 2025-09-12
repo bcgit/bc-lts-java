@@ -17,10 +17,13 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.asn1.anssi;
     exports org.bouncycastle.asn1.bc;
     exports org.bouncycastle.asn1.cryptopro;
+    exports org.bouncycastle.asn1.edec;
     exports org.bouncycastle.asn1.gm;
     exports org.bouncycastle.asn1.nist;
     exports org.bouncycastle.asn1.ocsp;
+    exports org.bouncycastle.asn1.oiw;
     exports org.bouncycastle.asn1.pkcs;
+    exports org.bouncycastle.asn1.rosstandart;
     exports org.bouncycastle.asn1.sec;
     exports org.bouncycastle.asn1.teletrust;
     exports org.bouncycastle.asn1.ua;
