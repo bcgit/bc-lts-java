@@ -33,8 +33,9 @@ class Utils
     static final AlgorithmIdentifier XMSS_SHA512 = new AlgorithmIdentifier(NISTObjectIdentifiers.id_sha512);
     static final AlgorithmIdentifier XMSS_SHAKE128 = new AlgorithmIdentifier(NISTObjectIdentifiers.id_shake128);
     static final AlgorithmIdentifier XMSS_SHAKE256 = new AlgorithmIdentifier(NISTObjectIdentifiers.id_shake256);
-
-    static final Map categories = new HashMap();
+    
+    static final Map picnicOids = new HashMap();
+    static final Map picnicParams = new HashMap();
 
 //    static final Map picnicOids = new HashMap();
 //    static final Map picnicParams = new HashMap();
@@ -188,12 +189,7 @@ class Utils
     {
         return (SLHDSAParameters)slhdsaParams.get(oid);
     }
-
-    static int qTeslaLookupSecurityCategory(AlgorithmIdentifier algorithm)
-    {
-        return ((Integer)categories.get(algorithm.getAlgorithm())).intValue();
-    }
-
+    
     static Digest getDigest(ASN1ObjectIdentifier oid)
     {
         if (oid.equals(NISTObjectIdentifiers.id_sha256))

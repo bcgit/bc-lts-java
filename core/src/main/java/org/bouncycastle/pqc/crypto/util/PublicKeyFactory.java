@@ -348,17 +348,7 @@ public class PublicKeyFactory
         abstract AsymmetricKeyParameter getPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
             throws IOException;
     }
-
-//    private static class QTeslaConverter
-//        extends SubjectPublicKeyInfoConverter
-//    {
-//        AsymmetricKeyParameter getPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
-//            throws IOException
-//        {
-//            return new QTESLAPublicKeyParameters(Utils.qTeslaLookupSecurityCategory(keyInfo.getAlgorithm()), keyInfo.getPublicKeyData().getOctets());
-//        }
-//    }
-
+    
 //    private static class SPHINCSConverter
 //        extends SubjectPublicKeyInfoConverter
 //    {
@@ -369,7 +359,7 @@ public class PublicKeyFactory
 //                Utils.sphincs256LookupTreeAlgName(SPHINCS256KeyParams.getInstance(keyInfo.getAlgorithm().getParameters())));
 //        }
 //    }
-
+//
 //    private static class NHConverter
 //        extends SubjectPublicKeyInfoConverter
 //    {
@@ -379,7 +369,7 @@ public class PublicKeyFactory
 //            return new NHPublicKeyParameters(keyInfo.getPublicKeyData().getBytes());
 //        }
 //    }
-
+//
 //    private static class XMSSConverter
 //        extends SubjectPublicKeyInfoConverter
 //    {
@@ -527,66 +517,6 @@ public class PublicKeyFactory
 //            return new SABERPublicKeyParameters(saberParams, keyEnc);
 //        }
 //    }
-
-//    private static class McElieceCCA2Converter
-//        extends SubjectPublicKeyInfoConverter
-//    {
-//        AsymmetricKeyParameter getPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
-//            throws IOException
-//        {
-//            McElieceCCA2PublicKey mKey = McElieceCCA2PublicKey.getInstance(keyInfo.parsePublicKey());
-//
-//            return new McElieceCCA2PublicKeyParameters(mKey.getN(), mKey.getT(), mKey.getG(), Utils.getDigestName(mKey.getDigest().getAlgorithm()));
-//        }
-//    }
-
-//    private static class FrodoConverter
-//        extends SubjectPublicKeyInfoConverter
-//    {
-//        AsymmetricKeyParameter getPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
-//            throws IOException
-//        {
-//            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePublicKey()).getOctets();
-//
-//            FrodoParameters fParams = Utils.frodoParamsLookup(keyInfo.getAlgorithm().getAlgorithm());
-//
-//            return new FrodoPublicKeyParameters(fParams, keyEnc);
-//        }
-//    }
-
-//    private static class PicnicConverter
-//        extends SubjectPublicKeyInfoConverter
-//    {
-//        AsymmetricKeyParameter getPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
-//            throws IOException
-//        {
-//            byte[] keyEnc = ASN1OctetString.getInstance(keyInfo.parsePublicKey()).getOctets();
-//
-//            PicnicParameters picnicParams = Utils.picnicParamsLookup(keyInfo.getAlgorithm().getAlgorithm());
-//
-//            return new PicnicPublicKeyParameters(picnicParams, keyEnc);
-//        }
-//    }
-
-//    private static class NtruConverter
-//        extends SubjectPublicKeyInfoConverter
-//    {
-//        AsymmetricKeyParameter getPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
-//            throws IOException
-//        {
-//            byte[] keyEnc = keyInfo.getPublicKeyData().getOctets();
-//            ASN1OctetString data = Utils.parseOctetData(keyEnc);
-//
-//            if (data != null)
-//            {
-//                return getNtruPublicKeyParameters(keyInfo, data.getOctets());
-//            }
-//
-//            return getNtruPublicKeyParameters(keyInfo, keyEnc);
-//        }
-//
-//        private NTRUPublicKeyParameters getNtruPublicKeyParameters(SubjectPublicKeyInfo keyInfo, byte[] keyEnc)
-//        {
 //
 //            NTRUParameters ntruParams = Utils.ntruParamsLookup(keyInfo.getAlgorithm().getAlgorithm());
 //
@@ -663,7 +593,7 @@ public class PublicKeyFactory
 //            return new NTRULPRimePublicKeyParameters(ntruLPRimeParams, keyEnc);
 //        }
 //    }
-
+//
 //    private static class SNTRUPrimeConverter
 //        extends SubjectPublicKeyInfoConverter
 //    {
@@ -780,7 +710,7 @@ public class PublicKeyFactory
 //            }
 //        }
 //    }
-
+//
 //    private static class HQCConverter
 //        extends SubjectPublicKeyInfoConverter
 //    {
@@ -859,7 +789,7 @@ public class PublicKeyFactory
 //            return new MayoPublicKeyParameters(mayoParams, keyEnc);
 //        }
 //    }
-
+//
 //    private static class SnovaConverter
 //        extends SubjectPublicKeyInfoConverter
 //    {
