@@ -436,7 +436,7 @@ public class OERExpander
         private final Element def;
         List<ASN1Encodable> script = new ArrayList<ASN1Encodable>();
         private String part = "the cat sat on the mat";
-        private StringBuffer expander = new StringBuffer();
+        private StringBuilder expander = new StringBuilder();
 
         private int cnt = 0;
 

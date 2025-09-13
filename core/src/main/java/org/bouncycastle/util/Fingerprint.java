@@ -1,8 +1,6 @@
 package org.bouncycastle.util;
 
-import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.Xof;
-import org.bouncycastle.crypto.digests.SHA512tDigest;
 import org.bouncycastle.crypto.digests.SHAKEDigest;
 
 /**
@@ -47,7 +45,7 @@ public class Fingerprint
 
     public String toString()
     {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i != fingerprint.length; i++)
         {
             if (i > 0)

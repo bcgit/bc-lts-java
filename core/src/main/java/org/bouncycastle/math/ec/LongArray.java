@@ -1,8 +1,8 @@
 package org.bouncycastle.math.ec;
 
-import org.bouncycastle.util.Arrays;
-
 import java.math.BigInteger;
+
+import org.bouncycastle.util.Arrays;
 
 class LongArray implements Cloneable
 {
@@ -2183,7 +2183,7 @@ class LongArray implements Cloneable
             return "0";
         }
 
-        StringBuffer sb = new StringBuffer(Long.toBinaryString(m_ints[--i]));
+        StringBuilder sb = new StringBuilder(Long.toBinaryString(m_ints[--i]));
         while (--i >= 0)
         {
             String s = Long.toBinaryString(m_ints[i]);

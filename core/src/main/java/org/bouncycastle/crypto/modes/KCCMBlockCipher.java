@@ -455,7 +455,7 @@ public class KCCMBlockCipher
 
     private byte getFlag(boolean authTextPresents, int macSize)
     {
-        StringBuffer flagByte = new StringBuffer();
+        StringBuilder flagByte = new StringBuilder();
 
         if (authTextPresents)
         {

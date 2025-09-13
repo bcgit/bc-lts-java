@@ -184,7 +184,7 @@ public class RadixConverterTest extends SimpleTest
 
     private String arrayToString(short[] array)
     {
-        StringBuffer sb = new StringBuffer(array.length);
+        StringBuilder sb = new StringBuilder(array.length);
         for (int i = 0; i != array.length; i++)
         {
             short el = array[i];

@@ -63,7 +63,7 @@ public class LoggingDatagramTransport
         throws IOException
     {
         long timestamp = System.currentTimeMillis() - launchTimestamp;
-        StringBuffer sb = new StringBuffer("(+" + timestamp + "ms) " + verb + " " + len + " byte datagram:");
+        StringBuilder sb = new StringBuilder("(+" + timestamp + "ms) " + verb + " " + len + " byte datagram:");
         for (int pos = 0; pos < len; ++pos)
         {
             if (pos % 16 == 0)

@@ -204,7 +204,7 @@ public class LocalizedMessage
     {
         if (extraArgs != null)
         {
-            StringBuffer sb = new StringBuffer(msg);
+            StringBuilder sb = new StringBuilder(msg);
             Object[] filteredArgs = extraArgs.getFilteredArgs(locale);
             for (int i = 0; i < filteredArgs.length; i++)
             {

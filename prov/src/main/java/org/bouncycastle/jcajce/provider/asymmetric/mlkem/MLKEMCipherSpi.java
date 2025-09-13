@@ -23,6 +23,7 @@ import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.SecretWithEncapsulation;
 import org.bouncycastle.crypto.Wrapper;
+import org.bouncycastle.jcajce.spec.KEMParameterSpec;
 import org.bouncycastle.jcajce.spec.KTSParameterSpec;
 import org.bouncycastle.jcajce.spec.MLKEMParameterSpec;
 import org.bouncycastle.pqc.crypto.mlkem.MLKEMExtractor;
@@ -136,7 +137,7 @@ class MLKEMCipherSpi
         if (paramSpec == null)
         {
             // TODO: default should probably use shake.
-            kemParameterSpec = new KTSParameterSpec.Builder("AES-KWP",256).build();
+            kemParameterSpec = new KEMParameterSpec("AES-KWP");
         }
         else
         {
@@ -196,7 +197,7 @@ class MLKEMCipherSpi
         {
             try
             {
-                paramSpec = algorithmParameters.getParameterSpec(KTSParameterSpec.class);
+                paramSpec = algorithmParameters.getParameterSpec(KEMParameterSpec.class);
             }
             catch (Exception e)
             {
@@ -234,6 +235,7 @@ class MLKEMCipherSpi
         throw new IllegalStateException("Not supported in a wrapping mode");
     }
 
+    @SuppressWarnings("Finally")
     protected byte[] engineWrap(
         Key key)
         throws IllegalBlockSizeException, InvalidKeyException

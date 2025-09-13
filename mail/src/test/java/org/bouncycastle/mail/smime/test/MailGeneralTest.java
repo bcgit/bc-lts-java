@@ -2,14 +2,12 @@ package org.bouncycastle.mail.smime.test;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.security.KeyPair;
-import java.security.KeyStore;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -27,7 +25,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -753,7 +750,7 @@ public class MailGeneralTest
         sig.addHeader("Content-Disposition", "attachment; filename=\"smime.p7s\"");
         sig.addHeader("Content-Description", "S/MIME Cryptographic Signature");
         sig.addHeader("Content-Transfer-Encoding", "base64");
-        StringBuffer header = new StringBuffer("signed; protocol=\"application/pkcs7-signature\"");
+        StringBuilder header = new StringBuilder("signed; protocol=\"application/pkcs7-signature\"");
 
         List allSigners = new ArrayList();
 
@@ -1403,7 +1400,7 @@ public class MailGeneralTest
     }
 
     private void addHashHeader(
-        StringBuffer header,
+        StringBuilder header,
         List signers)
     {
         int count = 0;

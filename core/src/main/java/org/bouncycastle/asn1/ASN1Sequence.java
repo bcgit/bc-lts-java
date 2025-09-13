@@ -127,6 +127,11 @@ public abstract class ASN1Sequence
         return (ASN1Sequence)TYPE.getContextInstance(taggedObject, explicit);
     }
 
+    public static ASN1Sequence getTagged(ASN1TaggedObject taggedObject, boolean declaredExplicit)
+    {
+        return (ASN1Sequence)TYPE.getTagged(taggedObject, declaredExplicit);
+    }
+
     // NOTE: Only non-final to support LazyEncodedSequence
     ASN1Encodable[] elements;
 
@@ -383,7 +388,7 @@ public abstract class ASN1Sequence
             return "[]";
         }
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append('[');
         for (int i = 0;;)
         {

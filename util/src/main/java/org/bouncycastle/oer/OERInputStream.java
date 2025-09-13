@@ -492,7 +492,7 @@ public class OERInputStream
             Streams.readFully(this, data);
             if (debugOutput != null)
             {
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 sb.append("BIT STRING(" + (data.length * 8) + ") = ");
                 for (int i = 0; i != data.length; i++)
                 {

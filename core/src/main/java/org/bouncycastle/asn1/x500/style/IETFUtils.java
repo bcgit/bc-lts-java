@@ -33,7 +33,7 @@ public class IETFUtils
 
         boolean escaped = false;
         boolean quoted = false;
-        StringBuffer buf = new StringBuffer(elt.length());
+        StringBuilder buf = new StringBuilder(elt.length());
         int start = 0;
 
         // if it's an escaped hash string and not an actual encoding in string form
@@ -312,6 +312,39 @@ public class IETFUtils
     }
 
     public static void appendRDN(
+        StringBuilder buf,
+        RDN rdn,
+        Hashtable oidSymbols)
+    {
+        if (rdn.isMultiValued())
+        {
+            AttributeTypeAndValue[] atv = rdn.getTypesAndValues();
+            boolean firstAtv = true;
+
+            for (int j = 0; j != atv.length; j++)
+            {
+                if (firstAtv)
+                {
+                    firstAtv = false;
+                }
+                else
+                {
+                    buf.append('+');
+                }
+
+                IETFUtils.appendTypeAndValue(buf, atv[j], oidSymbols);
+            }
+        }
+        else
+        {
+            if (rdn.getFirst() != null)
+            {
+                IETFUtils.appendTypeAndValue(buf, rdn.getFirst(), oidSymbols);
+            }
+        }
+    }
+
+    public static void appendRDN(
         StringBuffer          buf,
         RDN                   rdn,
         Hashtable             oidSymbols)
@@ -342,6 +375,27 @@ public class IETFUtils
                 IETFUtils.appendTypeAndValue(buf, rdn.getFirst(), oidSymbols);
             }
         }
+    }
+
+    public static void appendTypeAndValue(
+        StringBuilder buf,
+        AttributeTypeAndValue typeAndValue,
+        Hashtable oidSymbols)
+    {
+        String sym = (String)oidSymbols.get(typeAndValue.getType());
+
+        if (sym != null)
+        {
+            buf.append(sym);
+        }
+        else
+        {
+            buf.append(typeAndValue.getType().getId());
+        }
+
+        buf.append('=');
+
+        buf.append(valueToString(typeAndValue.getValue()));
     }
 
     public static void appendTypeAndValue(

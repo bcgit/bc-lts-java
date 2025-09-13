@@ -31,7 +31,7 @@ public class DumpInfo
 
 
             String[][] result = nativeServices.getVariantSelectionMatrix();
-            StringBuffer sBld = new StringBuffer();
+            StringBuilder sBld = new StringBuilder();
             if (result.length > 0)
             {
                 sBld.append(newLine);
