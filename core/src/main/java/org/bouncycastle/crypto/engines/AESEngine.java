@@ -428,6 +428,11 @@ private static final int[] Tinv0 =
       */
      public static MultiBlockCipher newInstance()
      {
+         if (CryptoServicesRegistrar.hasEnabledService("AES/ECB"))
+         {
+             return new AESNativeEngine();
+         }
+
          return new AESEngine();
      }
 
