@@ -82,7 +82,7 @@ public class CRLDistPoint
     public String toString()
     {
         StringBuilder buf = new StringBuilder();
-        String        sep = Strings.lineSeparator();
+        String       sep = Strings.lineSeparator();
 
         buf.append("CRLDistPoint:");
         buf.append(sep);

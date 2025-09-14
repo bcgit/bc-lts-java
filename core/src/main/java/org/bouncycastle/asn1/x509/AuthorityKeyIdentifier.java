@@ -102,13 +102,13 @@ public class AuthorityKeyIdentifier
     }
 
     /**
-     * create an AuthorityKeyIdentifier with a precomputed key identifier
-     */
-    public AuthorityKeyIdentifier(
-        byte[]                  keyIdentifier)
-    {
-        this(keyIdentifier, null, null);
-    }
+      * create an AuthorityKeyIdentifier with a precomputed key identifier
+      */
+     public AuthorityKeyIdentifier(
+         byte[]                  keyIdentifier)
+     {
+         this(keyIdentifier, null, null);
+     }
 
     /**
      * create an AuthorityKeyIdentifier with a precomputed key identifier
@@ -125,7 +125,7 @@ public class AuthorityKeyIdentifier
     }
 
     /**
-     * @deprecated Use {@link #getKeyIdentifierOctets()} instead.
+     * @deprecated Use {@link #getKeyIdentifierOctets()} instead. 
      */
     public byte[] getKeyIdentifier()
     {
@@ -151,17 +151,17 @@ public class AuthorityKeyIdentifier
     {
         return certissuer;
     }
-
+    
     public BigInteger getAuthorityCertSerialNumber()
     {
         if (certserno != null)
         {
             return certserno.getValue();
         }
-
+        
         return null;
     }
-
+    
     /**
      * Produce an object suitable for an ASN1OutputStream.
      */

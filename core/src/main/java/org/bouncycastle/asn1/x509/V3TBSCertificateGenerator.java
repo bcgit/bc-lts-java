@@ -25,19 +25,20 @@ import org.bouncycastle.asn1.x500.X500Name;
  *      extensions        [ 3 ] Extensions OPTIONAL
  *      }
  * </pre>
+ *
  */
 public class V3TBSCertificateGenerator
 {
     private static final DERTaggedObject VERSION = new DERTaggedObject(true, 0, new ASN1Integer(2));
 
-    ASN1Integer serialNumber;
-    AlgorithmIdentifier signature;
-    X500Name issuer;
-    Validity validity;
-    Time startDate, endDate;
-    X500Name subject;
-    SubjectPublicKeyInfo subjectPublicKeyInfo;
-    Extensions extensions;
+    ASN1Integer             serialNumber;
+    AlgorithmIdentifier     signature;
+    X500Name                issuer;
+    Validity                validity;
+    Time                    startDate, endDate;
+    X500Name                subject;
+    SubjectPublicKeyInfo    subjectPublicKeyInfo;
+    Extensions              extensions;
 
     private boolean altNamePresentAndCritical;
     private DERBitString issuerUniqueID;
@@ -48,13 +49,13 @@ public class V3TBSCertificateGenerator
     }
 
     public void setSerialNumber(
-        ASN1Integer serialNumber)
+        ASN1Integer  serialNumber)
     {
         this.serialNumber = serialNumber;
     }
 
     public void setSignature(
-        AlgorithmIdentifier signature)
+        AlgorithmIdentifier    signature)
     {
         this.signature = signature;
     }
@@ -113,13 +114,13 @@ public class V3TBSCertificateGenerator
     }
 
     public void setSubjectPublicKeyInfo(
-        SubjectPublicKeyInfo pubKeyInfo)
+        SubjectPublicKeyInfo    pubKeyInfo)
     {
         this.subjectPublicKeyInfo = pubKeyInfo;
     }
 
     public void setExtensions(
-        Extensions extensions)
+        Extensions    extensions)
     {
         this.extensions = extensions;
         if (extensions != null)

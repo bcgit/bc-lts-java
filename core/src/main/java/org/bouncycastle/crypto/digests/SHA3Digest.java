@@ -2,9 +2,9 @@ package org.bouncycastle.crypto.digests;
 
 import org.bouncycastle.crypto.CryptoServicePurpose;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.SavableDigest;
-import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.util.Memoable;
 import org.bouncycastle.util.Pack;
 
@@ -110,23 +110,8 @@ public class SHA3Digest
 
     public SHA3Digest(byte[] encoded)
     {
-        if (encoded.length != 1 + 12 + (state.length * 8))
-        {
-            throw new IllegalArgumentException("encoded state has incorrect length");
-        }
-
-        bitsInQueue = Pack.bigEndianToInt(encoded, 0);
-        rate = Pack.bigEndianToInt(encoded, 4);
-        squeezing = Integer.MAX_VALUE == Pack.bigEndianToInt(encoded, 8);
-        fixedOutputLength = Pack.bigEndianToInt(encoded, 12);
-        int p = 16;
-        for (int t = 0; t < state.length; t++)
-        {
-            state[t] = Pack.bigEndianToInt(encoded, p += 8);
-        }
-        this.purpose = CryptoServicePurpose.values()[encoded[p]];
+        super(encoded);
     }
-
 
     public static SavableDigest newInstance(byte[] encoded, CryptoServicePurpose purpose)
     {
@@ -198,5 +183,11 @@ public class SHA3Digest
         SHA3Digest d = (SHA3Digest)other;
 
         copyIn(d);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "SHA3[Java]";
     }
 }

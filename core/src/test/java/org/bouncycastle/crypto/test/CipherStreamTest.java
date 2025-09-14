@@ -70,7 +70,7 @@ public class CipherStreamTest
     {
         testWriteRead(cipher, params, false);
         testWriteRead(cipher, params, true);
-        testReadWrite(cipher, params, false); // fail
+        testReadWrite(cipher, params, false);
         testReadWrite(cipher, params, true);
 
         if (!(cipher instanceof CTSBlockCipher || cipher instanceof NISTCTSBlockCipher))
@@ -473,9 +473,7 @@ public class CipherStreamTest
     public void performTest()
         throws Exception
     {
-        int[] testSizes = new int[]{
-                0, 1, 7, 8, 9, 15, 16, 17,1023,1024, 1025, 2047, 2048, 2049, 4095, 4096, 4097
-        };
+        int[] testSizes = new int[]{0, 1, 7, 8, 9, 15, 16, 17, 1023, 1024, 1025, 2047, 2048, 2049, 4095, 4096, 4097};
         for (int i = 0; i < testSizes.length; i++)
         {
             this.streamSize = testSizes[i];
@@ -533,7 +531,7 @@ public class CipherStreamTest
 
             testMode(new DefaultBufferedBlockCipher(new OFBBlockCipher(cipher1, blockSize)), withIv);
             testMode(new DefaultBufferedBlockCipher(CFBBlockCipher.newInstance(cipher1, blockSize)), withIv);
-            testMode(new DefaultBufferedBlockCipher((BlockCipher)SICBlockCipher.newInstance(cipher1)), withIv);
+            testMode(new DefaultBufferedBlockCipher(SICBlockCipher.newInstance(cipher1)), withIv);
         }
         // CTS requires at least one block
         if (blockSize <= 16 && streamSize >= blockSize)
@@ -554,7 +552,7 @@ public class CipherStreamTest
         {
             testMode(CCMBlockCipher.newInstance(cipher1), new ParametersWithIV(key, new byte[7]));
             // TODO: need to have a GCM safe version of testMode.
-//            testMode(new GCMBlockCipher(cipher1), withIv);
+//            testMode(GCMBlockCipher.newInstance(cipher1), withIv);
             testMode(new OCBBlockCipher(cipher1, cipher2), new ParametersWithIV(key, new byte[15]));
         }
     }

@@ -92,6 +92,7 @@ public class KeccakDigest
             throw new IllegalStateException("digest encoded for a different purpose");
         }
     }
+
     private static CryptoServicePurpose getCryptoServicePurpose(byte b)
     {
         CryptoServicePurpose[] values = CryptoServicePurpose.values();

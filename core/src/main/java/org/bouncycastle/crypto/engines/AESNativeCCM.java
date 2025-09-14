@@ -322,8 +322,7 @@ class AESNativeCCM
 
     static native int processPacket(long ref, byte[] in, int inOff, int inLen, byte[] aad, int aadOff, int aadlen,
                                     byte[] out, int outOff);
-
-    @Override
+    
     public int processPacket(byte[] inBuf, int inOff, int length, byte[] outBuf, int outOff)
             throws InvalidCipherTextException
     {
@@ -335,7 +334,6 @@ class AESNativeCCM
         }
     }
 
-    @Override
     public byte[] processPacket(byte[] input, int inOff, int length)
             throws InvalidCipherTextException
     {

@@ -23,6 +23,23 @@ import org.bouncycastle.util.Arrays;
 public class ISO9796d2PSSSigner
     implements SignerWithRecovery
 {
+    /** @deprecated use ISOTrailers */
+    static final public int   TRAILER_IMPLICIT    = 0xBC;
+    /** @deprecated use ISOTrailers */
+    static final public int   TRAILER_RIPEMD160   = 0x31CC;
+    /** @deprecated use ISOTrailers */
+    static final public int   TRAILER_RIPEMD128   = 0x32CC;
+    /** @deprecated use ISOTrailers */
+    static final public int   TRAILER_SHA1        = 0x33CC;
+    /** @deprecated use ISOTrailers */
+    static final public int   TRAILER_SHA256      = 0x34CC;
+    /** @deprecated use ISOTrailers */
+    static final public int   TRAILER_SHA512      = 0x35CC;
+    /** @deprecated use ISOTrailers */
+    static final public int   TRAILER_SHA384      = 0x36CC;
+    /** @deprecated use ISOTrailers */
+    static final public int   TRAILER_WHIRLPOOL   = 0x37CC;
+
     private Digest digest;
     private AsymmetricBlockCipher cipher;
 
@@ -108,9 +125,7 @@ public class ISO9796d2PSSSigner
      * @throws IllegalArgumentException if wrong parameter type or a fixed
      * salt is passed in which is the wrong length.
      */
-    public void init(
-        boolean forSigning,
-        CipherParameters param)
+    public void init(boolean forSigning, CipherParameters param)
     {
         RSAKeyParameters kParam;
         int lengthOfSalt = saltLength;
@@ -120,16 +135,15 @@ public class ISO9796d2PSSSigner
             ParametersWithRandom p = (ParametersWithRandom)param;
 
             kParam = (RSAKeyParameters)p.getParameters();
-            if (forSigning)
-            {
-                random = p.getRandom();
-            }
+            random = forSigning ? p.getRandom() : null;
+            standardSalt = null;
         }
         else if (param instanceof ParametersWithSalt)
         {
             ParametersWithSalt p = (ParametersWithSalt)param;
 
             kParam = (RSAKeyParameters)p.getParameters();
+            random = null;
             standardSalt = p.getSalt();
             lengthOfSalt = standardSalt.length;
             if (standardSalt.length != saltLength)
@@ -140,10 +154,8 @@ public class ISO9796d2PSSSigner
         else
         {
             kParam = (RSAKeyParameters)param;
-            if (forSigning)
-            {
-                random = CryptoServicesRegistrar.getSecureRandom();
-            }
+            random = forSigning ? CryptoServicesRegistrar.getSecureRandom() : null;
+            standardSalt = null;
         }
 
         cipher.init(forSigning, kParam);

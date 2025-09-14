@@ -1,8 +1,12 @@
 package org.bouncycastle.crypto.digests;
 
-import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.CryptoServiceProperties;
+import org.bouncycastle.crypto.CryptoServicePurpose;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.Digest;
+import org.bouncycastle.crypto.NativeServices;
+import org.bouncycastle.crypto.SavableDigestXof;
 import org.bouncycastle.util.Memoable;
-import org.bouncycastle.util.Pack;
 
 
 /**
@@ -101,11 +105,16 @@ public class SHAKEDigest
      * Base constructor.
      *
      * @param bitStrength the security strength in bits of the XOF.
-     * @param purpose     the purpose of the digest will be used for.
+     * @param purpose the purpose of the digest will be used for.
      */
     public SHAKEDigest(int bitStrength, CryptoServicePurpose purpose)
     {
         super(checkBitLength(bitStrength), purpose);
+    }
+
+    public SHAKEDigest(byte[] encoded, CryptoServicePurpose purpose)
+    {
+        super(encoded, purpose);
     }
 
     public static SavableDigestXof newInstance(Digest digest)
@@ -136,29 +145,9 @@ public class SHAKEDigest
         super(source);
     }
 
-    public SHAKEDigest(byte[] encoded)
+    public SHAKEDigest(byte[] encodedState)
     {
-        if (encoded.length != 1 + 12 + (state.length * 8))
-        {
-            throw new IllegalArgumentException("encoded state has incorrect length");
-        }
-
-        bitsInQueue = Pack.bigEndianToInt(encoded, 0);
-        rate = Pack.bigEndianToInt(encoded, 4);
-        squeezing = Integer.MAX_VALUE == Pack.bigEndianToInt(encoded, 8);
-        fixedOutputLength = Pack.bigEndianToInt(encoded, 12);
-        int p = 16;
-        for (int t = 0; t < state.length; t++)
-        {
-            state[t] = Pack.bigEndianToInt(encoded, p += 8);
-        }
-        this.purpose = CryptoServicePurpose.values()[encoded[p]];
-    }
-
-    public SHAKEDigest(byte[] encoded, CryptoServicePurpose purpose)
-    {
-        this(encoded);
-        this.purpose = purpose;
+         super(encodedState);
     }
 
     public String getAlgorithmName()
@@ -192,7 +181,7 @@ public class SHAKEDigest
             absorbBits(0x0F, 4);
         }
 
-        squeeze(out, outOff, ((long) outLen) * 8);
+        squeeze(out, outOff, ((long)outLen) * 8);
 
         return outLen;
     }
@@ -220,7 +209,7 @@ public class SHAKEDigest
 
         if (finalBits >= 8)
         {
-            absorb((byte) finalInput);
+            absorb((byte)finalInput);
             finalBits -= 8;
             finalInput >>>= 8;
         }
@@ -230,7 +219,7 @@ public class SHAKEDigest
             absorbBits(finalInput, finalBits);
         }
 
-        squeeze(out, outOff, ((long) outLen) * 8);
+        squeeze(out, outOff, ((long)outLen) * 8);
 
         reset();
 
@@ -251,40 +240,22 @@ public class SHAKEDigest
     @Override
     public byte[] getEncodedState()
     {
-        byte[] out = new byte[1 + 12 + (state.length * 8)];
-        Pack.intToBigEndian(bitsInQueue, out, 0);
-        Pack.intToBigEndian(rate, out, 4);
-        Pack.intToBigEndian(squeezing ? Integer.MIN_VALUE : 0, out, 8);
-        Pack.intToBigEndian(fixedOutputLength, out, 12);
-        int p = 16;
-        for (long s : state)
-        {
-            Pack.longToBigEndian(s, out, p += 8);
-        }
-        state[state.length - 1] = (byte) purpose.ordinal();
-        return out;
+        byte[] encState = new byte[state.length * 8 + dataQueue.length + 12 + 2];
+
+        super.getEncodedState(encState);
+
+        return encState;
     }
 
-    @Override
     public Memoable copy()
     {
         return new SHAKEDigest(this);
     }
 
-    @Override
     public void reset(Memoable other)
     {
-        if (!(other instanceof SHAKEDigest))
-        {
-            throw new IllegalArgumentException("no SHAKEDigest instance");
-        }
+        SHAKEDigest d = (SHAKEDigest)other;
 
-        this.bitsInQueue = ((SHAKEDigest) other).bitsInQueue;
-        this.rate = ((SHAKEDigest) other).rate;
-        this.squeezing = ((SHAKEDigest) other).squeezing;
-        this.fixedOutputLength = ((SHAKEDigest) other).fixedOutputLength;
-        System.arraycopy(((SHAKEDigest) other).state, 0, this.state, 0, this.state.length);
-        this.purpose = ((SHAKEDigest) other).purpose;
-
+        copyIn(d);
     }
 }

@@ -72,8 +72,9 @@ public class SubjectPublicKeyInfo
     }
 
     /**
-     @deprecated use SubjectPublicKeyInfo.getInstance()
+     * @deprecated use getInstance() will be removed.
      */
+    @Deprecated
     public SubjectPublicKeyInfo(
         ASN1Sequence  seq)
     {
@@ -94,7 +95,6 @@ public class SubjectPublicKeyInfo
         return algId;
     }
 
-
     /**
      * for when the public key is an encoded object - if the bitstring
      * can't be decoded this routine throws an IOException.
@@ -108,7 +108,7 @@ public class SubjectPublicKeyInfo
     {
         return ASN1Primitive.fromByteArray(keyData.getOctets());
     }
-
+    
     /**
      * for when the public key is raw bits.
      *

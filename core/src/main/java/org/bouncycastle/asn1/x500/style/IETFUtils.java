@@ -48,8 +48,8 @@ public class IETFUtils
         }
 
         boolean nonWhiteSpaceEncountered = false;
-        int     lastEscaped = 0;
-        char    hex1 = 0;
+        int lastEscaped = 0;
+        char hex1 = 0;
 
         for (int i = start; i != elt.length(); i++)
         {
@@ -246,10 +246,10 @@ public class IETFUtils
 
     public static String[] findAttrNamesForOID(
         ASN1ObjectIdentifier oid,
-        Hashtable            lookup)
+        Hashtable lookup)
     {
         int count = 0;
-        for (Enumeration en = lookup.elements(); en.hasMoreElements();)
+        for (Enumeration en = lookup.elements(); en.hasMoreElements(); )
         {
             if (oid.equals(en.nextElement()))
             {
@@ -260,7 +260,7 @@ public class IETFUtils
         String[] aliases = new String[count];
         count = 0;
 
-        for (Enumeration en = lookup.keys(); en.hasMoreElements();)
+        for (Enumeration en = lookup.keys(); en.hasMoreElements(); )
         {
             String key = (String)en.nextElement();
             if (oid.equals(lookup.get(key)))
@@ -295,8 +295,8 @@ public class IETFUtils
     }
 
     public static ASN1Encodable valueFromHexString(
-        String  str,
-        int     off)
+        String str,
+        int off)
         throws IOException
     {
         byte[] data = new byte[(str.length() - off) / 2];
@@ -345,9 +345,9 @@ public class IETFUtils
     }
 
     public static void appendRDN(
-        StringBuffer          buf,
-        RDN                   rdn,
-        Hashtable             oidSymbols)
+        StringBuffer buf,
+        RDN rdn,
+        Hashtable oidSymbols)
     {
         if (rdn.isMultiValued())
         {
@@ -399,11 +399,11 @@ public class IETFUtils
     }
 
     public static void appendTypeAndValue(
-        StringBuffer          buf,
+        StringBuffer buf,
         AttributeTypeAndValue typeAndValue,
-        Hashtable             oidSymbols)
+        Hashtable oidSymbols)
     {
-        String  sym = (String)oidSymbols.get(typeAndValue.getType());
+        String sym = (String)oidSymbols.get(typeAndValue.getType());
 
         if (sym != null)
         {
@@ -421,7 +421,7 @@ public class IETFUtils
 
     public static String valueToString(ASN1Encodable value)
     {
-        StringBuffer vBuf = new StringBuffer();
+        StringBuilder vBuf = new StringBuilder();
 
         if (value instanceof ASN1String && !(value instanceof ASN1UniversalString))
         {
@@ -459,25 +459,25 @@ public class IETFUtils
         {
             switch (vBuf.charAt(index))
             {
-                case ',':
-                case '"':
-                case '\\':
-                case '+':
-                case '=':
-                case '<':
-                case '>':
-                case ';':
-                {
-                    vBuf.insert(index, "\\");
-                    index += 2;
-                    ++end;
-                    break;
-                }
-                default:
-                {
-                    ++index;
-                    break;
-                }
+            case ',':
+            case '"':
+            case '\\':
+            case '+':
+            case '=':
+            case '<':
+            case '>':
+            case ';':
+            {
+                vBuf.insert(index, "\\");
+                index += 2;
+                ++end;
+                break;
+            }
+            default:
+            {
+                ++index;
+                break;
+            }
             }
         }
 
@@ -566,7 +566,7 @@ public class IETFUtils
             return str;
         }
 
-        StringBuffer res = new StringBuffer();
+        StringBuilder res = new StringBuilder();
 
         char c1 = str.charAt(0);
         res.append(c1);

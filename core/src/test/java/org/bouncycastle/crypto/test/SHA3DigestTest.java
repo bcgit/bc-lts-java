@@ -7,24 +7,35 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.Digest;
-import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.digests.SHA3Digest;
-import org.bouncycastle.crypto.digests.SHA3NativeDigest;
 import org.bouncycastle.test.TestResourceFinder;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.encoders.Hex;
-import org.bouncycastle.util.test.SimpleTest;
 
 /**
  * SHA3 Digest Test
  */
 public class SHA3DigestTest
-        extends SimpleTest
+    extends DigestTest
 {
+    private static String[] messages =
+    {
+        "",
+        "a",
+        "abc",
+        "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq"
+    };
 
-
+    private static String[] digests =
+    {
+        "a7ffc6f8bf1ed76651c14756a061d662f580ff4de43b49fa82d80a4b80f8434a",
+        "80084bf2fba02475726feb2cab2d8215eab14bc6bdd8bfb2c8151257032ecd8b",
+        "3a985da74fe225b2045c172d6bd390bd855f086e3e9d525b46bfe24511431532",
+        "41c0dba2a9d6240849100376a8235e2c82e1b9998a999e21db32dd97496d3376"
+    };
+    
     static class MySHA3Digest extends SHA3Digest
     {
         MySHA3Digest(int bitLength)
@@ -32,15 +43,15 @@ public class SHA3DigestTest
             super(bitLength);
         }
 
-        public int myDoFinal(byte[] out, int outOff, byte partialByte, int partialBits)
+        int myDoFinal(byte[] out, int outOff, byte partialByte, int partialBits)
         {
             return doFinal(out, outOff, partialByte, partialBits);
         }
     }
 
-
     SHA3DigestTest()
     {
+        super(new SHA3Digest(), messages, digests);
     }
 
     public String getName()
@@ -48,9 +59,28 @@ public class SHA3DigestTest
         return "SHA-3";
     }
 
-    public void performTest() throws Exception
+    public void performTest()
     {
-        testVectors();
+        super.performTest();
+
+        try
+        {
+            testVectors();
+        }
+        catch (Exception e)
+        {
+            throw Exceptions.illegalStateException(e.toString(), e);
+        }
+    }
+
+    protected Digest cloneDigest(Digest digest)
+    {
+        return new SHA3Digest((SHA3Digest)digest);
+    }
+
+    protected Digest cloneDigest(byte[] encodedState)
+    {
+        return new SHA3Digest(encodedState);
     }
 
     public void testVectors() throws Exception
@@ -70,17 +100,11 @@ public class SHA3DigestTest
         r.close();
     }
 
-    private Digest createDigest(String algorithm) throws Exception
+    private MySHA3Digest createDigest(String algorithm) throws Exception
     {
         if (algorithm.startsWith("SHA3-"))
         {
             int bits = parseDecimal(algorithm.substring("SHA3-".length()));
-
-            if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA3))
-            {
-                return new SHA3NativeDigest(bits);
-            }
-
             return new MySHA3Digest(bits);
         }
         throw new IllegalArgumentException("Unknown algorithm: " + algorithm);
@@ -96,13 +120,13 @@ public class SHA3DigestTest
         for (int i = 0; i < fullBytes; ++i)
         {
             String byteStr = reverse(block.substring(i * 8, (i + 1) * 8));
-            result[i] = (byte) parseBinary(byteStr);
+            result[i] = (byte)parseBinary(byteStr);
         }
 
         if (totalBytes > fullBytes)
         {
             String byteStr = reverse(block.substring(fullBytes * 8));
-            result[fullBytes] = (byte) parseBinary(byteStr);
+            result[fullBytes] = (byte)parseBinary(byteStr);
         }
 
         return result;
@@ -202,15 +226,10 @@ public class SHA3DigestTest
 //        System.out.println(Hex.toHexString(v.getMessage()).toUpperCase());
 //        System.out.println(Hex.toHexString(v.getHash()).toUpperCase());
 
-        Digest d = createDigest(v.getAlgorithm());
+        MySHA3Digest d = createDigest(v.getAlgorithm());
         byte[] output = new byte[d.getDigestSize()];
+
         byte[] m = v.getMessage();
-
-        if (partialBits != 0 && d instanceof SHA3NativeDigest)
-        {
-            return; // Skip, native impl does not support partial byte input
-        }
-
         if (partialBits == 0)
         {
             d.update(m, 0, m.length);
@@ -219,7 +238,7 @@ public class SHA3DigestTest
         else
         {
             d.update(m, 0, m.length - 1);
-            ((MySHA3Digest)d).myDoFinal(output, 0, m[m.length - 1], partialBits);
+            d.myDoFinal(output, 0, m[m.length - 1], partialBits);
         }
 
         if (!Arrays.areEqual(v.getHash(), output))
@@ -258,7 +277,7 @@ public class SHA3DigestTest
         }
         strings.add(remaining);
 
-        return (String[]) strings.toArray(new String[strings.size()]);
+        return (String[])strings.toArray(new String[strings.size()]);
     }
 
     private String stripFromChar(String s, char c)
@@ -272,7 +291,7 @@ public class SHA3DigestTest
     }
 
     public static void main(
-            String[] args)
+        String[]    args)
     {
         runTest(new SHA3DigestTest());
     }
@@ -305,7 +324,7 @@ public class SHA3DigestTest
         {
             return bits;
         }
-
+        
         public byte[] getMessage()
         {
             return message;

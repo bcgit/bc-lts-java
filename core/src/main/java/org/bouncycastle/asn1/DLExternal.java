@@ -6,6 +6,11 @@ package org.bouncycastle.asn1;
 public class DLExternal
     extends ASN1External
 {
+    public DLExternal(ASN1EncodableVector v)
+    {
+        this(new DLSequence(v));
+    }
+    
     /**
      * Construct a Definite-Length EXTERNAL object, the input sequence must have exactly two elements on it.
      * <p>
