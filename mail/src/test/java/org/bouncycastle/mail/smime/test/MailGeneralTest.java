@@ -750,7 +750,7 @@ public class MailGeneralTest
         sig.addHeader("Content-Disposition", "attachment; filename=\"smime.p7s\"");
         sig.addHeader("Content-Description", "S/MIME Cryptographic Signature");
         sig.addHeader("Content-Transfer-Encoding", "base64");
-        StringBuilder header = new StringBuilder("signed; protocol=\"application/pkcs7-signature\"");
+        StringBuffer header = new StringBuffer("signed; protocol=\"application/pkcs7-signature\"");
 
         List allSigners = new ArrayList();
 
@@ -1026,9 +1026,16 @@ public class MailGeneralTest
         certStores.add(store);
 
         // first path
-        CertPath path = SignedMailValidator.createCertPath(rootCert, trustanchors, certStores);
+        CertPath path1 = SignedMailValidator.createCertPath(rootCert, trustanchors, certStores);
+        assertTrue("path size is not 1", path1.getCertificates().size() == 1);
 
-        assertTrue("path size is not 1", path.getCertificates().size() == 1);
+        Object[] pathAndUserProvided = SignedMailValidator.createCertPath(rootCert, trustanchors, certStores, null);
+        assertTrue("result length is not 2", pathAndUserProvided.length == 2);
+        CertPath path2 = (CertPath)pathAndUserProvided[0];
+        List userProvided = (List)pathAndUserProvided[1];
+        assertTrue("path size is not 1", path2.getCertificates().size() == 1);
+        assertTrue("user-provided size is not 1", userProvided.size() == 1);
+        assertTrue("user-provided value should be false", Boolean.FALSE.equals(userProvided.get(0)));
 
         // check message validation
         certList = new ArrayList();
@@ -1099,12 +1106,13 @@ public class MailGeneralTest
         SignerInformation signer = (SignerInformation)validator
             .getSignerInformationStore().getSigners().iterator().next();
 
-        assertEquals(1, validator.getCertsAndCRLs().getCertificates(null).size());
-        assertEquals(0, validator.getCertsAndCRLs().getCRLs(null).size());
+        CertStore certsAndCRLS = validator.getCertsAndCRLs();
+        assertEquals(1, certsAndCRLS.getCertificates(null).size());
+        assertEquals(0, certsAndCRLS.getCRLs(null).size());
 
         SignedMailValidator.ValidationResult res = validator.getValidationResult(signer);
         assertEquals(1, res.getCertPath().getCertificates().size());
-        assertEquals(2, res.getUserProvidedCerts().size());
+        assertEquals(1, res.getUserProvidedCerts().size());
         assertTrue(res.isVerifiedSignature());
         assertTrue(res.isValidSignature());
 
@@ -1295,7 +1303,7 @@ public class MailGeneralTest
 
 
     }
-    
+
     public void testParser()
         throws Exception
     {
@@ -1400,7 +1408,7 @@ public class MailGeneralTest
     }
 
     private void addHashHeader(
-        StringBuilder header,
+        StringBuffer header,
         List signers)
     {
         int count = 0;
