@@ -78,7 +78,7 @@ public class X509CRLObject
         catch (Exception e)
         {
             throw new ExtCRLException(
-                "Exception reading IssuingDistributionPoint", e);
+                    "Exception reading IssuingDistributionPoint", e);
         }
     }
 
@@ -87,11 +87,11 @@ public class X509CRLObject
         throws CRLException
     {
         this.c = c;
-
+        
         try
         {
             this.sigAlgName = X509SignatureUtil.getSignatureName(c.getSignatureAlgorithm());
-
+            
             if (c.getSignatureAlgorithm().getParameters() != null)
             {
                 this.sigAlgParams = ((ASN1Encodable)c.getSignatureAlgorithm().getParameters()).toASN1Primitive().getEncoded(ASN1Encoding.DER);
@@ -466,15 +466,15 @@ public class X509CRLObject
                         if (oid.equals(Extension.cRLNumber))
                         {
                             buf.append(
-                                    new CRLNumber(ASN1Integer.getInstance(
-                                        dIn.readObject()).getPositiveValue()))
+                                new CRLNumber(ASN1Integer.getInstance(
+                                    dIn.readObject()).getPositiveValue()))
                                 .append(nl);
                         }
                         else if (oid.equals(Extension.deltaCRLIndicator))
                         {
                             buf.append(
-                                    "Base CRL: "
-                                        + new CRLNumber(ASN1Integer.getInstance(
+                                "Base CRL: "
+                                    + new CRLNumber(ASN1Integer.getInstance(
                                         dIn.readObject()).getPositiveValue()))
                                 .append(nl);
                         }
@@ -482,7 +482,7 @@ public class X509CRLObject
                             .equals(Extension.issuingDistributionPoint))
                         {
                             buf.append(
-                                IssuingDistributionPoint.getInstance(dIn.readObject())).append(nl);
+                               IssuingDistributionPoint.getInstance(dIn.readObject())).append(nl);
                         }
                         else if (oid
                             .equals(Extension.cRLDistributionPoints))
@@ -499,7 +499,7 @@ public class X509CRLObject
                         {
                             buf.append(oid.getId());
                             buf.append(" value = ").append(
-                                    ASN1Dump.dumpAsString(dIn.readObject()))
+                                ASN1Dump.dumpAsString(dIn.readObject()))
                                 .append(nl);
                         }
                     }

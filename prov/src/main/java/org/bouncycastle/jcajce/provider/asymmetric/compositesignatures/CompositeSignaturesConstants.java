@@ -21,7 +21,6 @@ public abstract class CompositeSignaturesConstants
         MiscObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256,
         MiscObjectIdentifiers.id_MLDSA44_Ed25519_SHA512,
         MiscObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256,
-        MiscObjectIdentifiers.id_MLDSA44_ECDSA_brainpoolP256r1_SHA256,
         MiscObjectIdentifiers.id_MLDSA65_RSA3072_PSS_SHA512,
         MiscObjectIdentifiers.id_MLDSA65_RSA3072_PKCS15_SHA512,
         MiscObjectIdentifiers.id_MLDSA65_ECDSA_P256_SHA512,
@@ -81,7 +80,6 @@ public abstract class CompositeSignaturesConstants
         compositeNameASN1IdentifierMap.put(CompositeName.MLDSA44_RSA2048_PSS_SHA256, MiscObjectIdentifiers.id_MLDSA44_RSA2048_PSS_SHA256);
         compositeNameASN1IdentifierMap.put(CompositeName.MLDSA44_RSA2048_PKCS15_SHA256, MiscObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256);
         compositeNameASN1IdentifierMap.put(CompositeName.MLDSA44_ECDSA_P256_SHA256, MiscObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256);
-        compositeNameASN1IdentifierMap.put(CompositeName.MLDSA44_ECDSA_brainpoolP256r1_SHA256, MiscObjectIdentifiers.id_MLDSA44_ECDSA_brainpoolP256r1_SHA256);
         compositeNameASN1IdentifierMap.put(CompositeName.MLDSA44_Ed25519_SHA512, MiscObjectIdentifiers.id_MLDSA44_Ed25519_SHA512);
         compositeNameASN1IdentifierMap.put(CompositeName.MLDSA65_RSA3072_PSS_SHA512, MiscObjectIdentifiers.id_MLDSA65_RSA3072_PSS_SHA512);
         compositeNameASN1IdentifierMap.put(CompositeName.MLDSA65_RSA3072_PKCS15_SHA512, MiscObjectIdentifiers.id_MLDSA65_RSA3072_PKCS15_SHA512);

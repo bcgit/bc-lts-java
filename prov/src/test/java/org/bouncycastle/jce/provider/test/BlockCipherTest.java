@@ -1760,7 +1760,7 @@ public class BlockCipherTest
         }
     }
 
-    public void performTest() throws Exception
+    public void performTest()
     {
         for (int i = 0; i != cipherTests1.length; i += 2)
         {
@@ -1828,7 +1828,7 @@ public class BlockCipherTest
         }
     }
 
-    private void testOverlapping() throws Exception
+    private void testOverlapping()
     {
         //Skip the dofinal of the test
         BufferedBlockCipher bc = new DefaultBufferedBlockCipher(AESEngine.newInstance());
@@ -1843,23 +1843,19 @@ public class BlockCipherTest
         random.nextBytes(data);
 
         bc.init(true, key);
-        int r = bc.processBytes(data, 0, bc.getBlockSize() * 2 , expected, 0);
-        r += bc.doFinal(expected,r);
-
+        bc.processBytes(data, 0, bc.getBlockSize() * 2 + 1, expected, 0);
         bc.init(true, key);
-        r = bc.processBytes(data, 0, bc.getBlockSize() * 2 , data, offset);
-        r += bc.doFinal(data,r+offset);
+        bc.processBytes(data, 0, bc.getBlockSize() * 2 + 1, data, offset);
 
-        byte[] v = Arrays.copyOfRange(data, offset, offset + bc.getBlockSize() * 2);
-        if (!areEqual(expected, v))
+        if (!areEqual(expected, Arrays.copyOfRange(data, offset, offset + bc.getBlockSize() * 2)))
         {
             fail("failed for overlapping encryption");
         }
 
         bc.init(false, key);
-        bc.processBytes(data, 0, bc.getBlockSize() * 2 , expected, 0);
+        bc.processBytes(data, 0, bc.getBlockSize() * 2 + 1, expected, 0);
         bc.init(false, key);
-        bc.processBytes(data, 0, bc.getBlockSize() * 2 , data, offset);
+        bc.processBytes(data, 0, bc.getBlockSize() * 2 + 1, data, offset);
 
         if (!areEqual(expected, Arrays.copyOfRange(data, offset, offset + bc.getBlockSize() * 2)))
         {

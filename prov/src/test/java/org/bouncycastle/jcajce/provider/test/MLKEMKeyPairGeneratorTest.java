@@ -5,6 +5,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
 
@@ -13,8 +14,9 @@ import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.jcajce.interfaces.MLKEMPrivateKey;
 import org.bouncycastle.jcajce.interfaces.MLKEMPublicKey;
-import org.bouncycastle.jcajce.provider.test.KeyPairGeneratorTest;
 import org.bouncycastle.jcajce.spec.MLKEMParameterSpec;
+import org.bouncycastle.jcajce.spec.MLKEMPrivateKeySpec;
+import org.bouncycastle.jcajce.spec.MLKEMPublicKeySpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECNamedCurveGenParameterSpec;
 import org.bouncycastle.util.Arrays;
@@ -24,7 +26,7 @@ import org.bouncycastle.util.Strings;
  * KeyFactory/KeyPairGenerator tests for MLKEM with BCPQC provider.
  */
 public class MLKEMKeyPairGeneratorTest
-    extends MainProvKeyPairGeneratorTest
+    extends KeyPairGeneratorTest
 {
     protected void setUp()
     {
@@ -121,4 +123,48 @@ public class MLKEMKeyPairGeneratorTest
         }
     }
 
+    public void testKeyParameterSpec()
+        throws Exception
+    {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("ML-KEM-512", "BC");
+        KeyFactory kFact = KeyFactory.getInstance("ML-KEM", "BC");
+
+        KeyPair kp = kpg.generateKeyPair();
+
+        MLKEMPrivateKeySpec privSpec = (MLKEMPrivateKeySpec)kFact.getKeySpec(kp.getPrivate(), MLKEMPrivateKeySpec.class);
+
+        assertTrue(privSpec.isSeed());
+
+        MLKEMPrivateKey privKey = (MLKEMPrivateKey)kFact.generatePrivate(privSpec);
+        
+        assertEquals(privKey, kp.getPrivate());
+        assertEquals(privKey.getPublicKey(), kp.getPublic());
+
+        privSpec = new MLKEMPrivateKeySpec(privKey.getParameterSpec(), privKey.getPrivateData(), privKey.getPublicKey().getPublicData());
+
+        assertTrue(!privSpec.isSeed());
+
+        privKey = (MLKEMPrivateKey)kFact.generatePrivate(privSpec);
+
+        assertEquals(privKey, kp.getPrivate());
+        assertEquals(privKey.getPublicKey(), kp.getPublic());
+
+        MLKEMPublicKeySpec pubSpec = new MLKEMPublicKeySpec(privKey.getParameterSpec(), privKey.getPublicKey().getPublicData());
+
+        PublicKey pubKey = kFact.generatePublic(pubSpec);
+
+        assertEquals(kp.getPublic(), pubKey);
+
+        pubSpec = (MLKEMPublicKeySpec)kFact.getKeySpec(kp.getPrivate(), MLKEMPublicKeySpec.class);
+
+        pubKey = kFact.generatePublic(pubSpec);
+
+        assertEquals(kp.getPublic(), pubKey);
+
+        pubSpec = (MLKEMPublicKeySpec)kFact.getKeySpec(kp.getPublic(), MLKEMPublicKeySpec.class);
+
+        pubKey = kFact.generatePublic(pubSpec);
+
+        assertEquals(kp.getPublic(), pubKey);
+    }
 }

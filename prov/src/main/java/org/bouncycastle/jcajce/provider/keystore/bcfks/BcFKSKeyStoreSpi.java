@@ -874,9 +874,9 @@ class BcFKSKeyStoreSpi
                 }
 
                 char[] password = ParameterUtil.extractPassword(bcParam);
-
+                
                 EncryptedObjectStoreData encStoreData = getEncryptedObjectStoreData(signatureAlgorithm, password);
-
+                
                 try
                 {
                     Signature sig = helper.createSignature(signatureAlgorithm.getAlgorithm().getId());
@@ -1098,8 +1098,8 @@ class BcFKSKeyStoreSpi
             if (inputStream != null)
             {
                 if (//!presetHmacAlgorithm.equals(hmacAlgorithm)
-                    !isSimilarHmacPbkd(bcParam.getStorePBKDFConfig(), hmacPkbdAlgorithm)
-                        || !presetStoreEncryptionAlgorithm.equals(storeEncryptionAlgorithm))
+                     !isSimilarHmacPbkd(bcParam.getStorePBKDFConfig(), hmacPkbdAlgorithm)
+                    || !presetStoreEncryptionAlgorithm.equals(storeEncryptionAlgorithm))
                 {
                     throw new IOException("configuration parameters do not match existing store");
                 }
@@ -1162,7 +1162,7 @@ class BcFKSKeyStoreSpi
 
         return true;
     }
-
+    
     public void engineLoad(InputStream inputStream, char[] password)
         throws IOException, NoSuchAlgorithmException, CertificateException
     {
@@ -1242,7 +1242,7 @@ class BcFKSKeyStoreSpi
                     for (int i = 0; i != certs.length; i++)
                     {
                         certs[i] = (X509Certificate)certFact.generateCertificate(
-                            new ByteArrayInputStream(certificates[i].getEncoded()));
+                                        new ByteArrayInputStream(certificates[i].getEncoded()));
                     }
 
                     if (validator.isValid(certs))

@@ -1,4 +1,4 @@
-module org.bouncycastle.lts.prov
+module org.bouncycastle.provider
 {
     requires java.sql;
     requires java.logging;
@@ -17,13 +17,10 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.asn1.anssi;
     exports org.bouncycastle.asn1.bc;
     exports org.bouncycastle.asn1.cryptopro;
-    exports org.bouncycastle.asn1.edec;
     exports org.bouncycastle.asn1.gm;
     exports org.bouncycastle.asn1.nist;
     exports org.bouncycastle.asn1.ocsp;
-    exports org.bouncycastle.asn1.oiw;
     exports org.bouncycastle.asn1.pkcs;
-    exports org.bouncycastle.asn1.rosstandart;
     exports org.bouncycastle.asn1.sec;
     exports org.bouncycastle.asn1.teletrust;
     exports org.bouncycastle.asn1.ua;
@@ -116,11 +113,10 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.pqc.crypto;
     exports org.bouncycastle.pqc.crypto.mldsa;
     exports org.bouncycastle.pqc.crypto.mlkem;
+    exports org.bouncycastle.pqc.crypto.lms;
     exports org.bouncycastle.pqc.crypto.slhdsa;
     exports org.bouncycastle.pqc.crypto.util;
     exports org.bouncycastle.pqc.jcajce.interfaces;
-    exports org.bouncycastle.pqc.jcajce.provider.lms;
-    exports org.bouncycastle.pqc.jcajce.provider.util;
     exports org.bouncycastle.pqc.jcajce.spec;
     exports org.bouncycastle.util;
     exports org.bouncycastle.util.encoders;

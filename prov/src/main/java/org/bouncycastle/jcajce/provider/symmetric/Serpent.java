@@ -240,7 +240,7 @@ public final class Serpent
     {
         public TSerpentGMAC()
         {
-            super(new GMac(new GCMBlockCipher(new TnepresEngine())));
+            super(new GMac(GCMBlockCipher.newInstance(new TnepresEngine())));
         }
     }
 

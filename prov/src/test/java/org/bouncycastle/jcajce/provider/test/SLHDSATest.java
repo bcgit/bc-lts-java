@@ -67,10 +67,7 @@ public class SLHDSATest
 
     public void setUp()
     {
-        if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
-        {
-            Security.addProvider(new BouncyCastleProvider());
-        }
+        Security.addProvider(new BouncyCastleProvider());
     }
 
     public void testParametersAndParamSpecs()
@@ -149,7 +146,7 @@ public class SLHDSATest
             NISTObjectIdentifiers.id_hash_slh_dsa_shake_256f_with_shake256,
             NISTObjectIdentifiers.id_hash_slh_dsa_shake_256s_with_shake256,
         };
-        
+
         for (int i = 0; i != names.length; i++)
         {
             KeyPairGenerator kpGen = KeyPairGenerator.getInstance(names[i]);

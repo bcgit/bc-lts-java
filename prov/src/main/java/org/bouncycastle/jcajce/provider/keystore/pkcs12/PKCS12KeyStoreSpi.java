@@ -76,8 +76,8 @@ import org.bouncycastle.asn1.pkcs.EncryptionScheme;
 import org.bouncycastle.asn1.pkcs.KeyDerivationFunc;
 import org.bouncycastle.asn1.pkcs.MacData;
 import org.bouncycastle.asn1.pkcs.PBES2Parameters;
-import org.bouncycastle.asn1.pkcs.PBMAC1Params;
 import org.bouncycastle.asn1.pkcs.PBKDF2Params;
+import org.bouncycastle.asn1.pkcs.PBMAC1Params;
 import org.bouncycastle.asn1.pkcs.PKCS12PBEParams;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.Pfx;
@@ -439,13 +439,13 @@ public class PKCS12KeyStoreSpi
                 X509Certificate x509c = (X509Certificate)c;
                 Certificate nextC = null;
 
-                byte[] akiBytes = x509c.getExtensionValue(Extension.authorityKeyIdentifier.getId());
-                if (akiBytes != null)
+                byte[] akiExtValue = x509c.getExtensionValue(Extension.authorityKeyIdentifier.getId());
+                if (akiExtValue != null)
                 {
-                    ASN1OctetString akiValue = ASN1OctetString.getInstance(akiBytes);
-                    AuthorityKeyIdentifier aki = AuthorityKeyIdentifier.getInstance(akiValue.getOctets());
+                    AuthorityKeyIdentifier aki = AuthorityKeyIdentifier.getInstance(
+                        ASN1OctetString.getInstance(akiExtValue).getOctets());
 
-                    byte[] keyID = aki.getKeyIdentifier();
+                    byte[] keyID = aki.getKeyIdentifierOctets();
                     if (null != keyID)
                     {
                         nextC = (Certificate)chainCerts.get(new CertId(keyID));
@@ -755,12 +755,13 @@ public class PKCS12KeyStoreSpi
         if (algorithm.on(PKCSObjectIdentifiers.pkcs_12PbeIds))
         {
             PKCS12PBEParams pbeParams = PKCS12PBEParams.getInstance(algId.getParameters());
+            PKCS12Key key = new PKCS12Key(password, wrongPKCS12Zero);
+
             try
             {
                 PBEParameterSpec defParams = new PBEParameterSpec(
                     pbeParams.getIV(),
                     BigIntegers.intValueExact(pbeParams.getIterations()));
-                PKCS12Key key = new PKCS12Key(password, wrongPKCS12Zero);
 
                 Cipher cipher = helper.createCipher(algorithm.getId());
 
@@ -770,6 +771,10 @@ public class PKCS12KeyStoreSpi
             catch (Exception e)
             {
                 throw new IOException("exception decrypting data - " + e.toString());
+            }
+            finally
+            {
+                Arrays.clear(key.getPassword());
             }
         }
         else if (algorithm.equals(PKCSObjectIdentifiers.id_PBES2))
@@ -1352,28 +1357,28 @@ public class PKCS12KeyStoreSpi
 
     private ASN1Primitive getAlgParams(ASN1ObjectIdentifier algorithm)
     {
-        if (algorithm.equals(NISTObjectIdentifiers.id_aes128_CBC)
+         if (algorithm.equals(NISTObjectIdentifiers.id_aes128_CBC)
             || algorithm.equals(NISTObjectIdentifiers.id_aes256_CBC))
-        {
-            byte[] iv = new byte[16];
+         {
+             byte[] iv = new byte[16];
+             
+             random.nextBytes(iv);
 
-            random.nextBytes(iv);
+             return new DEROctetString(iv);
+         }
+         else if (algorithm.equals(NISTObjectIdentifiers.id_aes128_GCM)
+              || algorithm.equals(NISTObjectIdentifiers.id_aes256_GCM))
+         {
+             byte[] nonce = new byte[12];
 
-            return new DEROctetString(iv);
-        }
-        else if (algorithm.equals(NISTObjectIdentifiers.id_aes128_GCM)
-            || algorithm.equals(NISTObjectIdentifiers.id_aes256_GCM))
-        {
-            byte[] nonce = new byte[12];
+             random.nextBytes(nonce);
 
-            random.nextBytes(nonce);
+             return new GCMParameters(nonce, 16).toASN1Primitive();
+         }
 
-            return new GCMParameters(nonce, 16).toASN1Primitive();
-        }
-
-        throw new IllegalStateException("unknown encryption OID in getAlgParams()");
+         throw new IllegalStateException("unknown encryption OID in getAlgParams()");
     }
-
+    
     public void engineStore(LoadStoreParameter param)
         throws IOException,
         NoSuchAlgorithmException, CertificateException
@@ -1383,16 +1388,14 @@ public class PKCS12KeyStoreSpi
             throw new IllegalArgumentException("'param' arg cannot be null");
         }
 
-        if (!(param instanceof PKCS12StoreParameter))//|| param instanceof JDKPKCS12StoreParameter)
+        if (!(param instanceof PKCS12StoreParameter))
         {
             throw new IllegalArgumentException(
                 "No support for 'param' of type " + param.getClass().getName());
         }
 
-        PKCS12StoreParameter bcParam;
-
-        bcParam = (PKCS12StoreParameter)param;
-
+        PKCS12StoreParameter bcParam = (PKCS12StoreParameter)param;
+        
         char[] password;
         ProtectionParameter protParam = param.getProtectionParameter();
         if (protParam == null)
@@ -1423,7 +1426,7 @@ public class PKCS12KeyStoreSpi
         // TODO:delete comment
         //  Since we cannot add any function to the KeyStore Api we will run code when saving the store
         // to sync the friendlyNames with Alias depending on the storeParameter
-        /**
+        /*
          *     @Override
          *     public void setFriendlyName(String alias, String newFriendlyName, char[] password) throws UnrecoverableKeyException, NoSuchAlgorithmException
          *     {
@@ -1451,7 +1454,7 @@ public class PKCS12KeyStoreSpi
 
         while (cs.hasMoreElements())
         {
-            String keyId = (String)cs.nextElement();
+            String keyId = (String) cs.nextElement();
             PrivateKey key = (PrivateKey)keys.get(keyId);
 
             if (key instanceof PKCS12BagAttributeCarrier)
@@ -1469,7 +1472,7 @@ public class PKCS12KeyStoreSpi
 
         while (cs.hasMoreElements())
         {
-            String certId = (String)cs.nextElement();
+            String certId = (String) cs.nextElement();
             Certificate cert = (Certificate)certs.get(certId);
 
             if (cert instanceof PKCS12BagAttributeCarrier)
@@ -1486,7 +1489,7 @@ public class PKCS12KeyStoreSpi
 
         while (cs.hasMoreElements())
         {
-            String certId = (String)cs.nextElement();
+            String certId = (String) cs.nextElement();
             Certificate cert = (Certificate)keyCerts.get(certId);
 
             if (cert instanceof PKCS12BagAttributeCarrier)
@@ -1955,7 +1958,7 @@ public class PKCS12KeyStoreSpi
                 {
                     continue;
                 }
-
+                
                 ASN1EncodableVector fSeq = new ASN1EncodableVector();
 
                 fSeq.add(oid);
@@ -2062,6 +2065,8 @@ public class PKCS12KeyStoreSpi
 
                 CipherParameters key = generator.generateDerivedParameters(BigIntegers.intValueExact(pbkdf2Params.getKeyLength()) * 8);
 
+                Arrays.clear(generator.getPassword());
+
                 hMac.init(key);
                 hMac.update(data, 0, data.length);
                 byte[] res = new byte[hMac.getMacSize()];
@@ -2069,14 +2074,23 @@ public class PKCS12KeyStoreSpi
                 return res;
             }
         }
-
+        
         PBEParameterSpec defParams = new PBEParameterSpec(salt, itCount);
+        PKCS12Key key = new PKCS12Key(password, wrongPkcs12Zero);
 
-        Mac mac = helper.createMac(oid.getId());
-        mac.init(new PKCS12Key(password, wrongPkcs12Zero), defParams);
-        mac.update(data);
+        try
+        {
+            Mac mac = helper.createMac(oid.getId());
 
-        return mac.doFinal();
+            mac.init(key, defParams);
+            mac.update(data);
+
+            return mac.doFinal();
+        }
+        finally
+        {
+            Arrays.clear(key.getPassword());
+        }
     }
 
     private static Digest getPrf(ASN1ObjectIdentifier prfId)

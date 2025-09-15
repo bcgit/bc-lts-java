@@ -51,11 +51,9 @@ import org.bouncycastle.asn1.ASN1OutputStream;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1String;
-import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.RFC4519Style;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
-import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.CRLDistPoint;
 import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.asn1.x509.DistributionPoint;
@@ -101,8 +99,8 @@ class CertPathValidatorUtilities
     protected static final String CRL_NUMBER = Extension.cRLNumber.getId();
 
     /*
-     * key usage bits
-     */
+    * key usage bits
+    */
     protected static final int KEY_CERT_SIGN = 5;
     protected static final int CRL_SIGN = 6;
 
@@ -375,7 +373,7 @@ class CertPathValidatorUtilities
 
     //
     // policy checking
-    //
+    // 
 
     protected static final Set getQualifierSet(ASN1Sequence qualifiers)
         throws CertPathValidatorException
@@ -1054,7 +1052,7 @@ class CertPathValidatorUtilities
      * @param dp          The distribution point for which the complete CRL
      * @param cert        The <code>X509Certificate</code> for
      *                    which the CRL should be searched.
-     * @param validityDate The date for which the delta CRLs must be valid.
+     * @param currentDate The date for which the delta CRLs must be valid.
      * @param paramsPKIX  The extended PKIX parameters.
      * @return A <code>Set</code> of <code>X509CRL</code>s with complete
      *         CRLs.
@@ -1062,7 +1060,7 @@ class CertPathValidatorUtilities
      * or no CRLs are found.
      */
     protected static Set getCompleteCRLs(PKIXCertRevocationCheckerParameters params, DistributionPoint dp, Object cert,
-                                         PKIXExtendedParameters paramsPKIX, Date validityDate)
+        PKIXExtendedParameters paramsPKIX, Date validityDate)
         throws AnnotatedException, RecoverableCertPathValidatorException
     {
         X509CRLSelector baseCrlSelect = new X509CRLSelector();
@@ -1095,7 +1093,7 @@ class CertPathValidatorUtilities
     }
 
     protected static Date getValidCertDateFromValidityModel(Date validityDate, int validityModel, CertPath certPath,
-                                                            int index) throws AnnotatedException
+        int index) throws AnnotatedException
     {
         if (PKIXExtendedParameters.CHAIN_VALIDITY_MODEL != validityModel || index <= 0)
         {
@@ -1233,23 +1231,26 @@ class CertPathValidatorUtilities
                 "Subject criteria for certificate selector to find issuer certificate could not be set.", e);
         }
 
-        try
-        {
-            byte[] akiExtensionValue = cert.getExtensionValue(AUTHORITY_KEY_IDENTIFIER);
-            if (akiExtensionValue != null)
-            {
-                ASN1OctetString aki = ASN1OctetString.getInstance(akiExtensionValue);
-                byte[] authorityKeyIdentifier = AuthorityKeyIdentifier.getInstance(aki.getOctets()).getKeyIdentifier();
-                if (authorityKeyIdentifier != null)
-                {
-                    selector.setSubjectKeyIdentifier(new DEROctetString(authorityKeyIdentifier).getEncoded());
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            // authority key identifier could not be retrieved from target cert, just search without it
-        }
+        // RFC 3.5.12: explicitly disallows this - subject key identifier may be calculated differently
+//        try
+//        {
+//            byte[] akiExtValue = cert.getExtensionValue(AUTHORITY_KEY_IDENTIFIER);
+//            if (akiExtValue != null)
+//            {
+//                AuthorityKeyIdentifier aki = AuthorityKeyIdentifier.getInstance(
+//                    ASN1OctetString.getInstance(akiExtValue).getOctets());
+//
+//                ASN1OctetString keyIdentifier = aki.getKeyIdentifierObject();
+//                if (keyIdentifier != null)
+//                {
+//                    selector.setSubjectKeyIdentifier(keyIdentifier.getEncoded(ASN1Encoding.DER));
+//                }
+//            }
+//        }
+//        catch (Exception e)
+//        {
+//            // authority key identifier could not be retrieved from target cert, just search without it
+//        }
 
         PKIXCertStoreSelector certSelect = new PKIXCertStoreSelector.Builder(selector).build();
         Set certs = new LinkedHashSet();
@@ -1287,10 +1288,10 @@ class CertPathValidatorUtilities
     {
         if (crls.isEmpty())
         {
-            X509Certificate xCert = (X509Certificate)cert;
+                X509Certificate xCert = (X509Certificate)cert;
 
-            throw new RecoverableCertPathValidatorException("No CRLs found for issuer \"" + RFC4519Style.INSTANCE.toString(PrincipalUtils.getIssuerPrincipal(xCert)) + "\"", null,
-                params.getCertPath(), params.getIndex());
+                throw new RecoverableCertPathValidatorException("No CRLs found for issuer \"" + RFC4519Style.INSTANCE.toString(PrincipalUtils.getIssuerPrincipal(xCert)) + "\"", null,
+                    params.getCertPath(), params.getIndex());
         }
     }
 
