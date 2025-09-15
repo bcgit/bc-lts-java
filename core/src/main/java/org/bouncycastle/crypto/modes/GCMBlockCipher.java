@@ -1,6 +1,11 @@
 package org.bouncycastle.crypto.modes;
 
-import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.DataLengthException;
+import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.NativeBlockCipherProvider;
+import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.modes.gcm.BasicGCMExponentiator;
 import org.bouncycastle.crypto.modes.gcm.GCMExponentiator;
 import org.bouncycastle.crypto.modes.gcm.GCMMultiplier;
@@ -169,9 +174,9 @@ public class GCMBlockCipher
         int bufLength = forEncryption ? BLOCK_SIZE : (BLOCK_SIZE + macSize);
         this.bufBlock = new byte[bufLength];
 
-        if (newNonce == null || newNonce.length < 1)
+        if (newNonce == null || newNonce.length < 12)
         {
-            throw new IllegalArgumentException("IV must be at least 1 byte");
+            throw new IllegalArgumentException("IV must be at least 12 byte");
         }
 
         if (forEncryption)

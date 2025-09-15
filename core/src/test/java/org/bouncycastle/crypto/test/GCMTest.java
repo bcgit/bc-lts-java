@@ -78,22 +78,22 @@ public class GCMTest
                             + "1ba30b396a0aac973d58e091",
                     "5bc94fbc3221a5db94fae95ae7121a47",
             },
-            {
-                    "Test Case 5",
-                    "feffe9928665731c6d6a8f9467308308",
-                    "d9313225f88406e5a55909c5aff5269a"
-                            + "86a7a9531534f7da2e4c303d8a318a72"
-                            + "1c3c0c95956809532fcf0e2449a6b525"
-                            + "b16aedf5aa0de657ba637b39",
-                    "feedfacedeadbeeffeedfacedeadbeef"
-                            + "abaddad2",
-                    "cafebabefacedbad",
-                    "61353b4c2806934a777ff51fa22a4755"
-                            + "699b2a714fcdc6f83766e5f97b6c7423"
-                            + "73806900e49f24b22b097544d4896b42"
-                            + "4989b5e1ebac0f07c23f4598",
-                    "3612d2e79e3b0785561be14aaca2fccb",
-            },
+//            { IV less than 12, no longer supported
+//                    "Test Case 5",
+//                    "feffe9928665731c6d6a8f9467308308",
+//                    "d9313225f88406e5a55909c5aff5269a"
+//                            + "86a7a9531534f7da2e4c303d8a318a72"
+//                            + "1c3c0c95956809532fcf0e2449a6b525"
+//                            + "b16aedf5aa0de657ba637b39",
+//                    "feedfacedeadbeeffeedfacedeadbeef"
+//                            + "abaddad2",
+//                    "cafebabefacedbad",
+//                    "61353b4c2806934a777ff51fa22a4755"
+//                            + "699b2a714fcdc6f83766e5f97b6c7423"
+//                            + "73806900e49f24b22b097544d4896b42"
+//                            + "4989b5e1ebac0f07c23f4598",
+//                    "3612d2e79e3b0785561be14aaca2fccb",
+//            },
             {
                     "Test Case 6",
                     "feffe9928665731c6d6a8f9467308308",
@@ -166,23 +166,23 @@ public class GCMTest
                             + "18e2448b2fe324d9ccda2710",
                     "2519498e80f1478f37ba55bd6d27618c",
             },
-            {
-                    "Test Case 11",
-                    "feffe9928665731c6d6a8f9467308308"
-                            + "feffe9928665731c",
-                    "d9313225f88406e5a55909c5aff5269a"
-                            + "86a7a9531534f7da2e4c303d8a318a72"
-                            + "1c3c0c95956809532fcf0e2449a6b525"
-                            + "b16aedf5aa0de657ba637b39",
-                    "feedfacedeadbeeffeedfacedeadbeef"
-                            + "abaddad2",
-                    "cafebabefacedbad",
-                    "0f10f599ae14a154ed24b36e25324db8"
-                            + "c566632ef2bbb34f8347280fc4507057"
-                            + "fddc29df9a471f75c66541d4d4dad1c9"
-                            + "e93a19a58e8b473fa0f062f7",
-                    "65dcc57fcf623a24094fcca40d3533f8",
-            },
+//            { // IV less than 12 no longer supported
+//                    "Test Case 11",
+//                    "feffe9928665731c6d6a8f9467308308"
+//                            + "feffe9928665731c",
+//                    "d9313225f88406e5a55909c5aff5269a"
+//                            + "86a7a9531534f7da2e4c303d8a318a72"
+//                            + "1c3c0c95956809532fcf0e2449a6b525"
+//                            + "b16aedf5aa0de657ba637b39",
+//                    "feedfacedeadbeeffeedfacedeadbeef"
+//                            + "abaddad2",
+//                    "cafebabefacedbad",
+//                    "0f10f599ae14a154ed24b36e25324db8"
+//                            + "c566632ef2bbb34f8347280fc4507057"
+//                            + "fddc29df9a471f75c66541d4d4dad1c9"
+//                            + "e93a19a58e8b473fa0f062f7",
+//                    "65dcc57fcf623a24094fcca40d3533f8",
+//            },
             {
                     "Test Case 12",
                     "feffe9928665731c6d6a8f9467308308"
@@ -256,23 +256,23 @@ public class GCMTest
                             + "c5f61e6393ba7a0abcc9f662",
                     "76fc6ece0f4e1768cddf8853bb2d551b",
             },
-            {
-                    "Test Case 17",
-                    "feffe9928665731c6d6a8f9467308308"
-                            + "feffe9928665731c6d6a8f9467308308",
-                    "d9313225f88406e5a55909c5aff5269a"
-                            + "86a7a9531534f7da2e4c303d8a318a72"
-                            + "1c3c0c95956809532fcf0e2449a6b525"
-                            + "b16aedf5aa0de657ba637b39",
-                    "feedfacedeadbeeffeedfacedeadbeef"
-                            + "abaddad2",
-                    "cafebabefacedbad",
-                    "c3762df1ca787d32ae47c13bf19844cb"
-                            + "af1ae14d0b976afac52ff7d79bba9de0"
-                            + "feb582d33934a4f0954cc2363bc73f78"
-                            + "62ac430e64abe499f47c9b1f",
-                    "3a337dbf46a792c45e454913fe2ea8f2",
-            },
+//            { IV less than 12, no longer supported
+//                    "Test Case 17",
+//                    "feffe9928665731c6d6a8f9467308308"
+//                            + "feffe9928665731c6d6a8f9467308308",
+//                    "d9313225f88406e5a55909c5aff5269a"
+//                            + "86a7a9531534f7da2e4c303d8a318a72"
+//                            + "1c3c0c95956809532fcf0e2449a6b525"
+//                            + "b16aedf5aa0de657ba637b39",
+//                    "feedfacedeadbeeffeedfacedeadbeef"
+//                            + "abaddad2",
+//                    "cafebabefacedbad",
+//                    "c3762df1ca787d32ae47c13bf19844cb"
+//                            + "af1ae14d0b976afac52ff7d79bba9de0"
+//                            + "feb582d33934a4f0954cc2363bc73f78"
+//                            + "62ac430e64abe499f47c9b1f",
+//                    "3a337dbf46a792c45e454913fe2ea8f2",
+//            },
             {
                     "Test Case 18",
                     "feffe9928665731c6d6a8f9467308308"
@@ -320,7 +320,7 @@ public class GCMTest
         GCMModeCipher gcm = createGCM(createAESEngine());
         SecureRandom rnd = new SecureRandom();
 
-        int[] ivLens = new int[]{10,12,16};
+        int[] ivLens = new int[]{12,14,16};
         for (int i = 0; i != ivLens.length; i++)
         {
             int ivLen = ivLens[i];
@@ -633,7 +633,7 @@ public class GCMTest
         byte[] SA = new byte[saLength];
         srng.nextBytes(SA);
 
-        int ivLength = 1 + (srng.nextInt() >>> 24);
+        int ivLength = 12 + (srng.nextInt() >>> 30);
         byte[] IV = new byte[ivLength];
         srng.nextBytes(IV);
 
