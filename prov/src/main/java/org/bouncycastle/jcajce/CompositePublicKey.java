@@ -157,7 +157,7 @@ public class CompositePublicKey
         }
 
         this.keys = publicKeyFromFactory.getPublicKeys();
-        this.algorithmIdentifier = publicKeyFromFactory.getAlgorithmIdentifier();
+        this.algorithmIdentifier = publicKeyFromFactory.getAlgorithmID();
         this.providers = null;
     }
 
@@ -217,7 +217,12 @@ public class CompositePublicKey
         return CompositeIndex.getAlgorithmName(this.algorithmIdentifier.getAlgorithm());
     }
 
-    public AlgorithmIdentifier getAlgorithmIdentifier()
+    public ASN1ObjectIdentifier getAlgorithmIdentifier()
+       {
+           return algorithmIdentifier.getAlgorithm();
+       }
+
+    public AlgorithmIdentifier getAlgorithmID()
     {
         return algorithmIdentifier;
     }
@@ -248,7 +253,7 @@ public class CompositePublicKey
             {
                 byte[] mldsaKey = org.bouncycastle.pqc.crypto.util.SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(org.bouncycastle.pqc.crypto.util.PublicKeyFactory.createKey(keys.get(0).getEncoded())).getPublicKeyData().getBytes();
                 byte[] tradKey = SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(PublicKeyFactory.createKey(keys.get(1).getEncoded())).getPublicKeyData().getBytes();
-                return new SubjectPublicKeyInfo(getAlgorithmIdentifier(), Arrays.concatenate(mldsaKey, tradKey)).getEncoded();
+                return new SubjectPublicKeyInfo(getAlgorithmID(), Arrays.concatenate(mldsaKey, tradKey)).getEncoded();
             }
             catch (IOException e)
             {
@@ -299,7 +304,7 @@ public class CompositePublicKey
         {
             boolean isEqual = true;
             CompositePublicKey comparedKey = (CompositePublicKey)o;
-            if (!comparedKey.getAlgorithmIdentifier().equals(this.algorithmIdentifier) || !this.keys.equals(comparedKey.keys))
+            if (!comparedKey.getAlgorithmID().equals(this.algorithmIdentifier) || !this.keys.equals(comparedKey.keys))
             {
                 isEqual = false;
             }

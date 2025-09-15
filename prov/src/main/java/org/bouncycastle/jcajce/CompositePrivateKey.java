@@ -206,7 +206,7 @@ public class CompositePrivateKey
 
         this.keys = privateKeyFromFactory.getPrivateKeys();
         this.providers = null;
-        this.algorithmIdentifier = privateKeyFromFactory.getAlgorithmIdentifier();
+        this.algorithmIdentifier = privateKeyFromFactory.getAlgorithmID();
     }
 
     /**
@@ -234,7 +234,12 @@ public class CompositePrivateKey
         return CompositeIndex.getAlgorithmName(this.algorithmIdentifier.getAlgorithm());
     }
 
-    public AlgorithmIdentifier getAlgorithmIdentifier()
+    public ASN1ObjectIdentifier getAlgorithmIdentifier()
+           {
+               return algorithmIdentifier.getAlgorithm();
+           }
+
+    public AlgorithmIdentifier getAlgorithmID()
     {
         return algorithmIdentifier;
     }
@@ -323,7 +328,7 @@ public class CompositePrivateKey
         {
             boolean isEqual = true;
             CompositePrivateKey comparedKey = (CompositePrivateKey)o;
-            if (!comparedKey.getAlgorithmIdentifier().equals(this.algorithmIdentifier) || !this.keys.equals(comparedKey.keys))
+            if (!comparedKey.getAlgorithmID().equals(this.algorithmIdentifier) || !this.keys.equals(comparedKey.keys))
             {
                 isEqual = false;
             }
