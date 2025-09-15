@@ -1,4 +1,4 @@
-module org.bouncycastle.provider
+module org.bouncycastle.lts.prov
 {
     requires java.sql;
     requires java.logging;
