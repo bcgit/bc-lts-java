@@ -170,8 +170,8 @@ public class TlsServerProtocol
             clientHelloExtensions, clientHelloMessage, handshakeHash, afterHelloRetryRequest);
 
         Vector clientShares = TlsExtensionsUtils.getKeyShareClientHello(clientHelloExtensions);
-        KeyShareEntry clientShare = null;
 
+        KeyShareEntry clientShare;
         if (afterHelloRetryRequest)
         {
             if (retryGroup < 0)
@@ -1593,7 +1593,7 @@ public class TlsServerProtocol
                     this.connection_state = CS_SERVER_CERTIFICATE_REQUEST;
                 }
             }
-    
+
             TlsCredentialedSigner serverCredentials = TlsUtils.establish13ServerCredentials(tlsServer);
             if (null == serverCredentials)
             {

@@ -46,11 +46,18 @@ public class SignatureScheme
     public static final int sm2sig_sm3 = 0x0708;
 
     /*
-     * draft-tls-westerbaan-mldsa-00
+     * draft-ietf-tls-mldsa-00
      */
-    public static final int DRAFT_mldsa44 = 0x0904;
-    public static final int DRAFT_mldsa65 = 0x0905;
-    public static final int DRAFT_mldsa87 = 0x0906;
+    public static final int mldsa44 = 0x0904;
+    public static final int mldsa65 = 0x0905;
+    public static final int mldsa87 = 0x0906;
+
+    /** @deprecated Use 'mldsa44' instead. */
+    public static final int DRAFT_mldsa44 = mldsa44;
+    /** @deprecated Use 'mldsa65' instead. */
+    public static final int DRAFT_mldsa65 = mldsa65;
+    /** @deprecated Use 'mldsa87' instead. */
+    public static final int DRAFT_mldsa87 = mldsa87;
 
     /*
      * RFC 8446 reserved for private use (0xFE00..0xFFFF)
@@ -77,9 +84,9 @@ public class SignatureScheme
         {
         case ed25519:
         case ed448:
-        case DRAFT_mldsa44:
-        case DRAFT_mldsa65:
-        case DRAFT_mldsa87:
+        case mldsa44:
+        case mldsa65:
+        case mldsa87:
             return -1;
         case ecdsa_brainpoolP256r1tls13_sha256:
         case rsa_pss_pss_sha256:
@@ -156,12 +163,12 @@ public class SignatureScheme
             return "ecdsa_brainpoolP512r1tls13_sha512";
         case sm2sig_sm3:
             return "sm2sig_sm3";
-        case DRAFT_mldsa44:
-            return "DRAFT_mldsa44";
-        case DRAFT_mldsa65:
-            return "DRAFT_mldsa65";
-        case DRAFT_mldsa87:
-            return "DRAFT_mldsa87";
+        case mldsa44:
+            return "mldsa44";
+        case mldsa65:
+            return "mldsa65";
+        case mldsa87:
+            return "mldsa87";
         default:
             return "UNKNOWN";
         }
@@ -195,6 +202,7 @@ public class SignatureScheme
     }
 
     /** @deprecated Use {@link #getCryptoHashAlgorithm(int)} instead. */
+    @Deprecated
     public static int getRSAPSSCryptoHashAlgorithm(int signatureScheme)
     {
         switch (signatureScheme)
@@ -226,9 +234,23 @@ public class SignatureScheme
 
     public static SignatureAndHashAlgorithm getSignatureAndHashAlgorithm(int signatureScheme)
     {
-        return SignatureAndHashAlgorithm.getInstance(
-            getHashAlgorithm(signatureScheme),
-            getSignatureAlgorithm(signatureScheme));
+        switch (signatureScheme)
+        {
+        case ed25519:
+            return SignatureAndHashAlgorithm.ed25519;
+        case ed448:
+            return SignatureAndHashAlgorithm.ed448;
+        case mldsa44:
+            return SignatureAndHashAlgorithm.mldsa44;
+        case mldsa65:
+            return SignatureAndHashAlgorithm.mldsa65;
+        case mldsa87:
+            return SignatureAndHashAlgorithm.mldsa87;
+        default:
+            return SignatureAndHashAlgorithm.getInstance(
+                getHashAlgorithm(signatureScheme),
+                getSignatureAlgorithm(signatureScheme));
+        }
     }
 
     public static String getText(int signatureScheme)
@@ -258,9 +280,9 @@ public class SignatureScheme
     {
         switch (signatureScheme)
         {
-        case DRAFT_mldsa44:
-        case DRAFT_mldsa65:
-        case DRAFT_mldsa87:
+        case mldsa44:
+        case mldsa65:
+        case mldsa87:
             return true;
         default:
             return false;

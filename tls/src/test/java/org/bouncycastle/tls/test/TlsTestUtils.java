@@ -31,16 +31,20 @@ import org.bouncycastle.crypto.params.RSAPrivateCrtKeyParameters;
 import org.bouncycastle.crypto.util.PrivateKeyFactory;
 import org.bouncycastle.test.TestResourceFinder;
 import org.bouncycastle.tls.AlertDescription;
+import org.bouncycastle.tls.BasicTlsPSKIdentity;
 import org.bouncycastle.tls.Certificate;
 import org.bouncycastle.tls.CertificateEntry;
 import org.bouncycastle.tls.ProtocolVersion;
 import org.bouncycastle.tls.SignatureAlgorithm;
 import org.bouncycastle.tls.SignatureAndHashAlgorithm;
+import org.bouncycastle.tls.SignatureScheme;
 import org.bouncycastle.tls.TlsContext;
 import org.bouncycastle.tls.TlsCredentialedAgreement;
 import org.bouncycastle.tls.TlsCredentialedDecryptor;
 import org.bouncycastle.tls.TlsCredentialedSigner;
 import org.bouncycastle.tls.TlsFatalAlert;
+import org.bouncycastle.tls.TlsPSKIdentity;
+import org.bouncycastle.tls.TlsServerCertificate;
 import org.bouncycastle.tls.TlsUtils;
 import org.bouncycastle.tls.crypto.TlsCertificate;
 import org.bouncycastle.tls.crypto.TlsCrypto;
@@ -54,6 +58,7 @@ import org.bouncycastle.tls.crypto.impl.jcajce.JcaTlsCrypto;
 import org.bouncycastle.tls.crypto.impl.jcajce.JceDefaultTlsCredentialedAgreement;
 import org.bouncycastle.tls.crypto.impl.jcajce.JceDefaultTlsCredentialedDecryptor;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.io.pem.PemObject;
@@ -82,6 +87,11 @@ public class TlsTestUtils
             + "pL26Ymz66ZAPdqv7EhOdzl3lZWT6srZUMWWgQMYGiHQg4z2R7X7XAgERo0QwQjAOBgNVHQ8BAf8EBAMCAAEwEgYDVR"
             + "0lAQH/BAgwBgYEVR0lADAcBgNVHREBAf8EEjAQgQ50ZXN0QHRlc3QudGVzdDANBgkqhkiG9w0BAQQFAANBAJg55PBS"
             + "weg6obRUKF4FF6fCrWFi6oCYSQ99LWcAeupc5BofW5MstFMhCOaEucuGVqunwT5G7/DweazzCIrSzB0=");
+
+    static TlsPSKIdentity createDefaultPSKIdentity(boolean badKey)
+    {
+        return new BasicTlsPSKIdentity("client", getPSKPasswordUTF8(badKey));
+    }
 
     static String fingerprint(org.bouncycastle.asn1.x509.Certificate c)
         throws IOException
@@ -144,12 +154,27 @@ public class TlsTestUtils
 
         if ("ed25519".equalsIgnoreCase(eeCertResource))
         {
-            return getCACertResource(SignatureAlgorithm.ed25519);
+            return getCACertResource13(SignatureScheme.ed25519);
         }
 
         if ("ed448".equalsIgnoreCase(eeCertResource))
         {
-            return getCACertResource(SignatureAlgorithm.ed448);
+            return getCACertResource13(SignatureScheme.ed448);
+        }
+
+        if ("ml_dsa_44".equalsIgnoreCase(eeCertResource))
+        {
+            return getCACertResource13(SignatureScheme.mldsa44);
+        }
+
+        if ("ml_dsa_65".equalsIgnoreCase(eeCertResource))
+        {
+            return getCACertResource13(SignatureScheme.mldsa65);
+        }
+
+        if ("ml_dsa_87".equalsIgnoreCase(eeCertResource))
+        {
+            return getCACertResource13(SignatureScheme.mldsa87);
         }
 
         if ("rsa".equalsIgnoreCase(eeCertResource)
@@ -173,6 +198,21 @@ public class TlsTestUtils
         }
 
         throw new TlsFatalAlert(AlertDescription.internal_error);
+    }
+
+    static String getCACertResource13(int signatureScheme) throws IOException
+    {
+        return "x509-ca-" + getResourceName13(signatureScheme) + ".pem";
+    }
+
+    static String getPSKPassword(boolean badKey)
+    {
+        return badKey ? "TLS_TEST_PSK_BAD" : "TLS_TEST_PSK";
+    }
+
+    static byte[] getPSKPasswordUTF8(boolean badKey)
+    {
+        return Strings.toUTF8ByteArray(getPSKPassword(badKey));
     }
 
     static String getResourceName(short signatureAlgorithm) throws IOException
@@ -202,6 +242,26 @@ public class TlsTestUtils
         // TODO[RFC 9189] Choose names here and apply reverse mappings in getCACertResource(String)
         case SignatureAlgorithm.gostr34102012_256:
         case SignatureAlgorithm.gostr34102012_512:
+
+        default:
+            throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+    }
+
+    static String getResourceName13(int signatureScheme) throws IOException
+    {
+        switch (signatureScheme)
+        {
+        case SignatureScheme.ed25519:
+            return "ed25519";
+        case SignatureScheme.ed448:
+            return "ed448";
+        case SignatureScheme.mldsa44:
+            return "ml_dsa_44";
+        case SignatureScheme.mldsa65:
+            return "ml_dsa_65";
+        case SignatureScheme.mldsa87:
+            return "ml_dsa_87";
 
         default:
             throw new TlsFatalAlert(AlertDescription.internal_error);
@@ -399,7 +459,16 @@ public class TlsTestUtils
         PemObject pem = loadPemResource(resource);
         if (pem.getType().equals("PRIVATE KEY"))
         {
-            return PrivateKeyFactory.createKey(pem.getContent());
+            AsymmetricKeyParameter kp;
+            try
+            {
+                kp = PrivateKeyFactory.createKey(pem.getContent());
+            }
+            catch (Exception e)
+            {
+                kp = org.bouncycastle.pqc.crypto.util.PrivateKeyFactory.createKey(pem.getContent());
+            }
+            return kp;
         }
         if (pem.getType().equals("ENCRYPTED PRIVATE KEY"))
         {

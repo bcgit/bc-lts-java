@@ -40,6 +40,15 @@ public class ClientHello
     {
         return cipherSuites;
     }
+
+    /**
+     * @deprecated Use {@link #getVersion()} instead.
+     */
+    @Deprecated
+    public ProtocolVersion getClientVersion()
+    {
+        return version;
+    }
     
     public byte[] getCookie()
     {

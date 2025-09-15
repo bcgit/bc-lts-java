@@ -177,6 +177,8 @@ public class SecurityParameters
      * 
      * @deprecated Will be removed. Use constant CompressionMethod._null instead.
      */
+    @Deprecated
+    @SuppressWarnings("InlineMeSuggester")
     public short getCompressionAlgorithm()
     {
         return CompressionMethod._null;
@@ -193,6 +195,7 @@ public class SecurityParameters
     /**
      * @deprecated Use {@link #getPRFAlgorithm()} instead.
      */
+    @Deprecated
     public int getPrfAlgorithm()
     {
         return prfAlgorithm;
@@ -212,16 +215,6 @@ public class SecurityParameters
     public int getPRFCryptoHashAlgorithm()
     {
         return prfCryptoHashAlgorithm;
-    }
-
-    /**
-     * @return {@link HashAlgorithm} for the current {@link PRFAlgorithm}
-     *
-     * @deprecated Use {@link #getPRFCryptoHashAlgorithm()} instead.
-     */
-    public short getPRFHashAlgorithm()
-    {
-        return (short)getPRFCryptoHashAlgorithm();
     }
 
     public int getPRFHashLength()

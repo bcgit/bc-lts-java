@@ -40,6 +40,7 @@ import javax.net.ssl.SSLSocket;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DERSequence;
@@ -63,6 +64,7 @@ import org.bouncycastle.asn1.x509.TBSCertificate;
 import org.bouncycastle.asn1.x509.Time;
 import org.bouncycastle.asn1.x509.V3TBSCertificateGenerator;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
+import org.bouncycastle.jcajce.spec.MLDSAParameterSpec;
 import org.bouncycastle.jce.spec.ECNamedCurveGenParameterSpec;
 import org.bouncycastle.jsse.BCSSLConnection;
 import org.bouncycastle.jsse.BCSSLEngine;
@@ -70,6 +72,8 @@ import org.bouncycastle.jsse.BCSSLParameters;
 import org.bouncycastle.jsse.BCSSLSocket;
 import org.bouncycastle.jsse.java.security.BCAlgorithmConstraints;
 import org.bouncycastle.jsse.java.security.BCCryptoPrimitive;
+import org.bouncycastle.tls.crypto.CryptoHashAlgorithm;
+import org.bouncycastle.tls.crypto.TlsCryptoUtils;
 
 /**
  * Test Utils
@@ -84,6 +88,10 @@ class TestUtils
 
     private static Map<String, AlgorithmIdentifier> createAlgIDs()
     {
+        ASN1ObjectIdentifier id_sha256 = NISTObjectIdentifiers.id_sha256;
+        AlgorithmIdentifier sha256Identifier = new AlgorithmIdentifier(id_sha256, DERNull.INSTANCE);
+        int sha256OutputSize = TlsCryptoUtils.getHashOutputSize(CryptoHashAlgorithm.sha256);
+
         HashMap<String, AlgorithmIdentifier> algIDs = new HashMap<String, AlgorithmIdentifier>();
 
         algIDs.put("SHA1withDSA", new AlgorithmIdentifier(X9ObjectIdentifiers.id_dsa_with_sha1));
@@ -92,17 +100,21 @@ class TestUtils
         algIDs.put("SHA1withRSA", new AlgorithmIdentifier(PKCSObjectIdentifiers.sha1WithRSAEncryption, DERNull.INSTANCE));
         algIDs.put("SHA224withRSA", new AlgorithmIdentifier(PKCSObjectIdentifiers.sha224WithRSAEncryption, DERNull.INSTANCE));
         algIDs.put("SHA256withRSA", new AlgorithmIdentifier(PKCSObjectIdentifiers.sha256WithRSAEncryption, DERNull.INSTANCE));
-        algIDs.put("SHA256withRSAandMGF1",
-            new AlgorithmIdentifier(PKCSObjectIdentifiers.id_RSASSA_PSS,
-                new RSASSAPSSparams(new AlgorithmIdentifier(NISTObjectIdentifiers.id_sha256),
-                    new AlgorithmIdentifier(PKCSObjectIdentifiers.id_mgf1,
-                        new AlgorithmIdentifier(NISTObjectIdentifiers.id_sha256)),
-                    new ASN1Integer(32), new ASN1Integer(1))));
+        algIDs.put("SHA256withRSAandMGF1", new AlgorithmIdentifier(
+            PKCSObjectIdentifiers.id_RSASSA_PSS,
+            new RSASSAPSSparams(
+                sha256Identifier,
+                new AlgorithmIdentifier(PKCSObjectIdentifiers.id_mgf1, sha256Identifier),
+                new ASN1Integer(sha256OutputSize),
+                RSASSAPSSparams.DEFAULT_TRAILER_FIELD)));
         algIDs.put("SHA1withECDSA", new AlgorithmIdentifier(X9ObjectIdentifiers.ecdsa_with_SHA1));
         algIDs.put("SHA224withECDSA", new AlgorithmIdentifier(X9ObjectIdentifiers.ecdsa_with_SHA224));
         algIDs.put("SHA256withECDSA", new AlgorithmIdentifier(X9ObjectIdentifiers.ecdsa_with_SHA256));
         algIDs.put("Ed25519", new AlgorithmIdentifier(TestOIDs.id_Ed25519));
         algIDs.put("Ed448", new AlgorithmIdentifier(TestOIDs.id_Ed448));
+        algIDs.put("ML-DSA-44", new AlgorithmIdentifier(NISTObjectIdentifiers.id_ml_dsa_44));
+        algIDs.put("ML-DSA-65", new AlgorithmIdentifier(NISTObjectIdentifiers.id_ml_dsa_65));
+        algIDs.put("ML-DSA-87", new AlgorithmIdentifier(NISTObjectIdentifiers.id_ml_dsa_87));
 
         return Collections.unmodifiableMap(algIDs);
     }
@@ -292,6 +304,36 @@ class TestUtils
         return kpGen.generateKeyPair();
     }
 
+    public static KeyPair generateMLDSA44KeyPair() throws Exception
+    {
+        return generateMLDSAKeyPair("ML-DSA-44");
+    }
+
+    public static KeyPair generateMLDSA65KeyPair() throws Exception
+    {
+        return generateMLDSAKeyPair("ML-DSA-65");
+    }
+
+    public static KeyPair generateMLDSA87KeyPair() throws Exception
+    {
+        return generateMLDSAKeyPair("ML-DSA-87");
+    }
+
+    private static KeyPair generateMLDSAKeyPair(String name)
+        throws Exception
+    {
+        return generateMLDSAKeyPair(MLDSAParameterSpec.fromName(name));
+    }
+
+    private static KeyPair generateMLDSAKeyPair(MLDSAParameterSpec spec)
+        throws Exception
+    {
+        // TODO How to pass only the SecureRandom to initialize if we use the full name in the getInstance?
+        KeyPairGenerator kpGen = KeyPairGenerator.getInstance("ML-DSA", ProviderUtils.PROVIDER_NAME_BC);
+        kpGen.initialize(spec, RANDOM);
+        return kpGen.generateKeyPair();
+    }
+
     public static X509Certificate generateRootCert(KeyPair pair)
         throws Exception
     {
@@ -319,6 +361,18 @@ class TestUtils
         else if (alg.equals("Ed448"))
         {
             return createSelfSignedCert("CN=Test CA Certificate", "Ed448", pair);
+        }
+        else if (alg.equals("ML-DSA-44"))
+        {
+            return createSelfSignedCert("CN=Test CA Certificate", "ML-DSA-44", pair);
+        }
+        else if (alg.equals("ML-DSA-65"))
+        {
+            return createSelfSignedCert("CN=Test CA Certificate", "ML-DSA-65", pair);
+        }
+        else if (alg.equals("ML-DSA-87"))
+        {
+            return createSelfSignedCert("CN=Test CA Certificate", "ML-DSA-87", pair);
         }
         else
         {

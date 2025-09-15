@@ -232,7 +232,27 @@ public class Certificate
             }
         }
     }
-    
+
+    /**
+     * Parse a {@link Certificate} from an {@link InputStream}.
+     *
+     * @param context
+     *            the {@link TlsContext} of the current connection.
+     * @param messageInput
+     *            the {@link InputStream} to parse from.
+     * @param endPointHashOutput the {@link OutputStream} to write the "end point hash" (or null).
+     * @return a {@link Certificate} object.
+     * @throws IOException
+     * @deprecated Use version taking a {@link ParseOptions} argument instead. 
+     */
+    @Deprecated
+    @SuppressWarnings("InlineMeSuggester")
+    public static Certificate parse(TlsContext context, InputStream messageInput, OutputStream endPointHashOutput)
+        throws IOException
+    {
+        return parse(new ParseOptions(), context, messageInput, endPointHashOutput);
+    }
+
     /**
      * Parse a {@link Certificate} from an {@link InputStream}.
      *

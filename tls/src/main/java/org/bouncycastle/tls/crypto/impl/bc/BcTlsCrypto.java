@@ -64,6 +64,7 @@ import org.bouncycastle.tls.crypto.TlsSRP6VerifierGenerator;
 import org.bouncycastle.tls.crypto.TlsSRPConfig;
 import org.bouncycastle.tls.crypto.TlsSecret;
 import org.bouncycastle.tls.crypto.impl.AbstractTlsCrypto;
+import org.bouncycastle.tls.crypto.impl.Tls13NullCipher;
 import org.bouncycastle.tls.crypto.impl.TlsAEADCipher;
 import org.bouncycastle.tls.crypto.impl.TlsBlockCipher;
 import org.bouncycastle.tls.crypto.impl.TlsImplUtils;
@@ -178,6 +179,12 @@ public class BcTlsCrypto
             return createChaCha20Poly1305(cryptoParams);
         case EncryptionAlgorithm.NULL:
             return createNullCipher(cryptoParams, macAlgorithm);
+        case EncryptionAlgorithm.NULL_HMAC_SHA256:
+            // NOTE: Ignores macAlgorithm
+            return create13NullCipher(cryptoParams, MACAlgorithm.hmac_sha256);
+        case EncryptionAlgorithm.NULL_HMAC_SHA384:
+            // NOTE: Ignores macAlgorithm
+            return create13NullCipher(cryptoParams, MACAlgorithm.hmac_sha384);
         case EncryptionAlgorithm.SM4_CCM:
             // NOTE: Ignores macAlgorithm
             return createCipher_SM4_CCM(cryptoParams);
@@ -345,6 +352,12 @@ public class BcTlsCrypto
         case EncryptionAlgorithm.SM4_GCM:
             return true;
 
+        case EncryptionAlgorithm.NULL_HMAC_SHA256:
+            return hasMacAlgorithm(MACAlgorithm.hmac_sha256);
+
+        case EncryptionAlgorithm.NULL_HMAC_SHA384:
+            return hasMacAlgorithm(MACAlgorithm.hmac_sha384);
+
         case EncryptionAlgorithm._28147_CNT_IMIT:
         case EncryptionAlgorithm.DES_CBC:
         case EncryptionAlgorithm.DES40_CBC:
@@ -441,6 +454,12 @@ public class BcTlsCrypto
 
     public boolean hasSignatureAndHashAlgorithm(SignatureAndHashAlgorithm sigAndHashAlgorithm)
     {
+        int signatureScheme = SignatureScheme.from(sigAndHashAlgorithm);
+        if (SignatureScheme.isMLDSA(signatureScheme))
+        {
+            return true;
+        }
+
         short signature = sigAndHashAlgorithm.getSignature();
 
         switch (sigAndHashAlgorithm.getHash())
@@ -457,11 +476,11 @@ public class BcTlsCrypto
         switch (signatureScheme)
         {
         case SignatureScheme.sm2sig_sm3:
-        // TODO[tls] Test coverage before adding
-        case SignatureScheme.DRAFT_mldsa44:
-        case SignatureScheme.DRAFT_mldsa65:
-        case SignatureScheme.DRAFT_mldsa87:
             return false;
+        case SignatureScheme.mldsa44:
+        case SignatureScheme.mldsa65:
+        case SignatureScheme.mldsa87:
+            return true;
         default:
         {
             short signature = SignatureScheme.getSignatureAlgorithm(signatureScheme);
@@ -675,6 +694,12 @@ public class BcTlsCrypto
         return new TlsAEADCipher(cryptoParams, encrypt, decrypt, 16, 16, TlsAEADCipher.AEAD_GCM, null);
     }
 
+    protected Tls13NullCipher create13NullCipher(TlsCryptoParameters cryptoParams, int macAlgorithm)
+        throws IOException
+    {
+        return new Tls13NullCipher(cryptoParams, createHMAC(macAlgorithm), createHMAC(macAlgorithm));
+    }
+
     protected TlsNullCipher createNullCipher(TlsCryptoParameters cryptoParams, int macAlgorithm)
         throws IOException
     {
@@ -714,7 +739,7 @@ public class BcTlsCrypto
 
     protected AEADBlockCipher createCCMMode(BlockCipher engine)
     {
-        return new CCMBlockCipher(engine);
+        return CCMBlockCipher.newInstance(engine);
     }
 
     protected AEADBlockCipher createGCMMode(BlockCipher engine)

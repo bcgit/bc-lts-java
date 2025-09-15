@@ -61,6 +61,7 @@ import org.bouncycastle.tls.crypto.TlsStreamVerifier;
 import org.bouncycastle.tls.crypto.impl.AEADNonceGenerator;
 import org.bouncycastle.tls.crypto.impl.AEADNonceGeneratorFactory;
 import org.bouncycastle.tls.crypto.impl.AbstractTlsCrypto;
+import org.bouncycastle.tls.crypto.impl.Tls13NullCipher;
 import org.bouncycastle.tls.crypto.impl.TlsAEADCipher;
 import org.bouncycastle.tls.crypto.impl.TlsAEADCipherImpl;
 import org.bouncycastle.tls.crypto.impl.TlsBlockCipher;
@@ -114,7 +115,7 @@ public class JcaTlsCrypto
      * @param nonceEntropySource secondary entropy source, used for nonce and IV generation.
      */
     protected JcaTlsCrypto(JcaJceHelper helper, JcaJceHelper altHelper, SecureRandom entropySource,
-                           SecureRandom nonceEntropySource)
+        SecureRandom nonceEntropySource)
     {
         this.helper = helper;
         this.altHelper = altHelper;
@@ -245,6 +246,12 @@ public class JcaTlsCrypto
                 return createChaCha20Poly1305(cryptoParams);
             case EncryptionAlgorithm.NULL:
                 return createNullCipher(cryptoParams, macAlgorithm);
+            case EncryptionAlgorithm.NULL_HMAC_SHA256:
+                // NOTE: Ignores macAlgorithm
+                return create13NullCipher(cryptoParams, MACAlgorithm.hmac_sha256);
+            case EncryptionAlgorithm.NULL_HMAC_SHA384:
+                // NOTE: Ignores macAlgorithm
+                return create13NullCipher(cryptoParams, MACAlgorithm.hmac_sha384);
             case EncryptionAlgorithm.SEED_CBC:
                 return createCipher_CBC(cryptoParams, "SEED", 16, macAlgorithm);
             case EncryptionAlgorithm.SM4_CBC:
@@ -573,7 +580,7 @@ public class JcaTlsCrypto
         case CryptoSignatureAlgorithm.gostr34102012_256:
         case CryptoSignatureAlgorithm.gostr34102012_512:
 
-            // TODO[RFC 8998]
+        // TODO[RFC 8998]
         case CryptoSignatureAlgorithm.sm2:
 
         default:
@@ -755,7 +762,7 @@ public class JcaTlsCrypto
         case SignatureAlgorithm.gostr34102012_256:
         case SignatureAlgorithm.gostr34102012_512:
 
-            // TODO[RFC 8998]
+        // TODO[RFC 8998]
 //        case SignatureAlgorithm.sm2:
 
         default:
@@ -765,6 +772,12 @@ public class JcaTlsCrypto
 
     public boolean hasSignatureAndHashAlgorithm(SignatureAndHashAlgorithm sigAndHashAlgorithm)
     {
+        int signatureScheme = SignatureScheme.from(sigAndHashAlgorithm);
+        if (SignatureScheme.isMLDSA(signatureScheme))
+        {
+            return true;
+        }
+
         short signature = sigAndHashAlgorithm.getSignature();
 
         switch (sigAndHashAlgorithm.getHash())
@@ -784,11 +797,11 @@ public class JcaTlsCrypto
         switch (signatureScheme)
         {
         case SignatureScheme.sm2sig_sm3:
-            // TODO[tls] Implement before adding
-        case SignatureScheme.DRAFT_mldsa44:
-        case SignatureScheme.DRAFT_mldsa65:
-        case SignatureScheme.DRAFT_mldsa87:
             return false;
+        case SignatureScheme.mldsa44:
+        case SignatureScheme.mldsa65:
+        case SignatureScheme.mldsa87:
+            return true;
         default:
         {
             short signature = SignatureScheme.getSignatureAlgorithm(signatureScheme);
@@ -908,7 +921,7 @@ public class JcaTlsCrypto
      * @throws GeneralSecurityException in case of failure.
      */
     protected TlsBlockCipherImpl createBlockCipher(String cipherName, String algorithm, int keySize,
-                                                   boolean isEncrypting) throws GeneralSecurityException
+        boolean isEncrypting) throws GeneralSecurityException
     {
         return new JceBlockCipherImpl(this, helper.createCipher(cipherName), algorithm, keySize, isEncrypting);
     }
@@ -924,7 +937,7 @@ public class JcaTlsCrypto
      * @throws GeneralSecurityException in case of failure.
      */
     protected TlsBlockCipherImpl createBlockCipherWithCBCImplicitIV(String cipherName, String algorithm, int keySize,
-                                                                    boolean isEncrypting) throws GeneralSecurityException
+        boolean isEncrypting) throws GeneralSecurityException
     {
         return new JceBlockCipherWithCBCImplicitIVImpl(this, helper.createCipher(cipherName), algorithm, isEncrypting);
     }
@@ -940,6 +953,12 @@ public class JcaTlsCrypto
         throws GeneralSecurityException
     {
         return new JcaTlsHash(helper.createMessageDigest(digestName));
+    }
+
+    protected Tls13NullCipher create13NullCipher(TlsCryptoParameters cryptoParams, int macAlgorithm)
+        throws IOException
+    {
+        return new Tls13NullCipher(cryptoParams, createHMAC(macAlgorithm), createHMAC(macAlgorithm));
     }
 
     /**
@@ -958,7 +977,7 @@ public class JcaTlsCrypto
     }
 
     protected TlsStreamSigner createStreamSigner(SignatureAndHashAlgorithm algorithm, PrivateKey privateKey,
-                                                 boolean needsRandom) throws IOException
+        boolean needsRandom) throws IOException
     {
         String algorithmName = JcaUtils.getJcaAlgorithmName(algorithm);
 
@@ -966,7 +985,7 @@ public class JcaTlsCrypto
     }
 
     protected TlsStreamSigner createStreamSigner(String algorithmName, AlgorithmParameterSpec parameter,
-                                                 PrivateKey privateKey, boolean needsRandom) throws IOException
+        PrivateKey privateKey, boolean needsRandom) throws IOException
     {
         SecureRandom random = needsRandom ? getSecureRandom() : null;
 
@@ -994,7 +1013,7 @@ public class JcaTlsCrypto
     }
 
     protected TlsStreamSigner createStreamSigner(JcaJceHelper helper, String algorithmName,
-                                                 AlgorithmParameterSpec parameter, PrivateKey privateKey, SecureRandom random) throws GeneralSecurityException
+        AlgorithmParameterSpec parameter, PrivateKey privateKey, SecureRandom random) throws GeneralSecurityException
     {
         try
         {
@@ -1058,7 +1077,7 @@ public class JcaTlsCrypto
     }
 
     protected TlsStreamVerifier createStreamVerifier(String algorithmName, AlgorithmParameterSpec parameter,
-                                                     byte[] signature, PublicKey publicKey) throws IOException
+        byte[] signature, PublicKey publicKey) throws IOException
     {
         try
         {
@@ -1085,7 +1104,7 @@ public class JcaTlsCrypto
     }
 
     protected Tls13Verifier createTls13Verifier(String algorithmName, AlgorithmParameterSpec parameter,
-                                                PublicKey publicKey) throws IOException
+        PublicKey publicKey) throws IOException
     {
         try
         {
@@ -1159,6 +1178,12 @@ public class JcaTlsCrypto
             return isUsableCipher("SM4/CCM/NoPadding", 128);
         case EncryptionAlgorithm.SM4_GCM:
             return isUsableCipher("SM4/GCM/NoPadding", 128);
+
+        case EncryptionAlgorithm.NULL_HMAC_SHA256:
+            return hasMacAlgorithm(MACAlgorithm.hmac_sha256);
+
+        case EncryptionAlgorithm.NULL_HMAC_SHA384:
+            return hasMacAlgorithm(MACAlgorithm.hmac_sha384);
 
         case EncryptionAlgorithm._28147_CNT_IMIT:
         case EncryptionAlgorithm.DES_CBC:
@@ -1265,7 +1290,7 @@ public class JcaTlsCrypto
     }
 
     protected TlsBlockCipherImpl createCBCBlockCipherImpl(TlsCryptoParameters cryptoParams, String algorithm,
-                                                          int cipherKeySize, boolean forEncryption) throws GeneralSecurityException
+        int cipherKeySize, boolean forEncryption) throws GeneralSecurityException
     {
         String cipherName = algorithm + "/CBC/NoPadding";
 
@@ -1320,7 +1345,7 @@ public class JcaTlsCrypto
     }
 
     protected TlsCipher createCipher_CBC(TlsCryptoParameters cryptoParams, String algorithm, int cipherKeySize,
-                                         int macAlgorithm) throws GeneralSecurityException, IOException
+        int macAlgorithm) throws GeneralSecurityException, IOException
     {
         TlsBlockCipherImpl encrypt = createCBCBlockCipherImpl(cryptoParams, algorithm, cipherKeySize, true);
         TlsBlockCipherImpl decrypt = createCBCBlockCipherImpl(cryptoParams, algorithm, cipherKeySize, false);

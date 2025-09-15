@@ -70,6 +70,16 @@ public interface TlsCrypto
     boolean hasECDHAgreement();
 
     /**
+     * Return true if this TlsCrypto can support KEM key agreement.
+     *
+     * @return true if this instance can support KEM key agreement, false otherwise.
+     */
+    default boolean hasKemAgreement()
+    {
+          return false;
+    }
+
+    /**
      * Return true if this TlsCrypto can support the passed in block/stream encryption algorithm.
      *
      * @param encryptionAlgorithm the algorithm of interest.
@@ -84,13 +94,6 @@ public interface TlsCrypto
      * @return true if HKDF is supported with cryptoHashAlgorithm, false otherwise.
      */
     boolean hasHKDFAlgorithm(int cryptoHashAlgorithm);
-
-    /**
-     * Return true if this TlsCrypto can support KEM key agreement.
-     *
-     * @return true if this instance can support KEM key agreement, false otherwise.
-     */
-    boolean hasKemAgreement();
 
     /**
      * Return true if this TlsCrypto can support the passed in MAC algorithm.
@@ -146,7 +149,10 @@ public interface TlsCrypto
      */
     boolean hasSRPAuthentication();
 
-    TlsSecret createHybridSecret(TlsSecret s1, TlsSecret s2);
+    default TlsSecret createHybridSecret(TlsSecret s1, TlsSecret s2)
+    {
+        return null;
+    }
 
     /**
      * Create a TlsSecret object based on provided data.
@@ -228,7 +234,10 @@ public interface TlsCrypto
      * @param kemConfig the config describing the KEM parameters to use.
      * @return a TlsKemDomain supporting the parameters in kemConfig.
      */
-    TlsKemDomain createKemDomain(TlsKemConfig kemConfig);
+    default TlsKemDomain createKemDomain(TlsKemConfig kemConfig)
+    {
+        return null;
+    }
 
     /**
      * Adopt the passed in secret, creating a new copy of it.
