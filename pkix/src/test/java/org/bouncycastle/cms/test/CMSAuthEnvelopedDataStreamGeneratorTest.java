@@ -41,6 +41,17 @@ import org.bouncycastle.util.Strings;
 public class CMSAuthEnvelopedDataStreamGeneratorTest
     extends TestCase
 {
+    public static void main(String[] args)
+        throws Exception
+    {
+        CMSAuthEnvelopedDataStreamGeneratorTest test = new CMSAuthEnvelopedDataStreamGeneratorTest();
+        test.setUp();
+        test.testGCMCCM();
+        test.testNoAuthAttributes();
+        test.testNoAttributes();
+
+    }
+
     private static final String BC = BouncyCastleProvider.PROVIDER_NAME;
 
     private static final int BUFFER_SIZE = 4000;

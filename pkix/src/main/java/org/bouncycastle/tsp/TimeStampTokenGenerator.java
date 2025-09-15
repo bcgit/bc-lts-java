@@ -116,7 +116,7 @@ public class TimeStampTokenGenerator
     boolean ordering = false;
 
     GeneralName tsa = null;
-
+    
     private ASN1ObjectIdentifier  tsaPolicyOID;
 
     private List certs = new ArrayList();
@@ -219,6 +219,7 @@ public class TimeStampTokenGenerator
             }
             else
             {
+                // NB: The ASN.1 default for ESSCertIDv2.hashAlgorithm has absent parameters (rather than NULL) 
                 digestAlgID = new AlgorithmIdentifier(digestAlgOid);
 
                 final ESSCertIDv2 essCertIDv2 = new ESSCertIDv2(digestAlgID, certHash, issuerSerial);
@@ -445,9 +446,9 @@ public class TimeStampTokenGenerator
         }
 
         TSTInfo tstInfo = new TSTInfo(tsaPolicy,
-            messageImprint, new ASN1Integer(serialNumber),
-            timeStampTime, accuracy, derOrdering,
-            nonce, tsa, respExtensions);
+                messageImprint, new ASN1Integer(serialNumber),
+                timeStampTime, accuracy, derOrdering,
+                nonce, tsa, respExtensions);
 
         try
         {

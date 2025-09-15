@@ -49,6 +49,15 @@ public class TimeStampRequestGenerator
     {
         this.reqPolicy = reqPolicy;
     }
+    
+    /**
+     * @deprecated use method taking ASN1ObjectIdentifier
+     * @param reqPolicy
+     */
+    public void setReqPolicy(String reqPolicy)
+    {
+        setReqPolicy(new ASN1ObjectIdentifier(reqPolicy));
+    }
 
     public void setCertReq(ASN1Boolean certReq)
     {
@@ -58,6 +67,27 @@ public class TimeStampRequestGenerator
     public void setCertReq(boolean certReq)
     {
         setCertReq(ASN1Boolean.getInstance(certReq));
+    }
+
+    /**
+     * add a given extension field for the standard extensions tag (tag 3)
+     * @throws IOException
+     * @deprecated use method taking ASN1ObjectIdentifier
+     */
+    public void addExtension(String OID, boolean critical, ASN1Encodable value) throws IOException
+    {
+        addExtension(new ASN1ObjectIdentifier(OID), critical, value);
+    }
+
+    /**
+     * add a given extension field for the standard extensions tag
+     * The value parameter becomes the contents of the octet string associated
+     * with the extension.
+     * @deprecated use method taking ASN1ObjectIdentifier
+     */
+    public void addExtension(String OID, boolean critical, byte[] value)
+    {
+        addExtension(new ASN1ObjectIdentifier(OID), critical, value);
     }
 
     /**
@@ -77,6 +107,27 @@ public class TimeStampRequestGenerator
     public void addExtension(ASN1ObjectIdentifier oid, boolean isCritical, byte[] value)
     {
         extGenerator.addExtension(oid, isCritical, value);
+    }
+
+    /**
+     * @deprecated use method taking ANS1ObjectIdentifier or AlgorithmIdentifier
+     */
+    public TimeStampRequest generate(String digestAlgorithm, byte[] digest)
+    {
+        return generate(digestAlgorithm, digest, null);
+    }
+
+    /**
+     * @deprecated use method taking ANS1ObjectIdentifier or AlgorithmIdentifier
+     */
+    public TimeStampRequest generate(String digestAlgorithmOID, byte[] digest, BigInteger nonce)
+    {
+        if (digestAlgorithmOID == null)
+        {
+            throw new NullPointerException("'digestAlgorithmOID' cannot be null");
+        }
+
+        return generate(new ASN1ObjectIdentifier(digestAlgorithmOID), digest, nonce);
     }
 
     public TimeStampRequest generate(ASN1ObjectIdentifier digestAlgorithm, byte[] digest)
