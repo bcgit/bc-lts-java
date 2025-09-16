@@ -38,7 +38,7 @@ import org.bouncycastle.util.Iterable;
  * </ul>
  */
 public class PGPObjectFactory
-    implements Iterable
+    implements Iterable<Object>
 {
     private BCPGInputStream in;
     private KeyFingerPrintCalculator fingerPrintCalculator;
@@ -141,6 +141,8 @@ public class PGPObjectFactory
             return new PGPCompressedData(in);
         case PacketTags.LITERAL_DATA:
             return new PGPLiteralData(in);
+        case PacketTags.TRUST:
+            return new PGPTrust(in);
         case PacketTags.PUBLIC_KEY_ENC_SESSION:
         case PacketTags.SYMMETRIC_KEY_ENC_SESSION:
         case PacketTags.SYMMETRIC_KEY_ENC:
@@ -167,6 +169,12 @@ public class PGPObjectFactory
             return new PGPMarker(in);
         case PacketTags.PADDING:
             return new PGPPadding(in);
+        case PacketTags.MOD_DETECTION_CODE:
+            return new UnknownPacket(PacketTags.MOD_DETECTION_CODE, in);
+        case PacketTags.USER_ID:
+            return new UnknownPacket(PacketTags.USER_ID, in);
+        case PacketTags.USER_ATTRIBUTE:
+            return new UnknownPacket(PacketTags.USER_ATTRIBUTE, in);
         }
 
         int tag = in.nextPacketTag();
