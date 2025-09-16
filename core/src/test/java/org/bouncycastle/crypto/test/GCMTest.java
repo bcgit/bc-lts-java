@@ -357,7 +357,7 @@ public class GCMTest
                 l = gcm.processBytes(ct, 0, ct.length, outPostReset, 0);
                 gcm.doFinal(outPostReset, l);
 
-                isTrue("before / after reset decryptions not the same", Arrays.areEqual(outPreReset, outPostReset));
+                isTrue("before / after reset decryption not the same", Arrays.areEqual(outPreReset, outPostReset));
                 isTrue("decryption not same as message", Arrays.areEqual(msg, outPostReset));
 
             }

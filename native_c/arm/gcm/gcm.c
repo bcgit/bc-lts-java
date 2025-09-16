@@ -77,7 +77,6 @@ void gcm_reset(gcm_ctx *ctx, bool keepMac) {
 
     //    ctx->ctr1 = _mm_shuffle_epi8(ctx->Y, *BSWAP_EPI64);
     ctx->ctr1 = vreinterpretq_u32_u8( vrev64q_u8(ctx->Y));
-    ctx->ctr1 = vreinterpretq_u32_u8(vextq_u8(vreinterpretq_u8_u32(ctx->ctr1), vreinterpretq_u8_u32(ctx->ctr1), 8));
 
     ctx->blocksRemaining = BLOCKS_REMAINING_INIT;
 

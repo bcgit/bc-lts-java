@@ -276,7 +276,10 @@ class AESNativeGCM
             }
 
             reset(refWrapper.getReference());
-            initialised = false;
+            if (forEncryption)
+            {
+                initialised = false;
+            }
         }
 
     }
@@ -293,7 +296,10 @@ class AESNativeGCM
 
             keptMac = getMac();
             reset(refWrapper.getReference());
-            initialised = false;
+            if (forEncryption)
+            {
+                initialised = false;
+            }
         }
     }
 
