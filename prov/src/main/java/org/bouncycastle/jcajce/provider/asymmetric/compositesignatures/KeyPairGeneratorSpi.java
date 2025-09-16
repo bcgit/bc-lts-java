@@ -129,6 +129,15 @@ public class KeyPairGeneratorSpi
             super(MiscObjectIdentifiers.id_HashMLDSA44_ECDSA_P256_SHA256);
         }
     }
+                                // placeholder - not used
+    public static final class MLDSA44_ECDSA_brainpoolP256r1_SHA256
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA44_ECDSA_brainpoolP256r1_SHA256()
+        {
+            super(MiscObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256);
+        }
+    }
 
     public static final class HashMLDSA44_Ed25519_SHA512
         extends KeyPairGeneratorSpi

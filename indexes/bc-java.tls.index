@@ -313,7 +313,6 @@ c3ffb5bd872213f93ccb9302d2c110532f15c3288d98c2f432d46e0c5a0da5eb  tls/src/main/j
 93b0e332e14510536661065d15ade052aec439b321e60d6cfc63500e25556679  tls/src/main/java/org/bouncycastle/tls/crypto/impl/bc/BcTlsECDomain.java
 65eac4e127ae8f29e8b5a8b9994fd1ee5887971bb6c07ebfaf727a0040f2fd26  tls/src/main/java/org/bouncycastle/tls/crypto/impl/bc/BcTlsECDSA13Signer.java
 b3e56817f278a7cf7a22d55bdf7cdec8588eec8f0bdc44c02c6a04fe519e712d  tls/src/main/java/org/bouncycastle/tls/crypto/impl/bc/BcTlsDSSSigner.java
-5ad13f68e1706639daef5c5a1ead79c39d9ec132da92d743f405df06324368a2  tls/src/main/java/org/bouncycastle/tls/crypto/impl/bc/BcVerifyingStreamSigner.java
 256af400867cf4b0c39f99637c699f2f1ed0f24bcf351ddfa9454ef2ce076cce  tls/src/main/java/org/bouncycastle/tls/crypto/impl/bc/BcTlsSRP6Client.java
 1d2cea2cbf1e6feea73836246df08381668f6516f1ed112a027a0596f1467dc6  tls/src/main/java/org/bouncycastle/tls/crypto/impl/bc/BcTlsRSAEncryptor.java
 14aea1be65aad126d5ed3600fde8050d34129e35e0430d05f6315b128ac81e8a  tls/src/main/java/org/bouncycastle/tls/crypto/impl/bc/BcTlsRawKeyCertificate.java
@@ -356,7 +355,6 @@ b45c9621477517e2e0a90ebddbafe9e50f959806ac049a39f71e3d3e227c0706  tls/src/main/j
 120c86ff81fe0e82d2ac931a1f5e07ffbfc00319f55bf97b790692695d20a360  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaUtils.java
 68ddcedb24e3c9120bd51485d9533721ae1a06e5b42b005d69075e13894872c3  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JceTlsSecret.java
 f4218595dd96a5980da609e6f30a97f408127633e6e4f6605d782967bc34dffd  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JceX448.java
-932f794564596350e3e9013a89af67521a654aeb5f92c3ee91691e424a9ddef9  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaVerifyingStreamSigner.java
 66fbe6424a12eb2c25be5cee48a8f74d3284fc8f279db512113c8d9ca0f91d36  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaTlsEd448Signer.java
 957fe2a72c6923694c524d030d8289ba2a649be35c0ba3391093cffabc261de7  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaTlsDSAVerifier.java
 f51c7161125c88d0888808373bd8ad227eaf07e8eb4f4bac9111a2f51c22ba20  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaTlsRSAPSSSigner.java
