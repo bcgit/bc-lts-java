@@ -322,4 +322,4 @@ fd77445ee902ac30682ccb4a525ed49db536b652d67921e1d19861d9bba479ce  pg/src/test/ja
 d24e7ae6f374cf4d6aaf0b487f5dd5933169324e002850cc069451bbbbd83556  pg/src/main/java/org/bouncycastle/openpgp/operator/GnuDivertToCardSecretKeyEncryptor.java
 7be6f9a2bc6d97dd82573883340d19b86df95c6266ad10969b0219a6811cd66f  pg/src/main/java/org/bouncycastle/openpgp/PGPTrust.java
 7be6f9a2bc6d97dd82573883340d19b86df95c6266ad10969b0219a6811cd66f  pg/src/main/java/org/bouncycastle/openpgp/PGPTrust.java
-ec8b995d146420eea28cff533e1af7d8ed0c0ccbf34203e038edbd566be26d42  ../../bc-java/pg/src/main/java/org/bouncycastle/bcpg/GnuExtendedS2K.java
+ec8b995d146420eea28cff533e1af7d8ed0c0ccbf34203e038edbd566be26d42  pg/src/main/java/org/bouncycastle/bcpg/GnuExtendedS2K.java

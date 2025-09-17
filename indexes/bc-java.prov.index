@@ -48,7 +48,7 @@ cd92b98768bf6ff69d76c0a9ac1a7e8327bf98810003d9d54fcd524e0b5e833b  prov/src/test/
 baaef9c45b87d54b4edff4a6ced095516d886b81b949c5d289b0d6b1c58ea6db  prov/src/test/java/org/bouncycastle/jce/provider/test/RegressionTest.java
 8a9292511821e5567d680d82574ef2bde16c3e1de1352d2063d5fb44ad6767ba  prov/src/test/java/org/bouncycastle/jce/provider/test/AlgorithmParametersTest.java
 b8c4d0c2c7cbc002426b171b0bc5933dbb3fbee96ec37fc873df353d6caf275b  prov/src/test/java/org/bouncycastle/jce/provider/test/JceTestUtil.java
-20b46acc9f09296cf70586abf4c34920ac40244b70caa1ae6da4a789b3f4d4d6  prov/src/test/java/org/bouncycastle/jce/provider/test/BlockCipherTest.java
+595659e107cb93f84c920839f261e457fd8fa72ab8f6368279c7a3ac522c3f01  prov/src/test/java/org/bouncycastle/jce/provider/test/BlockCipherTest.java
 1702dbe19e7fccb4493bc52947b63d665325739cd08bc4a07ff1a3f4edfe453e  prov/src/test/java/org/bouncycastle/jce/provider/test/DoFinalTest.java
 31831d3a8a1d5f990681c40293ba95e0996db780c22d33f59c9b1e697d271a64  prov/src/test/java/org/bouncycastle/jce/provider/test/RSATest.java
 cb70e35e978d974848882b8a1ae6308c168c1221ce39d686ae7bf1f9f7f73cf5  prov/src/test/java/org/bouncycastle/jce/provider/test/SM4Test.java
@@ -565,5 +565,5 @@ a44a3ce7177274c117140b85755dcd3d2da39f183c787175a894594ecc8b76d4  prov/src/main/
 7bb02c2e87b84f80874308c3cfbc9cfa4cfcd5b702a8f36509f186b28a50291e  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/compositesignatures/KeyFactorySpi.java
 b4a2b6f27a5947cd82f5f34acb3903c4567354d2950c173e8b1bb61e45574e2d  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/compositesignatures/KeyPairGeneratorSpi.java
 9404c233183e9901fcbca81f532d94809b4f81e30dddefd507a08da8f40c19d0  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/compositesignatures/SignatureSpi.java
-20f5e5d8e9ddaad9d3504d61196097f33867b4256512d1c015e9b31cecd8858a  prov/src/test/java/org/bouncycastle/jcajce/provider/test/CompositeSignaturesTest.java
+abff093a126242001552d625bde2c9b9bdeca386602fc6111b371edea39cd404  prov/src/test/java/org/bouncycastle/jcajce/provider/test/CompositeSignaturesTest.java
 3d0ee555b89d0924d15c2d982c0b4a6780bdba6e47aecc4f6a8a84cdbc37e5b6  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/CompositeSignatures.java

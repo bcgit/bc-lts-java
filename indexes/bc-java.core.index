@@ -323,7 +323,7 @@ df7780dcdf7af63e4ebfcd2e4c7921ed9e9fd6acc300495ea5bc12a84354fddd  core/src/main/
 c402f28cde7ff452c23d8c3095d3a83926002d98112d9b0175ef54685401c1f8  core/src/main/java/org/bouncycastle/crypto/Digest.java
 4bc1ebedb468e47785b23f851fdd099c0eb3e0e7f6d76e46e89903d1f749a7b0  core/src/main/java/org/bouncycastle/crypto/KeyParser.java
 c9d627426df7274d14d8b77609040e715137778136a7399b83516739d1f62b4b  core/src/main/java/org/bouncycastle/crypto/ExtendedDigest.java
-c72ef72e1fd65852d33489009e1ecab8cbe1bf4b4955a5995f3f17f7b1342299  core/src/main/java/org/bouncycastle/crypto/DefaultMultiBlockCipher.java
+f2c71101ee56f06aabce627faac09da46ba5eac39db52b35390af5e9335b0af6  core/src/main/java/org/bouncycastle/crypto/DefaultMultiBlockCipher.java
 694b569b65f70147113b50b1100ba9a9f639c89e59108ce984da6414584a4b44  core/src/main/java/org/bouncycastle/crypto/CryptoServicesConstraints.java
 ca49e1ac0ae7e85c5109d2aa073ebefffc760883ce20a00350985f993abeb678  core/src/main/java/org/bouncycastle/crypto/StreamBlockCipher.java
 6a081020a1d88ac0b28719653c4eb32796e35e289ada9f7261e5777749554c98  core/src/main/java/org/bouncycastle/crypto/StagedAgreement.java
@@ -937,7 +937,7 @@ c1b6114bfcb4450513f6bf965fe7b82e757798d801b30085a8eaa385854ff643  core/src/main/
 dd1c8b31a52e2645d6161b718112441710d274f7e152ce82b8530361b4dbfac0  core/src/main/java/org/bouncycastle/util/Shorts.java
 c663cb816f84dc86fc8e8c8f5d68ee037418239595db38192dd25ee6c473e010  core/src/main/java/org/bouncycastle/util/Bytes.java
 37b2b197611260a9def36aeb7a05358dbdab4987edff59726fbde8659e506620  core/src/main/java/org/bouncycastle/util/StreamParsingException.java
-561fc6057e8ee8024e970ba0f00734f20de2ccba6a73e4c7f808f54c863296c2  core/src/main/java/org/bouncycastle/util/Arrays.java
+47b9b87484c4d8c2b88ebbe0b0d74de0669a359b25d8ee4bfa83ed553b659126  core/src/main/java/org/bouncycastle/util/Arrays.java
 e12b8c018ab9bb4b877ac75540a4ffdaab62d25003e21d8a4839e2ae12154d16  core/src/main/java/org/bouncycastle/util/Properties.java
 fb81274afed0e24edc4ad0c15119888ef8c25fa4d8c82845fc92af8874eb7d0e  core/src/main/java/org/bouncycastle/util/Encodable.java
 1678286a097fa6d539ebf3b549a392ba3d118202c25daac0e06d3fee17091954  core/src/main/java/org/bouncycastle/util/Characters.java
@@ -1541,7 +1541,7 @@ f71dd3419094f33ed6180c4a0d4d9f9d97068ac8785f3415ee875cd9755f41b0  core/src/main/
 bafa16c476151f09d255aa29ca5de220a4e2c531915e62028b9697e91ee24bca  core/src/main/java/org/bouncycastle/pqc/crypto/mlkem/MLKEMGenerator.java
 3189598eac7953ef99662736e9a1bd07f60efdb429cd85722d923c3aab1f4ae5  core/src/main/java/org/bouncycastle/pqc/crypto/mlkem/MLKEMIndCpa.java
 05a1e5a95199ec580fe72f9a882277075b29ae2a692cd3158f1498c8e738cfa6  core/src/main/java/org/bouncycastle/pqc/crypto/mlkem/MLKEMKeyGenerationParameters.java
-946a2962c4f967c16bd4df8525960075835bd818b0fa9977d62c66325d615ffb  core/src/main/java/org/bouncycastle/pqc/crypto/mlkem/MLKEMKeyPairGenerator.java
+7f19163b38e552c851bcf4c8e5ecde62b235766c7cb3a8694e9a0e3c0ad38c25  core/src/main/java/org/bouncycastle/pqc/crypto/mlkem/MLKEMKeyPairGenerator.java
 050bae137329565fcc0956c18ebac7e9fa189ca840514a7a3fb61dcb441226f7  core/src/main/java/org/bouncycastle/pqc/crypto/mlkem/MLKEMKeyParameters.java
 bc260dddb807c4052f50105f29a56cd1dd8d73d8a962afba250910aaa0c5a92a  core/src/main/java/org/bouncycastle/pqc/crypto/mlkem/MLKEMParameters.java
 b25778078748c4be143ea4faed8f4dc8e9a4a0a0651f60c95a9ec167bcf93d42  core/src/main/java/org/bouncycastle/pqc/crypto/mlkem/MLKEMPrivateKeyParameters.java
