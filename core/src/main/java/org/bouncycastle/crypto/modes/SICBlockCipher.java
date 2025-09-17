@@ -32,6 +32,10 @@ public class SICBlockCipher
      */
     public static CTRModeCipher newInstance(BlockCipher cipher)
     {
+        if (cipher instanceof NativeBlockCipherProvider)
+        {
+            return ((NativeBlockCipherProvider)cipher).createCTR();
+        }
         return new SICBlockCipher(cipher);
     }
 
