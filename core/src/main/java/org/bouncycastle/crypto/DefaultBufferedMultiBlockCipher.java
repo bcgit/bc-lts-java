@@ -216,7 +216,7 @@ public class DefaultBufferedMultiBlockCipher
                 inOff += gapLen;
             }
 
-            if (in == out )
+            if (in == out)
             {
                 in = new byte[len];
                 System.arraycopy(out, inOff, in, 0, len);
