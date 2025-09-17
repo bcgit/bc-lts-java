@@ -45,6 +45,10 @@ public class MLKEMKeyPairGenerator
         return genKeyPair();
     }
 
+    /**
+     * @deprecated will be removed.
+     */
+    @Deprecated
     public AsymmetricCipherKeyPair internalGenerateKeyPair(byte[] d, byte[] z)
     {
         byte[][] keyPair = mlkemParams.getEngine().generateKemKeyPairInternal(d, z);
