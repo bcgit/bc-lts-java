@@ -216,6 +216,13 @@ public class DefaultBufferedMultiBlockCipher
                 inOff += gapLen;
             }
 
+            if (in == out )
+            {
+                in = new byte[len];
+                System.arraycopy(out, inOff, in, 0, len);
+                inOff = 0;
+            }
+
             int blockCount = (len / cipher.getMultiBlockSize()) * (cipher.getMultiBlockSize() / blockSize);
 
             if (blockCount > 0)
