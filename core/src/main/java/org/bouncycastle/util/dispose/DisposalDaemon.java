@@ -4,13 +4,8 @@ import org.bouncycastle.util.Properties;
 
 import java.lang.ref.PhantomReference;
 import java.lang.ref.ReferenceQueue;
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -22,10 +17,8 @@ public class DisposalDaemon
 
     private static ReferenceQueue<Disposable> referenceQueue = new ReferenceQueue<Disposable>();
 
-    private static Set<ReferenceWrapperWithDisposerRunnable> refs =
-            Collections.synchronizedSet(new HashSet<ReferenceWrapperWithDisposerRunnable>());
+    private static Set<ReferenceWrapperWithDisposerRunnable> refs = ConcurrentHashMap.newKeySet();
 
-    private static AtomicLong ctr = new AtomicLong(Long.MIN_VALUE);
 
     private static final ScheduledExecutorService cleanupExecutor;
     private static final DisposalDaemon disposalDaemon = new DisposalDaemon();
