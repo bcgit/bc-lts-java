@@ -12,6 +12,7 @@ plugins {
     id "checkstyle"
     id "jacoco"
     id "java"
+    id "maven-publish"
 }
 
 //println("Environment setup:")
@@ -62,7 +63,7 @@ ext {
 apply plugin: 'io.spring.nohttp'
 
 
-allprojects {
+configure(allprojects.findAll {it.name != 'bom'}) {
     apply plugin: 'java'
     apply plugin: 'java-library'
     apply plugin: 'checkstyle'
@@ -174,8 +175,9 @@ allTestUnsignedJar.dependsOn(compileTestJava);
 
 
 
-subprojects {
+configure(subprojects.findAll {it.name != 'bom'}) {
     apply plugin: 'eclipse'
+    apply plugin: 'maven-publish'
 
     tasks.register('testNEON_LE', Test) {
 
