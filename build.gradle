@@ -50,7 +50,7 @@ String resolveProp(String name, String alt) {
 
 ext {
     debugBuild = Boolean.parseBoolean(resolveProp("debug_build", "false"));
-    debugSuffix = Boolean.parseBoolean(resolveProp("debug_build", "false")) ? "-debug" : ""
+    debugSuffix = Boolean.parseBoolean(resolveProp("debug_build", "false")) ? "-debug-" : "-"
 
     bundle_version = deriveOSGIVersion(version.toString())
 }
@@ -92,12 +92,12 @@ ext {
     bcTestDataHome = file('core/src/test/data').absolutePath
 
     debugBuild = Boolean.parseBoolean(resolveProp("debug_build", "false"));
-    debugSuffix = Boolean.parseBoolean(resolveProp("debug_build", "false")) ? "-debug" : ""
+    debugSuffix = Boolean.parseBoolean(resolveProp("debug_build", "false")) ? "-debug-" : "-"
 
 
     vm_range = '8on'
 
-    lts_prov = "${rootProject.projectDir}/prov/build/libs/bcprov-lts${vm_range}${debugSuffix}-${version}.jar"
+    lts_prov = "${rootProject.projectDir}/prov/build/libs/bcprov${debugSuffix}lts${vm_range}-${version}.jar"
     lts_util = "${rootProject.projectDir}/util/build/libs/bcutil-lts${vm_range}-${version}.jar"
     lts_pkix = "${rootProject.projectDir}/pkix/build/libs/bcpkix-lts${vm_range}-${version}.jar"
 }

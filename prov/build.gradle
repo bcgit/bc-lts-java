@@ -4,7 +4,7 @@ plugins {
     id "biz.aQute.bnd.builder" version "7.0.0"
 }
 
-jar.archiveBaseName = "bcprov-lts${vm_range}${rootProject.ext.debugSuffix}"
+jar.archiveBaseName = "bcprov${rootProject.ext.debugSuffix}lts${vm_range}"
 
 sourceSets {
     main {
