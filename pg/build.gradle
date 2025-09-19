@@ -92,6 +92,20 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
     from javadoc.destinationDir
 }
 
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'org.bouncycastle'
+            artifactId = "bcpg-lts$vm_range"
+            from components.java
+    
+            artifact(javadocJar)
+            artifact(sourcesJar)
+        }
+    
+    }
+}
+
 artifacts {
     archives jar
     archives javadocJar

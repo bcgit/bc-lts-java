@@ -187,6 +187,20 @@ tasks.register('testNoPSprov', Test) {
 }
 
 
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = 'org.bouncycastle'
+            artifactId = "bcprov-lts$vm_range"
+            from components.java
+    
+            artifact(javadocJar)
+            artifact(sourcesJar)
+        }
+
+    }
+}
+
 test {
     testLogging.showStandardStreams = true
     testLogging.showCauses = true
