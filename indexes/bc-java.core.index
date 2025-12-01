@@ -1029,7 +1029,7 @@ cdb5d65c61bcc9860e1f6418ee32fe4398c9f2b272028ecb1c9d1fa594de89ab  core/src/main/
 2479c35d36e3a20b83f641f21711975f3be1c3dd2bbad15d20d8cb370936414f  core/src/main/java/org/bouncycastle/asn1/DERUniversalString.java
 820b5bb092bda67511a1109f756126bbb4c957cfdb34701519ecf445f3ed4bf8  core/src/main/java/org/bouncycastle/asn1/BEROctetString.java
 0569b6e2dcec73769fc2a63dd5f157891d82e51ff1790d3d3bb360b4f7e8f36e  core/src/main/java/org/bouncycastle/asn1/DLExternal.java
-d2fed1ff4e737bdcdb6e4f1954f7180a89b3a754219864d531e2aed16c0c0318  core/src/main/java/org/bouncycastle/asn1/iana/IANAObjectIdentifiers.java
+750fc2a31e4a3a988af1e97039a31bcaeb53036cf8764efe8a05f1d1c77f08b6  core/src/main/java/org/bouncycastle/asn1/iana/IANAObjectIdentifiers.java
 561943e5bf15b98b71b196212e8c1648dba3862d3fa6fe505257521f54f05de6  core/src/main/java/org/bouncycastle/asn1/iso/ISOIECObjectIdentifiers.java
 d6bbf759f0df3805626e0de21539d1525d93bddb18a65c973e939a311cd3b891  core/src/main/java/org/bouncycastle/asn1/DLOutputStream.java
 a995a118563751d11a6c5bde637a8cdc2d5a5ae35ff5d227ac38e5434fdb826c  core/src/main/java/org/bouncycastle/asn1/DERPrintableString.java
