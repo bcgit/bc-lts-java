@@ -185,7 +185,7 @@ public class CMSTestUtil
             ed25519Kpg = KeyPairGenerator.getInstance("Ed25519", "BC");
             ed448Kpg = KeyPairGenerator.getInstance("Ed448", "BC");
 
-            ntruKpg = KeyPairGenerator.getInstance(BCObjectIdentifiers.ntruhps2048509.getId(), "BC");
+//            ntruKpg = KeyPairGenerator.getInstance(BCObjectIdentifiers.ntruhps2048509.getId(), "BC");
 
             mlDsa44Kpg = KeyPairGenerator.getInstance("ML-DSA-44", "BC");
             mlDsa65Kpg = KeyPairGenerator.getInstance("ML-DSA-65", "BC");
