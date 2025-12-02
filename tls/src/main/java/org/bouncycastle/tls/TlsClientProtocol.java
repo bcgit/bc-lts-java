@@ -551,7 +551,7 @@ public class TlsClientProtocol
                 handleServerCertificate();
 
                 // There was no server key exchange message; check it's OK
-                this.keyExchange.skipServerKeyExchange();
+                keyExchange.skipServerKeyExchange();
 
                 // NB: Fall through to next case label
             }
@@ -645,6 +645,8 @@ public class TlsClientProtocol
                     establishMasterSecret(tlsClientContext, keyExchange);
                 }
 
+                this.keyExchange = null;
+
                 recordStream.setPendingCipher(TlsUtils.initCipher(tlsClientContext));
 
                 if (clientAuthSigner != null)
@@ -688,7 +690,7 @@ public class TlsClientProtocol
             {
                 handleServerCertificate();
 
-                this.keyExchange.processServerKeyExchange(buf);
+                keyExchange.processServerKeyExchange(buf);
 
                 assertEmpty(buf);
                 break;
@@ -710,7 +712,7 @@ public class TlsClientProtocol
                 handleServerCertificate();
 
                 // There was no server key exchange message; check it's OK
-                this.keyExchange.skipServerKeyExchange();
+                keyExchange.skipServerKeyExchange();
 
                 // NB: Fall through to next case label
             }
@@ -867,7 +869,7 @@ public class TlsClientProtocol
                 if (null == TlsUtils.getExtensionData(clientExtensions, extType))
                 {
                     throw new TlsFatalAlert(AlertDescription.unsupported_extension,
-                        "received unrequested extension response: " + ExtensionType.getText(extensionType));
+                        "Unrequested extension in HelloRetryRequest: " + ExtensionType.getText(extensionType));
                 }
             }
         }
@@ -1117,6 +1119,7 @@ public class TlsClientProtocol
     protected void processServerHello(ServerHello serverHello)
         throws IOException
     {
+        Hashtable clientHelloExtensions = clientHello.getExtensions();
         Hashtable serverHelloExtensions = serverHello.getExtensions();
 
         final ProtocolVersion legacy_version = serverHello.getVersion();
@@ -1139,6 +1142,11 @@ public class TlsClientProtocol
             server_version = supported_version;
         }
 
+        if (!ProtocolVersion.contains(tlsClientContext.getClientSupportedVersions(), server_version))
+        {
+            throw new TlsFatalAlert(AlertDescription.protocol_version);
+        }
+
         final SecurityParameters securityParameters = tlsClientContext.getSecurityParametersHandshake();
 
         if (securityParameters.isRenegotiating())
@@ -1151,11 +1159,6 @@ public class TlsClientProtocol
         }
         else
         {
-            if (!ProtocolVersion.contains(tlsClientContext.getClientSupportedVersions(), server_version))
-            {
-                throw new TlsFatalAlert(AlertDescription.protocol_version);
-            }
-
             ProtocolVersion legacy_record_version = server_version.isLaterVersionOf(ProtocolVersion.TLSv12)
                 ? ProtocolVersion.TLSv12
                 : server_version;
@@ -1255,7 +1258,7 @@ public class TlsClientProtocol
                  * associated ClientHello, it MUST abort the handshake with an unsupported_extension
                  * fatal alert.
                  */
-                if (null == TlsUtils.getExtensionData(this.clientExtensions, extType))
+                if (null == TlsUtils.getExtensionData(clientHelloExtensions, extType))
                 {
                     throw new TlsFatalAlert(AlertDescription.unsupported_extension,
                         "Unrequested extension in ServerHello: " + ExtensionType.getText(extType.intValue()));
@@ -1357,7 +1360,7 @@ public class TlsClientProtocol
         {
             boolean negotiatedEMS = false;
 
-            if (TlsExtensionsUtils.hasExtendedMasterSecretExtension(clientExtensions))
+            if (TlsExtensionsUtils.hasExtendedMasterSecretExtension(clientHelloExtensions))
             {
                 negotiatedEMS = TlsExtensionsUtils.hasExtendedMasterSecretExtension(serverHelloExtensions);
 
@@ -1398,7 +1401,7 @@ public class TlsClientProtocol
         securityParameters.applicationProtocol = TlsExtensionsUtils.getALPNExtensionServer(serverHelloExtensions);
         securityParameters.applicationProtocolSet = true;
 
-        Hashtable sessionClientExtensions = clientExtensions, sessionServerExtensions = serverHelloExtensions;
+        Hashtable sessionClientExtensions = clientHelloExtensions, sessionServerExtensions = serverHelloExtensions;
         if (securityParameters.isResumedSession())
         {
             sessionClientExtensions = null;
@@ -1527,7 +1530,8 @@ public class TlsClientProtocol
 
                 if (null == TlsUtils.getExtensionData(clientExtensions, extType))
                 {
-                    throw new TlsFatalAlert(AlertDescription.unsupported_extension);
+                    throw new TlsFatalAlert(AlertDescription.unsupported_extension,
+                        "Unrequested extension in EncryptedExtensions: " + ExtensionType.getText(extType.intValue()));
                 }
             }
         }
@@ -1760,21 +1764,10 @@ public class TlsClientProtocol
     {
         SecurityParameters securityParameters = tlsClientContext.getSecurityParametersHandshake();
 
-        ProtocolVersion[] supportedVersions;
-        ProtocolVersion earliestVersion, latestVersion;
+        ProtocolVersion[] supportedVersions = tlsClient.getProtocolVersions();
 
-        if (securityParameters.isRenegotiating())
+        if (!securityParameters.isRenegotiating())
         {
-            ProtocolVersion clientVersion = tlsClientContext.getClientVersion();
-
-            supportedVersions = clientVersion.only();
-            earliestVersion = clientVersion;
-            latestVersion = clientVersion;
-        }
-        else
-        {
-            supportedVersions = tlsClient.getProtocolVersions();
-
             if (ProtocolVersion.contains(supportedVersions, ProtocolVersion.SSLv3))
             {
                 // TODO[tls13] Prevent offering SSLv3 AND TLSv13?
@@ -1784,18 +1777,17 @@ public class TlsClientProtocol
             {
                 recordStream.setWriteVersion(ProtocolVersion.TLSv10);
             }
-
-            earliestVersion = ProtocolVersion.getEarliestTLS(supportedVersions);
-            latestVersion = ProtocolVersion.getLatestTLS(supportedVersions);
-
-            if (!ProtocolVersion.isSupportedTLSVersionClient(latestVersion))
-            {
-                throw new TlsFatalAlert(AlertDescription.internal_error);
-            }
-
-            tlsClientContext.setClientVersion(latestVersion);
         }
 
+        ProtocolVersion earliestVersion = ProtocolVersion.getEarliestTLS(supportedVersions);
+        ProtocolVersion latestVersion = ProtocolVersion.getLatestTLS(supportedVersions);
+
+        if (!ProtocolVersion.isSupportedTLSVersionClient(latestVersion))
+        {
+            throw new TlsFatalAlert(AlertDescription.internal_error);
+        }
+ 
+        tlsClientContext.setClientVersion(latestVersion);
         tlsClientContext.setClientSupportedVersions(supportedVersions);
 
         final boolean offeringTLSv12Minus = ProtocolVersion.TLSv12.isEqualOrLaterVersionOf(earliestVersion);
@@ -1919,18 +1911,24 @@ public class TlsClientProtocol
              */
             if (!securityParameters.isSecureRenegotiation())
             {
-                throw new TlsFatalAlert(AlertDescription.internal_error);
+                throw new TlsFatalAlert(AlertDescription.internal_error, "Renegotiation requires secure_renegotiation");
             }
 
             /*
              * The client MUST include the "renegotiation_info" extension in the ClientHello,
              * containing the saved client_verify_data. The SCSV MUST NOT be included.
              */
+            if (Arrays.contains(offeredCipherSuites, CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV))
+            {
+                throw new TlsFatalAlert(AlertDescription.internal_error,
+                    "Renegotiation cannot use TLS_EMPTY_RENEGOTIATION_INFO_SCSV");
+            }
+
             SecurityParameters saved = tlsClientContext.getSecurityParametersConnection();
 
             this.clientExtensions.put(EXT_RenegotiationInfo, createRenegotiationInfo(saved.getLocalVerifyData()));
         }
-        else
+        else if (offeringTLSv12Minus)
         {
             /*
              * RFC 5746 3.4. Client Behavior: Initial Handshake (both full and session-resumption)
@@ -1946,7 +1944,6 @@ public class TlsClientProtocol
 
             if (noRenegExt && noRenegSCSV)
             {
-                // TODO[tls13] Probably want to not add this if no pre-TLSv13 versions offered?
                 offeredCipherSuites = Arrays.append(offeredCipherSuites, CipherSuite.TLS_EMPTY_RENEGOTIATION_INFO_SCSV);
             }
         }
@@ -1993,7 +1990,7 @@ public class TlsClientProtocol
         throws IOException
     {
         HandshakeMessageOutput message = new HandshakeMessageOutput(HandshakeType.client_key_exchange);
-        this.keyExchange.generateClientKeyExchange(message);
+        keyExchange.generateClientKeyExchange(message);
         message.send(this);
     }
 
