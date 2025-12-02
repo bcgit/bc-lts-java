@@ -1,11 +1,8 @@
 package org.bouncycastle.jcajce.provider.asymmetric.util;
 
-import java.lang.reflect.Method;
 import java.math.BigInteger;
-import java.security.AccessController;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
-import java.security.PrivilegedAction;
 import java.security.PublicKey;
 import java.security.spec.AlgorithmParameterSpec;
 import java.util.Enumeration;
@@ -24,6 +21,7 @@ import org.bouncycastle.crypto.params.ECNamedDomainParameters;
 import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.jcajce.provider.config.ProviderConfiguration;
+import org.bouncycastle.jcajce.util.SpecUtil;
 import org.bouncycastle.jce.interfaces.ECPrivateKey;
 import org.bouncycastle.jce.interfaces.ECPublicKey;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -437,24 +435,7 @@ public class ECUtil
 
     public static String getNameFrom(final AlgorithmParameterSpec paramSpec)
     {
-        return (String)AccessController.doPrivileged(new PrivilegedAction()
-        {
-            public Object run()
-            {
-                try
-                {
-                    Method m = paramSpec.getClass().getMethod("getName");
-
-                    return m.invoke(paramSpec);
-                }
-                catch (Exception e)
-                {
-                    // ignore - maybe log?
-                }
-
-                return null;
-            }
-        });
+        return SpecUtil.getNameFrom(paramSpec);
     }
 
     private static ASN1ObjectIdentifier getOID(String curveName)

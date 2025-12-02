@@ -122,6 +122,7 @@ import org.bouncycastle.jce.interfaces.PKCS12BagAttributeCarrier;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.BigIntegers;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Integers;
 import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.Strings;
@@ -145,6 +146,7 @@ public class PKCS12KeyStoreSpi
     private IgnoresCaseHashtable certs = new IgnoresCaseHashtable();
     private Hashtable chainCerts = new Hashtable();
     private Hashtable keyCerts = new Hashtable();
+
 
 
     //
@@ -669,9 +671,13 @@ public class PKCS12KeyStoreSpi
                 return (PrivateKey)cipher.unwrap(data, "", Cipher.PRIVATE_KEY);
             }
         }
+        catch (InvalidKeyException e)
+        {
+            throw Exceptions.ioException("exception unwrapping private key:" + e.getMessage(), new UnrecoverableKeyException(e.toString()));
+        }
         catch (Exception e)
         {
-            throw new IOException("exception unwrapping private key - " + e.toString());
+            throw Exceptions.ioException("exception unwrapping private key: " + e.getMessage(), e);
         }
 
         throw new IOException("exception unwrapping private key - cannot recognise: " + algorithm);
@@ -943,7 +949,8 @@ public class PKCS12KeyStoreSpi
                 {
                     if (password.length > 0)
                     {
-                        throw new IOException("PKCS12 key store mac invalid - wrong password or corrupted file.");
+                        throw Exceptions.ioException("PKCS12 key store mac invalid - wrong password or corrupted file",
+                            new UnrecoverableKeyException("PKCS12 key store mac invalid"));
                     }
 
                     // Try with incorrect zero length password
@@ -951,7 +958,7 @@ public class PKCS12KeyStoreSpi
 
                     if (!Arrays.constantTimeAreEqual(res, dig))
                     {
-                        throw new IOException("PKCS12 key store mac invalid - wrong password or corrupted file.");
+                        throw Exceptions.ioException("PKCS12 key store mac invalid - wrong password or corrupted file", new UnrecoverableKeyException("PKCS12 key store mac invalid"));
                     }
 
                     wrongPKCS12Zero = true;
@@ -1395,7 +1402,7 @@ public class PKCS12KeyStoreSpi
         }
 
         PKCS12StoreParameter bcParam = (PKCS12StoreParameter)param;
-        
+
         char[] password;
         ProtectionParameter protParam = param.getProtectionParameter();
         if (protParam == null)

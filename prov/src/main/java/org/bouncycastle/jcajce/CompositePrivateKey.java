@@ -10,17 +10,21 @@ import java.util.List;
 
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Encoding;
+import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.sec.ECPrivateKey;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.crypto.util.PrivateKeyFactory;
 import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
+import org.bouncycastle.internal.asn1.iana.IANAObjectIdentifiers;
 import org.bouncycastle.internal.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.jcajce.interfaces.MLDSAPrivateKey;
 import org.bouncycastle.jcajce.provider.asymmetric.compositesignatures.CompositeIndex;
 import org.bouncycastle.jcajce.provider.asymmetric.compositesignatures.KeyFactorySpi;
-import org.bouncycastle.jcajce.provider.asymmetric.mldsa.BCMLDSAPrivateKey;
 import org.bouncycastle.jcajce.provider.util.AsymmetricKeyInfoConverter;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Exceptions;
@@ -83,6 +87,11 @@ public class CompositePrivateKey
         return new Builder(new AlgorithmIdentifier(compAlgOid));
     }
 
+    public static Builder builder(String algorithmName)
+    {
+        return builder(CompositeUtil.getOid(algorithmName));
+    }
+
     private final List<PrivateKey> keys;
     private final List<Provider> providers;
 
@@ -136,7 +145,14 @@ public class CompositePrivateKey
         if (key instanceof MLDSAPrivateKey)
         {
             // TODO: we don't insist on seed but we try to accommodate it - the debate continues
-            return ((MLDSAPrivateKey)key).getPrivateKey(true);
+            try
+            {
+                return ((MLDSAPrivateKey)key).getPrivateKey(true);
+            }
+            catch (Exception e)
+            {
+                return key;
+            }
         }
         else
         {
@@ -206,7 +222,7 @@ public class CompositePrivateKey
 
         this.keys = privateKeyFromFactory.getPrivateKeys();
         this.providers = null;
-        this.algorithmIdentifier = privateKeyFromFactory.getAlgorithmID();
+        this.algorithmIdentifier = new AlgorithmIdentifier(privateKeyFromFactory.getAlgorithmIdentifier());
     }
 
     /**
@@ -235,9 +251,9 @@ public class CompositePrivateKey
     }
 
     public ASN1ObjectIdentifier getAlgorithmIdentifier()
-           {
-               return algorithmIdentifier.getAlgorithm();
-           }
+    {
+        return algorithmIdentifier.getAlgorithm();
+    }
 
     public AlgorithmIdentifier getAlgorithmID()
     {
@@ -259,13 +275,24 @@ public class CompositePrivateKey
      */
     public byte[] getEncoded()
     {
-        if (this.algorithmIdentifier.getAlgorithm().on(MiscObjectIdentifiers.id_MLDSA_COMPSIG))
+        if (this.algorithmIdentifier.getAlgorithm().on(IANAObjectIdentifiers.id_alg))
         {
             try
             {
-                byte[] mldsaKey = ((BCMLDSAPrivateKey)keys.get(0)).getSeed();
+                byte[] mldsaKey = ((MLDSAPrivateKey)keys.get(0)).getSeed();
                 PrivateKeyInfo pki = PrivateKeyInfoFactory.createPrivateKeyInfo(PrivateKeyFactory.createKey(keys.get(1).getEncoded()));
                 byte[] tradKey = pki.getPrivateKey().getOctets();
+                if (keys.get(1).getAlgorithm().contains("Ed"))
+                {
+                    tradKey = ASN1OctetString.getInstance(tradKey).getOctets();
+                }
+                else if (keys.get(1).getAlgorithm().contains("EC"))
+                {
+                    ECPrivateKey ecPrivateKey = ECPrivateKey.getInstance(tradKey);
+
+                    tradKey = new ECPrivateKey(ECNamedCurveTable.getByOID(
+                        ASN1ObjectIdentifier.getInstance(ecPrivateKey.getParametersObject())).getCurve().getFieldSize(), ecPrivateKey.getKey(), ecPrivateKey.getParametersObject()).getEncoded();
+                }
                 return new PrivateKeyInfo(algorithmIdentifier, Arrays.concatenate(mldsaKey, tradKey)).getEncoded();
             }
             catch (IOException e)
@@ -328,7 +355,7 @@ public class CompositePrivateKey
         {
             boolean isEqual = true;
             CompositePrivateKey comparedKey = (CompositePrivateKey)o;
-            if (!comparedKey.getAlgorithmID().equals(this.algorithmIdentifier) || !this.keys.equals(comparedKey.keys))
+            if (!comparedKey.getAlgorithmIdentifier().equals(this.algorithmIdentifier) || !this.keys.equals(comparedKey.keys))
             {
                 isEqual = false;
             }

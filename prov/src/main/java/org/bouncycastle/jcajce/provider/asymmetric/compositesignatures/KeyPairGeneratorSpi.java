@@ -9,6 +9,7 @@ import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.internal.asn1.iana.IANAObjectIdentifiers;
 import org.bouncycastle.internal.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.jcajce.CompositePrivateKey;
 import org.bouncycastle.jcajce.CompositePublicKey;
@@ -121,6 +122,214 @@ public class KeyPairGeneratorSpi
         return new KeyPair(compositePublicKey, compositePrivateKey);
     }
 
+    public static final class MLDSA44_ECDSA_P256_SHA256
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA44_ECDSA_P256_SHA256()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256);
+        }
+    }
+
+    public static final class MLDSA44_Ed25519_SHA512
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA44_Ed25519_SHA512()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA44_Ed25519_SHA512);
+        }
+    }
+
+    public static final class MLDSA44_RSA2048_PKCS15_SHA256
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA44_RSA2048_PKCS15_SHA256()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256);
+        }
+    }
+
+    public static final class MLDSA44_RSA2048_PSS_SHA256
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA44_RSA2048_PSS_SHA256()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PSS_SHA256);
+        }
+    }
+
+    public static final class MLDSA65_Ed25519_SHA512
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA65_Ed25519_SHA512()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA65_Ed25519_SHA512);
+        }
+    }
+
+    public static final class MLDSA65_RSA3072_PSS_SHA512
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA65_RSA3072_PSS_SHA512()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA65_RSA3072_PSS_SHA512);
+        }
+    }
+
+    public static final class MLDSA65_RSA3072_PKCS15_SHA512
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA65_RSA3072_PKCS15_SHA512()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA65_RSA3072_PKCS15_SHA512);
+        }
+    }
+
+    public static final class MLDSA65_RSA4096_PSS_SHA512
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA65_RSA4096_PSS_SHA512()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA65_RSA4096_PSS_SHA512);
+        }
+    }
+
+    public static final class MLDSA65_RSA4096_PKCS15_SHA512
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA65_RSA4096_PKCS15_SHA512()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA65_RSA4096_PKCS15_SHA512);
+        }
+    }
+
+    public static final class MLDSA65_ECDSA_P256_SHA512
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA65_ECDSA_P256_SHA512()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA65_ECDSA_P256_SHA512);
+        }
+    }
+
+    public static final class MLDSA65_ECDSA_P384_SHA512
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA65_ECDSA_P384_SHA512()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA65_ECDSA_P384_SHA512);
+        }
+    }
+
+    public static final class MLDSA65_ECDSA_brainpoolP256r1_SHA512
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA65_ECDSA_brainpoolP256r1_SHA512()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA65_ECDSA_brainpoolP256r1_SHA512);
+        }
+    }
+
+    public static final class MLDSA87_ECDSA_P384_SHA512
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA87_ECDSA_P384_SHA512()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA87_ECDSA_P384_SHA512);
+        }
+    }
+
+    public static final class MLDSA87_ECDSA_brainpoolP384r1_SHA512
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA87_ECDSA_brainpoolP384r1_SHA512()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA87_ECDSA_brainpoolP384r1_SHA512);
+        }
+    }
+
+    public static final class MLDSA87_Ed448_SHAKE256
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA87_Ed448_SHAKE256()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA87_Ed448_SHAKE256);
+        }
+    }
+
+    public static final class MLDSA87_RSA4096_PSS_SHA512
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA87_RSA4096_PSS_SHA512()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA87_RSA4096_PSS_SHA512);
+        }
+    }
+
+    public static final class MLDSA87_ECDSA_P521_SHA512
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA87_ECDSA_P521_SHA512()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA87_ECDSA_P521_SHA512);
+        }
+    }
+
+    public static final class MLDSA87_RSA3072_PSS_SHA512
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA87_RSA3072_PSS_SHA512()
+        {
+            super(IANAObjectIdentifiers.id_MLDSA87_RSA3072_PSS_SHA512);
+        }
+    }
+
+    public static final class MLDSA65_RSA3072_PKCS15_SHA256
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA65_RSA3072_PKCS15_SHA256()
+        {
+            super(MiscObjectIdentifiers.id_MLDSA65_RSA3072_PKCS15_SHA256);
+        }
+    }
+
+    public static final class MLDSA65_RSA3072_PSS_SHA256
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA65_RSA3072_PSS_SHA256()
+        {
+            super(MiscObjectIdentifiers.id_MLDSA65_RSA3072_PSS_SHA256);
+        }
+    }
+
+    public static final class MLDSA65_RSA4096_PKCS15_SHA384
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA65_RSA4096_PKCS15_SHA384()
+        {
+            super(MiscObjectIdentifiers.id_MLDSA65_RSA4096_PKCS15_SHA384);
+        }
+    }
+
+    public static final class MLDSA65_RSA4096_PSS_SHA384
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA65_RSA4096_PSS_SHA384()
+        {
+            super(MiscObjectIdentifiers.id_MLDSA65_RSA4096_PSS_SHA384);
+        }
+    }
+
+    public static final class MLDSA87_ECDSA_brainpoolP384r1_SHA384
+        extends KeyPairGeneratorSpi
+    {
+        public MLDSA87_ECDSA_brainpoolP384r1_SHA384()
+        {
+            super(MiscObjectIdentifiers.id_MLDSA87_ECDSA_brainpoolP384r1_SHA384);
+        }
+    }
+
+    // binary compatibility not used.
     public static final class HashMLDSA44_ECDSA_P256_SHA256
         extends KeyPairGeneratorSpi
     {
@@ -256,114 +465,6 @@ public class KeyPairGeneratorSpi
         }
     }
 
-    public static final class MLDSA44_ECDSA_P256_SHA256
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA44_ECDSA_P256_SHA256()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256);
-        }
-    }
-
-    public static final class MLDSA44_Ed25519_SHA512
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA44_Ed25519_SHA512()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA44_Ed25519_SHA512);
-        }
-    }
-
-    public static final class MLDSA44_RSA2048_PKCS15_SHA256
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA44_RSA2048_PKCS15_SHA256()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256);
-        }
-    }
-
-    public static final class MLDSA44_RSA2048_PSS_SHA256
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA44_RSA2048_PSS_SHA256()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA44_RSA2048_PSS_SHA256);
-        }
-    }
-
-    public static final class MLDSA65_ECDSA_brainpoolP256r1_SHA256
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA65_ECDSA_brainpoolP256r1_SHA256()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA65_ECDSA_brainpoolP256r1_SHA256);
-        }
-    }
-
-    public static final class MLDSA65_ECDSA_P384_SHA384
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA65_ECDSA_P384_SHA384()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA65_ECDSA_P384_SHA384);
-        }
-    }
-
-    public static final class MLDSA65_Ed25519_SHA512
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA65_Ed25519_SHA512()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA65_Ed25519_SHA512);
-        }
-    }
-
-    public static final class MLDSA65_RSA3072_PKCS15_SHA256
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA65_RSA3072_PKCS15_SHA256()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA65_RSA3072_PKCS15_SHA256);
-        }
-    }
-
-    public static final class MLDSA65_RSA3072_PSS_SHA256
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA65_RSA3072_PSS_SHA256()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA65_RSA3072_PSS_SHA256);
-        }
-    }
-
-    public static final class MLDSA65_RSA4096_PKCS15_SHA384
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA65_RSA4096_PKCS15_SHA384()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA65_RSA4096_PKCS15_SHA384);
-        }
-    }
-
-    public static final class MLDSA65_RSA4096_PSS_SHA384
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA65_RSA4096_PSS_SHA384()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA65_RSA4096_PSS_SHA384);
-        }
-    }
-
-    public static final class MLDSA87_ECDSA_brainpoolP384r1_SHA384
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA87_ECDSA_brainpoolP384r1_SHA384()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA87_ECDSA_brainpoolP384r1_SHA384);
-        }
-    }
-
     public static final class MLDSA87_ECDSA_P384_SHA384
         extends KeyPairGeneratorSpi
     {
@@ -382,121 +483,21 @@ public class KeyPairGeneratorSpi
         }
     }
 
-    public static final class MLDSA65_RSA3072_PSS_SHA512
+    public static final class MLDSA65_ECDSA_brainpoolP256r1_SHA256
         extends KeyPairGeneratorSpi
     {
-        public MLDSA65_RSA3072_PSS_SHA512()
+        public MLDSA65_ECDSA_brainpoolP256r1_SHA256()
         {
-            super(MiscObjectIdentifiers.id_MLDSA65_RSA3072_PSS_SHA512);
+            super(MiscObjectIdentifiers.id_MLDSA65_ECDSA_brainpoolP256r1_SHA256);
         }
     }
-
-    public static final class MLDSA65_RSA3072_PKCS15_SHA512
+    
+    public static final class MLDSA65_ECDSA_P384_SHA384
         extends KeyPairGeneratorSpi
     {
-        public MLDSA65_RSA3072_PKCS15_SHA512()
+        public MLDSA65_ECDSA_P384_SHA384()
         {
-            super(MiscObjectIdentifiers.id_MLDSA65_RSA3072_PKCS15_SHA512);
+            super(MiscObjectIdentifiers.id_MLDSA65_ECDSA_P384_SHA384);
         }
     }
-
-    public static final class MLDSA65_RSA4096_PSS_SHA512
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA65_RSA4096_PSS_SHA512()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA65_RSA4096_PSS_SHA512);
-        }
-    }
-
-    public static final class MLDSA65_RSA4096_PKCS15_SHA512
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA65_RSA4096_PKCS15_SHA512()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA65_RSA4096_PKCS15_SHA512);
-        }
-    }
-
-    public static final class MLDSA65_ECDSA_P256_SHA512
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA65_ECDSA_P256_SHA512()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA65_ECDSA_P256_SHA512);
-        }
-    }
-
-    public static final class MLDSA65_ECDSA_P384_SHA512
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA65_ECDSA_P384_SHA512()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA65_ECDSA_P384_SHA512);
-        }
-    }
-
-    public static final class MLDSA65_ECDSA_brainpoolP256r1_SHA512
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA65_ECDSA_brainpoolP256r1_SHA512()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA65_ECDSA_brainpoolP256r1_SHA512);
-        }
-    }
-
-    public static final class MLDSA87_ECDSA_P384_SHA512
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA87_ECDSA_P384_SHA512()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA87_ECDSA_P384_SHA512);
-        }
-    }
-
-    public static final class MLDSA87_ECDSA_brainpoolP384r1_SHA512
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA87_ECDSA_brainpoolP384r1_SHA512()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA87_ECDSA_brainpoolP384r1_SHA512);
-        }
-    }
-
-    public static final class MLDSA87_Ed448_SHAKE256
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA87_Ed448_SHAKE256()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA87_Ed448_SHAKE256);
-        }
-    }
-
-    public static final class MLDSA87_RSA4096_PSS_SHA512
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA87_RSA4096_PSS_SHA512()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA87_RSA4096_PSS_SHA512);
-        }
-    }
-
-    public static final class MLDSA87_ECDSA_P521_SHA512
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA87_ECDSA_P521_SHA512()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA87_ECDSA_P521_SHA512);
-        }
-    }
-
-    public static final class MLDSA87_RSA3072_PSS_SHA512
-        extends KeyPairGeneratorSpi
-    {
-        public MLDSA87_RSA3072_PSS_SHA512()
-        {
-            super(MiscObjectIdentifiers.id_MLDSA87_RSA3072_PSS_SHA512);
-        }
-    }
-
 }

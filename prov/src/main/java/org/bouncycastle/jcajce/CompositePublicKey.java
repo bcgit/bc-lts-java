@@ -16,6 +16,7 @@ import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.crypto.util.PublicKeyFactory;
 import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
+import org.bouncycastle.internal.asn1.iana.IANAObjectIdentifiers;
 import org.bouncycastle.internal.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.jcajce.provider.asymmetric.compositesignatures.CompositeIndex;
 import org.bouncycastle.jcajce.provider.asymmetric.compositesignatures.KeyFactorySpi;
@@ -78,6 +79,11 @@ public class CompositePublicKey
     public static Builder builder(ASN1ObjectIdentifier compAlgOid)
     {
         return new Builder(new AlgorithmIdentifier(compAlgOid));
+    }
+
+    public static Builder builder(String algorithmName)
+    {
+        return builder(CompositeUtil.getOid(algorithmName));
     }
 
     private final List<PublicKey> keys;
@@ -247,7 +253,7 @@ public class CompositePublicKey
     @Override
     public byte[] getEncoded()
     {
-        if (this.algorithmIdentifier.getAlgorithm().on(MiscObjectIdentifiers.id_MLDSA_COMPSIG))
+        if (this.algorithmIdentifier.getAlgorithm().on(IANAObjectIdentifiers.id_alg))
         {
             try
             {
@@ -304,7 +310,7 @@ public class CompositePublicKey
         {
             boolean isEqual = true;
             CompositePublicKey comparedKey = (CompositePublicKey)o;
-            if (!comparedKey.getAlgorithmID().equals(this.algorithmIdentifier) || !this.keys.equals(comparedKey.keys))
+            if (!comparedKey.getAlgorithmIdentifier().equals(this.algorithmIdentifier) || !this.keys.equals(comparedKey.keys))
             {
                 isEqual = false;
             }
