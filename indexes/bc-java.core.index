@@ -266,7 +266,7 @@ ba8e47bdba431f866a6166d77e0cded8932763d1b4ab11b59d86f463d023a077  core/src/test/
 2c7741f4027bb65e7c53ff0a150ab8a102fa42f7b8dedf3fe5a6a978476cad2b  core/src/test/java/org/bouncycastle/asn1/test/StringTest.java
 07ddcf597d0f51182ec29e2fd3ed1a0b0d41390690abcb2e071e31880bc64124  core/src/test/java/org/bouncycastle/asn1/test/X9Test.java
 3322d725f80330591b2b84bb9e9b0a0852ce6ca83f59bd78bb9d5a24d1794cbd  core/src/test/java/org/bouncycastle/asn1/test/TypeOfBiometricDataUnitTest.java
-5ae25b6bcd0801e0521ec300cf7b2b4178c47656686d01ed79095dd43cd349fa  core/src/test/java/org/bouncycastle/asn1/test/RegressionTest.java
+2787ea0c1c9906cb71b970b97237e0800af1b3ac6e7f37fa9f15e8888fe6387f  core/src/test/java/org/bouncycastle/asn1/test/RegressionTest.java
 0b19d36bfefa57702d5fd1b6ad3bfa11b429edc52e97538bfc5d596507bae9aa  core/src/test/java/org/bouncycastle/asn1/test/KMACParamsTest.java
 4c3bae6bd449ab92013ad81800ae2dbe052f5825670c4d33275eba4375d423eb  core/src/test/java/org/bouncycastle/asn1/test/PKCS12Test.java
 4393a61576d6c87ec982edf29913aac0b3ccb8b62b9e9bbc6f6b608232148802  core/src/test/java/org/bouncycastle/asn1/test/BitStringConstantTester.java
@@ -936,7 +936,7 @@ c1b6114bfcb4450513f6bf965fe7b82e757798d801b30085a8eaa385854ff643  core/src/main/
 dd1c8b31a52e2645d6161b718112441710d274f7e152ce82b8530361b4dbfac0  core/src/main/java/org/bouncycastle/util/Shorts.java
 c663cb816f84dc86fc8e8c8f5d68ee037418239595db38192dd25ee6c473e010  core/src/main/java/org/bouncycastle/util/Bytes.java
 37b2b197611260a9def36aeb7a05358dbdab4987edff59726fbde8659e506620  core/src/main/java/org/bouncycastle/util/StreamParsingException.java
-47b9b87484c4d8c2b88ebbe0b0d74de0669a359b25d8ee4bfa83ed553b659126  core/src/main/java/org/bouncycastle/util/Arrays.java
+e55f9f839ac54df0ad44ead088fe111a35816be710b76678613530958c23a113  core/src/main/java/org/bouncycastle/util/Arrays.java
 e12b8c018ab9bb4b877ac75540a4ffdaab62d25003e21d8a4839e2ae12154d16  core/src/main/java/org/bouncycastle/util/Properties.java
 fb81274afed0e24edc4ad0c15119888ef8c25fa4d8c82845fc92af8874eb7d0e  core/src/main/java/org/bouncycastle/util/Encodable.java
 1678286a097fa6d539ebf3b549a392ba3d118202c25daac0e06d3fee17091954  core/src/main/java/org/bouncycastle/util/Characters.java
@@ -1568,8 +1568,8 @@ d82c18f2597e8c1a5fd987a0baaaf7371a1dfb8ca1dc281323040f11040a5f3a  core/src/main/
 014d2cc5ebeb1364525a5cbab055470078200bb427fab7e70cf386d86bd72d3b  core/src/main/java/org/bouncycastle/pqc/crypto/slhdsa/SLHDSASigner.java
 c29ccd7a59b99983ee52ec50d3df51668b3189a1b476841d144bbb07d17ae58e  core/src/main/java/org/bouncycastle/pqc/crypto/slhdsa/WotsPlus.java
 843b29d6016521cf59bc9e9291dab05bf17f1b030d33c4427b7082395e0ef0a9  core/src/main/java/org/bouncycastle/pqc/crypto/util/PQCOtherInfoGenerator.java
-001e7a979abfeea6c4c8fd68575095998c5e8d55e78a434b140fcf25e27e31f7  core/src/main/java/org/bouncycastle/pqc/crypto/util/PrivateKeyFactory.java
-efcd2e7a6deaa5dab71ac12f85232954753fb380236782d18cd7dc1ea48b634e  core/src/main/java/org/bouncycastle/pqc/crypto/util/PrivateKeyInfoFactory.java
+4dadc57acece9c19350cb15b0eb55e835f55097ee416d561bbcd73aba116ba20  core/src/main/java/org/bouncycastle/pqc/crypto/util/PrivateKeyFactory.java
+523c7b0a4dd078759a7785f67983224005046b7ec5d0ce34af9687db76545d2c  core/src/main/java/org/bouncycastle/pqc/crypto/util/PrivateKeyInfoFactory.java
 ab5728fdcef1a3d8ea5d501e3d5b50f2044343be5960fe94c3d4e3486f06cb02  core/src/main/java/org/bouncycastle/pqc/crypto/util/PublicKeyFactory.java
 6edc63c23bd5ce47ccada33b7a7f477e29fb15c7d2af4f9125abb89b46d3de30  core/src/main/java/org/bouncycastle/pqc/crypto/util/SecretWithEncapsulationImpl.java
 8e1cfb01c691c87e570c852f18e591dfda1eee402a471cdd7830b55c066a97a8  core/src/main/java/org/bouncycastle/pqc/crypto/util/SubjectPublicKeyInfoFactory.java

@@ -12,12 +12,45 @@ import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
+//import org.bouncycastle.pqc.asn1.CMCEPrivateKey;
+//import org.bouncycastle.pqc.asn1.CMCEPublicKey;
+//import org.bouncycastle.pqc.asn1.FalconPrivateKey;
+//import org.bouncycastle.pqc.asn1.FalconPublicKey;
+//import org.bouncycastle.pqc.asn1.PQCObjectIdentifiers;
+//import org.bouncycastle.pqc.asn1.SPHINCS256KeyParams;
+//import org.bouncycastle.pqc.asn1.XMSSKeyParams;
+//import org.bouncycastle.pqc.asn1.XMSSMTKeyParams;
+//import org.bouncycastle.pqc.asn1.XMSSMTPrivateKey;
+//import org.bouncycastle.pqc.asn1.XMSSPrivateKey;
+//import org.bouncycastle.pqc.crypto.bike.BIKEPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.cmce.CMCEPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.crystals.dilithium.DilithiumPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.crystals.dilithium.DilithiumPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.falcon.FalconPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.frodo.FrodoPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.hqc.HQCPrivateKeyParameters;
 import org.bouncycastle.pqc.crypto.lms.Composer;
 import org.bouncycastle.pqc.crypto.lms.HSSPrivateKeyParameters;
 import org.bouncycastle.pqc.crypto.lms.LMSPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.mayo.MayoPrivateKeyParameters;
 import org.bouncycastle.pqc.crypto.mldsa.MLDSAPrivateKeyParameters;
 import org.bouncycastle.pqc.crypto.mlkem.MLKEMPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.newhope.NHPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.ntru.NTRUPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.ntruprime.NTRULPRimePrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.ntruprime.SNTRUPrimePrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.picnic.PicnicPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.rainbow.RainbowPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.saber.SABERPrivateKeyParameters;
 import org.bouncycastle.pqc.crypto.slhdsa.SLHDSAPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.snova.SnovaPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.sphincs.SPHINCSPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.sphincsplus.SPHINCSPlusPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.xmss.BDS;
+//import org.bouncycastle.pqc.crypto.xmss.BDSStateMap;
+//import org.bouncycastle.pqc.crypto.xmss.XMSSMTPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.xmss.XMSSPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.xmss.XMSSUtil;
 import org.bouncycastle.util.Pack;
 
 /**
@@ -374,13 +407,7 @@ public class PrivateKeyInfoFactory
 
     private static ASN1Sequence getBasicPQCEncoding(byte[] seed, byte[] expanded)
     {
-        ASN1EncodableVector v = new ASN1EncodableVector(2);
-
-        v.add(new DEROctetString(seed));
-
-        v.add(new DEROctetString(expanded));
-
-        return new DERSequence(v);
+        return new DERSequence(new DEROctetString(seed), new DEROctetString(expanded));
     }
 
 //    private static XMSSMTPrivateKey xmssmtCreateKeyStructure(XMSSMTPrivateKeyParameters keyParams)
