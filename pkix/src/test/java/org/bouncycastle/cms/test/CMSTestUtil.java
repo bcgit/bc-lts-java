@@ -53,6 +53,7 @@ public class CMSTestUtil
 {
     public static SecureRandom     rand;
     public static KeyPairGenerator kpg;
+    public static KeyPairGenerator kpg_2048;
 
     public static KeyPairGenerator gostKpg;
     public static KeyPairGenerator dsaKpg;
@@ -156,14 +157,14 @@ public class CMSTestUtil
             kpg  = KeyPairGenerator.getInstance("RSA", "BC");
             kpg.initialize(1024, rand);
 
-            kpg  = KeyPairGenerator.getInstance("RSA", "BC");
-            kpg.initialize(1024, rand);
+            kpg_2048  = KeyPairGenerator.getInstance("RSA", "BC");
+            kpg_2048.initialize(2048, rand);
 
             gostKpg  = KeyPairGenerator.getInstance("GOST3410", "BC");
             GOST3410ParameterSpec gost3410P = new GOST3410ParameterSpec(CryptoProObjectIdentifiers.gostR3410_94_CryptoPro_A.getId());
-
+            
             gostKpg.initialize(gost3410P, new SecureRandom());
-
+            
             dsaKpg = KeyPairGenerator.getInstance("DSA", "BC");
             DSAParameterSpec dsaSpec = new DSAParameterSpec(
                         new BigInteger("7434410770759874867539421675728577177024889699586189000788950934679315164676852047058354758883833299702695428196962057871264685291775577130504050839126673"),
@@ -184,7 +185,7 @@ public class CMSTestUtil
             ed25519Kpg = KeyPairGenerator.getInstance("Ed25519", "BC");
             ed448Kpg = KeyPairGenerator.getInstance("Ed448", "BC");
 
-            //ntruKpg = KeyPairGenerator.getInstance(BCObjectIdentifiers.ntruhps2048509.getId(), "BC");
+            ntruKpg = KeyPairGenerator.getInstance(BCObjectIdentifiers.ntruhps2048509.getId(), "BC");
 
             mlDsa44Kpg = KeyPairGenerator.getInstance("ML-DSA-44", "BC");
             mlDsa65Kpg = KeyPairGenerator.getInstance("ML-DSA-65", "BC");
@@ -218,10 +219,10 @@ public class CMSTestUtil
 
             rc240kg = KeyGenerator.getInstance("RC2", "BC");
             rc240kg.init(40, rand);
-
+            
             rc264kg = KeyGenerator.getInstance("RC2", "BC");
             rc264kg.init(64, rand);
-
+            
             rc2128kg = KeyGenerator.getInstance("RC2", "BC");
             rc2128kg.init(128, rand);
 
@@ -230,7 +231,7 @@ public class CMSTestUtil
             seedKg = KeyGenerator.getInstance("SEED", "BC");
 
             camelliaKg = KeyGenerator.getInstance("Camellia", "BC");
-
+            
             serialNumber = new BigInteger("1");
         }
         catch (Exception ex)
@@ -250,7 +251,7 @@ public class CMSTestUtil
         StringBuilder    buf = new StringBuilder();
         
         data = Base64.encode(data);
-
+        
         for (int i = 0; i < data.length; i += 64)
         {
             if (i + 64 < data.length)
@@ -263,7 +264,7 @@ public class CMSTestUtil
             }
             buf.append('\n');
         }
-
+        
         return buf.toString();
     }
 
@@ -276,6 +277,11 @@ public class CMSTestUtil
     public static KeyPair makeKeyPair()
     {
         return kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeKeyPair_2048()
+    {
+        return kpg_2048.generateKeyPair();
     }
 
     public static KeyPair makeGostKeyPair()
@@ -456,21 +462,21 @@ public class CMSTestUtil
     }
 
     public static X509Certificate makeCertificate(KeyPair _subKP,
-                                                  String _subDN, KeyPair _issKP, String _issDN)
+            String _subDN, KeyPair _issKP, String _issDN)
         throws GeneralSecurityException, IOException, OperatorCreationException
     {
         return makeCertificate(_subKP, _subDN, _issKP, _issDN, false);
     }
 
     public static X509Certificate makeOaepCertificate(KeyPair _subKP,
-                                                      String _subDN, KeyPair _issKP, String _issDN)
+            String _subDN, KeyPair _issKP, String _issDN)
         throws GeneralSecurityException, IOException, OperatorCreationException
     {
         return makeOaepCertificate(_subKP, _subDN, _issKP, _issDN, false);
     }
 
     public static X509Certificate makeCACertificate(KeyPair _subKP,
-                                                    String _subDN, KeyPair _issKP, String _issDN)
+            String _subDN, KeyPair _issKP, String _issDN)
         throws GeneralSecurityException, IOException, OperatorCreationException
     {
         return makeCertificate(_subKP, _subDN, _issKP, _issDN, true);
@@ -509,7 +515,7 @@ public class CMSTestUtil
         PublicKey  subPub  = subKP.getPublic();
         PrivateKey issPriv = issKP.getPrivate();
         PublicKey  issPub  = issKP.getPublic();
-
+        
         X509v3CertificateBuilder v3CertGen = new JcaX509v3CertificateBuilder(
             new X500Name(_issDN),
             allocateSerialNumber(),
@@ -677,11 +683,11 @@ public class CMSTestUtil
         return new JcaX509CRLConverter().setProvider("BC").getCRL(crlGen.build(new JcaContentSignerBuilder("SHA256WithRSAEncryption").setProvider("BC").build(pair.getPrivate())));
     }
 
-    /*
-     *
+    /*  
+     *  
      *  INTERNAL METHODS
-     *
-     */
+     *  
+     */ 
 
     private static final X509ExtensionUtils extUtils = new X509ExtensionUtils(new SHA1DigestCalculator());
 
@@ -712,19 +718,19 @@ public class CMSTestUtil
         serialNumber = serialNumber.add(BigInteger.ONE);
         return _tmp;
     }
-
+    
     public static byte[] streamToByteArray(
-        InputStream in)
+        InputStream in) 
         throws IOException
     {
         ByteArrayOutputStream bOut = new ByteArrayOutputStream();
         int ch;
-
+        
         while ((ch = in.read()) >= 0)
         {
             bOut.write(ch);
         }
-
+        
         return bOut.toByteArray();
     }
 }
