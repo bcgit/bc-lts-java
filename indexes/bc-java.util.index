@@ -197,7 +197,7 @@ c55fdb2bb06c79038749de14f99c8722767320bde6909064f6c5de3978b103df  util/src/main/
 4b64a8f80164549f44725a21d56c567efa9b9b34c3effb09a6cddcd1300a5f19  util/src/main/java/org/bouncycastle/asn1/cmp/PollReqContent.java
 16d5280ca0de1cfc16bcbf8e637649d84862d50186c18593b11c53a13b2a24f0  util/src/main/java/org/bouncycastle/asn1/cmp/RevAnnContent.java
 5122c59fd8b2fa79755052978d37fa59ee0f0865394917d00966874ea59db9a9  util/src/main/java/org/bouncycastle/asn1/cmp/GenRepContent.java
-7613bce5c4a9cc7dd7b5118e0d73feb165b9443e232de97c91fc58f38e3cfbbc  util/src/main/java/org/bouncycastle/asn1/cmp/POPODecKeyChallContent.java
+03bc2d6ac29b18e461bda77c989463c1ae70dd9dd4e140e57c2111ebb0039dc9  util/src/main/java/org/bouncycastle/asn1/cmp/POPODecKeyChallContent.java
 1be4fca4c35028b309152a8d26dff3514f0e4ce0bf56bc3009716d221f8e6630  util/src/main/java/org/bouncycastle/asn1/cmp/PKIStatusInfo.java
 0c47b3cdffd4693cd69092bb1d12f0dc9b7aae7987e524ba1c5be0067e45aec3  util/src/main/java/org/bouncycastle/asn1/cmp/CRLAnnContent.java
 c800c3d8cd9fc73cf90ff580443815289d1d310a9532fb8d0b01fc82588e3072  util/src/main/java/org/bouncycastle/asn1/cmp/PKIFreeText.java
@@ -212,7 +212,6 @@ f848ab69ef1172363598534062a37d447f0392af4eb88673351ededdb5268cbe  util/src/main/
 ca0aa185d17a19e1bfbebd54a0d4ad07e7cf0c0443a6ea80d1b220d6368b1058  util/src/main/java/org/bouncycastle/asn1/cmp/CertResponse.java
 ddd391845dc2df6a48979aaf3598edc7ed8c00cbecd645ea6be46a05df44f23f  util/src/main/java/org/bouncycastle/asn1/cmp/NestedMessageContent.java
 f993d4414b08e7fa348d1dc66706ba7d9abf262ab0417e21ab3c8a40e3416f3b  util/src/main/java/org/bouncycastle/asn1/cmp/RevRepContent.java
-d40d1f54ef0e991c0d253adf4e7e4ede877d274e5e11318990a4174cf9f70c3d  util/src/main/java/org/bouncycastle/asn1/cmp/Challenge.java
 1dc087ecf145fcff60811f3d2f3ddfb0a4162088f7ec838d554d468f84f8baab  util/src/main/java/org/bouncycastle/asn1/cmp/PKIMessages.java
 aca73dbf7c17fd41da02513ef63f3f2a8fe801204ce736e5381195fc34fe4eec  util/src/main/java/org/bouncycastle/asn1/cmp/PKIConfirmContent.java
 8802770a7d571c898995f1ceccc00d1c46133b8a40092c089dfa3d1b9ae935af  util/src/main/java/org/bouncycastle/asn1/cmp/CertConfirmContent.java
