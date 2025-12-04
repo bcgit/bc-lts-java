@@ -415,7 +415,7 @@ c32bc218d3767026932c2a825560f8f301859ebdc12c889c6be32cdb8ee4e624  core/src/main/
 438fc568e2755a8e89332f3e77dd316e6a32f943c512046bd05fed19b4e9f1c5  core/src/main/java/org/bouncycastle/crypto/signers/DSAKCalculator.java
 d36155a6454fc19fc275a0ef6e21190aa6e8538b2fab5daf2bd1f140d0571b7d  core/src/main/java/org/bouncycastle/crypto/signers/DSAEncoding.java
 0fede05085cc7d6cc9c042c9c4d6d73376e1898560bc2b87ad315bcc35382c23  core/src/main/java/org/bouncycastle/crypto/signers/PSSSigner.java
-10d97caea83aa0c2919844daf7915b1b1d103a02790716b2d87bc88d8d0d4747  core/src/main/java/org/bouncycastle/crypto/signers/DSTU4145Signer.java
+27de751c6b301e8278c41cc00064f6a29f650499dbc740965e9525f830b75732  core/src/main/java/org/bouncycastle/crypto/signers/DSTU4145Signer.java
 ef837cf1f3001505d589b8002c835937231e62a47cb2f3bc0fd4c883b48bf787  core/src/main/java/org/bouncycastle/crypto/signers/StandardDSAEncoding.java
 8e6a449141d01cf7dbcf93a3dc97d62b3f431984d0743d46427bcd98c4b0bf3b  core/src/main/java/org/bouncycastle/crypto/signers/ISO9796d2Signer.java
 991e1132d5107020e76af1e76a91636d65dd0946c86ac44d82fdb85d92361b2b  core/src/main/java/org/bouncycastle/crypto/signers/Ed25519Signer.java
