@@ -153,7 +153,7 @@ fa6ac9c3fd8c5dcb86c1ee17b7848a52a90a829560359829ca5eb67cc1e7a8d7  core/src/test/
 ea597c5e30d2e4a180ebeedab7a0e522d3b2b955a63ae61345d44ec65d55005f  core/src/test/java/org/bouncycastle/crypto/test/TnepresTest.java
 70c69bffddbcc2fe66203e258bc8d9ebe04394ad9b6b6cb0218ed2e9cb14516b  core/src/test/java/org/bouncycastle/crypto/test/Haraka512DigestTest.java
 c25d080dd22bcf55848f8bd30da0c6b27510020b6694fcf71d9ac613eaeecde0  core/src/test/java/org/bouncycastle/crypto/test/SHA224DigestTest.java
-360ef3047c73709adf4591349c37d7fc1611aa567226edc373d126c4fe5d833d  core/src/test/java/org/bouncycastle/crypto/test/GOST3412Test.java
+3cc3e2955171cdae6261fd8fd78b873bfc6a2e68448f06da4e2322c7093d7119  core/src/test/java/org/bouncycastle/crypto/test/GOST3412Test.java
 7fc66e2967bb6c46c0068ea2e744984e328b24f2d6c9e8d6d2df0ac6c7efbf33  core/src/test/java/org/bouncycastle/crypto/test/SHA512t256DigestTest.java
 1e263492f5993635480c88ec51fd442c6e2564bf5cf5abdbc70048cf50b3ab62  core/src/test/java/org/bouncycastle/crypto/test/KDFCounterGeneratorTest.java
 1f39608618c39a7eaa0f3de024ae6b4d9526b34101bf6b2e2f6a21c7188e72b8  core/src/test/java/org/bouncycastle/crypto/test/DigestRandomNumberTest.java
@@ -371,7 +371,7 @@ a2e40bd41035e8d39497c4d8d733957e6b9ecf5d7a4912cacc4ceb6124aa41e8  core/src/main/
 34c1fa4ef985784f44e1f5e185aae26951eccee7a27c1eddd7b8e52cf27e29ac  core/src/main/java/org/bouncycastle/crypto/modes/OpenPGPCFBBlockCipher.java
 2bb6ea846b6c1f5510105cb5ff3e28d90b04d5c716a91eb309cf011c5a47c84b  core/src/main/java/org/bouncycastle/crypto/modes/GCFBBlockCipher.java
 0f674abbf506ca3ea5515d5ade49fd132211e06e6750aa9f316510f4e273a8a7  core/src/main/java/org/bouncycastle/crypto/modes/KCCMBlockCipher.java
-061a03bc6cfb8b4ac3d77d987de6907016d4ce458359c03d34937d35b5d7f97b  core/src/main/java/org/bouncycastle/crypto/modes/G3413CTRBlockCipher.java
+bd99e176ba0e07149b84a5da9c720575f6a3f304f7ca0615cd7cd3257cb3515b  core/src/main/java/org/bouncycastle/crypto/modes/G3413CTRBlockCipher.java
 6522603dd343c05ffe9209bb5fde607736385c7e1ee4a121a1af480749eba7a4  core/src/main/java/org/bouncycastle/crypto/modes/OFBBlockCipher.java
 dde6405f151f8e3c5005eace3615132d5b966173523be22ecfebdcb8a4c2f44d  core/src/main/java/org/bouncycastle/crypto/modes/CBCBlockCipher.java
 64de3baf61f6a8780be63bacc076e9b9f1d163538c1baa4710df91093ca5e7c2  core/src/main/java/org/bouncycastle/crypto/modes/KXTSBlockCipher.java
