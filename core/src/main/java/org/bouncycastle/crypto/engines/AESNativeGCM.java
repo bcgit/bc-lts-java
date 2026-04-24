@@ -323,7 +323,7 @@ class AESNativeGCM
     {
         synchronized (this)
         {
-            if (refWrapper.key != null)
+            if (refWrapper != null && refWrapper.key != null)
             {
                 return "GCM[Native](AES[Native](" + (refWrapper.key.length * 8) + "))";
             }
