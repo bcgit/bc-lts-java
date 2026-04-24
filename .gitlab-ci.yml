@@ -2,6 +2,7 @@
 
 stages:
   - check
+  - test
 
 
 check:
@@ -10,4 +11,11 @@ check:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
     - "ci_docker_run \"vm_base_intel:latest\" ${CI_PROJECT_NAME}  \"/workspace/${CI_PROJECT_NAME}/ci/check.sh\""
+
+test-general:
+  stage: test
+  script:
+    - "ecr_login"
+    - "ecr_pull vm_base_intel latest"
+    - "ci_docker_run \"vm_base_intel:latest\" ${CI_PROJECT_NAME}  \"/workspace/${CI_PROJECT_NAME}/ci/test_general.sh\""
 
