@@ -54,6 +54,7 @@ ext {
     debugSuffix = Boolean.parseBoolean(resolveProp("debug_build", "false")) ? "-debug-" : "-"
 
     bundle_version = deriveOSGIVersion(version.toString())
+
 }
 
 

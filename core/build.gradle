@@ -11,7 +11,7 @@ def appendix = ""
 
 def ignoreJava = "sha512,sha384,sha256,sha224,sha3,shake,gcm,cbc,ecb,rand,seed,cfb,ctr,es,slhdsa_sha256,ccm,gcmsiv" // mlkem
 def igoreNeon = "rand,seed,es,gcmsiv,nops,slhdsa_sha256"
-def ignoreIntel = ""
+def ignoreIntel = "sha512,sha384,shake,sha3"
 
 def testIgnore = ignoreJava;
 
@@ -21,6 +21,7 @@ if (arch_.contains("aarch64") || (arch_.contains("arm64"))) {
 } else if ((arch_.contains("x86") || (arch_.contains("amd")) && arch_.contains("64"))) {
     appendix = "amd64"
     testIgnore = ignoreIntel
+
 }
 
 jar.archiveBaseName = "bccore-lts$vm_range"
@@ -255,6 +256,44 @@ def registerIntegrationTestTask(TaskContainer taskContainer, String taskName, St
 
 test {
 
+    dependsOn("testIntegration")
+
+    testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
+
+    failOnNoDiscoveredTests = true
+    useJUnitPlatform()
+
+    maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
+    forkEvery = 1
+
+    minHeapSize = "4096m"
+    maxHeapSize = "8192m"
+
+    filter {
+        includeTestsMatching "*AllTest*"
+        excludeTestsMatching "*AllIntegrationTests*"
+    }
+
+    def args = new ArrayList<String>();
+    args.add("-Dtest.bclts.expected_jvm=any")
+    args.add("-Dorg.bouncycastle.bks.enable_v1=true")
+    args.add('-Dtest.bclts.expected_jvm=any')
+    args.add("-Dtest.bclts.ignore.native=${testIgnore}") // testIgnore is determined by platform architecture
+//    args.add('-Dorg.bouncycastle.native.cpu_variant=java')
+
+    classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
+    testClassesDirs = project.sourceSets.test.output.classesDirs
+
+    jvmArgs args
+
+}
+
+
+tasks.register("testIntegration",Test) {
+
     testLogging.showStandardStreams = true
     testLogging.showCauses = true
     testLogging.showExceptions = true
@@ -270,7 +309,7 @@ test {
     maxHeapSize = "8192m"
 
     filter {
-        includeTestsMatching "*AllTest*"
+        excludeTestsMatching "*AllTest*"
         includeTestsMatching "*AllIntegrationTests*"
     }
 

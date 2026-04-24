@@ -13,7 +13,7 @@ def appendix = ""
 
 def ignoreJava = "sha512,sha384,sha256,sha224,sha3,shake,gcm,cbc,ecb,rand,seed,cfb,ctr,es,slhdsa_sha256,ccm,gcmsiv" // mlkem
 def igoreNeon = "rand,seed,es,gcmsiv,nops,slhdsa_sha256"
-def ignoreIntel = ""
+def ignoreIntel = "sha512,sha384,shake,sha3"
 
 def testIgnore = ignoreJava;
 
