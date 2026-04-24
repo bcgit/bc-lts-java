@@ -3,6 +3,7 @@
 stages:
   - check
   - test
+  - multi
 
 
 check:
@@ -19,3 +20,10 @@ test-general:
     - "ecr_pull vm_base_intel latest"
     - "ci_docker_run \"vm_base_intel:latest\" ${CI_PROJECT_NAME}  \"/workspace/${CI_PROJECT_NAME}/ci/test_general.sh\""
 
+
+test-multi:
+  stage: multi
+  script:
+    - "ecr_login"
+    - "ecr_pull vm_base_intel latest"
+    - "ci_docker_run \"vm_base_intel:latest\" ${CI_PROJECT_NAME}  \"/workspace/${CI_PROJECT_NAME}/ci/test_multijvm.sh\""
