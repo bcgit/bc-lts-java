@@ -101,8 +101,7 @@ public class RegressionTest
             new XIESTest(),
             new XOFTest(),
             new ZucTest(),
-            new JavaNativeAgreementTest(),
-            new JavaNativeLargeMessageTest(),
+
         };
     }
 

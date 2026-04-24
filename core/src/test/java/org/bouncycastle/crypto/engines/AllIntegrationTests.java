@@ -4,19 +4,20 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.crypto.NativeEntropyTests;
+import org.bouncycastle.crypto.NativeEntropyLimitTest;
 import org.bouncycastle.crypto.NativeFailsafeTest;
 import org.bouncycastle.crypto.digests.*;
 import org.bouncycastle.test.PrintTestResult;
 
 
-public class AllTests
+public class AllIntegrationTests
         extends TestCase
 {
     public static void main(String[] args)
     {
         PrintTestResult.printResult(junit.textui.TestRunner.run(suite()));
     }
+
 
     public static Test suite()
     {
@@ -55,9 +56,10 @@ public class AllTests
         suite.addTestSuite(SHA3NativeDigestTests.class);
         suite.addTestSuite(SHAKENativeDigestTests.class);
 
-        suite.addTestSuite(NativeEntropyTests.class);
+        suite.addTestSuite(NativeEntropyLimitTest.class);
         suite.addTestSuite(NativeFailsafeTest.class);
-        return new BCTestSetup(suite);
+
+       return new BCTestSetup(suite);
     }
 
     static class BCTestSetup

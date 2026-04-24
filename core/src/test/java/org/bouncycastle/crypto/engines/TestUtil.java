@@ -21,7 +21,7 @@ public class TestUtil
     }
 
     public static boolean skipPS() {
-         return "true".equals(System.getProperty("org.bouncycastle.test.skip_pc"));
+         return "true".equals(System.getProperty("org.bouncycastle.test.skip_pc")) || System.getProperty("test.bclts.ignore.native", "").contains("nops");
     }
 
     public static boolean isSkipSet(String label)

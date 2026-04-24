@@ -4,7 +4,7 @@ import junit.framework.TestCase;
 import org.bouncycastle.util.Arrays;
 import org.junit.Test;
 
-public class NativeEntropyTests
+public class NativeEntropyLimitTest
         extends TestCase
 {
 

@@ -1,10 +1,30 @@
-import static ExtraFunctions.*
-
 plugins {
     id "biz.aQute.bnd.builder" version "7.0.0"
 }
 
+apply plugin: 'maven-publish'
+
 jar.archiveBaseName = "bcprov${rootProject.ext.debugSuffix}lts${vm_range}"
+
+
+def arch_ = System.getProperty("os.arch", "").toLowerCase();
+def appendix = ""
+
+
+def ignoreJava = "sha512,sha384,sha256,sha224,sha3,shake,gcm,cbc,ecb,rand,seed,cfb,ctr,es,slhdsa_sha256,ccm,gcmsiv" // mlkem
+def igoreNeon = "rand,seed,es,gcmsiv,nops,slhdsa_sha256"
+def ignoreIntel = ""
+
+def testIgnore = ignoreJava;
+
+if (arch_.contains("aarch64") || (arch_.contains("arm64"))) {
+    appendix = "arm64"
+    testIgnore = igoreNeon
+} else if ((arch_.contains("x86") || (arch_.contains("amd")) && arch_.contains("64"))) {
+    appendix = "amd64"
+    testIgnore = ignoreIntel
+}
+
 
 sourceSets {
     main {
@@ -17,7 +37,7 @@ sourceSets {
     }
     java9 {
         java {
-            srcDirs = ['src/main/jdk1.9','../core/src/main/jdk1.9/org']
+            srcDirs = ['src/main/jdk1.9', '../core/src/main/jdk1.9/org']
         }
     }
     java11 {
@@ -54,6 +74,14 @@ dependencies {
     java21Implementation files([sourceSets.main.output.classesDirs, sourceSets.java9.output.classesDirs, sourceSets.java11.output.classesDirs, sourceSets.java15.output.classesDirs]) {
         builtBy compileJava15Java
     }
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.14.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.14.3'
+    // Source: https://mvnrepository.com/artifact/org.junit.vintage/junit-vintage-engine
+    testImplementation("org.junit.vintage:junit-vintage-engine:5.14.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(files(jar.archiveFile))
+
 }
 
 compileJava {
@@ -64,7 +92,7 @@ compileJava {
 compileJava9Java {
     options.release = 9
     options.debug = rootProject.ext.debugBuild
-    options.sourcepath = files(['../core/src/main/java', 'src/main/java', 'src/main/jdk1.9','../core/src/main/jdk1.9/org'])
+    options.sourcepath = files(['../core/src/main/java', 'src/main/java', 'src/main/jdk1.9', '../core/src/main/jdk1.9/org'])
 }
 
 compileJava11Java {
@@ -169,22 +197,7 @@ task('copyJars', type: Copy) {
 }
 
 
-tasks.register('testNoPSprov', Test) {
-    testLogging.showStandardStreams = true
-    testLogging.showCauses = true
-    testLogging.showExceptions = true
-    testLogging.showStackTraces = true
 
-    jvmArgs '-Dorg.bouncycastle.test.skip_pc=true',
-            '-Dorg.bouncycastle.packet_cipher_enabled=false',
-            '-Dorg.bouncycastle.bks.enable_v1=true',
-            '-Dtest.bclts.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr,ccm',
-            '-Dorg.bouncycastle.native.cpu_variant=java'
-
-    filter {
-        includeTestsMatching "AllTest*"
-    }
-}
 
 
 publishing {
@@ -193,7 +206,7 @@ publishing {
             groupId = 'org.bouncycastle'
             artifactId = "bcprov-lts$vm_range"
             from components.java
-    
+
             artifact(javadocJar)
             artifact(sourcesJar)
         }
@@ -201,16 +214,371 @@ publishing {
     }
 }
 
+
+
+
+
+//
+// Unit tests run in parallel
+//
+def registerUnitTestTask(TaskContainer taskContainer, String taskName, String expectEnvVar, int jvmVersion, String expectedJvm, String variant, String interfaceType = "any", String ignore = "", boolean withPS = false) {
+
+    taskContainer.register("${taskName}Unit", Test) {
+        onlyIf { System.getenv(expectEnvVar) != null }
+        failOnNoDiscoveredTests = true
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(jvmVersion)
+        }
+
+        useJUnitPlatform()
+
+        systemProperty 'bc.test.data.home', bcTestDataHome
+
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+
+        minHeapSize = "4096m"
+        maxHeapSize = "8192m"
+
+        maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
+        forkEvery = 8
+
+        filter {
+//            excludeTestsMatching "*LimitTest*"
+//            excludeTestsMatching "*AgreementTest*"
+//            excludeTestsMatching "*FailureTest*"
+//            excludeTestsMatching "*PerformanceTest*"
+            excludeTestsMatching "*AllIntegrationTest*"
+            includeTestsMatching "*AllTest*"
+        }
+
+        classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
+        testClassesDirs = project.sourceSets.test.output.classesDirs
+
+        def props = new ArrayList<String>();
+        props.add("-Dtest.bclts.ignore.native=${ignore}")
+        props.add("-Dtest.bclts.expected_jvm=${expectedJvm}")
+        props.add("-Dorg.bouncycastle.native.loader.type=${interfaceType}")
+        props.add("-Dorg.bouncycastle.native.cpu_variant=${variant}")
+        props.add("-Dorg.bouncycastle.bks.enable_v1=true")
+
+        if (!withPS) {
+            props += "-Dorg.bouncycastle.test.skip_pc=true"
+            props += "-Dorg.bouncycastle.packet_cipher_enabled=false"
+        }
+
+        jvmArgs props as List<String>
+
+    }
+
+}
+
+//
+// These test tasks serially one jvm per test
+//
+def registerIntegrationTestTask(TaskContainer taskContainer, String taskName, String expectEnvVar, int jvmVersion, String expectedJvm, String variant, String interfaceType = "any", String ignore,boolean withPS = false) {
+
+    taskContainer.register("${taskName}Integration", Test.class) {
+        onlyIf { System.getenv(expectEnvVar) != null }
+        failOnNoDiscoveredTests = true
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(jvmVersion)
+        }
+
+        useJUnitPlatform()
+
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+
+        minHeapSize = "4096m"
+        maxHeapSize = "8192m"
+
+        maxParallelForks = 1;
+        forkEvery = 1;
+
+        classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
+        testClassesDirs = project.sourceSets.test.output.classesDirs
+
+        filter {
+            excludeTestsMatching "*AllTest*"
+            includeTestsMatching "*AllIntegrationTest*"
+//            includeTestsMatching "*LimitTest*"
+//            includeTestsMatching "*AgreementTest*"
+//            includeTestsMatching "*FailureTest*"
+        }
+
+
+        def props = new ArrayList<String>();
+        props.add("-Dtest.bclts.ignore.native=${ignore}")
+        props.add("-Dtest.bclts.expected_jvm=${expectedJvm}")
+        props.add("-Dorg.bouncycastle.native.loader.type=${interfaceType}")
+        props.add("-Dorg.bouncycastle.native.cpu_variant=${variant}")
+        props.add("-Dorg.bouncycastle.bks.enable_v1=true")
+
+        if (!withPS) {
+            props += "-Dorg.bouncycastle.test.skip_pc=true"
+            props += "-Dorg.bouncycastle.packet_cipher_enabled=false"
+        }
+
+        jvmArgs props as List<String>
+
+
+    }
+
+}
+
+
 test {
+
+    dependsOn("testIntegration")
+
     testLogging.showStandardStreams = true
     testLogging.showCauses = true
     testLogging.showExceptions = true
     testLogging.showStackTraces = true
 
-    jvmArgs '-Dorg.bouncycastle.bks.enable_v1=true',
-            '-Dtest.bclts.ignore.native=sha,gcm,cbc,ecb,es,cfb,ctr,ccm',
-            '-Dorg.bouncycastle.native.cpu_variant=java'
+    failOnNoDiscoveredTests = true
+    useJUnitPlatform()
 
+    minHeapSize = "4096m"
+    maxHeapSize = "8192m"
+
+    maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
+    forkEvery = 1
+
+    filter {
+        includeTestsMatching "*AllTest*"
+        excludeTestsMatching "*AllIntegrationTests*"
+    }
+
+    def args = new ArrayList<String>();
+    args.add("-Dtest.bclts.expected_jvm=any")
+    args.add("-Dorg.bouncycastle.bks.enable_v1=true")
+    args.add('-Dtest.bclts.expected_jvm=any')
+    args.add("-Dtest.bclts.ignore.native=${testIgnore}") // testIgnore is determined by platform architecture
+
+    classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
+    testClassesDirs = project.sourceSets.test.output.classesDirs
+
+    jvmArgs args
 }
 
-test.dependsOn("testNoPSprov")
+//
+// This test stanza exists because some of the integration tests use a lot of memory
+//
+tasks.register("testIntegration",Test) {
+    testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
+
+    failOnNoDiscoveredTests = true
+    useJUnitPlatform()
+
+    minHeapSize = "4096m"
+    maxHeapSize = "8192m"
+
+    maxParallelForks = 1
+    forkEvery = 1
+
+    filter {
+        excludeTestsMatching "*AllTest*"
+        includeTestsMatching "*AllIntegrationTests*"
+    }
+
+    def args = new ArrayList<String>();
+    args.add("-Dtest.bclts.expected_jvm=any")
+    args.add("-Dorg.bouncycastle.bks.enable_v1=true")
+    args.add('-Dtest.bclts.expected_jvm=any')
+    args.add("-Dtest.bclts.ignore.native=${testIgnore}") // testIgnore is determined by platform architecture
+
+    classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
+    testClassesDirs = project.sourceSets.test.output.classesDirs
+
+    jvmArgs args
+}
+
+
+
+
+tasks.register("testMultiJVM") {
+    dependsOn("test8Unit")
+    dependsOn("test21Unit")
+    dependsOn("test8Integration")
+    dependsOn("test21Integration")
+    dependsOn("testNative")
+}
+
+
+//
+// Java only tests
+//
+
+registerUnitTestTask(tasks, "test8", "LTS_JDK8", 8, "1.8", "java", "auto", ignoreJava)
+registerUnitTestTask(tasks, "test21", "LTS_JDK21", 21, "21", "java", "auto", ignoreJava)
+
+registerIntegrationTestTask(tasks, "test8", "LTS_JDK8", 8, "1.8", "java", "auto", ignoreJava)
+registerIntegrationTestTask(tasks, "test21", "LTS_JDK21", 21, "21", "java", "auto", ignoreJava)
+
+
+
+
+
+if (arch_.contains("aarch64") || (arch_.contains("arm64"))) {
+
+    System.out.println("Adding ARM tests");
+    //
+    // ARM
+    //
+
+    registerUnitTestTask(tasks, "testNEON8NoPS", "LTS_JDK8", 8, "1.8", "neon-le", "auto", igoreNeon)
+    registerUnitTestTask(tasks, "testNEON21NoPS", "LTS_JDK21", 21, "21", "neon-le", "auto", igoreNeon)
+
+    registerUnitTestTask(tasks, "testNEON8", "LTS_JDK8", 8, "1.8", "neon-le", "auto", igoreNeon,true)
+    registerUnitTestTask(tasks, "testNEON21", "LTS_JDK21", 21, "21", "neon-le", "auto", igoreNeon,true)
+
+    registerIntegrationTestTask(tasks, "testNEON8NoPS", "LTS_JDK8", 8, "1.8", "neon-le", "auto", igoreNeon)
+    registerIntegrationTestTask(tasks, "testNEON21NoPS", "LTS_JDK21", 21, "21", "neon-le", "auto", igoreNeon)
+
+    registerIntegrationTestTask(tasks, "testNEON8", "LTS_JDK8", 8, "1.8", "neon-le", "auto", igoreNeon,false)
+    registerIntegrationTestTask(tasks, "testNEON21", "LTS_JDK21", 21, "21", "neon-le", "auto", igoreNeon,false)
+
+
+
+    tasks.register("testVAESF") {
+        // Does nothing on ARM platforms
+        doLast() {
+            println("testVAESF not available on this platform!");
+        }
+    }
+
+    tasks.register("testVAES") {
+        // Does nothing on ARM platforms
+        doLast() {
+            println("testVAES not available on this platform!");
+        }
+    }
+
+    tasks.register("testAVX") {
+        doLast() {
+            println("testAVX not available on this platform!");
+        }
+        // Does nothing on ARM platforms
+    }
+
+    tasks.register("testNEON") {
+        for (String name in tasks.findAll { it.name.contains("NEON") }) {
+            String n = name.substring(name.lastIndexOf(':') + 1).replace("'", "");
+            if (n.equals("testNEON")) {
+                continue // break cyclic task dep
+            }
+            dependsOn(n);
+        }
+    }
+
+    tasks.register("testNative") {
+        dependsOn("testNEON");
+    }
+
+} else if ((arch_.contains("x86") || (arch_.contains("amd")) && arch_.contains("64"))) {
+
+    System.out.println("Adding INTEL/AMD tests");
+
+    //
+    // INTEL AMD
+    //
+
+    registerUnitTestTask(tasks, "testAVX8NoPS", "LTS_JDK8", 8, "1.8", "avx", "auto", ignoreIntel)
+    registerUnitTestTask(tasks, "testAVX21NoPS", "LTS_JDK21", 21, "21", "avx", "auto", ignoreIntel)
+
+    registerUnitTestTask(tasks, "testVAES8NoPS", "LTS_JDK8", 8, "1.8", "vaes", "auto", ignoreIntel)
+    registerUnitTestTask(tasks, "testVAES21NoPS", "LTS_JDK21", 21, "21", "vaes", "auto", ignoreIntel)
+
+    registerUnitTestTask(tasks, "testVAESF8NoPS", "LTS_JDK8", 8, "1.8", "vaesf", "auto", ignoreIntel)
+    registerUnitTestTask(tasks, "testVAESF21NoPS", "LTS_JDK21", 21, "21", "vaesf", "auto", ignoreIntel)
+
+
+    registerUnitTestTask(tasks, "testAVX8", "LTS_JDK8", 8, "1.8", "avx", "auto", ignoreIntel,true)
+    registerUnitTestTask(tasks, "testAVX21", "LTS_JDK21", 21, "21", "avx", "auto", ignoreIntel,true)
+
+    registerUnitTestTask(tasks, "testVAES8", "LTS_JDK8", 8, "1.8", "vaes", "auto", ignoreIntel,true)
+    registerUnitTestTask(tasks, "testVAES21", "LTS_JDK21", 21, "21", "vaes", "auto", ignoreIntel,true)
+
+    registerUnitTestTask(tasks, "testVAESF8", "LTS_JDK8", 8, "1.8", "vaesf", "auto", ignoreIntel,true)
+    registerUnitTestTask(tasks, "testVAESF21", "LTS_JDK21", 21, "21", "vaesf", "auto", ignoreIntel,true)
+
+
+
+    // integration
+
+    registerIntegrationTestTask(tasks, "testAVX8NoPS", "LTS_JDK8", 8, "1.8", "avx", "auto", ignoreIntel)
+    registerIntegrationTestTask(tasks, "testAVX21NoPS", "LTS_JDK21", 21, "21", "avx", "auto", ignoreIntel)
+
+    registerIntegrationTestTask(tasks, "testVAES8NoPS", "LTS_JDK8", 8, "1.8", "vaes", "auto", ignoreIntel)
+    registerIntegrationTestTask(tasks, "testVAES21NoPS", "LTS_JDK21", 21, "21", "vaes", "auto", ignoreIntel)
+
+    registerIntegrationTestTask(tasks, "testVAESF8NoPS", "LTS_JDK8", 8, "1.8", "vaesf", "auto", ignoreIntel)
+    registerIntegrationTestTask(tasks, "testVAESF21NoPS", "LTS_JDK21", 21, "21", "vaesf", "auto", ignoreIntel)
+
+
+    registerIntegrationTestTask(tasks, "testAVX8", "LTS_JDK8", 8, "1.8", "avx", "auto", ignoreIntel,true)
+    registerIntegrationTestTask(tasks, "testAVX21", "LTS_JDK21", 21, "21", "avx", "auto", ignoreIntel,true)
+
+    registerIntegrationTestTask(tasks, "testVAES8", "LTS_JDK8", 8, "1.8", "vaes", "auto", ignoreIntel,true)
+    registerIntegrationTestTask(tasks, "testVAES21", "LTS_JDK21", 21, "21", "vaes", "auto", ignoreIntel,true)
+
+    registerIntegrationTestTask(tasks, "testVAESF8", "LTS_JDK8", 8, "1.8", "vaesf", "auto", ignoreIntel,true)
+    registerIntegrationTestTask(tasks, "testVAESF21", "LTS_JDK21", 21, "21", "vaesf", "auto", ignoreIntel,true)
+
+
+
+    tasks.register("testAVX") {
+        for (String name in tasks.findAll { it.name.contains("AVX") }) {
+            String n = name.substring(name.lastIndexOf(':') + 1).replace("'", "");
+            if (n.equals("testAVX")) {
+                continue
+            }
+            dependsOn(n);
+        }
+    }
+
+    tasks.register("testVAES") {
+        for (String name in tasks.findAll { it.name.contains("VAES") && !it.name.contains("VAESF") }) {
+            String n = name.substring(name.lastIndexOf(':') + 1).replace("'", "");
+            if (n.equals("testVAES")) {
+                continue
+            }
+            dependsOn(n);
+        }
+    }
+
+    tasks.register("testVAESF") {
+        for (String name in tasks.findAll { it.name.contains("VAESF") }) {
+            String n = name.substring(name.lastIndexOf(':') + 1).replace("'", "");
+            if (n.equals("testVAESF")) {
+                continue
+            }
+            dependsOn(n);
+        }
+    }
+
+    tasks.register("testNEON") {
+        doLast() {
+            println("testNEON not available on this platform!");
+        }
+    }
+
+    tasks.register("testNative") {
+        dependsOn("testAVX");
+        dependsOn("testVAES");
+        dependsOn("testVAESF");
+    }
+
+} else {
+    println("Unrecognised architecture ${arch_}, no native tests added.")
+}
