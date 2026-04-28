@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Bouncy Castle Crypto **LTS** edition for Java — the same crypto APIs as the public BC distribution, but with optional **native (JNI) acceleration** for AES modes, SHA-2/3, GCM-SIV, DRBG, etc. on x86_64 (AVX/VAES/VAESF) and ARM64 (NEON-LE). This is **not** the FIPS distribution.
 
-The build produces Java 8-compatible bytecode (`compileTestJava { options.release = 8 }`) but **JAVA_HOME must point to a JDK 21**.
+Per the README, the build targets Java 8-compatible bytecode (the build script only pins `--release 8` for `compileTestJava`; main-source compatibility is asserted in the README rather than enforced in `build.gradle`). **JAVA_HOME must point to a JDK 21** — the build tooling requires it.
 
 ## Required environment
 
@@ -35,6 +35,16 @@ Run a single test class (uses JUnit 4 filter):
 ```
 ./gradlew :pkix:test --tests org.bouncycastle.cms.test.NewSignedDataTest
 ```
+
+The root-level `./gradlew test` fans out to `:core:test :prov:test :pkix:test :mail:test :pg:test :tls:test` (wired at the bottom of `build.gradle`) — you do **not** need to invoke each module's `test` task individually.
+
+Reproduce a CI-style run against built jars (rather than the build classpath) with the shell harnesses:
+```
+./all_test.sh            # signed jars
+./all_test_unsigned.sh   # unsigned jars
+./mod_all_test_unsigned.sh
+```
+These scripts launch `java -cp <built jars + tests jar>` for each `AllTests` class and set `LD_LIBRARY_PATH=/tmp/bc-libs` (and `DYLIB_LIBRARY_PATH`) so the JVM can find the unpacked native libs outside Gradle. If a CI failure doesn't repro under `./gradlew test`, try these.
 
 Run native-variant tests (skip pure-Java `test` task with `-x test`):
 ```
@@ -92,17 +102,22 @@ The native paths may **buffer** input differently than pure-Java implementations
 ### Test wiring
 
 - All test tasks set `bc.test.data.home` to `core/src/test/data` (absolute path). New tests reading data files should use this property.
-- `forkEvery = 1`, `maxParallelForks = 1` — tests are intentionally serialized (native lib state is process-global). Don't try to parallelize.
+- `forkEvery = 1`, `maxParallelForks = 1`, plus `org.gradle.parallel=false` in `gradle.properties` — tests are intentionally serialized (native lib state is process-global). Don't try to parallelize.
 - The default `test` task runs with `-Dorg.bouncycastle.native.cpu_variant=java` plus `-Dtest.bclts.ignore.native=...` (a comma-list of algorithms to skip native paths for) — i.e. it forces the pure-Java path. To exercise native code use `testAVX`/`testVAES`/`testVAESF`/`testNEON_LE`.
 - `testFull` enables `test.full=true` which turns on slow/exhaustive vectors.
 
-### Checkstyle
+### Lint / static checks
 
-Checkstyle 9.0 runs as part of `build` against `main` source sets only (not tests), config in `config/checkstyle/checkstyle.xml`, plus a custom `methodchecker.jar`. CI failures here are real — don't suppress.
+- **Checkstyle 9.0** runs as part of `build` against `main` source sets only (not tests), config in `config/checkstyle/checkstyle.xml`, plus a custom `methodchecker.jar`. CI failures here are real — don't suppress.
+- **`io.spring.nohttp`** plugin is applied at the root (`build.gradle:11,64`) and forbids non-HTTPS URLs in source/resources. Failures look superficially like checkstyle failures but come from a separate task — fix the URL, don't suppress.
 
 ### Versioning & jar names
 
 `gradle.properties` carries `version=` and `maxVersion=`. Jars are named `bc{module}-lts8on-<version>.jar` (the `8on` = "Java 8 on", i.e. runs on JDK 8+). `copyJars` copies them to `../bc-lts-java-jars/<version>/`.
+
+### Migrating from BC-FIPS
+
+`MIGRATION.md` points at `fips_jni_to_lts.sh` — a shell script that rewrites FIPS-distribution package/import names to their LTS equivalents. Run it on a copy of the source tree, not in place.
 
 ## Things to be careful about
 
