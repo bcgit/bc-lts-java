@@ -1,11 +1,23 @@
-import java.nio.file.CopyOption
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
-import static ExtraFunctions.*
-
 plugins {
     id "biz.aQute.bnd.builder" version "7.0.0"
+}
+apply plugin: 'maven-publish'
+
+def appendix = ""
+
+def ignoreJava = "sha512,sha384,sha256,sha224,sha3,shake,gcm,cbc,ecb,rand,seed,cfb,ctr,es,slhdsa_sha256,ccm,gcmsiv" // mlkem
+def igoreNeon = "rand,seed,es,gcmsiv,nops,slhdsa_sha256"
+def ignoreIntel = ""
+
+def testIgnore = ignoreJava;
+def arch_ = System.getProperty("os.arch", "").toLowerCase();
+
+if (arch_.contains("aarch64") || (arch_.contains("arm64"))) {
+    appendix = "arm64"
+    testIgnore = igoreNeon
+} else if ((arch_.contains("x86") || (arch_.contains("amd")) && arch_.contains("64"))) {
+    appendix = "amd64"
+    testIgnore = ignoreIntel
 }
 
 jar.archiveBaseName = "bcpg-lts${vm_range}"
@@ -30,6 +42,14 @@ dependencies {
     java9Implementation files(sourceSets.main.output.classesDirs) {
         builtBy compileJava
     }
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.14.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.14.3'
+    // Source: https://mvnrepository.com/artifact/org.junit.vintage/junit-vintage-engine
+    testImplementation("org.junit.vintage:junit-vintage-engine:5.14.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(files(jar.archiveFile))
+
 }
 
 compileJava {
@@ -98,11 +118,11 @@ publishing {
             groupId = 'org.bouncycastle'
             artifactId = "bcpg-lts$vm_range"
             from components.java
-    
+
             artifact(javadocJar)
             artifact(sourcesJar)
         }
-    
+
     }
 }
 
@@ -131,3 +151,92 @@ compileTestJava {
     dependsOn(':prov:jar')
     dependsOn(':util:jar')
 }
+
+
+//
+// Unit tests run in parallel
+//
+def registerUnitTestTask(TaskContainer taskContainer, String taskName, String expectEnvVar, int jvmVersion, String expectedJvm, String variant, String interfaceType = "any", String ignore = "") {
+
+    taskContainer.register("${taskName}Unit", Test) {
+        onlyIf { System.getenv(expectEnvVar) != null }
+        failOnNoDiscoveredTests = true
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(jvmVersion)
+        }
+
+        systemProperty 'bc.test.data.home', bcTestDataHome
+
+        useJUnitPlatform()
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+
+        minHeapSize = "4096m"
+        maxHeapSize = "8192m"
+
+        maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
+        forkEvery = 1
+
+        filter {
+            includeTestsMatching "*AllTest*"
+        }
+
+        def args = new ArrayList<String>();
+        args.add("-Dtest.bclts.expected_jvm=any")
+        args.add("-Dorg.bouncycastle.bks.enable_v1=true")
+
+
+        classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
+        testClassesDirs = project.sourceSets.test.output.classesDirs
+
+
+        jvmArgs args
+
+    }
+
+}
+
+
+test {
+
+
+    testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
+
+    failOnNoDiscoveredTests = true
+    useJUnitPlatform()
+
+    minHeapSize = "4096m"
+    maxHeapSize = "8192m"
+
+    maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
+    forkEvery = 1
+
+    filter {
+        includeTestsMatching "*AllTest*"
+    }
+
+    def args = new ArrayList<String>();
+    args.add("-Dtest.bclts.expected_jvm=any")
+    args.add("-Dorg.bouncycastle.bks.enable_v1=true")
+
+
+    classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
+    testClassesDirs = project.sourceSets.test.output.classesDirs
+
+
+    jvmArgs args
+}
+
+tasks.register("testMultiJVM") {
+    dependsOn("test8Unit")
+    dependsOn("test21Unit")
+}
+
+registerUnitTestTask(tasks, "test8", "LTS_JDK8", 8, "1.8", "java", "auto", "")
+registerUnitTestTask(tasks, "test21", "LTS_JDK21", 21, "21", "java", "auto", "")
+

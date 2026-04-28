@@ -1,93 +1,29 @@
 
 
 stages:
+  - check
   - test
-  - testAVX
-  - testVAES
-  - testVAESF
+  - multi
 
 
+check:
+  stage: check
+  script:
+    - "ecr_login"
+    - "ecr_pull vm_base_intel latest"
+    - "ci_docker_run \"vm_base_intel:latest\" ${CI_PROJECT_NAME}  \"/workspace/${CI_PROJECT_NAME}/ci/check.sh\""
 
-test-java-code:
+test-general:
   stage: test
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java  \"/workspace/bc-lts-java/ci/test_java.sh\""
-  artifacts:
-    when: always
-    reports:
-      junit:
-        - "core/build/test-results/**/TEST-*.xml"
-        - "prov/build/test-results/**/TEST-*.xml"
-        - "jmail/build/test-results/**/TEST-*.xml"
-        - "pg/build/test-results/**/TEST-*.xml"
-        - "pkix/build/test-results/**/TEST-*.xml"
-        - "mail/build/test-results/**/TEST-*.xml"
-        - "util/build/test-results/**/TEST-*.xml"
-        - "tls/build/test-results/**/TEST-*.xml"
+    - "ci_docker_run \"vm_base_intel:latest\" ${CI_PROJECT_NAME}  \"/workspace/${CI_PROJECT_NAME}/ci/test_general.sh\""
 
 
-test-code-avx:
-  stage: testAVX
-  needs: ["test-java-code"]
+test-multi:
+  stage: multi
   script:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
-    - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java \"/workspace/bc-lts-java/ci/test_avx.sh\""
-  artifacts:
-    when: always
-    reports:
-      junit:
-        - "core/build/test-results/**/TEST-*.xml"
-        - "prov/build/test-results/**/TEST-*.xml"
-        - "jmail/build/test-results/**/TEST-*.xml"
-        - "pg/build/test-results/**/TEST-*.xml"
-        - "pkix/build/test-results/**/TEST-*.xml"
-        - "mail/build/test-results/**/TEST-*.xml"
-        - "util/build/test-results/**/TEST-*.xml"
-        - "tls/build/test-results/**/TEST-*.xml"
-
-
-test-code-vaes:
-  stage: testVAES
-  needs: ["test-java-code"]
-  script:
-    - "ecr_login"
-    - "ecr_pull vm_base_intel latest"
-    - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java \"/workspace/bc-lts-java/ci/test_vaes.sh\""
-  artifacts:
-    when: always
-    reports:
-      junit:
-        - "core/build/test-results/**/TEST-*.xml"
-        - "prov/build/test-results/**/TEST-*.xml"
-        - "jmail/build/test-results/**/TEST-*.xml"
-        - "pg/build/test-results/**/TEST-*.xml"
-        - "pkix/build/test-results/**/TEST-*.xml"
-        - "mail/build/test-results/**/TEST-*.xml"
-        - "util/build/test-results/**/TEST-*.xml"
-        - "tls/build/test-results/**/TEST-*.xml"
-
-
-test-code-vaesf:
-  stage: testVAESF
-  needs: ["test-java-code"]
-  script:
-    - "ecr_login"
-    - "ecr_pull vm_base_intel latest"
-    - "ci_docker_run \"vm_base_intel:latest\" bc-lts-java \"/workspace/bc-lts-java/ci/test_vaesf.sh\""
-  artifacts:
-    when: always
-    reports:
-      junit:
-        - "core/build/test-results/**/TEST-*.xml"
-        - "prov/build/test-results/**/TEST-*.xml"
-        - "jmail/build/test-results/**/TEST-*.xml"
-        - "pg/build/test-results/**/TEST-*.xml"
-        - "pkix/build/test-results/**/TEST-*.xml"
-        - "mail/build/test-results/**/TEST-*.xml"
-        - "util/build/test-results/**/TEST-*.xml"
-        - "tls/build/test-results/**/TEST-*.xml"
-
-
+    - "ci_docker_run \"vm_base_intel:latest\" ${CI_PROJECT_NAME}  \"/workspace/${CI_PROJECT_NAME}/ci/test_multijvm.sh\""

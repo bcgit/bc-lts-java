@@ -272,7 +272,7 @@ gcm_err *process_buffer_dec(gcm_ctx *ctx,
             //
 
             size_t toCopy = ctx->bufBlockIndex - SIXTEEN_BLOCKS;
-            memcpy(ctx->bufBlock, ctx->bufBlock + ctx->bufBlockIndex, toCopy);
+            memcpy(ctx->bufBlock, ctx->bufBlock + SIXTEEN_BLOCKS, toCopy);
             ctx->bufBlockIndex = toCopy;
         }
 

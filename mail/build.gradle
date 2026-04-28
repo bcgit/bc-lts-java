@@ -3,6 +3,7 @@ import static ExtraFunctions.*
 plugins {
     id "biz.aQute.bnd.builder" version "7.0.0"
 }
+apply plugin: 'maven-publish'
 
 jar.archiveBaseName = "bcmail-lts${vm_range}"
 
@@ -31,6 +32,13 @@ dependencies {
     java9Implementation files(sourceSets.main.output.classesDirs) {
         builtBy compileJava
     }
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.14.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.14.3'
+    // Source: https://mvnrepository.com/artifact/org.junit.vintage/junit-vintage-engine
+    testImplementation("org.junit.vintage:junit-vintage-engine:5.14.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(files(jar.archiveFile))
 }
 
 compileJava {
@@ -138,3 +146,86 @@ compileTestJava {
     dependsOn(":util:jar")
     dependsOn(":pkix:jar")
 }
+
+//
+// Unit tests run in parallel
+//
+def registerUnitTestTask(TaskContainer taskContainer, String taskName, String expectEnvVar, int jvmVersion) {
+
+    taskContainer.register("${taskName}Unit", Test) {
+        onlyIf { System.getenv(expectEnvVar) != null }
+        failOnNoDiscoveredTests = true
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(jvmVersion)
+        }
+
+        systemProperty 'bc.test.data.home', bcTestDataHome
+
+        useJUnitPlatform()
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+
+        minHeapSize = "4096m"
+        maxHeapSize = "8192m"
+
+        maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
+        forkEvery = 1
+
+        filter {
+            includeTestsMatching "*AllTest*"
+        }
+
+        def args = new ArrayList<String>();
+        args.add("-Dtest.bclts.expected_jvm=any")
+        args.add("-Dorg.bouncycastle.bks.enable_v1=true")
+
+        classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
+        testClassesDirs = project.sourceSets.test.output.classesDirs
+
+        jvmArgs args
+    }
+
+}
+
+
+
+test {
+
+
+    testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
+
+    failOnNoDiscoveredTests = true
+    useJUnitPlatform()
+
+    minHeapSize = "4096m"
+    maxHeapSize = "8192m"
+
+    classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
+    testClassesDirs = project.sourceSets.test.output.classesDirs
+
+    maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
+    forkEvery = 1
+
+    filter {
+        includeTestsMatching "*AllTest*"
+    }
+
+    def args = new ArrayList<String>();
+    args.add("-Dtest.bclts.expected_jvm=any")
+    args.add("-Dorg.bouncycastle.bks.enable_v1=true")
+
+    jvmArgs args
+}
+
+tasks.register("testMultiJVM") {
+    dependsOn("test8Unit")
+    dependsOn("test21Unit")
+}
+
+registerUnitTestTask(tasks, "test8", "LTS_JDK8", 8,)
+registerUnitTestTask(tasks, "test21", "LTS_JDK21", 21)

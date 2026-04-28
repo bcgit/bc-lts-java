@@ -44,6 +44,14 @@ dependencies {
     java9Implementation files(sourceSets.main.output.classesDirs) {
         builtBy compileJava
     }
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.14.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.14.3'
+    // Source: https://mvnrepository.com/artifact/org.junit.vintage/junit-vintage-engine
+    testImplementation("org.junit.vintage:junit-vintage-engine:5.14.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(files(jar.archiveFile))
+
 }
 
 compileJava {
@@ -156,3 +164,5 @@ checkstyleMain {
     dependsOn(':util:jar')
     dependsOn(':pkix:jar')
 }
+
+

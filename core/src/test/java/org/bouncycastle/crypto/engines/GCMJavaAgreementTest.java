@@ -1,36 +1,25 @@
 package org.bouncycastle.crypto.engines;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.security.SecureRandom;
-import java.util.Optional;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
-
-import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
-
 import org.bouncycastle.util.Arrays;
-
 import org.bouncycastle.util.encoders.Hex;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.*;
+
+import java.io.ByteArrayOutputStream;
+import java.security.SecureRandom;
 
 public class GCMJavaAgreementTest extends TestCase
 {
     private static final String BCFIPS_LIB_CPU_VARIANT = "org.bouncycastle.native.cpu_variant";
 
-    @Before
+    @BeforeEach
     public void setUp()
     {
         String forcedVariant = System.getProperty(BCFIPS_LIB_CPU_VARIANT);
@@ -46,7 +35,7 @@ public class GCMJavaAgreementTest extends TestCase
     }
 
 
-    @After
+    @AfterEach
     public void tearDown()
     {
         CryptoServicesRegistrar.setNativeEnabled(true);
@@ -61,11 +50,11 @@ public class GCMJavaAgreementTest extends TestCase
 
         if (expectNative)
         {
-            TestCase.assertTrue("Native implementation expected", gcm.toString().contains("GCM[Native]"));
+            Assertions.assertTrue(gcm.toString().contains("GCM[Native]"), "Native implementation expected");
         }
         else
         {
-            TestCase.assertTrue("Java implementation expected", gcm.toString().contains("GCM[Java]"));
+            Assertions.assertTrue(gcm.toString().contains("GCM[Java]"), "Java implementation expected");
         }
 
 
@@ -85,11 +74,11 @@ public class GCMJavaAgreementTest extends TestCase
 
         if (expectNative)
         {
-            TestCase.assertTrue("Native implementation expected", gcm.toString().contains("GCM[Native]"));
+            Assertions.assertTrue(gcm.toString().contains("GCM[Native]"), "Native implementation expected");
         }
         else
         {
-            TestCase.assertTrue("Java implementation expected", gcm.toString().contains("GCM[Java]"));
+            Assertions.assertTrue(gcm.toString().contains("GCM[Java]"), "Java implementation expected");
         }
 
 
@@ -122,7 +111,7 @@ public class GCMJavaAgreementTest extends TestCase
             //
             CryptoServicesRegistrar.setNativeEnabled(false);
             byte[] javaCT = generateCT(javaPT, key, iv, false);
-            TestCase.assertFalse(CryptoServicesRegistrar.getNativeServices().isEnabled());
+            Assertions.assertFalse(CryptoServicesRegistrar.getNativeServices().isEnabled());
 
 
             //
@@ -155,7 +144,7 @@ public class GCMJavaAgreementTest extends TestCase
                     System.out.println();
                 }
 
-                TestCase.assertTrue(keySize + " AES-NI CT did not match", Arrays.areEqual(ct, javaCT));
+                Assertions.assertTrue(Arrays.areEqual(ct, javaCT), keySize + " AES-NI CT did not match");
 
                 byte[] pt = generatePT(javaCT, key, iv, true);
 
@@ -167,7 +156,7 @@ public class GCMJavaAgreementTest extends TestCase
                 }
 
 
-                TestCase.assertTrue(keySize + " AES-NI PT did not match", Arrays.areEqual(pt, javaPT));
+                Assertions.assertTrue(Arrays.areEqual(pt, javaPT), keySize + " AES-NI PT did not match");
             }
 
         }
@@ -183,7 +172,7 @@ public class GCMJavaAgreementTest extends TestCase
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
-                TestCase.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
+                Assertions.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -214,7 +203,7 @@ public class GCMJavaAgreementTest extends TestCase
 
             {
                 GCMModeCipher javaEncryptor = createOutputEncryptor(key, iv, 128);
-                TestCase.assertTrue(javaEncryptor.toString().contains("Java"));
+                Assertions.assertTrue(javaEncryptor.toString().contains("Java"));
                 int j = 0;
                 for (int t = 0; t < msg.length; t++)
                 {
@@ -230,7 +219,7 @@ public class GCMJavaAgreementTest extends TestCase
             {
                 CryptoServicesRegistrar.setNativeEnabled(true);
                 GCMModeCipher nativeEncryptor = createOutputEncryptor(key, iv, 128);
-                TestCase.assertTrue(nativeEncryptor.toString().contains("Native"));
+                Assertions.assertTrue(nativeEncryptor.toString().contains("Native"));
 
                 int j = 0;
                 for (int t = 0; t < msg.length; t++)
@@ -247,7 +236,7 @@ public class GCMJavaAgreementTest extends TestCase
             {
                 System.out.println("Native: " + Hex.toHexString(nativeCT));
                 System.out.println("Java:   " + Hex.toHexString(javaCT));
-                TestCase.fail("native CT did not match java CT");
+                Assertions.fail("native CT did not match java CT");
             }
         }
 
@@ -266,7 +255,7 @@ public class GCMJavaAgreementTest extends TestCase
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
-                TestCase.fail("Skipping GCM Spread Agreement: " + TestUtil.errorMsg());
+                Assertions.fail("Skipping GCM Spread Agreement: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -323,7 +312,9 @@ public class GCMJavaAgreementTest extends TestCase
                         {
                             writeAllAndClose(nativeCt.toByteArray(), nativePt, nativeDec);
 
-                        } catch (Exception ex) {
+                        }
+                        catch (Exception ex)
+                        {
 
                             System.out.println(Hex.toHexString(key));
                             System.out.println(Hex.toHexString(iv));
@@ -336,7 +327,7 @@ public class GCMJavaAgreementTest extends TestCase
                             throw ex;
                         }
 
-                        TestCase.assertTrue("cipher text", Arrays.areEqual(nativeCt.toByteArray(), javaCt.toByteArray()));
+                        Assertions.assertTrue(Arrays.areEqual(nativeCt.toByteArray(), javaCt.toByteArray()), "cipher text");
 
                         if (!Arrays.areEqual(javaPt.toByteArray(), nativePt.toByteArray()))
                         {
@@ -344,9 +335,9 @@ public class GCMJavaAgreementTest extends TestCase
                             System.out.println("Native: " + Hex.toHexString(nativePt.toByteArray()));
                         }
 
-                        TestCase.assertTrue("plain text", Arrays.areEqual(nativePt.toByteArray(), javaPt.toByteArray()));
+                        Assertions.assertTrue(Arrays.areEqual(nativePt.toByteArray(), javaPt.toByteArray()), "plain text");
 
-                        TestCase.assertTrue(Arrays.areEqual(msg, nativePt.toByteArray()));
+                        Assertions.assertTrue(Arrays.areEqual(msg, nativePt.toByteArray()));
 
                     }
                 }
@@ -381,7 +372,7 @@ public class GCMJavaAgreementTest extends TestCase
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
-                TestCase.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
+                Assertions.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -396,7 +387,7 @@ public class GCMJavaAgreementTest extends TestCase
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
-                TestCase.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
+                Assertions.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
             }
             return;
         }
@@ -411,12 +402,187 @@ public class GCMJavaAgreementTest extends TestCase
         {
             if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
-                TestCase.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
+                Assertions.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
             }
             return;
         }
         doTest(32);
     }
+
+    private static void fillCount(byte[] out)
+    {
+        for (int i = 0; i < out.length; i++)
+        {
+            out[i] = (byte) i;
+        }
+    }
+
+    @Test
+    public void testPartialUpdates_4() throws Exception
+    {
+
+        if (!TestUtil.hasNativeService("AES/GCM"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
+            {
+                Assertions.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+
+        String var = CryptoServicesRegistrar.getNativeServices().getVariant();
+
+        boolean correctVariant = "vaes".equals(var) || "avx".equals(var) || "neon-le".equals(var);
+
+       if (!correctVariant) {
+           System.out.println("Skipping testPartialUpdates_4 Agreement Test: incorrect variant " + var);
+           return;
+       }
+
+        byte[] key = new byte[16];
+        fillCount(key);
+
+        byte[] iv = new byte[12];
+        fillCount(iv);
+
+        byte[] message = new byte[2045];
+        fillCount(message);
+
+        GCMModeCipher gcmEncrypt = GCMBlockCipher.newInstance(AESEngine.newInstance());
+        gcmEncrypt.init(true, new ParametersWithIV(new KeyParameter(key), iv));
+
+        byte[] ciperText = new byte[message.length + 16];
+
+        int i = gcmEncrypt.processBytes(message, 0, message.length, ciperText, 0);
+        gcmEncrypt.doFinal(ciperText, i);
+
+        byte[] plainText = new byte[message.length];
+
+
+        //
+        // Verify correct decryption without exception
+        //
+
+        GCMModeCipher gcmDecryptOneShot = GCMBlockCipher.newInstance(AESEngine.newInstance());
+
+        Assertions.assertEquals(AESNativeGCM.class, gcmDecryptOneShot.getClass());
+
+        gcmDecryptOneShot.init(false, new ParametersWithIV(new KeyParameter(key), iv));
+
+        i = gcmDecryptOneShot.processBytes(ciperText, 0, ciperText.length, plainText, 0);
+        gcmDecryptOneShot.doFinal(plainText, i);
+
+        Assertions.assertTrue(Arrays.areEqual(plainText, message));
+
+        GCMModeCipher gcmDecrypt = GCMBlockCipher.newInstance(AESEngine.newInstance());
+        gcmDecrypt.init(false, new ParametersWithIV(new KeyParameter(key), iv));
+
+        i = 0;
+        int p = 0;
+        int remaining = ciperText.length;
+
+
+        for (int t = 0; t < 16 * 4 - 1; t++)
+        {
+            i += gcmDecrypt.processBytes(ciperText, p, 1, plainText, i);
+            p += 1;
+            remaining -= 1;
+        }
+
+
+        i += gcmDecrypt.processBytes(ciperText, p, 7, plainText, i);
+        p += 7;
+        remaining -= 7;
+
+        i += gcmDecrypt.processBytes(ciperText, p, remaining, plainText, i);
+        gcmDecrypt.doFinal(plainText, i);
+
+        Assertions.assertTrue(Arrays.areEqual(plainText, message));
+
+    }
+
+
+    @Test
+    public void testPartialUpdates_16() throws Exception
+    {
+
+
+        if (!TestUtil.hasNativeService("AES/GCM"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
+            {
+                Assertions.fail("Skipping GCM Agreement Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        if (!"vaesf".equals(CryptoServicesRegistrar.getNativeServices().getVariant()))
+        {
+            System.out.println("Skipping testPartialUpdates_16 Agreement Test: incorrect variant " + CryptoServicesRegistrar.getNativeServices().getVariant());
+            return;
+        }
+
+
+        byte[] key = new byte[16];
+        fillCount(key);
+
+        byte[] iv = new byte[12];
+        fillCount(iv);
+
+        byte[] message = new byte[2045];
+        fillCount(message);
+
+        GCMModeCipher gcmEncrypt = GCMBlockCipher.newInstance(AESEngine.newInstance());
+        gcmEncrypt.init(true, new ParametersWithIV(new KeyParameter(key), iv));
+
+        byte[] ciperText = new byte[message.length + 16];
+
+        int i = gcmEncrypt.processBytes(message, 0, message.length, ciperText, 0);
+        gcmEncrypt.doFinal(ciperText, i);
+
+        byte[] plainText = new byte[message.length];
+
+
+        //
+        // Verify correct decryption without exception
+        //
+
+        GCMModeCipher gcmDecryptOneShot = GCMBlockCipher.newInstance(AESEngine.newInstance());
+        gcmDecryptOneShot.init(false, new ParametersWithIV(new KeyParameter(key), iv));
+
+        i = gcmDecryptOneShot.processBytes(ciperText, 0, ciperText.length, plainText, 0);
+        gcmDecryptOneShot.doFinal(plainText, i);
+
+        Assertions.assertTrue(Arrays.areEqual(plainText, message));
+
+        GCMModeCipher gcmDecrypt = GCMBlockCipher.newInstance(AESEngine.newInstance());
+        gcmDecrypt.init(false, new ParametersWithIV(new KeyParameter(key), iv));
+
+        i = 0;
+        int p = 0;
+        int remaining = ciperText.length;
+
+
+        for (int t = 0; t < 16 * 17 - 1; t++)
+        {
+            i += gcmDecrypt.processBytes(ciperText, p, 1, plainText, i);
+            p += 1;
+            remaining -= 1;
+        }
+
+
+        i += gcmDecrypt.processBytes(ciperText, p, 7, plainText, i);
+        p += 7;
+        remaining -= 7;
+
+        i += gcmDecrypt.processBytes(ciperText, p, remaining, plainText, i);
+        gcmDecrypt.doFinal(plainText, i);
+
+        Assertions.assertTrue(Arrays.areEqual(plainText, message));
+
+    }
+
 
     private static GCMModeCipher createOutputEncryptor(byte[] key, byte[] iv, int macSize)
     {

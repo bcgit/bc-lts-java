@@ -203,7 +203,7 @@ packet_err *gcm_pc_process_buffer_dec(uint8_t *in, size_t inlen, uint8_t *out, s
             //
 
             size_t toCopy = *bufBlockIndex - SIXTEEN_BLOCKS;
-            memcpy(bufBlock, bufBlock + *bufBlockIndex, toCopy);
+            memcpy(bufBlock, bufBlock + SIXTEEN_BLOCKS, toCopy);
             *bufBlockIndex = toCopy;
         }
 

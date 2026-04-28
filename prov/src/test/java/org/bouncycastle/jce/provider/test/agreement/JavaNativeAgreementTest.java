@@ -28,7 +28,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.security.Security;
 
-public class JavaNativeAgreementTest extends SimpleTest
+public class JavaNativeAgreementTest extends TestCase
 {
 
     private static final String BCFIPS_LIB_CPU_VARIANT = "org.bouncycastle.native.cpu_variant";
@@ -747,16 +747,16 @@ public class JavaNativeAgreementTest extends SimpleTest
         return "Java-Native Agreement tests";
     }
 
-    @Override
-    public void performTest() throws Exception
-    {
-        testCBCJavaAgreement();
-        testCFBJavaAgreement();
-        testCTRJavaAgreement();
-        testECBJavaAgreement();
-        testGCMJavaAgreement();
-        testSHA256Agreement();
-    }
+//    @Override
+//    public void performTest() throws Exception
+//    {
+//        testCBCJavaAgreement();
+//        testCFBJavaAgreement();
+//        testCTRJavaAgreement();
+//        testECBJavaAgreement();
+//        testGCMJavaAgreement();
+//        testSHA256Agreement();
+//    }
 
     public static boolean hasNativeService(String service)
     {
@@ -771,6 +771,11 @@ public class JavaNativeAgreementTest extends SimpleTest
     public static String getNativeFeatureString()
     {
         return String.join(" ", CryptoServicesRegistrar.getNativeServices().getFeatureSet());
+    }
+
+    public static boolean isJava8()
+    {
+        return System.getProperty("java.version", "").startsWith("1.8");
     }
 
 

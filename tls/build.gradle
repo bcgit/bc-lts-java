@@ -1,12 +1,8 @@
-import java.nio.file.CopyOption
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
-import static ExtraFunctions.*
-
 plugins {
     id "biz.aQute.bnd.builder" version "7.0.0"
 }
+
+apply plugin: 'maven-publish'
 
 jar.archiveBaseName = "bctls-lts$vm_range"
 
@@ -38,6 +34,14 @@ dependencies {
     java9Implementation files(sourceSets.main.output.classesDirs) {
         builtBy compileJava
     }
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.14.3'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.14.3'
+    // Source: https://mvnrepository.com/artifact/org.junit.vintage/junit-vintage-engine
+    testImplementation("org.junit.vintage:junit-vintage-engine:5.14.3")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+    testRuntimeOnly(files(jar.archiveFile))
+
 }
 
 compileJava {
@@ -109,11 +113,11 @@ publishing {
             groupId = 'org.bouncycastle'
             artifactId = "bctls-lts$vm_range"
             from components.java
-    
+
             artifact(javadocJar)
             artifact(sourcesJar)
         }
-    
+
     }
 }
 
@@ -140,4 +144,99 @@ checkstyleMain {
 compileTestJava {
     dependsOn(':prov:jar')
     dependsOn(':util:jar')
+}
+
+
+def registerTestTask(TaskContainer taskContainer, String taskName, String expectEnvVar, int jvmVersion, String security = null) {
+
+    taskContainer.register("${taskName}Integration", Test) {
+        onlyIf { System.getenv(expectEnvVar) != null }
+        failOnNoDiscoveredTests = true
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(jvmVersion)
+        }
+
+        useJUnitPlatform()
+        testLogging.showStandardStreams = true
+        testLogging.showCauses = true
+        testLogging.showExceptions = true
+        testLogging.showStackTraces = true
+
+        systemProperty 'bc.test.data.home', bcTestDataHome
+        minHeapSize = "4096m"
+        maxHeapSize = "8192m"
+
+        maxParallelForks = 1;
+        forkEvery = 1
+
+        filter {
+            includeTestsMatching "*AllTest*"
+        }
+
+        def args = new ArrayList<String>();
+        args.add("-Dtest.bclts.expected_jvm=any")
+        args.add("-Dorg.bouncycastle.bks.enable_v1=true")
+
+
+        classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
+        testClassesDirs = project.sourceSets.test.output.classesDirs
+
+        if (security != null) {
+            args.add("-Djava.security.properties==${projectDir}/${security}")
+        }
+
+        jvmArgs args
+    }
+
+}
+
+
+test {
+
+
+    testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
+
+
+    failOnNoDiscoveredTests = true
+    useJUnitPlatform()
+
+
+    maxParallelForks = 1;
+    forkEvery = 1
+
+    minHeapSize = "4096m"
+    maxHeapSize = "8192m"
+
+    classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
+    testClassesDirs = project.sourceSets.test.output.classesDirs
+
+    def args = new ArrayList<String>();
+    args.add("-Dtest.bclts.expected_jvm=any")
+    args.add("-Dorg.bouncycastle.bks.enable_v1=true")
+
+    String ver = System.getProperty("java.version")
+    if (ver.startsWith("1.8")) {
+        args.add("-Djava.security.properties=${projectDir}/jdk8.java.security")
+    } else if (ver.startsWith("21")) {
+        args.add("-Djava.security.properties=${projectDir}/jdk21.java.security")
+    } else if (ver.startsWith("25")) {
+        args.add("-Djava.security.properties=${projectDir}/jdk25.java.security")
+    }
+
+    jvmArgs args
+}
+
+tasks.register("testMultiJVM") {
+    dependsOn("test8Integration")
+    dependsOn("test21Integration")
+}
+
+registerTestTask(tasks, "test8", "LTS_JDK8", 8, "jdk8.java.security")
+registerTestTask(tasks, "test21", "LTS_JDK21", 21, "jdk21.java.security")
+
+tasks.withType(Test).configureEach {
+    failOnNoDiscoveredTests = false
 }

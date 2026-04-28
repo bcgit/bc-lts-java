@@ -4,13 +4,9 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.pqc.crypto.lms.HSSTests;
-import org.bouncycastle.pqc.crypto.lms.LMSKeyGenTests;
-import org.bouncycastle.pqc.crypto.lms.LMSTests;
-import org.bouncycastle.pqc.crypto.lms.TypeTests;
 import org.bouncycastle.test.PrintTestResult;
 
-public class AllTests
+public class AllIntegrationTests
     extends TestCase
 {
     public static void main(String[] args)

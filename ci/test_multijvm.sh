@@ -15,8 +15,20 @@ export PATH=$JAVA_HOME/bin:$PATH
 
 env
 
-# test will run against jdk 21, we can skip test21 test target in this case.
 
-./gradlew clean cleanNative build -x test21
+# Build headers
+./gradlew clean compileJava
+
+(
+  # Compile native code
+ cd native_c
+ ./build_linux.sh
+)
+
+
+#
+# Multi-JVM test run
+#
+./gradlew clean cleanNative withNative build testMultiJVM -x test
 
 

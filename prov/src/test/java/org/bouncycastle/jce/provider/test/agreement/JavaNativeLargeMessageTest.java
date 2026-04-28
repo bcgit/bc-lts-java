@@ -24,7 +24,7 @@ import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.security.Security;
 
-public class JavaNativeLargeMessageTest extends SimpleTest
+public class JavaNativeLargeMessageTest extends TestCase
 {
 
 
@@ -618,15 +618,15 @@ public class JavaNativeLargeMessageTest extends SimpleTest
     }
 
 
-    @Override
-    public void performTest() throws Exception
-    {
-        testGCMJavaLargeAgreement();
-        testCTRJavaLargeAgreement();
-        testCFBJavaLargeAgreement();
-        testCBCJavaLargeAgreement();
-        testECBJavaLargeAgreement();
-    }
+//    @Override
+//    public void performTest() throws Exception
+//    {
+//        testGCMJavaLargeAgreement();
+//        testCTRJavaLargeAgreement();
+//        testCFBJavaLargeAgreement();
+//        testCBCJavaLargeAgreement();
+//        testECBJavaLargeAgreement();
+//    }
 
 
     public static boolean hasNativeService(String service)
@@ -676,6 +676,11 @@ public class JavaNativeLargeMessageTest extends SimpleTest
         return spi.toString();
     }
 
+
+    public static boolean isJava8()
+    {
+        return System.getProperty("java.version", "").startsWith("1.8");
+    }
 
 
 
