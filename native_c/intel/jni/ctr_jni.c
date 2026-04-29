@@ -6,6 +6,7 @@
 #include "../../jniutil/exceptions.h"
 #include "../../jniutil/bytearrays.h"
 #include "../../jniutil/jni_asserts.h"
+#include "../util/util.h"
 
 /*
  * Class:     org_bouncycastle_crypto_engines_AESNativeCTR
@@ -15,6 +16,7 @@
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_makeCTRInstance
         (JNIEnv *e, jclass cl) {
     ctr_ctx *ctr = ctr_create_ctx();
+    bc_assert(ctr != NULL);
     return (jlong) ((void *) ctr);
 }
 
@@ -26,6 +28,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_makeCT
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_getPosition
         (JNIEnv *env, jclass cl, jlong ref) {
     ctr_ctx *ctx = (ctr_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
     return ctr_get_position(ctx);
 }
 
@@ -52,6 +55,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_skip
         (JNIEnv *env, jclass cl, jlong ref, jlong delta) {
 
     ctr_ctx *ctx = (ctr_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
 
     if (!ctr_skip(ctx, delta)) {
         throw_java_invalid_state(env, CTR_ERROR_MSG);
@@ -75,6 +79,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_seekTo
     }
 
     ctr_ctx *ctx = (ctr_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
     if (!ctr_seekTo(ctx, position)) {
         throw_java_invalid_state(env, CTR_ERROR_MSG);
         return 0;
@@ -91,13 +96,13 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_seekTo
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_init
         (JNIEnv *env, jclass cl, jlong ref, jbyteArray key_, jbyteArray iv_) {
 
+    ctr_ctx *ctx = (ctr_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
+
     java_bytearray_ctx key, iv;
 
     init_bytearray_ctx(&key);
     init_bytearray_ctx(&iv);
-
-
-    ctr_ctx *ctx = 0;
 
     if (!load_bytearray_ctx(&key, env, key_)) {
         throw_java_invalid_state(env, "unable to obtain ptr to valid array");
@@ -122,9 +127,6 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_init
         throw_java_illegal_argument(env, "iv len must be from 8 to 16 bytes");
         goto exit;
     }
-
-    ctx = (ctr_ctx *) ((void *) ref);
-
 
     if (key.bytearray == NULL) {
         if (ctx->num_rounds == 0) {
@@ -151,6 +153,7 @@ JNIEXPORT jbyte JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_return
 
     unsigned char v = (unsigned char) in;
     ctr_ctx *ctx = (ctr_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
     if (!ctr_process_byte(ctx, &v)) {
         throw_java_invalid_state(env, CTR_ERROR_MSG);
         return 0;
@@ -168,6 +171,9 @@ JNIEXPORT jbyte JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_return
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_processBytes
         (JNIEnv *env, jclass cl, jlong ref, jbyteArray in, jint inOff, jint len, jbyteArray out, jint outOff) {
 
+    ctr_ctx *ctx = (ctr_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
+
     critical_bytearray_ctx output;
     critical_bytearray_ctx input;
 
@@ -178,7 +184,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_process
     size_t written = 0;
 
     if (byte_processing_init(env, &input, &output, in, inOff, out, outOff, len, &inStart, &outStart)) {
-        ctr_ctx *ctx = (ctr_ctx *) ((void *) ref);
         r = ctr_process_bytes(ctx, inStart, (size_t) len, outStart, &written);
     }
 
@@ -200,6 +205,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_process
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_reset
         (JNIEnv *env, jclass cl, jlong ref) {
     ctr_ctx *ctx = (ctr_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
     ctr_reset(ctx);
 }
 

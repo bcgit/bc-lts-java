@@ -6,6 +6,7 @@
 #include "gcm_siv.h"
 #include <stdlib.h>
 #include <memory.h>
+#include "../util/util.h"
 
 static inline void divideP(__m128i *x, __m128i *z) {
     int64_t x0 = (*x)[0];
@@ -94,12 +95,13 @@ void generateKey(bool encryption, uint8_t *key, __m128i *roundKeys, size_t keyLe
             init_256(roundKeys, key, encryption);
             break;
         default:
-            assert(0);
+            bc_assert(0);
     }
 }
 
 gcm_siv_err *make_gcm_siv_error(const char *msg, int type) {
     gcm_siv_err *err = calloc(1, sizeof(gcm_siv_err));
+    bc_assert(err != NULL);
     err->msg = msg;
     err->type = type;
     return err;
@@ -113,12 +115,16 @@ void gcm_siv_err_free(gcm_siv_err *err) {
 
 gcm_siv_ctx *gcm_siv_create_ctx() {
     gcm_siv_ctx *ctx = calloc(1, sizeof(gcm_siv_ctx));
-    assert((size_t)MAX_DATALEN + BLOCK_SIZE > (size_t)MAX_DATALEN);
+    bc_assert(ctx != NULL);
+    bc_assert((size_t)MAX_DATALEN + BLOCK_SIZE > (size_t)MAX_DATALEN);
     ctx->max_dl = MAX_DATALEN;
     return ctx;
 }
 
 void gcm_siv_free(gcm_siv_ctx *ctx) {
+    if (ctx == NULL) {
+        return;
+    }
     if (ctx->initAD != NULL) {
         memzero(ctx->initAD, (size_t) ctx->initADLen);
         free(ctx->initAD);
@@ -174,10 +180,11 @@ gcm_siv_err *gcm_siv_init(
         // the same state it was before the first data is processed.
         //
         ctx->initAD = malloc((size_t) initialTextLen);
+        bc_assert(ctx->initAD != NULL);
         ctx->initADLen = initialTextLen;
         memcpy(ctx->initAD, initialText, (size_t) initialTextLen);
     } else {
-        assert(initialTextLen == 0);
+        bc_assert(initialTextLen == 0);
     }
 
     // Zero out mac block
@@ -251,6 +258,7 @@ void gcm_siv_hasher_completeHash(gcm_siv_hasher *p_gsh, __m128i *T, __m128i *the
     if (p_gsh->numActive > 0) {
         memzero(p_gsh->theBuffer + p_gsh->numActive, (size_t) (BLOCK_SIZE - p_gsh->numActive));
         gHASH(T, theGHash, (__m128i *) p_gsh->theBuffer);
+        p_gsh->numActive = 0;
     }
 }
 
@@ -372,7 +380,7 @@ gcm_siv_process_packet(const uint8_t *mySrc, int myRemaining, uint8_t *pCounter,
                        uint8_t *output, encrypt_function *encrypt) {
     /* Access buffer and length */
     __m128i counter = _mm_loadu_si128((__m128i *) pCounter);
-    counter[1] |= 1L << 63;
+    counter[1] |= 1ULL << 63;
     uint8_t myMask[BLOCK_SIZE];
     int myOff = 0, i;
     __m128i d0;
@@ -418,6 +426,9 @@ gcm_siv_err *gcm_siv_doFinal(gcm_siv_ctx *ctx, uint8_t *input, size_t len, uint8
         memcpy(output + len, ctx->macBlock, BLOCK_SIZE);
         *written = len + BLOCK_SIZE;
     } else {
+        if (len < BLOCK_SIZE) {
+            return make_gcm_siv_error("ciphertext too short", ILLEGAL_CIPHER_TEXT);
+        }
         *written = len - BLOCK_SIZE;
         gcm_siv_process_packet(input, (int) *written, input + *written, ctx->roundKeys, output,
                                &ctx->encrypt);
@@ -425,6 +436,8 @@ gcm_siv_err *gcm_siv_doFinal(gcm_siv_ctx *ctx, uint8_t *input, size_t len, uint8
         calculateTag(&ctx->theDataHasher, &ctx->theAEADHasher, ctx->T, ctx->roundKeys,
                      &ctx->theGHash, (int8_t *) ctx->nonce, ctx->macBlock, &ctx->encrypt);
         if (!tag_verification(ctx->macBlock, input + *written,BLOCK_SIZE)) {
+            memzero(output, *written);
+            *written = 0;
             return make_gcm_siv_error("mac check  failed", ILLEGAL_CIPHER_TEXT);
         }
     }

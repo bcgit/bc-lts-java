@@ -5,10 +5,11 @@
 #include <string.h>
 #include "ecb.h"
 #include "../common.h"
+#include "../util/util.h"
 
 ecb_ctx *ecb_create_ctx() {
     ecb_ctx *b = calloc(1, sizeof(ecb_ctx));
-    assert(b != NULL);
+    bc_assert(b != NULL);
     return b;
 }
 

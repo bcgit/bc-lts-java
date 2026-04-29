@@ -8,6 +8,7 @@
 #include <assert.h>
 #include <memory.h>
 #include "../common.h"
+#include "../util/util.h"
 
 #define BLOCK_SIZE 16
 

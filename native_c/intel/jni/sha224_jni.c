@@ -7,6 +7,7 @@
 #include "../../jniutil/bytearrays.h"
 #include "../../jniutil/bytearraycritical.h"
 #include "../../jniutil/jni_asserts.h"
+#include "../util/util.h"
 
 /*
  * Class:     org_bouncycastle_crypto_digests_SHA224NativeDigest
@@ -38,6 +39,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_d
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_getDigestSize
         (JNIEnv *env, jclass cl, jlong ref) {
     sha224_ctx *sha = (sha224_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     return (jint) sha224_getSize(sha);
 }
 
@@ -49,6 +51,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_g
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_update__JB
         (JNIEnv *env, jclass cl, jlong ref, jbyte b) {
     sha224_ctx *sha = (sha224_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     sha224_update_byte(sha, (uint8_t) b);
 }
 
@@ -64,6 +67,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_u
     init_critical_ctx(&input, env, array);
 
     sha224_ctx *sha = (sha224_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     uint8_t *start;
 
 
@@ -105,6 +109,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_d
     jint outLen = 0;
 
     sha224_ctx *sha = (sha224_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     int64_t remaining;
 
     if (!load_bytearray_ctx(&out, env, array)) {
@@ -147,6 +152,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_d
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_reset
         (JNIEnv *enc, jclass jc, jlong ref) {
     sha224_ctx *sha = (sha224_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     sha224_reset(sha);
 }
 
@@ -158,6 +164,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_r
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_getByteLength
         (JNIEnv *env, jclass jc, jlong ref) {
     sha224_ctx *sha = (sha224_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     return (jint) sha224_getByteLen(sha);
 }
 
@@ -175,6 +182,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_e
     }
 
     sha224_ctx *sha = (sha224_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
 
     size_t size = sizeof(sha224_ctx);
 
@@ -220,6 +228,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA224NativeDigest_r
         (JNIEnv *env, jclass jc, jlong ref, jbyteArray in, jint offset) {
 
     sha224_ctx *sha = (sha224_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     java_bytearray_ctx input;
     init_bytearray_ctx(&input);
 

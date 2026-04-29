@@ -64,29 +64,26 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_seedBuff
     size_t count = buf.size / RAND_MOD;
 
     unsigned long long val = 0;
-    unsigned long long *ptr = (unsigned long long *) buf.bytearray;
 
     if (useSeed) {
         // Use RDSEED
-        while (count-- > 0) {
+        for (size_t i = 0; i < count; i++) {
             int flag = _rdseed64_step(&val);
             while (flag == 0) {
                 _mm_pause();
                 flag = _rdseed64_step(&val);
             }
-            *ptr = val;
-            ptr++;
+            memcpy(buf.bytearray + i * sizeof(val), &val, sizeof(val));
         }
     } else {
         // Use RDRAND
-        while (count-- > 0) {
+        for (size_t i = 0; i < count; i++) {
             int flag = _rdrand64_step(&val);
             while (flag == 0) {
                 _mm_pause();
                 flag = _rdrand64_step(&val);
             }
-            *ptr = val;
-            ptr++;
+            memcpy(buf.bytearray + i * sizeof(val), &val, sizeof(val));
         }
     }
 
