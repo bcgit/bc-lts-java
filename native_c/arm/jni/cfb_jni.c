@@ -5,6 +5,7 @@
 #include "../../jniutil/jni_asserts.h"
 #include "../cfb/cfb.h"
 #include "../aes/aes_common_neon.h"
+#include "../util/util.h"
 
 
 
@@ -16,6 +17,7 @@
 JNIEXPORT jbyte JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_processByte
         (JNIEnv *e, jclass class, jlong ref, jbyte in) {
     cfb_ctx *ctx = (cfb_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
 
     if (ctx->encryption) {
         return (jbyte) cfb_encrypt_byte(ctx, (uint8_t) in);
@@ -32,14 +34,15 @@ JNIEXPORT jbyte JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_proces
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_processBytes
         (JNIEnv *env, jclass class, jlong ref, jbyteArray in_, jint inOff, jint len, jbyteArray out_, jint outOff) {
 
+    cfb_ctx *ctx = (cfb_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
+
     critical_bytearray_ctx output;
     critical_bytearray_ctx input;
 
     void *inStart;
     void *outStart;
 
-
-    cfb_ctx *ctx = (cfb_ctx *) ((void *) ref);
     jint processed = 0;
     if (byte_processing_init(env, &input, &output, in_, inOff, out_, outOff, len, &inStart, &outStart)) {
         if (ctx->encryption) {
@@ -89,6 +92,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_makeNa
     }
 
     ctx = cfb_create_ctx();
+    bc_assert(ctx != NULL);
     ctx->num_rounds = rounds;
     ctx->encryption = encryption == JNI_TRUE;
 
@@ -107,6 +111,9 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_makeNa
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_init
         (JNIEnv *env, jobject jo, jlong ref, jbyteArray key_, jbyteArray iv_) {
+
+    cfb_ctx *ctx = (cfb_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
 
     java_bytearray_ctx key,iv;
 
@@ -131,7 +138,6 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_init
         goto exit;
     }
 
-    cfb_ctx *ctx = (cfb_ctx *) ((void *) ref);
     cfb_init(ctx, key.bytearray, iv.bytearray);
 
     exit:
@@ -160,6 +166,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_dispose
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_reset
         (JNIEnv *e, jclass cl, jlong ref) {
     cfb_ctx *ctx = (cfb_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
     cfb_reset(ctx);
 }
 

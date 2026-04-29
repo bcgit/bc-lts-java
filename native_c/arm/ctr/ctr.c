@@ -7,14 +7,18 @@
 
 #include <assert.h>
 #include <memory.h>
+#include "../util/util.h"
 
 ctr_ctx *ctr_create_ctx() {
     ctr_ctx *ctx = calloc(1, sizeof(ctr_ctx));
-    assert(ctx != NULL);
+    bc_assert(ctx != NULL);
     return ctx;
 }
 
 void ctr_free_ctx(ctr_ctx *ctx) {
+    if (ctx == NULL) {
+        return;
+    }
     memzero(ctx,  sizeof(ctr_ctx));
     free(ctx);
 }
@@ -160,7 +164,9 @@ void ctr_generate_partial_block(ctr_ctx *pCtr) {
 
 bool ctr_skip(ctr_ctx *pCtr, int64_t numberOfBytes) {
 
-    uint64_t delta = (uint64_t) (labs(numberOfBytes));
+    uint64_t delta = (numberOfBytes < 0)
+                     ? -(uint64_t) numberOfBytes
+                     : (uint64_t) numberOfBytes;
     uint64_t blocksDelta = delta / CTR_BLOCK_SIZE;
     int bytesDelta = (int) (delta % CTR_BLOCK_SIZE);
 

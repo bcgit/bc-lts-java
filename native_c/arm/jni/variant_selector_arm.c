@@ -2,7 +2,15 @@
 
 #include <stdbool.h>
 #include "../../jniutil/variant_selector.h"
+#include "../util/util.h"
 #include "org_bouncycastle_crypto_VariantSelector.h"
+
+
+static jstring new_str(JNIEnv *env, const char *s) {
+    jstring js = (*env)->NewStringUTF(env, s);
+    bc_assert(js != NULL);
+    return js;
+}
 
 
 static struct cpuid_info cpu_info = {
@@ -43,7 +51,7 @@ void probe_system() {
         cpu_info.aes = has_feature("hw.optional.arm.FEAT_AES");
         cpu_info.sha256 = has_feature("hw.optional.arm.FEAT_SHA256");
         cpu_info.sha512 = has_feature("hw.optional.arm.FEAT_SHA512");
-        cpu_info.sha3 = has_feature("hw.optional.arm.FEAT_SHA512");
+        cpu_info.sha3 = has_feature("hw.optional.arm.FEAT_SHA3");
         cpu_info.neon = has_feature("hw.optional.neon");
         cpu_info.arm64 = has_feature("hw.optional.arm64");
         cpu_info.le = is_le();
@@ -107,10 +115,8 @@ JNIEXPORT jstring JNICALL Java_org_bouncycastle_crypto_VariantSelector_getBestVa
 
 
     // Neon little endian
-    if (cpu_info.arm64 && cpu_info.neon) {
+    if (cpu_info.arm64 && cpu_info.neon && cpu_info.le) {
         return (*env)->NewStringUTF(env, "neon-le");
-    } else if (cpu_info.arm64 && cpu_info.neon && !cpu_info.le) {
-        return (*env)->NewStringUTF(env, "neon-be");
     }
 
     return (*env)->NewStringUTF(env, "none");
@@ -127,50 +133,31 @@ JNIEXPORT jobjectArray JNICALL Java_org_bouncycastle_crypto_VariantSelector_getF
 
     probe_system();
 
+    jclass stringArrayClass = (*env)->FindClass(env, "[Ljava/lang/String;");
+    bc_assert(stringArrayClass != NULL);
 
-    jobjectArray outerArray = (*env)->NewObjectArray(env, 1, (*env)->FindClass(env, "[Ljava/lang/String;"), NULL);
+    jobjectArray outerArray = (*env)->NewObjectArray(env, 1, stringArrayClass, NULL);
+    bc_assert(outerArray != NULL);
 
     if (cpu_info.neon) {
-        jobjectArray arm64 = (*env)->NewObjectArray(env, 7, (*env)->FindClass(env, "java/lang/String"), NULL);
+        jclass stringClass = (*env)->FindClass(env, "java/lang/String");
+        bc_assert(stringClass != NULL);
+
+        jobjectArray arm64 = (*env)->NewObjectArray(env, 7, stringClass, NULL);
+        bc_assert(arm64 != NULL);
+
         (*env)->SetObjectArrayElement(env, outerArray, 0, arm64);
         int t = 0;
-        (*env)->SetObjectArrayElement(env, arm64, t++, (*env)->NewStringUTF(env, "neon-le"));
+        (*env)->SetObjectArrayElement(env, arm64, t++, new_str(env, "neon-le"));
 
-        if (cpu_info.aes) {
-            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "+aes"));
-        } else {
-            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "-aes"));
-        }
-        t++;
-        if (cpu_info.sha256) {
-            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "+sha256"));
-        } else {
-            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "-sha256"));
-        }
-        t++;
-        if (cpu_info.sha512) {
-            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "+sha512"));
-        } else {
-            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "-sha512"));
-        }
-        t++;
-        if (cpu_info.sha3) {
-            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "+sha3"));
-        } else {
-            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "-sha3"));
-        }
-        t++;
-        if (cpu_info.neon) {
-            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "+neon"));
-        } else {
-            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "-neon"));
-        }
-        t++;
-        if (cpu_info.arm64 && cpu_info.neon && cpu_info.le) {
-            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "Variant Supported"));
-        } else {
-            (*env)->SetObjectArrayElement(env, arm64, t, (*env)->NewStringUTF(env, "No Variant Support"));
-        }
+        (*env)->SetObjectArrayElement(env, arm64, t++, new_str(env, cpu_info.aes ? "+aes" : "-aes"));
+        (*env)->SetObjectArrayElement(env, arm64, t++, new_str(env, cpu_info.sha256 ? "+sha256" : "-sha256"));
+        (*env)->SetObjectArrayElement(env, arm64, t++, new_str(env, cpu_info.sha512 ? "+sha512" : "-sha512"));
+        (*env)->SetObjectArrayElement(env, arm64, t++, new_str(env, cpu_info.sha3 ? "+sha3" : "-sha3"));
+        (*env)->SetObjectArrayElement(env, arm64, t++, new_str(env, cpu_info.neon ? "+neon" : "-neon"));
+
+        const bool supported = cpu_info.arm64 && cpu_info.neon && cpu_info.le;
+        (*env)->SetObjectArrayElement(env, arm64, t, new_str(env, supported ? "Variant Supported" : "No Variant Support"));
     }
 
     return outerArray;

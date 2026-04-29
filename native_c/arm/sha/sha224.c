@@ -54,19 +54,22 @@ static inline int processLength(sha224_ctx *ctx, size_t length) {
 
 sha224_ctx *sha224_create_ctx() {
     sha224_ctx *ptr = calloc(1, sizeof(sha224_ctx));
-    assert(ptr != NULL);
+    bc_assert(ptr != NULL);
     sha224_reset(ptr);
     return ptr;
 }
 
 void sha224_free_ctx(sha224_ctx *ctx) {
+    if (ctx == NULL) {
+        return;
+    }
     memzero(ctx, sizeof(sha224_ctx));
     free(ctx);
 }
 
 void sha224_reset(sha224_ctx *ctx) {
 
-    memzero(ctx->buf, BUF_SIZE_SHA224);
+    memset(ctx->buf, 0, BUF_SIZE_SHA224);
     ctx->ident = SHA224_MAGIC;
     ctx->buf_index = 0;
     ctx->byteCount = 0;

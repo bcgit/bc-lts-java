@@ -4,11 +4,12 @@
 #include <assert.h>
 #include <memory.h>
 #include "ccm.h"
+#include "../util/util.h"
 #include "arm_neon.h"
 
 ccm_err *make_ccm_error(const char *msg, int type) {
     ccm_err *err = calloc(1, sizeof(ccm_err));
-    assert(err != NULL);
+    bc_assert(err != NULL);
     err->msg = msg;
     err->type = type;
     return err;
@@ -23,8 +24,8 @@ void ccm_err_free(ccm_err *err) {
 
 ccm_ctx *ccm_create_ctx() {
     ccm_ctx *ctx = calloc(1, sizeof(ccm_ctx));
+    bc_assert(ctx != NULL);
     ctx->encryption = true; // to make get output size return the longest array if init not called first.
-    assert(ctx != NULL);
     return ctx;
 }
 
@@ -119,7 +120,7 @@ ccm_err *ccm_init(
         // the same state it was before the first data is processed.
         //
         ctx->initAD = malloc(initialTextLen * sizeof(uint8_t));
-        assert(ctx->initAD != NULL);
+        bc_assert(ctx->initAD != NULL);
         ctx->initADLen = initialTextLen;
         memcpy(ctx->initAD, initialText, initialTextLen);
     }
