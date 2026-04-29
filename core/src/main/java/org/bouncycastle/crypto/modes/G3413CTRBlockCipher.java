@@ -198,7 +198,6 @@ public class G3413CTRBlockCipher
             {
                 throw new IllegalStateException("attempt to process too many blocks");
             }
-            CTR[start]++;
         }
     }
 
