@@ -59,7 +59,7 @@ public class CMSAuthEnvelopedDataGenerator
         byte[] encryptedContent = bOut.toByteArray();
         byte[] mac = contentEncryptor.getMAC();
 
-        EncryptedContentInfo eci = CMSUtils.getEncryptedContentInfo(content, contentEncryptor, encryptedContent);
+        EncryptedContentInfo eci = CMSUtils.getEncryptedContentInfo(content, contentEncryptor, new DEROctetString(encryptedContent));
 
         ASN1Set unprotectedAttrSet = CMSUtils.getAttrDLSet(unauthAttrsGenerator);
 
