@@ -7,6 +7,7 @@
 #include "../../jniutil/bytearrays.h"
 #include "../../jniutil/bytearraycritical.h"
 #include "../../jniutil/jni_asserts.h"
+#include "../util/util.h"
 
 
 /*
@@ -26,7 +27,9 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_m
             return 0;
     }
 
-    return (jlong) shake_create_ctx(bitLen);
+    shake_ctx *sha = shake_create_ctx(bitLen);
+    bc_assert(sha != NULL);
+    return (jlong) sha;
 }
 
 /*
@@ -47,6 +50,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_de
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_getDigestSize
         (JNIEnv *env, jclass cl, jlong ref) {
     shake_ctx *sha = (shake_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     return (jint) shake_getSize(sha);
 
 }
@@ -59,6 +63,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_ge
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_update__JB
         (JNIEnv *env, jclass cl, jlong ref, jbyte b) {
     shake_ctx *sha = (shake_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     if (sha->squeezing) {
         throw_java_invalid_state(env, "attempt to absorb while squeezing");
         return;
@@ -74,10 +79,12 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_up
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_update__J_3BII
         (JNIEnv *env, jclass jc, jlong ref, jbyteArray array, jint inOff, jint len) {
 
+    shake_ctx *sha = (shake_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
+
     critical_bytearray_ctx input;
     init_critical_ctx(&input, env, array);
 
-    shake_ctx *sha = (shake_ctx *) ((void *) ref);
     uint8_t *start;
 
     if (sha->squeezing) {
@@ -118,11 +125,11 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_up
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_doFinal__J_3BI
         (JNIEnv *env, jclass cl, jlong ref, jbyteArray array, jint offset) {
 
+    shake_ctx *sha = (shake_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
 
     java_bytearray_ctx out;
     init_bytearray_ctx(&out);
-
-    shake_ctx *sha = (shake_ctx *) ((void *) ref);
 
     const int32_t len = (int32_t)shake_getSize(sha);
 
@@ -161,10 +168,11 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_do
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_doFinal__J_3BII(
         JNIEnv *env, jclass jc, jlong ref, jbyteArray array, jint offset, jint len) {
 
+    shake_ctx *sha = (shake_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
+
     java_bytearray_ctx out;
     init_bytearray_ctx(&out);
-
-    shake_ctx *sha = (shake_ctx *) ((void *) ref);
 
     if (!load_bytearray_ctx(&out, env, array)) {
         throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
@@ -200,10 +208,11 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_do
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_doOutput
         (JNIEnv *env, jclass cl, jlong ref, jbyteArray array, jint offset, jint len) {
 
+    shake_ctx *sha = (shake_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
+
     java_bytearray_ctx out;
     init_bytearray_ctx(&out);
-
-    shake_ctx *sha = (shake_ctx *) ((void *) ref);
 
     if (!load_bytearray_ctx(&out, env, array)) {
         throw_java_invalid_state(env, "unable to obtain ptr to valid output array");
@@ -241,6 +250,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_do
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_reset
         (JNIEnv *enc, jclass jc, jlong ref) {
     shake_ctx *sha = (shake_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     shake_reset(sha);
 }
 
@@ -252,6 +262,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_re
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_getByteLength
         (JNIEnv *env, jclass jc, jlong ref) {
     shake_ctx *sha = (shake_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     return (jint) shake_getByteLen(sha);
 
 }
@@ -270,6 +281,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_en
     }
 
     shake_ctx *sha = (shake_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
 
     size_t size = sizeof(shake_ctx);
 
@@ -315,6 +327,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHAKENativeDigest_re
         (JNIEnv *env, jclass jc, jlong ref, jbyteArray in, jint offset) {
 
     shake_ctx *sha = (shake_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     java_bytearray_ctx input;
     init_bytearray_ctx(&input);
 

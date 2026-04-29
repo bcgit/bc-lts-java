@@ -7,6 +7,7 @@
 #include "../../jniutil/bytearrays.h"
 #include "../../jniutil/bytearraycritical.h"
 #include "../../jniutil/jni_asserts.h"
+#include "../util/util.h"
 
 /*
  * Class:     org_bouncycastle_crypto_digests_SHA512NativeDigest
@@ -15,7 +16,9 @@
  */
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_makeNative
         (JNIEnv *env, jclass cl) {
-    return (jlong) sha512_create_ctx();
+    sha512_ctx *sha = sha512_create_ctx();
+    bc_assert(sha != NULL);
+    return (jlong) sha;
 }
 
 /*
@@ -38,6 +41,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_d
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_getDigestSize
         (JNIEnv *env, jclass cl, jlong ref) {
     sha512_ctx *sha = (sha512_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     return (jint) sha512_getSize(sha);
 }
 
@@ -49,6 +53,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_g
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_update__JB
         (JNIEnv *env, jclass cl, jlong ref, jbyte b) {
     sha512_ctx *sha = (sha512_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     sha512_update_byte(sha, (uint8_t) b);
 }
 
@@ -60,10 +65,12 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_u
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_update__J_3BII
         (JNIEnv *env, jclass jc, jlong ref, jbyteArray array, jint inOff, jint len) {
 
+    sha512_ctx *sha = (sha512_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
+
     critical_bytearray_ctx input;
     init_critical_ctx(&input, env, array);
 
-    sha512_ctx *sha = (sha512_ctx *) ((void *) ref);
     uint8_t *start;
 
 
@@ -100,12 +107,12 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_u
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_doFinal
         (JNIEnv *env, jclass jc, jlong ref, jbyteArray array, jint offset) {
 
+    sha512_ctx *sha = (sha512_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
+
     java_bytearray_ctx out;
     init_bytearray_ctx(&out);
     jint outLen = 0;
-
-
-    sha512_ctx *sha = (sha512_ctx *) ((void *) ref);
     int64_t remaining;
 
     if (!load_bytearray_ctx(&out, env, array)) {
@@ -150,6 +157,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_d
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_reset
         (JNIEnv *enc, jclass jc, jlong ref) {
     sha512_ctx *sha = (sha512_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     sha512_reset(sha);
 }
 
@@ -161,6 +169,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_r
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_getByteLength
         (JNIEnv *env, jclass jc, jlong ref) {
     sha512_ctx *sha = (sha512_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     return (jint) sha512_getByteLen(sha);
 }
 
@@ -178,6 +187,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_e
     }
 
     sha512_ctx *sha = (sha512_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
 
     size_t size = sizeof(sha512_ctx);
 
@@ -223,6 +233,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_digests_SHA512NativeDigest_r
         (JNIEnv *env, jclass jc, jlong ref, jbyteArray in, jint offset) {
 
     sha512_ctx *sha = (sha512_ctx *) ((void *) ref);
+    bc_assert(sha != NULL);
     java_bytearray_ctx input;
     init_bytearray_ctx(&input);
 

@@ -26,9 +26,9 @@ static const uint64_t K[] = {
 
 
 sha3_ctx *sha3_create_ctx(int bitLen) {
-    assert(bitLen == 224 || bitLen == 256 || bitLen == 384 || bitLen == 512);
+    bc_assert(bitLen == 224 || bitLen == 256 || bitLen == 384 || bitLen == 512);
     sha3_ctx *ptr = calloc(1, sizeof(sha3_ctx));
-    assert(ptr != NULL);
+    bc_assert(ptr != NULL);
     ptr->bitLen = (uint32_t) bitLen;
     ptr->rate_bytes = (1600 - ((uint32_t) bitLen << 1)) >> 3;
     ptr->ident = SHA3_MAGIC;
@@ -37,6 +37,9 @@ sha3_ctx *sha3_create_ctx(int bitLen) {
 }
 
 void sha3_free_ctx(sha3_ctx *ctx) {
+    if (ctx == NULL) {
+        return;
+    }
     memzero(ctx,  sizeof(sha3_ctx));
     free(ctx);
 }
@@ -49,7 +52,7 @@ void sha3_reset(sha3_ctx *ctx) {
 }
 
 void sha3_update_byte(sha3_ctx *ctx, uint8_t b) {
-    assert(!ctx->squeezing);
+    bc_assert(!ctx->squeezing);
     const size_t rateBytes = ctx->rate_bytes;
     uint8_t *buf = (uint8_t *) ctx->buf;
     buf[ctx->buf_u8_index++] = b;
@@ -61,7 +64,7 @@ void sha3_update_byte(sha3_ctx *ctx, uint8_t b) {
 }
 
 void sha3_update(sha3_ctx *ctx, uint8_t *input, size_t len) {
-    assert(!ctx->squeezing);
+    bc_assert(!ctx->squeezing);
     const size_t rateBytes = ctx->rate_bytes;
     const size_t remaining = rateBytes - ctx->buf_u8_index;
     uint8_t *buf = (uint8_t *) ctx->buf;
@@ -116,7 +119,7 @@ void sha3_digest(sha3_ctx *ctx, uint8_t *output) {
             buf[ctx->buf_u8_index] = 0x06;
             break;
         default:
-            assert(false);
+            bc_assert(false);
 
     }
 
@@ -135,7 +138,7 @@ void sha3_digest(sha3_ctx *ctx, uint8_t *output) {
 
     KF1600_StatePermute(ctx->state, K);
     size_t len = ctx->bitLen >> 3;
-    assert(len <= ctx->rate_bytes);
+    bc_assert(len <= ctx->rate_bytes);
 
     int stateIndex = 0;
     // Partial
@@ -146,7 +149,7 @@ void sha3_digest(sha3_ctx *ctx, uint8_t *output) {
     }
 
     if (len > 0) {
-        assert(len < 8);
+        bc_assert(len < 8);
         // sub 64 bit
         memcpy(output, (uint8_t *)&ctx->state[stateIndex], len); // TODO BE endian issue
     }

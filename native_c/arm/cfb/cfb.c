@@ -14,11 +14,14 @@
 
 cfb_ctx *cfb_create_ctx() {
     cfb_ctx *ctx = calloc(1, sizeof(cfb_ctx));
-    assert(ctx != NULL);
+    bc_assert(ctx != NULL);
     return ctx;
 }
 
 void cfb_free_ctx(cfb_ctx *ctx) {
+    if (ctx == NULL) {
+        return;
+    }
     memzero(ctx,  sizeof(cfb_ctx));
     free(ctx);
 }

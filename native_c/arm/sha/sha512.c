@@ -79,12 +79,15 @@ static inline int processLength(sha512_ctx *ctx, uint64_t l, uint64_t h) {
 
 sha512_ctx *sha512_create_ctx() {
     sha512_ctx *ptr = calloc(1, sizeof(sha512_ctx));
-    assert(ptr != NULL);
+    bc_assert(ptr != NULL);
     sha512_reset(ptr);
     return ptr;
 }
 
 void sha512_free_ctx(sha512_ctx *ctx) {
+    if (ctx == NULL) {
+        return;
+    }
     memzero(ctx,  sizeof(sha512_ctx));
     free(ctx);
 }

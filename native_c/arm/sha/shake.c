@@ -28,9 +28,9 @@ static const uint64_t K[] = {
 
 
 shake_ctx *shake_create_ctx(int bitLen) {
-    assert(bitLen == 128 || bitLen == 256);
+    bc_assert(bitLen == 128 || bitLen == 256);
     shake_ctx *ctx = calloc(1, sizeof(shake_ctx));
-    assert(ctx != NULL);
+    bc_assert(ctx != NULL);
     ctx->bitLen = (uint32_t) bitLen;
     ctx->rate_bytes = (1600 - ((uint32_t) bitLen << 1)) >> 3;
     ctx->ident = SHAKE_MAGIC;
@@ -39,6 +39,9 @@ shake_ctx *shake_create_ctx(int bitLen) {
 }
 
 void shake_free_ctx(shake_ctx *ctx) {
+    if (ctx == NULL) {
+        return;
+    }
     memzero(ctx, sizeof(shake_ctx));
     free(ctx);
 }
@@ -51,7 +54,7 @@ void shake_reset(shake_ctx *ctx) {
 }
 
 void shake_update_byte(shake_ctx *ctx, uint8_t b) {
-    assert(!ctx->squeezing);
+    bc_assert(!ctx->squeezing);
     uint8_t *buf = (uint8_t *) ctx->buf;
     const size_t rateBytes = ctx->rate_bytes;
     buf[ctx->buf_u8_index++] = b;
@@ -62,7 +65,7 @@ void shake_update_byte(shake_ctx *ctx, uint8_t b) {
 }
 
 void shake_update(shake_ctx *ctx, uint8_t *input, size_t len) {
-    assert(!ctx->squeezing);
+    bc_assert(!ctx->squeezing);
     const size_t rateBytes = ctx->rate_bytes;
     const size_t remaining = rateBytes - ctx->buf_u8_index;
 

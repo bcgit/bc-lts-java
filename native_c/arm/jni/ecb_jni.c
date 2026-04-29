@@ -6,6 +6,7 @@
 #include "../../jniutil/jni_asserts.h"
 
 #include "../ecb/ecb.h"
+#include "../util/util.h"
 
 
 __attribute__((unused)) JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_reset
@@ -24,6 +25,9 @@ __attribute__((unused)) JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engi
         (JNIEnv *env, jclass cl, jlong ref, jbyteArray _in, jint inOffset, jint blocks, jbyteArray _out,
          jint outOffset) {
 
+    aes_key *ctx = (aes_key *) ((void *) ref);
+    bc_assert(ctx != NULL);
+
     critical_bytearray_ctx output;
     critical_bytearray_ctx input;
 
@@ -35,7 +39,6 @@ __attribute__((unused)) JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engi
 
     if (block_processing_init(env, &input, &output, _in, inOffset, _out, outOffset, blocks, 16, &inStart,
                               &outStart)) {
-        aes_key *ctx = (aes_key *) ((void *) ref);
         //
         // Appropriate variant is determined by which of, ecb[128,256,512].c selected in CMakeLists.txt
         //
@@ -93,6 +96,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_mak
         case 24:
         case 32:
             ctx = create_aes_key();
+            bc_assert(ctx != NULL);
             ctx->encryption = encryption == JNI_TRUE;
             break;
         default:
@@ -122,6 +126,9 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_disp
 void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_init
         (JNIEnv *env, jclass cl, jlong ref, jbyteArray _key) {
 
+    aes_key *ctx = (aes_key *) ((void *) ref);
+    bc_assert(ctx != NULL);
+
     java_bytearray_ctx key;
 
     init_bytearray_ctx(&key);
@@ -132,8 +139,6 @@ void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_init
     }
 
     if (aes_keysize_is_valid_and_not_null(env, &key)) {
-        aes_key *ctx = (aes_key *) ((void *) ref);
-
         // TODO change how ECB init works across both intel and ARM
         // Issue manifests with encryption boolean, where it is set in makeInstance.
         init_aes_key(ctx, key.bytearray, key.size, ctx->encryption);

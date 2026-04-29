@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <memory.h>
+#include "../util/util.h"
 
 #ifdef __APPLE__
 
@@ -18,6 +19,7 @@
 
 gcm_err *make_gcm_error(const char *msg, int type) {
     gcm_err *err = calloc(1, sizeof(gcm_err));
+    bc_assert(err != NULL);
     err->msg = msg;
     err->type = type;
     return err;
@@ -31,10 +33,14 @@ void gcm_err_free(gcm_err *err) {
 
 gcm_ctx *gcm_create_ctx() {
     gcm_ctx *ctx = calloc(1, sizeof(gcm_ctx));
+    bc_assert(ctx != NULL);
     return ctx;
 }
 
 void gcm_free(gcm_ctx *ctx) {
+    if (ctx == NULL) {
+        return;
+    }
     if (ctx->initAD != NULL) {
         memzero(ctx->initAD,  ctx->initADLen);
         free(ctx->initAD);
@@ -206,6 +212,7 @@ gcm_err *gcm_init(
         //
 
         ctx->initAD = malloc(initialTextLen);
+        bc_assert(ctx->initAD != NULL);
         ctx->initADLen = initialTextLen;
         memcpy(ctx->initAD, initialText, initialTextLen);
     }

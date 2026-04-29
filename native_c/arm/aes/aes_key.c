@@ -8,6 +8,7 @@
 
 aes_key *create_aes_key() {
     aes_key *key = calloc(1, sizeof(aes_key));
+    bc_assert(key != NULL);
     return key;
 }
 
