@@ -182,7 +182,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
     }
 
     uint8_t theByte = (uint8_t) aadByte;
-    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, ctx->T, &theByte, 1, &ctx->theGHash);
+    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->H, &theByte, 1, &ctx->theGHash);
 }
 
 /*
@@ -212,7 +212,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
     if (!checkAEADStatus(env, ctx, (size_t) len)) {
         goto exit;
     }
-    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, ctx->T, aad.bytearray + offset, (size_t) len, &ctx->theGHash);
+    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->H, aad.bytearray + offset, (size_t) len, &ctx->theGHash);
 
     exit:
     release_bytearray_ctx(&aad);
