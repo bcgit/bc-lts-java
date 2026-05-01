@@ -12,8 +12,8 @@ public abstract class X25519Field
 
     private static final int[] P32 = new int[]{ 0xFFFFFFED, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF,
         0xFFFFFFFF, 0x7FFFFFFF };
-    private static final int[] ROOT_NEG_ONE = new int[]{ 0x020EA0B0, 0x0386C9D2, 0x00478C4E, 0x0035697F, 0x005E8630,
-        0x01FBD7A7, 0x0340264F, 0x01F0B2B4, 0x00027E0E, 0x00570649 };
+    private static final int[] ROOT_NEG_ONE = new int[]{ -0x01F15F50, -0x0079362D, 0x00478C4F, 0x0035697F, 0x005E8630,
+        0x01FBD7A7, -0x00BFD9B1, -0x000F4D4B, 0x00027E0F, 0x00570649 };
 
     protected X25519Field() {}
 
@@ -52,8 +52,7 @@ public abstract class X25519Field
         {
             d |= x[i] ^ y[i];
         }
-        d = (d >>> 1) | (d & 1);
-        return (d - 1) >> 31;
+        return ((d - 1) & ~d) >> 31;
     }
 
     public static boolean areEqualVar(int[] x, int[] y)
@@ -145,32 +144,28 @@ public abstract class X25519Field
         }
     }
 
-    public static void decode(int[] x, int xOff, int[] z)
-    {
-        decode128(x, xOff, z, 0);
-        decode128(x, xOff + 4, z, 5);
-        z[9] &= M24;
-    }
-
+    /** @deprecated Use {@link #decode255(byte[], int[])} instead. */
     public static void decode(byte[] x, int[] z)
     {
-        decode128(x, 0, z, 0);
-        decode128(x, 16, z, 5);
-        z[9] &= M24;
+        decode255(x, 0, z, 0);
     }
 
+    /** @deprecated Use {@link #decode255(byte[], int, int[], int)} instead. */
     public static void decode(byte[] x, int xOff, int[] z)
     {
-        decode128(x, xOff, z, 0);
-        decode128(x, xOff + 16, z, 5);
-        z[9] &= M24;
+        decode255(x, xOff, z, 0);
     }
 
+    /** @deprecated Use {@link #decode255(byte[], int, int[], int)} instead. */
     public static void decode(byte[] x, int xOff, int[] z, int zOff)
     {
-        decode128(x, xOff, z, zOff);
-        decode128(x, xOff + 16, z, zOff + 5);
-        z[zOff + 9] &= M24;
+        decode255(x, xOff, z, zOff);
+    }
+
+    /** @deprecated Use {@link #decode255(int[], int, int[], int)} instead. */
+    public static void decode(int[] x, int xOff, int[] z)
+    {
+        decode255(x, xOff, z, 0);
     }
 
     private static void decode128(int[] is, int off, int[] z, int zOff)
@@ -198,7 +193,31 @@ public abstract class X25519Field
         z[zOff + 4] = t3 >>> 7;
     }
 
-    private static int decode32(byte[] bs, int off)
+    public static void decode255(byte[] x, int[] z)
+    {
+        decode255(x, 0, z, 0);
+    }
+
+    public static void decode255(byte[] x, int xOff, int[] z, int zOff)
+    {
+        decode128(x, xOff, z, zOff);
+        decode128(x, xOff + 16, z, zOff + 5);
+        z[zOff + 9] &= M24;
+    }
+
+    public static void decode255(int[] x, int[] z)
+    {
+        decode255(x, 0, z, 0);
+    }
+
+    public static void decode255(int[] x, int xOff, int[] z, int zOff)
+    {
+        decode128(x, xOff, z, zOff);
+        decode128(x, xOff + 4, z, zOff + 5);
+        z[zOff + 9] &= M24;
+    }
+
+    static int decode32(byte[] bs, int off)
     {
         int n = bs[off] & 0xFF;
         n |= (bs[++off] & 0xFF) << 8;
@@ -276,7 +295,7 @@ public abstract class X25519Field
 
         Mod.modOddInverse(P32, u, u);
 
-        decode(u, 0, z);
+        decode255(u, z);
     }
 
     public static void invVar(int[] x, int[] z)
@@ -290,7 +309,7 @@ public abstract class X25519Field
 
         Mod.modOddInverseVar(P32, u, u);
 
-        decode(u, 0, z);
+        decode255(u, z);
     }
 
     public static int isOne(int[] x)
@@ -300,8 +319,7 @@ public abstract class X25519Field
         {
             d |= x[i];
         }
-        d = (d >>> 1) | (d & 1);
-        return (d - 1) >> 31;
+        return ((d - 1) & ~d) >> 31;
     }
 
     public static boolean isOneVar(int[] x)
@@ -316,8 +334,7 @@ public abstract class X25519Field
         {
             d |= x[i];
         }
-        d = (d >>> 1) | (d & 1);
-        return (d - 1) >> 31;
+        return ((d - 1) & ~d) >> 31;
     }
 
     public static boolean isZeroVar(int[] x)
@@ -519,7 +536,7 @@ public abstract class X25519Field
 
     public static void normalize(int[] z)
     {
-        int x = ((z[9] >>> 23) & 1);
+        int x = ((z[9] >>> (24 - 1)) & 1);
         reduce(z, x);
         reduce(z, -x);
 //        assert z[9] >>> 24 == 0;

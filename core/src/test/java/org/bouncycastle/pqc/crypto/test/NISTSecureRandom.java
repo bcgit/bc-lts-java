@@ -1,10 +1,10 @@
 package org.bouncycastle.pqc.crypto.test;
 
+import java.security.SecureRandom;
+
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.test.FixedSecureRandom;
-
-import java.security.SecureRandom;
 
 /**
  *  for producing FixedSecureRandom objects for use with testing

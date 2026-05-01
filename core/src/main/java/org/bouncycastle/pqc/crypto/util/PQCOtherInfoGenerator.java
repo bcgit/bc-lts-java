@@ -1,5 +1,8 @@
 package org.bouncycastle.pqc.crypto.util;
 
+import java.io.IOException;
+import java.security.SecureRandom;
+
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.EncapsulatedSecretExtractor;
@@ -8,11 +11,18 @@ import org.bouncycastle.crypto.SecretWithEncapsulation;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.util.DEROtherInfo;
 import org.bouncycastle.pqc.crypto.KEMParameters;
-import org.bouncycastle.pqc.crypto.mlkem.*;
-
-
-import java.io.IOException;
-import java.security.SecureRandom;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMExtractor;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMGenerator;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMKeyGenerationParameters;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMKeyPairGenerator;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMParameters;
+import org.bouncycastle.pqc.crypto.mlkem.MLKEMPrivateKeyParameters;
+//import org.bouncycastle.pqc.crypto.ntru.NTRUKEMExtractor;
+//import org.bouncycastle.pqc.crypto.ntru.NTRUKEMGenerator;
+//import org.bouncycastle.pqc.crypto.ntru.NTRUKeyGenerationParameters;
+//import org.bouncycastle.pqc.crypto.ntru.NTRUKeyPairGenerator;
+//import org.bouncycastle.pqc.crypto.ntru.NTRUParameters;
+//import org.bouncycastle.pqc.crypto.ntru.NTRUPrivateKeyParameters;
 
 /**
  * OtherInfo Generator for which can be used for populating the SuppPrivInfo field used to provide shared

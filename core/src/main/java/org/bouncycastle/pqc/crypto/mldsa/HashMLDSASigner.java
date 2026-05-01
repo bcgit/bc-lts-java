@@ -16,6 +16,10 @@ import org.bouncycastle.crypto.params.ParametersWithContext;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
 import org.bouncycastle.pqc.crypto.DigestUtils;
 
+/**
+ * @deprecated use org.bouncycastle.crypto.signers.HashMLDSASigner
+ */
+@Deprecated
 public class HashMLDSASigner
     implements Signer
 {

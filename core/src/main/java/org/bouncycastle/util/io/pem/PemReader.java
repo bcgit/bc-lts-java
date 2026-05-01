@@ -64,7 +64,7 @@ public class PemReader
     {
         String          line;
         String          endMarker = END + type + "-----";
-        StringBuilder   buf = new StringBuilder();
+        StringBuffer    buf = new StringBuffer();
         List            headers = new ArrayList();
 
         while ((line = readLine()) != null)

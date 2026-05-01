@@ -332,7 +332,7 @@ public class AESCCMPacketCipherTest
                     // Generate expected message off the
                     int outLen = ccmModeCipherEnc.getOutputSize(msg.length - jitter);
                     byte[] expected = new byte[ccmModeCipherEnc.getOutputSize(msg.length - jitter) + jitter];
-                    ccmModeCipherEnc.processPacket(msg, jitter, msg.length - jitter, expected, jitter);
+                    ((CCMBlockCipher)ccmModeCipherEnc).processPacket(msg, jitter, msg.length - jitter, expected, jitter);
 
 
                     // Test encryption
@@ -431,7 +431,7 @@ public class AESCCMPacketCipherTest
                     // Generate the expected cipher text from java CCM mode
                     byte[] expectedCText = new byte[ccmModeCipherEnc.getOutputSize(msg.length)];
                     ccmModeCipherEnc.reset();
-                    ccmModeCipherEnc.processPacket(msg, 0, msg.length, expectedCText, 0);
+                    ((CCMBlockCipher)ccmModeCipherEnc).processPacket(msg, 0, msg.length, expectedCText, 0);
 
 
                     for (int jitter : new int[]{0, 1})

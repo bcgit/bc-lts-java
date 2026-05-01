@@ -23,7 +23,23 @@ public class AsymmetricCipherKeyPair
         this.publicParam = publicParam;
         this.privateParam = privateParam;
     }
-    
+
+    /**
+     * basic constructor.
+     *
+     * @param publicParam a public key parameters object.
+     * @param privateParam the corresponding private key parameters.
+     * @deprecated use AsymmetricKeyParameter
+     */
+    @Deprecated
+    public AsymmetricCipherKeyPair(
+        CipherParameters    publicParam,
+        CipherParameters    privateParam)
+    {
+        this.publicParam = (AsymmetricKeyParameter)publicParam;
+        this.privateParam = (AsymmetricKeyParameter)privateParam;
+    }
+
     /**
      * return the public key parameters.
      *

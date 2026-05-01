@@ -31,7 +31,7 @@ public class SHA384DigestTest
 
     SHA384DigestTest()
     {
-        super(SHA384Digest.newInstance(), messages, digests);
+        super(new SHA384Digest(), messages, digests);
     }
 
     public void performTest()
@@ -43,12 +43,12 @@ public class SHA384DigestTest
 
     protected Digest cloneDigest(Digest digest)
     {
-        return SHA384Digest.newInstance(digest);
+        return new SHA384Digest((SHA384Digest)digest);
     }
 
     protected Digest cloneDigest(byte[] encodedState)
     {
-        return SHA384Digest.newInstance(encodedState,0);
+        return new SHA384Digest(encodedState);
     }
 
     public static void main(

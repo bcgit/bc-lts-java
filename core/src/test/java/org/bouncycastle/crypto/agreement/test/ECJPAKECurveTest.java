@@ -2,9 +2,10 @@ package org.bouncycastle.crypto.agreement.test;
 
 import java.math.BigInteger;
 
-import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoException;
 import org.bouncycastle.crypto.agreement.ecjpake.ECJPAKECurve;
+
+import junit.framework.TestCase;
 
 
 public class ECJPAKECurveTest

@@ -173,7 +173,7 @@ public class DSATest
 
         byte[] M = Hex.decode("1BD4ED430B0F384B4E8D458EFF1A8A553286D7AC21CB2F6806172EF5F94A06AD");
 
-        DSADigestSigner dsa = new DSADigestSigner(new DSASigner(), SHA3Digest.newInstance(size));
+        DSADigestSigner dsa = new DSADigestSigner(new DSASigner(), new SHA3Digest(size));
 
         dsa.init(true, new ParametersWithRandom(priKey, k));
 
@@ -323,7 +323,7 @@ public class DSATest
         {
             byte[] seed = Hex.decode("5AFCC1EFFC079A9CCA6ECA86D6E3CC3B18642D9BE1CC6207C84002A9");
 
-            DSAParametersGenerator pGen = new DSAParametersGenerator(SHA224Digest.newInstance());
+            DSAParametersGenerator pGen = new DSAParametersGenerator(new SHA224Digest());
 
             pGen.init(new DSAParameterGenerationParameters(2048, 224, 80, new DSATestSecureRandom(seed)));
 

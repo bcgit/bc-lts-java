@@ -4,8 +4,6 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.math.MulLimitTest;
-import org.bouncycastle.math.MulTest;
 import org.bouncycastle.test.PrintTestResult;
 
 public class AllTests
@@ -23,8 +21,6 @@ public class AllTests
         TestSuite suite = new TestSuite("Math tests");
 
         suite.addTestSuite(PrimesTest.class);
-        suite.addTestSuite(MulTest.class);
-        suite.addTestSuite(MulLimitTest.class);
 
         return new BCTestSetup(suite);
     }

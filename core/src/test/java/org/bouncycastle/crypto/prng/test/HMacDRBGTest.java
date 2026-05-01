@@ -133,7 +133,7 @@ public class HMacDRBGTest
                             "8EEAD057C0EC754EF8B53E60A1F434F05946A8B686AFBC7A"
                         }),
                 new DRBGTestVector(
-                    SHA384Digest.newInstance(),
+                    new SHA384Digest(),
                     new SHA384EntropyProvider().get(888),
                     false,
                     "202122232425262728292A2B",
@@ -154,7 +154,7 @@ public class HMacDRBGTest
                         "7F808182838485868788898A8B8C8D8E8F90919293949596" +
                         "9798999A9B9C9D9E9FA0A1A2A3A4A5A6A7A8A9AAABACADAE"),
                 new DRBGTestVector(
-                    SHA384Digest.newInstance(),
+                    new SHA384Digest(),
                     new SHA384EntropyProvider().get(888),
                     true,
                     "202122232425262728292A2B",
@@ -175,7 +175,7 @@ public class HMacDRBGTest
                             "7F808182838485868788898A8B8C8D8E8F90919293949596" +
                             "9798999A9B9C9D9E9FA0A1A2A3A4A5A6A7A8A9AAABACADAE"),
                 new DRBGTestVector(
-                    SHA512Digest.newInstance(),
+                    new SHA512Digest(),
                     new SHA512EntropyProvider().get(888),
                     false,
                     "202122232425262728292A2B2C2D2E2F",
@@ -200,7 +200,7 @@ public class HMacDRBGTest
                             "7F808182838485868788898A8B8C8D8E8F90919293949596" +
                             "9798999A9B9C9D9E9FA0A1A2A3A4A5A6A7A8A9AAABACADAE"),
                 new DRBGTestVector(
-                    SHA512Digest.newInstance(),
+                    new SHA512Digest(),
                     new SHA512EntropyProvider().get(888),
                     true,
                     "202122232425262728292A2B2C2D2E2F",
@@ -225,7 +225,7 @@ public class HMacDRBGTest
                         "7F808182838485868788898A8B8C8D8E8F90919293949596" +
                         "9798999A9B9C9D9E9FA0A1A2A3A4A5A6A7A8A9AAABACADAE"),
                 new DRBGTestVector(
-                    SHA512Digest.newInstance(),
+                    new SHA512Digest(),
                     new SHA512EntropyProvider().get(888),
                     false,
                     "202122232425262728292A2B2C2D2E2F",
@@ -262,7 +262,7 @@ public class HMacDRBGTest
                     "DFE0E1E2E3E4E5E6E7E8E9EAEBECEDEEEFF0F1F2F3F4F5F6" +
                     "F7F8F9FAFBFCFDFEFF000102030405060708090A0B0C0D0E"),
                 new DRBGTestVector(
-                    SHA512Digest.newInstance(),
+                    new SHA512Digest(),
                     new SHA512EntropyProvider().get(888),
                     true,
                     "202122232425262728292A2B2C2D2E2F",
@@ -281,7 +281,7 @@ public class HMacDRBGTest
                             "9D79A85BB960F747256626389A3B45B0ABE7ECBC39D5CD7B" +
                             "2C18DF2E5FDE8C9B8D43474C54B6F9839468445929B438C7"}),
                 new DRBGTestVector(
-                    SHA512Digest.newInstance(),
+                    new SHA512Digest(),
                     new SHA512EntropyProvider().get(888),
                     true,
                     "202122232425262728292A2B2C2D2E2F",
@@ -312,7 +312,7 @@ public class HMacDRBGTest
                     "DFE0E1E2E3E4E5E6E7E8E9EAEBECEDEEEFF0F1F2F3F4F5F6" +
                     "F7F8F9FAFBFCFDFEFF000102030405060708090A0B0C0D0E"),
                 new DRBGTestVector(
-                    SHA512Digest.newInstance(),
+                    new SHA512Digest(),
                     new SHA512EntropyProvider().get(888),
                     true,
                     "202122232425262728292A2B2C2D2E2F",
@@ -337,7 +337,7 @@ public class HMacDRBGTest
                         "7F808182838485868788898A8B8C8D8E8F90919293949596" +
                         "9798999A9B9C9D9E9FA0A1A2A3A4A5A6A7A8A9AAABACADAE"),
                 new DRBGTestVector(
-                    SHA512Digest.newInstance(),
+                    new SHA512Digest(),
                     new SHA512EntropyProvider().get(888),
                     true,
                     "202122232425262728292A2B2C2D2E2F",

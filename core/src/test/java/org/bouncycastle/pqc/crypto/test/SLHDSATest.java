@@ -1,17 +1,5 @@
 package org.bouncycastle.pqc.crypto.test;
 
-import junit.framework.TestCase;
-import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.params.ParametersWithRandom;
-import org.bouncycastle.pqc.crypto.slhdsa.*;
-import org.bouncycastle.pqc.crypto.util.PrivateKeyFactory;
-import org.bouncycastle.pqc.crypto.util.PrivateKeyInfoFactory;
-import org.bouncycastle.pqc.crypto.util.PublicKeyFactory;
-import org.bouncycastle.pqc.crypto.util.SubjectPublicKeyInfoFactory;
-import org.bouncycastle.test.TestResourceFinder;
-import org.bouncycastle.util.Arrays;
-import org.bouncycastle.util.encoders.Hex;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +7,23 @@ import java.io.InputStreamReader;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
+
+import junit.framework.TestCase;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.generators.SLHDSAKeyPairGenerator;
+import org.bouncycastle.crypto.params.ParametersWithRandom;
+import org.bouncycastle.crypto.params.SLHDSAKeyGenerationParameters;
+import org.bouncycastle.crypto.params.SLHDSAParameters;
+import org.bouncycastle.crypto.params.SLHDSAPrivateKeyParameters;
+import org.bouncycastle.crypto.params.SLHDSAPublicKeyParameters;
+import org.bouncycastle.crypto.signers.SLHDSASigner;
+import org.bouncycastle.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
+import org.bouncycastle.crypto.util.PublicKeyFactory;
+import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
+import org.bouncycastle.test.TestResourceFinder;
+import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.encoders.Hex;
 
 public class SLHDSATest
     extends TestCase
@@ -734,7 +739,7 @@ public class SLHDSATest
 //        return (String[]) l.toArray(new String[0]);
 //    }
 
-    private class InternalSLHDSASigner
+    private static class InternalSLHDSASigner
         extends SLHDSASigner
     {
         public byte[] internalGenerateSignature(byte[] message, byte[] optRand)
