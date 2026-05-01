@@ -34,12 +34,15 @@ static inline int processLength(sha256_ctx *ctx, size_t length) {
 
 sha256_ctx *sha256_create_ctx() {
     sha256_ctx *ptr = calloc(1, sizeof(sha256_ctx));
-    assert(ptr != NULL);
+    bc_assert(ptr != NULL);
     sha256_reset(ptr);
     return ptr;
 }
 
 void sha256_free_ctx(sha256_ctx *ctx) {
+    if (ctx == NULL) {
+        return;
+    }
     memzero(ctx, sizeof(sha256_ctx));
     free(ctx);
 }

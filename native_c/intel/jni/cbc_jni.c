@@ -6,6 +6,7 @@
 #include "../../jniutil/bytearrays.h"
 #include "../../jniutil/jni_asserts.h"
 #include "../common.h"
+#include "../util/util.h"
 
 
 /*
@@ -15,6 +16,9 @@
  */
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_process
         (JNIEnv *env, jclass cl, jlong ref, jbyteArray in_, jint inOff, jint blocks, jbyteArray out_, jint outOff) {
+
+    cbc_ctx *ctx = (cbc_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
 
     critical_bytearray_ctx output;
     critical_bytearray_ctx input;
@@ -26,7 +30,6 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_process
 
     if (block_processing_init(env, &input, &output, in_, inOff, out_, outOff, blocks, CBC_BLOCK_SIZE, &inStart,
                               &outStart)) {
-        cbc_ctx *ctx = (cbc_ctx *) ((void *) ref);
         if (ctx->encryption) {
             processed = (jint) cbc_encrypt(ctx, inStart, (uint32_t) blocks, outStart);
         } else {
@@ -116,6 +119,9 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_makeNa
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_init
         (JNIEnv *env, jobject o, jlong ref, jbyteArray key_, jbyteArray iv_) {
 
+    cbc_ctx *ctx = (cbc_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
+
     java_bytearray_ctx key, iv;
 
     init_bytearray_ctx(&key);
@@ -140,7 +146,6 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_init
         goto exit;
     }
 
-    cbc_ctx *ctx = (cbc_ctx *) ((void *) ref);
     cbc_init(ctx, key.bytearray, iv.bytearray);
 
     exit:
@@ -167,5 +172,6 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_dispose
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_reset
         (JNIEnv *env, jclass cl, jlong ref) {
     cbc_ctx *ctx = (cbc_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
     cbc_reset(ctx);
 }

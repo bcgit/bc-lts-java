@@ -6,6 +6,7 @@
 #include "../../jniutil/exceptions.h"
 #include "../../jniutil/bytearrays.h"
 #include "../../jniutil/jni_asserts.h"
+#include "../util/util.h"
 
 
 void handle_gcm_siv_result(JNIEnv *env, gcm_siv_err *err) {
@@ -71,6 +72,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_rese
         (JNIEnv *env, jobject o, jlong ref) {
 
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
+    bc_assert(ctx != NULL);
     gcm_siv_reset(ctx, false);
 
 }
@@ -83,8 +85,10 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_rese
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_initNative
         (JNIEnv *env, jclass cl, jlong ref, jboolean encryption, jbyteArray key_, jbyteArray iv_, jbyteArray ad_) {
 
-    gcm_siv_err *err = NULL;
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
+    bc_assert(ctx != NULL);
+
+    gcm_siv_err *err = NULL;
     java_bytearray_ctx key, iv, ad;
 
     init_bytearray_ctx(&key);
@@ -148,6 +152,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_init
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_makeInstance
         (JNIEnv *env, jclass cl) {
     gcm_siv_ctx *gcm_siv = gcm_siv_create_ctx();
+    bc_assert(gcm_siv != NULL);
     return (jlong) gcm_siv;
 }
 
@@ -171,12 +176,13 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
         (JNIEnv *env, jclass cl, jlong ref, jbyte aadByte) {
 
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
+    bc_assert(ctx != NULL);
     if (!checkAEADStatus(env, ctx, 1)) {
         return; // exception thrown
     }
 
     uint8_t theByte = (uint8_t) aadByte;
-    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, ctx->T, &theByte, 1, &ctx->theGHash);
+    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->H, &theByte, 1, &ctx->theGHash);
 }
 
 /*
@@ -188,6 +194,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
         (JNIEnv *env, jclass cl, jlong ref, jbyteArray aad_, jint offset, jint len) {
 
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
+    bc_assert(ctx != NULL);
     java_bytearray_ctx aad;
     init_bytearray_ctx(&aad);
 
@@ -205,7 +212,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
     if (!checkAEADStatus(env, ctx, (size_t) len)) {
         goto exit;
     }
-    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, ctx->T, aad.bytearray + offset, (size_t) len, &ctx->theGHash);
+    gcm_siv_hasher_updateHash(&ctx->theAEADHasher, &ctx->H, aad.bytearray + offset, (size_t) len, &ctx->theGHash);
 
     exit:
     release_bytearray_ctx(&aad);
@@ -219,9 +226,11 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_proc
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_doFinal
         (JNIEnv *env, jclass cl, jlong ref, jbyteArray in, jint inLen, jbyteArray out, jint outOff) {
 
+    gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
+    bc_assert(ctx != NULL);
+
     gcm_siv_err *err = NULL;
     size_t written = 0;
-    gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
     critical_bytearray_ctx input, output;
 
     init_critical_ctx(&output, env, out);
@@ -311,6 +320,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_doFi
 JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_getUpdateOutputSize
         (JNIEnv *env, jclass cl, jlong ref, jint len, jint stream_len) {
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
+    bc_assert(ctx != NULL);
 
     if (len < 0) {
         throw_java_illegal_argument(env, "len is negative");
@@ -334,6 +344,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_getO
         (JNIEnv *env, jclass jo, jlong ref, jint len) {
 
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
+    bc_assert(ctx != NULL);
 
     if (len < 0) {
         throw_java_illegal_argument(env, "len is negative");
@@ -359,6 +370,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSI
 
 
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
+    bc_assert(ctx != NULL);
     size_t macBlockLen = gcm_siv_getMac(ctx, NULL);
 
     jbyteArray out = (*env)->NewByteArray(env, (jint) macBlockLen);
@@ -394,6 +406,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_test
     //
 
     gcm_siv_ctx *ctx = (gcm_siv_ctx *) ref;
+    bc_assert(ctx != NULL);
 
     //
     // Only be set lower than original

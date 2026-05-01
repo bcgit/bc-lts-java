@@ -47,7 +47,6 @@ typedef struct {
     uint8_t macBlock[BLOCK_SIZE];
     uint8_t *initAD;
     size_t initADLen;
-    __m128i T[256];
     gcm_siv_hasher theAEADHasher;
     gcm_siv_hasher theDataHasher;
     encrypt_function encrypt;
@@ -86,19 +85,19 @@ gcm_siv_init(gcm_siv_ctx *ctx, bool encryption, uint8_t *key, size_t keyLen, uin
 
 void gcm_siv_hasher_reset(gcm_siv_hasher *p_gsh);
 
-void gcm_siv_hasher_updateHash(gcm_siv_hasher *p_gsh, __m128i *T, uint8_t *pBuffer, size_t pLen, __m128i *theGHash);
+void gcm_siv_hasher_updateHash(gcm_siv_hasher *p_gsh, __m128i *H, uint8_t *pBuffer, size_t pLen, __m128i *theGHash);
 
-void gcm_siv_hasher_completeHash(gcm_siv_hasher *p_gsh, __m128i *T, __m128i *theGHash);
+void gcm_siv_hasher_completeHash(gcm_siv_hasher *p_gsh, __m128i *H, __m128i *theGHash);
 
-void gHASH(__m128i *T, __m128i *theGHash, __m128i *pNext);
+void gHASH(__m128i *H, __m128i *theGHash, __m128i *pNext);
 
 void
-deriveKeys(__m128i *T, __m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, size_t key_len,
+deriveKeys(__m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, size_t key_len,
            encrypt_function *encrypt);
 
 void resetStreams(gcm_siv_ctx *ctx);
 
-void calculateTag(gcm_siv_hasher *theDataHasher, gcm_siv_hasher *theAEADHasher, __m128i *T, __m128i *roundKeys,
+void calculateTag(gcm_siv_hasher *theDataHasher, gcm_siv_hasher *theAEADHasher, __m128i *H, __m128i *roundKeys,
                   __m128i *theGHash, const int8_t *theNonce, uint8_t *macBlock, encrypt_function *encrypt);
 
 void incrementCounter(uint8_t *pCounter);

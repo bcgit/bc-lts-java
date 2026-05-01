@@ -1,6 +1,7 @@
 #include "org_bouncycastle_pqc_crypto_slhdsa_SLHDSASha2NativeEngine.h"
 #include "../../jniutil/bytearraycritical.h"
 #include "../../jniutil/jni_asserts.h"
+#include "../util/util.h"
 #include "jni.h"
 #include "jni_md.h"
 #include "../slhdsa/slhdsa_sha256.h"
@@ -14,6 +15,7 @@
 JNIEXPORT void JNICALL Java_org_bouncycastle_pqc_crypto_slhdsa_SLHDSASha2NativeEngine_initMemoStates
         (JNIEnv *env, jclass cl, jlong ref, jbyteArray _seed, jbyteArray _padding, jint pad1Len, jint pad2Len) {
     slhdsa_sha256 *ctx = (slhdsa_sha256 *) ((void *) ref);
+    bc_assert(ctx != NULL);
 
     critical_bytearray_ctx seed, padding;
     init_critical_ctx(&seed, env, _seed);
@@ -93,6 +95,7 @@ JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_pqc_crypto_slhdsa_SLHDSASha2N
                 jbyteArray _in3) {
 
     slhdsa_sha256 *ctx = (slhdsa_sha256 *) ((void *) ref);
+    bc_assert(ctx != NULL);
 
 
     if (use_memo == JNI_TRUE) {
@@ -250,6 +253,7 @@ Java_org_bouncycastle_pqc_crypto_slhdsa_SLHDSASha2NativeEngine_msgDigestAndRetur
                 jbyteArray _in4) {
 
     slhdsa_sha256 *ctx = (slhdsa_sha256 *) ((void *) ref);
+    bc_assert(ctx != NULL);
 
     if (use_memo == JNI_TRUE) {
         memcpy(&ctx->msgDigest, &ctx->msgMemo, sizeof(sha256_ctx));
@@ -415,6 +419,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_pqc_crypto_slhdsa_SLHDSASha2NativeE
                 jbyteArray _in3) {
 
     slhdsa_sha256 *ctx = (slhdsa_sha256 *) ((void *) ref);
+    bc_assert(ctx != NULL);
 
     critical_bytearray_ctx key, result, in0, in1, in2, in3;
 
@@ -539,7 +544,9 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_pqc_crypto_slhdsa_SLHDSASha2NativeE
  */
 JNIEXPORT jlong JNICALL Java_org_bouncycastle_pqc_crypto_slhdsa_SLHDSASha2NativeEngine_makeInstance
         (JNIEnv *env, jclass cl) {
-    return (jlong) slhdsa_sha256_create_ctx();
+    slhdsa_sha256 *ctx = slhdsa_sha256_create_ctx();
+    bc_assert(ctx != NULL);
+    return (jlong) ctx;
 }
 
 /*

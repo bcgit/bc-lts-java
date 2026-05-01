@@ -8,12 +8,15 @@
 
 slhdsa_sha256 *slhdsa_sha256_create_ctx() {
     slhdsa_sha256 *ctx = calloc(1, sizeof(slhdsa_sha256));
-    assert(ctx != NULL);
+    bc_assert(ctx != NULL);
     slhdsa_sha256_reset(ctx);
     return ctx;
 }
 
 void slhdsa_sha256_free_ctx(slhdsa_sha256 *ctx) {
+    if (ctx == NULL) {
+        return;
+    }
     memzero(ctx, sizeof(slhdsa_sha256));
     free(ctx);
 }

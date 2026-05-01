@@ -6,11 +6,13 @@
 #include "../../jniutil/jni_asserts.h"
 #include "../common.h"
 #include "../ecb/ecb.h"
+#include "../util/util.h"
 
 
 __attribute__((unused)) JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_reset
         (JNIEnv *env, jclass cl, jlong ref) {
     ecb_ctx *ctx = (ecb_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
     ecb_reset(ctx);
 }
 
@@ -25,6 +27,9 @@ __attribute__((unused)) JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engi
         (JNIEnv *env, jclass cl, jlong ref, jbyteArray _in, jint inOffset, jint blocks, jbyteArray _out,
          jint outOffset) {
 
+    ecb_ctx *ctx = (ecb_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
+
     critical_bytearray_ctx output;
     critical_bytearray_ctx input;
 
@@ -36,7 +41,6 @@ __attribute__((unused)) JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engi
 
     if (block_processing_init(env, &input, &output, _in, inOffset, _out, outOffset, blocks, ECB_BLOCK_SIZE, &inStart,
                               &outStart)) {
-        ecb_ctx *ctx = (ecb_ctx *) ((void *) ref);
         //
         // Appropriate variant is determined by which of, ecb[128,256,512].c selected in CMakeLists.txt
         //
@@ -134,6 +138,9 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_disp
 void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_init
         (JNIEnv *env, jclass cl, jlong ref, jbyteArray _key) {
 
+    ecb_ctx *ctx = (ecb_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
+
     java_bytearray_ctx key;
 
     init_bytearray_ctx(&key);
@@ -144,7 +151,6 @@ void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeEngine_init
     }
 
     if (aes_keysize_is_valid_and_not_null(env, &key)) {
-        ecb_ctx *ctx = (ecb_ctx *) ((void *) ref);
         ecb_init(ctx, key.bytearray);
     }
 

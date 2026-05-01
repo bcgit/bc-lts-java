@@ -5,6 +5,7 @@
 #include "../../jniutil/exceptions.h"
 #include "../../jniutil/bytearrays.h"
 #include "../../jniutil/jni_asserts.h"
+#include "../util/util.h"
 #include <stdlib.h>
 
 
@@ -43,6 +44,7 @@ void handle_ccm_result(JNIEnv *env, ccm_err *err) {
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_reset
         (JNIEnv *, jobject, jlong ref, jboolean keepMac) {
     ccm_ctx *ctx = (ccm_ctx *) ref;
+    bc_assert(ctx != NULL);
     ccm_reset(ctx, keepMac);
 }
 
@@ -55,8 +57,10 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_initNat
         (JNIEnv *env, jclass, jlong ref, jboolean encryption, jbyteArray key_, jbyteArray iv_, jbyteArray ad_,
          jint adlen, jint macSizeInBits) {
 
-    ccm_err *err = NULL;
     ccm_ctx *ctx = (ccm_ctx *) ref;
+    bc_assert(ctx != NULL);
+
+    ccm_err *err = NULL;
     java_bytearray_ctx key, iv, ad;
 
     init_bytearray_ctx(&key);
@@ -166,6 +170,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_getOutp
         (JNIEnv *env, jclass, jlong ref, jint len) {
 
     ccm_ctx *ctx = (ccm_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
 
     if (len < 0) {
         throw_java_illegal_argument(env, "len is negative");
@@ -183,6 +188,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_getOutp
 JNIEXPORT jbyteArray JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_getMac
         (JNIEnv *env, jclass, jlong ref) {
     ccm_ctx *ctx = (ccm_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
 
     jbyteArray out = (*env)->NewByteArray(env, (jint) ctx->macBlockLenInBytes);
     if (out == NULL) {
@@ -215,9 +221,11 @@ JNIEXPORT int JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_processP
         (JNIEnv *env, jclass, jlong ref, jbyteArray in, jint inOff, jint inLen, jbyteArray aad_,
          jint aad_off, jint aad_len, jbyteArray out, jint outOff) {
 
+    ccm_ctx *ctx = (ccm_ctx *) ((void *) ref);
+    bc_assert(ctx != NULL);
+
     ccm_err *err = NULL;
     size_t written = 0;
-    ccm_ctx *ctx = (ccm_ctx *) ((void *) ref);
 
     critical_bytearray_ctx input, output, aad;
 

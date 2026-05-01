@@ -7,11 +7,12 @@
 #include <string.h>
 #include <stdio.h>
 #include "../common.h"
+#include "../util/util.h"
 
 
 cbc_ctx *cbc_create_ctx() {
     cbc_ctx *c = calloc(1, sizeof(cbc_ctx));
-    assert(c != NULL);
+    bc_assert(c != NULL);
     return c;
 }
 

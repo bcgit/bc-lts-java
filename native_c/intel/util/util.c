@@ -53,4 +53,6 @@ void memzero(void *const pnt, const size_t len) {
     while (i < len) {
         pnt_[i++] = 0U;
     }
+
+    __asm__ volatile("" : : "r"(pnt) : "memory");
 }

@@ -26,7 +26,7 @@ void packet_err_free(packet_err *err) {
 
 packet_err *make_packet_error(const char *msg, int type) {
     packet_err *err = calloc(1, sizeof(packet_err));
-    assert(err != NULL);
+    bc_assert(err != NULL);
     err->msg = msg;
     err->type = type;
     return err;
