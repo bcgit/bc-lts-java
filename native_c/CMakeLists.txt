@@ -330,7 +330,7 @@ else ()
 
     set(PROBE intel/jni/variant_selector_intel.c)
     set(IDENT_IMPL intel/jni/ident_jni.c intel/jni/native_features.c)
-    set(COMMON intel/common.c intel/common.h intel/util/util.c intel/util/util.h intel/util/xor.h ${COMMON_ASM})
+    set(COMMON intel/common.c intel/common.h intel/util/util.c intel/util/util.h intel/util/util.c intel/util/xor.h ${COMMON_ASM})
 
 
     set(MUL_AVX intel/jni/cmul_jni.c intel/mul/cmul.h intel/mul/cmul128.c)
