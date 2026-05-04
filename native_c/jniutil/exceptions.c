@@ -2,6 +2,7 @@
 //
 
 #include "exceptions.h"
+#include "../intel/util/util.h"
 #include <assert.h>
 
 void throw_java_NPE(JNIEnv *env, const char *msg) {
