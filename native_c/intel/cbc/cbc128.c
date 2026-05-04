@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <assert.h>
 #include "cbc.h"
+#include "../util/util.h"
 
 //
 // AVX or 128b single block implementation.

@@ -4,6 +4,7 @@
 #include <assert.h>
 #include "cbc.h"
 #include "../aes/aes_common_512b.h"
+#include "../util/util.h"
 
 
 static inline __m128i set_feedback(const __m512i in_cipher_blocks, const uint32_t num_blocks) {
@@ -15,9 +16,11 @@ static inline __m128i set_feedback(const __m512i in_cipher_blocks, const uint32_
         return _mm512_extracti32x4_epi32(in_cipher_blocks, 2);
     } else if (num_blocks == 4) {
         return _mm512_extracti32x4_epi32(in_cipher_blocks, 3);
-    } else {
-        bc_assert(0);
     }
+
+     bc_assert(0);
+
+   return _mm_undefined_si128(); // stops error
 }
 
 static inline void aes_cbc_dec_blocks_512b(unsigned char *in, unsigned char *out,
