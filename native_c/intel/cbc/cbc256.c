@@ -5,6 +5,7 @@
 #include "cbc.h"
 #include "../aes/aes_common_256b.h"
 #include "../aes/aes_common_128b.h"
+#include "../util/util.h"
 
 static inline void aes_cbc_dec_blocks_256b(unsigned char *in, unsigned char *out,
                                            __m256i *fb256, const __m128i *roundKeys,
