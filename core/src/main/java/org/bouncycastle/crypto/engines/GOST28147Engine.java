@@ -4,6 +4,7 @@ import java.util.Enumeration;
 import java.util.Hashtable;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
@@ -18,7 +19,7 @@ import org.bouncycastle.util.Strings;
  * implementation of GOST 28147-89
  */
 public class GOST28147Engine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     protected static final int  BLOCK_SIZE = 8;
     private int[]               workingKey = null;

@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
@@ -15,7 +16,7 @@ import org.bouncycastle.crypto.params.RC5Parameters;
  * This implementation has a word size of 32 bits.
  */
 public class RC532Engine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     /*
      * the number of rounds to perform

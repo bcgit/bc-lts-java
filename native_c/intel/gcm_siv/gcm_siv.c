@@ -150,6 +150,10 @@ gcm_siv_err *gcm_siv_init(
         uint8_t *nonce,
         uint8_t *initialText,
         size_t initialTextLen) {
+    bc_assert(ctx != NULL);
+    bc_assert(key != NULL);
+    bc_assert(nonce != NULL);
+    bc_assert(keyLen == 16 || keyLen == 32);
     ctx->encryption = encryption;
 
     // We had old initial text drop it here.
@@ -160,17 +164,17 @@ gcm_siv_err *gcm_siv_init(
         ctx->initADLen = 0;
     }
 
-    if (initialText != NULL) {
+    if (initialText != NULL && initialTextLen > 0) {
         //
         // We keep a copy so that if the instances is reset it can be returned to
         // the same state it was before the first data is processed.
         //
-        ctx->initAD = malloc((size_t) initialTextLen);
+        ctx->initAD = malloc(initialTextLen);
         bc_assert(ctx->initAD != NULL);
         ctx->initADLen = initialTextLen;
-        memcpy(ctx->initAD, initialText, (size_t) initialTextLen);
+        memcpy(ctx->initAD, initialText, initialTextLen);
     } else {
-        bc_assert(initialTextLen == 0);
+        bc_assert(initialText != NULL || initialTextLen == 0);
     }
 
     // Zero out mac block
@@ -266,9 +270,10 @@ deriveKeys(__m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, size_t 
     __m128i d0 = _mm_set_epi8(theNonce[11], theNonce[10], theNonce[9], theNonce[8], theNonce[7],
                               theNonce[6], theNonce[5], theNonce[4], theNonce[3], theNonce[2], theNonce[1], theNonce[0],
                               0, 0, 0, 0);
+    uint8_t *d0_bytes = (uint8_t *) &d0;
     generateKey(true, key, roundKeys, key_len, encrypt);
     (*encrypt)(&d0, myResult1, roundKeys);
-    d0[0]++;
+    d0_bytes[0]++;
 
     (*encrypt)(&d0, myResult2, roundKeys);
     (*myResult1)[1] = (*myResult2)[0];
@@ -291,23 +296,27 @@ deriveKeys(__m128i *H, __m128i *roundKeys, uint8_t *key, char *theNonce, size_t 
     _mm_storeu_si128(H, *myResult1);
 
     /* Derive encryption key */
-    d0[0]++;
+    d0_bytes[0]++;
     (*encrypt)(&d0, myResult1, roundKeys);
-    d0[0]++;
+    d0_bytes[0]++;
     (*encrypt)(&d0, myResult2, roundKeys);
     (*myResult1)[1] = (*myResult2)[0];
 
     /* If we have a 32byte key */
     if (key_len == BLOCK_SIZE << 1) {
         /* Derive remainder of encryption key */
-        d0[0]++;
+        d0_bytes[0]++;
         (*encrypt)(&d0, myResult2, roundKeys);
-        d0[0]++;
+        d0_bytes[0]++;
         (*encrypt)(&d0, &d0, roundKeys);
         (*myResult2)[1] = d0[0];
     }
     /* Initialise the Cipher */
     generate_key(true, myResult, roundKeys, key_len);
+
+    /* Zeroise stack copy of derived auth/encryption key material. */
+    memzero(myResult, sizeof(myResult));
+    d0 = _mm_setzero_si128();
 }
 
 void resetStreams(gcm_siv_ctx *ctx) {
@@ -332,8 +341,14 @@ void calculateTag(gcm_siv_hasher *theDataHasher, gcm_siv_hasher *theAEADHasher, 
 
     gHASH(H, theGHash, &myPolyVal);
     myPolyVal = *theGHash;
-    int32_t *p = (int32_t *) theNonce;
-    __m128i d1 = _mm_setr_epi32(*p, p[1], p[2], 0);
+
+    /* Build a 16-byte nonce block (12-byte nonce, top 4 bytes zero) without
+     * type-punning theNonce through int32_t * (strict-aliasing safe). */
+    uint8_t nonceBlock[BLOCK_SIZE];
+    memcpy(nonceBlock, theNonce, NONCELEN);
+    memzero(nonceBlock + NONCELEN, BLOCK_SIZE - NONCELEN);
+    __m128i d1 = _mm_loadu_si128((const __m128i *) nonceBlock);
+
     myPolyVal = _mm_xor_si128(myPolyVal, d1);
     ((uint8_t *) &myPolyVal)[BLOCK_SIZE - 1] &= 0x7f;
     (*encrypt)(&myPolyVal, (__m128i *) macBlock, roundKeys);
@@ -369,6 +384,11 @@ gcm_siv_process_packet(const uint8_t *mySrc, int myRemaining, uint8_t *pCounter,
             myRemaining -= BLOCK_SIZE;
         }
     }
+
+    /* Zeroise stack copy of the last keystream block. */
+    memzero(myMask, sizeof(myMask));
+    d0 = _mm_setzero_si128();
+    buffer = _mm_setzero_si128();
 }
 
 void incrementCounter(uint8_t *pCounter) {
@@ -403,7 +423,7 @@ gcm_siv_err *gcm_siv_doFinal(gcm_siv_ctx *ctx, uint8_t *input, size_t len, uint8
             memzero(output, *written);
             memzero(ctx->macBlock, BLOCK_SIZE);
             *written = 0;
-            return make_gcm_siv_error("mac check  failed", ILLEGAL_CIPHER_TEXT);
+            return make_gcm_siv_error("mac check failed", ILLEGAL_CIPHER_TEXT);
         }
     }
     resetStreams(ctx);

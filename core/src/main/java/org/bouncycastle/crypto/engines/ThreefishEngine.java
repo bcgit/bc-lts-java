@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
@@ -25,7 +26,7 @@ import org.bouncycastle.util.Pack;
  * 2 x block size state is retained by each cipher instance.
  */
 public class ThreefishEngine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     /**
      * 256 bit block size - Threefish-256

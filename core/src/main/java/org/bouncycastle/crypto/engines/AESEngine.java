@@ -5,6 +5,7 @@ import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultMultiBlockCipher;
 import org.bouncycastle.crypto.MultiBlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -36,6 +37,7 @@ import org.bouncycastle.util.Pack;
  */
 public class AESEngine
     extends DefaultMultiBlockCipher
+    implements ECBModeCipher
 {
     // The S box
     private static final byte[] S = {

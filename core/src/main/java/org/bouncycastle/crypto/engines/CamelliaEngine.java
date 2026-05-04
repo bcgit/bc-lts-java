@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
@@ -12,7 +13,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
  * Camellia - based on RFC 3713.
  */
 public class CamelliaEngine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     private boolean initialised = false;
     private int _keySize;

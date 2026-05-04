@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicePurpose;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
@@ -21,7 +22,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
  * and implement a simplified cryptography interface.
  */
 public class CAST5Engine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     private final static int[]
         S1 = {

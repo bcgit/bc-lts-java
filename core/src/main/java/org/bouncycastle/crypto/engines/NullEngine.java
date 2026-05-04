@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.OutputLengthException;
@@ -9,7 +10,7 @@ import org.bouncycastle.crypto.OutputLengthException;
  * The no-op engine that just copies bytes through, irrespective of whether encrypting and decrypting.
  * Provided for the sake of completeness.
  */
-public class NullEngine implements BlockCipher
+public class NullEngine implements BlockCipher, ECBModeCipher
 {
     private boolean initialised;
     protected static final int DEFAULT_BLOCK_SIZE = 1;

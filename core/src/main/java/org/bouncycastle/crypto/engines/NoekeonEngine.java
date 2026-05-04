@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
@@ -14,7 +15,7 @@ import org.bouncycastle.util.Pack;
  * A Noekeon engine, using direct-key mode.
  */
 public class NoekeonEngine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     // Block and key size, as well as the amount of rounds.
     private static final int SIZE = 16;

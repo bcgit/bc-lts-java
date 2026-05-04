@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.RC2Parameters;
@@ -10,7 +11,7 @@ import org.bouncycastle.crypto.params.RC2Parameters;
  *      "A Description of the RC2(r) Encryption Algorithm" R. Rivest.
  */
 public class RC2Engine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     //
     // the values we use for key expansion (based on the digits of PI)

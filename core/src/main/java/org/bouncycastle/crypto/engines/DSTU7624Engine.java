@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
@@ -20,7 +21,7 @@ import org.bouncycastle.util.Pack;
 * and supports different block and key lengths (128/256/512 bits).
 */
 public class DSTU7624Engine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     private long[] internalState;
     private long[] workingKey;

@@ -11,7 +11,7 @@ import java.lang.ref.Reference;
 
 class AESNativeEngine
         extends DefaultMultiBlockCipher
-        implements NativeBlockCipherProvider, NativeCCMProvider, NativeEAXProvider, NativeOCBProvider, NativeGCMSIVProvider
+        implements NativeBlockCipherProvider, NativeCCMProvider, NativeEAXProvider, NativeOCBProvider, NativeGCMSIVProvider, ECBModeCipher
 {
     protected NativeReference wrapper = null;
     private int keyLen = 0;

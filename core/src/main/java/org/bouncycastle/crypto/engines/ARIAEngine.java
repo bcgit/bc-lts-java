@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
@@ -16,7 +17,7 @@ import org.bouncycastle.util.encoders.Hex;
  * ARIA is a 128-bit block cipher with 128-, 192-, and 256-bit keys.
  */
 public class ARIAEngine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     private static final byte[][] C = { Hex.decodeStrict("517cc1b727220a94fe13abe8fa9a6ee0"),
         Hex.decodeStrict("6db14acc9e21c820ff28b1d5ef5de2b0"), Hex.decodeStrict("db92371d2126e9700324977504e8c90e") };

@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
@@ -14,7 +15,7 @@ import org.bouncycastle.crypto.params.RC5Parameters;
  * This implementation is set to work with a 64 bit word size.
  */
 public class RC564Engine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     private static final int wordSize = 64;
     private static final int bytesPerWord = wordSize / 8;

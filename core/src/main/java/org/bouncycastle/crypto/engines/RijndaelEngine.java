@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
@@ -15,7 +16,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
  * Note: this implementation is based on information prior to final NIST publication.
  */
 public class RijndaelEngine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     private static final int MAXROUNDS = 14;
 

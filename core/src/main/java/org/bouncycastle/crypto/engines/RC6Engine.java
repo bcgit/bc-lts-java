@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.*;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.params.KeyParameter;
 
@@ -8,7 +9,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
  * An RC6 engine.
  */
 public class RC6Engine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     private static final int wordSize = 32;
     private static final int bytesPerWord = wordSize / 8;

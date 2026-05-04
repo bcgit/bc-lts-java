@@ -5,7 +5,7 @@ import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.OutputLengthException;
-import org.bouncycastle.crypto.StreamBlockCipher;
+import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.util.Arrays;
 
 /**
@@ -25,7 +25,8 @@ public class CTSBlockCipher
     public CTSBlockCipher(
         BlockCipher     cipher)
     {
-        if (cipher instanceof StreamBlockCipher)
+
+        if (!(cipher instanceof CBCModeCipher) && !(cipher instanceof ECBModeCipher))
         {
             throw new IllegalArgumentException("CTSBlockCipher can only accept ECB, or CBC ciphers");
         }

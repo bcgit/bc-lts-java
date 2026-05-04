@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
@@ -18,7 +19,7 @@ import org.bouncycastle.util.Pack;
  * by Raif S. Naffah.
  */
 public final class TwofishEngine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     private static final byte[][] P =  {
     {  // p0

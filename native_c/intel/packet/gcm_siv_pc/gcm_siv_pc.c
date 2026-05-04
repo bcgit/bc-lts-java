@@ -35,7 +35,7 @@ gcm_siv_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t
         calculateTag(&theDataHasher, &theAEADHasher, &H, roundKeys, &theGHash, (int8_t *) nonce, macBlock, &p_encrypt);
         if (!tag_verification(macBlock, p_in + *outputLen,BLOCK_SIZE)) {
             memzero(p_out, *outputLen);
-            return make_packet_error("mac check  failed", ILLEGAL_CIPHER_TEXT);
+            return make_packet_error("mac check failed", ILLEGAL_CIPHER_TEXT);
         }
     }
     return NULL;

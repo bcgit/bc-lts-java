@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
@@ -13,7 +14,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
  */
 
 public class CamelliaLightEngine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     private static final int BLOCK_SIZE = 16;
     private static final int MASK8 = 0xff;

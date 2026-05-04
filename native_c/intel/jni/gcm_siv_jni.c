@@ -411,7 +411,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_test
     //
     // Only be set lower than original
     //
-    assert((size_t) new_value < ctx->max_dl);
+    bc_assert((size_t) new_value < ctx->max_dl);
 
     ctx->max_dl = (size_t) new_value;
 

@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DataLengthException;
@@ -20,7 +21,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
  * Note: This algorithm was patented in the USA, Japan and Europe. These patents expired in 2011/2012. 
  */
 public class IDEAEngine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
     protected static final int  BLOCK_SIZE = 8;
 

@@ -98,10 +98,10 @@ size_t cbc_pc_encrypt(unsigned char *src, uint32_t blocks, unsigned char *dest, 
 }
 
 bool tag_verification(const uint8_t *left, const uint8_t *right, size_t len) {
-    assert(left != NULL);
-    assert(right != NULL);
+    bc_assert(left != NULL);
+    bc_assert(right != NULL);
     uint32_t nonEqual = 0;
-    for (int i = 0; i != len; i++) {
+    for (size_t i = 0; i != len; i++) {
         nonEqual |= (left[i] ^ right[i]);
     }
     return nonEqual == 0;

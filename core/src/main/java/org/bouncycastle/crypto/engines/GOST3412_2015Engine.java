@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.modes.ECBModeCipher;
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.OutputLengthException;
@@ -11,7 +12,7 @@ import org.bouncycastle.util.Arrays;
  * Implementation of GOST 3412 2015 (aka "Kuznyechik") RFC 7801, GOST 3412
  */
 public class GOST3412_2015Engine
-    implements BlockCipher
+    implements BlockCipher, ECBModeCipher
 {
 
     private static final byte[] PI = new byte[]
