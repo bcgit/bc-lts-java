@@ -213,6 +213,10 @@ test {
     classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
     testClassesDirs = project.sourceSets.test.output.classesDirs
 
+    filter {
+        includeTestsMatching "*AllTest*"
+    }
+
     def args = new ArrayList<String>();
     args.add("-Dtest.bclts.expected_jvm=any")
     args.add("-Dorg.bouncycastle.bks.enable_v1=true")
