@@ -12,19 +12,6 @@ check:
     - "ecr_login"
     - "ecr_pull vm_base_intel latest"
     - "ci_docker_run \"vm_base_intel:latest\" ${CI_PROJECT_NAME}  \"/workspace/${CI_PROJECT_NAME}/ci/check.sh\""
-  artifacts:
-   when: always
-   reports:
-        junit:
-          - "core/build/test-results/**/TEST-*.xml"
-          - "prov/build/test-results/**/TEST-*.xml"
-          - "jmail/build/test-results/**/TEST-*.xml"
-          - "pg/build/test-results/**/TEST-*.xml"
-          - "pkix/build/test-results/**/TEST-*.xml"
-          - "mail/build/test-results/**/TEST-*.xml"
-          - "util/build/test-results/**/TEST-*.xml"
-          - "tls/build/test-results/**/TEST-*.xml"
-
 
 test-general:
   stage: test
