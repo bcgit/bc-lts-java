@@ -14,7 +14,7 @@ import org.bouncycastle.asn1.x509.GeneralName;
 public class TBSRequest
     extends ASN1Object
 {
-    private static final ASN1Integer V1 = new ASN1Integer(0);
+    private static final ASN1Integer V1 = ASN1Integer.ZERO;
     
     ASN1Integer      version;
     GeneralName     requestorName;

@@ -81,7 +81,9 @@ public class RSABlindedTest
             }
         }
 
-        System.getProperties().put(PKCS1Encoding.NOT_STRICT_LENGTH_ENABLED_PROPERTY, "true");
+        //System.setProperty(PKCS1Encoding.STRICT_LENGTH_ENABLED_PROPERTY, "false");
+
+        System.getProperties().put(PKCS1Encoding.STRICT_LENGTH_ENABLED_PROPERTY, "false");
         eng = new PKCS1Encoding(new RSABlindedEngine());
 
         eng.init(false, pubParameters);
@@ -95,7 +97,7 @@ public class RSABlindedTest
             fail("RSA: failed - exception " + e.toString(), e);
         }
 
-        System.getProperties().remove(PKCS1Encoding.NOT_STRICT_LENGTH_ENABLED_PROPERTY);
+        System.getProperties().remove(PKCS1Encoding.STRICT_LENGTH_ENABLED_PROPERTY);
     }
 
     private void testTruncatedPKCS1Block(RSAKeyParameters pubParameters, RSAKeyParameters privParameters)
@@ -423,6 +425,29 @@ public class RSABlindedTest
         catch (IllegalStateException e)
         {
             // expected
+        }
+
+        // null public exponent
+        privParameters = new RSAPrivateCrtKeyParameters(mod, null, privExp, p, q, pExp, qExp, crtCoef);
+
+        RSABlindedEngine bEng = new RSABlindedEngine();
+
+        bEng.init(true, privParameters);
+
+        bEng.processBlock(new byte[]{ 1 }, 0, 1);
+
+        privParameters = new RSAPrivateCrtKeyParameters(mod, null, null, p, q, pExp, qExp, crtCoef);
+        
+        bEng.init(true, privParameters);
+
+        try
+        {
+            bEng.processBlock(new byte[]{1}, 0, 1);
+            fail("no exception");
+        }
+        catch (IllegalStateException e)
+        {
+            // ignore - expected.
         }
     }
 

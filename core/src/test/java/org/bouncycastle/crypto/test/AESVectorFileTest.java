@@ -13,8 +13,10 @@ import java.util.zip.ZipFile;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.engines.AESEngine;
+//import org.bouncycastle.crypto.engines.AESFastEngine;
 import org.bouncycastle.crypto.engines.AESLightEngine;
 import org.bouncycastle.crypto.params.KeyParameter;
+import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTestResult;
 import org.bouncycastle.util.test.Test;
@@ -70,7 +72,7 @@ public class AESVectorFileTest
 
             while (line != null)
             {
-                line = line.trim().toLowerCase();
+                line = Strings.toLowerCase(line.trim());
                 if (line.startsWith("blocksize="))
                 {
                     int i = 0;
@@ -220,6 +222,11 @@ public class AESVectorFileTest
         test = new AESLightVectorFileTest();
         result = test.perform();
         System.out.println(result);
+
+//        test = new AESFastVectorFileTest();
+//        result = test.perform();
+//        System.out.println(result);
+
     }
 
     private static class AESLightVectorFileTest extends AESVectorFileTest
@@ -235,4 +242,18 @@ public class AESVectorFileTest
         }
 
     }
+
+//    private static class AESFastVectorFileTest extends AESVectorFileTest
+//    {
+//        protected BlockCipher createNewEngineForTest()
+//        {
+//            return new AESFastEngine();
+//        }
+//
+//        public String getName()
+//        {
+//            return "AESFast";
+//        }
+//
+//    }
 }

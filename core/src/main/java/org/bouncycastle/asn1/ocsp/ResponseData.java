@@ -25,8 +25,8 @@ import org.bouncycastle.asn1.x509.Extensions;
 public class ResponseData
     extends ASN1Object
 {
-    private static final ASN1Integer V1 = new ASN1Integer(0);
-    
+    private static final ASN1Integer V1 = ASN1Integer.ZERO;
+
     private boolean             versionPresent;
     
     private ASN1Integer          version;

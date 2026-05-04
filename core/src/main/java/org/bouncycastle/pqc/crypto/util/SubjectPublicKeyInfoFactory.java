@@ -9,12 +9,38 @@ import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.internal.asn1.isara.IsaraObjectIdentifiers;
+//import org.bouncycastle.pqc.asn1.PQCObjectIdentifiers;
+//import org.bouncycastle.pqc.asn1.SPHINCS256KeyParams;
+//import org.bouncycastle.pqc.asn1.XMSSKeyParams;
+//import org.bouncycastle.pqc.asn1.XMSSMTKeyParams;
+//import org.bouncycastle.pqc.asn1.XMSSMTPublicKey;
+//import org.bouncycastle.pqc.asn1.XMSSPublicKey;
+//import org.bouncycastle.pqc.legacy.bike.BIKEPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.cmce.CMCEPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.crystals.dilithium.DilithiumPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.falcon.FalconPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.frodo.FrodoPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.hqc.HQCPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.lms.Composer;
 import org.bouncycastle.pqc.crypto.lms.HSSPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.lms.LMSPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.mayo.MayoPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.mldsa.MLDSAPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.mlkem.MLKEMPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.newhope.NHPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.ntru.NTRUPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.ntruplus.NTRUPlusPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.ntruprime.NTRULPRimePublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.ntruprime.SNTRUPrimePublicKeyParameters;
+//import org.bouncycastle.pqc.legacy.picnic.PicnicPublicKeyParameters;
+//import org.bouncycastle.pqc.legacy.rainbow.RainbowPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.saber.SABERPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.slhdsa.SLHDSAPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.snova.SnovaPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.sphincs.SPHINCSPublicKeyParameters;
+//import org.bouncycastle.pqc.legacy.sphincsplus.SPHINCSPlusPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.xmss.XMSSMTPublicKeyParameters;
+//import org.bouncycastle.pqc.crypto.xmss.XMSSPublicKeyParameters;
 
 /**
  * Factory to create ASN.1 subject public key info objects from lightweight public keys.
@@ -36,14 +62,7 @@ public class SubjectPublicKeyInfoFactory
     public static SubjectPublicKeyInfo createSubjectPublicKeyInfo(AsymmetricKeyParameter publicKey)
         throws IOException
     {
-//        if (publicKey instanceof QTESLAPublicKeyParameters)
-//        {
-//            QTESLAPublicKeyParameters keyParams = (QTESLAPublicKeyParameters)publicKey;
-//            AlgorithmIdentifier algorithmIdentifier = Utils.qTeslaLookupAlgID(keyParams.getSecurityCategory());
-//
-//            return new SubjectPublicKeyInfo(algorithmIdentifier, keyParams.getPublicData());
-//        }
-//        else if (publicKey instanceof SPHINCSPublicKeyParameters)
+//        if (publicKey instanceof SPHINCSPublicKeyParameters)
 //        {
 //            SPHINCSPublicKeyParameters params = (SPHINCSPublicKeyParameters)publicKey;
 //
@@ -144,14 +163,6 @@ public class SubjectPublicKeyInfoFactory
 //                    Utils.xmssLookupTreeAlgID(keyParams.getTreeDigest())));
 //                return new SubjectPublicKeyInfo(algorithmIdentifier, new XMSSMTPublicKey(keyParams.getPublicSeed(), keyParams.getRoot()));
 //            }
-//        }
-//        else if (publicKey instanceof McElieceCCA2PublicKeyParameters)
-//        {
-//            McElieceCCA2PublicKeyParameters pub = (McElieceCCA2PublicKeyParameters)publicKey;
-//            McElieceCCA2PublicKey mcEliecePub = new McElieceCCA2PublicKey(pub.getN(), pub.getT(), pub.getG(), Utils.getAlgorithmIdentifier(pub.getDigest()));
-//            AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(PQCObjectIdentifiers.mcElieceCca2);
-//
-//            return new SubjectPublicKeyInfo(algorithmIdentifier, mcEliecePub);
 //        }
 //        else if (publicKey instanceof FrodoPublicKeyParameters)
 //        {
@@ -288,6 +299,13 @@ public class SubjectPublicKeyInfoFactory
 //            SnovaPublicKeyParameters params = (SnovaPublicKeyParameters)publicKey;
 //            byte[] encoding = params.getEncoded();
 //            AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(Utils.snovaOidLookup(params.getParameters()));
+//            return new SubjectPublicKeyInfo(algorithmIdentifier, new DEROctetString(encoding));
+//        }
+//        else if (publicKey instanceof NTRUPlusPublicKeyParameters)
+//        {
+//            NTRUPlusPublicKeyParameters params = (NTRUPlusPublicKeyParameters)publicKey;
+//            byte[] encoding = params.getEncoded();
+//            AlgorithmIdentifier algorithmIdentifier = new AlgorithmIdentifier(Utils.ntruPlusOidLookup(params.getParameters()));
 //            return new SubjectPublicKeyInfo(algorithmIdentifier, new DEROctetString(encoding));
 //        }
         else

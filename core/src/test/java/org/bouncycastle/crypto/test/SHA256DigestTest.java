@@ -49,7 +49,7 @@ public class SHA256DigestTest
 
     protected Digest cloneDigest(byte[] encodedState)
     {
-        return SHA256Digest.newInstance(encodedState, 0);
+        return SHA256Digest.newInstance(encodedState);
     }
 
     public static void main(

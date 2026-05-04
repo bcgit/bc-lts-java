@@ -1,11 +1,11 @@
 package org.bouncycastle.pqc.crypto;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.x509.X509ObjectIdentifiers;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class DigestUtils
 {

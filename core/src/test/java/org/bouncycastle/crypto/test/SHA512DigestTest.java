@@ -32,7 +32,7 @@ public class SHA512DigestTest
 
     SHA512DigestTest()
     {
-        super(SHA512Digest.newInstance(), messages, digests);
+        super(new SHA512Digest(), messages, digests);
     }
 
     public void performTest()
@@ -44,12 +44,12 @@ public class SHA512DigestTest
 
     protected Digest cloneDigest(Digest digest)
     {
-        return SHA512Digest.newInstance(digest);
+        return new SHA512Digest((SHA512Digest)digest);
     }
 
     protected Digest cloneDigest(byte[] encodedState)
     {
-        return SHA512Digest.newInstance(encodedState,0);
+        return new SHA512Digest(encodedState);
     }
 
     public static void main(

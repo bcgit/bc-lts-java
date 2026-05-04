@@ -20,6 +20,7 @@ public class RegressionTest
         new PKCS10Test(),
         new PKCS12Test(),
         new X500NameTest(),
+//        new X509ExtensionsTest(),
         new GeneralizedTimeTest(),
         new BitStringTest(),
         new MiscTest(),
@@ -38,6 +39,7 @@ public class RegressionTest
         new UTCTimeTest(),
         new NameOrPseudonymUnitTest(),
         new PersonalDataUnitTest(),
+//        new DERApplicationSpecificTest(),
         new IssuingDistributionPointUnitTest(),
         new TargetInformationTest(),
         new SubjectKeyIdentifierTest(),
@@ -54,7 +56,8 @@ public class RegressionTest
         new DERPrivateTest(),
         new X509AltTest(),
         new CertIDTest(),
-        new IANAObjectIdentifierTest()
+        new IANAObjectIdentifierTest(),
+        new StreamLimitTest()
     };
 
     public static void main(String[] args)

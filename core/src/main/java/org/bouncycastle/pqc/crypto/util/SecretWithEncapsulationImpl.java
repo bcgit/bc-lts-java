@@ -1,10 +1,11 @@
 package org.bouncycastle.pqc.crypto.util;
 
-import org.bouncycastle.crypto.SecretWithEncapsulation;
-import org.bouncycastle.util.Arrays;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.security.auth.DestroyFailedException;
-import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.bouncycastle.crypto.SecretWithEncapsulation;
+import org.bouncycastle.util.Arrays;
 
 public class SecretWithEncapsulationImpl
     implements SecretWithEncapsulation

@@ -152,7 +152,7 @@ public class DigestConstraintsTest
 
         try
         {
-            SHA224Digest.newInstance();
+            new SHA224Digest();
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -160,7 +160,7 @@ public class DigestConstraintsTest
             isEquals("service does not provide 192 bits of security only 112", e.getMessage());
         }
 
-         SHA224Digest.newInstance(CryptoServicePurpose.PRF);
+        new SHA224Digest(CryptoServicePurpose.PRF);
 
         CryptoServicesRegistrar.setServicesConstraints(null);
     }
@@ -181,7 +181,7 @@ public class DigestConstraintsTest
 
         CryptoServicesRegistrar.setServicesConstraints(new BitsOfSecurityConstraint(256));
 
-        SHA256Digest.newInstance(CryptoServicePurpose.PRF);
+        new SHA256Digest(CryptoServicePurpose.PRF);
 
         CryptoServicesRegistrar.setServicesConstraints(null);
     }
@@ -192,7 +192,7 @@ public class DigestConstraintsTest
 
         try
         {
-            SHA384Digest.newInstance();
+            new SHA384Digest();
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -202,7 +202,7 @@ public class DigestConstraintsTest
 
         CryptoServicesRegistrar.setServicesConstraints(new BitsOfSecurityConstraint(256));
 
-        SHA384Digest.newInstance(CryptoServicePurpose.PRF);
+        new SHA384Digest(CryptoServicePurpose.PRF);
 
         CryptoServicesRegistrar.setServicesConstraints(null);
     }
@@ -211,8 +211,8 @@ public class DigestConstraintsTest
     {
         CryptoServicesRegistrar.setServicesConstraints(new BitsOfSecurityConstraint(256));
 
-        SHA512Digest.newInstance();
-        SHA512Digest.newInstance(CryptoServicePurpose.PRF);
+        new SHA512Digest();
+        new SHA512Digest(CryptoServicePurpose.PRF);
 
         CryptoServicesRegistrar.setServicesConstraints(null);
     }
@@ -223,7 +223,7 @@ public class DigestConstraintsTest
 
         try
         {
-             SHA3Digest.newInstance(224);
+            new SHA3Digest(224);
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -233,7 +233,7 @@ public class DigestConstraintsTest
 
         try
         {
-            SHA3Digest.newInstance(256);
+            new SHA3Digest(256);
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -243,7 +243,7 @@ public class DigestConstraintsTest
 
         try
         {
-            SHA3Digest.newInstance(384);
+            new SHA3Digest(384);
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -253,12 +253,12 @@ public class DigestConstraintsTest
 
         CryptoServicesRegistrar.setServicesConstraints(new BitsOfSecurityConstraint(256));
 
-        SHA3Digest.newInstance(256, CryptoServicePurpose.PRF);
-        SHA3Digest.newInstance(384, CryptoServicePurpose.PRF);
+        new SHA3Digest(256, CryptoServicePurpose.PRF);
+        new SHA3Digest(384, CryptoServicePurpose.PRF);
 
         try
         {
-            SHA3Digest.newInstance(224, CryptoServicePurpose.PRF);
+            new SHA3Digest(224, CryptoServicePurpose.PRF);
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -268,7 +268,7 @@ public class DigestConstraintsTest
 
         try
         {
-            SHAKEDigest.newInstance(128);
+            new SHAKEDigest(128);
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -298,7 +298,7 @@ public class DigestConstraintsTest
 
         try
         {
-            SHAKEDigest.newInstance(128, CryptoServicePurpose.PRF);
+            new SHAKEDigest(128, CryptoServicePurpose.PRF);
             fail("no exception");
         }
         catch (CryptoServiceConstraintsException e)
@@ -306,8 +306,8 @@ public class DigestConstraintsTest
             isEquals("service does not provide 256 bits of security only 128", e.getMessage());
         }
 
-        SHA3Digest.newInstance(512);
-        SHAKEDigest.newInstance(256);
+        new SHA3Digest(512);
+        new SHAKEDigest(256);
         new CSHAKEDigest(256, new byte[0], new byte[0]);
         new KMAC(256, new byte[0]);
 

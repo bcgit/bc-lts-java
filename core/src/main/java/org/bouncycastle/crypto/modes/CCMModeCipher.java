@@ -1,11 +1,15 @@
 package org.bouncycastle.crypto.modes;
 
+import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 
 public interface CCMModeCipher
     extends AEADBlockCipher
 {
-    int processPacket(byte[] inBuf, int inOffset, int length, byte[] outBuf, int outOffset) throws InvalidCipherTextException;
+    // TODO Add these so that all usages of CCMBlockCipher can be replaced by CCMModeCipher
+    byte[] processPacket(byte[] in, int inOff, int inLen)
+        throws IllegalStateException, InvalidCipherTextException;
 
-    byte[] processPacket(byte[] c2, int inOffset, int length) throws InvalidCipherTextException;
+    int processPacket(byte[] in, int inOff, int inLen, byte[] output, int outOff)
+        throws IllegalStateException, InvalidCipherTextException;
 }

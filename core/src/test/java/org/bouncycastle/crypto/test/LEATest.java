@@ -227,7 +227,7 @@ public class LEATest
                     else
                     {
                         // CTR
-                        engine = (BlockCipher)SICBlockCipher.newInstance(new LEAEngine());
+                        engine = SICBlockCipher.newInstance(new LEAEngine());
                     }
                     if (line.endsWith("Encrypt"))
                     {

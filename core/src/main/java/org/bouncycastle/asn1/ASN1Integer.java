@@ -20,6 +20,15 @@ public class ASN1Integer
         }
     };
 
+    private static final ASN1Integer[] SMALL_CONSTANTS = new ASN1Integer[17];
+
+    public static final ASN1Integer ZERO;
+    public static final ASN1Integer ONE;
+    public static final ASN1Integer TWO;
+    public static final ASN1Integer THREE;
+    public static final ASN1Integer FOUR;
+    public static final ASN1Integer FIVE;
+
     static final int SIGN_EXT_SIGNED = 0xFFFFFFFF;
     static final int SIGN_EXT_UNSIGNED = 0xFF;
 
@@ -59,12 +68,12 @@ public class ASN1Integer
     /**
      * Return an Integer from a tagged object.
      *
-     * @param taggedObject the tagged object holding the object we want
+     * @param taggedObject     the tagged object holding the object we want
      * @param declaredExplicit true if the object is meant to be explicitly
-     *                 tagged false otherwise.
+     *                         tagged false otherwise.
      * @return an ASN1Integer instance.
      * @throws IllegalArgumentException if the tagged object cannot
-     * be converted.
+     *                                  be converted.
      */
     public static ASN1Integer getInstance(ASN1TaggedObject taggedObject, boolean declaredExplicit)
     {
@@ -76,6 +85,37 @@ public class ASN1Integer
         return (ASN1Integer)TYPE.getTagged(taggedObject, declaredExplicit);
     }
 
+    public static ASN1Integer valueOf(int value)
+    {
+        if (value >= 0L && value < SMALL_CONSTANTS.length)
+            return SMALL_CONSTANTS[value];
+
+        return new ASN1Integer(value);
+    }
+
+    public static ASN1Integer valueOf(long value)
+    {
+        if (value >= 0L && value < SMALL_CONSTANTS.length)
+            return SMALL_CONSTANTS[(int)value];
+
+        return new ASN1Integer(value);
+    }
+
+    static
+    {
+        for (int i = 0; i < SMALL_CONSTANTS.length; ++i)
+        {
+            SMALL_CONSTANTS[i] = new ASN1Integer(i);
+        }
+
+        ZERO = SMALL_CONSTANTS[0];
+        ONE = SMALL_CONSTANTS[1];
+        TWO = SMALL_CONSTANTS[2];
+        THREE = SMALL_CONSTANTS[3];
+        FOUR = SMALL_CONSTANTS[4];
+        FIVE = SMALL_CONSTANTS[5];
+    }
+    
     /**
      * Construct an INTEGER from the passed in long value.
      *
@@ -107,7 +147,7 @@ public class ASN1Integer
      * <p>
      * It has turned out that there are still a few applications that struggle with
      * the ASN.1 BER encoding rules for an INTEGER as described in:
-     *
+     * <p>
      * https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
      * Section 8.3.2.
      * </p>
@@ -128,12 +168,12 @@ public class ASN1Integer
     ASN1Integer(byte[] bytes, boolean clone)
     {
         if (isMalformed(bytes))
-        {                           
+        {
             throw new IllegalArgumentException("malformed integer");
         }
 
         this.bytes = clone ? Arrays.clone(bytes) : bytes;
-        this.start = signBytesToSkip(bytes); 
+        this.start = signBytesToSkip(bytes);
     }
 
     /**
@@ -191,7 +231,7 @@ public class ASN1Integer
             throw new ArithmeticException("ASN.1 Integer out of int range");
         }
 
-        return intValue(bytes, start, SIGN_EXT_SIGNED); 
+        return intValue(bytes, start, SIGN_EXT_SIGNED);
     }
 
     public long longValueExact()
@@ -215,7 +255,8 @@ public class ASN1Integer
         return ASN1OutputStream.getLengthOfEncodingDL(withTag, bytes.length);
     }
 
-    void encode(ASN1OutputStream out, boolean withTag) throws IOException
+    void encode(ASN1OutputStream out, boolean withTag)
+        throws IOException
     {
         out.writeEncodingDL(withTag, BERTags.INTEGER, bytes);
     }

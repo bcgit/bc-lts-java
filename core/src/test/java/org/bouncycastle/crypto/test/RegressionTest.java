@@ -9,6 +9,7 @@ public class RegressionTest
         {
             new AESTest(),
             new AESLightTest(),
+//            new AESFastTest(),
             new AESWrapTest(),
             new AESWrapPadTest(),
             new ARIATest(),
@@ -187,6 +188,16 @@ public class RegressionTest
             new DigestConstraintsTest(),
             new RadixConverterTest(),
             new Grain128AEADTest(),
+//            new ElephantTest(),
+//            new PhotonBeetleTest(),
+//            new XoodyakTest(),
+//            new AsconTest(),
+//            new SparkleTest(),
+//            new ISAPTest(),
+//            new ConcatenationKDFTest(),
+//            new GiftCofbTest(),
+//            new RomulusTest(),
+//            new SAKKEKEMSTest(),
         };
 
     public static void main(String[] args)

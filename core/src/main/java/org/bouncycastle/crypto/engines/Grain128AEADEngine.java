@@ -1,6 +1,5 @@
 package org.bouncycastle.crypto.engines;
 
-import org.bouncycastle.crypto.modes.AEADCipher;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Pack;
 
@@ -8,7 +7,7 @@ import org.bouncycastle.util.Pack;
  * Grain-128 AEAD, based on the current round 3 submission, https://grain-128aead.github.io/
  */
 public class Grain128AEADEngine
-    extends AEADBaseEngine implements AEADCipher
+    extends AEADBaseEngine
 {
     /**
      * Constants

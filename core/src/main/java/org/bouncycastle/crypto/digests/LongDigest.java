@@ -11,7 +11,7 @@ import org.bouncycastle.util.Pack;
  * Base class for SHA-384 and SHA-512.
  */
 public abstract class LongDigest
-    implements SavableDigest
+    implements ExtendedDigest, Memoable, EncodableDigest, SavableDigest
 {
     private static final int BYTE_LENGTH = 128;
 

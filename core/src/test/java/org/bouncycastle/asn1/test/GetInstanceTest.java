@@ -323,7 +323,7 @@ public class GetInstanceTest
         doFullGetInstanceTest(DERT61String.class, new DERT61String("hello world"));
         doFullGetInstanceTest(DERVisibleString.class, new DERVisibleString("hello world"));
 
-        doFullGetInstanceTest(ASN1Integer.class, new ASN1Integer(1));
+        doFullGetInstanceTest(ASN1Integer.class, ASN1Integer.ONE);
         doFullGetInstanceTest(ASN1GeneralizedTime.class, new ASN1GeneralizedTime(new Date()));
         doFullGetInstanceTest(ASN1UTCTime.class, new ASN1UTCTime(new Date()));
         doFullGetInstanceTest(ASN1Enumerated.class, new ASN1Enumerated(1));
@@ -357,7 +357,7 @@ public class GetInstanceTest
         BasicOCSPResponse.getInstance(null);
         BasicOCSPResponse.getInstance(null);
 
-        doFullGetInstanceTest(CertID.class, new CertID(new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1, DERNull.INSTANCE), new DEROctetString(new byte[1]), new DEROctetString(new byte[1]), new ASN1Integer(1)));
+        doFullGetInstanceTest(CertID.class, new CertID(new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1, DERNull.INSTANCE), new DEROctetString(new byte[1]), new DEROctetString(new byte[1]), ASN1Integer.ONE));
 
         CertStatus.getInstance(null);
         CertStatus.getInstance(null);
@@ -498,6 +498,8 @@ public class GetInstanceTest
         Targets.getInstance(null);
         TBSCertificate.getInstance(null);
         TBSCertificate.getInstance(null);
+//        TBSCertificateStructure.getInstance(null);
+//        TBSCertificateStructure.getInstance(null);
         TBSCertList.CRLEntry.getInstance(null);
         TBSCertList.getInstance(null);
         TBSCertList.getInstance(null);
@@ -506,10 +508,18 @@ public class GetInstanceTest
         doFullGetInstanceTest(UserNotice.class, new UserNotice(noticeReference, "hello world"));
         V2Form.getInstance(null);
         V2Form.getInstance(null);
+//        X509CertificateStructure.getInstance(null);
+//        X509CertificateStructure.getInstance(null);
+//        X509Extensions.getInstance(null);
+//        X509Extensions.getInstance(null);
         X500Name.getInstance(null);
         X500Name.getInstance(null);
+//        DHDomainParameters.getInstance(null);
+//        DHDomainParameters.getInstance(null);
         DHPublicKey.getInstance(null);
         DHPublicKey.getInstance(null);
+//        DHValidationParms.getInstance(null);
+//        DHValidationParms.getInstance(null);
         X962Parameters.getInstance(null);
         X962Parameters.getInstance(null);
         X9ECParameters.getInstance(null);

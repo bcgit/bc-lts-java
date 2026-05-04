@@ -54,7 +54,7 @@ public interface X509ObjectIdentifiers
 
     /** OID: 2.5.8.1.1  */
     static final ASN1ObjectIdentifier    id_ea_rsa = new ASN1ObjectIdentifier("2.5.8.1.1").intern();
-
+    
     /** id-pkix OID: 1.3.6.1.5.5.7
      */
     static final ASN1ObjectIdentifier  id_pkix = new ASN1ObjectIdentifier("1.3.6.1.5.5.7");
@@ -104,7 +104,7 @@ public interface X509ObjectIdentifiers
      * id-alg-unsigned OBJECT IDENTIFIER ::= {id-pkix id-alg(6) 36}
      */
     ASN1ObjectIdentifier id_alg_unsigned = pkix_algorithms.branch("36");
-
+    
     /** 1.3.6.1.5.5.7.9 */
     static final ASN1ObjectIdentifier id_pda = id_pkix.branch("9");
 

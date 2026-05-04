@@ -5,6 +5,7 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESEngine;
+//import org.bouncycastle.crypto.engines.AESFastEngine;
 import org.bouncycastle.crypto.engines.AESLightEngine;
 import org.bouncycastle.crypto.engines.BlowfishEngine;
 import org.bouncycastle.crypto.engines.CAST5Engine;
@@ -47,8 +48,8 @@ public class BlockCipherResetTest
         throws Exception
     {
         // 128 bit block ciphers
-        testReset("AESFastEngine", AESEngine.newInstance(), AESEngine.newInstance(), new KeyParameter(new byte[16]));
-        testReset("AESEngine", AESEngine.newInstance(), AESEngine.newInstance(), new KeyParameter(new byte[16]));
+//        testReset("AESFastEngine", new AESFastEngine(), new AESFastEngine(), new KeyParameter(new byte[16]));
+        testReset("AESEngine", new AESEngine(), new AESEngine(), new KeyParameter(new byte[16]));
         testReset("AESLightEngine", new AESLightEngine(), new AESLightEngine(), new KeyParameter(new byte[16]));
         testReset("Twofish", new TwofishEngine(), new TwofishEngine(), new KeyParameter(new byte[16]));
         testReset("NoekeonEngine", new NoekeonEngine(), new NoekeonEngine(), new KeyParameter(new byte[16]));
@@ -68,9 +69,9 @@ public class BlockCipherResetTest
         // primitive block cipher modes (don't reset on processBlock)
         testModeReset("AES/CBC", CBCBlockCipher.newInstance(AESEngine.newInstance()), CBCBlockCipher.newInstance(AESEngine.newInstance()),
             new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
-        testModeReset("AES/SIC", new SICBlockCipher(AESEngine.newInstance()), new SICBlockCipher(AESEngine.newInstance()),
+        testModeReset("AES/SIC", SICBlockCipher.newInstance(AESEngine.newInstance()), SICBlockCipher.newInstance(AESEngine.newInstance()),
             new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
-        testModeReset("AES/CFB", new CFBBlockCipher(AESEngine.newInstance(), 128), new CFBBlockCipher(AESEngine.newInstance(), 128),
+        testModeReset("AES/CFB", CFBBlockCipher.newInstance(AESEngine.newInstance(), 128), CFBBlockCipher.newInstance(AESEngine.newInstance(), 128),
             new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
         testModeReset("AES/OFB", new OFBBlockCipher(AESEngine.newInstance(), 128), new OFBBlockCipher(AESEngine.newInstance(), 128),
             new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
@@ -78,17 +79,17 @@ public class BlockCipherResetTest
             new ParametersWithIV(new KeyParameter(new byte[8]), new byte[8]));
         testModeReset("AES/OpenPGPCFB", new OpenPGPCFBBlockCipher(AESEngine.newInstance()), new OpenPGPCFBBlockCipher(
             AESEngine.newInstance()), new KeyParameter(new byte[16]));
-        testModeReset("AES/PGPCFB", new PGPCFBBlockCipher(AESEngine.newInstance(), false), new PGPCFBBlockCipher(
-            AESEngine.newInstance(), false), new KeyParameter(new byte[16]));
+        testModeReset("AES/PGPCFB", new PGPCFBBlockCipher(new AESEngine(), false), new PGPCFBBlockCipher(
+            new AESEngine(), false), new KeyParameter(new byte[16]));
 
         // PGPCFB with IV is broken (it's also not a PRP, so probably shouldn't be a BlockCipher)
-        // testModeReset("AES/PGPCFBwithIV", new PGPCFBBlockCipher(AESEngine.newInstance(), true), new
+        // testModeReset("AES/PGPCFBwithIV", new PGPCFBBlockCipher(new AESEngine(), true), new
         // PGPCFBBlockCipher(
-        // AESEngine.newInstance(), true), new ParametersWithIV(new KeyParameter(new byte[16]), new
+        // new AESEngine(), true), new ParametersWithIV(new KeyParameter(new byte[16]), new
         // byte[16]));
-        // testModeReset("AES/PGPCFBwithIV_NoIV", new PGPCFBBlockCipher(AESEngine.newInstance(), true), new
+        // testModeReset("AES/PGPCFBwithIV_NoIV", new PGPCFBBlockCipher(new AESEngine(), true), new
         // PGPCFBBlockCipher(
-        // AESEngine.newInstance(), true), new KeyParameter(new byte[16]));
+        // new AESEngine(), true), new KeyParameter(new byte[16]));
 
     }
 
