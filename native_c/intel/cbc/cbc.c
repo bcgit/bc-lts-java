@@ -25,12 +25,12 @@ void cbc_free_ctx(cbc_ctx *ctx) {
 }
 
 void cbc_reset(cbc_ctx *ctx) {
-    assert(ctx != NULL);
+    bc_assert(ctx != NULL);
     ctx->chainblock = ctx->initialChainblock;
 }
 
 void cbc_init(cbc_ctx *pCtx, unsigned char *key, unsigned char *iv) {
-    assert(pCtx != NULL);
+    bc_assert(pCtx != NULL);
     memzero(pCtx->roundKeys, sizeof(__m128i) * 15);
     switch (pCtx->num_rounds) {
         case ROUNDS_128:
@@ -50,7 +50,7 @@ void cbc_init(cbc_ctx *pCtx, unsigned char *key, unsigned char *iv) {
             break;
         default:
             // it technically cannot hit here but if it does, we need to exit hard.
-            assert(0);
+            bc_assert(0);
     }
 
 
@@ -105,13 +105,13 @@ static inline void encrypt(__m128i *d0, const __m128i chainblock, __m128i *round
         *d0 = _mm_aesenc_si128(*d0, roundKeys[13]);
         *d0 = _mm_aesenclast_si128(*d0, roundKeys[14]);
     } else {
-        assert(0);
+        bc_assert(0);
     }
 }
 
 
 size_t cbc_encrypt(cbc_ctx *cbc, unsigned char *src, uint32_t blocks, unsigned char *dest) {
-    assert(cbc != NULL);
+    bc_assert(cbc != NULL);
 
     unsigned char *destStart = dest;
     __m128i d0;

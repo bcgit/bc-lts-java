@@ -49,7 +49,7 @@ int generate_key(bool encryption, uint8_t *key, __m128i *roundKeys, size_t keyLe
             init_256(roundKeys, key, encryption);
             break;
         default:
-            assert(0);
+            bc_assert(0);
     }
     return num_rounds;
 }
@@ -78,7 +78,7 @@ static inline void encrypt(__m128i *d0, __m128i *d1, __m128i *roundKeys, const i
         *d1 = _mm_aesenc_si128(*d1, roundKeys[13]);
         *d1 = _mm_aesenclast_si128(*d1, roundKeys[14]);
     } else {
-        assert(0);
+        bc_assert(0);
     }
 }
 

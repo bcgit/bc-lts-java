@@ -108,7 +108,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
     // array size assertions for both arrays with respect to offset and length
     // have been applied by this point
     if (outLen < inLen) {
-        throw_java_invalid_state(env, EM_OUTPUT_LENGTH);
+        throw_bc_output_length_exception(env, EM_OUTPUT_LENGTH);
         goto exit;
     }
 

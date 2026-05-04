@@ -476,7 +476,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCM_setBloc
         return;
     }
 
-    if (ctx->blocksRemaining - downValue > ctx->blocksRemaining) {
+    if (downValue > ctx->blocksRemaining) {
         throw_java_illegal_argument(env, "attempt to increment blocks remaining");
         return;
     }

@@ -40,7 +40,7 @@ ctr_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *iv
             ctrMask = 0xFFFFFFFFFFFFFF;
             break;
         default:
-            assert(0);
+            bc_assert(0);
     }
     if (ivLen < 16) {
         IV_le = _mm_setzero_si128();

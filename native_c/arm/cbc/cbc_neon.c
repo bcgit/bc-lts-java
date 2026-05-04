@@ -107,7 +107,7 @@ static inline void decrypt_blocks(uint8x16_t *rk,
 
 
 size_t cbc_decrypt(cbc_ctx *cbc, unsigned char *src, uint32_t blocks, unsigned char *dest) {
-    assert(cbc != NULL);
+    bc_assert(cbc != NULL);
     unsigned char *destStart = dest;
 
     while (blocks >= 4) {

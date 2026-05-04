@@ -458,7 +458,7 @@ static inline void aes_cbc_dec_blocks_256b(unsigned char *in, unsigned char *out
 //
 
 size_t cbc_decrypt(cbc_ctx *cbc, unsigned char *src, uint32_t blocks, unsigned char *dest) {
-    assert(cbc != NULL);
+    bc_assert(cbc != NULL);
     unsigned char *destStart = dest;
 
     __m256i fb256 = _mm256_broadcastsi128_si256(cbc->chainblock);

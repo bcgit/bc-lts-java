@@ -383,7 +383,7 @@ bool ctr_pc_process_bytes(unsigned char *src, size_t len, unsigned char *dest, s
 
     unsigned char *destStart = dest;
 
-    if (buf_pos == 0 && len >= 16) {
+    if (*buf_pos == 0 && len >= 16) {
 
         while (len >= BLOCK_SIZE) {
             const uint64_t  const_ctr = *ctr;

@@ -16,7 +16,7 @@ static inline __m128i set_feedback(const __m512i in_cipher_blocks, const uint32_
     } else if (num_blocks == 4) {
         return _mm512_extracti32x4_epi32(in_cipher_blocks, 3);
     } else {
-        assert(0);
+        bc_assert(0);
     }
 }
 
@@ -135,7 +135,7 @@ static inline void aes_cbc_dec_blocks_512b(unsigned char *in, unsigned char *out
 //
 
 size_t cbc_decrypt(cbc_ctx *cbc, unsigned char *src, uint32_t blocks, unsigned char *dest) {
-    assert(cbc != NULL);
+    bc_assert(cbc != NULL);
     unsigned char *destStart = dest;
 
 

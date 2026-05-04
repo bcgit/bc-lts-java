@@ -26,7 +26,7 @@ void ecb_reset(ecb_ctx *ctx) {
 }
 
 void ecb_init(ecb_ctx *pCtx, uint8_t *key) {
-    assert(pCtx != NULL);
+    bc_assert(pCtx != NULL);
     memzero(pCtx->roundKeys, sizeof(__m128i) * 15);
     switch (pCtx->num_rounds) {
         case ROUNDS_128:
@@ -40,7 +40,7 @@ void ecb_init(ecb_ctx *pCtx, uint8_t *key) {
             break;
         default:
             // it technically cannot hit here but if it does, we need to exit hard.
-            assert(0);
+            bc_assert(0);
     }
 
 }

@@ -39,7 +39,7 @@ int64_t ctr_get_position(ctr_ctx *pCtr) {
 
 void ctr_init(ctr_ctx *pCtx, unsigned char *key, size_t keyLen, unsigned char *iv, size_t ivLen) {
 
-    assert(pCtx != NULL);
+    bc_assert(pCtx != NULL);
 
     if (keyLen != 0) {
 
@@ -47,7 +47,7 @@ void ctr_init(ctr_ctx *pCtx, unsigned char *key, size_t keyLen, unsigned char *i
         // This mode supports key replacement, jni layer must check for previous initialisation.
         //
 
-        assert(key != NULL);
+        bc_assert(key != NULL);
 
         memzero(pCtx->roundKeys, sizeof(__m128i) * 15);
         if (keyLen == 16) {
@@ -61,7 +61,7 @@ void ctr_init(ctr_ctx *pCtx, unsigned char *key, size_t keyLen, unsigned char *i
             pCtx->num_rounds = ROUNDS_256;
         } else {
             // Fail hard if it gets here, invalid key len should have been detected by this point.
-            assert(0);
+            bc_assert(0);
         }
     }
 
@@ -93,7 +93,7 @@ void ctr_init(ctr_ctx *pCtx, unsigned char *key, size_t keyLen, unsigned char *i
             pCtx->ctrMask = 0xFFFFFFFFFFFFFF;
             break;
         default:
-            assert(0);
+            bc_assert(0);
 
     }
 

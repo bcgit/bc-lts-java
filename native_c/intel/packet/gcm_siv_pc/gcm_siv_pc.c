@@ -29,12 +29,17 @@ gcm_siv_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t
         memcpy(p_out + inLen, macBlock, BLOCK_SIZE);
         *outputLen = inLen + BLOCK_SIZE;
     } else {
+        if (inLen < BLOCK_SIZE) {
+            *outputLen = 0;
+            return make_packet_error("ciphertext too short", ILLEGAL_CIPHER_TEXT);
+        }
         *outputLen = inLen - BLOCK_SIZE;
         gcm_siv_process_packet(p_in, (int) *outputLen, p_in + *outputLen, roundKeys, p_out, &p_encrypt);
         gcm_siv_hasher_updateHash(&theDataHasher, &H, p_out,  *outputLen, &theGHash);
         calculateTag(&theDataHasher, &theAEADHasher, &H, roundKeys, &theGHash, (int8_t *) nonce, macBlock, &p_encrypt);
         if (!tag_verification(macBlock, p_in + *outputLen,BLOCK_SIZE)) {
             memzero(p_out, *outputLen);
+            *outputLen = 0;
             return make_packet_error("mac check failed", ILLEGAL_CIPHER_TEXT);
         }
     }

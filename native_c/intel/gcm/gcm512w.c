@@ -11,8 +11,8 @@
 
 bool areEqualCT(const uint8_t *left, const uint8_t *right, size_t len) {
 
-    assert(left != NULL);
-    assert(right != NULL);
+    bc_assert(left != NULL);
+    bc_assert(right != NULL);
 
     uint32_t nonEqual = 0;
 
@@ -371,7 +371,10 @@ gcm_err *process_buffer_dec(gcm_ctx *ctx,
             if (outputLen < SIXTEEN_BLOCKS) {
                 return make_gcm_error("output len too short", OUTPUT_LENGTH);
             }
-            process16Blocks_dec(ctx, in, out);
+            gcm_err *err = process16Blocks_dec(ctx, in, out);
+            if (err != NULL) {
+                return err;
+            }
             *written += SIXTEEN_BLOCKS;
             *read += SIXTEEN_BLOCKS;
             ctx->totalBytes += SIXTEEN_BLOCKS;
@@ -387,7 +390,10 @@ gcm_err *process_buffer_dec(gcm_ctx *ctx,
                 if (outputLen < SIXTEEN_BLOCKS) {
                     return make_gcm_error("output len too short", OUTPUT_LENGTH);
                 }
-                process16Blocks_dec(ctx, ctx->bufBlock, out);
+                gcm_err *err = process16Blocks_dec(ctx, ctx->bufBlock, out);
+                if (err != NULL) {
+                    return err;
+                }
 
                 if (ctx->macBlockLen == 16) {
                     _mm_storeu_si128((__m128i *) ctx->bufBlock,

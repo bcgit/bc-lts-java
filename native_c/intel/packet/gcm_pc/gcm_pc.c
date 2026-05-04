@@ -38,7 +38,7 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
     // Zero out mac block
     memzero(macBlock, MAC_BLOCK_LEN);
 
-    assert(macBlockLen <= MAC_BLOCK_LEN);
+    bc_assert(macBlockLen <= MAC_BLOCK_LEN);
 
     memzero(bufBlock, BUF_BLK_SIZE);
     bufBlockIndex = 0;
@@ -190,9 +190,14 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
     unsigned char *outPtr = output;
     unsigned char *outStart = outPtr;
 
+    // Available output-buffer size used for in-loop bound checks. The JNI layer
+    // has already validated that the caller's buffer is at least this big.
+    size_t availableOut = encryption ? inLen + macBlockLen
+                                     : (inLen >= macBlockLen ? inLen - macBlockLen : 0);
+
     if (encryption) {
         for (unsigned char *readPos = start; readPos < end;) {
-            err = gcm_pc_process_buffer_enc(readPos, inLen, outPtr, (size_t) outputLen, &rd, &wr, encryption,
+            err = gcm_pc_process_buffer_enc(readPos, inLen, outPtr, availableOut, &rd, &wr, encryption,
                                             &bufBlockIndex,
                                             &blocksRemaining, hashKeys, &ctr1, roundKeys, num_rounds, &totalBytes, &X,
                                             bufBlockLen, bufBlock);
@@ -202,10 +207,11 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
             readPos += rd;
             inLen -= rd;
             outPtr += wr;
+            availableOut -= wr;
         }
     } else {
         for (unsigned char *readPos = start; readPos < end;) {
-            err = gcm_pc_process_buffer_dec(readPos, inLen, outPtr, (size_t) outputLen, &rd, &wr, &bufBlockIndex,
+            err = gcm_pc_process_buffer_dec(readPos, inLen, outPtr, availableOut, &rd, &wr, &bufBlockIndex,
                                             &blocksRemaining, hashKeys, &ctr1, roundKeys, num_rounds, &totalBytes, &X,
                                             bufBlockLen, bufBlock, macBlockLen);
             if (err != NULL) {
@@ -214,6 +220,7 @@ gcm_pc_process_packet(bool encryption, uint8_t *key, size_t keyLen, uint8_t *non
             readPos += rd;
             inLen -= rd;
             outPtr += wr;
+            availableOut -= wr;
         }
     }
 

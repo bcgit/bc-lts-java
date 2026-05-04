@@ -106,7 +106,7 @@ ccm_err *ccm_init(
             init_256(ctx->roundKeys, key, true);
             break;
         default:
-            assert(0);
+            bc_assert(0);
     }
     ctx->initialChainblock = _mm_setzero_si128();//_mm_loadu_si128((__m128i *) ctx->macBlock);
     ctx->chainblock = ctx->initialChainblock;
@@ -132,7 +132,7 @@ ccm_err *ccm_init(
         ctx->initADLen = 0;
     }
 
-    if (initialText != NULL) {
+    if (initialText != NULL && initialTextLen > 0) {
         //
         // We keep a copy as it is needed to calculate the mac
         // the same state it was before the first data is processed.
@@ -200,6 +200,10 @@ ccm_err *ccm_process_packet(
         memzero(tmp, BLOCK_SIZE);
         //"mac check in CCM failed"
         if (nonEqual) {
+            // SP 800-38C: discard plaintext on tag failure.
+            memzero(out, outputLen);
+            memzero(ref->macBlock, BLOCK_SIZE);
+            *output_len = 0;
             return make_ccm_error("mac check in CCM failed", ILLEGAL_CIPHER_TEXT);
         }
         *output_len = outputLen;
@@ -224,10 +228,12 @@ void calculateMac(ccm_ctx *ctx, uint8_t *input, size_t len, uint8_t *aad, size_t
     cbcencrypt(ctx, ctx->buf, 1, ctx->macBlock);
     if (textLength) {
         if (textLength < TEXT_LENGTH_UPPER_BOUND) {
+            // 0 < a < 2^16 - 2^8: encode as 2-byte BE (RFC 3610 / SP 800-38C A.2.2)
             ctx->buf[0] = (uint8_t) (textLength >> 8);
             ctx->buf[1] = (uint8_t) (textLength);
             ctx->buf_ptr = 2;
-        } else {
+        } else if (textLength < ((size_t) 1 << 32)) {
+            // 2^16 - 2^8 <= a < 2^32: encode as 0xff 0xfe || 4-byte BE
             ctx->buf[0] = 0xff;
             ctx->buf[1] = 0xfe;
             ctx->buf[2] = (uint8_t) (textLength >> 24);
@@ -235,6 +241,19 @@ void calculateMac(ccm_ctx *ctx, uint8_t *input, size_t len, uint8_t *aad, size_t
             ctx->buf[4] = (uint8_t) (textLength >> 8);
             ctx->buf[5] = (uint8_t) (textLength);
             ctx->buf_ptr = 6;
+        } else {
+            // 2^32 <= a < 2^64: encode as 0xff 0xff || 8-byte BE
+            ctx->buf[0] = 0xff;
+            ctx->buf[1] = 0xff;
+            ctx->buf[2] = (uint8_t) (textLength >> 56);
+            ctx->buf[3] = (uint8_t) (textLength >> 48);
+            ctx->buf[4] = (uint8_t) (textLength >> 40);
+            ctx->buf[5] = (uint8_t) (textLength >> 32);
+            ctx->buf[6] = (uint8_t) (textLength >> 24);
+            ctx->buf[7] = (uint8_t) (textLength >> 16);
+            ctx->buf[8] = (uint8_t) (textLength >> 8);
+            ctx->buf[9] = (uint8_t) (textLength);
+            ctx->buf_ptr = 10;
         }
         if (ctx->initAD != NULL) {
             cbcmac_update(ctx, ctx->initAD, ctx->initADLen);
@@ -285,7 +304,7 @@ static inline void encrypt(__m128i *d0, const __m128i chainblock, __m128i *round
         *d0 = _mm_aesenc_si128(*d0, roundKeys[13]);
         *d0 = _mm_aesenclast_si128(*d0, roundKeys[14]);
     } else {
-        assert(0);
+        bc_assert(0);
     }
 }
 

@@ -33,7 +33,7 @@ void cfb_reset(cfb_ctx *ctx) {
 }
 
 void cfb_init(cfb_ctx *pCtx, unsigned char *key, unsigned char *iv) {
-    assert(pCtx != NULL);
+    bc_assert(pCtx != NULL);
 
     // TODO refactor..
 
@@ -49,7 +49,7 @@ void cfb_init(cfb_ctx *pCtx, unsigned char *key, unsigned char *iv) {
             break;
         default:
             // it technically cannot hit here but if it does, we need to exit hard.
-            assert(0);
+            bc_assert(0);
     }
 
     pCtx->initialFeedback = vld1q_u8(iv);

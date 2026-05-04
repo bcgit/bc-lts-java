@@ -114,7 +114,7 @@ ccm_err *ccm_init(
         ctx->initADLen = 0;
     }
 
-    if (initialText != NULL) {
+    if (initialText != NULL && initialTextLen > 0) {
         //
         // We keep a copy as it is needed to calculate the mac
         // the same state it was before the first data is processed.
@@ -279,6 +279,10 @@ ccm_err *process_packet(
         memzero(tmp, BLOCK_SIZE);
         //"mac check in CCM failed"
         if (nonEqual) {
+            // SP 800-38C: discard plaintext on tag failure.
+            memzero(out, outputLen);
+            memzero(ref->macBlock, BLOCK_SIZE);
+            *output_len = 0;
             return make_ccm_error("mac check in CCM failed", ILLEGAL_CIPHER_TEXT);
         }
         *output_len = outputLen;

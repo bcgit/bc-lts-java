@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <assert.h>
 #include "arm_neon.h"
+#include "../util/util.h"
 
 static const uint8x16_t zero = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 static const uint8x16_t one = {0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0}; // endian
@@ -20,8 +21,8 @@ static inline uint8x16_t swap_endian(uint8x16_t in) {
 
 static inline bool areEqualCT(const uint8_t *left, const uint8_t *right, size_t len) {
 
-    assert(left != NULL);
-    assert(right != NULL);
+    bc_assert(left != NULL);
+    bc_assert(right != NULL);
 
     uint32_t nonEqual = 0;
 

@@ -9,6 +9,7 @@
 
 
 #include "../keccak/keccak.h"
+#include "../util/util.h"
 
 
 static const uint64_t K[] = {
@@ -116,7 +117,7 @@ void pad_and_switch_squeezing(shake_ctx *ctx) {
             buf[ctx->buf_u8_index] = 0x1F;
             break;
         default:
-            assert(false);
+            bc_assert(false);
     }
 
     buf[rateBytes - 1] |= 128;
@@ -168,7 +169,7 @@ void shake_squeeze(shake_ctx *ctx, uint8_t *output, size_t len) {
         ctx->state_output_index += toCopy;
         len -= toCopy;
         output+=toCopy;
-        assert(!(ctx->state_output_index & 0x07) || len == 0);
+        bc_assert(!(ctx->state_output_index & 0x07) || len == 0);
     }
 
     while (len >= 8) {
@@ -180,7 +181,7 @@ void shake_squeeze(shake_ctx *ctx, uint8_t *output, size_t len) {
     }
 
     if (len > 0) {
-        assert((ctx->state_output_index & 0x07) == 0);
+        bc_assert((ctx->state_output_index & 0x07) == 0);
         // sub 64 bit
         do_squeeze(ctx);
         memcpy(output, ((uint8_t *)&ctx->state[(ctx->state_output_index >> 3)]),len); // TODO Endian issue on BE systems
@@ -220,7 +221,7 @@ void shake_digest(shake_ctx *ctx, uint8_t *output, size_t len) {
         }
 
         if (len) {
-            assert(len < 8);
+            bc_assert(len < 8);
             // sub 64 bit
             memcpy(output, &ctx->state[stateIndex], len); // TODO Endian issue on BE systems
         }

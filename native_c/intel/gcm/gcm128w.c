@@ -14,8 +14,8 @@
 
 bool areEqualCT(const uint8_t *left, const uint8_t *right, size_t len) {
 
-    assert(left != NULL);
-    assert(right != NULL);
+    bc_assert(left != NULL);
+    bc_assert(right != NULL);
 
     uint32_t nonEqual = 0;
 

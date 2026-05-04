@@ -18,7 +18,7 @@ static inline __m128i set_feedback(const __m512i in_cipher_blocks, const uint32_
     } else if (num_blocks == 4) {
         return _mm512_extracti32x4_epi32(in_cipher_blocks, 3);
     } else {
-        assert(0);
+        bc_assert(0);
     }
 }
 

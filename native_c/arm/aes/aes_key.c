@@ -14,9 +14,9 @@ aes_key *create_aes_key() {
 
 
 void init_aes_key(aes_key *key, uint8_t *user_key, size_t key_len, bool encryption) {
-    assert(key != NULL);
-    assert(user_key != NULL);
-    assert(key_len == 16 || key_len == 24 || key_len == 32);
+    bc_assert(key != NULL);
+    bc_assert(user_key != NULL);
+    bc_assert(key_len == 16 || key_len == 24 || key_len == 32);
     memset(key->round_keys, 0, sizeof(uint8x16_t) * 15);
     key->encryption = encryption;
     key->rounds = calculate_round_keys(

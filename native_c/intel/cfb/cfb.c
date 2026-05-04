@@ -26,7 +26,7 @@ void cfb_reset(cfb_ctx *ctx) {
 }
 
 void cfb_init(cfb_ctx *pCtx, unsigned char *key, unsigned char *iv) {
-    assert(pCtx != NULL);
+    bc_assert(pCtx != NULL);
     memzero(pCtx->roundKeys, sizeof(__m128i) * 15);
     switch (pCtx->num_rounds) {
         case ROUNDS_128:
@@ -43,7 +43,7 @@ void cfb_init(cfb_ctx *pCtx, unsigned char *key, unsigned char *iv) {
             break;
         default:
             // it technically cannot hit here but if it does, we need to exit hard.
-            assert(0);
+            bc_assert(0);
     }
 
     cfb_reset(pCtx);

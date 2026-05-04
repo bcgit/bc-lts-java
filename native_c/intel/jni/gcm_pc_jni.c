@@ -130,7 +130,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMPacketCi
     // Assert mac len.
     //
     if (macSize < 4 || macSize > 16 ) {
-        throw_java_invalid_state(env, EM_MACSIZE_INVALID);
+        throw_java_illegal_argument(env, EM_MACSIZE_INVALID);
         goto exit;
     }
 

@@ -350,7 +350,7 @@ gcm_pc_process_buffer_enc(unsigned char *in, size_t inlen, unsigned char *out, s
 
     *read = *written = 0;
 
-    if (encryption && *bufBlockIndex == 0 && inlen > SIXTEEN_BLOCKS && outputLen > SIXTEEN_BLOCKS) {
+    if (encryption && *bufBlockIndex == 0 && inlen >= SIXTEEN_BLOCKS && outputLen >= SIXTEEN_BLOCKS) {
         // Special case when nothing is buffered, and we have more than 16 blocks to process, and we are doing
         // encryption.
 

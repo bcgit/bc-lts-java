@@ -204,7 +204,7 @@ gcm_err *gcm_init(
         ctx->initADLen = 0;
     }
 
-    if (initialText != NULL) {
+    if (initialText != NULL && initialTextLen > 0) {
 
         //
         // We keep a copy so that if the instances is reset it can be returned to
@@ -224,7 +224,7 @@ gcm_err *gcm_init(
     // Setup new mac block len
     //
     ctx->macBlockLen = macBlockLenBits / 8;
-    assert(ctx->macBlockLen <= MAC_BLOCK_LEN);
+    bc_assert(ctx->macBlockLen <= MAC_BLOCK_LEN);
 
     memzero(ctx->bufBlock,  BUF_BLK_SIZE);
     ctx->bufBlockIndex = 0;

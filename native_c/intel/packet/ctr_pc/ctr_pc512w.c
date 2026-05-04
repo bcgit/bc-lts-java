@@ -187,7 +187,7 @@ bool ctr_pc_process_bytes(unsigned char *src, size_t len, unsigned char *dest, s
                               uint64_t *ctr, uint64_t initialCTR, uint64_t ctrMast, bool *ctrAtEnd, __m128i *IV_le,
                               __m128i *roundKeys, int num_rounds, __m128i *partialBlock) {
     unsigned char *destStart = dest;
-    if (buf_pos == 0 && len >= 16) {
+    if (*buf_pos == 0 && len >= 16) {
 
         while (len >= BLOCK_SIZE) {
 

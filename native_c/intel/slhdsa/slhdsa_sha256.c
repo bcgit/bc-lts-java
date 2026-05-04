@@ -90,6 +90,10 @@ void slhdsa_sha256_mgf256_mask(slhdsa_sha256 *ctx,
                            uint8_t *in2, size_t in2_len,
                            uint8_t *in3, size_t in3_len) {
 
+    // Bound key_len to keep the VLA on the stack and protect against
+    // size_t overflow on key_len + 4. SLH-DSA security categories cap
+    // public-seed material well under this bound.
+    bc_assert(key_len <= 256);
 
     const size_t seedCtrLen = key_len + 4;
     uint8_t seedCtr[seedCtrLen];
@@ -141,6 +145,7 @@ void slhdsa_sha256_mgf256_mask(slhdsa_sha256 *ctx,
     } while (tgtIndex < 4);
 
     memzero(seedCtr, seedCtrLen);
+    memzero(hashBuf, sizeof(hashBuf));
     memzero(&sha256Ctx, sizeof(sha256_ctx));
 
 }

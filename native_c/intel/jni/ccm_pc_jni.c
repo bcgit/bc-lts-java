@@ -56,8 +56,8 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCMPacketCi
     init_bytearray_ctx(&ad);
 
 
-    // Assert the mac size.
-    if (macSize < 4 || macSize > 16) {
+    // Assert the mac size: must be in {4, 6, 8, 10, 12, 14, 16} per RFC 3610.
+    if (macSize < 4 || macSize > 16 || (macSize & 1) != 0) {
         throw_java_illegal_argument(env, EM_MACSIZE_INVALID);
         goto exit;
     }

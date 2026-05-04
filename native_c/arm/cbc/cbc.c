@@ -25,12 +25,12 @@ void cbc_free_ctx(cbc_ctx *ctx) {
 }
 
 void cbc_reset(cbc_ctx *ctx) {
-    assert(ctx != NULL);
+    bc_assert(ctx != NULL);
     ctx->chain_block = ctx->initial_chain_block;
 }
 
 void cbc_init(cbc_ctx *pCtx, unsigned char *key, unsigned char *iv) {
-    assert(pCtx != NULL);
+    bc_assert(pCtx != NULL);
     // TODO refactor CBC setup
     switch (pCtx->num_rounds) {
         case ROUNDS_128:
@@ -43,7 +43,7 @@ void cbc_init(cbc_ctx *pCtx, unsigned char *key, unsigned char *iv) {
             init_aes_key(&pCtx->key, key, 32, pCtx->encryption);
             break;
         default:
-            assert(0);
+            bc_assert(0);
     }
 
     pCtx->initial_chain_block = vld1q_u8(iv);
@@ -73,7 +73,7 @@ enc_blocks(const uint8x16_t *rk, uint8x16_t chain_block, uint8x16_t *d0,
 
 
 size_t cbc_encrypt(cbc_ctx *cbc, unsigned char *src, uint32_t blocks, unsigned char *dest) {
-    assert(cbc != NULL);
+    bc_assert(cbc != NULL);
     unsigned char *destStart = dest;
     uint8x16_t d0;
     uint8x16_t tmpCb = cbc->chain_block;

@@ -134,9 +134,9 @@ static inline uint32_t SubWord(uint32_t x) {
  * @return the number of rounds
  */
 static inline size_t calculate_round_keys(uint8_t *user_key, size_t user_key_len, bool encrypt,  uint8x16_t *rc) {
-    assert(user_key != NULL);
-    assert(user_key_len == 16 || user_key_len == 24 || user_key_len == 32);
-    assert(rc != NULL);
+    bc_assert(user_key != NULL);
+    bc_assert(user_key_len == 16 || user_key_len == 24 || user_key_len == 32);
+    bc_assert(rc != NULL);
 
 
 
@@ -251,7 +251,7 @@ static inline size_t calculate_round_keys(uint8_t *user_key, size_t user_key_len
         }
 
         default:
-            assert(false);
+            bc_assert(false);
 
 
     }
