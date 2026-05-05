@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
 import java.util.NoSuchElementException;
 
 import org.bouncycastle.bcpg.BCPGInputStream;
@@ -13,6 +12,7 @@ import org.bouncycastle.bcpg.PacketTags;
 import org.bouncycastle.bcpg.UnknownPacket;
 import org.bouncycastle.bcpg.UnsupportedPacketVersionException;
 import org.bouncycastle.openpgp.operator.KeyFingerPrintCalculator;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Iterable;
 
 /**
@@ -83,9 +83,8 @@ public class PGPObjectFactory
     public Object nextObject()
         throws IOException
     {
-        List l;
-
-        switch (in.nextPacketTag())
+        int tag = in.nextPacketTag();
+        switch (tag)
         {
         case -1:
             return null;
@@ -96,7 +95,8 @@ public class PGPObjectFactory
         case PacketTags.EXPERIMENTAL_4:
             return in.readPacket();
         case PacketTags.SIGNATURE:
-            l = new ArrayList();
+        {
+            ArrayList l = new ArrayList();
 
             while (in.nextPacketTag() == PacketTags.SIGNATURE)
             {
@@ -112,11 +112,12 @@ public class PGPObjectFactory
                 }
                 catch (PGPException e)
                 {
-                    throw new IOException("can't create signature object: " + e);
+                    throw Exceptions.ioException("can't create signature object: " + e, e);
                 }
             }
 
             return new PGPSignatureList((PGPSignature[])l.toArray(new PGPSignature[l.size()]));
+        }
         case PacketTags.SECRET_KEY:
             try
             {
@@ -124,7 +125,7 @@ public class PGPObjectFactory
             }
             catch (PGPException e)
             {
-                throw new IOException("can't create secret key object: " + e);
+                throw Exceptions.ioException("can't create secret key object: " + e, e);
             }
         case PacketTags.PUBLIC_KEY:
             return new PGPPublicKeyRing(in, fingerPrintCalculator);
@@ -135,7 +136,7 @@ public class PGPObjectFactory
             }
             catch (PGPException e)
             {
-                throw new IOException("processing error: " + e.getMessage());
+                throw Exceptions.ioException("processing error: " + e.getMessage(), e);
             }
         case PacketTags.COMPRESSED_DATA:
             return new PGPCompressedData(in);
@@ -150,7 +151,8 @@ public class PGPObjectFactory
         case PacketTags.AEAD_ENC_DATA:
             return new PGPEncryptedDataList(in);
         case PacketTags.ONE_PASS_SIGNATURE:
-            l = new ArrayList();
+        {
+            ArrayList l = new ArrayList();
 
             while (in.nextPacketTag() == PacketTags.ONE_PASS_SIGNATURE)
             {
@@ -160,29 +162,28 @@ public class PGPObjectFactory
                 }
                 catch (PGPException e)
                 {
-                    throw new IOException("can't create one pass signature object: " + e);
+                    throw Exceptions.ioException("can't create one pass signature object: " + e, e);
                 }
             }
 
             return new PGPOnePassSignatureList((PGPOnePassSignature[])l.toArray(new PGPOnePassSignature[l.size()]));
+        }
         case PacketTags.MARKER:
             return new PGPMarker(in);
         case PacketTags.PADDING:
             return new PGPPadding(in);
         case PacketTags.MOD_DETECTION_CODE:
-            return new UnknownPacket(PacketTags.MOD_DETECTION_CODE, in);
         case PacketTags.USER_ID:
-            return new UnknownPacket(PacketTags.USER_ID, in);
         case PacketTags.USER_ATTRIBUTE:
-            return new UnknownPacket(PacketTags.USER_ATTRIBUTE, in);
+            return new UnknownPacket(tag, in);
         }
 
-        int tag = in.nextPacketTag();
+        int nextTag = in.nextPacketTag();
         UnknownPacket unknownPacket = (UnknownPacket)in.readPacket();
         if (throwForUnknownCriticalPackets && unknownPacket.isCritical())
         {
             // Leave the error message intact for backwards compatibility
-            throw new IOException("unknown object in stream: " + tag);
+            throw new IOException("unknown object in stream: " + nextTag);
         }
         return unknownPacket;
     }
