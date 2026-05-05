@@ -97,6 +97,7 @@ class CertPathValidatorUtilities
     protected static final String ANY_POLICY = "2.5.29.32.0";
 
     protected static final String CRL_NUMBER = Extension.cRLNumber.getId();
+    protected static final String REASON_CODE = Extension.reasonCode.getId();
 
     /*
     * key usage bits
@@ -104,7 +105,8 @@ class CertPathValidatorUtilities
     protected static final int KEY_CERT_SIGN = 5;
     protected static final int CRL_SIGN = 6;
 
-    protected static final String[] crlReasons = new String[]{
+    static final String[] crlReasons = new String[]
+    {
         "unspecified",
         "keyCompromise",
         "cACompromise",
@@ -115,7 +117,8 @@ class CertPathValidatorUtilities
         "unknown",
         "removeFromCRL",
         "privilegeWithdrawn",
-        "aACompromise"};
+        "aACompromise",
+    };
 
     static Collection findTargets(PKIXExtendedBuilderParameters paramsPKIX) throws CertPathBuilderException
     {
@@ -125,8 +128,8 @@ class CertPathValidatorUtilities
 
         try
         {
-            CertPathValidatorUtilities.findCertificates(targets, certSelect, baseParams.getCertificateStores());
-            CertPathValidatorUtilities.findCertificates(targets, certSelect, baseParams.getCertStores());
+            findCertificates(targets, certSelect, baseParams.getCertificateStores());
+            findCertificates(targets, certSelect, baseParams.getCertStores());
         }
         catch (AnnotatedException e)
         {
@@ -375,7 +378,7 @@ class CertPathValidatorUtilities
     // policy checking
     // 
 
-    protected static final Set getQualifierSet(ASN1Sequence qualifiers)
+    static final Set getQualifierSet(ASN1Sequence qualifiers)
         throws CertPathValidatorException
     {
         Set pq = new HashSet();
@@ -593,8 +596,8 @@ class CertPathValidatorUtilities
         }
     }
 
-    static List<PKIXCRLStore> getAdditionalStoresFromCRLDistributionPoint(
-        CRLDistPoint crldp, Map<GeneralName, PKIXCRLStore> namedCRLStoreMap, Date validDate, JcaJceHelper helper)
+    static List<PKIXCRLStore> getAdditionalStoresFromCRLDistributionPoint(CRLDistPoint crldp,
+        PKIXExtendedParameters paramsPKIX, Date validDate, JcaJceHelper helper)
         throws AnnotatedException
     {
         if (null == crldp)
@@ -614,20 +617,24 @@ class CertPathValidatorUtilities
 
         List<PKIXCRLStore> stores = new ArrayList<PKIXCRLStore>();
 
-        for (int i = 0; i < dps.length; i++)
+        Map<GeneralName, PKIXCRLStore> namedCRLStoreMap = paramsPKIX.getNamedCRLStoreMap();
+        if (!namedCRLStoreMap.isEmpty())
         {
-            DistributionPointName dpn = dps[i].getDistributionPoint();
-            // look for URIs in fullName
-            if (dpn != null && dpn.getType() == DistributionPointName.FULL_NAME)
+            for (int i = 0; i < dps.length; i++)
             {
-                GeneralName[] genNames = GeneralNames.getInstance(dpn.getName()).getNames();
-
-                for (int j = 0; j < genNames.length; j++)
+                DistributionPointName dpn = dps[i].getDistributionPoint();
+                // look for URIs in fullName
+                if (dpn != null && dpn.getType() == DistributionPointName.FULL_NAME)
                 {
-                    PKIXCRLStore store = namedCRLStoreMap.get(genNames[j]);
-                    if (store != null)
+                    GeneralName[] genNames = GeneralNames.getInstance(dpn.getName()).getNames();
+
+                    for (int j = 0; j < genNames.length; j++)
                     {
-                        stores.add(store);
+                        PKIXCRLStore store = namedCRLStoreMap.get(genNames[j]);
+                        if (store != null)
+                        {
+                            stores.add(store);
+                        }
                     }
                 }
             }
@@ -872,8 +879,7 @@ class CertPathValidatorUtilities
 
             try
             {
-                reasonCode = ASN1Enumerated
-                    .getInstance(CertPathValidatorUtilities.getExtensionValue(crl_entry, Extension.reasonCode.getId()));
+                reasonCode = ASN1Enumerated.getInstance(getExtensionValue(crl_entry, REASON_CODE));
             }
             catch (Exception e)
             {
@@ -928,7 +934,7 @@ class CertPathValidatorUtilities
         BigInteger completeCRLNumber = null;
         try
         {
-            ASN1Primitive derObject = CertPathValidatorUtilities.getExtensionValue(completeCRL, CRL_NUMBER);
+            ASN1Primitive derObject = getExtensionValue(completeCRL, CRL_NUMBER);
             if (derObject != null)
             {
                 completeCRLNumber = ASN1Integer.getInstance(derObject).getPositiveValue();
@@ -936,8 +942,7 @@ class CertPathValidatorUtilities
         }
         catch (Exception e)
         {
-            throw new AnnotatedException(
-                "CRL number extension could not be extracted from CRL.", e);
+            throw new AnnotatedException("CRL number extension could not be extracted from CRL.", e);
         }
 
         // 5.2.4 (b)
@@ -1043,17 +1048,18 @@ class CertPathValidatorUtilities
 
     private static boolean isDeltaCRL(X509CRL crl)
     {
-        return hasCriticalExtension(crl, Extension.deltaCRLIndicator.getId());
+        return hasCriticalExtension(crl, DELTA_CRL_INDICATOR);
     }
 
     /**
      * Fetches complete CRLs according to RFC 3280.
      *
+     * @param params      Revocation checker parameters.
      * @param dp          The distribution point for which the complete CRL
      * @param cert        The <code>X509Certificate</code> for
      *                    which the CRL should be searched.
-     * @param currentDate The date for which the delta CRLs must be valid.
      * @param paramsPKIX  The extended PKIX parameters.
+     * @param validityDate The date for which the delta CRLs must be valid.
      * @return A <code>Set</code> of <code>X509CRL</code>s with complete
      *         CRLs.
      * @throws AnnotatedException if an exception occurs while picking the CRLs
@@ -1070,7 +1076,7 @@ class CertPathValidatorUtilities
             Set issuers = new HashSet();
             issuers.add(PrincipalUtils.getEncodedIssuerPrincipal(cert));
 
-            CertPathValidatorUtilities.getCRLIssuersFromDistributionPoint(dp, issuers, baseCrlSelect);
+            getCRLIssuersFromDistributionPoint(dp, issuers, baseCrlSelect);
         }
         catch (AnnotatedException e)
         {
@@ -1109,8 +1115,7 @@ class CertPathValidatorUtilities
             ASN1GeneralizedTime dateOfCertgen = null;
             try
             {
-                byte[] extBytes = ((X509Certificate)certPath.getCertificates().get(index - 1))
-                    .getExtensionValue(ISISMTTObjectIdentifiers.id_isismtt_at_dateOfCertGen.getId());
+                byte[] extBytes = issuedCert.getExtensionValue(ISISMTTObjectIdentifiers.id_isismtt_at_dateOfCertGen.getId());
                 if (extBytes != null)
                 {
                     dateOfCertgen = ASN1GeneralizedTime.getInstance(ASN1Primitive.fromByteArray(extBytes));
@@ -1257,8 +1262,8 @@ class CertPathValidatorUtilities
 
         try
         {
-            CertPathValidatorUtilities.findCertificates(certs, certSelect, certStores);
-            CertPathValidatorUtilities.findCertificates(certs, certSelect, pkixCertStores);
+            findCertificates(certs, certSelect, certStores);
+            findCertificates(certs, certSelect, pkixCertStores);
         }
         catch (AnnotatedException e)
         {
@@ -1288,27 +1293,34 @@ class CertPathValidatorUtilities
     {
         if (crls.isEmpty())
         {
+            {
                 X509Certificate xCert = (X509Certificate)cert;
 
                 throw new RecoverableCertPathValidatorException("No CRLs found for issuer \"" + RFC4519Style.INSTANCE.toString(PrincipalUtils.getIssuerPrincipal(xCert)) + "\"", null,
                     params.getCertPath(), params.getIndex());
+            }
         }
     }
 
     static void checkCRLCriticalExtensions(X509CRL crl, String exceptionMessage)
         throws AnnotatedException
     {
+        if (crl.hasUnsupportedCriticalExtension())
+        {
+            throw new AnnotatedException(exceptionMessage);
+        }
+
         Set criticalExtensions = crl.getCriticalExtensionOIDs();
         if (criticalExtensions != null)
         {
             int count = criticalExtensions.size();
             if (count > 0)
             {
-                if (criticalExtensions.contains(Extension.issuingDistributionPoint.getId()))
+                if (criticalExtensions.contains(ISSUING_DISTRIBUTION_POINT))
                 {
                     --count;
                 }
-                if (criticalExtensions.contains(Extension.deltaCRLIndicator.getId()))
+                if (criticalExtensions.contains(DELTA_CRL_INDICATOR))
                 {
                     --count;
                 }

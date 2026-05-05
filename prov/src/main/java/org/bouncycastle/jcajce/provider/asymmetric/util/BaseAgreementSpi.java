@@ -33,6 +33,7 @@ import org.bouncycastle.internal.asn1.ntt.NTTObjectIdentifiers;
 import org.bouncycastle.internal.asn1.oiw.OIWObjectIdentifiers;
 import org.bouncycastle.jcajce.spec.HybridValueParameterSpec;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Integers;
 import org.bouncycastle.util.Strings;
 
@@ -272,7 +273,7 @@ public abstract class BaseAgreementSpi
             }
             catch (NoSuchAlgorithmException e)
             {
-                throw new IllegalStateException(e.getMessage());
+                throw Exceptions.illegalStateException(e.getMessage(), e);
             }
         }
 
@@ -339,12 +340,8 @@ public abstract class BaseAgreementSpi
                 {
                     throw new NoSuchAlgorithmException("algorithm OID is null");
                 }
-                ASN1ObjectIdentifier oid;
-                try
-                {
-                    oid = new ASN1ObjectIdentifier(oidAlgorithm);
-                }
-                catch (IllegalArgumentException e)
+                ASN1ObjectIdentifier oid = ASN1ObjectIdentifier.tryFromID(oidAlgorithm);
+                if (oid == null)
                 {
                     throw new NoSuchAlgorithmException("no OID for algorithm: " + oidAlgorithm);
                 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.encoders.Base64;
 
 class PEMUtil
@@ -47,7 +48,7 @@ class PEMUtil
     private String readLine(InputStream in) throws IOException
     {
         int c;
-        StringBuilder l = new StringBuilder();
+        StringBuffer l = new StringBuffer();
 
         do
         {
@@ -117,7 +118,7 @@ class PEMUtil
         throws IOException
     {
         String line;
-        StringBuilder pemBuf = new StringBuilder();
+        StringBuffer pemBuf = new StringBuffer();
 
         Boundaries header = null;
 
@@ -171,7 +172,7 @@ class PEMUtil
             }
             catch (Exception e)
             {
-                throw new IOException("malformed PEM data encountered");
+                throw Exceptions.ioException("malformed PEM data encountered", e);
             }
         }
 

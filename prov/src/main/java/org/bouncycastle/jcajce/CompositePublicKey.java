@@ -14,14 +14,13 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.crypto.util.PublicKeyFactory;
-import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
 import org.bouncycastle.internal.asn1.iana.IANAObjectIdentifiers;
 import org.bouncycastle.internal.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.jcajce.provider.asymmetric.compositesignatures.CompositeIndex;
 import org.bouncycastle.jcajce.provider.asymmetric.compositesignatures.KeyFactorySpi;
 import org.bouncycastle.jcajce.provider.util.AsymmetricKeyInfoConverter;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Exceptions;
 
 /**
  * A composite key class.
@@ -163,7 +162,7 @@ public class CompositePublicKey
         }
 
         this.keys = publicKeyFromFactory.getPublicKeys();
-        this.algorithmIdentifier = publicKeyFromFactory.getAlgorithmID();
+        this.algorithmIdentifier = new AlgorithmIdentifier(publicKeyFromFactory.getAlgorithmIdentifier());
         this.providers = null;
     }
 
@@ -223,14 +222,14 @@ public class CompositePublicKey
         return CompositeIndex.getAlgorithmName(this.algorithmIdentifier.getAlgorithm());
     }
 
-    public ASN1ObjectIdentifier getAlgorithmIdentifier()
-       {
-           return algorithmIdentifier.getAlgorithm();
-       }
-
     public AlgorithmIdentifier getAlgorithmID()
     {
         return algorithmIdentifier;
+    }
+    
+    public ASN1ObjectIdentifier getAlgorithmIdentifier()
+    {
+        return algorithmIdentifier.getAlgorithm();
     }
 
     public String getFormat()
@@ -253,17 +252,19 @@ public class CompositePublicKey
     @Override
     public byte[] getEncoded()
     {
-        if (this.algorithmIdentifier.getAlgorithm().on(IANAObjectIdentifiers.id_alg))
+        ASN1ObjectIdentifier algOid = algorithmIdentifier.getAlgorithm();
+
+        if (algOid.on(IANAObjectIdentifiers.id_alg))
         {
             try
             {
-                byte[] mldsaKey = org.bouncycastle.pqc.crypto.util.SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(org.bouncycastle.pqc.crypto.util.PublicKeyFactory.createKey(keys.get(0).getEncoded())).getPublicKeyData().getBytes();
-                byte[] tradKey = SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(PublicKeyFactory.createKey(keys.get(1).getEncoded())).getPublicKeyData().getBytes();
-                return new SubjectPublicKeyInfo(getAlgorithmID(), Arrays.concatenate(mldsaKey, tradKey)).getEncoded();
+                byte[] mldsaPK = SubjectPublicKeyInfo.getInstance(keys.get(0).getEncoded()).getPublicKeyData().getOctets();
+                byte[] tradPK = SubjectPublicKeyInfo.getInstance(keys.get(1).getEncoded()).getPublicKeyData().getOctets();
+                return new SubjectPublicKeyInfo(algorithmIdentifier, Arrays.concatenate(mldsaPK, tradPK)).getEncoded(ASN1Encoding.DER);
             }
             catch (IOException e)
             {
-                throw new IllegalStateException("unable to encode composite public key: " + e.getMessage());
+                throw Exceptions.illegalStateException("unable to encode composite public key", e);
             }
         }
 
@@ -271,53 +272,50 @@ public class CompositePublicKey
 
         for (int i = 0; i < keys.size(); i++)
         {
-            if (this.algorithmIdentifier.getAlgorithm().equals(MiscObjectIdentifiers.id_composite_key))
+            SubjectPublicKeyInfo spki = SubjectPublicKeyInfo.getInstance(keys.get(i).getEncoded());
+
+            if (MiscObjectIdentifiers.id_composite_key.equals(algOid))
             {
                 //Legacy, component is the whole SubjectPublicKeyInfo
-                v.add(SubjectPublicKeyInfo.getInstance(keys.get(i).getEncoded()));
+                v.add(spki);
             }
             else
             {
                 //component is the value of subjectPublicKey from SubjectPublicKeyInfo
-                SubjectPublicKeyInfo keyInfo = SubjectPublicKeyInfo.getInstance(keys.get(i).getEncoded());
-                v.add(keyInfo.getPublicKeyData());
+                v.add(spki.getPublicKeyData());
             }
         }
+
         try
         {
             return new SubjectPublicKeyInfo(this.algorithmIdentifier, new DERSequence(v)).getEncoded(ASN1Encoding.DER);
         }
         catch (IOException e)
         {
-            throw new IllegalStateException("unable to encode composite public key: " + e.getMessage());
+            throw Exceptions.illegalStateException("unable to encode composite public key", e);
         }
     }
 
-
     public int hashCode()
     {
-        return keys.hashCode();
+        return algorithmIdentifier.hashCode() ^ keys.hashCode();
     }
 
-    public boolean equals(Object o)
+    public boolean equals(Object obj)
     {
-        if (o == this)
+        if (obj == this)
         {
             return true;
         }
 
-        if (o instanceof CompositePublicKey)
+        if (!(obj instanceof CompositePublicKey))
         {
-            boolean isEqual = true;
-            CompositePublicKey comparedKey = (CompositePublicKey)o;
-            if (!comparedKey.getAlgorithmIdentifier().equals(this.algorithmIdentifier) || !this.keys.equals(comparedKey.keys))
-            {
-                isEqual = false;
-            }
-
-            return isEqual;
+            return false;
         }
 
-        return false;
+        CompositePublicKey that = (CompositePublicKey)obj;
+
+        return this.algorithmIdentifier.equals(that.algorithmIdentifier)
+            && this.keys.equals(that.keys);
     }
 }

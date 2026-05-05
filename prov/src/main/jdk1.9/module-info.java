@@ -1,4 +1,4 @@
-module org.bouncycastle.lts.prov
+module org.bouncycastle.provider
 {
     requires java.sql;
     requires java.logging;
@@ -61,6 +61,7 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.crypto.hpke;
     exports org.bouncycastle.crypto.io;
     exports org.bouncycastle.crypto.kems;
+    exports org.bouncycastle.crypto.kems.mlkem;
     exports org.bouncycastle.crypto.macs;
     exports org.bouncycastle.crypto.modes;
     exports org.bouncycastle.crypto.modes.gcm;
@@ -71,6 +72,8 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.crypto.prng;
     exports org.bouncycastle.crypto.prng.drbg;
     exports org.bouncycastle.crypto.signers;
+    exports org.bouncycastle.crypto.signers.mldsa;
+    exports org.bouncycastle.crypto.signers.slhdsa;
     exports org.bouncycastle.crypto.tls;
     exports org.bouncycastle.crypto.util;
     exports org.bouncycastle.iana;

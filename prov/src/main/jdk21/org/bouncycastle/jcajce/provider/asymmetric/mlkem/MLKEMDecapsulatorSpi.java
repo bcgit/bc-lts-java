@@ -2,8 +2,8 @@ package org.bouncycastle.jcajce.provider.asymmetric.mlkem;
 
 import org.bouncycastle.jcajce.provider.asymmetric.mlkem.BCMLKEMPrivateKey;
 import org.bouncycastle.jcajce.spec.KTSParameterSpec;
-import org.bouncycastle.pqc.crypto.mlkem.MLKEMExtractor;
-import org.bouncycastle.pqc.jcajce.provider.util.KdfUtil;
+import org.bouncycastle.crypto.kems.MLKEMExtractor;
+import org.bouncycastle.jcajce.provider.asymmetric.util.KdfUtil;
 
 import javax.crypto.DecapsulateException;
 import javax.crypto.KEMSpi;

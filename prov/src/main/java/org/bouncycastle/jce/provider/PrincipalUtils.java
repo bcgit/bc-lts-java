@@ -29,11 +29,8 @@ class PrincipalUtils
         {
             return getIssuerPrincipal((X509Certificate)cert);
         }
-        else
-        {
-            // TODO: can never happen
-            return null;
-        }
+
+        throw new IllegalStateException("unsupported cert");
     }
 
     static X500Name getIssuerPrincipal(X509Certificate certificate)

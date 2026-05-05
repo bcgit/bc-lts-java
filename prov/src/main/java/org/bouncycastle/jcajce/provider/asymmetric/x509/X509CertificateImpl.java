@@ -149,7 +149,7 @@ abstract class X509CertificateImpl
         }
         catch (IOException e)
         {
-            throw new IllegalStateException("can't encode issuer DN");
+            throw Exceptions.illegalStateException("can't encode issuer DN", e);
         }
     }
 
@@ -168,7 +168,7 @@ abstract class X509CertificateImpl
         }
         catch (IOException e)
         {
-            throw new IllegalStateException("can't encode subject DN");
+            throw Exceptions.illegalStateException("can't encode subject DN", e);
         }
     }
 
@@ -701,7 +701,7 @@ abstract class X509CertificateImpl
 
             //Use this only for legacy composite public keys (they have this identifier)
             if (key instanceof CompositePublicKey
-                && MiscObjectIdentifiers.id_composite_key.equals(((CompositePublicKey)key).getAlgorithmID().getAlgorithm()))
+                && MiscObjectIdentifiers.id_composite_key.equals(((CompositePublicKey)key).getAlgorithmIdentifier()))
             {
                 List<PublicKey> keys = ((CompositePublicKey)key).getPublicKeys();
 

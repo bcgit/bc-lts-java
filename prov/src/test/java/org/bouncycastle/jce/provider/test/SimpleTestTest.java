@@ -1,13 +1,14 @@
 package org.bouncycastle.jce.provider.test;
 
-import junit.framework.TestCase;
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.util.test.SimpleTestResult;
-
 import java.security.Security;
 
+import junit.framework.TestCase;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
+import org.bouncycastle.util.test.SimpleTestResult;
+
 public class SimpleTestTest
-        extends TestCase
+    extends TestCase
 {
     public void testJCE()
     {
@@ -17,12 +18,16 @@ public class SimpleTestTest
         {
             Security.addProvider(new BouncyCastleProvider());
         }
+        if (Security.getProvider(BouncyCastlePQCProvider.PROVIDER_NAME) == null)
+        {
+            Security.addProvider(new BouncyCastlePQCProvider());
+        }
 
-        org.bouncycastle.util.test.Test[] tests = RegressionTest.tests();
+        org.bouncycastle.util.test.Test[] tests = RegressionTest.tests;
 
         for (int i = 0; i != tests.length; i++)
         {
-            SimpleTestResult result = (SimpleTestResult) tests[i].perform();
+            SimpleTestResult result = (SimpleTestResult)tests[i].perform();
 
             if (!result.isSuccessful())
             {
@@ -30,7 +35,6 @@ public class SimpleTestTest
                 {
                     result.getException().printStackTrace();
                 }
-                System.out.println("Test failed: " + tests[i]);
                 fail("index " + i + " " + result.toString());
             }
         }

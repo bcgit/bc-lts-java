@@ -13,8 +13,7 @@ import org.bouncycastle.internal.asn1.iana.IANAObjectIdentifiers;
 import org.bouncycastle.internal.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.jcajce.CompositePrivateKey;
 import org.bouncycastle.jcajce.CompositePublicKey;
-
-
+import org.bouncycastle.util.Exceptions;
 /**
  * KeyPairGenerator class for composite signatures. Selected algorithm is set by the "subclasses" at the end of this file.
  */
@@ -50,7 +49,7 @@ public class KeyPairGeneratorSpi
             }
             catch (Exception e)
             {
-                throw new IllegalStateException("unable to create base generator: " + e.getMessage());
+                throw Exceptions.illegalStateException("unable to create base generator", e);
             }
         }
     }
@@ -491,7 +490,7 @@ public class KeyPairGeneratorSpi
             super(MiscObjectIdentifiers.id_MLDSA65_ECDSA_brainpoolP256r1_SHA256);
         }
     }
-    
+
     public static final class MLDSA65_ECDSA_P384_SHA384
         extends KeyPairGeneratorSpi
     {

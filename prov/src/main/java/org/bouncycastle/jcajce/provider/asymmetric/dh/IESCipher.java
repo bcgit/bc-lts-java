@@ -52,6 +52,7 @@ import org.bouncycastle.jcajce.util.JcaJceHelper;
 import org.bouncycastle.jce.interfaces.IESKey;
 import org.bouncycastle.jce.spec.IESParameterSpec;
 import org.bouncycastle.util.BigIntegers;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Strings;
 
 
@@ -337,7 +338,7 @@ public class IESCipher
         }
         catch (InvalidAlgorithmParameterException e)
         {
-            throw new IllegalArgumentException("cannot handle supplied parameter spec: " + e.getMessage());
+            throw Exceptions.illegalArgumentException("cannot handle supplied parameter spec", e);
         }
 
     }
@@ -496,7 +497,7 @@ public class IESCipher
      * Classes that inherit from us
      */
 
-    static public class IES
+    public static class IES
         extends IESCipher
     {
         public IES()
@@ -507,7 +508,7 @@ public class IESCipher
         }
     }
 
-    static public class IESwithDESedeCBC
+    public static class IESwithDESedeCBC
         extends IESCipher
     {
         public IESwithDESedeCBC()
@@ -519,7 +520,7 @@ public class IESCipher
         }
     }
 
-    static public class IESwithAESCBC
+    public static class IESwithAESCBC
         extends IESCipher
     {
         public IESwithAESCBC()

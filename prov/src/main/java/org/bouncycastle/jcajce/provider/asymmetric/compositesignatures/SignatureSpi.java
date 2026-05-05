@@ -71,7 +71,7 @@ public class SignatureSpi
         canonicalNames.put(NISTObjectIdentifiers.id_ml_dsa_44.getId(), ML_DSA_44);
         canonicalNames.put(NISTObjectIdentifiers.id_ml_dsa_65.getId(), ML_DSA_65);
         canonicalNames.put(NISTObjectIdentifiers.id_ml_dsa_87.getId(), ML_DSA_87);
-
+        
         domainSeparators.put(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PSS_SHA256, Hex.decode("434f4d505349472d4d4c44534134342d525341323034382d5053532d534841323536")); // COMPSIG-MLDSA44-RSA2048-PSS-SHA256
         domainSeparators.put(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256, Hex.decode("434f4d505349472d4d4c44534134342d525341323034382d504b435331352d534841323536")); // COMPSIG-MLDSA44-RSA2048-PKCS15-SHA256
         domainSeparators.put(IANAObjectIdentifiers.id_MLDSA44_Ed25519_SHA512, Hex.decode("434f4d505349472d4d4c44534134342d456432353531392d534841353132")); // COMPSIG-MLDSA44-Ed25519-SHA512
@@ -295,7 +295,7 @@ public class SignatureSpi
         }
         catch (InvalidAlgorithmParameterException e)
         {
-            throw new IllegalStateException("unable to set context on ML-DSA");
+            throw Exceptions.illegalStateException("unable to set context on ML-DSA", e);
         }
 
         this.unprimed = false;
@@ -1020,7 +1020,7 @@ public class SignatureSpi
             return buf;
         }
     }
-    
+
     // placeholder not used
     public static final class HashMLDSA44_ECDSA_P256_SHA256
         extends SignatureSpi
@@ -1075,7 +1075,7 @@ public class SignatureSpi
             super(MiscObjectIdentifiers.id_MLDSA65_ECDSA_P384_SHA384, new SHA384Digest());
         }
     }
-    
+
     public static final class HashMLDSA65_ECDSA_P384_SHA512
         extends SignatureSpi
     {

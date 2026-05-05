@@ -8,10 +8,10 @@ import java.security.SecureRandom;
 import java.security.SignatureException;
 
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.params.SLHDSAPrivateKeyParameters;
+import org.bouncycastle.crypto.params.SLHDSAPublicKeyParameters;
+import org.bouncycastle.crypto.signers.SLHDSASigner;
 import org.bouncycastle.jcajce.provider.asymmetric.util.BaseDeterministicOrRandomSignature;
-import org.bouncycastle.pqc.crypto.slhdsa.SLHDSAPrivateKeyParameters;
-import org.bouncycastle.pqc.crypto.slhdsa.SLHDSAPublicKeyParameters;
-import org.bouncycastle.pqc.crypto.slhdsa.SLHDSASigner;
 
 public class SignatureSpi
     extends BaseDeterministicOrRandomSignature
@@ -123,8 +123,8 @@ public class SignatureSpi
 
         bOut.reset();
     }
-    
-    static public class Direct
+
+    public static class Direct
         extends SignatureSpi
     {
         public Direct()

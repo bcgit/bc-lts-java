@@ -56,6 +56,10 @@ public class KeyFactorySpi
     extends BaseKeyFactorySpi
     implements AsymmetricKeyInfoConverter
 {
+    private static AlgorithmIdentifier createECAlgID(ASN1ObjectIdentifier curveOid)
+    {
+        return new AlgorithmIdentifier(X9ObjectIdentifiers.id_ecPublicKey, new X962Parameters(curveOid));
+    }
 
     //Specific algorithm identifiers of all component signature algorithms for SubjectPublicKeyInfo. These do not need to be all initialized here but makes the code more readable IMHO.
     private static final AlgorithmIdentifier mlDsa44 = new AlgorithmIdentifier(NISTObjectIdentifiers.id_ml_dsa_44);
@@ -289,7 +293,7 @@ public class KeyFactorySpi
 
         try
         {
-            seq = DERSequence.getInstance(keyInfo.getPublicKeyData().getBytes());
+            seq = ASN1Sequence.getInstance(keyInfo.getPublicKeyData().getOctets());
         }
         catch (Exception e)
         {
@@ -299,7 +303,8 @@ public class KeyFactorySpi
         if (MiscObjectIdentifiers.id_alg_composite.equals(keyIdentifier)
             || MiscObjectIdentifiers.id_composite_key.equals(keyIdentifier))
         {
-            ASN1Sequence keySeq = ASN1Sequence.getInstance(keyInfo.getPublicKeyData().getBytes());
+            // TODO This is redundant with 'seq' calculation above 
+            ASN1Sequence keySeq = ASN1Sequence.getInstance(keyInfo.getPublicKeyData().getOctets());
             PublicKey[] pubKeys = new PublicKey[keySeq.size()];
 
             for (int i = 0; i != keySeq.size(); i++)

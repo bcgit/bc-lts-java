@@ -10,6 +10,7 @@ import java.security.spec.InvalidParameterSpecException;
 import javax.crypto.spec.IvParameterSpec;
 
 import org.bouncycastle.crypto.BlockCipher;
+import org.bouncycastle.crypto.BufferedBlockCipher;
 import org.bouncycastle.crypto.CipherKeyGenerator;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.DefaultBufferedBlockCipher;
@@ -267,7 +268,7 @@ public final class ARIA
         {
             if (GcmSpecUtil.isGcmSpec(paramSpec))
             {
-                gcmParams = GcmSpecUtil.extractGcmParameters(paramSpec);
+                gcmParams = GCMParameters.getInstance(GcmSpecUtil.extractGcmParameters(paramSpec));
             }
             else if (paramSpec instanceof AEADParameterSpec)
             {

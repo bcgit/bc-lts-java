@@ -60,6 +60,7 @@ import org.bouncycastle.internal.asn1.misc.VerisignCzagExtension;
 import org.bouncycastle.jcajce.provider.asymmetric.util.PKCS12BagAttributeCarrierImpl;
 import org.bouncycastle.jce.interfaces.PKCS12BagAttributeCarrier;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Integers;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
@@ -171,7 +172,7 @@ public class X509CertificateObject
         }
         catch (IOException e)
         {
-            throw new IllegalStateException("can't encode issuer DN");
+            throw Exceptions.illegalStateException("can't encode issuer DN", e);
         }
     }
 
@@ -188,7 +189,7 @@ public class X509CertificateObject
         }
         catch (IOException e)
         {
-            throw new IllegalStateException("can't encode issuer DN");
+            throw Exceptions.illegalStateException("can't encode issuer DN", e);
         }
     }
 
@@ -301,7 +302,7 @@ public class X509CertificateObject
 
             return boolId;
         }
-
+            
         return null;
     }
 
@@ -321,7 +322,7 @@ public class X509CertificateObject
 
             return boolId;
         }
-
+            
         return null;
     }
 
@@ -330,7 +331,7 @@ public class X509CertificateObject
         return keyUsage;
     }
 
-    public List getExtendedKeyUsage()
+    public List getExtendedKeyUsage() 
         throws CertificateParsingException
     {
         byte[] extOctets = getExtensionOctets(c, Extension.extendedKeyUsage);
@@ -384,7 +385,7 @@ public class X509CertificateObject
         return getAlternativeNames(c, Extension.issuerAlternativeName);
     }
 
-    public Set getCriticalExtensionOIDs()
+    public Set getCriticalExtensionOIDs() 
     {
         if (this.getVersion() == 3)
         {
@@ -413,12 +414,12 @@ public class X509CertificateObject
         return null;
     }
 
-    public byte[] getExtensionValue(String oid)
+    public byte[] getExtensionValue(String oid) 
     {
         return X509SignatureUtil.getExtensionValue(c.getExtensions(), oid);
     }
 
-    public Set getNonCriticalExtensionOIDs()
+    public Set getNonCriticalExtensionOIDs() 
     {
         if (this.getVersion() == 3)
         {
@@ -538,7 +539,7 @@ public class X509CertificateObject
             return false;
         }
     }
-
+    
     public synchronized int hashCode()
     {
         if (!hashValueSet)
@@ -549,7 +550,7 @@ public class X509CertificateObject
 
         return hashValue;
     }
-
+    
     private int calculateHashCode()
     {
         try
@@ -558,7 +559,7 @@ public class X509CertificateObject
             byte[] certData = this.getEncoded();
             for (int i = 1; i < certData.length; i++)
             {
-                hashCode += certData[i] * i;
+                 hashCode += certData[i] * i;
             }
             return hashCode;
         }
@@ -668,7 +669,7 @@ public class X509CertificateObject
                         {
                             buf.append(new VerisignCzagExtension((ASN1IA5String)dIn.readObject())).append(nl);
                         }
-                        else
+                        else 
                         {
                             buf.append(oid.getId());
                             buf.append(" value = ").append(ASN1Dump.dumpAsString(dIn.readObject())).append(nl);
@@ -678,7 +679,7 @@ public class X509CertificateObject
                     catch (Exception ex)
                     {
                         buf.append(oid.getId());
-                        //     buf.append(" value = ").append(new String(Hex.encode(ext.getExtnValue().getOctets()))).append(nl);
+                   //     buf.append(" value = ").append(new String(Hex.encode(ext.getExtnValue().getOctets()))).append(nl);
                         buf.append(" value = ").append("*****").append(nl);
                     }
                 }
@@ -699,7 +700,7 @@ public class X509CertificateObject
     {
         Signature   signature;
         String      sigName = X509SignatureUtil.getSignatureName(c.getSignatureAlgorithm());
-
+        
         try
         {
             signature = Signature.getInstance(sigName, BouncyCastleProvider.PROVIDER_NAME);
@@ -708,10 +709,10 @@ public class X509CertificateObject
         {
             signature = Signature.getInstance(sigName);
         }
-
+        
         checkSignature(key, signature);
     }
-
+    
     public final void verify(
         PublicKey   key,
         String      sigProvider)
@@ -729,7 +730,7 @@ public class X509CertificateObject
         {
             signature = Signature.getInstance(sigName);
         }
-
+        
         checkSignature(key, signature);
     }
 
@@ -755,10 +756,10 @@ public class X509CertificateObject
     }
 
     private void checkSignature(
-        PublicKey key,
-        Signature signature)
-        throws CertificateException, NoSuchAlgorithmException,
-        SignatureException, InvalidKeyException
+        PublicKey key, 
+        Signature signature) 
+        throws CertificateException, NoSuchAlgorithmException, 
+            SignatureException, InvalidKeyException
     {
         if (!isAlgIdEqual(c.getSignatureAlgorithm(), c.getTBSCertificate().getSignature()))
         {
@@ -806,7 +807,7 @@ public class X509CertificateObject
 
             return true;
         }
-
+        
         return id1.getParameters().equals(id2.getParameters());
     }
 

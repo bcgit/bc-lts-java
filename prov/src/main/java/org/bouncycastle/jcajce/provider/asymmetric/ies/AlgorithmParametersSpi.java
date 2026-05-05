@@ -18,6 +18,7 @@ import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.jce.spec.IESParameterSpec;
+import org.bouncycastle.util.Exceptions;
 
 public class AlgorithmParametersSpi
     extends java.security.AlgorithmParametersSpi
@@ -59,13 +60,13 @@ public class AlgorithmParametersSpi
             {
                 v.add(new DERTaggedObject(false, 1, new DEROctetString(currentSpec.getEncodingV())));
             }
-            v.add(new ASN1Integer(currentSpec.getMacKeySize()));
+            v.add(ASN1Integer.valueOf(currentSpec.getMacKeySize()));
             byte[] currentSpecNonce = currentSpec.getNonce();
             if (currentSpecNonce != null)
             {
                 ASN1EncodableVector cV = new ASN1EncodableVector();
 
-                cV.add(new ASN1Integer(currentSpec.getCipherKeySize()));
+                cV.add(ASN1Integer.valueOf(currentSpec.getCipherKeySize()));
                 cV.add(new DEROctetString(currentSpecNonce));
 
                 v.add(new DERSequence(cV));
@@ -181,11 +182,11 @@ public class AlgorithmParametersSpi
         }
         catch (ClassCastException e)
         {
-            throw new IOException("Not a valid IES Parameter encoding.");
+            throw Exceptions.ioException("Not a valid IES Parameter encoding.", e);
         }
         catch (ArrayIndexOutOfBoundsException e)
         {
-            throw new IOException("Not a valid IES Parameter encoding.");
+            throw Exceptions.ioException("Not a valid IES Parameter encoding.", e);
         }
     }
 

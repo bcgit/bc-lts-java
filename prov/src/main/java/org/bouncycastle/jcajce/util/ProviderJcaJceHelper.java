@@ -40,6 +40,11 @@ public class ProviderJcaJceHelper
         this.provider = provider;
     }
 
+    public Provider getProvider()
+    {
+        return provider;
+    }
+    
     public Cipher createCipher(
         String algorithm)
         throws NoSuchAlgorithmException, NoSuchPaddingException
@@ -93,6 +98,13 @@ public class ProviderJcaJceHelper
         throws NoSuchAlgorithmException
     {
         return KeyPairGenerator.getInstance(algorithm, provider);
+    }
+
+    /** @deprecated Use createMessageDigest instead */
+    public MessageDigest createDigest(String algorithm)
+        throws NoSuchAlgorithmException
+    {
+        return MessageDigest.getInstance(algorithm, provider);
     }
 
     public MessageDigest createMessageDigest(String algorithm)
