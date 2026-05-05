@@ -203,7 +203,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCMPacketCi
         throw_java_illegal_argument(env, EM_INPUT_LEN_NEGATIVE);
         return -1;
     }
-    if (macSize < 4 || macSize > 16) {
+    if (macSize < 4 || macSize > 16 || (macSize & 1) != 0) {
         throw_java_illegal_argument(env, EM_MACSIZE_INVALID);
         return -1;
     }

@@ -655,7 +655,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         new AESNativeCCMPacketCipher()
         {
             {
-                for (int t = 4; t <= 16; t++)
+                for (int t = 4; t <= 16; t += 2)
                 {
                     getOutputSize(true, 10, t);
 
@@ -730,7 +730,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    processPacket(false, new byte[16], new byte[13], null, 5, new byte[15], 0, 4,
+                    processPacket(false, new byte[16], new byte[13], null, 6, new byte[15], 0, 5,
                             new byte[0], 0, 0);
                     fail();
                 }
@@ -780,7 +780,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             new AESNativeCCMPacketCipher()
             {
                 {
-                    getOutputSize(false, 5, 13);
+                    getOutputSize(false, 5, 6);
                     fail("len too small");
                 }
             };
@@ -825,7 +825,7 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
         new AESNativeCCMPacketCipher()
         {
             {
-                getOutputSize(false, 13, 13);
+                getOutputSize(false, 14, 14);
             }
         };
 
