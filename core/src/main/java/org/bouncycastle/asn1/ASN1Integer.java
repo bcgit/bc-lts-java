@@ -68,12 +68,12 @@ public class ASN1Integer
     /**
      * Return an Integer from a tagged object.
      *
-     * @param taggedObject     the tagged object holding the object we want
+     * @param taggedObject the tagged object holding the object we want
      * @param declaredExplicit true if the object is meant to be explicitly
-     *                         tagged false otherwise.
+     *                 tagged false otherwise.
      * @return an ASN1Integer instance.
      * @throws IllegalArgumentException if the tagged object cannot
-     *                                  be converted.
+     * be converted.
      */
     public static ASN1Integer getInstance(ASN1TaggedObject taggedObject, boolean declaredExplicit)
     {
@@ -115,7 +115,18 @@ public class ASN1Integer
         FOUR = SMALL_CONSTANTS[4];
         FIVE = SMALL_CONSTANTS[5];
     }
-    
+
+    /**
+     * Construct an INTEGER from the passed in int value.
+     *
+     * @param value the int representing the value desired.
+     */
+    public ASN1Integer(int value)
+    {
+        this.bytes = BigInteger.valueOf(value).toByteArray();
+        this.start = 0;
+    }
+
     /**
      * Construct an INTEGER from the passed in long value.
      *
@@ -147,7 +158,7 @@ public class ASN1Integer
      * <p>
      * It has turned out that there are still a few applications that struggle with
      * the ASN.1 BER encoding rules for an INTEGER as described in:
-     * <p>
+     *
      * https://www.itu.int/ITU-T/studygroups/com17/languages/X.690-0207.pdf
      * Section 8.3.2.
      * </p>
@@ -168,12 +179,12 @@ public class ASN1Integer
     ASN1Integer(byte[] bytes, boolean clone)
     {
         if (isMalformed(bytes))
-        {
+        {                           
             throw new IllegalArgumentException("malformed integer");
         }
 
         this.bytes = clone ? Arrays.clone(bytes) : bytes;
-        this.start = signBytesToSkip(bytes);
+        this.start = signBytesToSkip(bytes); 
     }
 
     /**
@@ -231,7 +242,7 @@ public class ASN1Integer
             throw new ArithmeticException("ASN.1 Integer out of int range");
         }
 
-        return intValue(bytes, start, SIGN_EXT_SIGNED);
+        return intValue(bytes, start, SIGN_EXT_SIGNED); 
     }
 
     public long longValueExact()
@@ -255,8 +266,7 @@ public class ASN1Integer
         return ASN1OutputStream.getLengthOfEncodingDL(withTag, bytes.length);
     }
 
-    void encode(ASN1OutputStream out, boolean withTag)
-        throws IOException
+    void encode(ASN1OutputStream out, boolean withTag) throws IOException
     {
         out.writeEncodingDL(withTag, BERTags.INTEGER, bytes);
     }
