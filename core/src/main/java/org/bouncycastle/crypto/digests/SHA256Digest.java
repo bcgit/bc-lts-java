@@ -1,9 +1,11 @@
 package org.bouncycastle.crypto.digests;
 
+
 import org.bouncycastle.crypto.CryptoServiceProperties;
 import org.bouncycastle.crypto.CryptoServicePurpose;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.Digest;
+import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.crypto.SavableDigest;
 import org.bouncycastle.util.Memoable;
 import org.bouncycastle.util.Pack;
@@ -33,11 +35,19 @@ public class SHA256Digest
 
     public static SavableDigest newInstance()
     {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA256))
+        {
+            return new SHA256NativeDigest();
+        }
         return new SHA256Digest();
     }
 
     public static SavableDigest newInstance(CryptoServicePurpose purpose)
     {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
+        {
+            return new SHA256NativeDigest(purpose);
+        }
         return new SHA256Digest(purpose);
     }
 
@@ -48,11 +58,34 @@ public class SHA256Digest
             return new SHA256Digest((SHA256Digest) digest);
         }
 
-        throw new IllegalArgumentException("receiver digest not available for input type " + (digest != null ? digest.getClass().getName() : "null"));
+        if (digest instanceof SHA256NativeDigest)
+        {
+            if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
+            {
+                return new SHA256NativeDigest((SHA256NativeDigest) digest);
+            }
+        }
+
+        throw new IllegalArgumentException("receiver digest not available for input type " + (digest != null ? digest.getClass() : "null"));
     }
+
 
     public static SavableDigest newInstance(byte[] encoded)
     {
+        return newInstance(encoded, 0);
+    }
+
+    public static SavableDigest newInstance(byte[] encoded, int offset)
+    {
+        if (CryptoServicesRegistrar.hasEnabledService(NativeServices.SHA2))
+        {
+            SHA256NativeDigest sha256 = new SHA256NativeDigest();
+
+            sha256.restoreFullState(encoded, offset);
+
+            return sha256;
+        }
+
         return new SHA256Digest(encoded);
     }
 
@@ -392,6 +425,12 @@ public class SHA256Digest
     protected CryptoServiceProperties cryptoServiceProperties()
     {
         return Utils.getDefaultProperties(this, 256, purpose);
+    }
+
+    @Override
+    public String toString()
+    {
+        return "SHA256[Java]()";
     }
 }
 
