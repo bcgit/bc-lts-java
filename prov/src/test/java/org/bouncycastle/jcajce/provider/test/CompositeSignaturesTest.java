@@ -129,7 +129,7 @@ public class CompositeSignaturesTest
             CompositePublicKey compositePublicKey = (CompositePublicKey)keyPair.getPublic();
             CompositePrivateKey compositePrivateKey = (CompositePrivateKey)keyPair.getPrivate();
 
-            ASN1ObjectIdentifier compAlg = compositePrivateKey.getAlgorithmIdentifier().getAlgorithm();
+            ASN1ObjectIdentifier compAlg = compositePrivateKey.getAlgorithmIdentifier();
             if (compAlg.equals(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256))
             {
                 check_RSA_Composite("ML-DSA-44", 2048, compositePublicKey, compositePrivateKey);

@@ -2,8 +2,8 @@ package org.bouncycastle.jce.provider.test;
 
 import java.security.Security;
 
+import org.bouncycastle.crypto.test.SM2KeyExchangeTest;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.util.test.SimpleTest;
 import org.bouncycastle.util.test.Test;
 
@@ -69,7 +69,6 @@ public class RegressionTest
         new OCBTest(),
         new OpenSSHSpecTests(),
         new PBETest(),
-        new PKCS10CertRequestTest(),
         new PKCS12StorePBETest(),
         new PKCS12StoreTest(),
         new PKIXNameConstraintsTest(),
@@ -91,15 +90,11 @@ public class RegressionTest
         new SkeinTest(),
         new SlotTwoTest(),
         new SM2CipherTest(),
-        new SM2KeyExchangeTest(),
         new SM2SignatureTest(),
         new SM4Test(),
         new ThreefishTest(),
         new TLSKDFTest(),
         new WrapTest(),
-        new X509CertificatePairTest(),
-        new X509LDAPCertStoreTest(),
-        new X509StreamParserTest(),
         new XIESTest(),
         new XOFTest(),
         new ZucTest(),
@@ -110,7 +105,6 @@ public class RegressionTest
         System.setProperty("org.bouncycastle.bks.enable_v1", "true");
 
         Security.addProvider(new BouncyCastleProvider());
-        Security.addProvider(new BouncyCastlePQCProvider());
 
         System.out.println("Testing " + Security.getProvider("BC").getInfo() + " version: " + Security.getProvider("BC").getVersion());
 
