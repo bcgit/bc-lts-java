@@ -37,7 +37,7 @@ import org.bouncycastle.asn1.x500.X500Name;
  */
 public class V2TBSCertListGenerator
 {
-    private ASN1Integer         version = new ASN1Integer(1);
+    private ASN1Integer         version = ASN1Integer.ONE;
     private AlgorithmIdentifier signature;
     private X500Name            issuer;
     private Time                thisUpdate, nextUpdate=null;
@@ -198,7 +198,11 @@ public class V2TBSCertListGenerator
         {
             throw new IllegalStateException("not all mandatory fields set in V2 TBSCertList generator");
         }
-        
+        if (issuer.size() == 0)
+        {
+            throw new IllegalStateException("issuer is an empty distinguished name");
+        }
+
         return new TBSCertList(generateTBSCertStructure());
     }
 
@@ -211,6 +215,10 @@ public class V2TBSCertListGenerator
         if ((issuer == null) || (thisUpdate == null))
         {
             throw new IllegalStateException("not all mandatory fields set in V2 PreTBSCertList generator");
+        }
+        if (issuer.size() == 0)
+        {
+            throw new IllegalStateException("issuer is an empty distinguished name");
         }
 
         return generateTBSCertStructure();

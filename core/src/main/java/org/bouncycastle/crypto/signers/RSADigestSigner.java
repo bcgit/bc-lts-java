@@ -23,6 +23,7 @@ import org.bouncycastle.crypto.engines.RSABlindedEngine;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Exceptions;
 
 public class RSADigestSigner
     implements Signer
@@ -83,6 +84,14 @@ public class RSADigestSigner
             // NULL digester, match behaviour with DigestSignatureSpi
             this.algId = null;
         }
+    }
+
+    /**
+     * @deprecated
+     */
+    public String getAlgorithmName()
+    {
+        return digest.getAlgorithmName() + "withRSA";
     }
 
     /**
@@ -252,7 +261,7 @@ public class RSADigestSigner
             }
             catch (IllegalArgumentException e)
             {
-                throw new IOException("malformed DigestInfo for NONEwithRSA hash: " + e.getMessage());
+                throw Exceptions.ioException("malformed DigestInfo for NONEwithRSA hash: " + e.getMessage(), e);
             }
         }
 
