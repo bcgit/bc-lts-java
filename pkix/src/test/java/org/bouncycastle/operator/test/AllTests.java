@@ -39,6 +39,11 @@ import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.generators.MLKEMKeyPairGenerator;
+import org.bouncycastle.crypto.kems.MLKEMExtractor;
+import org.bouncycastle.crypto.params.MLKEMKeyGenerationParameters;
+import org.bouncycastle.crypto.params.MLKEMParameters;
+import org.bouncycastle.crypto.params.MLKEMPrivateKeyParameters;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.AlgorithmNameFinder;
 import org.bouncycastle.operator.DefaultAlgorithmNameFinder;
@@ -46,12 +51,6 @@ import org.bouncycastle.operator.DefaultKemEncapsulationLengthProvider;
 import org.bouncycastle.operator.DefaultSignatureNameFinder;
 import org.bouncycastle.operator.KemEncapsulationLengthProvider;
 import org.bouncycastle.operator.jcajce.JceAsymmetricKeyWrapper;
-import org.bouncycastle.pqc.crypto.mlkem.MLKEMExtractor;
-import org.bouncycastle.pqc.crypto.mlkem.MLKEMKeyGenerationParameters;
-import org.bouncycastle.pqc.crypto.mlkem.MLKEMKeyPairGenerator;
-import org.bouncycastle.pqc.crypto.mlkem.MLKEMParameters;
-import org.bouncycastle.pqc.crypto.mlkem.MLKEMPrivateKeyParameters;
-
 import org.bouncycastle.test.PrintTestResult;
 import org.bouncycastle.util.encoders.Hex;
 
@@ -232,6 +231,12 @@ public class AllTests
             new Object[]{NISTObjectIdentifiers.id_aes128_OFB, "AES-128/OFB"},
             new Object[]{NISTObjectIdentifiers.id_aes192_OFB, "AES-192/OFB"},
             new Object[]{NISTObjectIdentifiers.id_aes256_OFB, "AES-256/OFB"},
+            new Object[]{NISTObjectIdentifiers.id_aes128_CCM, "AES-128/CCM"},
+            new Object[]{NISTObjectIdentifiers.id_aes192_CCM, "AES-192/CCM"},
+            new Object[]{NISTObjectIdentifiers.id_aes256_CCM, "AES-256/CCM"},
+            new Object[]{NISTObjectIdentifiers.id_aes128_GCM, "AES-128/GCM"},
+            new Object[]{NISTObjectIdentifiers.id_aes192_GCM, "AES-192/GCM"},
+            new Object[]{NISTObjectIdentifiers.id_aes256_GCM, "AES-256/GCM"},
             new Object[]{NTTObjectIdentifiers.id_camellia128_cbc, "CAMELLIA-128/CBC"},
             new Object[]{NTTObjectIdentifiers.id_camellia192_cbc, "CAMELLIA-192/CBC"},
             new Object[]{NTTObjectIdentifiers.id_camellia256_cbc, "CAMELLIA-256/CBC"},

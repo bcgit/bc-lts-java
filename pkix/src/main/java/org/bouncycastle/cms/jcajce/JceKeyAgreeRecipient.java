@@ -32,18 +32,19 @@ import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
+import org.bouncycastle.cms.AbstractKeyAgreeRecipient;
 import org.bouncycastle.cms.CMSException;
-import org.bouncycastle.cms.KeyAgreeRecipient;
 import org.bouncycastle.jcajce.spec.GOST28147WrapParameterSpec;
 import org.bouncycastle.jcajce.spec.MQVParameterSpec;
 import org.bouncycastle.jcajce.spec.UserKeyingMaterialSpec;
 import org.bouncycastle.operator.DefaultSecretKeySizeProvider;
 import org.bouncycastle.operator.SecretKeySizeProvider;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Pack;
 
 public abstract class JceKeyAgreeRecipient
-    implements KeyAgreeRecipient
+    extends AbstractKeyAgreeRecipient
 {
     private static final Set possibleOldMessages = new HashSet();
 
@@ -56,6 +57,7 @@ public abstract class JceKeyAgreeRecipient
     private PrivateKey recipientKey;
     protected EnvelopedDataHelper helper = new EnvelopedDataHelper(new DefaultJcaJceExtHelper());
     protected EnvelopedDataHelper contentHelper = helper;
+    protected EnvelopedDataHelper unwrappingHelper = helper;
     private SecretKeySizeProvider keySizeProvider = new DefaultSecretKeySizeProvider();
     private AlgorithmIdentifier privKeyAlgID = null;
 
@@ -74,6 +76,7 @@ public abstract class JceKeyAgreeRecipient
     {
         this.helper = new EnvelopedDataHelper(new ProviderJcaJceExtHelper(provider));
         this.contentHelper = helper;
+        this.unwrappingHelper = helper;
 
         return this;
     }
@@ -88,6 +91,33 @@ public abstract class JceKeyAgreeRecipient
     {
         this.helper = new EnvelopedDataHelper(new NamedJcaJceExtHelper(providerName));
         this.contentHelper = helper;
+        this.unwrappingHelper = helper;
+
+        return this;
+    }
+
+    /**
+     * Set the provider to use for unwrapping the content session key.
+     *
+     * @param provider provider to use.
+     * @return this recipient.
+     */
+    public JceKeyAgreeRecipient setUnwrappingProvider(Provider provider)
+    {
+        this.unwrappingHelper = new EnvelopedDataHelper(new ProviderJcaJceExtHelper(provider));
+
+        return this;
+    }
+
+    /**
+     * Set the provider to use for unwrapping the content session key.
+     *
+     * @param providerName the name of the provider to use.
+     * @return this recipient.
+     */
+    public JceKeyAgreeRecipient setUnwrappingProvider(String providerName)
+    {
+        this.unwrappingHelper = new EnvelopedDataHelper(new NamedJcaJceExtHelper(providerName));
 
         return this;
     }
@@ -140,7 +170,7 @@ public abstract class JceKeyAgreeRecipient
     {
         receiverPrivateKey = CMSUtils.cleanPrivateKey(receiverPrivateKey);
 
-        if (CMSUtils.isMQV(keyEncAlg.getAlgorithm()))
+        if (isMQV(keyEncAlg.getAlgorithm()))
         {
             MQVuserKeyingMaterial ukm = MQVuserKeyingMaterial.getInstance(userKeyingMaterial.getOctets());
 
@@ -171,7 +201,7 @@ public abstract class JceKeyAgreeRecipient
 
             UserKeyingMaterialSpec userKeyingMaterialSpec = null;
 
-            if (CMSUtils.isEC(keyEncAlg.getAlgorithm()))
+            if (isEC(keyEncAlg.getAlgorithm()))
             {
                 byte[] ukmKeyingMaterial;
                 if (userKeyingMaterial != null)
@@ -184,14 +214,14 @@ public abstract class JceKeyAgreeRecipient
                 }
                 userKeyingMaterialSpec = new UserKeyingMaterialSpec(ukmKeyingMaterial);
             }
-            else if (CMSUtils.isRFC2631(keyEncAlg.getAlgorithm()))
+            else if (isRFC2631(keyEncAlg.getAlgorithm()))
             {
                 if (userKeyingMaterial != null)
                 {
                     userKeyingMaterialSpec = new UserKeyingMaterialSpec(userKeyingMaterial.getOctets());
                 }
             }
-            else if (CMSUtils.isGOST(keyEncAlg.getAlgorithm()))
+            else if (isGOST(keyEncAlg.getAlgorithm()))
             {
                 if (userKeyingMaterial != null)
                 {
@@ -214,7 +244,7 @@ public abstract class JceKeyAgreeRecipient
     protected Key unwrapSessionKey(ASN1ObjectIdentifier wrapAlg, SecretKey agreedKey, ASN1ObjectIdentifier contentEncryptionAlgorithm, byte[] encryptedContentEncryptionKey)
         throws CMSException, InvalidKeyException, NoSuchAlgorithmException
     {
-        Cipher keyCipher = helper.createCipher(wrapAlg);
+        Cipher keyCipher = unwrappingHelper.createCipher(wrapAlg);
         keyCipher.init(Cipher.UNWRAP_MODE, agreedKey);
         return keyCipher.unwrap(encryptedContentEncryptionKey, helper.getBaseCipherName(contentEncryptionAlgorithm), Cipher.SECRET_KEY);
     }
@@ -224,8 +254,8 @@ public abstract class JceKeyAgreeRecipient
     {
         try
         {
-            AlgorithmIdentifier wrapAlg =
-                AlgorithmIdentifier.getInstance(keyEncryptionAlgorithm.getParameters());
+            AlgorithmIdentifier wrapAlgID = AlgorithmIdentifier.getInstance(keyEncryptionAlgorithm.getParameters());
+            ASN1ObjectIdentifier wrapAlgOID = wrapAlgID.getAlgorithm();
 
             X509EncodedKeySpec pubSpec = new X509EncodedKeySpec(senderKey.getEncoded());
             KeyFactory fact = helper.createKeyFactory(senderKey.getAlgorithm().getAlgorithm());
@@ -233,43 +263,50 @@ public abstract class JceKeyAgreeRecipient
 
             try
             {
-                SecretKey agreedWrapKey = calculateAgreedWrapKey(keyEncryptionAlgorithm, wrapAlg,
-                    senderPublicKey, userKeyingMaterial, recipientKey, ecc_cms_Generator);
+                SecretKey agreedWrapKey = calculateAgreedWrapKey(keyEncryptionAlgorithm, wrapAlgID, senderPublicKey,
+                    userKeyingMaterial, recipientKey, ecc_cms_Generator);
 
-                if (wrapAlg.getAlgorithm().equals(CryptoProObjectIdentifiers.id_Gost28147_89_None_KeyWrap)
-                    || wrapAlg.getAlgorithm().equals(CryptoProObjectIdentifiers.id_Gost28147_89_CryptoPro_KeyWrap))
+                if (CryptoProObjectIdentifiers.id_Gost28147_89_None_KeyWrap.equals(wrapAlgOID) ||
+                    CryptoProObjectIdentifiers.id_Gost28147_89_CryptoPro_KeyWrap.equals(wrapAlgOID))
                 {
                     Gost2814789EncryptedKey encKey = Gost2814789EncryptedKey.getInstance(encryptedContentEncryptionKey);
-                    Gost2814789KeyWrapParameters wrapParams = Gost2814789KeyWrapParameters.getInstance(wrapAlg.getParameters());
+                    Gost2814789KeyWrapParameters wrapParams = Gost2814789KeyWrapParameters.getInstance(
+                        wrapAlgID.getParameters());
 
-                    Cipher keyCipher = helper.createCipher(wrapAlg.getAlgorithm());
+                    Cipher keyCipher = helper.createCipher(wrapAlgOID);
 
-                    keyCipher.init(Cipher.UNWRAP_MODE, agreedWrapKey, new GOST28147WrapParameterSpec(wrapParams.getEncryptionParamSet(), userKeyingMaterial.getOctets()));
+                    keyCipher.init(Cipher.UNWRAP_MODE, agreedWrapKey,
+                        new GOST28147WrapParameterSpec(wrapParams.getEncryptionParamSet(), userKeyingMaterial.getOctets()));
 
-                    return keyCipher.unwrap(Arrays.concatenate(encKey.getEncryptedKey(), encKey.getMacKey()), helper.getBaseCipherName(contentEncryptionAlgorithm.getAlgorithm()), Cipher.SECRET_KEY);
+                    byte[] wrappedKey = Arrays.concatenate(encKey.getEncryptedKey(), encKey.getMacKey());
+                    return keyCipher.unwrap(wrappedKey, helper.getBaseCipherName(contentEncryptionAlgorithm.getAlgorithm()),
+                        Cipher.SECRET_KEY);
                 }
 
-                return unwrapSessionKey(wrapAlg.getAlgorithm(), agreedWrapKey, contentEncryptionAlgorithm.getAlgorithm(), encryptedContentEncryptionKey);
+                return unwrapSessionKey(wrapAlgOID, agreedWrapKey, contentEncryptionAlgorithm.getAlgorithm(),
+                    encryptedContentEncryptionKey);
             }
             catch (InvalidKeyException e)
             {
                 // might be a pre-RFC 5753 message
                 if (possibleOldMessages.contains(keyEncryptionAlgorithm.getAlgorithm()))
                 {
-                    SecretKey agreedWrapKey = calculateAgreedWrapKey(keyEncryptionAlgorithm, wrapAlg,
+                    SecretKey agreedWrapKey = calculateAgreedWrapKey(keyEncryptionAlgorithm, wrapAlgID,
                         senderPublicKey, userKeyingMaterial, recipientKey, old_ecc_cms_Generator);
 
-                    return unwrapSessionKey(wrapAlg.getAlgorithm(), agreedWrapKey, contentEncryptionAlgorithm.getAlgorithm(), encryptedContentEncryptionKey);
+                    return unwrapSessionKey(wrapAlgOID, agreedWrapKey, contentEncryptionAlgorithm.getAlgorithm(),
+                        encryptedContentEncryptionKey);
                 }
                 // one last try - people do actually do this it turns out
                 if (userKeyingMaterial != null)
                 {
                     try
                     {
-                        SecretKey agreedWrapKey = calculateAgreedWrapKey(keyEncryptionAlgorithm, wrapAlg,
+                        SecretKey agreedWrapKey = calculateAgreedWrapKey(keyEncryptionAlgorithm, wrapAlgID,
                             senderPublicKey, userKeyingMaterial, recipientKey, simple_ecc_cmsGenerator);
 
-                        return unwrapSessionKey(wrapAlg.getAlgorithm(), agreedWrapKey, contentEncryptionAlgorithm.getAlgorithm(), encryptedContentEncryptionKey);
+                        return unwrapSessionKey(wrapAlgOID, agreedWrapKey, contentEncryptionAlgorithm.getAlgorithm(),
+                            encryptedContentEncryptionKey);
                     }
                     catch (InvalidKeyException ex)
                     {
@@ -326,7 +363,7 @@ public abstract class JceKeyAgreeRecipient
             }
             catch (IOException e)
             {
-                throw new IllegalStateException("Unable to create KDF material: " + e);
+                throw Exceptions.illegalStateException("Unable to create KDF material", e);
             }
         }
     };

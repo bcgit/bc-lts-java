@@ -52,8 +52,7 @@ public abstract class KeyAgreeRecipientInfoGenerator
 
         ASN1Sequence recipients = generateRecipientEncryptedKeys(keyAgreeAlgorithm, keyEncAlgorithm, contentEncryptionKey);
 
-        byte[] userKeyMat = getUserKeyingMaterial(keyAgreeAlgorithm);
-        ASN1OctetString ukm = userKeyMat == null ? null : new DEROctetString(userKeyMat);
+        ASN1OctetString ukm = DEROctetString.fromContentsOptional(getUserKeyingMaterial(keyAgreeAlgorithm));
 
         return new RecipientInfo(new KeyAgreeRecipientInfo(originator, ukm, keyAgreeAlgorithm, recipients));
     }
@@ -61,6 +60,26 @@ public abstract class KeyAgreeRecipientInfoGenerator
     protected OriginatorPublicKey createOriginatorPublicKey(SubjectPublicKeyInfo originatorKeyInfo)
     {
         return new OriginatorPublicKey(originatorKeyInfo.getAlgorithm(), originatorKeyInfo.getPublicKeyData());
+    }
+
+    protected boolean isEC(ASN1ObjectIdentifier algorithmOID)
+    {
+        return CMSUtils.isEC(algorithmOID);
+    }
+
+    protected boolean isMQV(ASN1ObjectIdentifier algorithmOID)
+    {
+        return CMSUtils.isMQV(algorithmOID);
+    }
+
+    protected boolean isRFC2631(ASN1ObjectIdentifier algorithmOID)
+    {
+        return CMSUtils.isRFC2631(algorithmOID);
+    }
+
+    protected boolean isGOST(ASN1ObjectIdentifier algorithmOID)
+    {
+        return CMSUtils.isGOST(algorithmOID);
     }
 
     protected abstract ASN1Sequence generateRecipientEncryptedKeys(AlgorithmIdentifier keyAgreeAlgorithm,
