@@ -8,14 +8,14 @@ import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
 import org.bouncycastle.asn1.ASN1UTF8String;
-import org.bouncycastle.asn1.BERTags;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERTaggedObject;
+import org.bouncycastle.asn1.DERUTF8String;
 import org.bouncycastle.asn1.x500.DirectoryString;
 
 /**
  * Signer-Location attribute (RFC3126).
- * 
+ *
  * <pre>
  *   SignerLocation ::= SEQUENCE {
  *       countryName        [0] DirectoryString OPTIONAL,
@@ -31,7 +31,7 @@ public class SignerLocation
     private DirectoryString   countryName;
     private DirectoryString   localityName;
     private ASN1Sequence      postalAddress;
-    
+
     private SignerLocation(
         ASN1Sequence seq)
     {
@@ -39,7 +39,7 @@ public class SignerLocation
 
         while (e.hasMoreElements())
         {
-            ASN1TaggedObject o = ASN1TaggedObject.getInstance(e.nextElement(), BERTags.CONTEXT_SPECIFIC);
+            ASN1TaggedObject o = ASN1TaggedObject.getContextInstance(e.nextElement());
 
             switch (o.getTagNo())
             {
@@ -152,6 +152,30 @@ public class SignerLocation
         return dirStrings;
     }
 
+    /**
+     * @deprecated use getCountry()
+     */
+    public DERUTF8String getCountryName()
+    {
+        if (countryName == null)
+        {
+            return null;
+        }
+        return new DERUTF8String(getCountry().getString());
+    }
+
+    /**
+     * @deprecated use getLocality()
+     */
+    public DERUTF8String getLocalityName()
+    {
+        if (localityName == null)
+        {
+            return null;
+        }
+        return new DERUTF8String(getLocality().getString());
+    }
+
     public ASN1Sequence getPostalAddress()
     {
         return postalAddress;
@@ -165,7 +189,7 @@ public class SignerLocation
      *       postalAddress      [2] PostalAddress OPTIONAL }
      *
      *   PostalAddress ::= SEQUENCE SIZE(1..6) OF DirectoryString
-     *   
+     *
      *   DirectoryString ::= CHOICE {
      *         teletexString           TeletexString (SIZE (1..MAX)),
      *         printableString         PrintableString (SIZE (1..MAX)),

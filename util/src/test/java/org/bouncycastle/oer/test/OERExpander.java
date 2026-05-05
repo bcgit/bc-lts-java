@@ -436,7 +436,7 @@ public class OERExpander
         private final Element def;
         List<ASN1Encodable> script = new ArrayList<ASN1Encodable>();
         private String part = "the cat sat on the mat";
-        private StringBuilder expander = new StringBuilder();
+        private StringBuffer expander = new StringBuffer();
 
         private int cnt = 0;
 
@@ -687,7 +687,7 @@ public class OERExpander
 
                 if (def.getLowerBound() == null && def.getUpperBound() == null)
                 {
-                    script.add(new ASN1Integer(10)); // Unbounded so pick a value.
+                    script.add(ASN1Integer.valueOf(10)); // Unbounded so pick a value.
                 }
             }
 
