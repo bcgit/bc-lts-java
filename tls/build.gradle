@@ -236,10 +236,12 @@ test {
 tasks.register("testMultiJVM") {
     dependsOn("test8Integration")
     dependsOn("test21Integration")
+    dependsOn("test25Integration")
 }
 
 registerTestTask(tasks, "test8", "LTS_JDK8", 8, "jdk8.java.security")
 registerTestTask(tasks, "test21", "LTS_JDK21", 21, "jdk21.java.security")
+registerTestTask(tasks, "test25", "LTS_JDK25", 25, "jdk25.java.security")
 
 tasks.withType(Test).configureEach {
     failOnNoDiscoveredTests = false
