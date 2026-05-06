@@ -57,7 +57,7 @@ public class MLDSACredentialsTest
         private final CountDownLatch latch;
 
         MLDSAClient(int port, String protocol, KeyStore clientStore, char[] clientKeyPass,
-                    X509Certificate trustAnchor) throws GeneralSecurityException, IOException
+            X509Certificate trustAnchor) throws GeneralSecurityException, IOException
         {
             KeyStore trustStore = createKeyStore();
             trustStore.setCertificateEntry("server", trustAnchor);

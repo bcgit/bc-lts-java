@@ -17,6 +17,7 @@ import org.bouncycastle.tls.SignatureAlgorithm;
 import org.bouncycastle.tls.crypto.CryptoHashAlgorithm;
 import org.bouncycastle.tls.crypto.TlsCryptoUtils;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Exceptions;
 
 public class RSAUtil
 {
@@ -43,9 +44,9 @@ public class RSAUtil
         AlgorithmIdentifier mgf1SHA384Identifier_B = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_mgf1, sha384Identifier_B);
         AlgorithmIdentifier mgf1SHA512Identifier_B = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_mgf1, sha512Identifier_B);
 
-        ASN1Integer sha256Size = new ASN1Integer(TlsCryptoUtils.getHashOutputSize(CryptoHashAlgorithm.sha256));
-        ASN1Integer sha384Size = new ASN1Integer(TlsCryptoUtils.getHashOutputSize(CryptoHashAlgorithm.sha384));
-        ASN1Integer sha512Size = new ASN1Integer(TlsCryptoUtils.getHashOutputSize(CryptoHashAlgorithm.sha512));
+        ASN1Integer sha256Size = ASN1Integer.valueOf(TlsCryptoUtils.getHashOutputSize(CryptoHashAlgorithm.sha256));
+        ASN1Integer sha384Size = ASN1Integer.valueOf(TlsCryptoUtils.getHashOutputSize(CryptoHashAlgorithm.sha384));
+        ASN1Integer sha512Size = ASN1Integer.valueOf(TlsCryptoUtils.getHashOutputSize(CryptoHashAlgorithm.sha512));
 
         ASN1Integer trailerField = RSASSAPSSparams.DEFAULT_TRAILER_FIELD;
 
@@ -66,7 +67,7 @@ public class RSAUtil
         }
         catch (IOException e)
         {
-            throw new IllegalStateException(e.getMessage());
+            throw Exceptions.illegalStateException(e.getMessage(), e);
         }
     }
 

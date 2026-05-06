@@ -302,6 +302,8 @@ public class TlsServerProtocol
                 throw new TlsFatalAlert(AlertDescription.handshake_failure);
             }
 
+            securityParameters.negotiatedGroup = selectedGroup;
+
             clientShare = TlsUtils.findEarlyKeyShare(clientShares, selectedGroup);
 
             if (null == clientShare)
@@ -332,7 +334,7 @@ public class TlsServerProtocol
             int[] serverSupportedGroups = securityParameters.getServerSupportedGroups();
 
             if (!TlsUtils.isNullOrEmpty(serverSupportedGroups) &&
-                clientShare.getNamedGroup() != serverSupportedGroups[0] &&
+                serverSupportedGroups[0] != securityParameters.getNegotiatedGroup() &&
                 !serverEncryptedExtensions.containsKey(TlsExtensionsUtils.EXT_supported_groups))
             {
                 TlsExtensionsUtils.addSupportedGroupsExtension(serverEncryptedExtensions, serverSupportedGroups);
@@ -366,9 +368,9 @@ public class TlsServerProtocol
             if (!securityParameters.isResumedSession())
             {
                 securityParameters.clientCertificateType = TlsUtils.processClientCertificateTypeExtension13(
-                    clientHelloExtensions, serverEncryptedExtensions, AlertDescription.internal_error);
+                    crypto, clientHelloExtensions, serverEncryptedExtensions, AlertDescription.internal_error);
                 securityParameters.serverCertificateType = TlsUtils.processServerCertificateTypeExtension13(
-                    clientHelloExtensions, serverEncryptedExtensions, AlertDescription.internal_error);
+                    crypto, clientHelloExtensions, serverEncryptedExtensions, AlertDescription.internal_error);
             }
         }
 
@@ -397,9 +399,14 @@ public class TlsServerProtocol
 
         TlsSecret sharedSecret;
         {
-            int namedGroup = clientShare.getNamedGroup();
+            int negotiatedGroup = securityParameters.getNegotiatedGroup();
 
-            TlsAgreement agreement = TlsUtils.createKeyShare(crypto, namedGroup, true);
+            if (clientShare.getNamedGroup() != negotiatedGroup)
+            {
+                throw new TlsFatalAlert(AlertDescription.illegal_parameter);
+            }
+
+            TlsAgreement agreement = TlsUtils.createKeyShare(crypto, negotiatedGroup, true);
             if (agreement == null)
             {
                 throw new TlsFatalAlert(AlertDescription.internal_error);
@@ -408,7 +415,7 @@ public class TlsServerProtocol
             agreement.receivePeerValue(clientShare.getKeyExchange());
 
             byte[] key_exchange = agreement.generateEphemeral();
-            KeyShareEntry serverShare = new KeyShareEntry(namedGroup, key_exchange);
+            KeyShareEntry serverShare = new KeyShareEntry(negotiatedGroup, key_exchange);
             TlsExtensionsUtils.addKeyShareServerHello(serverHelloExtensions, serverShare);
 
             sharedSecret = agreement.calculateSecret();
@@ -826,10 +833,11 @@ public class TlsServerProtocol
                     securityParameters.statusRequestVersion = 1;
                 }
 
+                TlsCrypto crypto = tlsServerContext.getCrypto();
                 securityParameters.clientCertificateType = TlsUtils.processClientCertificateTypeExtension(
-                    clientExtensions, serverExtensions, AlertDescription.internal_error);
+                    crypto, clientExtensions, serverExtensions, AlertDescription.internal_error);
                 securityParameters.serverCertificateType = TlsUtils.processServerCertificateTypeExtension(
-                    clientExtensions, serverExtensions, AlertDescription.internal_error);
+                    crypto, clientExtensions, serverExtensions, AlertDescription.internal_error);
 
                 this.expectSessionTicket = TlsUtils.hasExpectedEmptyExtensionData(serverExtensions,
                     TlsProtocol.EXT_SessionTicket, AlertDescription.internal_error);

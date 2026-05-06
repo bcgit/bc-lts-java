@@ -9,6 +9,7 @@ import org.bouncycastle.util.Strings;
 public class LoggingDatagramTransport
     implements DatagramTransport
 {
+    private static final boolean ENABLE_DUMPS = false;
 
     private static final String HEX_CHARS = "0123456789ABCDEF";
 
@@ -62,8 +63,13 @@ public class LoggingDatagramTransport
     private void dumpDatagram(String verb, byte[] buf, int off, int len)
         throws IOException
     {
+        if (!ENABLE_DUMPS)
+        {
+            return;
+        }
+
         long timestamp = System.currentTimeMillis() - launchTimestamp;
-        StringBuilder sb = new StringBuilder("(+" + timestamp + "ms) " + verb + " " + len + " byte datagram:");
+        StringBuffer sb = new StringBuffer("(+" + timestamp + "ms) " + verb + " " + len + " byte datagram:");
         for (int pos = 0; pos < len; ++pos)
         {
             if (pos % 16 == 0)

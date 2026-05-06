@@ -9,6 +9,7 @@ import java.util.Hashtable;
 import java.util.Vector;
 
 import org.bouncycastle.tls.crypto.TlsAgreement;
+import org.bouncycastle.tls.crypto.TlsCrypto;
 import org.bouncycastle.tls.crypto.TlsSecret;
 import org.bouncycastle.tls.crypto.TlsStreamSigner;
 import org.bouncycastle.util.Arrays;
@@ -484,22 +485,34 @@ public class TlsClientProtocol
                 {
                     process13HelloRetryRequest(serverHello);
                     handshakeHash.notifyPRFDetermined();
-                    handshakeHash.sealHashAlgorithms();
+
                     TlsUtils.adjustTranscriptForRetry(handshakeHash);
+
                     buf.updateHash(handshakeHash);
                     this.connection_state = CS_SERVER_HELLO_RETRY_REQUEST;
 
                     send13ClientHelloRetry();
                     this.connection_state = CS_CLIENT_HELLO_RETRY;
+
+                    /*
+                     * PSK binders (if any) when retrying ClientHello currently require handshakeHash buffering
+                     */
+                    handshakeHash.sealHashAlgorithms();
                 }
                 else
                 {
                     processServerHello(serverHello);
                     handshakeHash.notifyPRFDetermined();
+
                     if (TlsUtils.isTLSv13(securityParameters.getNegotiatedVersion()))
                     {
                         handshakeHash.sealHashAlgorithms();
                     }
+                    else
+                    {
+                        // For pre-1.3 wait until ServerHelloDone is received
+                    }
+
                     buf.updateHash(handshakeHash);
                     this.connection_state = CS_SERVER_HELLO;
 
@@ -902,7 +915,7 @@ public class TlsClientProtocol
             }
         }
 
-        final int selected_group = TlsExtensionsUtils.getKeyShareHelloRetryRequest(extensions);
+        final int selectedGroup = TlsExtensionsUtils.getKeyShareHelloRetryRequest(extensions);
 
         /*
          * TODO[tls:psk_ke]
@@ -910,7 +923,7 @@ public class TlsClientProtocol
          * RFC 8446 4.2.8. Servers [..] MUST NOT send a KeyShareEntry when using the "psk_ke"
          * PskKeyExchangeMode.
          */
-        if (selected_group < 0)
+        if (selectedGroup < 0)
         {
             throw new TlsFatalAlert(AlertDescription.missing_extension,
                 "missing extension response: " + ExtensionType.getText(ExtensionType.key_share));
@@ -925,7 +938,7 @@ public class TlsClientProtocol
          * MUST abort the handshake with an "illegal_parameter" alert.
          */
         if (!TlsUtils.isValidKeyShareSelection(server_version, securityParameters.getClientSupportedGroups(),
-            clientAgreements, selected_group))
+            clientAgreements, selectedGroup))
         {
             throw new TlsFatalAlert(AlertDescription.illegal_parameter, "invalid key_share selected");
         }
@@ -944,9 +957,11 @@ public class TlsClientProtocol
         TlsUtils.negotiatedCipherSuite(securityParameters, cipherSuite);
         tlsClient.notifySelectedCipherSuite(cipherSuite);
 
+        securityParameters.negotiatedGroup = selectedGroup;
+
         this.clientAgreements = null;
         this.retryCookie = cookie;
-        this.retryGroup = selected_group;
+        this.retryGroup = selectedGroup;
     }
 
     protected void process13ServerHello(ServerHello serverHello, boolean afterHelloRetryRequest)
@@ -1051,33 +1066,39 @@ public class TlsClientProtocol
 
         TlsSecret sharedSecret = null;
         {
-            KeyShareEntry keyShareEntry = TlsExtensionsUtils.getKeyShareServerHello(extensions);
-            if (null == keyShareEntry)
+            KeyShareEntry serverShare = TlsExtensionsUtils.getKeyShareServerHello(extensions);
+            if (null == serverShare)
             {
-                if (afterHelloRetryRequest
-                    || null == pskEarlySecret
-                    || !Arrays.contains(clientBinders.pskKeyExchangeModes, PskKeyExchangeMode.psk_ke))
+                if (afterHelloRetryRequest ||
+                    pskEarlySecret == null ||
+                    !Arrays.contains(clientBinders.pskKeyExchangeModes, PskKeyExchangeMode.psk_ke))
                 {
                     throw new TlsFatalAlert(AlertDescription.illegal_parameter);
                 }
             }
             else
             {
-                if (null != pskEarlySecret
-                    && !Arrays.contains(clientBinders.pskKeyExchangeModes, PskKeyExchangeMode.psk_dhe_ke))
+                if (pskEarlySecret != null &&
+                    !Arrays.contains(clientBinders.pskKeyExchangeModes, PskKeyExchangeMode.psk_dhe_ke))
                 {
                     throw new TlsFatalAlert(AlertDescription.illegal_parameter);
                 }
 
-                int namedGroup = keyShareEntry.getNamedGroup();
+                int namedGroup = serverShare.getNamedGroup();
+
                 TlsAgreement agreement = (TlsAgreement)clientAgreements.get(Integers.valueOf(namedGroup));
                 if (null == agreement)
                 {
                     throw new TlsFatalAlert(AlertDescription.illegal_parameter);
                 }
 
-                agreement.receivePeerValue(keyShareEntry.getKeyExchange());
+                agreement.receivePeerValue(serverShare.getKeyExchange());
                 sharedSecret = agreement.calculateSecret();
+
+                if (!afterHelloRetryRequest)
+                {
+                    securityParameters.negotiatedGroup = namedGroup;                    
+                }
             }
         }
 
@@ -1444,10 +1465,11 @@ public class TlsClientProtocol
                     securityParameters.statusRequestVersion = 1;
                 }
 
+                TlsCrypto crypto = tlsClientContext.getCrypto();
                 securityParameters.clientCertificateType = TlsUtils.processClientCertificateTypeExtension(
-                    sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
+                    crypto, sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
                 securityParameters.serverCertificateType = TlsUtils.processServerCertificateTypeExtension(
-                    sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
+                    crypto, sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
 
                 this.expectSessionTicket = TlsUtils.hasExpectedEmptyExtensionData(sessionServerExtensions,
                     TlsProtocol.EXT_SessionTicket, AlertDescription.illegal_parameter);
@@ -1565,10 +1587,11 @@ public class TlsClientProtocol
             securityParameters.statusRequestVersion = clientExtensions.containsKey(TlsExtensionsUtils.EXT_status_request)
                 ? 1 : 0;
 
+            TlsCrypto crypto = tlsClientContext.getCrypto();
             securityParameters.clientCertificateType = TlsUtils.processClientCertificateTypeExtension13(
-                sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
+                crypto, sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
             securityParameters.serverCertificateType = TlsUtils.processServerCertificateTypeExtension13(
-                sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
+                crypto, sessionClientExtensions, sessionServerExtensions, AlertDescription.illegal_parameter);
         }
 
         this.expectSessionTicket = false;

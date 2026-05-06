@@ -1,8 +1,8 @@
 package org.bouncycastle.tls.crypto.impl.bc;
 
+import org.bouncycastle.crypto.params.MLDSAPrivateKeyParameters;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
-import org.bouncycastle.pqc.crypto.mldsa.MLDSAPrivateKeyParameters;
-import org.bouncycastle.pqc.crypto.mldsa.MLDSASigner;
+import org.bouncycastle.crypto.signers.MLDSASigner;
 import org.bouncycastle.tls.SignatureAndHashAlgorithm;
 import org.bouncycastle.tls.SignatureScheme;
 import org.bouncycastle.tls.crypto.TlsStreamSigner;
@@ -27,6 +27,12 @@ public class BcTlsMLDSASigner
     {
         super(crypto, privateKey);
 
+        if (!SignatureScheme.isMLDSA(signatureScheme))
+        {
+            throw new IllegalArgumentException(
+                "'signatureScheme' " + SignatureScheme.getText(signatureScheme) + " is not ML-DSA");
+        }
+
         this.signatureScheme = signatureScheme;
     }
 
@@ -37,6 +43,9 @@ public class BcTlsMLDSASigner
             throw new IllegalStateException("Invalid algorithm: " + algorithm);
         }
 
+        /*
+         * draft-ietf-tls-mldsa-00 3. The context parameter [..] MUST be the empty string.
+         */
         MLDSASigner signer = new MLDSASigner();
         signer.init(true, new ParametersWithRandom(privateKey, crypto.getSecureRandom()));
 
