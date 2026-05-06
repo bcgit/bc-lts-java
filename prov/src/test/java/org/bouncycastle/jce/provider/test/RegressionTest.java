@@ -2,7 +2,7 @@ package org.bouncycastle.jce.provider.test;
 
 import java.security.Security;
 
-import org.bouncycastle.crypto.test.SM2KeyExchangeTest;
+
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.test.SimpleTest;
 import org.bouncycastle.util.test.Test;
