@@ -364,6 +364,7 @@ packet_err *gcm_pc_process_buffer_dec(uint8_t *in, size_t inlen, uint8_t *out, s
             *totalBytes += toCopy;
             outputLen -= FOUR_BLOCKS;
             in += toCopy;
+            inlen -= toCopy;
             out += FOUR_BLOCKS;
         }
     }

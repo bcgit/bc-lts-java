@@ -1077,6 +1077,7 @@ gcm_err *process_buffer_dec(gcm_ctx *ctx,
             ctx->totalBytes += toCopy;
             outputLen -= FOUR_BLOCKS;
             in += toCopy;
+            inlen -= toCopy;
             out += FOUR_BLOCKS;
         }
     }
