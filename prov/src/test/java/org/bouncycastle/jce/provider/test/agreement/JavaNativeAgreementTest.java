@@ -692,7 +692,7 @@ public class JavaNativeAgreementTest extends TestCase
     {
         if (!CryptoServicesRegistrar.hasEnabledService("AES/GCM"))
         {
-            if (!System.getProperty("test.bcfips.ignore.native", "").contains("gcm"))
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
             {
                 TestCase.fail("Skipping GCM Agreement Test: testForceChunkAgreement");
             }
