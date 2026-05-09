@@ -2,27 +2,20 @@ package org.bouncycastle.jce.provider.test.agreement;
 
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
-
-import org.bouncycastle.crypto.NativeServices;
 import org.bouncycastle.jcajce.spec.AEADParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
-
 import org.bouncycastle.util.io.Streams;
-import org.bouncycastle.util.test.SimpleTest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
+import javax.crypto.*;
+import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
+import java.io.*;
 import java.lang.reflect.Field;
-
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -690,6 +683,95 @@ public class JavaNativeAgreementTest extends TestCase
             TestCase.assertTrue(Arrays.areEqual(nativeDigest, javaDigest));
 
 
+        }
+    }
+
+
+    @Test
+    public void testForceChunkAgreement() throws Exception
+    {
+        if (!CryptoServicesRegistrar.hasEnabledService("AES/GCM"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
+            {
+                TestCase.fail("Skipping GCM Agreement Test: testForceChunkAgreement");
+            }
+            return;
+        }
+
+        CryptoServicesRegistrar.setNativeEnabled(true);
+
+        SecureRandom random = new SecureRandom();
+        byte[] iv = new byte[12];
+        random.nextBytes(iv);
+
+        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+        keyGenerator.init(128);
+        SecretKey key = keyGenerator.generateKey();
+
+        for (int size = 1; size < 16000; size++)
+        {
+            byte[] data = new byte[size];
+            random.nextBytes(data);
+
+            Cipher encCipher = Cipher.getInstance("AES/GCM/NoPadding", BouncyCastleProvider.PROVIDER_NAME);
+            encCipher.init(Cipher.ENCRYPT_MODE, key, new GCMParameterSpec(128, iv));
+            byte[] encryptedData = encCipher.doFinal(data);
+
+            Cipher singleShotCipher = Cipher.getInstance("AES/GCM/NoPadding", BouncyCastleProvider.PROVIDER_NAME);
+            singleShotCipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, iv));
+            byte[] singleShotPt = singleShotCipher.doFinal(encryptedData);
+            TestCase.assertTrue("single-shot decrypt mismatch at size " + size,
+                    Arrays.areEqual(data, singleShotPt));
+
+            Cipher streamCipher = Cipher.getInstance("AES/GCM/NoPadding", BouncyCastleProvider.PROVIDER_NAME);
+            streamCipher.init(Cipher.DECRYPT_MODE, key, new GCMParameterSpec(128, iv));
+
+            ByteArrayInputStream bis = new ByteArrayInputStream(encryptedData);
+            ForceInputStream fis = new ForceInputStream(bis);
+            CipherInputStream cis = new CipherInputStream(fis, streamCipher);
+            try
+            {
+                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+                byte[] buf = new byte[1024];
+                int n;
+                while ((n = cis.read(buf)) != -1)
+                {
+                    bos.write(buf, 0, n);
+                }
+                TestCase.assertTrue("force-chunk decrypt mismatch at size " + size,
+                        Arrays.areEqual(data, bos.toByteArray()));
+            }
+            finally
+            {
+                cis.close();
+            }
+        }
+    }
+
+
+    private static class ForceInputStream extends FilterInputStream
+    {
+        private int it = 0;
+
+        ForceInputStream(InputStream in)
+        {
+            super(in);
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException
+        {
+            it++;
+            if (it == 16)
+            {
+                len = 487;
+            }
+            else if (it == 17)
+            {
+                len = 94;
+            }
+            return super.read(b, off, len);
         }
     }
 

@@ -3,6 +3,7 @@ package org.bouncycastle.crypto.engines;
 
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
 import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
@@ -12,6 +13,9 @@ import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.jupiter.api.*;
 
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
 import java.io.ByteArrayOutputStream;
 import java.security.SecureRandom;
 
@@ -584,6 +588,9 @@ public class GCMJavaAgreementTest extends TestCase
     }
 
 
+
+
+
     private static GCMModeCipher createOutputEncryptor(byte[] key, byte[] iv, int macSize)
     {
 
@@ -600,6 +607,111 @@ public class GCMJavaAgreementTest extends TestCase
         c.init(false, new AEADParameters(new KeyParameter(key), macSize, iv));
 
         return c;
+    }
+
+
+    // Regression test for the four-block (avx / vaes / neon-le) decrypt path:
+    // chunked decryption of an 8192-byte message used to corrupt the GHASH state
+    // because process_buffer_dec advanced `in` without decrementing `inlen`,
+    // letting the bulk-decrypt block over-read past the chunk's buffer.
+    @Test
+    public void testDecryptChunkedTagBug_4block() throws Exception
+    {
+        if (!TestUtil.hasNativeService("AES/GCM"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
+            {
+                Assertions.fail("Skipping GCM Decrypt Chunked Tag Bug Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        String var = CryptoServicesRegistrar.getNativeServices().getVariant();
+        boolean correctVariant = "vaes".equals(var) || "avx".equals(var) || "neon-le".equals(var);
+        if (!correctVariant)
+        {
+            System.out.println("Skipping testDecryptChunkedTagBug_4block: incorrect variant " + var);
+            return;
+        }
+
+        // 4-block bufBlockLen on decrypt = FOUR_BLOCKS (64) + macBlockLen (16) = 80
+        doDecryptChunkedTagBug(80);
+    }
+
+
+    // Regression test for the sixteen-block (vaesf) decrypt path: same bug,
+    // larger block group.
+    @Test
+    public void testDecryptChunkedTagBug_16block() throws Exception
+    {
+        if (!TestUtil.hasNativeService("AES/GCM"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("gcm"))
+            {
+                Assertions.fail("Skipping GCM Decrypt Chunked Tag Bug Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        String var = CryptoServicesRegistrar.getNativeServices().getVariant();
+        if (!"vaesf".equals(var))
+        {
+            System.out.println("Skipping testDecryptChunkedTagBug_16block: incorrect variant " + var);
+            return;
+        }
+
+        // 16-block bufBlockLen on decrypt = SIXTEEN_BLOCKS (256) + macBlockLen (16) = 272
+        doDecryptChunkedTagBug(272);
+    }
+
+
+    /**
+     * Encrypt 8192 bytes via the Java path, then decrypt via the native path while
+     * feeding the ciphertext (8192 + 16 = 8208 bytes) in fixed-size chunks equal to
+     * bufBlockLen. The first chunk leaves bufBlockIndex == macBlockLen (= 16); each
+     * subsequent chunk hits the second inner-if in process_buffer_dec, which used to
+     * advance `in` without updating `inlen` and let the bulk-decrypt loop read past
+     * the caller's buffer, corrupting GHASH and producing a bad tag. With the fix in
+     * place the tag verifies and the plaintext round-trips.
+     */
+    private void doDecryptChunkedTagBug(int chunkSize) throws Exception
+    {
+        SecureRandom rand = new SecureRandom();
+
+        byte[] key = new byte[16];
+        rand.nextBytes(key);
+
+        byte[] iv = new byte[12];
+        rand.nextBytes(iv);
+
+        byte[] message = new byte[8192];
+        rand.nextBytes(message);
+
+        // Encrypt with native disabled to get a known-good ciphertext from the Java path.
+        CryptoServicesRegistrar.setNativeEnabled(false);
+        GCMModeCipher javaEnc = createOutputEncryptor(key, iv, 128);
+        Assertions.assertTrue(javaEnc.toString().contains("Java"), "Java encryptor expected for reference ciphertext");
+        byte[] ciphertext = new byte[javaEnc.getOutputSize(message.length)];
+        int j = javaEnc.processBytes(message, 0, message.length, ciphertext, 0);
+        javaEnc.doFinal(ciphertext, j);
+
+        // Decrypt with native enabled, in fixed-size chunks.
+        CryptoServicesRegistrar.setNativeEnabled(true);
+        GCMModeCipher nativeDec = createOutputDecryptor(key, iv, 128);
+        Assertions.assertTrue(nativeDec.toString().contains("Native"), "Native decryptor expected");
+
+        byte[] plaintext = new byte[message.length];
+        int outOff = 0;
+        int inOff = 0;
+        while (inOff < ciphertext.length)
+        {
+            int len = Math.min(chunkSize, ciphertext.length - inOff);
+            outOff += nativeDec.processBytes(ciphertext, inOff, len, plaintext, outOff);
+            inOff += len;
+        }
+        nativeDec.doFinal(plaintext, outOff);
+
+        Assertions.assertTrue(Arrays.areEqual(plaintext, message), "decrypted plaintext does not match original");
     }
 
 }
