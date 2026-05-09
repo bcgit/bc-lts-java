@@ -85,6 +85,25 @@ Force a specific native variant at runtime (debugging):
 
 `core/test`, `prov/test`, `pkix/test`, etc. follow the standard Gradle layout. Test entry points are `AllTests.java` per package — the test tasks use `includeTestsMatching "AllTest*"`.
 
+### Per-module source manifests (`indexes/`)
+
+`indexes/bc-java.<module>.index` is a sha256 manifest of every `.java` file under `<module>/src/` — across all source roots, not just `src/main/java` and `src/test/java`. The multi-release roots (`src/main/jdk1.5`, `src/main/jdk1.9`, `src/main/jdk1.11`, `src/main/jdk1.15`, `src/test/jdk1.4`) are all in scope and the modular `module-info.java` lives under `src/main/jdk1.9` for every module. Format is the standard `sha256sum -- *` output, `<hex-sha256>␣␣<repo-relative-path>`. One index per module: `core`, `mail`, `pg`, `pkix`, `prov`, `tls`, `util`. Order is not significant — entries are appended, not sorted.
+
+**The hashes are computed against a separate reference repository (the upstream public `bc-java` source tree), not against the LTS sources in this checkout.** The path is the LTS-relative path the file maps to, but the recorded sha256 is the upstream file's hash — the indexes exist to track which LTS files match upstream and which have diverged. Consequence: `sha256sum -c` against this checkout will *not* round-trip for files that the LTS edition has modified, and adding a new index entry by running `sha256sum` on the local file is incorrect — the hash must come from the corresponding file in the reference repo.
+
+When you add, rename, or delete a `.java` file, update the matching `bc-java.<module>.index` in the same change using the hash from the reference repo (or omit it if the file has no upstream counterpart — confirm with the maintainer first). To audit which paths are present/absent without trusting the hashes:
+
+```
+mod=core; idx=indexes/bc-java.${mod}.index
+find ${mod}/src -type f -name '*.java' | sort > /tmp/actual
+awk '{print $2}' "$idx" | sort > /tmp/indexed
+comm -23 /tmp/actual /tmp/indexed   # files on disk, missing from the index
+comm -13 /tmp/actual /tmp/indexed   # entries in the index pointing at files that no longer exist
+awk '{print $2}' "$idx" | sort | uniq -d   # duplicate path entries (different hashes for same file)
+```
+
+Duplicate-path entries (same path, two different hashes) are a real gotcha: `comm` over sorted path lists won't flag them as gone *or* missing, and a path-based prune that drops every matching line for a "gone" path will also drop both copies of a duplicate. Use `uniq -d` on `awk '{print $2}'` to find them; reconcile against the reference repo, never by re-`sha256sum`'ing the local file.
+
 ### The native-acceleration design (the LTS-specific part)
 
 This is the part that requires reading multiple files to understand:
