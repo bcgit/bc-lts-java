@@ -1667,13 +1667,13 @@ f27426cdab0eab8a1cecc3d7cd2c33bfe81405185e74bb35434c489a0a5d9514  core/src/main/
 50f302a64e8fb21ee9bccef2fe49ae541341b18ea5b1856757753957b1848ffb  core/src/main/java/org/bouncycastle/crypto/prng/package-info.java
 88abd279b9b98fc347d2942e32f64c2e7a6c5da033b64b23798a69f28eee4a9c  core/src/main/java/org/bouncycastle/crypto/signers/HashMLDSASigner.java
 d09e4731abbdb3b7eaeb8757e0a1498e8a8ca739303e951c996f839b4518f228  core/src/main/java/org/bouncycastle/crypto/signers/HashSLHDSASigner.java
-c194d44fd12d79f5165d2852d4c3406a6a509bb11039421596d4cfd7a4fe40e3  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/MLDSAEngine.java
-1ae7d835ec039983f7a8546038d72409af7a9a1cbeb6b1d43b3b8a35ac6e3b34  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/Ntt.java
-74a2f3c7939ec38e1fe255b6c07f0d6dece419b06a07d2d32af9191216efb61c  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/Packing.java
-b64d0378f1e1c61ae9662c466227ee704bdcd1e023dfde858ff9cc2188863459  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/Poly.java
-7df1bfa1259e7e1f2e9a504d2b0643cd10f4f46dc675074cb31d6dd1287267d4  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/PolyVecMatrix.java
+b8ab5f28a0bcabc3d88d5d747c13c74f231d5b07de7366ed48967ffff01037f5  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/MLDSAEngine.java
+18685734a0673c1d774fd5bd7ca211daa24f6620a99e67a297fa193583a3c243  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/Ntt.java
+755b35077f583259b215a9e8849f9007e0346ae6c6e2ed6d1576bf2d49ef4fad  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/Packing.java
+e4efdbea85f3c0afa71cc8baa64e09f465d1d84790375b8e3651940b522d6b7b  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/Poly.java
+3f089b361aad0858221a8a0142aa358af42351b7b5933d72122611d1d7cb9dd6  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/PolyVecMatrix.java
 b22659b97fe0325dc6c70c11b16a519523b2b7266bb08f7fe18ddafcd2ed8db8  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/Reduce.java
-81423a96bc1b52f1e8a5d39e7dd19302b924d49e9029d475b8a9594a47ffffdc  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/Rounding.java
+c7a021d0c185dea3da5037f58f9a840eea7b291d1ea54e250dfdfadeda8f34f6  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/Rounding.java
 927c1d80bcfdbf956d45bc6ac454b91bdcdb642bd73d1c751dda4b7a29e14bd9  core/src/main/java/org/bouncycastle/crypto/signers/MLDSASigner.java
 d9f28dd9cd83b0630cc9dcea26a5c223c17656d6c33e03e311514e6c6afa1191  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/Symmetric.java
 79b204ab77dc98ffe73ec3c1d026a453add5785d1456b0c1f47176c8fbb43021  core/src/main/java/org/bouncycastle/crypto/signers/package-info.java
@@ -1753,3 +1753,4 @@ ea0d1a07b98350a456ffb5b5f1d42d29de7ad07eda4a6a041c4e431d113d06e4  core/src/test/
 860cb6416dca02c7755c00dfb2dfebfa54a13490f09300084b9bc8281dda5721  core/src/main/java/org/bouncycastle/asn1/ASN1TimeFormat.java
 8e89ce0fc1d47e6b5856aeea709d554749674d8cbc94046fc4bfef7a60a1840a  core/src/main/java/org/bouncycastle/asn1/DEREncodingException.java
 a7f1fc4f70ff417fecac191082896fb21a48870b656a98a6621ab4a905bed9fd  core/src/test/java/org/bouncycastle/asn1/test/AllowNonDerTimeTest.java
+2fb758d89e78de0ebc9936d27fa6ef72b61cf26d57544710f9b1138173e4a881  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/PolyVec.java
