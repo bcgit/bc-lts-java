@@ -222,49 +222,49 @@ public class PrivateKeyFactory
 //
 //            return new NTRUPrivateKeyParameters(spParams, keyEnc);
 //        }
-//        else if (algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_512) ||
-//            algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_768) ||
-//            algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_1024))
-//        {
-//            ASN1Primitive mlkemKey = parsePrimitiveString(keyInfo.getPrivateKey(), 64);
-//            MLKEMParameters mlkemParams = Utils.mlkemParamsLookup(algOID);
-//
-//            MLKEMPublicKeyParameters pubParams = null;
-//            if (keyInfo.getPublicKeyData() != null)
-//            {
-//                pubParams = PublicKeyFactory.MLKEMConverter.getPublicKeyParams(mlkemParams, keyInfo.getPublicKeyData());
-//            }
-//
-//            if (mlkemKey instanceof ASN1OctetString)
-//            {
-//                // TODO This should be explicitly EXPANDED_KEY or SEED (tag already removed) but is length-flexible
-//                return new MLKEMPrivateKeyParameters(mlkemParams, ((ASN1OctetString)mlkemKey).getOctets(), pubParams);
-//            }
-//            else if (mlkemKey instanceof ASN1Sequence)
-//            {
-//                ASN1Sequence keySeq = (ASN1Sequence)mlkemKey;
-//                byte[] seed = ASN1OctetString.getInstance(keySeq.getObjectAt(0)).getOctets();
-//                byte[] encoding = ASN1OctetString.getInstance(keySeq.getObjectAt(1)).getOctets();
-//
-//                // TODO This should only allow seed but is length-flexible
-//                MLKEMPrivateKeyParameters mlkemPriv = new MLKEMPrivateKeyParameters(mlkemParams, seed, pubParams);
-//
-//                /*
-//                 * RFC 9881 8.2. When receiving a private key that contains both the seed and the expandedKey, the
-//                 * recipient SHOULD perform a seed consistency check to ensure that the sender properly generated
-//                 * the private key. [..] If the check is done and the seed and the expandedKey are not consistent,
-//                 * the recipient MUST reject the private key as malformed.
-//                 */
-//                if (!Arrays.constantTimeAreEqual(mlkemPriv.getEncoded(), encoding))
-//                {
-//                    throw new IllegalArgumentException("inconsistent " + mlkemParams.getName() + " private key");
-//                }
-//
-//                return mlkemPriv;
-//            }
-//
-//            throw new IllegalArgumentException("invalid " + mlkemParams.getName() + " private key");
-//        }
+        else if (algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_512) ||
+            algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_768) ||
+            algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_1024))
+        {
+            ASN1Primitive mlkemKey = parsePrimitiveString(keyInfo.getPrivateKey(), 64);
+            MLKEMParameters mlkemParams = Utils.mlkemParamsLookup(algOID);
+
+            MLKEMPublicKeyParameters pubParams = null;
+            if (keyInfo.getPublicKeyData() != null)
+            {
+                pubParams = PublicKeyFactory.MLKEMConverter.getPublicKeyParams(mlkemParams, keyInfo.getPublicKeyData());
+            }
+
+            if (mlkemKey instanceof ASN1OctetString)
+            {
+                // TODO This should be explicitly EXPANDED_KEY or SEED (tag already removed) but is length-flexible
+                return new MLKEMPrivateKeyParameters(mlkemParams, ((ASN1OctetString)mlkemKey).getOctets(), pubParams);
+            }
+            else if (mlkemKey instanceof ASN1Sequence)
+            {
+                ASN1Sequence keySeq = (ASN1Sequence)mlkemKey;
+                byte[] seed = ASN1OctetString.getInstance(keySeq.getObjectAt(0)).getOctets();
+                byte[] encoding = ASN1OctetString.getInstance(keySeq.getObjectAt(1)).getOctets();
+
+                // TODO This should only allow seed but is length-flexible
+                MLKEMPrivateKeyParameters mlkemPriv = new MLKEMPrivateKeyParameters(mlkemParams, seed, pubParams);
+
+                /*
+                 * RFC 9881 8.2. When receiving a private key that contains both the seed and the expandedKey, the
+                 * recipient SHOULD perform a seed consistency check to ensure that the sender properly generated
+                 * the private key. [..] If the check is done and the seed and the expandedKey are not consistent,
+                 * the recipient MUST reject the private key as malformed.
+                 */
+                if (!Arrays.constantTimeAreEqual(mlkemPriv.getEncoded(), encoding))
+                {
+                    throw new IllegalArgumentException("inconsistent " + mlkemParams.getName() + " private key");
+                }
+
+                return mlkemPriv;
+            }
+
+            throw new IllegalArgumentException("invalid " + mlkemParams.getName() + " private key");
+        }
 //        else if (algOID.on(BCObjectIdentifiers.pqc_kem_ntrulprime))
 //        {
 //            ASN1Sequence keyEnc = ASN1Sequence.getInstance(keyInfo.parsePrivateKey());
