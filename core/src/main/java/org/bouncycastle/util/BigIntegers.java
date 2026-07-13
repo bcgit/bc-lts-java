@@ -168,46 +168,78 @@ public final class BigIntegers
 
     public static byte byteValueExact(BigInteger x)
     {
-        // Since Java 1.8 could use BigInteger.byteValueExact instead
-        if (x.bitLength() > 7)
-        {
-            throw new ArithmeticException("BigInteger out of int range");
-        }
-
-        return x.byteValue();
+        return x.byteValueExact();
     }
 
     public static short shortValueExact(BigInteger x)
     {
-        // Since Java 1.8 could use BigInteger.shortValueExact instead
-        if (x.bitLength() > 15)
-        {
-            throw new ArithmeticException("BigInteger out of int range");
-        }
-
-        return x.shortValue();
+        return x.shortValueExact();
     }
 
     public static int intValueExact(BigInteger x)
     {
-        // Since Java 1.8 could use BigInteger.intValueExact instead
-        if (x.bitLength() > 31)
-        {
-            throw new ArithmeticException("BigInteger out of int range");
-        }
-
-        return x.intValue();
+        return x.intValueExact();
     }
 
     public static long longValueExact(BigInteger x)
     {
-        // Since Java 1.8 could use BigInteger.longValueExact instead
-        if (x.bitLength() > 63)
+        return x.longValueExact();
+    }
+
+    /**
+     * Compare two non-negative values for equality without an early exit. Both are laid out as
+     * unsigned big-endian byte arrays of the fixed public length {@code maxLen} before the
+     * comparison, so the comparison itself is length-uniform.
+     * <p>
+     * Fixed-width encoding drops the two's-complement sign byte that {@link BigInteger#toByteArray()}
+     * prepends when the most-significant bit is set: without that, two values could serialise to
+     * different lengths (e.g. 256 vs 257 bytes for a 2048-bit value) purely according to that high
+     * bit, and the variable-time comparison would leak it. This is not perfectly constant-time —
+     * {@code java.math.BigInteger} has no constant-time serialisation, so the underlying
+     * {@code toByteArray()} still runs in time proportional to each value's magnitude — but the
+     * comparison no longer differs in length on the value's high bit. Intended for secret key
+     * material (RSA {@code d} and the CRT factors, DSA/DH/ElGamal/GOST {@code x}, EC {@code d}),
+     * which are all non-negative; the temporary unsigned encodings holding that secret material are
+     * zeroed before returning.
+     * <p>
+     * Both arguments must be non-null and non-negative; a negative value does not produce a meaningful
+     * result (and may throw {@link IllegalArgumentException}), and a null value throws
+     * {@link NullPointerException}.
+     *
+     * @param maxLen the public unsigned byte length both values are encoded to (e.g. from a group
+     *               order or modulus).
+     * @param a      the first value, non-null and non-negative.
+     * @param b      the second value, non-null and non-negative.
+     * @return true if {@code a} and {@code b} are numerically equal, false otherwise.
+     */
+    public static boolean areSecretValuesEqual(int maxLen, BigInteger a, BigInteger b)
+    {
+        byte[] aEnc = asUnsignedByteArray(maxLen, a);
+        byte[] bEnc = asUnsignedByteArray(maxLen, b);
+
+        boolean equal = Arrays.constantTimeAreEqual(aEnc, bEnc);
+
+        Arrays.clear(aEnc);
+        Arrays.clear(bEnc);
+
+        return equal;
+    }
+
+    public static boolean hasAnySmallFactors(BigInteger x)
+    {
+        if (!x.testBit(0))
         {
-            throw new ArithmeticException("BigInteger out of long range");
+            return true;
         }
 
-        return x.longValue();
+        BigInteger y = SMALL_PRIMES_PRODUCT;
+        if (x.bitLength() < SMALL_PRIMES_PRODUCT.bitLength())
+        {
+            y = x;
+            x = SMALL_PRIMES_PRODUCT;
+        }
+
+        return !BigIntegers.modOddIsCoprimeVar(x, y);
     }
 
     public static BigInteger modOddInverse(BigInteger M, BigInteger X)
@@ -347,7 +379,7 @@ public final class BigIntegers
             + "ce86165a978d719ebf647f362d33fca29cd179fb42401cbaf3df0c614056f9c8"
             + "f3cfd51e474afb6bc6974f78db8aba8e9e517fded658591ab7502bd41849462f",
         16);
-    private static final int MAX_SMALL = BigInteger.valueOf(743).bitLength(); // bitlength of 743 * 743
+//    private static final int SMALL_PRIMES_MAX = 743;
 
     /**
      * Return a prime number candidate of the specified bit length.
@@ -358,41 +390,50 @@ public final class BigIntegers
      */
     public static BigInteger createRandomPrime(int bitLength, int certainty, SecureRandom random)
     {
+        // BigInteger implementations use the SecureRandom in varying ways, making testing difficult 
+//        return new BigInteger(bitLength, certainty, random);
+
         if (bitLength < 2)
         {
             throw new IllegalArgumentException("bitLength < 2");
         }
-
-        BigInteger rv;
 
         if (bitLength == 2)
         {
             return (random.nextInt() < 0) ? TWO : THREE;
         }
 
-        do
+        int nBytes = (bitLength + 7) / 8;
+        int xBits = 8 * nBytes - bitLength;
+        byte[] base = new byte[nBytes];
+
+        for (;;)
         {
-            byte[] base = createRandom(bitLength, random);
+            random.nextBytes(base);
 
-            int xBits = 8 * base.length - bitLength;
-            byte lead = (byte)(1 << (7 - xBits));
-
-            // ensure top and bottom bit set
-            base[0] |= lead;
+            // strip off excess bits, set MSB and LSB
+            base[0] = (byte)((base[0] & (0xFF >>> xBits)) | 1 << (7 - xBits));
             base[base.length - 1] |= 0x01;
 
-            rv = new BigInteger(1, base);
-            if (bitLength > MAX_SMALL)
-            {
-                while (!rv.gcd(SMALL_PRIMES_PRODUCT).equals(ONE))
-                {
-                    rv = rv.add(TWO);
-                }
-            }
-        }
-        while (!rv.isProbablePrime(certainty));
+            BigInteger rv = new BigInteger(1, base);
 
-        return rv;
+            int count = 0;
+            do
+            {
+                if (!hasAnySmallFactors(rv))
+                {
+                    if (rv.isProbablePrime(certainty))
+                    {
+                        return rv;
+                    }
+
+                    break;
+                }
+
+                rv = rv.add(TWO);
+            }
+            while (++count < 256 && rv.bitLength() == bitLength);
+        }
     }
 
     public static void writeUnsignedByteArray(OutputStream out, BigInteger n) throws IOException
