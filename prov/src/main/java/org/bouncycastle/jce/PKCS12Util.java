@@ -10,6 +10,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 import javax.security.auth.DestroyFailedException;
+import javax.security.auth.Destroyable;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Encoding;
@@ -36,12 +37,16 @@ import org.bouncycastle.util.Properties;
 
 /**
  * Utility class for re-encoding PKCS#12 files to definite length.
+ *
+ * @deprecated Replaced by {@link org.bouncycastle.pkcs.util.PKCS12Util}; this class
+ * does not understand RFC 9579 PBMAC1-protected PKCS#12 files (it throws
+ * UnsupportedOperationException for them) and will be removed in a future
+ * release.
  */
+@Deprecated
 public class PKCS12Util
 {
     private static final BigInteger DEFAULT_MAX_IT_COUNT = BigInteger.valueOf(5000000);
-
-    static final String PKCS12_MAX_IT_COUNT_PROPERTY = "org.bouncycastle.pkcs12.max_it_count";
 
     /**
      * Just re-encode the outer layer of the PKCS#12 file to definite length encoding.
@@ -190,7 +195,7 @@ public class PKCS12Util
             throw new IllegalStateException("iteration counts >= 2^31 are not suppported");
         }
 
-        BigInteger max = Properties.asBigInteger(PKCS12_MAX_IT_COUNT_PROPERTY);
+        BigInteger max = Properties.asBigInteger(Properties.PKCS12_MAX_IT_COUNT);
         if (max == null)
         {
             max = DEFAULT_MAX_IT_COUNT;
@@ -239,9 +244,11 @@ public class PKCS12Util
         {
             try
             {
-                if (key != null)
+                // SecretKey only extends Destroyable from JDK 1.8; guard via the
+                // Destroyable interface (JDK 1.4) so this is a no-op on older JREs.
+                if (key instanceof Destroyable)
                 {
-                    key.destroy();
+                    ((Destroyable)key).destroy();
                 }
             }
             catch (DestroyFailedException e)
