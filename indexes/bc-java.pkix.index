@@ -109,7 +109,7 @@ e4c3c803d1151e2fcf58777776d9463d00aa5f3caf2b1971b820dbefcbe241ad  pkix/src/test/
 ff85cc2eaf713154f90862c875e53e95b8de57162b863f49cb2fd503e1950a9b  pkix/src/test/java/org/bouncycastle/openssl/test/AllTests.java
 ca919c5eba5e4c1afa89de86d1f9cf51d5054c7e4cfdb11ce56cc9f10c6ad276  pkix/src/test/java/org/bouncycastle/openssl/test/CompositeKeyTest.java
 df2b759a250c3cea7d577f0f637378ceee2f1876c8e1a38f036620793ab30767  pkix/src/test/java/org/bouncycastle/openssl/test/ParserTest.java
-a7541bec4f6ee1ef3eee425b21d6c10bfedbc71699c2c36de93921f014fec477  pkix/src/main/jdk1.9/module-info.java
+e76f9a28890e2719d6fea4b349dcdb9ee98b13234d302d5de9c6b52722e91fce  pkix/src/main/jdk1.9/module-info.java
 303abe75fedf5a47ae0128c18005322ceae3cd2d3e686429bc51e34a03e046f4  pkix/src/main/java/org/bouncycastle/pkix/SubjectPublicKeyInfoChecker.java
 f81e19f5de0deecbdac975bb40853227050a3ed1d18a15bb946eddf876f8ac33  pkix/src/main/java/org/bouncycastle/pkix/util/TextBundle.java
 66fba01d96111cf20fe382be0b0a6741f2281ef5eb8cbf2e0baa2273bdfd4a14  pkix/src/main/java/org/bouncycastle/pkix/util/filter/TrustedInput.java
@@ -464,7 +464,7 @@ b1704f93e3eca37d6867587426b475754c28d47acaa6447c4c2e46812f3aff8b  pkix/src/main/
 b1fc0c6bbd9db3151cdf78f39fdfb2fc35488b9c0721c8e9d35b3084f816f1f4  pkix/src/main/java/org/bouncycastle/cert/crmf/PKMACValuesCalculator.java
 a2c9903b6f4b008203c912ad602d206925574fb85dff3aba7a08c6b282b41623  pkix/src/main/java/org/bouncycastle/cert/crmf/CertificateResponseBuilder.java
 ab6a34f5adabe6e6310f3c8e2bd0b5d1d0868bb5a6c8df594c97154d785c22c7  pkix/src/main/java/org/bouncycastle/cert/crmf/CertificateReqMessages.java
-a9755b2d65d778b8025a5cd3c81d4d54a027375879821f1320102345fcaf8ef4  pkix/src/main/java/org/bouncycastle/cert/crmf/PKMACBuilder.java
+d87bf638611d55cd5d73805bd6aa0e686aa1b844b54f1478659a8776b7fb0c61  pkix/src/main/java/org/bouncycastle/cert/crmf/PKMACBuilder.java
 84c9995485390e807511e9c1c9567c05a5ccabcec067daa7378bf2733e0825d3  pkix/src/main/java/org/bouncycastle/cert/crmf/EncryptedValueParser.java
 148218d72c7bb096480dfc671985d5c1608eac750f19e172575a14a9944cbf54  pkix/src/main/java/org/bouncycastle/cert/crmf/ProofOfPossessionSigningKeyBuilder.java
 7cd778745e02be29f9f855c8341dc45704ef0bbd99e9576bbc3668fea2047bc7  pkix/src/main/java/org/bouncycastle/cert/crmf/CRMFRuntimeException.java
@@ -522,7 +522,7 @@ e5f6d1e939494be25cb30311e7faa29b0509bc0d504c55291edc8954e8580982  pkix/src/main/
 15ea02c989f6235530f089537f85ecdba2c8370810b32ed046172d76c817646d  pkix/src/main/java/org/bouncycastle/pkcs/jcajce/JcaPKCS8EncryptedPrivateKeyInfoBuilder.java
 51d59d687792248258cc5e191cff7f8888ece0d295234001c3391d9197fecacb  pkix/src/main/java/org/bouncycastle/pkcs/jcajce/JcaPKCS10CertificationRequestBuilder.java
 d51ffe6e531f503a04f90bd4a7e5e9f48b8e4e31f50e25c6c569ab8fe7fc1971  pkix/src/main/java/org/bouncycastle/pkcs/jcajce/JcePKCSPBEOutputEncryptorBuilder.java
-0c7d4e819e9494c38e22eb4ee60bb040588d6dfba9accc858489b7b2ea072deb  pkix/src/main/java/org/bouncycastle/pkcs/jcajce/JcePKCS12MacCalculatorBuilderProvider.java
+b3bc1c4edbc734e2ec2a31b576eca12f3c0b47908f8f24f8f5ec3b354018e57a  pkix/src/main/java/org/bouncycastle/pkcs/jcajce/JcePKCS12MacCalculatorBuilderProvider.java
 2196b0a6cf1e21583c9724a0b50d442b6af699c48c3bf8c3977bb5c9b0f557a2  pkix/src/main/java/org/bouncycastle/pkcs/jcajce/JceUtils.java
 ce5028e016b17c52bf001b06ae38150c48f3bd57948ab377fc1865e8ec128113  pkix/src/main/java/org/bouncycastle/pkcs/PKCS12MacCalculatorBuilderProvider.java
 bed4f132ad4feaf7b17417871074e11ecb84757f0cdc8dedd558d2e3a5d70a5e  pkix/src/main/java/org/bouncycastle/pkcs/PKCS12SafeBagBuilder.java
@@ -836,3 +836,4 @@ c95790c31af4626f5e91481ab135ce257d7d08ac851e1bbee01681203685079a  pkix/src/test/
 b7e7c1e61ae512b23456a9d90349b256a30face0d0c1744a3c839192c0d855a0  pkix/src/test/java/org/bouncycastle/pkix/test/LocalizedMessageTest.java
 74ea5d051585e9cebc20e119b44bae450abbf897a1d6ec7baf3f11f34a27b893  pkix/src/test/java/org/bouncycastle/pkix/test/SQLFilterTest.java
 f6198a7a762865f30149d72217eb0007bafcdbc15f594890d5b8afdb7d9cf15a  pkix/src/test/java/org/bouncycastle/tsp/test/OldERSTest.java
+831f74f1f27b8e7863059bbd80f7e12a8f4deb3d31b69bf0876f4995b891115d  pkix/src/main/java/org/bouncycastle/pkcs/util/PKCS12Util.java

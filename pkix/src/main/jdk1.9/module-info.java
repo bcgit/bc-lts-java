@@ -50,6 +50,7 @@ module org.bouncycastle.lts.pkix
     exports org.bouncycastle.pkcs;
     exports org.bouncycastle.pkcs.bc;
     exports org.bouncycastle.pkcs.jcajce;
+    exports org.bouncycastle.pkcs.util;
     exports org.bouncycastle.pkix;
     exports org.bouncycastle.pkix.jcajce;
     exports org.bouncycastle.pkix.util;
