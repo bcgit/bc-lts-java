@@ -356,6 +356,18 @@ public abstract class Pack
         }
     }
 
+    public static byte[] shortToLittleEndian(short[] ns)
+    {
+        byte[] bs = new byte[ns.length<<1];
+        int bsOff = 0;
+        for (int i = 0; i < ns.length; ++i)
+        {
+            shortToLittleEndian(ns[i], bs, bsOff);
+            bsOff += 2;
+        }
+        return bs;
+    }
+
     public static byte[] shortToBigEndian(short n)
     {
         byte[] r = new byte[2];
@@ -440,6 +452,13 @@ public abstract class Pack
             ns[i] = littleEndianToLong(bs, off);
             off += 8;
         }
+    }
+
+    public static long[] littleEndianToLongArray(byte[] bs, int off, int count)
+    {
+        long[] ns = new long[count];
+        littleEndianToLong(bs, off, ns);
+        return ns;
     }
 
     public static long littleEndianToLong(byte[] input, int off, int len)

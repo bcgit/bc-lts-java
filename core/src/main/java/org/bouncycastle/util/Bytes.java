@@ -113,4 +113,11 @@ public class Bytes
             z[zOff + i] ^= x[xOff + i];
         }
     }
+
+    public static byte rotateLeft(byte b, int distance)
+    {
+        int v = b & 0xFF;
+        distance &= 7;
+        return (byte)((v << distance) | (v >>> (8 - distance)));
+    }
 }
