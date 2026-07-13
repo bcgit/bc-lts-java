@@ -797,7 +797,7 @@ b44ab7699fb419a9c581ecbe6b664c6e28c2903d8406f10e72f52ba214c9585f  core/src/main/
 f9a849152665657cc6906a3badcdba47b53cd546e815780a27ecf3620a848c17  core/src/main/java/org/bouncycastle/crypto/agreement/jpake/JPAKERound2Payload.java
 94859cda8abcdd9b71faf8fceae65465e5b5075f86fc3e618099312b85b5c4dd  core/src/main/java/org/bouncycastle/crypto/agreement/jpake/JPAKEPrimeOrderGroup.java
 3f87219963705d48a2a518703c6acd74dc210068e2c664888e19210e85dded76  core/src/main/java/org/bouncycastle/crypto/agreement/jpake/JPAKEPrimeOrderGroups.java
-e6b64ba1491acee0a75aff1f491f226c1d06717fad07c4b7da4c6eea68e5c4cf  core/src/main/java/org/bouncycastle/crypto/agreement/ECDHCUnifiedAgreement.java
+1309cc0a35c56738053830ff6146ef710998456a60d9d59fbd5dc3d74ad2585e  core/src/main/java/org/bouncycastle/crypto/agreement/ECDHCUnifiedAgreement.java
 7925c4e8ed4118086ff1558ef18faac64b7abe8cd2af252a74f236a1f0d08f45  core/src/main/java/org/bouncycastle/crypto/agreement/XDHBasicAgreement.java
 66d2cf89bf8dbf0887cf7bf106d9e59a86c831e495c167fbdd134e6db3ca18df  core/src/main/java/org/bouncycastle/crypto/agreement/DHBasicAgreement.java
 7318f454fb324ecdf0ae5bd97b770398dab266ff8c8ee4ceaba6127b9f7bd39f  core/src/main/java/org/bouncycastle/crypto/agreement/SM2KeyExchange.java
@@ -1755,3 +1755,4 @@ ea0d1a07b98350a456ffb5b5f1d42d29de7ad07eda4a6a041c4e431d113d06e4  core/src/test/
 a7f1fc4f70ff417fecac191082896fb21a48870b656a98a6621ab4a905bed9fd  core/src/test/java/org/bouncycastle/asn1/test/AllowNonDerTimeTest.java
 2fb758d89e78de0ebc9936d27fa6ef72b61cf26d57544710f9b1138173e4a881  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/PolyVec.java
 8e8961f4c7ffd7ebdf425f487215e8881360e656e05907b9a1dba754ca6d7c3e  core/src/main/java/org/bouncycastle/util/AggregateRuntimeException.java
+7329ec7486a3d6261fb92689c557fda8d8f138b352d04b7620beafe71c4a5ae7  core/src/main/java/org/bouncycastle/crypto/agreement/ECDHCRawAgreement.java
