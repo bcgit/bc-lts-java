@@ -3,6 +3,8 @@ package org.bouncycastle.mail.smime;
 import java.io.IOException;
 //import java.security.NoSuchAlgorithmException;
 //import java.security.Provider;
+import java.security.NoSuchAlgorithmException;
+import java.security.Provider;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
@@ -10,6 +12,7 @@ import java.util.Map;
 import javax.activation.DataHandler;
 import javax.activation.DataSource;
 //import javax.crypto.KeyGenerator;
+import javax.crypto.KeyGenerator;
 import javax.mail.Header;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
@@ -19,6 +22,8 @@ import javax.mail.internet.MimeMessage;
 
 import org.bouncycastle.cms.CMSEnvelopedGenerator;
 import org.bouncycastle.util.Strings;
+
+import static org.bouncycastle.crypto.util.CipherKeyGeneratorFactory.createKeyGenerator;
 
 /**
  * super class of the various generators.
@@ -212,49 +217,49 @@ public class SMIMEGenerator
         }
     }
 
-//    protected KeyGenerator createSymmetricKeyGenerator(
-//        String encryptionOID,
-//        Provider provider)
-//        throws NoSuchAlgorithmException
-//    {
-//        try
-//        {
-//            return createKeyGenerator(encryptionOID, provider);
-//        }
-//        catch (NoSuchAlgorithmException e)
-//        {
-//            try
-//            {
-//                String algName = (String)BASE_CIPHER_NAMES.get(encryptionOID);
-//                if (algName != null)
-//                {
-//                    return createKeyGenerator(algName, provider);
-//                }
-//            }
-//            catch (NoSuchAlgorithmException ex)
-//            {
-//                // ignore
-//            }
-//            if (provider != null)
-//            {
-//                return createSymmetricKeyGenerator(encryptionOID, null);
-//            }
-//            throw e;
-//        }
-//    }
-//
-//    private KeyGenerator createKeyGenerator(
-//        String algName,
-//        Provider provider)
-//        throws NoSuchAlgorithmException
-//    {
-//        if (provider != null)
-//        {
-//            return KeyGenerator.getInstance(algName, provider);
-//        }
-//        else
-//        {
-//            return KeyGenerator.getInstance(algName);
-//        }
-//    }
+    protected KeyGenerator createSymmetricKeyGenerator(
+        String encryptionOID,
+        Provider provider)
+        throws NoSuchAlgorithmException
+    {
+        try
+        {
+            return createKeyGenerator(encryptionOID, provider);
+        }
+        catch (NoSuchAlgorithmException e)
+        {
+            try
+            {
+                String algName = (String)BASE_CIPHER_NAMES.get(encryptionOID);
+                if (algName != null)
+                {
+                    return createKeyGenerator(algName, provider);
+                }
+            }
+            catch (NoSuchAlgorithmException ex)
+            {
+                // ignore
+            }
+            if (provider != null)
+            {
+                return createSymmetricKeyGenerator(encryptionOID, null);
+            }
+            throw e;
+        }
+    }
+
+    private KeyGenerator createKeyGenerator(
+        String algName,
+        Provider provider)
+        throws NoSuchAlgorithmException
+    {
+        if (provider != null)
+        {
+            return KeyGenerator.getInstance(algName, provider);
+        }
+        else
+        {
+            return KeyGenerator.getInstance(algName);
+        }
+    }
 }
