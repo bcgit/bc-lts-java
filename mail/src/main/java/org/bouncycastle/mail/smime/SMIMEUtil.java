@@ -114,24 +114,31 @@ public class SMIMEUtil
     static void outputPreamble(LineOutputStream lOut, MimeBodyPart part, String boundary)
         throws MessagingException, IOException
     {
-        InputStream in;
+        InputStream rawIn;
 
         try
         {
-            in = part.getRawInputStream();
+            rawIn = part.getRawInputStream();
         }
         catch (MessagingException e)
         {
             return;   // no underlying content rely on default generation
         }
 
+        CountingInputStream in = new CountingInputStream(rawIn);
         String line;
+        String lastLine = null;
 
         while ((line = readLine(in)) != null)
         {
             if (line.equals(boundary))
             {
                 break;
+            }
+
+            if (line.length() != 0)
+            {
+                lastLine = line;
             }
 
             lOut.writeln(line);
@@ -141,7 +148,8 @@ public class SMIMEUtil
 
         if (line == null)
         {
-            throw new MessagingException("no boundary found");
+            throw new SMIMEBoundaryNotFoundException("no boundary found for: ", boundary,
+                safeContentType(part), safeContentDisposition(part), 1, 0, in.getCount(), lastLine);
         }
     }
 
@@ -152,22 +160,29 @@ public class SMIMEUtil
     static void outputPostamble(LineOutputStream lOut, MimeBodyPart part, int count, String boundary)
         throws MessagingException, IOException
     {
-        InputStream in;
+        InputStream rawIn;
 
         try
         {
-            in = part.getRawInputStream();
+            rawIn = part.getRawInputStream();
         }
         catch (MessagingException e)
         {
             return;   // no underlying content rely on default generation
         }
 
+        CountingInputStream in = new CountingInputStream(rawIn);
         String line;
+        String lastLine = null;
         int boundaries = count + 1;
 
         while ((line = readLine(in)) != null)
         {
+            if (line.length() != 0)
+            {
+                lastLine = line;
+            }
+
             if (line.startsWith(boundary))
             {
                 boundaries--;
@@ -188,10 +203,126 @@ public class SMIMEUtil
 
         if (boundaries != 0)
         {
-            throw new MessagingException("all boundaries not found for: " + boundary);
+            throw new SMIMEBoundaryNotFoundException("all boundaries not found for: ", boundary,
+                safeContentType(part), safeContentDisposition(part), count + 1, count + 1 - boundaries,
+                in.getCount(), lastLine);
         }
     }
 
+    /**
+     * Return the part's Content-Type for diagnostics, unfolded, or null if it
+     * cannot be read - a header failure must not mask the original error.
+     */
+    private static String safeContentType(MimeBodyPart part)
+    {
+        try
+        {
+            return unfold(part.getContentType());
+        }
+        catch (MessagingException e)
+        {
+            return null;
+        }
+    }
+
+    /**
+     * Return the part's Content-Disposition for diagnostics, unfolded, or
+     * null if absent or unreadable.
+     */
+    private static String safeContentDisposition(MimeBodyPart part)
+    {
+        try
+        {
+            String[] disposition = part.getHeader("Content-Disposition");
+
+            return (disposition != null && disposition.length > 0) ? unfold(disposition[0]) : null;
+        }
+        catch (MessagingException e)
+        {
+            return null;
+        }
+    }
+
+    private static String unfold(String header)
+    {
+        if (header == null || (header.indexOf('\r') < 0 && header.indexOf('\n') < 0))
+        {
+            return header;
+        }
+
+        StringBuilder sb = new StringBuilder(header.length());
+        for (int i = 0; i != header.length(); i++)
+        {
+            char ch = header.charAt(i);
+            if (ch != '\r' && ch != '\n')
+            {
+                sb.append(ch);
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Counts the bytes consumed from the underlying raw stream so boundary
+     * scan failures can report how far they got.
+     */
+    private static class CountingInputStream
+        extends InputStream
+    {
+        private final InputStream in;
+        private long count;
+
+        CountingInputStream(InputStream in)
+        {
+            this.in = in;
+        }
+
+        public int read()
+            throws IOException
+        {
+            int b = in.read();
+            if (b >= 0)
+            {
+                count++;
+            }
+            return b;
+        }
+
+        public int read(byte[] buf, int off, int len)
+            throws IOException
+        {
+            int numRead = in.read(buf, off, len);
+            if (numRead > 0)
+            {
+                count += numRead;
+            }
+            return numRead;
+        }
+
+        public void close()
+            throws IOException
+        {
+            in.close();
+        }
+
+        long getCount()
+        {
+            return count;
+        }
+    }
+
+    /*
+     * Write the bytes between an inner multipart child's closing boundary and the
+     * next outer boundary into the digest input. When the parent body part was
+     * parsed from bytes, the raw stream is consulted so any extra postamble lines
+     * the original signer included in its digest input are preserved. When the
+     * parent was constructed in-memory (no raw stream), the signing side
+     * (SMIMESignedGenerator.ContentSigner.writeBodyPart) emits exactly one CRLF
+     * between the inner closing boundary and the next outer boundary, so the same
+     * single CRLF is emitted here. Earlier versions returned silently in the
+     * in-memory case, producing a digest input one CRLF short of what the signer
+     * hashed (github #542).
+     */
     static void outputPostamble(LineOutputStream lOut, BodyPart parent, String parentBoundary, BodyPart part)
         throws MessagingException, IOException
     {
@@ -203,7 +334,8 @@ public class SMIMEUtil
         }
         catch (MessagingException e)
         {
-            return;   // no underlying content rely on default generation
+            lOut.writeln();
+            return;
         }
 
 
@@ -286,7 +418,7 @@ public class SMIMEUtil
                         lOut.writeln();       // CRLF terminator needed
                     }
                     else
-                    {                        // output nested preamble
+                    {                        // output nested postamble
                         outputPostamble(lOut, mimePart, boundary, part);
                     }
                 }
@@ -428,7 +560,7 @@ public class SMIMEUtil
     {
         try
         {
-            return new WriteOnceFileBackedMimeBodyPart(content.getContentStream(), File.createTempFile("bcMail", ".mime"));
+            return new WriteOnceFileBackedMimeBodyPart(content.getContentStream(), TempFileFactory.createTempFile("bcMail", ".mime"));
         }
         catch (IOException e)
         {
@@ -449,7 +581,7 @@ public class SMIMEUtil
     {
         try
         {
-            return toMimeBodyPart(content, File.createTempFile("bcMail", ".mime"));
+            return toMimeBodyPart(content, TempFileFactory.createTempFile("bcMail", ".mime"));
         }
         catch (IOException e)
         {
