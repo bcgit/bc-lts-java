@@ -81,6 +81,12 @@ ccm_err *ccm_init(
     //
     // All assertions of correctness need to be done by this call.
     //
+    // The tag is copied into the fixed-size ctx->macBlock (MAC_BLOCK_LEN bytes),
+    // so an out-of-range length here is a heap overflow, not merely a wrong answer.
+    if (macBlockLenBytes < 4 || macBlockLenBytes > MAC_BLOCK_LEN || 0 != (macBlockLenBytes & 1)) {
+        return make_ccm_error("invalid value for MAC size", ILLEGAL_ARGUMENT);
+    }
+
     ctx->encryption = encryption;
     ctx->nonceLen = nonceLen;
     memzero(ctx->nonce, BLOCK_SIZE);

@@ -1350,6 +1350,33 @@ public class CCMNativeLimitTest
                     assertTrue(ex.getMessage().contains("invalid value for MAC size"));
                 }
 
+                //
+                // MAC size must also be rejected on the DECRYPTION path, not just when encrypting.
+                // Left unchecked, an out-of-range decrypt MAC size corrupts memory in the ARM
+                // native CCM path; validation must fire for forEncryption == false as well.
+                //
+                int[] badDecryptMacBits = new int[]{0, 64 + 1, 127, 129, 16, 24, 256};
+                for (int i = 0; i != badDecryptMacBits.length; i++)
+                {
+                    try
+                    {
+                        reset();
+                        init(false, new AEADParameters(new KeyParameter(new byte[16]), badDecryptMacBits[i], new byte[13]));
+                        fail("invalid mac size accepted on decryption: " + badDecryptMacBits[i]);
+                    }
+                    catch (IllegalArgumentException ex)
+                    {
+                        assertTrue(ex.getMessage().contains("invalid value for MAC size"));
+                    }
+                }
+
+                // every legal mac size must still be accepted on decryption
+                int[] okDecryptMacBits = new int[]{32, 48, 64, 80, 96, 112, 128};
+                for (int i = 0; i != okDecryptMacBits.length; i++)
+                {
+                    reset();
+                    init(false, new AEADParameters(new KeyParameter(new byte[16]), okDecryptMacBits[i], new byte[13]));
+                }
 
             }
 

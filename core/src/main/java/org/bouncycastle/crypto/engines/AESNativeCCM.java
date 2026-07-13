@@ -406,7 +406,7 @@ class AESNativeCCM
 
     private int getMacSize(boolean forEncryption, int requestedMacBits)
     {
-        if (forEncryption && (requestedMacBits < 32 || requestedMacBits > 128 || 0 != (requestedMacBits & 15)))
+        if (requestedMacBits < 32 || requestedMacBits > 128 || 0 != (requestedMacBits & 15))
         {
             throw new IllegalArgumentException("invalid value for MAC size");
         }

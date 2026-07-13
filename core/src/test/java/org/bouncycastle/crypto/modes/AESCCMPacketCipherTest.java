@@ -204,6 +204,41 @@ public class AESCCMPacketCipherTest
                     "10,12,14,16}"));
         }
 
+        // The MAC size must be validated on the DECRYPTION path too, not only when encrypting.
+        // (getOutputSize routes through getCCMMacSize before any buffer handling.)
+        for (int macBits : new int[]{0, 8, 15, 16, 24, 31, 33, 127, 129, 256})
+        {
+            try
+            {
+                ccm.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), macBits, new byte[13]), 64);
+                fail("invalid mac size accepted on decryption: " + macBits);
+            }
+            catch (IllegalArgumentException e)
+            {
+                TestCase.assertTrue("wrong message for decrypt mac " + macBits, e.getMessage().contains(
+                        "tag length in octets must be one of {4,6,8,10,12,14,16}"));
+            }
+        }
+
+        try
+        {
+            ccm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 127, new byte[13]),
+                    new byte[32], 0, 32, new byte[32], 0);
+            fail("invalid mac size for processPacket (decryption)");
+        }
+        catch (PacketCipherException e)
+        {
+            // expected
+            TestCase.assertTrue("wrong message", e.getMessage().contains("tag length in octets must be one of {4,6,8," +
+                    "10,12,14,16}"));
+        }
+
+        // every legal mac size must still be accepted on decryption
+        for (int macBits : new int[]{32, 48, 64, 80, 96, 112, 128})
+        {
+            ccm.getOutputSize(false, new AEADParameters(new KeyParameter(new byte[16]), macBits, new byte[13]), 64);
+        }
+
         try
         {
             ccm.processPacket(false, new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]), null, 0,
