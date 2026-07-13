@@ -828,7 +828,7 @@ eb2a6ffab09ce98160abace4fca5cf4ec67277b8bb7ae67337de4c0d216c380d  pkix/src/test/
 a258c748dbc86e06b93f05f2bd30d334948085aeb8bbb227ceae95bf8f8ae68f  pkix/src/test/java/org/bouncycastle/cms/test/AllTests.java
 d0312e5b497ee933eb899444653d2ae52dabf4f3389d8d8c48915cfb1b301117  pkix/src/test/java/org/bouncycastle/cms/test/InputStreamWithMACTest.java
 4f4bdc79f8c651d731a1dfa6fb95e0f32e25c472886b413cd115c6ace340b9ed  pkix/src/test/java/org/bouncycastle/cms/test/NewEnvelopedDataStreamTest.java
-47c67728aaefba42f6641f4708b32cc289d83cbc91e5eef14d55871912d4d9f1  pkix/src/test/java/org/bouncycastle/cms/test/NewEnvelopedDataTest.java
+a161477a29152b4f0f5e582fff93f602352094f5122dfae68554ca0bd2ddd9a2  pkix/src/test/java/org/bouncycastle/cms/test/NewEnvelopedDataTest.java
 c95790c31af4626f5e91481ab135ce257d7d08ac851e1bbee01681203685079a  pkix/src/test/java/org/bouncycastle/cms/test/SHA256DigestCalculator.java
 9900441404aeb0620a2f46955b1d487a98e595ecf956b34b2f113c76f2c7fbf6  pkix/src/test/java/org/bouncycastle/cms/test/TestUtils.java
 4ebfa312223233d664e35daa0747e46a24dffef1d319f369db71ec033ee1b2b3  pkix/src/test/java/org/bouncycastle/pkix/test/CheckNameConstraintsTest.java

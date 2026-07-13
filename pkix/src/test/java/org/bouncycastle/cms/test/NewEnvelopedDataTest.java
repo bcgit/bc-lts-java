@@ -4,6 +4,8 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
+
+import org.bouncycastle.util.Properties;
 import java.security.AlgorithmParameters;
 import java.security.GeneralSecurityException;
 import java.security.Key;
@@ -1571,7 +1573,17 @@ public class NewEnvelopedDataTest
         tryKekAlgorithmAEAD(CMSTestUtil.makeAESKey(128), NISTObjectIdentifiers.id_aes128_wrap, CMSAlgorithm.AES256_GCM, NISTObjectIdentifiers.id_aes256_GCM);
 
         byte[] nonce = Hex.decode("0102030405060708090a0b0c");
-        tryKekAlgorithmAEAD(CMSTestUtil.makeAESKey(128), NISTObjectIdentifiers.id_aes128_wrap, CMSAlgorithm.AES128_GCM, NISTObjectIdentifiers.id_aes128_GCM, new GCMParameters(nonce, 11).getEncoded());
+        // An 88-bit (11-octet) GCM ICV is below the RFC 5084 minimum of 12, so GCMParameters now
+        // rejects it unless short tags are explicitly opted into; exercise that opt-in path here.
+        Properties.setThreadOverride(Properties.GCM_ALLOW_SHORT_TAGS, true);
+        try
+        {
+            tryKekAlgorithmAEAD(CMSTestUtil.makeAESKey(128), NISTObjectIdentifiers.id_aes128_wrap, CMSAlgorithm.AES128_GCM, NISTObjectIdentifiers.id_aes128_GCM, new GCMParameters(nonce, 11).getEncoded());
+        }
+        finally
+        {
+            Properties.removeThreadOverride(Properties.GCM_ALLOW_SHORT_TAGS);
+        }
 
         tryKekAlgorithmAEAD(CMSTestUtil.makeAESKey(128), NISTObjectIdentifiers.id_aes128_wrap, CMSAlgorithm.AES128_CCM, NISTObjectIdentifiers.id_aes128_CCM);
         tryKekAlgorithmAEAD(CMSTestUtil.makeAESKey(128), NISTObjectIdentifiers.id_aes128_wrap, CMSAlgorithm.AES192_CCM, NISTObjectIdentifiers.id_aes192_CCM);
