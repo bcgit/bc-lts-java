@@ -1357,6 +1357,9 @@ class RFC3280CertPathUtilities
                     node.setCritical(true);
                 }
             }
+
+            CertPathValidatorUtilities.checkPolicyTreeSize(policyNodes);
+
             return validPolicyTree;
         }
         return null;
