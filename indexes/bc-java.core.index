@@ -465,7 +465,7 @@ b62a809becc555cf6e2928cfe90f22da6662f2416e6391c5f17678906b5367ce  core/src/main/
 5c5bfb902a05b886052a91661acc8661d11cd478a291323e5c73485bd8d09272  core/src/main/java/org/bouncycastle/crypto/engines/RFC3394WrapEngine.java
 2977405e9ce778e0d423717c33abaf61ca18862d29ce6c1bbbe23c13742383d7  core/src/main/java/org/bouncycastle/crypto/engines/CAST6Engine.java
 3570622d21a10edfd2e942339dd73fb37bd1ff16e838ae7b34acb84bb32830fe  core/src/main/java/org/bouncycastle/crypto/engines/DESedeEngine.java
-dcef9eff67991770b7fef7e4a73c990b8790f448db5a91875c42876f1d6fa269  core/src/main/java/org/bouncycastle/crypto/engines/CamelliaLightEngine.java
+9a56731035188f29a1a5890394418da4722ff42f179a740ce2a6dc895c306ad5  core/src/main/java/org/bouncycastle/crypto/engines/CamelliaLightEngine.java
 8999843cbf9f949933d68efce8db2678e983a80ff74614f9d97859191ad535fb  core/src/main/java/org/bouncycastle/crypto/engines/RC2WrapEngine.java
 a6db61e4e38a25866ddcd336034b795bc0c07adce4bab32d6c29f69b4202cde9  core/src/main/java/org/bouncycastle/crypto/engines/NaccacheSternEngine.java
 bdaf28f3415282c177bb067d89da724355b4b377c58d471c758841d20713bab1  core/src/main/java/org/bouncycastle/crypto/engines/CamelliaEngine.java
@@ -486,7 +486,7 @@ bf63646c8677cabba1b4b3969fc851ee22a3f1fd02e82e36a83c44c04e1a40ca  core/src/main/
 ca68e44b25eadb3e7c8a41bd483e7ac2779f84cbcc1c8583f49895ce32cd1863  core/src/main/java/org/bouncycastle/crypto/engines/AESWrapPadEngine.java
 8c3c82775d97ea296c3243ba3468632367e0b1502bf8da539dbe5e9aca56d59b  core/src/main/java/org/bouncycastle/crypto/engines/RijndaelEngine.java
 6b4fd028c78e52c0a73a77c005b235184f44997bb843982f2c768d996d346b1a  core/src/main/java/org/bouncycastle/crypto/engines/Zuc256Engine.java
-cea45f2eb91cdbeb7a05b62c415b3172588409b3e6ceee15856380b024ae11ea  core/src/main/java/org/bouncycastle/crypto/engines/Salsa20Engine.java
+431a5b129b880badbdc6519e7a6c4b44b340b208da3fa994144498c1602403a3  core/src/main/java/org/bouncycastle/crypto/engines/Salsa20Engine.java
 1ff95b6ebd917d0a3ee221eb63d1f9097b2b3495013959c02d12854aab989d6f  core/src/main/java/org/bouncycastle/crypto/engines/VMPCKSA3Engine.java
 2f53a9dcd07d49d6dc048fb7e3bc2a0b7398bd9c2e5381e31a6e46780719f424  core/src/main/java/org/bouncycastle/crypto/engines/OldIESEngine.java
 cdcedd903ae21a8809927ee0aeee10b7c7e68ebe4453a42266afad0c6962b429  core/src/main/java/org/bouncycastle/crypto/engines/RFC5649WrapEngine.java

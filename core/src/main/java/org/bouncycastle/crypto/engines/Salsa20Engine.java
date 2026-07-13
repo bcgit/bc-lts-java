@@ -35,6 +35,11 @@ public class Salsa20Engine
         state[stateOffset + 3] = TAU_SIGMA[tsOff + 3];
     }
 
+    /** @deprecated */
+    protected final static byte[]
+        sigma = Strings.toByteArray("expand 32-byte k"),
+        tau   = Strings.toByteArray("expand 16-byte k");
+
     protected int rounds;
 
     /*
@@ -182,7 +187,8 @@ public class Salsa20Engine
 
         engineState[8] += lo;
 
-        if (oldState != 0 && engineState[8] < oldState)
+        // unsigned carry: the low counter word wrapped past 2^32 iff its unsigned value decreased
+        if ((engineState[8] & 0xffffffffL) < (oldState & 0xffffffffL))
         {
             engineState[9]++;
         }
