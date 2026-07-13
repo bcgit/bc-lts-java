@@ -75,6 +75,7 @@ import org.bouncycastle.pkix.util.filter.UntrustedInput;
 import org.bouncycastle.pkix.util.filter.UntrustedUrlInput;
 import org.bouncycastle.util.Integers;
 import org.bouncycastle.util.Objects;
+import org.bouncycastle.util.Properties;
 
 /**
  * PKIXCertPathReviewer<br>
@@ -88,7 +89,9 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
     private static final String AUTH_INFO_ACCESS = Extension.authorityInfoAccess.getId();
     
     private static final String RESOURCE_NAME = "org.bouncycastle.pkix.CertPathReviewerMessages";
-    
+
+    private static final int NAME_CHECK_MAX = (1 << 10);
+
     // input parameters
     
     protected CertPath certPath;
@@ -501,6 +504,12 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
                     
                     if (altName != null)
                     {
+                        if (altName.size() > NAME_CHECK_MAX)
+                        {
+                            ErrorBundle msg = createErrorBundle("CertPathReviewer.subjAltNameExtError");
+                            throw new CertPathReviewerException(msg,certPath,index);
+                        }
+
                         for (int j = 0; j < altName.size(); j++)
                         {
                             GeneralName name = GeneralName.getInstance(altName.getObjectAt(j));
@@ -1406,8 +1415,24 @@ public class PKIXCertPathReviewer extends CertPathValidatorUtilities
                         }
                     }
 
+                    // Bound the valid-policy-tree: policy mapping plus anyPolicy expansion can
+                    // grow it multiplicatively per certificate, so a crafted chain could drive an
+                    // exponential blow-up (CVE-2023-0464 class). Checked once per certificate.
+                    {
+                        int maxPolicyNodes = Properties.asInteger(Properties.X509_MAX_POLICY_NODES, 8192);
+                        int policyNodeCount = 0;
+                        for (int pj = 0; pj != policyNodes.length; pj++)
+                        {
+                            policyNodeCount += policyNodes[pj].size();
+                            if (policyNodeCount > maxPolicyNodes)
+                            {
+                                throw new CertPathReviewerException(
+                                    createErrorBundle("CertPathReviewer.policyTreeTooLarge"));
+                            }
+                        }
+                    }
                 }
-                
+
                 // e)
                 
                 if (certPolicies == null) 
