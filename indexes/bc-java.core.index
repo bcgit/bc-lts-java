@@ -172,7 +172,7 @@ fefae051017c427cd8e47b75276d97172ad5b96c41d29315bf0e3ca624daf3d2  core/src/test/
 32b5a72515e21837b013b07b458a837b367e2440f9f8412d422ffe184895c2ef  core/src/test/java/org/bouncycastle/crypto/test/StreamCipherResetTest.java
 5b9ddb3ca2b4867119f7d94b503ea8c65aa98ec2c31087eddcbae8332de7cccf  core/src/test/java/org/bouncycastle/crypto/test/OCBTest.java
 94e053e35312fc9454cfebda8d15c5b286c11a011eec31ac588cf5f9a33d79d2  core/src/test/java/org/bouncycastle/crypto/test/SHA3HMacTest.java
-f7301cb086baca672935f6445f6a0af1e01d27ccf24b5f778e87c5c96b7dbea6  core/src/test/java/org/bouncycastle/crypto/test/SimpleTestTest.java
+4308a95edabf076b5966c98423d1210de3a334dc1d55ad9ec40a9dc8c1bf2adf  core/src/test/java/org/bouncycastle/crypto/test/SimpleTestTest.java
 44f9232165dad06778aa822f5b35618dd1ddb707cf4385d47ca06f26a42dfa0f  core/src/test/java/org/bouncycastle/crypto/test/SkeinDigestTest.java
 85aea29e578a47dd9180065d635d11e3e9460d33f076803463b83df808365d15  core/src/test/java/org/bouncycastle/crypto/test/CryptoServiceConstraintsTest.java
 4dd217a7fc4c8d1df69407e0399e72a234882b3e7cfd8aa2d1ed1e5372daba37  core/src/test/java/org/bouncycastle/crypto/test/CTSTest.java
@@ -236,7 +236,7 @@ c470deefc08afc476f2b4d76989bd0d72ee86eb87078f4204edf5063bb94a986  core/src/test/
 c08198c0d8bb4d5df25b336437b1cadb32b1a698a8c5aa69cc92e3c07101f17d  core/src/test/java/org/bouncycastle/util/encoders/test/Base64Test.java
 e16464a07d1a46eb4c0bbe7399bdbe49860306886079c54970f3167b503d4882  core/src/test/java/org/bouncycastle/util/encoders/test/Base32Test.java
 5831fef3c260e836ed213b12c83c0dc4b31957f74793f914d535abefb65b0892  core/src/test/java/org/bouncycastle/util/encoders/test/AbstractCoderTest.java
-b76f23f9c4853d6ffd6257bab8ff2fbbb104fae86b750cf1a3d102887cc43cc8  core/src/test/java/org/bouncycastle/util/utiltest/AllTests.java
+92626a7589557d11e2943ed3380462ac2aa07c38ed0ba44f77e9b9ab738d4e4b  core/src/test/java/org/bouncycastle/util/utiltest/AllTests.java
 be51d53da5dc5e59f1e04cd2fbe778255e901b0651ae15f345dc249a2b5e61c5  core/src/test/java/org/bouncycastle/util/utiltest/ArraysTest.java
 101242d25161d370092fccc61607e646bd0c4203a96e21983f14a7ef6308b356  core/src/test/java/org/bouncycastle/util/utiltest/IPTest.java
 7808770f20a2f39dfa85fac36fe05e9c6ba8c6f17490752cceba0d47bc624d2d  core/src/test/java/org/bouncycastle/util/utiltest/LongsTest.java
@@ -288,7 +288,7 @@ aa05a64047779442c0fc2671292aca01da19ee7488039c6c59407a3bc10ee066  core/src/test/
 89d6bb10f9354223f405dd8223080fcaf5b30762b30f68e0abc2888225535880  core/src/test/java/org/bouncycastle/asn1/test/PolicyConstraintsTest.java
 ec7c11dac925dfcee6769d33a65072b265a888a78f950beeb0505de99eb8cb7a  core/src/test/java/org/bouncycastle/asn1/test/SetTest.java
 838ac3a8d1c87a1277d8ba6206d4538a2804c9a2fa97cc8fc88b0ff2e898897f  core/src/test/java/org/bouncycastle/asn1/test/OCSPTest.java
-30492d684d2cb08b5544ef4f24cb30ab221f77150fbc3e575dd2bd774410dc81  core/src/test/java/org/bouncycastle/asn1/test/ASN1SequenceParserTest.java
+90f1b6e2e7ab3048d64ff63f4270b8752ba7bb356ca8086eb3fb3e274039b821  core/src/test/java/org/bouncycastle/asn1/test/ASN1SequenceParserTest.java
 2625b4e52d679b5d7ffe5843b333cb746b5137a41aaab09c8c87a14f7e968a60  core/src/test/java/org/bouncycastle/asn1/test/UTCTimeTest.java
 bd60e24d381f6b15576feddebfe4448a30b5fa6c42199692f013507b9c89594d  core/src/test/java/org/bouncycastle/asn1/test/LinkedCertificateTest.java
 392209b4af731bcef3a70cb1ed22865c46559e15e97ee809ef7f60e58ecafa35  core/src/test/java/org/bouncycastle/asn1/test/KeyUsageTest.java
@@ -1757,3 +1757,5 @@ a7f1fc4f70ff417fecac191082896fb21a48870b656a98a6621ab4a905bed9fd  core/src/test/
 8e8961f4c7ffd7ebdf425f487215e8881360e656e05907b9a1dba754ca6d7c3e  core/src/main/java/org/bouncycastle/util/AggregateRuntimeException.java
 7329ec7486a3d6261fb92689c557fda8d8f138b352d04b7620beafe71c4a5ae7  core/src/main/java/org/bouncycastle/crypto/agreement/ECDHCRawAgreement.java
 91c2cfe5cf0b21c0cdc16e33ad4c042ed1f81777c42f0cee38090bc8046c3690  core/src/test/java/org/bouncycastle/pqc/crypto/lms/PublicKeyParseTests.java
+00f650db3caa9edd1862dd2479ccaca4f4f828348aa5111373eb62e24a48c5e7  core/src/test/java/org/bouncycastle/util/utiltest/StreamsTest.java
+e06ac935a92dad92ae3cafaafef52d2b3433bbeb8e7419f98c8cabe31d72c522  core/src/test/java/org/bouncycastle/util/utiltest/AggregateRuntimeExceptionTest.java
