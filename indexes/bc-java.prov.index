@@ -23,7 +23,7 @@ aad5ca172b861bc755f9f4cf7550d25f47903a5e9885a662a413406ad3a00f3d  prov/src/test/
 af84eb6e8cff14ad6151540d35eb9e4500222ce18a0fab7b7fd5280a8ffbed74  prov/src/test/java/org/bouncycastle/jce/provider/test/CMacTest.java
 8207749fbff423b85794cd1b154eef88169c99fa0377b1472b20d1ce61260cac  prov/src/test/java/org/bouncycastle/jce/provider/test/BaseBlockCipherTest.java
 9140f212f10d77fb26c42576b8bee86387aa41156ba29a57e4017c503d5b93d2  prov/src/test/java/org/bouncycastle/jce/provider/test/CertPathValidatorTest.java
-63cd99285b14f31f52dd5bbf41913d876b4315e986ddd5e23653b924ca9b975f  prov/src/test/java/org/bouncycastle/jce/provider/test/BCFKSStoreTest.java
+0c1940f8e3a1ac56ce5ef137ae8448794a4af057754358ecc86de51037755c8f  prov/src/test/java/org/bouncycastle/jce/provider/test/BCFKSStoreTest.java
 f3c7277c823d0c60e9b90c7869f34adffb833f513ab3b961df6444554dda553a  prov/src/test/java/org/bouncycastle/jce/provider/test/rsa3/AllTests.java
 b3dc5e45f99600a68ef1c80d44a8f11d8a49998f3e6bd213154e1191f9c63b9d  prov/src/test/java/org/bouncycastle/jce/provider/test/rsa3/RSA3CertTest.java
 ebd0346c631caaacfc2cf7d0ab77b073d46006195dd286daabf31c47314652af  prov/src/test/java/org/bouncycastle/jce/provider/test/SlotTwoTest.java
@@ -456,7 +456,7 @@ e968cdfe443c363309995eac6e8f84ddb9bf2196deee74eab1eb3620480ba6a4  prov/src/main/
 9b7daf2ebf47587a49e0bae90f0c4e8b92dc26507cdebfefaac29ae01ce9e9d3  prov/src/main/java/org/bouncycastle/jcajce/provider/util/BadBlockException.java
 61287d15c12dcf2e8b438b44e2ffe956c7f6dcc71bd16cda09a4cff3d6af767b  prov/src/main/java/org/bouncycastle/jcajce/provider/util/AsymmetricAlgorithmProvider.java
 6a58855a679f5bd402e30a961e5892bc04ed8e4e0a56d390ea6161869cc74e21  prov/src/main/java/org/bouncycastle/jcajce/provider/drbg/DRBG.java
-06ad9ec11f79d8dc0340fd620701ea48420920e66d6fb8290281eaaf0ff0f1e9  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/bcfks/BcFKSKeyStoreSpi.java
+f0f6291f7f0692f8be01fc379fe2630b771f1efd50982ee08164f9f8e7dbbe20  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/bcfks/BcFKSKeyStoreSpi.java
 7c8a2064d139e8edccd8c9e5d03d9c32ad3b6cb3f3a6609f2df4d8624e981354  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/util/AdaptingKeyStoreSpi.java
 7e98103060338043d7aaa012949ebc855909ba7a547f64f218371ae27099eb2c  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/util/ParameterUtil.java
 98d0c76f44d3c081bb80dd8b50bf8a22c7312e147427e428e2f0faf9f89af5ce  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/util/JKSKeyStoreSpi.java
