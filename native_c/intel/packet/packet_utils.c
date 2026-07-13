@@ -1,8 +1,15 @@
 #include "packet_utils.h"
+#include <limits.h>
 
 int get_aead_output_size(bool encryption, int len, int macSize) {
     if (encryption) {
-        return len + macSize;
+        // Compute in 64-bit and reject anything that would overflow a signed int
+        // rather than relying on UB wraparound; callers treat a negative result as an error.
+        int64_t total = (int64_t) len + (int64_t) macSize;
+        if (total > INT_MAX) {
+            return -1;
+        }
+        return (int) total;
     } else if (len < macSize) {
         return -1;
     } else {

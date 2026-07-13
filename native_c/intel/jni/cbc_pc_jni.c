@@ -142,10 +142,10 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBCPacketCi
             p_out,
             &outputLen);
     exit:
-    release_bytearray_ctx(&key);
-    release_bytearray_ctx(&iv);
     release_critical_ctx(&input);
     release_critical_ctx(&output);
+    release_bytearray_ctx(&key);
+    release_bytearray_ctx(&iv);
     handle_cbc_pc_result(env, err);
     return (jint) outputLen;
 }

@@ -92,6 +92,7 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFB_makeNa
     }
 
     ctx = cfb_create_ctx();
+    bc_assert(ctx != NULL);
     ctx->num_rounds = rounds;
     ctx->encryption = encryption == JNI_TRUE;
 
