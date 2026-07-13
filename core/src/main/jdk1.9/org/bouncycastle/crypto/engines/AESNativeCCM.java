@@ -18,6 +18,8 @@ class AESNativeCCM
     private CCMRefWrapper refWrapper;
     private boolean forEncryption = false;
     private boolean initialised = false;
+    private byte[] lastNonce;
+    private byte[] lastKey;
     private final ExposedByteArrayOutputStream associatedText = new ExposedByteArrayOutputStream();
     private final ExposedByteArrayOutputStream data = new ExposedByteArrayOutputStream();
 
@@ -75,6 +77,25 @@ class AESNativeCCM
             else
             {
                 throw new IllegalArgumentException("invalid parameters passed to CCM");
+            }
+
+            // Mirror CCMBlockCipher: reject nonce reuse for encryption under the same key (RFC 5116
+            // sec. 2.1 / RFC 3610), so the native path enforces the same guard as the Java path.
+            // A fresh nonce or key, or init for decryption, are unaffected.
+            if (forEncryption && lastNonce != null && Arrays.areEqual(lastNonce, nonce))
+            {
+                if (cipherParameters == null
+                    || (cipherParameters instanceof KeyParameter
+                        && Arrays.areEqual(lastKey, ((KeyParameter)cipherParameters).getKey())))
+                {
+                    throw new IllegalArgumentException("cannot reuse nonce for CCM encryption");
+                }
+            }
+
+            lastNonce = nonce;
+            if (cipherParameters instanceof KeyParameter)
+            {
+                lastKey = ((KeyParameter)cipherParameters).getKey();
             }
 
             // NOTE: Very basic support for key re-use, but no performance gain from it
