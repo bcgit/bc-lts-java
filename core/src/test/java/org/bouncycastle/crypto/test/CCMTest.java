@@ -156,6 +156,35 @@ public class CCMTest
             // expected
         }
 
+        // MAC size must be validated on the decryption path too, not only when encrypting.
+        // A decrypt-side MAC size outside {4,6,8,10,12,14,16} octets must be rejected at init:
+        // left unchecked it reaches the engine and corrupts memory in the ARM native CCM path.
+        CCMModeCipher macCheck = CCMBlockCipher.newInstance(AESEngine.newInstance());
+        int[] badMacBits = new int[]{0, 8, 15, 16, 24, 31, 33, 127, 129, 256};
+        for (int i = 0; i != badMacBits.length; i++)
+        {
+            try
+            {
+                macCheck.init(false, new AEADParameters(new KeyParameter(K1), badMacBits[i], N2, A2));
+
+                fail("invalid MAC size accepted on decryption: " + badMacBits[i]);
+            }
+            catch (IllegalArgumentException e)
+            {
+                if (!e.getMessage().contains("tag length in octets must be one of"))
+                {
+                    fail("wrong message for invalid decryption MAC size " + badMacBits[i] + ": " + e.getMessage());
+                }
+            }
+        }
+
+        // every legal MAC size must still be accepted on decryption
+        int[] okMacBits = new int[]{32, 48, 64, 80, 96, 112, 128};
+        for (int i = 0; i != okMacBits.length; i++)
+        {
+            macCheck.init(false, new AEADParameters(new KeyParameter(K1), okMacBits[i], N2, A2));
+        }
+
         // For small number of allowed blocks, validate boundary
         // conditions are properly handled. Zero and greater will
         // fail as size bound is a strict inequality.

@@ -68,7 +68,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_initNat
     init_bytearray_ctx(&ad);
 
 
-    if (encryption && (macSizeInBits < 32 || macSizeInBits > 128 || 0 != (macSizeInBits & 15))) {
+    if (macSizeInBits < 32 || macSizeInBits > 128 || 0 != (macSizeInBits & 15)) {
         throw_java_illegal_argument(env, "invalid value for MAC size");
         goto exit;
     }

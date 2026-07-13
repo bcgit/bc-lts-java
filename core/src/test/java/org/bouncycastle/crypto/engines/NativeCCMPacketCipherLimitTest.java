@@ -672,6 +672,40 @@ public class NativeCCMPacketCipherLimitTest extends TestCase
             }
         };
 
+        //
+        // The native C mac-size validation must apply on the DECRYPTION path too, not only
+        // when encrypting. These drive the raw-macSize native entry points directly (the mac
+        // length in bytes), so they exercise the C check rather than the Java bit-level guard.
+        //
+        for (final int badMac : new int[]{-1, 0, 1, 3, 17, 32})
+        {
+            try
+            {
+                new AESNativeCCMPacketCipher()
+                {
+                    {
+                        getOutputSize(false, 32, badMac);
+                        fail("invalid mac size accepted on decryption: " + badMac);
+                    }
+                };
+            }
+            catch (Exception ex)
+            {
+                TestCase.assertEquals("invalid mac size", ex.getMessage());
+            }
+        }
+
+        // every legal mac size (in bytes) must still be accepted on decryption
+        new AESNativeCCMPacketCipher()
+        {
+            {
+                for (int t = 4; t <= 16; t += 2)
+                {
+                    getOutputSize(false, 32, t);
+                }
+            }
+        };
+
 
     }
 

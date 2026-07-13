@@ -83,18 +83,21 @@ JNIEXPORT jlong JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCBC_makeNa
     switch (keySize) {
         case 16: {
             ctx = cbc_create_ctx();
+            bc_assert(ctx != NULL);
             ctx->num_rounds = ROUNDS_128;
             ctx->encryption = encryption == JNI_TRUE;
         }
             break;
         case 24: {
             ctx = cbc_create_ctx();
+            bc_assert(ctx != NULL);
             ctx->num_rounds = ROUNDS_192;
             ctx->encryption = encryption == JNI_TRUE;
         }
             break;
         case 32: {
             ctx = cbc_create_ctx();
+            bc_assert(ctx != NULL);
             ctx->num_rounds = ROUNDS_256;
             ctx->encryption = encryption == JNI_TRUE;
         }
