@@ -138,7 +138,7 @@ public class GCMBlockCipher
         this.macBlock = null;
         this.initialised = true;
 
-        KeyParameter keyParam;
+        KeyParameter keyParam = null;
         byte[] newNonce = null;
 
         if (params instanceof AEADParameters)
@@ -164,7 +164,17 @@ public class GCMBlockCipher
             newNonce = param.getIV();
             initialAssociatedText  = null;
             macSize = 16;
-            keyParam = (KeyParameter)param.getParameters();
+
+            CipherParameters innerParameters = param.getParameters();
+            if (innerParameters != null)
+            {
+                if (!(innerParameters instanceof KeyParameter))
+                {
+                    throw new IllegalArgumentException("invalid parameters passed to GCM");
+                }
+
+                keyParam = (KeyParameter)innerParameters;
+            }
         }
         else
         {
@@ -187,7 +197,7 @@ public class GCMBlockCipher
                 {
                     throw new IllegalArgumentException("cannot reuse nonce for GCM encryption");
                 }
-                if (lastKey != null && Arrays.areEqual(lastKey, keyParam.getKey()))
+                if (lastKey != null && Arrays.constantTimeAreEqual(lastKey, keyParam.getKey()))
                 {
                     throw new IllegalArgumentException("cannot reuse nonce for GCM encryption");
                 }
