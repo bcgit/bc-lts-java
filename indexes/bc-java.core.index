@@ -356,7 +356,7 @@ b9952d007bf42ecfe51d7549eae602f74b5f3b481b26feb4902d7c24a272b83a  core/src/main/
 d5834bcd775ecae69e0e944f3794efe98e813ca6a9e3fe203fa4e2744df46997  core/src/main/java/org/bouncycastle/crypto/modes/kgcm/BasicKGCMMultiplier_256.java
 1dffec5da212eeb4e3d25ffc16a7b83aeb73f53a2627eb11962218c432668900  core/src/main/java/org/bouncycastle/crypto/modes/kgcm/Tables4kKGCMMultiplier_128.java
 3f14730ab537685e73662806d69e3e5c0d078f04fb1d20c606652e58a81c5925  core/src/main/java/org/bouncycastle/crypto/modes/CFBBlockCipher.java
-c2c92f204d114c2593752a624f67f330a87467de635759ccb0fe3969c9f2d5c7  core/src/main/java/org/bouncycastle/crypto/modes/EAXBlockCipher.java
+e90b55df11c39e1e5b2ffd1c31e4c46664a48b8070064e6519af9d5e3c7ebfe8  core/src/main/java/org/bouncycastle/crypto/modes/EAXBlockCipher.java
 6357b7fc9f3199f9be909ec7544addb5a3e6c56557661b59efd83d5453ed6390  core/src/main/java/org/bouncycastle/crypto/modes/GCMModeCipher.java
 7bd0692d37e294e4e7de31efa9c20f3421ce78861dc40999dacce1146b10249e  core/src/main/java/org/bouncycastle/crypto/modes/G3413OFBBlockCipher.java
 675e803671e17c4a5dffa3311e42781e465c8aef8ba26a585aa7bd62a968773d  core/src/main/java/org/bouncycastle/crypto/modes/GOFBBlockCipher.java
