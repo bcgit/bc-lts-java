@@ -16,6 +16,7 @@ import java.util.Set;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1InputStream;
+import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Set;
@@ -221,9 +222,15 @@ public class CMSSignedData
     private SignedData getSignedData()
         throws CMSException
     {
+        ASN1Encodable content = contentInfo.getContent();
+        if (content == null)
+        {
+            throw new CMSException("Missing content.");
+        }
+
         try
         {
-            return SignedData.getInstance(contentInfo.getContent());
+            return SignedData.getInstance(content);
         }
         catch (ClassCastException e)
         {
@@ -241,6 +248,29 @@ public class CMSSignedData
     public int getVersion()
     {
         return signedData.getVersion().intValueExact();
+    }
+
+    /**
+     * Return a copy of this CMSSignedData with the SignedData version field forced to the given
+     * value, leaving every other field unchanged.
+     * <p>
+     * The version is normally recomputed from the content per RFC 5652 sec. 5.1 (for example, a
+     * non-id-data eContentType implies version 3), including by {@link #replaceSigners} and
+     * {@link #addDigestAlgorithm}. This method lets a producer pin a specific version for interop
+     * with profiles that require one - notably Microsoft Authenticode, whose signatures must carry
+     * version 1 even though their SPC_INDIRECT_DATA eContentType would otherwise compute to 3.
+     *
+     * @param version the CMSVersion value to set.
+     * @return a new CMSSignedData carrying the supplied version.
+     */
+    public CMSSignedData asVersion(int version)
+    {
+        SignedData current = this.signedData;
+        SignedData newContent = new SignedData(new ASN1Integer(version), current.getDigestAlgorithms(),
+            current.getEncapContentInfo(), current.getCertificates(), current.getCRLs(), current.getSignerInfos());
+
+        return new CMSSignedData(this.contentInfo.getContentType(), newContent, this.signedContent,
+            this.signerInfoStore);
     }
 
     /**
@@ -439,6 +469,16 @@ public class CMSSignedData
         throws CMSException
     {
         Collection signers = this.getSignerInfos().getSigners();
+
+        // Fail closed on a degenerate SignedData with no SignerInfos (RFC 5652 permits an empty
+        // signerInfos SET, e.g. a certs-only structure). Falling through the loop to "return true"
+        // would report vacuous success, so a caller using this as its authenticity check would accept
+        // unsigned, attacker-supplied content. Callers expecting a certs-only structure should use
+        // getCertificates() instead.
+        if (signers.isEmpty())
+        {
+            throw new CMSException("no signers present in SignedData");
+        }
 
         for (Iterator it = signers.iterator(); it.hasNext(); )
         {

@@ -16,11 +16,12 @@ import org.bouncycastle.bcpg.UserIDPacket;
 import org.bouncycastle.openpgp.PGPObjectFactory;
 import org.bouncycastle.openpgp.PGPSecretKeyRing;
 import org.bouncycastle.openpgp.bc.BcPGPObjectFactory;
+import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
-import org.bouncycastle.util.test.SimpleTest;
+import org.bouncycastle.util.io.Streams;
 
 public class BCPGOutputStreamTest
-        extends SimpleTest
+        extends AbstractPacketTest
 {
 
     private void testForceNewPacketFormat()
@@ -102,7 +103,7 @@ public class BCPGOutputStreamTest
         // The signing subkey + sigs use old format
         // The encryption subkey + sigs use new format again
         String encodedCert = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n" +
-                "Version: BCPG v@RELEASE_NAME@\n" +
+                "Version: BCPG v1.85\n" +
                 "\n" +
                 "xcTGBGYvuZUBDACyFv3LQiubgHM4eJUFnsLEei8/l4bGKdVx8hRu6N5rfcjZt3RM\n" +
                 "UGUi+HQDnRbUvJ5B/7qDB7Ia7bpRf7BrYmho5vqNtjpxUPs3Mct1TjqCm2yLC9zH\n" +
@@ -233,25 +234,24 @@ public class BCPGOutputStreamTest
                 "=7IAh\n" +
                 "-----END PGP PRIVATE KEY BLOCK-----\n";
 
-        ByteArrayInputStream bIn = new ByteArrayInputStream(encodedCert.getBytes());
+        ByteArrayInputStream bIn = new ByteArrayInputStream(Strings.toUTF8ByteArray(encodedCert));
         ArmoredInputStream aIn = new ArmoredInputStream(bIn);
-        BCPGInputStream pIn = new BCPGInputStream(aIn);
+        byte[] dearmored = Streams.readAll(aIn);
+        BCPGInputStream pIn = new BCPGInputStream(new ByteArrayInputStream(dearmored));
         PGPObjectFactory objectFactory = new BcPGPObjectFactory(pIn);
         PGPSecretKeyRing secretKeys = (PGPSecretKeyRing) objectFactory.nextObject();
 
-        // ROUNDTRIP
+        // ROUNDTRIP (to dearmored version to avoid line endings comparison)
         ByteArrayOutputStream bOut = new ByteArrayOutputStream();
-        ArmoredOutputStream aOut = new ArmoredOutputStream(bOut);
-        BCPGOutputStream pOut = new BCPGOutputStream(aOut, PacketFormat.ROUNDTRIP);
+        BCPGOutputStream pOut = new BCPGOutputStream(bOut, PacketFormat.ROUNDTRIP);
         secretKeys.encode(pOut);
         pOut.close();
-        aOut.close();
 
-        isEquals(encodedCert, bOut.toString());
+        isEncodingEqual(dearmored, bOut.toByteArray());
 
         // NEW PACKET FORMAT
         bOut = new ByteArrayOutputStream();
-        aOut = new ArmoredOutputStream(bOut);
+        ArmoredOutputStream aOut = new ArmoredOutputStream(bOut);
         pOut = new BCPGOutputStream(aOut, PacketFormat.CURRENT);
         secretKeys.encode(pOut);
         pOut.close();

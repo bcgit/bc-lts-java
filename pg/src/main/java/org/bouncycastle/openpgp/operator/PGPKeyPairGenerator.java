@@ -1,14 +1,14 @@
 package org.bouncycastle.openpgp.operator;
 
-import java.math.BigInteger;
-import java.security.SecureRandom;
-import java.util.Date;
-
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.sec.SECObjectIdentifiers;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;
+
+import java.math.BigInteger;
+import java.security.SecureRandom;
+import java.util.Date;
 
 public abstract class PGPKeyPairGenerator
 {

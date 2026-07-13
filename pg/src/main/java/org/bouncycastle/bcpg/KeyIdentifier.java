@@ -185,6 +185,28 @@ public class KeyIdentifier
         }
     }
 
+    public static boolean matches(List<KeyIdentifier> identifiers, KeyIdentifier identifier, boolean explicit)
+    {
+        for (Iterator it = identifiers.iterator(); it.hasNext();)
+        {
+            KeyIdentifier candidate = (KeyIdentifier)it.next();
+            
+            if (!explicit && candidate.isWildcard())
+            {
+                return true;
+            }
+
+            if (candidate.getFingerprint() != null &&
+                    Arrays.constantTimeAreEqual(candidate.getFingerprint(), identifier.getFingerprint()))
+            {
+                return true;
+            }
+
+            return candidate.getKeyId() == identifier.getKeyId();
+        }
+        return false;
+    }
+
     /**
      * Return true, if this {@link KeyIdentifier} is present in the given list of {@link KeyIdentifier} .
      * This will return true if a fingerprint matches, or if a key-id matches,
@@ -206,6 +228,35 @@ public class KeyIdentifier
         return false;
     }
 
+    @Override
+    public boolean equals(Object obj)
+    {
+        if (obj == null)
+        {
+            return false;
+        }
+        if (this == obj)
+        {
+            return true;
+        }
+        if (!(obj instanceof KeyIdentifier))
+        {
+            return false;
+        }
+        KeyIdentifier other = (KeyIdentifier) obj;
+        if (getFingerprint() != null && other.getFingerprint() != null)
+        {
+            return Arrays.constantTimeAreEqual(getFingerprint(), other.getFingerprint());
+        }
+        return getKeyId() == other.getKeyId();
+    }
+
+    @Override
+    public int hashCode()
+    {
+        return (int) getKeyId();
+    }
+
     public String toString()
     {
         if (isWildcard())
@@ -220,5 +271,18 @@ public class KeyIdentifier
 
         // -DM Hex.toHexString
         return Hex.toHexString(fingerprint).toUpperCase(Locale.getDefault());
+    }
+
+    public String toPrettyPrint()
+    {
+        if (isWildcard())
+        {
+            return "*";
+        }
+        if (fingerprint == null)
+        {
+            return "0x" + Long.toHexString(keyId).toUpperCase(Locale.getDefault());
+        }
+        return FingerprintUtil.prettifyFingerprint(fingerprint);
     }
 }

@@ -2,13 +2,13 @@ package org.bouncycastle.tls.crypto.impl.bc;
 
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.SecretWithEncapsulation;
-import org.bouncycastle.pqc.crypto.mlkem.MLKEMExtractor;
-import org.bouncycastle.pqc.crypto.mlkem.MLKEMGenerator;
-import org.bouncycastle.pqc.crypto.mlkem.MLKEMKeyGenerationParameters;
-import org.bouncycastle.pqc.crypto.mlkem.MLKEMKeyPairGenerator;
-import org.bouncycastle.pqc.crypto.mlkem.MLKEMParameters;
-import org.bouncycastle.pqc.crypto.mlkem.MLKEMPrivateKeyParameters;
-import org.bouncycastle.pqc.crypto.mlkem.MLKEMPublicKeyParameters;
+import org.bouncycastle.crypto.generators.MLKEMKeyPairGenerator;
+import org.bouncycastle.crypto.kems.MLKEMExtractor;
+import org.bouncycastle.crypto.kems.MLKEMGenerator;
+import org.bouncycastle.crypto.params.MLKEMKeyGenerationParameters;
+import org.bouncycastle.crypto.params.MLKEMParameters;
+import org.bouncycastle.crypto.params.MLKEMPrivateKeyParameters;
+import org.bouncycastle.crypto.params.MLKEMPublicKeyParameters;
 import org.bouncycastle.tls.NamedGroup;
 import org.bouncycastle.tls.crypto.TlsAgreement;
 import org.bouncycastle.tls.crypto.TlsKemConfig;
@@ -35,14 +35,12 @@ public class BcTlsMLKemDomain implements TlsKemDomain
     }
 
     protected final BcTlsCrypto crypto;
-    protected final TlsKemConfig config;
     protected final MLKEMParameters domainParameters;
     protected final boolean isServer;
 
     public BcTlsMLKemDomain(BcTlsCrypto crypto, TlsKemConfig kemConfig)
     {
         this.crypto = crypto;
-        this.config = kemConfig;
         this.domainParameters = getDomainParameters(kemConfig);
         this.isServer = kemConfig.isServer();
     }

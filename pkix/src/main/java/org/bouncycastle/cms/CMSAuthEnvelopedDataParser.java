@@ -21,6 +21,25 @@ import org.bouncycastle.asn1.cms.OriginatorInfo;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.util.Arrays;
 
+/**
+ * Parser for authenticated enveloped CMS data structures.
+ * <p>
+ * <b>Stream handling note:</b>
+ * <ul>
+ *   <li>The constructor reads only enough of the supplied InputStream to expose the
+ *       CMS structure metadata (originator info, recipient infos, content-encryption
+ *       algorithm). The encrypted content and trailing MAC are drained lazily by the
+ *       caller via {@link RecipientInformation#getContentStream} /
+ *       {@link RecipientInformation#getContent}; the MAC is verified when the content
+ *       stream reaches EOF.</li>
+ *   <li>The supplied InputStream is <b>not closed automatically</b>. Call
+ *       {@link #close()} on this parser (inherited from
+ *       {@link CMSContentInfoParser}) to close the underlying InputStream, or close
+ *       it yourself.</li>
+ *   <li>This class does not introduce buffering &mdash; if you are processing large
+ *       inputs, wrap the InputStream in a {@link java.io.BufferedInputStream}.</li>
+ * </ul>
+ */
 public class CMSAuthEnvelopedDataParser
     extends CMSContentInfoParser
 {
@@ -36,6 +55,11 @@ public class CMSAuthEnvelopedDataParser
     private boolean unauthAttrNotRead;
     private OriginatorInformation originatorInfo;
 
+    /**
+     * Create a parser from a byte array.
+     *
+     * @param envelopedData the CMS auth enveloped data bytes
+     */
     public CMSAuthEnvelopedDataParser(
         byte[] envelopedData)
         throws CMSException, IOException
@@ -43,6 +67,14 @@ public class CMSAuthEnvelopedDataParser
         this(new ByteArrayInputStream(envelopedData));
     }
 
+    /**
+     * Create a parser from an input stream. See the class-level javadoc for the
+     * stream handling protocol &mdash; the content is drained lazily via
+     * {@link RecipientInformation#getContentStream}, and the supplied InputStream
+     * is not closed automatically.
+     *
+     * @param envelopedData the CMS auth enveloped data stream
+     */
     public CMSAuthEnvelopedDataParser(
         InputStream envelopedData)
         throws CMSException, IOException
@@ -64,11 +96,12 @@ public class CMSAuthEnvelopedDataParser
         //
         ASN1Set recipientInfos = ASN1Set.getInstance(authEvnData.getRecipientInfos().toASN1Primitive());
 
-        EncryptedContentInfoParser encInfo = authEvnData.getAuthEncryptedContentInfo();
+        final EncryptedContentInfoParser encInfo = authEvnData.getAuthEncryptedContentInfo();
+        
         encAlg = encInfo.getContentEncryptionAlgorithm();
         localMacProvider = new LocalMacProvider(authEvnData, this);
 
-        CMSReadable readable = new CMSProcessableInputStream(new InputStreamWithMAC(
+        final CMSReadable readable = new CMSProcessableInputStream(new InputStreamWithMAC(
             ((ASN1OctetStringParser)encInfo.getEncryptedContent(BERTags.OCTET_STRING)).getOctetStream(), localMacProvider));
 
         CMSSecureReadableWithAAD secureReadable = new CMSSecureReadableWithAAD()

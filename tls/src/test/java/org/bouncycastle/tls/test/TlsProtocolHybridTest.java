@@ -5,13 +5,15 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
-import junit.framework.TestCase;
 import org.bouncycastle.tls.NamedGroup;
 import org.bouncycastle.tls.TlsClientProtocol;
+import org.bouncycastle.tls.TlsServer;
 import org.bouncycastle.tls.TlsServerProtocol;
 import org.bouncycastle.tls.crypto.TlsCrypto;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.io.Streams;
+
+import junit.framework.TestCase;
 
 public abstract class TlsProtocolHybridTest
     extends TestCase
@@ -34,7 +36,13 @@ public abstract class TlsProtocolHybridTest
         TlsClientProtocol clientProtocol = new TlsClientProtocol(clientRead, clientWrite);
         TlsServerProtocol serverProtocol = new TlsServerProtocol(serverRead, serverWrite);
 
-        ServerThread serverThread = new ServerThread(crypto, serverProtocol, new int[]{ NamedGroup.X25519MLKEM768 }, true);
+        MockTlsHybridClient client = new MockTlsHybridClient(crypto, null);
+        MockTlsHybridServer server = new MockTlsHybridServer(crypto);
+
+        client.setNamedGroups(new int[]{ NamedGroup.SecP256r1MLKEM768 });
+        server.setNamedGroups(new int[]{ NamedGroup.X25519MLKEM768 });
+
+        ServerThread serverThread = new ServerThread(serverProtocol, server, true);
         try
         {
             serverThread.start();
@@ -43,8 +51,6 @@ public abstract class TlsProtocolHybridTest
         {
         }
 
-        MockTlsHybridClient client = new MockTlsHybridClient(crypto, null);
-        client.setNamedGroups(new int[]{ NamedGroup.SecP256r1MLKEM768 });
         try
         {
             clientProtocol.connect(client);
@@ -55,6 +61,18 @@ public abstract class TlsProtocolHybridTest
         }
 
         serverThread.join();
+    }
+
+    public void testCurveSM2MLKEM768() throws Exception
+    {
+        if (!crypto.hasNamedGroup(NamedGroup.curveSM2))
+        {
+            // TODO Ideally this would be ignored as distinct from passing e.g. using junit's Assume, except
+            // that various junit runners seem to not display assumption violations correctly/distinctly.
+            return;
+        }
+
+        implTestClientServer(NamedGroup.curveSM2MLKEM768);
     }
 
     public void testSecP256r1MLKEM768() throws Exception
@@ -82,11 +100,14 @@ public abstract class TlsProtocolHybridTest
         TlsClientProtocol clientProtocol = new TlsClientProtocol(clientRead, clientWrite);
         TlsServerProtocol serverProtocol = new TlsServerProtocol(serverRead, serverWrite);
 
-        ServerThread serverThread = new ServerThread(crypto, serverProtocol, new int[]{ hybridGroup }, false);
-        serverThread.start();
-
         MockTlsHybridClient client = new MockTlsHybridClient(crypto, null);
+        MockTlsHybridServer server = new MockTlsHybridServer(crypto);
+
         client.setNamedGroups(new int[]{ hybridGroup });
+        server.setNamedGroups(new int[]{ hybridGroup });
+
+        ServerThread serverThread = new ServerThread(serverProtocol, server, false);
+        serverThread.start();
 
         clientProtocol.connect(client);
 
@@ -113,16 +134,14 @@ public abstract class TlsProtocolHybridTest
     static class ServerThread
         extends Thread
     {
-        private final TlsCrypto crypto;
         private final TlsServerProtocol serverProtocol;
-        private final int[] namedGroups;
-        private boolean shouldFail = false;
+        private final TlsServer server;
+        private final boolean shouldFail;
 
-        ServerThread(TlsCrypto crypto, TlsServerProtocol serverProtocol, int[] namedGroups, boolean shouldFail)
+        ServerThread(TlsServerProtocol serverProtocol, TlsServer server, boolean shouldFail)
         {
-            this.crypto = crypto;
             this.serverProtocol = serverProtocol;
-            this.namedGroups = namedGroups;
+            this.server = server;
             this.shouldFail = shouldFail;
         }
 
@@ -130,12 +149,6 @@ public abstract class TlsProtocolHybridTest
         {
             try
             {
-                MockTlsHybridServer server = new MockTlsHybridServer(crypto);
-                if (namedGroups != null)
-                {
-                    server.setNamedGroups(namedGroups);
-                }
-
                 try
                 {
                     serverProtocol.accept(server);
@@ -143,6 +156,8 @@ public abstract class TlsProtocolHybridTest
                     {
                         fail();
                     }
+
+                    Streams.pipeAll(serverProtocol.getInputStream(), serverProtocol.getOutputStream());
                 }
                 catch (IOException ignored)
                 {
@@ -152,12 +167,10 @@ public abstract class TlsProtocolHybridTest
                     }
                 }
 
-                Streams.pipeAll(serverProtocol.getInputStream(), serverProtocol.getOutputStream());
                 serverProtocol.close();
             }
             catch (Exception e)
             {
-//                throw new RuntimeException(e);
             }
         }
     }

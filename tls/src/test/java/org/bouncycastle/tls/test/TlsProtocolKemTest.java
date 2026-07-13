@@ -5,13 +5,15 @@ import java.io.OutputStream;
 import java.io.PipedInputStream;
 import java.io.PipedOutputStream;
 
-import junit.framework.TestCase;
 import org.bouncycastle.tls.NamedGroup;
 import org.bouncycastle.tls.TlsClientProtocol;
+import org.bouncycastle.tls.TlsServer;
 import org.bouncycastle.tls.TlsServerProtocol;
 import org.bouncycastle.tls.crypto.TlsCrypto;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.io.Streams;
+
+import junit.framework.TestCase;
 
 public abstract class TlsProtocolKemTest
     extends TestCase
@@ -34,7 +36,13 @@ public abstract class TlsProtocolKemTest
         TlsClientProtocol clientProtocol = new TlsClientProtocol(clientRead, clientWrite);
         TlsServerProtocol serverProtocol = new TlsServerProtocol(serverRead, serverWrite);
 
-        ServerThread serverThread = new ServerThread(crypto, serverProtocol, new int[]{ NamedGroup.MLKEM768 }, true);
+        MockTlsKemClient client = new MockTlsKemClient(crypto, null);
+        MockTlsKemServer server = new MockTlsKemServer(crypto);
+
+        client.setNamedGroups(new int[]{ NamedGroup.MLKEM512 });
+        server.setNamedGroups(new int[]{ NamedGroup.MLKEM768 });
+
+        ServerThread serverThread = new ServerThread(serverProtocol, server, true);
         try
         {
             serverThread.start();
@@ -43,8 +51,6 @@ public abstract class TlsProtocolKemTest
         {
         }
 
-        MockTlsKemClient client = new MockTlsKemClient(crypto, null);
-        client.setNamedGroups(new int[]{ NamedGroup.MLKEM512 });
         try
         {
             clientProtocol.connect(client);
@@ -82,11 +88,14 @@ public abstract class TlsProtocolKemTest
         TlsClientProtocol clientProtocol = new TlsClientProtocol(clientRead, clientWrite);
         TlsServerProtocol serverProtocol = new TlsServerProtocol(serverRead, serverWrite);
 
-        ServerThread serverThread = new ServerThread(crypto, serverProtocol, new int[]{ kemGroup }, false);
-        serverThread.start();
-
         MockTlsKemClient client = new MockTlsKemClient(crypto, null);
+        MockTlsKemServer server = new MockTlsKemServer(crypto);
+
         client.setNamedGroups(new int[]{ kemGroup });
+        server.setNamedGroups(new int[]{ kemGroup });
+
+        ServerThread serverThread = new ServerThread(serverProtocol, server, false);
+        serverThread.start();
 
         clientProtocol.connect(client);
 
@@ -113,16 +122,14 @@ public abstract class TlsProtocolKemTest
     static class ServerThread
         extends Thread
     {
-        private final TlsCrypto crypto;
         private final TlsServerProtocol serverProtocol;
-        private final int[] namedGroups;
-        private boolean shouldFail = false;
+        private final TlsServer server;
+        private final boolean shouldFail;
 
-        ServerThread(TlsCrypto crypto, TlsServerProtocol serverProtocol, int[] namedGroups, boolean shouldFail)
+        ServerThread(TlsServerProtocol serverProtocol, TlsServer server, boolean shouldFail)
         {
-            this.crypto = crypto;
             this.serverProtocol = serverProtocol;
-            this.namedGroups = namedGroups;
+            this.server = server;
             this.shouldFail = shouldFail;
         }
 
@@ -130,12 +137,6 @@ public abstract class TlsProtocolKemTest
         {
             try
             {
-                MockTlsKemServer server = new MockTlsKemServer(crypto);
-                if (namedGroups != null)
-                {
-                    server.setNamedGroups(namedGroups);
-                }
-
                 try
                 {
                     serverProtocol.accept(server);
@@ -143,6 +144,8 @@ public abstract class TlsProtocolKemTest
                     {
                         fail();
                     }
+
+                    Streams.pipeAll(serverProtocol.getInputStream(), serverProtocol.getOutputStream());
                 }
                 catch (IOException ignored)
                 {
@@ -152,12 +155,10 @@ public abstract class TlsProtocolKemTest
                     }
                 }
 
-                Streams.pipeAll(serverProtocol.getInputStream(), serverProtocol.getOutputStream());
                 serverProtocol.close();
             }
             catch (Exception e)
             {
-//                throw new RuntimeException(e);
             }
         }
     }

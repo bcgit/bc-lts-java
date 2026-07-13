@@ -19,7 +19,7 @@ public class ChallengeContent
 {
     private final Challenge challenge;
     private final DigestCalculator owfCalc;
-
+    
     ChallengeContent(Challenge challenge, DigestCalculator owfCalc)
     {
         this.challenge = challenge;

@@ -1,14 +1,5 @@
 package org.bouncycastle.openpgp.operator.jcajce;
 
-import java.math.BigInteger;
-import java.security.GeneralSecurityException;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
-import java.security.Provider;
-import java.security.SecureRandom;
-import java.security.spec.RSAKeyGenParameterSpec;
-import java.util.Date;
-
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
 import org.bouncycastle.bcpg.PublicKeyPacket;
@@ -24,6 +15,15 @@ import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.operator.PGPKeyPairGenerator;
 import org.bouncycastle.openpgp.operator.PGPKeyPairGeneratorProvider;
+
+import java.math.BigInteger;
+import java.security.GeneralSecurityException;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.Provider;
+import java.security.SecureRandom;
+import java.security.spec.RSAKeyGenParameterSpec;
+import java.util.Date;
 
 public class JcaPGPKeyPairGeneratorProvider
     extends PGPKeyPairGeneratorProvider

@@ -174,6 +174,11 @@ public class PEMParser
             //
             byte[] keyBytes = obj.getContent();
 
+            if (isEncrypted && (dekInfo == null || new StringTokenizer(dekInfo, ",").countTokens() != 2))
+            {
+                throw new PEMException("malformed PEM data: missing or invalid DEK-Info header");
+            }
+
             try
             {
                 if (isEncrypted)
@@ -198,8 +203,11 @@ public class PEMParser
                     throw new PEMException(e.getMessage(), e);
                 }
             }
-            catch (IllegalArgumentException e)
+            catch (RuntimeException e)
             {
+                // includes DecoderException from a non-hex DEK-Info IV (a RuntimeException
+                // that is not an IllegalArgumentException), keeping the throws IOException
+                // contract intact rather than letting it escape readObject().
                 if (isEncrypted)
                 {
                     throw new PEMException("exception decoding - please check password and data.", e);
@@ -227,7 +235,12 @@ public class PEMParser
                     throw new PEMException("malformed sequence in DSA private key");
                 }
 
-                //            ASN1Integer              v = (ASN1Integer)seq.getObjectAt(0);
+                ASN1Integer v = ASN1Integer.getInstance(seq.getObjectAt(0));
+                if (!v.hasValue(0))
+                {
+                    throw new PEMException("wrong version for DSA private key");
+                }
+
                 ASN1Integer p = ASN1Integer.getInstance(seq.getObjectAt(1));
                 ASN1Integer q = ASN1Integer.getInstance(seq.getObjectAt(2));
                 ASN1Integer g = ASN1Integer.getInstance(seq.getObjectAt(3));
@@ -332,7 +345,14 @@ public class PEMParser
         public Object parseObject(PemObject obj)
             throws IOException
         {
-            return SubjectPublicKeyInfo.getInstance(obj.getContent());
+            try
+            {
+                return SubjectPublicKeyInfo.getInstance(obj.getContent());
+            }
+            catch (Exception e)
+            {
+                throw new PEMException("problem extracting key: " + e.toString(), e);
+            }
         }
     }
 
@@ -486,7 +506,18 @@ public class PEMParser
         public Object parseObject(PemObject obj)
             throws IOException
         {
-            return new X509AttributeCertificateHolder(obj.getContent());
+            try
+            {
+                return new X509AttributeCertificateHolder(obj.getContent());
+            }
+            catch (IOException e)
+            {
+                throw e;
+            }
+            catch (Exception e)
+            {
+                throw new PEMException("problem parsing attribute cert: " + e.toString(), e);
+            }
         }
     }
 
@@ -583,6 +614,11 @@ public class PEMParser
             }
 
             byte[] keyBytes = obj.getContent();
+
+            if (isEncrypted && (dekInfo == null || new StringTokenizer(dekInfo, ",").countTokens() != 2))
+            {
+                throw new PEMException("malformed PEM data: missing or invalid DEK-Info header");
+            }
 
             try
             {

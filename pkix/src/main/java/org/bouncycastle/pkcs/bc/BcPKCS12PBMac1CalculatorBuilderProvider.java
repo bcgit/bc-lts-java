@@ -1,7 +1,5 @@
 package org.bouncycastle.pkcs.bc;
 
-import java.io.IOException;
-
 import org.bouncycastle.asn1.pkcs.PBMAC1Params;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -10,6 +8,13 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS12MacCalculatorBuilder;
 import org.bouncycastle.pkcs.PKCS12MacCalculatorBuilderProvider;
 
+import java.io.IOException;
+
+/**
+ * Lightweight {@link PKCS12MacCalculatorBuilderProvider} that returns PBMAC1
+ * (RFC 8018 / RFC 9579) MAC calculator builders. Refuses any algorithm identifier whose OID is
+ * not {@code id-PBMAC1}.
+ */
 public class BcPKCS12PBMac1CalculatorBuilderProvider
     implements PKCS12MacCalculatorBuilderProvider
 {

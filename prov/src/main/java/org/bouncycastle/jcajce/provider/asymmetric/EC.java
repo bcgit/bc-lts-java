@@ -10,10 +10,10 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.sec.SECObjectIdentifiers;
 import org.bouncycastle.asn1.teletrust.TeleTrusTObjectIdentifiers;
+import org.bouncycastle.asn1.x509.X509ObjectIdentifiers;
 import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
 import org.bouncycastle.internal.asn1.bsi.BSIObjectIdentifiers;
-import org.bouncycastle.internal.asn1.cms.CMSObjectIdentifiers;
 import org.bouncycastle.internal.asn1.eac.EACObjectIdentifiers;
 import org.bouncycastle.jcajce.provider.asymmetric.ec.KeyFactorySpi;
 import org.bouncycastle.jcajce.provider.config.ConfigurableProvider;
@@ -362,8 +362,8 @@ public class EC
             addSignatureAlgorithm(provider, "SHA3-256", "ECDSA", PREFIX + "SignatureSpi$ecDSASha3_256", NISTObjectIdentifiers.id_ecdsa_with_sha3_256, generalEcAttributes);
             addSignatureAlgorithm(provider, "SHA3-384", "ECDSA", PREFIX + "SignatureSpi$ecDSASha3_384", NISTObjectIdentifiers.id_ecdsa_with_sha3_384, generalEcAttributes);
             addSignatureAlgorithm(provider, "SHA3-512", "ECDSA", PREFIX + "SignatureSpi$ecDSASha3_512", NISTObjectIdentifiers.id_ecdsa_with_sha3_512, generalEcAttributes);
-            addSignatureAlgorithm(provider, "SHAKE128", "ECDSA", PREFIX + "SignatureSpi$ecDSAShake128", CMSObjectIdentifiers.id_ecdsa_with_shake128, generalEcAttributes);
-            addSignatureAlgorithm(provider, "SHAKE256", "ECDSA", PREFIX + "SignatureSpi$ecDSAShake256", CMSObjectIdentifiers.id_ecdsa_with_shake256, generalEcAttributes);
+            addSignatureAlgorithm(provider, "SHAKE128", "ECDSA", PREFIX + "SignatureSpi$ecDSAShake128", X509ObjectIdentifiers.id_ecdsa_with_shake128, generalEcAttributes);
+            addSignatureAlgorithm(provider, "SHAKE256", "ECDSA", PREFIX + "SignatureSpi$ecDSAShake256", X509ObjectIdentifiers.id_ecdsa_with_shake256, generalEcAttributes);
             addSignatureAlgorithm(provider, "RIPEMD160", "ECDSA", PREFIX + "SignatureSpi$ecDSARipeMD160", TeleTrusTObjectIdentifiers.ecSignWithRipemd160, generalEcAttributes);
 
             provider.addAlgorithm("Signature.SHA1WITHECNR", PREFIX + "SignatureSpi$ecNR", generalEcAttributes);
@@ -388,6 +388,22 @@ public class EC
             addSignatureAlgorithm(provider, "SHA3-256", "PLAIN-ECDSA", PREFIX + "SignatureSpi$ecCVCDSA3_256", BSIObjectIdentifiers.ecdsa_plain_SHA3_256, generalEcAttributes);
             addSignatureAlgorithm(provider, "SHA3-384", "PLAIN-ECDSA", PREFIX + "SignatureSpi$ecCVCDSA3_384", BSIObjectIdentifiers.ecdsa_plain_SHA3_384, generalEcAttributes);
             addSignatureAlgorithm(provider, "SHA3-512", "PLAIN-ECDSA", PREFIX + "SignatureSpi$ecCVCDSA3_512", BSIObjectIdentifiers.ecdsa_plain_SHA3_512, generalEcAttributes);
+
+            // Java 9+ standard algorithm names for ECDSA producing IEEE P1363 format (fixed-width
+            // r || s) output - the same encoding as PLAIN-ECDSA / CVC-ECDSA. Registered directly
+            // (with the EC key attributes) so Signature.getInstance(...) resolves them, including
+            // the auto-provider-selection path used by the JDK's built-in XML signature support
+            // (github #751).
+            provider.addAlgorithm("Signature.NONEwithECDSAinP1363Format", PREFIX + "SignatureSpi$ecCVCDSANone", generalEcAttributes);
+            provider.addAlgorithm("Signature.SHA1withECDSAinP1363Format", PREFIX + "SignatureSpi$ecCVCDSA", generalEcAttributes);
+            provider.addAlgorithm("Signature.SHA224withECDSAinP1363Format", PREFIX + "SignatureSpi$ecCVCDSA224", generalEcAttributes);
+            provider.addAlgorithm("Signature.SHA256withECDSAinP1363Format", PREFIX + "SignatureSpi$ecCVCDSA256", generalEcAttributes);
+            provider.addAlgorithm("Signature.SHA384withECDSAinP1363Format", PREFIX + "SignatureSpi$ecCVCDSA384", generalEcAttributes);
+            provider.addAlgorithm("Signature.SHA512withECDSAinP1363Format", PREFIX + "SignatureSpi$ecCVCDSA512", generalEcAttributes);
+            provider.addAlgorithm("Signature.SHA3-224withECDSAinP1363Format", PREFIX + "SignatureSpi$ecCVCDSA3_224", generalEcAttributes);
+            provider.addAlgorithm("Signature.SHA3-256withECDSAinP1363Format", PREFIX + "SignatureSpi$ecCVCDSA3_256", generalEcAttributes);
+            provider.addAlgorithm("Signature.SHA3-384withECDSAinP1363Format", PREFIX + "SignatureSpi$ecCVCDSA3_384", generalEcAttributes);
+            provider.addAlgorithm("Signature.SHA3-512withECDSAinP1363Format", PREFIX + "SignatureSpi$ecCVCDSA3_512", generalEcAttributes);
         }
     }
 }

@@ -7,8 +7,7 @@ import org.bouncycastle.tls.crypto.impl.AEADNonceGeneratorFactory;
 import org.bouncycastle.tls.crypto.impl.jcajce.JcaTlsCrypto;
 import org.bouncycastle.tls.test.TestAEADGeneratorFactory;
 
-public class FipsJcaTlsCrypto
-    extends JcaTlsCrypto
+public class FipsJcaTlsCrypto extends JcaTlsCrypto
 {
     public FipsJcaTlsCrypto(JcaJceHelper helper, SecureRandom entropySource, SecureRandom nonceEntropySource)
     {
@@ -16,7 +15,7 @@ public class FipsJcaTlsCrypto
     }
 
     public FipsJcaTlsCrypto(JcaJceHelper helper, JcaJceHelper altHelper, SecureRandom entropySource,
-                            SecureRandom nonceEntropySource)
+        SecureRandom nonceEntropySource)
     {
         super(helper, altHelper, entropySource, nonceEntropySource);
     }

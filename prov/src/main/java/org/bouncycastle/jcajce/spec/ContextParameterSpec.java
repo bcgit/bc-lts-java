@@ -1,8 +1,8 @@
 package org.bouncycastle.jcajce.spec;
 
-import org.bouncycastle.util.Arrays;
-
 import java.security.spec.AlgorithmParameterSpec;
+
+import org.bouncycastle.util.Arrays;
 
 public class ContextParameterSpec
     implements AlgorithmParameterSpec

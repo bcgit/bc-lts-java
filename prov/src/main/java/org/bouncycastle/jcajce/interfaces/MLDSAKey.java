@@ -1,10 +1,8 @@
 package org.bouncycastle.jcajce.interfaces;
 
-
+import org.bouncycastle.jcajce.spec.MLDSAParameterSpec;
 
 import java.security.Key;
-
-import org.bouncycastle.jcajce.spec.MLDSAParameterSpec;
 
 public interface MLDSAKey
     extends Key

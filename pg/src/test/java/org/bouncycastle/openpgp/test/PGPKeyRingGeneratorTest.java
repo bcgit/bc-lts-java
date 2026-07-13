@@ -1,9 +1,5 @@
 package org.bouncycastle.openpgp.test;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.util.Date;
-
 import org.bouncycastle.bcpg.AEADAlgorithmTags;
 import org.bouncycastle.bcpg.ArmoredOutputStream;
 import org.bouncycastle.bcpg.BCPGOutputStream;
@@ -30,6 +26,10 @@ import org.bouncycastle.openpgp.PGPSignatureSubpacketGenerator;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
 import org.bouncycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
 import org.bouncycastle.openpgp.operator.bc.BcPGPKeyPair;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.Date;
 
 public class PGPKeyRingGeneratorTest
     extends AbstractPgpKeyPairTest

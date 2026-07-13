@@ -1,19 +1,24 @@
 package org.bouncycastle.pqc.jcajce.provider.util;
 
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import java.io.ByteArrayOutputStream;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.InvalidParameterException;
+import java.security.Key;
+import java.security.SecureRandom;
+import java.security.spec.AlgorithmParameterSpec;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.ShortBufferException;
-import java.io.ByteArrayOutputStream;
-import java.security.*;
-import java.security.spec.AlgorithmParameterSpec;
+
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 
 
 /**
  * The AsymmetricBlockCipher class extends CipherSpiExt.
  * NOTE: Some Ciphers are using Padding. OneAndZeroesPadding is used as default
- * padding. However, padding can still be specified, but mode is not supported;
+ * padding. However padding can still be specified, but mode is not supported;
  * if you try to instantiate the cipher with something else than "NONE" as mode
  * NoSuchAlgorithmException is thrown.
  */

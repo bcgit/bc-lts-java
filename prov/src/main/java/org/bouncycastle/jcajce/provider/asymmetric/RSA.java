@@ -8,7 +8,7 @@ import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.teletrust.TeleTrusTObjectIdentifiers;
 import org.bouncycastle.asn1.x509.X509ObjectIdentifiers;
-import org.bouncycastle.internal.asn1.cms.CMSObjectIdentifiers;
+import org.bouncycastle.internal.asn1.iso.ISOIECObjectIdentifiers;
 import org.bouncycastle.internal.asn1.oiw.OIWObjectIdentifiers;
 import org.bouncycastle.jcajce.provider.asymmetric.rsa.KeyFactorySpi;
 import org.bouncycastle.jcajce.provider.config.ConfigurableProvider;
@@ -79,10 +79,22 @@ public class RSA
             provider.addAlgorithm("Alg.Alias.Cipher.RSA//OAEPPADDING", "RSA/OAEP");
             provider.addAlgorithm("Alg.Alias.Cipher.RSA//ISO9796-1PADDING", "RSA/ISO9796-1");
 
+            // RFC 9690 RSA-KEM in CMS: keyed off ISO 18033-2 id-kem-rsa (1.0.18033.2.2.4)
+            // in KEMRecipientInfo.kem, and PKCS-arc id-rsa-kem (1.2.840.113549.1.9.16.3.14)
+            // when an RSA-KEM SubjectPublicKeyInfo names the cipher directly (RFC 9690 §3.3).
+            // Both aliases mirror BC-FJA 2.0.X ProvRSA so a JCA call site that resolves the
+            // cipher by either OID hits the same SPI.
+            provider.addAttributes("Cipher.RSA-KTS-KEM-KWS", generalRsaAttributes);
+            provider.addAlgorithm("Cipher.RSA-KTS-KEM-KWS", PREFIX + "RSAKEMCipherSpi");
+            provider.addAlgorithm("Alg.Alias.Cipher." + ISOIECObjectIdentifiers.id_kem_rsa, "RSA-KTS-KEM-KWS");
+            provider.addAlgorithm("Alg.Alias.Cipher.OID." + ISOIECObjectIdentifiers.id_kem_rsa, "RSA-KTS-KEM-KWS");
+            provider.addAlgorithm("Alg.Alias.Cipher." + PKCSObjectIdentifiers.id_rsa_KEM, "RSA-KTS-KEM-KWS");
+            provider.addAlgorithm("Alg.Alias.Cipher.OID." + PKCSObjectIdentifiers.id_rsa_KEM, "RSA-KTS-KEM-KWS");
+
             provider.addAlgorithm("KeyFactory.RSA", PREFIX + "KeyFactorySpi");
             provider.addAlgorithm("KeyPairGenerator.RSA", PREFIX + "KeyPairGeneratorSpi");
 
-            provider.addAlgorithm("KeyFactory.RSASSA-PSS", PREFIX + "KeyFactorySpi");
+            provider.addAlgorithm("KeyFactory.RSASSA-PSS", PREFIX + "KeyFactorySpi$PSS");
             provider.addAlgorithm("KeyPairGenerator.RSASSA-PSS", PREFIX + "KeyPairGeneratorSpi$PSS");
 
             AsymmetricKeyInfoConverter keyFact = new KeyFactorySpi();
@@ -123,8 +135,8 @@ public class RSA
             addPSSSignature(provider, "SHA3-256", "MGF1", PREFIX + "PSSSignatureSpi$SHA3_256withRSA");
             addPSSSignature(provider, "SHA3-384", "MGF1", PREFIX + "PSSSignatureSpi$SHA3_384withRSA");
             addPSSSignature(provider, "SHA3-512", "MGF1", PREFIX + "PSSSignatureSpi$SHA3_512withRSA");
-            addPSSSignature(provider, "SHAKE128", PREFIX + "PSSSignatureSpi$SHAKE128WithRSAPSS", CMSObjectIdentifiers.id_RSASSA_PSS_SHAKE128);
-            addPSSSignature(provider, "SHAKE256", PREFIX + "PSSSignatureSpi$SHAKE256WithRSAPSS", CMSObjectIdentifiers.id_RSASSA_PSS_SHAKE256);
+            addPSSSignature(provider, "SHAKE128", PREFIX + "PSSSignatureSpi$SHAKE128WithRSAPSS", X509ObjectIdentifiers.id_rsassa_pss_shake128);
+            addPSSSignature(provider, "SHAKE256", PREFIX + "PSSSignatureSpi$SHAKE256WithRSAPSS", X509ObjectIdentifiers.id_rsassa_pss_shake256);
 
             addPSSSignature(provider, "SHA224", "SHAKE128", PREFIX + "PSSSignatureSpi$SHA224withRSAandSHAKE128");
             addPSSSignature(provider, "SHA256", "SHAKE128", PREFIX + "PSSSignatureSpi$SHA256withRSAandSHAKE128");

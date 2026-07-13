@@ -1,7 +1,5 @@
 package org.bouncycastle.openpgp.test;
 
-import java.util.Date;
-
 import org.bouncycastle.asn1.sec.SECObjectIdentifiers;
 import org.bouncycastle.bcpg.ECDHPublicBCPGKey;
 import org.bouncycastle.bcpg.ECDSAPublicBCPGKey;
@@ -13,6 +11,8 @@ import org.bouncycastle.openpgp.PGPKeyPair;
 import org.bouncycastle.openpgp.operator.PGPKeyPairGenerator;
 import org.bouncycastle.openpgp.operator.bc.BcPGPKeyPairGeneratorProvider;
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPKeyPairGeneratorProvider;
+
+import java.util.Date;
 
 public class PGPKeyPairGeneratorTest
     extends AbstractPgpKeyPairTest

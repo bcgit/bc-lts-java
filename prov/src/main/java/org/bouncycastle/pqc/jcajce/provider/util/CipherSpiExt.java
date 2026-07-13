@@ -1,9 +1,18 @@
 package org.bouncycastle.pqc.jcajce.provider.util;
 
-
-import javax.crypto.*;
-import java.security.*;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.InvalidParameterException;
+import java.security.Key;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.CipherSpi;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.ShortBufferException;
 
 /**
  * The CipherSpiExt class extends CipherSpi.
@@ -47,19 +56,19 @@ public abstract class CipherSpiExt
      *               {@link #DECRYPT_MODE})
      * @param key    the key
      * @param random the random seed
-     * @throws InvalidKeyException if the key is inappropriate for initializing this cipher.
+     * @throws java.security.InvalidKeyException if the key is inappropriate for initializing this cipher.
      */
-    protected final void engineInit(int opMode, Key key,
-                                    SecureRandom random)
-        throws InvalidKeyException
+    protected final void engineInit(int opMode, java.security.Key key,
+                                    java.security.SecureRandom random)
+        throws java.security.InvalidKeyException
     {
 
         try
         {
             engineInit(opMode, key,
-                (AlgorithmParameterSpec)null, random);
+                (java.security.spec.AlgorithmParameterSpec)null, random);
         }
-        catch (InvalidAlgorithmParameterException e)
+        catch (java.security.InvalidAlgorithmParameterException e)
         {
             throw new InvalidParameterException(e.getMessage());
         }
@@ -84,16 +93,16 @@ public abstract class CipherSpiExt
      * @param key       the key
      * @param algParams the algorithm parameters
      * @param random    the random seed
-     * @throws InvalidKeyException if the key is inappropriate for initializing this block
+     * @throws java.security.InvalidKeyException if the key is inappropriate for initializing this block
      * cipher.
-     * @throws InvalidAlgorithmParameterException if the parameters are inappropriate for initializing this
+     * @throws java.security.InvalidAlgorithmParameterException if the parameters are inappropriate for initializing this
      * block cipher.
      */
-    protected final void engineInit(int opMode, Key key,
+    protected final void engineInit(int opMode, java.security.Key key,
                                     java.security.AlgorithmParameters algParams,
-                                    SecureRandom random)
-        throws InvalidKeyException,
-        InvalidAlgorithmParameterException
+                                    java.security.SecureRandom random)
+        throws java.security.InvalidKeyException,
+        java.security.InvalidAlgorithmParameterException
     {
 
         // if algParams are not specified, initialize without them
@@ -125,28 +134,28 @@ public abstract class CipherSpiExt
      * @param key      the encryption key
      * @param params   the algorithm parameters
      * @param javaRand the source of randomness
-     * @throws InvalidKeyException if the given key is inappropriate for initializing this
+     * @throws java.security.InvalidKeyException if the given key is inappropriate for initializing this
      * cipher
-     * @throws InvalidAlgorithmParameterException if the given algorithm parameters are inappropriate for
+     * @throws java.security.InvalidAlgorithmParameterException if the given algorithm parameters are inappropriate for
      * this cipher, or if this cipher is being initialized for
      * decryption and requires algorithm parameters and the
      * parameters are null.
      */
-    protected void engineInit(int opMode, Key key,
-                              AlgorithmParameterSpec params,
-                              SecureRandom javaRand)
-        throws InvalidKeyException,
-        InvalidAlgorithmParameterException
+    protected void engineInit(int opMode, java.security.Key key,
+                              java.security.spec.AlgorithmParameterSpec params,
+                              java.security.SecureRandom javaRand)
+        throws java.security.InvalidKeyException,
+        java.security.InvalidAlgorithmParameterException
     {
 
         if ((params != null) && !(params instanceof AlgorithmParameterSpec))
         {
-            throw new InvalidAlgorithmParameterException();
+            throw new java.security.InvalidAlgorithmParameterException();
         }
 
         if ((key == null) || !(key instanceof Key))
         {
-            throw new InvalidKeyException();
+            throw new java.security.InvalidKeyException();
         }
 
         this.opMode = opMode;
@@ -178,13 +187,13 @@ public abstract class CipherSpiExt
      *              byte array
      * @param inLen the number of bytes to be processed
      * @return the byte array containing the en-/decrypted data
-     * @throws IllegalBlockSizeException if the ciphertext length is not a multiple of the
+     * @throws javax.crypto.IllegalBlockSizeException if the ciphertext length is not a multiple of the
      * blocklength.
-     * @throws BadPaddingException if unpadding is not possible.
+     * @throws javax.crypto.BadPaddingException if unpadding is not possible.
      */
     protected final byte[] engineDoFinal(byte[] input, int inOff, int inLen)
-        throws IllegalBlockSizeException,
-        BadPaddingException
+        throws javax.crypto.IllegalBlockSizeException,
+        javax.crypto.BadPaddingException
     {
         return doFinal(input, inOff, inLen);
     }
@@ -207,16 +216,16 @@ public abstract class CipherSpiExt
      * @param outOff the offset indicating the start position within the output
      *               byte array to which the en/decrypted data is written
      * @return the number of bytes stored in the output byte array
-     * @throws ShortBufferException if the output buffer is too short to hold the output.
-     * @throws IllegalBlockSizeException if the ciphertext length is not a multiple of the
+     * @throws javax.crypto.ShortBufferException if the output buffer is too short to hold the output.
+     * @throws javax.crypto.IllegalBlockSizeException if the ciphertext length is not a multiple of the
      * blocklength.
-     * @throws BadPaddingException if unpadding is not possible.
+     * @throws javax.crypto.BadPaddingException if unpadding is not possible.
      */
     protected final int engineDoFinal(byte[] input, int inOff, int inLen,
                                       byte[] output, int outOff)
-        throws ShortBufferException,
-        IllegalBlockSizeException,
-        BadPaddingException
+        throws javax.crypto.ShortBufferException,
+        javax.crypto.IllegalBlockSizeException,
+        javax.crypto.BadPaddingException
     {
         return doFinal(input, inOff, inLen, output, outOff);
     }
@@ -235,14 +244,14 @@ public abstract class CipherSpiExt
      *
      * @param key the key object
      * @return the key size in bits of the given key object
-     * @throws InvalidKeyException if key is invalid.
+     * @throws java.security.InvalidKeyException if key is invalid.
      */
-    protected final int engineGetKeySize(Key key)
-        throws InvalidKeyException
+    protected final int engineGetKeySize(java.security.Key key)
+        throws java.security.InvalidKeyException
     {
         if (!(key instanceof Key))
         {
-            throw new InvalidKeyException("Unsupported key.");
+            throw new java.security.InvalidKeyException("Unsupported key.");
         }
         return getKeySize((Key)key);
     }
@@ -303,11 +312,11 @@ public abstract class CipherSpiExt
      * Set the mode of this cipher.
      *
      * @param modeName the cipher mode
-     * @throws NoSuchAlgorithmException if neither the mode with the given name nor the default
+     * @throws java.security.NoSuchAlgorithmException if neither the mode with the given name nor the default
      * mode can be found
      */
     protected final void engineSetMode(String modeName)
-        throws NoSuchAlgorithmException
+        throws java.security.NoSuchAlgorithmException
     {
         setMode(modeName);
     }
@@ -316,10 +325,10 @@ public abstract class CipherSpiExt
      * Set the padding scheme of this cipher.
      *
      * @param paddingName the padding scheme
-     * @throws NoSuchPaddingException if the requested padding scheme cannot be found.
+     * @throws javax.crypto.NoSuchPaddingException if the requested padding scheme cannot be found.
      */
     protected final void engineSetPadding(String paddingName)
-        throws NoSuchPaddingException
+        throws javax.crypto.NoSuchPaddingException
     {
         setPadding(paddingName);
     }
@@ -356,11 +365,11 @@ public abstract class CipherSpiExt
      * @param outOff the offset indicating the start position within the output
      *               byte array to which the en-/decrypted data is written
      * @return the number of bytes that are stored in the output byte array
-     * @throws ShortBufferException if the output buffer is too short to hold the output.
+     * @throws javax.crypto.ShortBufferException if the output buffer is too short to hold the output.
      */
     protected final int engineUpdate(final byte[] input, final int inOff,
                                      final int inLen, byte[] output, final int outOff)
-        throws ShortBufferException
+        throws javax.crypto.ShortBufferException
     {
         return update(input, inOff, inLen, output, outOff);
     }

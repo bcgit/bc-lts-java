@@ -1,7 +1,6 @@
 package org.bouncycastle.bcpg;
 
 import java.io.IOException;
-
 import org.bouncycastle.util.Arrays;
 
 /**
@@ -16,6 +15,10 @@ public abstract class OctetArrayBCPGKey
     OctetArrayBCPGKey(int length, BCPGInputStream in)
         throws IOException
     {
+        if (length > PublicKeyPacket.MAX_LEN)
+        {
+            throw new IOException("Max key length (" + PublicKeyPacket.MAX_LEN + ") exceeded (" + length + ")");
+        }
         key = new byte[length];
         in.readFully(key);
     }

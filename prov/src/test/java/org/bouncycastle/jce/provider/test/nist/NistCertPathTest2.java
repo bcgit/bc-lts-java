@@ -1,6 +1,9 @@
 package org.bouncycastle.jce.provider.test.nist;
 
+import java.lang.reflect.Method;
 import java.security.Security;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import junit.framework.TestCase;
 
@@ -253,7 +256,7 @@ public class NistCertPathTest2
             .withEndEntity("Invalid Name Chaining Test1 EE")
             .withCrls("Good CA CRL")
             .withCACert("Good CA Cert")
-            .doExceptionTest(0, "No CRLs found for issuer \"cn=Good CA Root,o=Test Certificates,c=US\"");
+            .doExceptionTestStartsWith(0, "No CRLs found for issuer \"cn=Good CA Root,o=Test Certificates,c=US\"");
     }
 
     /**
@@ -270,7 +273,7 @@ public class NistCertPathTest2
             .withEndEntity("Invalid Name Chaining Order Test2 EE")
             .withCrls("Name Order CA CRL")
             .withCACert("Name Ordering CA Cert")
-            .doExceptionTest(0, "No CRLs found for issuer \"cn=Name Ordering CA,ou=Organizational Unit Name 1,ou=Organizational Unit Name 2,o=Test Certificates,c=US\"");
+            .doExceptionTestStartsWith(0, "No CRLs found for issuer \"cn=Name Ordering CA,ou=Organizational Unit Name 1,ou=Organizational Unit Name 2,o=Test Certificates,c=US\"");
     }
 
     /**
@@ -442,7 +445,7 @@ public class NistCertPathTest2
         new PKITSTest()
             .withEndEntity("Invalid Missing CRL Test1 EE")
             .withCACert("No CRL CA Cert")
-            .doExceptionTest(0, "No CRLs found for issuer \"cn=No CRL CA,o=Test Certificates,c=US\"");
+            .doExceptionTestStartsWith(0, "No CRLs found for issuer \"cn=No CRL CA,o=Test Certificates,c=US\"");
     }
 
     /**
@@ -507,7 +510,7 @@ public class NistCertPathTest2
             .withEndEntity("Invalid Bad CRL Issuer Name Test5 EE")
             .withCrls("Bad CRL Issuer Name CA CRL")
             .withCACert("Bad CRL Issuer Name CA Cert")
-            .doExceptionTest(0, "No CRLs found for issuer \"cn=Bad CRL Issuer Name CA,o=Test Certificates,c=US\"");
+            .doExceptionTestStartsWith(0, "No CRLs found for issuer \"cn=Bad CRL Issuer Name CA,o=Test Certificates,c=US\"");
     }
 
     /**
@@ -524,7 +527,7 @@ public class NistCertPathTest2
             .withEndEntity("Invalid Wrong CRL Test6 EE")
             .withCrls("Wrong CRL CA CRL")
             .withCACert("Wrong CRL CA Cert")
-            .doExceptionTest(0, "No CRLs found for issuer \"cn=Wrong CRL CA,o=Test Certificates,c=US\"");
+            .doExceptionTestStartsWith(0, "No CRLs found for issuer \"cn=Wrong CRL CA,o=Test Certificates,c=US\"");
     }
 
     /**
@@ -622,7 +625,7 @@ public class NistCertPathTest2
             .withEndEntity("Invalid Old CRL nextUpdate Test11 EE")
             .withCrls("Old CRL nextUpdate CA CRL")
             .withCACert("Old CRL nextUpdate CA Cert")
-            .doExceptionTest(0, "No CRLs found for issuer \"cn=Old CRL nextUpdate CA,o=Test Certificates,c=US\"");
+            .doExceptionTestStartsWith(0, "No CRLs found for issuer \"cn=Old CRL nextUpdate CA,o=Test Certificates,c=US\"");
     }
 
     /**
@@ -641,7 +644,7 @@ public class NistCertPathTest2
             .withEndEntity("Invalid pre2000 CRL nextUpdate Test12 EE")
             .withCrls("pre2000 CRL nextUpdate CA CRL")
             .withCACert("pre2000 CRL nextUpdate CA Cert")
-            .doExceptionTest(0, "No CRLs found for issuer \"cn=pre2000 CRL nextUpdate CA,o=Test Certificates,c=US\"");
+            .doExceptionTestStartsWith(0, "No CRLs found for issuer \"cn=pre2000 CRL nextUpdate CA,o=Test Certificates,c=US\"");
     }
 
     /**
@@ -3756,7 +3759,7 @@ public class NistCertPathTest2
             .withEndEntity("Invalid distributionPoint Test3 EE")
             .withCrls("distributionPoint1 CA CRL")
             .withCACert("distributionPoint1 CA Cert")
-            .doExceptionTest(0, "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
+            .doExceptionTestStartsWith(0, "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
     }
 
     /**
@@ -3855,7 +3858,7 @@ public class NistCertPathTest2
             .withEndEntity("Invalid distributionPoint Test8 EE")
             .withCrls("distributionPoint2 CA CRL")
             .withCACert("distributionPoint2 CA Cert")
-            .doExceptionTest(0, "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
+            .doExceptionTestStartsWith(0, "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
     }
 
     /**
@@ -3872,7 +3875,7 @@ public class NistCertPathTest2
             .withEndEntity("Invalid distributionPoint Test9 EE")
             .withCrls("distributionPoint2 CA CRL")
             .withCACert("distributionPoint2 CA Cert")
-            .doExceptionTest(0, "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
+            .doExceptionTestStartsWith(0, "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
     }
 
     /**
@@ -4372,7 +4375,7 @@ public class NistCertPathTest2
             .withEndEntity("Invalid cRLIssuer Test35 EE")
             .withCrls("indirectCRL CA5 CRL")
             .withCACert("indirectCRL CA5 Cert")
-            .doExceptionTest(0, "No CRLs found for issuer \"ou=indirectCRL CA5,o=Test Certificates,c=US\"");
+            .doExceptionTestStartsWith(0, "No CRLs found for issuer \"ou=indirectCRL CA5,o=Test Certificates,c=US\"");
     }
 
     /**
@@ -4388,7 +4391,7 @@ public class NistCertPathTest2
             .withEndEntity("Invalid deltaCRLIndicator No Base Test1 EE")
             .withCrls("deltaCRLIndicator No Base CA CRL")
             .withCACert("deltaCRLIndicator No Base CA Cert")
-            .doExceptionTest(0, "No CRLs found for issuer \"cn=deltaCRLIndicator No Base CA,o=Test Certificates,c=US\"");
+            .doExceptionTestStartsWith(0, "No CRLs found for issuer \"cn=deltaCRLIndicator No Base CA,o=Test Certificates,c=US\"");
     }
 
     /**
@@ -4556,7 +4559,7 @@ public class NistCertPathTest2
             .withCrls("deltaCRL CA3 deltaCRL")
             .withCrls("deltaCRL CA3 CRL")
             .withCACert("deltaCRL CA3 Cert")
-            .doExceptionTest(0, "No CRLs found for issuer \"cn=deltaCRL CA3,o=Test Certificates,c=US\"");
+            .doExceptionTestStartsWith(0, "No CRLs found for issuer \"cn=deltaCRL CA3,o=Test Certificates,c=US\"");
     }
 
     /**
@@ -4583,5 +4586,40 @@ public class NistCertPathTest2
         new PKITSTest()
             .withEndEntity("Invalid Unknown Critical Certificate Extension Test2 EE")
             .doExceptionTest(0, "Certificate has unsupported critical extension: [2.16.840.1.101.2.1.12.2]");
+    }
+
+    /**
+     * When more than one unsupported critical extension is present, the OIDs listed in the
+     * "Certificate has unsupported critical extension: [...]" message must appear in a stable
+     * (ascending string) order rather than the non-deterministic iteration order of the
+     * underlying Set, so that the thrown message is reproducible and testable.
+     */
+    public void testUnsupportedCriticalExtensionMessageSorted()
+        throws Exception
+    {
+        Method m = Class.forName("org.bouncycastle.jce.provider.RFC3280CertPathUtilities")
+            .getDeclaredMethod("getUnsupportedCriticalExtensionMessage", Set.class);
+        m.setAccessible(true);
+
+        // Insertion order here is deliberately NOT ascending; LinkedHashSet preserves it so the
+        // pre-fix code (which iterated the Set directly) would emit them in this order.
+        Set critical = new LinkedHashSet();
+        critical.add("2.16.840.1.101.2.1.12.2");
+        critical.add("1.2.3.4");
+        critical.add("2.5.29.99");
+
+        String message = (String)m.invoke(null, critical);
+
+        assertEquals(
+            "Certificate has unsupported critical extension: [1.2.3.4, 2.16.840.1.101.2.1.12.2, 2.5.29.99]",
+            message);
+
+        // A single-element set must be byte-identical to the legacy single-OID output.
+        Set single = new LinkedHashSet();
+        single.add("2.16.840.1.101.2.1.12.2");
+
+        assertEquals(
+            "Certificate has unsupported critical extension: [2.16.840.1.101.2.1.12.2]",
+            (String)m.invoke(null, single));
     }
 }

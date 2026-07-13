@@ -13,7 +13,7 @@ public class TlsHybridAgreement
     private final int peerValueSplit;
 
     public TlsHybridAgreement(TlsCrypto crypto, TlsAgreement firstAgreement, TlsAgreement secondAgreement,
-                              int peerValueSplit)
+        int peerValueSplit)
     {
         this.crypto = crypto;
         this.firstAgreement = firstAgreement;

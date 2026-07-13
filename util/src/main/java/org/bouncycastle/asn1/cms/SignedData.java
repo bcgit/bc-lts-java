@@ -119,6 +119,33 @@ public class SignedData
         this.sigsBer = signerInfos instanceof BERSet;
     }
 
+    /**
+     * Construct a SignedData with an explicit, caller-supplied version rather than a recomputed
+     * one. This lets a producer pin a specific version for a profile that requires one - for
+     * example Microsoft Authenticode signatures pin version 1 even though their eContentType is
+     * not id-data, which {@link #calculateVersion} would otherwise map to version 3. The
+     * higher-level entry point is {@code CMSSignedData.asVersion(int)}.
+     */
+    public SignedData(
+        ASN1Integer version,
+        ASN1Set     digestAlgorithms,
+        ContentInfo contentInfo,
+        ASN1Set     certificates,
+        ASN1Set     crls,
+        ASN1Set     signerInfos)
+    {
+        this.version = version;
+        this.digestAlgorithms = digestAlgorithms;
+        this.contentInfo = contentInfo;
+        this.certificates = certificates;
+        this.crls = crls;
+        this.signerInfos = signerInfos;
+        this.digsBer = digestAlgorithms instanceof BERSet;
+        this.crlsBer = crls instanceof BERSet;
+        this.certsBer = certificates instanceof BERSet;
+        this.sigsBer = signerInfos instanceof BERSet;
+    }
+
 
     private ASN1Integer calculateVersion(
         ASN1ObjectIdentifier contentOid,

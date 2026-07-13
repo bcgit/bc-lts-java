@@ -367,6 +367,60 @@ public class KeyBoxTest
     }
 
 
+    public void testEmptyBlobIsNotEndOfFile()
+        throws Exception
+    {
+        // A keybox may carry an EMPTY_BLOB (a free/deleted slot) between real key blobs; it
+        // must be skipped, not treated as end-of-file. Regression test for github #2343: splice
+        // an empty blob in ahead of the second OpenPGP blob of pubring.kbx (which has two
+        // material blobs) and confirm both material blobs still load. Cover both a padded empty
+        // blob and a header-only (6-octet) empty blob, whose length equals the header exactly and
+        // sits on the "fails to advance" boundary of the skip guard.
+        checkEmptyBlobOfLengthIsSkipped(32);
+        checkEmptyBlobOfLengthIsSkipped(6);
+    }
+
+    private void checkEmptyBlobOfLengthIsSkipped(int emptyLen)
+        throws Exception
+    {
+        byte[] raw = Streams.readAll(KeyBoxTest.class.getResourceAsStream("/pgpdata/pubring.kbx"));
+
+        int firstBlobLen = readU32(raw, 0);
+        int firstMaterialLen = readU32(raw, firstBlobLen);
+        int insertAt = firstBlobLen + firstMaterialLen; // start of the second material blob
+
+        // an empty blob: u32 length, u8 type (0 = EMPTY_BLOB), u8 version, zero-filled body.
+        // emptyLen == 6 is the minimum (header only); the 6-octet header is u32 + u8 + u8.
+        byte[] empty = new byte[emptyLen];
+        empty[3] = (byte)empty.length; // length (fits in the low byte for the sizes tested)
+        empty[4] = 0;                  // BlobType EMPTY_BLOB
+        empty[5] = 1;                  // version
+
+        byte[] splicedBytes = new byte[raw.length + empty.length];
+        System.arraycopy(raw, 0, splicedBytes, 0, insertAt);
+        System.arraycopy(empty, 0, splicedBytes, insertAt, empty.length);
+        System.arraycopy(raw, insertAt, splicedBytes, insertAt + empty.length, raw.length - insertAt);
+
+        KeyBox original = new BcKeyBox(new ByteArrayInputStream(raw));
+        KeyBox spliced = new BcKeyBox(new ByteArrayInputStream(splicedBytes));
+
+        // the empty blob must be skipped transparently, leaving the same material blobs as the
+        // original keybox (before the fix, parsing stopped at the empty blob and dropped the rest)
+        TestCase.assertEquals("an empty blob of length " + emptyLen + " must not truncate parsing",
+            original.getKeyBlobs().size(), spliced.getKeyBlobs().size());
+        for (int i = 0; i != original.getKeyBlobs().size(); i++)
+        {
+            TestCase.assertEquals(original.getKeyBlobs().get(i).getType(),
+                spliced.getKeyBlobs().get(i).getType());
+        }
+    }
+
+    private static int readU32(byte[] b, int off)
+    {
+        return ((b[off] & 0xff) << 24) | ((b[off + 1] & 0xff) << 16)
+            | ((b[off + 2] & 0xff) << 8) | (b[off + 3] & 0xff);
+    }
+
     public void performTest()
         throws Exception
     {
@@ -379,6 +433,7 @@ public class KeyBoxTest
         testBrokenMagic();
         testSuccessfulLoad();
         testInducedChecksumFailed();
+        testEmptyBlobIsNotEndOfFile();
     }
 
 

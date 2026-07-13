@@ -1,5 +1,16 @@
 package org.bouncycastle.jcajce.provider.asymmetric.util;
 
+import java.security.AlgorithmParameters;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.PrivateKey;
+import java.security.ProviderException;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.security.SignatureException;
+import java.security.SignatureSpi;
+import java.security.spec.AlgorithmParameterSpec;
+
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithContext;
@@ -7,14 +18,11 @@ import org.bouncycastle.crypto.params.ParametersWithRandom;
 import org.bouncycastle.jcajce.spec.ContextParameterSpec;
 import org.bouncycastle.jcajce.util.BCJcaJceHelper;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
+import org.bouncycastle.jcajce.util.SpecUtil;
 import org.bouncycastle.util.Exceptions;
 
-
-import java.security.*;
-import java.security.spec.AlgorithmParameterSpec;
-
 public abstract class BaseDeterministicOrRandomSignature
-    extends Signature
+    extends SignatureSpi
 {
     private final JcaJceHelper helper = new BCJcaJceHelper();
     private final AlgorithmParameterSpec originalSpec;
@@ -27,7 +35,6 @@ public abstract class BaseDeterministicOrRandomSignature
 
     protected BaseDeterministicOrRandomSignature(String name)
     {
-        super(name);
         this.originalSpec = ContextParameterSpec.EMPTY_CONTEXT_SPEC;
     }
 
@@ -116,7 +123,16 @@ public abstract class BaseDeterministicOrRandomSignature
         }
         else
         {
-            throw new InvalidAlgorithmParameterException("unknown AlgorithmParameterSpec in signature");
+            byte[] context = SpecUtil.getContextFrom(params);
+            if (context != null)
+            {                   
+                this.paramSpec = new ContextParameterSpec(context);
+                reInit();
+            }
+            else
+            {
+                throw new InvalidAlgorithmParameterException("unknown AlgorithmParameterSpec in signature");
+            }
         }
     }
 
@@ -155,7 +171,7 @@ public abstract class BaseDeterministicOrRandomSignature
     {
         if (engineParams == null)
         {
-            if (paramSpec != null)
+            if (paramSpec != null && paramSpec != ContextParameterSpec.EMPTY_CONTEXT_SPEC)
             {
                 try
                 {

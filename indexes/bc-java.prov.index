@@ -618,7 +618,6 @@ e603f7b61f676b7ca99d4843ba23e76b91f4fc006d12a3d73fc5b11c59845c91  prov/src/main/
 5c829151efd6aca94a175d006e776b588caca09d76c9b5e592fda19afe8d8a0a  prov/src/main/java/org/bouncycastle/pqc/jcajce/provider/util/SpecUtil.java
 c6206b31fdb8b52e25cfb46a2a70aea90a6696eedae8372eeb0119647adb8e7e  prov/src/main/java/org/bouncycastle/pqc/jcajce/spec/LMSHSSKeyGenParameterSpec.java
 419f5b927897bb772cb241c6e636d55af3b10292d707d6cd0e4e41b22496aec2  prov/src/main/java/org/bouncycastle/pqc/jcajce/spec/LMSKeyGenParameterSpec.java
-82898023d8e04f8466f1a58c9f4222900bc1160c8af4c23e345820efb53f97cd  prov/src/main/jdk17/org/bouncycastle/jcajce/provider/asymmetric/MLKEM.java
 6ecc0bb734111d4d94a5f1acce8200a919ef2d1675e130a23d7825b24cc3dec5  prov/src/main/jdk17/org/bouncycastle/jcajce/provider/asymmetric/mlkem/MLKEMDecapsulatorSpi.java
 4ec74f94b6ed70809a4c770569687d20001740ccde881eebacd5670144497536  prov/src/main/jdk17/org/bouncycastle/jcajce/provider/asymmetric/mlkem/MLKEMEncapsulatorSpi.java
 1dddaade92f3e0325fbeff11c2186684887250045dbcf0bb3943b973467d9c45  prov/src/main/jdk17/org/bouncycastle/jcajce/provider/asymmetric/mlkem/MLKEMSpi.java
@@ -631,3 +630,4 @@ f83aed6fda6aedb785b453af676179b0963e194e101fb2d2ddffd1889b0e5b73  prov/src/main/
 8bb6d574bfb775a715c7262801622405d96e9b74aa028ec6dbd077533f896c04  prov/src/main/java/org/bouncycastle/jcajce/PKCS12LoadStoreParameter.java
 ea1e245bcee1f6cc7da65ea1045441d082d44624a0e59e6eb26214dbe4db8226  prov/src/main/java/org/bouncycastle/jce/provider/JDKPKCS12StoreParameter.java
 8998f408d42070e49813032005e307cf074d6b5b387391377583784e7ba7558b  prov/src/main/java/org/bouncycastle/jcajce/provider/util/SecurityExceptions.java
+82898023d8e04f8466f1a58c9f4222900bc1160c8af4c23e345820efb53f97cd  prov/src/main/jdk17/org/bouncycastle/jcajce/provider/asymmetric/MLKEM.java

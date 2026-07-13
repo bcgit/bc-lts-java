@@ -38,6 +38,7 @@ import org.bouncycastle.asn1.x509.Time;
 import org.bouncycastle.operator.ContentVerifier;
 import org.bouncycastle.operator.ContentVerifierProvider;
 import org.bouncycastle.util.Encodable;
+import org.bouncycastle.util.Exceptions;
 
 /**
  * Holding class for an X.509 CRL structure.
@@ -64,12 +65,12 @@ public class X509CRLHolder
             }
             return CertificateList.getInstance(obj);
         }
-        catch (ClassCastException e)
+        catch (RuntimeException e)
         {
-            throw new CertIOException("malformed data: " + e.getMessage(), e);
-        }
-        catch (IllegalArgumentException e)
-        {
+            // any RuntimeException here (ClassCastException, IllegalArgumentException,
+            // IllegalStateException/ASN1ParsingException, NullPointerException, ...) means the
+            // bytes were malformed; surface it as the declared IOException rather than letting it
+            // escape the constructor's contract.
             throw new CertIOException("malformed data: " + e.getMessage(), e);
         }
     }
@@ -95,7 +96,7 @@ public class X509CRLHolder
     public X509CRLHolder(byte[] crlEncoding)
         throws IOException
     {
-        this(parseStream(new ByteArrayInputStream(crlEncoding)));
+        init(parseStream(new ByteArrayInputStream(crlEncoding)));
     }
 
     /**
@@ -107,7 +108,7 @@ public class X509CRLHolder
     public X509CRLHolder(InputStream crlStream)
         throws IOException
     {
-        this(parseStream(crlStream));
+        init(parseStream(crlStream));
     }
 
     /**
@@ -117,14 +118,34 @@ public class X509CRLHolder
      */
     public X509CRLHolder(CertificateList x509CRL)
     {
-        init(x509CRL);
+        try
+        {
+            init(x509CRL);
+        }
+        catch (IOException e)
+        {
+            // a CertificateList handed in directly is already a parsed structure; preserve the
+            // historical unchecked-exception behaviour for a malformed embedded extension.
+            throw Exceptions.illegalArgumentException(e.getMessage(), e);
+        }
     }
 
     private void init(CertificateList x509CRL)
+        throws IOException
     {
         this.x509CRL = x509CRL;
         this.extensions = x509CRL.getTBSCertList().getExtensions();
-        this.isIndirect = isIndirectCRL(extensions);
+        try
+        {
+            this.isIndirect = isIndirectCRL(extensions);
+        }
+        catch (RuntimeException e)
+        {
+            // a malformed issuingDistributionPoint extension value makes the eager getParsedValue()
+            // parse throw (typically IllegalArgumentException "can't convert extension"); surface it
+            // as the declared IOException rather than letting it escape the constructor's contract.
+            throw new CertIOException("malformed IssuingDistributionPoint extension: " + e.getMessage(), e);
+        }
         this.issuerName = new GeneralNames(new GeneralName(x509CRL.getIssuer()));
     }
 

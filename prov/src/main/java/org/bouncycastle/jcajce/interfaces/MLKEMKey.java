@@ -1,8 +1,8 @@
 package org.bouncycastle.jcajce.interfaces;
 
-import java.security.Key;
-
 import org.bouncycastle.jcajce.spec.MLKEMParameterSpec;
+
+import java.security.Key;
 
 public interface MLKEMKey
     extends Key
