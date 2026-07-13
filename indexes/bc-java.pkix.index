@@ -784,7 +784,7 @@ d233f18522f38b47bd0ff5f50908ec115f2760021c1c7707d88972e45aee86d0  pkix/src/main/
 19111476c564356e72c6825b007f59f870db38e88204372a4d65c8168b88fa92  pkix/src/main/java/org/bouncycastle/cms/jcajce/JceKTSKeyTransRecipient.java
 76ef15a142c3322fd56098f40ba583317b718e71c759be3e5ea977d628ecbd03  pkix/src/main/java/org/bouncycastle/cms/jcajce/package-info.java
 331b4fdd1f5861a21dac93fdde5113a2f93bc3db71c6c34bfb585af576e96b3f  pkix/src/main/java/org/bouncycastle/cms/KEKRecipientInformation.java
-4be15c332545b775e16448d682d1e60cd8859d552f9b5b2eaaa0c8cf37e4ed27  pkix/src/main/java/org/bouncycastle/cms/KEMRecipientInformation.java
+a71105575b689fe75941118d8deea6fc73c422a863bcf5ca3ea264854f547977  pkix/src/main/java/org/bouncycastle/cms/KEMRecipientInformation.java
 e96b1a21c3776c4962a07872f8c61f375e29643888f64d720ff0c5f5eeef302a  pkix/src/main/java/org/bouncycastle/cms/KeyAgreeRecipientInformation.java
 c488f8ec9d7e947550bc18bc45a62158ada8ac86f3b54acb127547c75397bacf  pkix/src/main/java/org/bouncycastle/cms/KeyTransRecipientInformation.java
 e3a4c25287e5500fbed4ff35a334a0a901e9e7f4b8ef769a5d751cec37484293  pkix/src/main/java/org/bouncycastle/cms/MACProvider.java
@@ -838,3 +838,4 @@ cb00c25f8aacd347ec922432ba3d7213c95d6840cda096ccf14092e550dec496  pkix/src/main/
 b7e7c1e61ae512b23456a9d90349b256a30face0d0c1744a3c839192c0d855a0  pkix/src/test/java/org/bouncycastle/pkix/test/LocalizedMessageTest.java
 74ea5d051585e9cebc20e119b44bae450abbf897a1d6ec7baf3f11f34a27b893  pkix/src/test/java/org/bouncycastle/pkix/test/SQLFilterTest.java
 f6198a7a762865f30149d72217eb0007bafcdbc15f594890d5b8afdb7d9cf15a  pkix/src/test/java/org/bouncycastle/tsp/test/OldERSTest.java
+5f8031df4b1fe2a0af4f761a1b229b3f2d9d0caa442404bc8ff72cd12e52e4b9  pkix/src/main/java/org/bouncycastle/cms/KEMRecipientId.java
