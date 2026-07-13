@@ -1752,3 +1752,4 @@ ea0d1a07b98350a456ffb5b5f1d42d29de7ad07eda4a6a041c4e431d113d06e4  core/src/test/
 15e5181c2a10296bf473d7f182cc8616300bcd2a2889899f9af36d06d4cf8507  core/src/test/java/org/bouncycastle/pqc/crypto/lms/TypeTests.java
 860cb6416dca02c7755c00dfb2dfebfa54a13490f09300084b9bc8281dda5721  core/src/main/java/org/bouncycastle/asn1/ASN1TimeFormat.java
 8e89ce0fc1d47e6b5856aeea709d554749674d8cbc94046fc4bfef7a60a1840a  core/src/main/java/org/bouncycastle/asn1/DEREncodingException.java
+a7f1fc4f70ff417fecac191082896fb21a48870b656a98a6621ab4a905bed9fd  core/src/test/java/org/bouncycastle/asn1/test/AllowNonDerTimeTest.java
