@@ -967,7 +967,7 @@ b29346c259e4eb221e100e1480f2f96fba9a284ee4dc91eca0b8c122fcfefd57  core/src/main/
 56ccfcb5a14cadf2f9aca0e0485dec23ee985a9a51a741a49c71e7fd2a3243c2  core/src/main/java/org/bouncycastle/asn1/misc/NetscapeRevocationURL.java
 eec1f428439f5f2a726108caaae11bfcffaef6f6ca24cb57bbc1fe8f0351208e  core/src/main/java/org/bouncycastle/asn1/DERGenerator.java
 2d1cc88c1bcc7ffa8571e8af8b48f6066adfd7c2b75b139a71453163469b2081  core/src/main/java/org/bouncycastle/asn1/LocaleUtil.java
-c7a6ded6a5f39a8bdc4254d970accdfda9dbf22b6293255062bd173e30950a81  core/src/main/java/org/bouncycastle/asn1/DLBitString.java
+0eb45369cacce333ad64da75416be21daad0828932491b2f6add0202ab9afcd2  core/src/main/java/org/bouncycastle/asn1/DLBitString.java
 a9ee27b1eeda40dd026f280c22ad443af543dc25e979cc3899f524bbce1d0913  core/src/main/java/org/bouncycastle/asn1/DERExternal.java
 cf89e3488ff9bb3aafaf46da24c187cf45f1b3c10d1111afcbd3cd9c7018377e  core/src/main/java/org/bouncycastle/asn1/DLSequenceParser.java
 1730bf514d6788bf227005e539a62395008b354e65de3c9c32bf22ed2d28d791  core/src/main/java/org/bouncycastle/asn1/BERGenerator.java
@@ -999,7 +999,7 @@ ab4179df6ca17c6487dc44bdd6f84b029fd5d3067e0c90c2c18a4524fea4e89a  core/src/main/
 ab3b880e77f76215f0a9acc83dc7cc0dc06fdd69e1a125b5a3aae3e953821971  core/src/main/java/org/bouncycastle/asn1/ASN1OctetStringParser.java
 976640ae5179206a14329652435e4a63039b50c5dbfd9739c52f7c7417a29a62  core/src/main/java/org/bouncycastle/asn1/ocsp/ServiceLocator.java
 09ef12b981c0dc7c7bd498687e45a4879ed07ce47cdff3795443e9759c38f00b  core/src/main/java/org/bouncycastle/asn1/ocsp/ResponderID.java
-47761d30e5839c79c1346de44f59d238c9c9ef791431111c6da8563c20c23213  core/src/main/java/org/bouncycastle/asn1/ocsp/SingleResponse.java
+14284818700ad621d9b887cb462e92aa605a1c0350469fcfd5db9d87f744916e  core/src/main/java/org/bouncycastle/asn1/ocsp/SingleResponse.java
 3aa6f982594d6919ff4555ffabc8daae2ba1c6805238b056b6eee775c2478bfc  core/src/main/java/org/bouncycastle/asn1/ocsp/ResponseData.java
 e08ff4801f5012382308490052796187179688b104bb71f531fbf896dc2c3e32  core/src/main/java/org/bouncycastle/asn1/ocsp/CertStatus.java
 a91301fba3edd184639fd87866df24cb841854b5420fa2c06c8fcf30623880de  core/src/main/java/org/bouncycastle/asn1/ocsp/BasicOCSPResponse.java
@@ -1111,7 +1111,7 @@ c92ececa2063c5adb6e0d92fb76e827c9a9fc607993caac0d34affd8e2b55669  core/src/main/
 5c7fe8b00ff0c59c0cefd95f94e01495a62fe382075f09716726d76d685fc15e  core/src/main/java/org/bouncycastle/asn1/x509/qualified/Iso4217CurrencyCode.java
 36ccc7740f2ae4f0a4dcebd0032154a0f4322e0b8eaa72d0195466cbcefc2070  core/src/main/java/org/bouncycastle/asn1/x509/CertificatePolicies.java
 b51f7699cdbdf3519dae6430e2063ffa8a280562dbd2f399699cd7ae10149133  core/src/main/java/org/bouncycastle/asn1/x509/AuthorityKeyIdentifier.java
-3fb1ae7fe1916495738d5b16f1ea85eb138db443d3a5dedf3314bbf10f50defd  core/src/main/java/org/bouncycastle/asn1/x509/PolicyMappings.java
+ac5ac708a1afbd6266c931432dd78660f069d5b0c32deca38c1165c182aff535  core/src/main/java/org/bouncycastle/asn1/x509/PolicyMappings.java
 e423f9b334661871df1410f8e9ab6e7e315f6330cb8bc0552f894dd19a78ea5e  core/src/main/java/org/bouncycastle/asn1/x509/TargetInformation.java
 6d2227ed6ada3b9f580a8e4233b8bf79a13fc484ea7e6b6618884ad0bf16a879  core/src/main/java/org/bouncycastle/asn1/x509/Targets.java
 730969cc4b3d3aa269d61b5978b7d37f367d9033e5965dbfee2abda654f45331  core/src/main/java/org/bouncycastle/asn1/x509/SubjectDirectoryAttributes.java
@@ -1135,7 +1135,7 @@ b659b4c025a3e3ca22b0766fcc1139fe7ab295d401425ee6e207acdff5974498  core/src/main/
 8d28c2d112fe4fe6d293287d42ba3bf6cc1a501e796808c52494fcd0a9251498  core/src/main/java/org/bouncycastle/asn1/x509/PolicyConstraints.java
 af0831bdbc90881a8951c50cc3437ed870117a71b060caa87da092442b703296  core/src/main/java/org/bouncycastle/asn1/x509/NameConstraintValidatorException.java
 7ac0353e063cb120ea8af1acb09dd3f632a5e56a58b4001db2ae15d012f1b5fa  core/src/main/java/org/bouncycastle/asn1/x509/SubjectKeyIdentifier.java
-beba8c48ed13dafd8483648eeab9558a164be899522c5696f5925e30ad3e464f  core/src/main/java/org/bouncycastle/asn1/x509/GeneralName.java
+d85bc1d268a6afd18652bf802f45849ba474e600d4532d0914a7392e6bc9f052  core/src/main/java/org/bouncycastle/asn1/x509/GeneralName.java
 191c1876aa5c0e487611c9c9921b6af4714d1eeb932f02d66fce2a6f9afe7f65  core/src/main/java/org/bouncycastle/asn1/x509/CRLReason.java
 6b75d4b4238e997732206f84ece9a4639533d6ef79f661247ab5e0b02feb2a8b  core/src/main/java/org/bouncycastle/asn1/x509/TBSCertList.java
 5c4a89cef0eede5bd1ea5883a7aeb80335e15a7b6fca923c2b09392aa4db3ea6  core/src/main/java/org/bouncycastle/asn1/x509/IetfAttrSyntax.java
@@ -1220,7 +1220,7 @@ e74077f0419adaf021b3ea333eb59788097b2f169307acdc52681d7785a71b07  core/src/main/
 b04192708404a7b739a06a9e4d4781117be24bb33109fb7c08b2cbecdaf4d0c2  core/src/main/java/org/bouncycastle/asn1/teletrust/TeleTrusTObjectIdentifiers.java
 ff4f5937e9e6e62301a61702b0af8da15346f02a9dbb6636dd33a60f4647c81a  core/src/main/java/org/bouncycastle/asn1/teletrust/TeleTrusTNamedCurves.java
 c488df7ae8e7c08d63361d53630e6cbf2ea7ac44469438d1d97fc414628eeb30  core/src/main/java/org/bouncycastle/asn1/isara/IsaraObjectIdentifiers.java
-383973e84e33df0fee7ba4ebe6ca2e169bfd4e2c9dd0176df5e402f0c7a928a4  core/src/main/java/org/bouncycastle/asn1/DERBitString.java
+aa052e2465287518fb7297ecacbf2dabad5544c4df126b29065c6ba1fd690840  core/src/main/java/org/bouncycastle/asn1/DERBitString.java
 ec6050ebecaebe9184095ff70a2c16e27519cecb94dc5778f45807b956a420aa  core/src/main/java/org/bouncycastle/asn1/DERFactory.java
 dec1d7348c9f1ffe6ed2d31ff594bff962dbd178914810e3f89f7a9b45eb2680  core/src/main/java/org/bouncycastle/asn1/ASN1Util.java
 ba7df6a50c472a76afaa500548ae5a73f27a5351d0082c58a2b3e45d431e34c7  core/src/main/java/org/bouncycastle/asn1/DERSequence.java

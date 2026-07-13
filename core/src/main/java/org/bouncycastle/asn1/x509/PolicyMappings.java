@@ -47,7 +47,36 @@ public class PolicyMappings
      */
     private PolicyMappings(ASN1Sequence seq)
     {
+        if (seq.size() < 1)
+        {
+            throw new IllegalArgumentException("sequence may not be empty");
+        }
+
         this.seq = seq;
+    }
+
+    /**
+     * Creates a new <code>PolicyMappings</code> instance.
+     *
+     * @param mappings a <code>HashMap</code> value that maps
+     *                 <code>String</code> oids
+     *                 to other <code>String</code> oids.
+     * @deprecated use CertPolicyId constructors.
+     */
+    public PolicyMappings(Hashtable mappings)
+    {
+        ASN1EncodableVector dev = new ASN1EncodableVector(mappings.size());
+
+        Enumeration it = mappings.keys();
+        while (it.hasMoreElements())
+        {
+            String idp = (String)it.nextElement();
+            String sdp = (String)mappings.get(idp);
+
+            dev.add(new DERSequence(new ASN1ObjectIdentifier(idp), new ASN1ObjectIdentifier(sdp)));
+        }
+
+        seq = new DERSequence(dev);
     }
 
     public PolicyMappings(CertPolicyId issuerDomainPolicy, CertPolicyId subjectDomainPolicy)
