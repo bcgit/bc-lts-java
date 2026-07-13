@@ -104,6 +104,43 @@ awk '{print $2}' "$idx" | sort | uniq -d   # duplicate path entries (different h
 
 Duplicate-path entries (same path, two different hashes) are a real gotcha: `comm` over sorted path lists won't flag them as gone *or* missing, and a path-based prune that drops every matching line for a "gone" path will also drop both copies of a duplicate. Use `uniq -d` on `awk '{print $2}'` to find them; reconcile against the reference repo, never by re-`sha256sum`'ing the local file.
 
+#### Reconciliation workflow (`check-indexes.sh` / `index-update.sh`)
+
+Two committed scripts drive the reconciliation against a local checkout of the upstream `bc-java` (pass its path; default `../../bc-java`):
+
+- `./check-indexes.sh <bc-java-dir>` — for each recorded entry, compares the **recorded index hash** against the **current upstream file's hash** and reports the ones that differ (i.e. files upstream changed since the recorded baseline). Run it per module and filter, e.g.:
+  ```
+  ./check-indexes.sh ../../bc-java 2>/dev/null | awk '/^checking core/{c=1;next}/^checking /{c=0}c' | grep '\.java'
+  ```
+- `sh index-update.sh <category> <path>` — sets the index entry for `<path>` to the **current upstream hash** (the reviewed-baseline marker). `<category>` is the module (`core`, `util`, …). Note: `index-update.sh` is **not** executable — invoke it with `sh`. It rewrites in place with `ed`; a `<hex>␣␣<path>` line must already exist (for a genuinely new file, append the entry by hand with the upstream hash).
+
+Both scripts remap 13 asn1 OID subpackages from `core` to `util` (`cryptlib|edec|gnu|isara|iso|kisa|microsoft|misc|mozilla|nsri|ntt|oiw|rosstandart`) because those live under `util/src` in LTS but `core/src` upstream. `iana` is **not** in that list (upstream relocated it back to `core`).
+
+**Baseline/review policy.** The recorded hash is a *baseline of the current upstream file*, and is only advanced (via `index-update.sh`) once that file has been **reviewed**: merged, adjusted-and-merged, or deliberately left diverged ("leave-diverged"). Leaving a file diverged is legitimate and common — the LTS edition ships a curated subset (fewer PQC algorithms, no lightweight-AEAD finalists, dropped legacy `X509Name`/`X509CertificateStructure`/`TBSCertificateStructure`, `BufferedBlockCipher` is an interface not a class, etc.), so its source stays different while the index is bumped to accept the divergence. Do not bump an index just to silence `check-indexes`; bump it because you reviewed the file.
+
+#### The hidden stale-source residual (important)
+
+`check-indexes.sh` compares the *recorded hash* against *upstream*, **not against the local source file**. So a file whose index already equals the current upstream hash but whose LTS source is a *stale older version* is **invisible** to `check-indexes` — it never appears in the mismatch list even though the code is behind. This class of drift was introduced by an accidental `git checkout` that reverted source while indexes stayed bumped.
+
+The only reliable detector is **compiling the code**: a downstream module (or its tests) referencing a method/class the stale file is missing fails to compile. The productive sweep is therefore:
+```
+./gradlew --continue :util:compileJava :prov:compileJava :pkix:compileJava :tls:compileJava :pg:compileJava :mail:compileJava
+./gradlew --continue :util:compileTestJava :prov:compileTestJava ... :mail:compileTestJava
+```
+plus running the KAT/regression suites (see below) — a stale file that still compiles can still be behaviourally behind, which only tests catch. When a compile flushes out a `cannot find symbol` on an LTS `core`/`util` class, check whether that file is a hidden residual (`recorded index == upstream hash` but local source diverged) and adopt the upstream version.
+
+Running `SimpleTest` regression suites standalone is the fastest KAT check (bypasses the `test`→`testIntegration` native dependency):
+```
+java -cp core/build/classes/java/main:core/build/classes/java/test \
+     -Dbc.test.data.home=core/src/test/data \
+     org.bouncycastle.crypto.test.RegressionTest   # or asn1.test.RegressionTest
+```
+JUnit `AllTests` suites need `junit`/`hamcrest` on the classpath (find them under `~/.gradle/caches`) and run via `org.junit.runner.JUnitCore <suite>`.
+
+#### Multi-release source sets and `javax.crypto.KEM`
+
+Per-module multi-release source sets (`src/main/jdk17`, etc.) are wired in each module's `build.gradle`. `prov`'s `compileJava17Java` uses `sourceCompatibility`/`targetCompatibility = 17` **rather than `options.release = 17`**: the ML-KEM JCE SPIs (`jcajce/provider/asymmetric/mlkem/MLKEM*Spi.java`) reference `javax.crypto.KEM` (JEP 452, JDK 21, backported to Java 17 at runtime), and `--release 17` hides it behind the JDK 17 symbol set. Compiling against the full running-JDK (21) platform while targeting 17 bytecode is what makes those SPIs build; don't "fix" that back to `options.release`.
+
 ### The native-acceleration design (the LTS-specific part)
 
 This is the part that requires reading multiple files to understand:
