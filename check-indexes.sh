@@ -20,7 +20,7 @@ do
         file=`echo $l | sed -e "s/^[^ ]* //"`
         if [ $mod = core ]
         then
-            match=`echo $file | egrep "org/bouncycastle/asn1/(cryptlib|edec|gnu|iana|isara|iso|kisa|microsoft|misc|mozilla|nsri|ntt|oiw|rosstandart)"`
+            match=`echo $file | egrep "org/bouncycastle/asn1/(cryptlib|edec|gnu|isara|iso|kisa|microsoft|misc|mozilla|nsri|ntt|oiw|rosstandart)"`
             if [ -n "$match" ]
             then
                 loc=`echo $file | sed -e "s/core/util/"`

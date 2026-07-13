@@ -9,7 +9,7 @@ bc_java_dir="../../bc-java"
 for file in $*
 do
 echo $file
-match=`echo $file | egrep "org/bouncycastle/asn1/(cryptlib|edec|gnu|iana|isara|iso|kisa|microsoft|misc|mozilla|nsri|ntt|oiw|rosstandart)"`
+match=`echo $file | egrep "org/bouncycastle/asn1/(cryptlib|edec|gnu|isara|iso|kisa|microsoft|misc|mozilla|nsri|ntt|oiw|rosstandart)"`
 if [  -n "$match" ]
 then
 	loc=`echo $file | sed -e "s/core/util/"`
