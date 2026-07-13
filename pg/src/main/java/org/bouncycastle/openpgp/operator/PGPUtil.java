@@ -9,6 +9,8 @@ import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.bouncycastle.openpgp.PGPException;
+import org.bouncycastle.util.Integers;
+import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.Strings;
 
 /**
@@ -17,6 +19,11 @@ import org.bouncycastle.util.Strings;
 class PGPUtil
     implements HashAlgorithmTags
 {
+    // Upper bounds on the attacker-supplied Argon2 S2K parameters, overridable via system property.
+    private static final String ARGON2_MAX_MEMORY_EXP = "org.bouncycastle.argon2.max_memory_exp";
+    private static final String ARGON2_MAX_PASSES = "org.bouncycastle.argon2.max_passes";
+    private static final String ARGON2_MAX_PARALLELISM = "org.bouncycastle.argon2.max_parallelism";
+
     static byte[] makeKeyFromPassPhrase(
         PGPDigestCalculator digestCalculator,
         int algorithm,
@@ -63,6 +70,24 @@ class PGPUtil
         {
             if (s2k.getType() == S2K.ARGON_2)
             {
+                // RFC 9580 sec. 3.7.1.4 + RFC 9106 sec. 3.1: memory size m = 2^memorySizeExponent KiB
+                // must satisfy m >= 8*p, i.e. memorySizeExponent >= 3 + ceil(log2(p)) = 3 + bitLen(p - 1).
+                // Bound the memory exponent, passes and parallelism before running the memory-hard
+                // derivation on attacker-supplied S2K parameters (pre-use DoS guard).
+                if (s2k.getMemorySizeExponent() < 3 + Integers.bitLength(s2k.getParallelism() - 1)
+                    || s2k.getMemorySizeExponent() > Properties.asInteger(ARGON2_MAX_MEMORY_EXP, 24))
+                {
+                    throw new PGPException("memory size exponent out of range");
+                }
+                if (s2k.getPasses() < 1 || s2k.getPasses() > Properties.asInteger(ARGON2_MAX_PASSES, 10))
+                {
+                    throw new PGPException("passes out of range");
+                }
+                if (s2k.getParallelism() < 1 || s2k.getParallelism() > Properties.asInteger(ARGON2_MAX_PARALLELISM, 16))
+                {
+                    throw new PGPException("parallelism out of range");
+                }
+
                 Argon2Parameters.Builder builder = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
                     .withSalt(s2k.getIV())
                     .withIterations(s2k.getPasses())
