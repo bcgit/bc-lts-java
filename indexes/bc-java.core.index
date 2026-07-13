@@ -1744,7 +1744,7 @@ b35cc6a51b46ff6e4630a357d9191b503bdb8df036373d0cf68b2db9dfdb0649  core/src/test/
 75434a112ff2e3f3ee2a6c592e5e960f25fc13e496bce148398893296e06411f  core/src/test/java/org/bouncycastle/pqc/crypto/test/TestSampler.java
 3d854e16817cf82327b72617e7bdfd26888c852cd062cf75683afe064d9153d7  core/src/test/java/org/bouncycastle/pqc/crypto/test/TestUtils.java
 1b2277147885936e04a0f828293926427d3b368c52a37f18c3bf5b333b4fd3b6  core/src/test/java/org/bouncycastle/util/utiltest/StringsTest.java
-2ee74e4483196d9dda00207f0357b1c3751addada1f8f0945f4086a93a59f5cc  core/src/test/java/org/bouncycastle/pqc/crypto/lms/AllTests.java
+02f19085c25e63dd9981fa5d317ad93b923b26631d003af55385e5efa353362b  core/src/test/java/org/bouncycastle/pqc/crypto/lms/AllTests.java
 f98268272d45e5e57d8b9287f754f10eb814b62e95ef589593802474c92fbf3e  core/src/test/java/org/bouncycastle/pqc/crypto/lms/HSSTests.java
 f594a021b3f31f1f7a7d180f6463010480017caec83d84afd791f74ed39fc1d5  core/src/test/java/org/bouncycastle/pqc/crypto/lms/LMSKeyGenTests.java
 57bdf742c83a187dbcd5b4b7b0be816b57c8a3faebe90e6c79dc0b3df384778a  core/src/test/java/org/bouncycastle/pqc/crypto/lms/LMSTests.java
@@ -1756,3 +1756,4 @@ a7f1fc4f70ff417fecac191082896fb21a48870b656a98a6621ab4a905bed9fd  core/src/test/
 2fb758d89e78de0ebc9936d27fa6ef72b61cf26d57544710f9b1138173e4a881  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/PolyVec.java
 8e8961f4c7ffd7ebdf425f487215e8881360e656e05907b9a1dba754ca6d7c3e  core/src/main/java/org/bouncycastle/util/AggregateRuntimeException.java
 7329ec7486a3d6261fb92689c557fda8d8f138b352d04b7620beafe71c4a5ae7  core/src/main/java/org/bouncycastle/crypto/agreement/ECDHCRawAgreement.java
+91c2cfe5cf0b21c0cdc16e33ad4c042ed1f81777c42f0cee38090bc8046c3690  core/src/test/java/org/bouncycastle/pqc/crypto/lms/PublicKeyParseTests.java
