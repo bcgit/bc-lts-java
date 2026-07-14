@@ -832,7 +832,6 @@ c95790c31af4626f5e91481ab135ce257d7d08ac851e1bbee01681203685079a  pkix/src/test/
 aaf93305465b61cb0d6439d153dc3f72d6ecebe0170b486965b134b02eaf8419  pkix/src/test/java/org/bouncycastle/pkix/test/CheckNameConstraintsTest.java
 831f74f1f27b8e7863059bbd80f7e12a8f4deb3d31b69bf0876f4995b891115d  pkix/src/main/java/org/bouncycastle/pkcs/util/PKCS12Util.java
 cb00c25f8aacd347ec922432ba3d7213c95d6840cda096ccf14092e550dec496  pkix/src/main/java/org/bouncycastle/operator/OidCatalogue.java
-56213c3243e2f01693fdbfc64cd1f4b4f365fd7cdfa5bc5b23b972389b75895a  pkix/src/main/java/org/bouncycastle/pkix/ASN1PKIXNameConstraintValidator.java
 9900441404aeb0620a2f46955b1d487a98e595ecf956b34b2f113c76f2c7fbf6  pkix/src/test/java/org/bouncycastle/cms/test/TestUtils.java
 9daf2bf2ed8393d61cead8cd68ae56db2f787043fad4ffb615d108fdc26677c2  pkix/src/test/java/org/bouncycastle/pkix/test/HTMLFilterTest.java
 b7e7c1e61ae512b23456a9d90349b256a30face0d0c1744a3c839192c0d855a0  pkix/src/test/java/org/bouncycastle/pkix/test/LocalizedMessageTest.java
@@ -844,3 +843,4 @@ fbafa985cb3609e9ccd64f54b260e029d9f3e1057b351c5b04e1439cd99760f3  pkix/src/main/
 557cb491cc6f0feceec52ee7ecfbf74cf65913759709da8f82e501032ea6c789  pkix/src/main/java/org/bouncycastle/cms/CMSAlgorithmNotAllowedException.java
 412ad16b35147449d52740375893f85a19014d0c0d896e5476c87c51fc5dee81  pkix/src/main/java/org/bouncycastle/cms/CMSTagLengthException.java
 03ac9e61d530545cf638bba1bc728970e4bb59b4d9f30aaf49072e1b907b0e92  pkix/src/test/java/org/bouncycastle/mime/test/SMIMEWriterHeaderInjectionTest.java
+0942ecbe4f04ce72d2e9b2d5e1f06925dcb614a864e2ac0027a9ac4bf778783f  pkix/src/test/java/org/bouncycastle/cert/ocsp/test/OCSPExceptionalSignatureRejectionTest.java
