@@ -238,8 +238,6 @@ def registerUnitTestTask(TaskContainer taskContainer, String taskName, String ex
 
         useJUnitPlatform()
 
-        systemProperty 'bc.test.data.home', bcTestDataHome
-
         testLogging.showStandardStreams = true
         testLogging.showCauses = true
         testLogging.showExceptions = true
@@ -295,7 +293,6 @@ def registerIntegrationTestTask(TaskContainer taskContainer, String taskName, St
 
         useJUnitPlatform()
 
-        systemProperty 'bc.test.data.home', bcTestDataHome
         testLogging.showStandardStreams = true
         testLogging.showCauses = true
         testLogging.showExceptions = true

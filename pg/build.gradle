@@ -165,8 +165,6 @@ def registerUnitTestTask(TaskContainer taskContainer, String taskName, String ex
             languageVersion = JavaLanguageVersion.of(jvmVersion)
         }
 
-        systemProperty 'bc.test.data.home', bcTestDataHome
-
         useJUnitPlatform()
         testLogging.showStandardStreams = true
         testLogging.showCauses = true
