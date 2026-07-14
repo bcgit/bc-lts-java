@@ -42,15 +42,24 @@ import org.bouncycastle.operator.DefaultSecretKeySizeProvider;
 import org.bouncycastle.operator.InputDecryptor;
 import org.bouncycastle.operator.InputDecryptorProvider;
 import org.bouncycastle.operator.OperatorCreationException;
-import org.bouncycastle.operator.SecretKeySizeProvider;
 import org.bouncycastle.util.Properties;
+import org.bouncycastle.operator.SecretKeySizeProvider;
 
+/**
+ * JCA-based builder for an {@link InputDecryptorProvider} that handles the password-based
+ * decryption schemes encountered in PKCS#12 / PKCS#8: the legacy {@code pkcs-12PbeIds} family
+ * (RFC 7292 Appendix C), PBES2 / PBKDF2 and PBES2 / scrypt (RFC 8018, RFC 7914), and the older
+ * PBE1 schemes ({@code pbeWithMD5AndDES-CBC}, {@code pbeWithSHA1AndDES-CBC}).
+ */
 public class JcePKCSPBEInputDecryptorProviderBuilder
 {
     private JcaJceHelper helper = new DefaultJcaJceHelper();
     private boolean      wrongPKCS12Zero = false;
     private SecretKeySizeProvider keySizeProvider = DefaultSecretKeySizeProvider.INSTANCE;
 
+    /**
+     * Base constructor.
+     */
     public JcePKCSPBEInputDecryptorProviderBuilder()
     {
     }
@@ -69,6 +78,13 @@ public class JcePKCSPBEInputDecryptorProviderBuilder
         return this;
     }
 
+    /**
+     * Enable a workaround for older PKCS#12 files that derive the encryption key without
+     * applying the trailing zero byte that RFC 7292 requires.
+     *
+     * @param tryWrong {@code true} to enable the workaround.
+     * @return this builder.
+     */
     public JcePKCSPBEInputDecryptorProviderBuilder setTryWrongPKCS12Zero(boolean tryWrong)
     {
         this.wrongPKCS12Zero = tryWrong;
@@ -91,6 +107,13 @@ public class JcePKCSPBEInputDecryptorProviderBuilder
         return this;
     }
 
+    /**
+     * Bind the builder to a password and return an {@link InputDecryptorProvider} that can
+     * produce decryptors for the password-based algorithm identifiers it is asked for.
+     *
+     * @param password the password used to derive the encryption key.
+     * @return a configured decryptor provider.
+     */
     public InputDecryptorProvider build(final char[] password)
     {
         return new InputDecryptorProvider()
@@ -165,7 +188,7 @@ public class JcePKCSPBEInputDecryptorProviderBuilder
                         }
                         else if (encParams instanceof ASN1Sequence && isCCMorGCM(alg.getEncryptionScheme()))
                         {
-                            AlgorithmParameters params = AlgorithmParameters.getInstance(alg.getEncryptionScheme().getAlgorithm().getId());
+                            AlgorithmParameters params = helper.createAlgorithmParameters(alg.getEncryptionScheme().getAlgorithm().getId());
 
                             params.init(((ASN1Sequence)encParams).getEncoded());
 
@@ -259,16 +282,8 @@ public class JcePKCSPBEInputDecryptorProviderBuilder
             throw new IOException("scrypt block size (" + blockSize + ") greater than " + MAX_SCRYPT_BLOCK_SIZE);
         }
 
-        BigInteger p = params.getParallelizationParameter();
-        if (p == null || p.signum() <= 0 || p.bitLength() > 31)
-        {
-            throw new IOException("invalid scrypt parameters");
-        }
-
         long maxMemory = Properties.asInteger(Properties.PBE_MAX_SCRYPT_MEMORY, 1 << 30);
-        // scrypt peak memory is 128 * r * (N + p); bound the whole sum, not just N, so a large
-        // parallelization parameter cannot slip a multi-hundred-megabyte allocation past the ceiling.
-        if (n.longValue() + p.longValue() > maxMemory / (128L * blockSize))
+        if (n.longValue() > maxMemory / (128L * blockSize))
         {
             throw new IOException("scrypt cost parameters require more than " + maxMemory + " bytes");
         }
