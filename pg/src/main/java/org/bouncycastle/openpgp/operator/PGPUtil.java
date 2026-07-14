@@ -33,16 +33,16 @@ class PGPUtil
         throws PGPException
     {
         int keySize = getKeySize(algorithm);
+        if (s2kCalculator == null)
+        {
+            throw new PGPException("no PGPS2KCalculator configured for Argon2 S2K");
+        }
         int digAlg = s2kCalculator.getType();
 
         if (s2k != null)
         {
             if (s2k.getType() == S2K.ARGON_2)
             {
-                if (s2kCalculator == null)
-                {
-                    throw new PGPException("no PGPS2KCalculator configured for Argon2 S2K");
-                }
                 int memorySizeExponent = s2k.getMemorySizeExponent();
                 // The passes, parallelism and memory-size fields are one-byte values taken verbatim from
                 // the (unauthenticated) S2K packet, and Argon2 must run before the message can be

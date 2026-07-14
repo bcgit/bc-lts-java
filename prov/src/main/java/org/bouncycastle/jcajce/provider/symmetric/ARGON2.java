@@ -47,10 +47,13 @@ public class ARGON2
                     throw new InvalidKeySpecException("positive key length required: "
                         + argonSpec.getKeyLength());
                 }
-                if (argonSpec.getPassword() == null || argonSpec.getPassword().length == 0)
+                if (argonSpec.getPassword() == null)
                 {
-                    throw new IllegalArgumentException("password empty");
+                    throw new IllegalArgumentException("password null");
                 }
+                // An empty passphrase (char[0]) is legal for Argon2 and for OpenPGP S2K; the
+                // lightweight BcPGPS2KCalculator path derives a key for it, so accept it here too
+                // rather than diverging the Jce operator family and regressing empty-passphrase decrypt.
 
                 Argon2Parameters.Builder builder = new Argon2Parameters.Builder(argonSpec.getType())
                     .withVersion(argonSpec.getVersion())

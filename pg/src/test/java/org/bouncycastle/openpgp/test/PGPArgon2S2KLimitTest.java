@@ -52,6 +52,12 @@ public class PGPArgon2S2KLimitTest
         assertRejected(argon2(1, 1, 30), "memory size exponent out of range");
         assertRejected(argon2(255, 1, 16), "passes out of range");
         assertRejected(argon2(1, 255, 16), "parallelism out of range");
+
+        // exact-boundary rejections: one past each default cap (memExp 24, passes 10, parallelism 16)
+        // must be rejected, so an off-by-one that widened a cap would fail here.
+        assertRejected(argon2(1, 1, 25), "memory size exponent out of range");
+        assertRejected(argon2(11, 1, 16), "passes out of range");
+        assertRejected(argon2(1, 17, 16), "parallelism out of range");
     }
 
     public void testInRangeArgon2Accepted()
@@ -60,5 +66,11 @@ public class PGPArgon2S2KLimitTest
         // memExp 16 -> memory = 2^16 KiB = 64 MiB, 1 pass, 1 lane: within the caps, key derived normally
         byte[] key = factory().makeKeyFromPassPhrase(SymmetricKeyAlgorithmTags.AES_256, argon2(1, 1, 16));
         assertEquals(32, key.length);
+
+        // exact-cap acceptances: passes == 10 and parallelism == 16 (the default maxima) must still
+        // derive, so a cap accidentally tightened below the documented limit would fail here. (memExp
+        // is not exercised at its 24 cap: that would demand 16 GiB of Argon2 working memory.)
+        assertEquals(32, factory().makeKeyFromPassPhrase(SymmetricKeyAlgorithmTags.AES_256, argon2(10, 1, 16)).length);
+        assertEquals(32, factory().makeKeyFromPassPhrase(SymmetricKeyAlgorithmTags.AES_256, argon2(1, 16, 16)).length);
     }
 }
