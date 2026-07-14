@@ -43,7 +43,18 @@ public abstract class AbstractRecipient
     {
         if (minimumTagSizeInBits > 0)
         {
-            int macLenOctets = CMSUtils.getAEADMacLength(contentAlgorithm);
+            int macLenOctets;
+            try
+            {
+                macLenOctets = CMSUtils.getAEADMacLength(contentAlgorithm);
+            }
+            catch (RuntimeException e)
+            {
+                // malformed / hostile AEAD parameters (e.g. an out-of-range ICV length) on an
+                // unauthenticated message: reject cleanly with the contracted exception instead of
+                // letting an unchecked IllegalArgumentException/NPE escape the CMSException contract.
+                throw new CMSTagLengthException("invalid AEAD parameters: " + e.getMessage(), e);
+            }
 
             if (macLenOctets >= 0 && macLenOctets * 8 < minimumTagSizeInBits)
             {

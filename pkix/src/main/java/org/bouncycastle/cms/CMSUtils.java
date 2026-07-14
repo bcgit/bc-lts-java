@@ -342,6 +342,16 @@ class CMSUtils
     {
         ASN1ObjectIdentifier algorithm = encAlgId.getAlgorithm();
 
+        // parameters are attacker-controlled on a decrypt; absent AEAD parameters give no tag
+        // length to check (the missing parameters fail the AEAD cipher setup later). A genuinely
+        // malformed SEQUENCE / out-of-range ICV still throws IllegalArgumentException here, which
+        // callers on the unauthenticated path (AbstractRecipient.checkTagSize) map to a typed
+        // CMSException rather than letting it escape.
+        if (encAlgId.getParameters() == null)
+        {
+            return -1;
+        }
+
         if (OidCatalogue.isGCM(algorithm))
         {
             return GCMParameters.getInstance(encAlgId.getParameters()).getIcvLen();

@@ -1,5 +1,7 @@
 package org.bouncycastle.operator.bc;
 
+import java.math.BigInteger;
+
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
@@ -32,54 +34,85 @@ class BcRsaPssUtil
      *                         {@code parameters} field is an RSASSA-PSS-params SEQUENCE.
      * @param digestProvider   resolves digest OIDs to BC lightweight {@link Digest} instances.
      */
+    // A legitimate PSS salt is at most the hash length (tens of bytes); this generous ceiling
+    // bounds the attacker-controlled salt so it cannot drive a huge pre-verification allocation
+    // inside the PSSSigner constructor.
+    private static final int MAX_SALT_LENGTH = 512;
+
     static Signer createSigner(AlgorithmIdentifier sigAlgId, BcDigestProvider digestProvider)
         throws OperatorCreationException
     {
-        RSASSAPSSparams pssParams = (sigAlgId.getParameters() == null)
-            ? new RSASSAPSSparams()
-            : RSASSAPSSparams.getInstance(sigAlgId.getParameters());
-
-        AlgorithmIdentifier mgfAlg = pssParams.getMaskGenAlgorithm();
-        ASN1ObjectIdentifier mgfOid = mgfAlg.getAlgorithm();
-
-        AlgorithmIdentifier hashAlgId = pssParams.getHashAlgorithm();
-        AlgorithmIdentifier mgfHashAlgId;
-        if (PKCSObjectIdentifiers.id_mgf1.equals(mgfOid))
+        // The RSASSA-PSS parameters are attacker-controlled and unauthenticated (this runs while
+        // verifying a hostile certificate/CMS signature). Parse and validate them defensively, and
+        // map any malformed-input RuntimeException to the contracted OperatorCreationException so a
+        // crafted signature yields a clean "invalid signature" failure rather than an uncaught crash.
+        try
         {
-            // MGF1: the inner hash AlgorithmIdentifier is carried in
-            // mgfAlg.parameters (RFC 8017 sec. A.2.1).
-            mgfHashAlgId = AlgorithmIdentifier.getInstance(mgfAlg.getParameters());
-        }
-        else if (NISTObjectIdentifiers.id_shake128.equals(mgfOid)
-              || NISTObjectIdentifiers.id_shake256.equals(mgfOid))
-        {
-            // RFC 8702: SHAKE used directly as the mask generation
-            // function — the MGF AlgorithmIdentifier is the SHAKE OID
-            // itself, not id-mgf1 with SHAKE inside. PSSSigner's
-            // maskGenerator detects mgfDigest instanceof Xof and emits
-            // the variable-length output natively.
-            mgfHashAlgId = mgfAlg;
-        }
-        else
-        {
-            throw new OperatorCreationException(
-                "unsupported mask generation function for RSASSA-PSS: " + mgfOid);
-        }
+            RSASSAPSSparams pssParams = (sigAlgId.getParameters() == null)
+                ? new RSASSAPSSparams()
+                : RSASSAPSSparams.getInstance(sigAlgId.getParameters());
 
-        // RSASSA-PSS-params.trailerField INTEGER DEFAULT 1, where the
-        // single defined value 1 means trailerField byte 0xBC (RFC 8017
-        // sec. 9.1.1). PSSSigner's TRAILER_IMPLICIT carries that byte.
-        if (pssParams.getTrailerField().intValue() != 1)
-        {
-            throw new OperatorCreationException(
-                "unsupported trailerField for RSASSA-PSS: " + pssParams.getTrailerField());
+            AlgorithmIdentifier mgfAlg = pssParams.getMaskGenAlgorithm();
+            ASN1ObjectIdentifier mgfOid = mgfAlg.getAlgorithm();
+
+            AlgorithmIdentifier hashAlgId = pssParams.getHashAlgorithm();
+            AlgorithmIdentifier mgfHashAlgId;
+            if (PKCSObjectIdentifiers.id_mgf1.equals(mgfOid))
+            {
+                // MGF1: the inner hash AlgorithmIdentifier is carried in
+                // mgfAlg.parameters (RFC 8017 sec. A.2.1); reject when absent
+                // rather than dereferencing a null MGF hash.
+                if (mgfAlg.getParameters() == null)
+                {
+                    throw new OperatorCreationException("RSASSA-PSS MGF1 parameters missing");
+                }
+                mgfHashAlgId = AlgorithmIdentifier.getInstance(mgfAlg.getParameters());
+            }
+            else if (NISTObjectIdentifiers.id_shake128.equals(mgfOid)
+                  || NISTObjectIdentifiers.id_shake256.equals(mgfOid))
+            {
+                // RFC 8702: SHAKE used directly as the mask generation
+                // function — the MGF AlgorithmIdentifier is the SHAKE OID
+                // itself, not id-mgf1 with SHAKE inside. PSSSigner's
+                // maskGenerator detects mgfDigest instanceof Xof and emits
+                // the variable-length output natively.
+                mgfHashAlgId = mgfAlg;
+            }
+            else
+            {
+                throw new OperatorCreationException(
+                    "unsupported mask generation function for RSASSA-PSS: " + mgfOid);
+            }
+
+            // RSASSA-PSS-params.trailerField INTEGER DEFAULT 1, where the
+            // single defined value 1 means trailerField byte 0xBC (RFC 8017
+            // sec. 9.1.1). PSSSigner's TRAILER_IMPLICIT carries that byte.
+            if (pssParams.getTrailerField().intValue() != 1)
+            {
+                throw new OperatorCreationException(
+                    "unsupported trailerField for RSASSA-PSS: " + pssParams.getTrailerField());
+            }
+
+            BigInteger saltLen = pssParams.getSaltLength();
+            if (saltLen.signum() < 0 || saltLen.bitLength() > 31 || saltLen.intValue() > MAX_SALT_LENGTH)
+            {
+                throw new OperatorCreationException(
+                    "RSASSA-PSS salt length out of range: " + saltLen);
+            }
+
+            Digest contentDigest = digestProvider.get(hashAlgId);
+            Digest mgfDigest = digestProvider.get(mgfHashAlgId);
+
+            return new PSSSigner(new RSABlindedEngine(),
+                contentDigest, mgfDigest, saltLen.intValue(), PSSSigner.TRAILER_IMPLICIT);
         }
-
-        Digest contentDigest = digestProvider.get(hashAlgId);
-        Digest mgfDigest = digestProvider.get(mgfHashAlgId);
-        int saltLength = pssParams.getSaltLength().intValue();
-
-        return new PSSSigner(new RSABlindedEngine(),
-            contentDigest, mgfDigest, saltLength, PSSSigner.TRAILER_IMPLICIT);
+        catch (OperatorCreationException e)
+        {
+            throw e;
+        }
+        catch (RuntimeException e)
+        {
+            throw new OperatorCreationException("malformed RSASSA-PSS parameters: " + e.getMessage(), e);
+        }
     }
 }

@@ -53,6 +53,19 @@ public class KEMRecipientId
         return new KEMRecipientId(this.baseSelector);
     }
 
+    public boolean equals(Object o)
+    {
+        // Mirror KeyTransRecipientId/KeyAgreeRecipientId: a strict same-type check so equality is
+        // symmetric across recipient-id kinds (PKIXRecipientId.equals alone matches any
+        // PKIXRecipientId sharing the base selector, ignoring the recipient type).
+        if (!(o instanceof KEMRecipientId))
+        {
+            return false;
+        }
+
+        return super.equals(o);
+    }
+
     public boolean match(Object obj)
     {
         if (obj instanceof KEMRecipientInformation)
