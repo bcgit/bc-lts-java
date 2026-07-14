@@ -1478,38 +1478,54 @@ public class CertTest
             fail("PKCS7 crl collection not right");
         }
 
-        // data with no certificates or CRLs
-
+        // data with no certificates or CRLs - per github #457 these must now
+        // throw rather than return null (spec compliance for empty input).
         sigData = new SignedData(new DERSet(), new ContentInfo(CMSObjectIdentifiers.data, null), new DERSet(), new DERSet(), new DERSet());
 
         info = new ContentInfo(CMSObjectIdentifiers.signedData, sigData);
 
-        cert = (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(info.getEncoded()));
-        if (cert != null)
+        try
         {
-            fail("PKCS7 cert present");
+            cf.generateCertificate(new ByteArrayInputStream(info.getEncoded()));
+            fail("PKCS7 cert: empty SignedData did not throw CertificateException");
         }
-        crl = (X509CRL)cf.generateCRL(new ByteArrayInputStream(info.getEncoded()));
-        if (crl != null)
+        catch (CertificateException e)
         {
-            fail("PKCS7 crl present");
+            // expected
+        }
+        try
+        {
+            cf.generateCRL(new ByteArrayInputStream(info.getEncoded()));
+            fail("PKCS7 crl: empty SignedData did not throw CRLException");
+        }
+        catch (CRLException e)
+        {
+            // expected
         }
 
-        // data with absent certificates and CRLS
+        // data with absent certificates and CRLS - same exception expectation.
 
         sigData = new SignedData(new DERSet(), new ContentInfo(CMSObjectIdentifiers.data, null), null, null, new DERSet());
 
         info = new ContentInfo(CMSObjectIdentifiers.signedData, sigData);
 
-        cert = (X509Certificate)cf.generateCertificate(new ByteArrayInputStream(info.getEncoded()));
-        if (cert != null)
+        try
         {
-            fail("PKCS7 cert present");
+            cf.generateCertificate(new ByteArrayInputStream(info.getEncoded()));
+            fail("PKCS7 cert: absent-certs SignedData did not throw CertificateException");
         }
-        crl = (X509CRL)cf.generateCRL(new ByteArrayInputStream(info.getEncoded()));
-        if (crl != null)
+        catch (CertificateException e)
         {
-            fail("PKCS7 crl present");
+            // expected
+        }
+        try
+        {
+            cf.generateCRL(new ByteArrayInputStream(info.getEncoded()));
+            fail("PKCS7 crl: absent-crls SignedData did not throw CRLException");
+        }
+        catch (CRLException e)
+        {
+            // expected
         }
 
         //
