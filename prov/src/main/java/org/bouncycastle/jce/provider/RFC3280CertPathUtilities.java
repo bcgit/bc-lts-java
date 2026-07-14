@@ -30,16 +30,21 @@ import java.util.TimeZone;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1String;
 import org.bouncycastle.asn1.ASN1TaggedObject;
+import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.x500.AttributeTypeAndValue;
 import org.bouncycastle.asn1.x500.RDN;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.BCStyle;
+import org.bouncycastle.asn1.x509.AuthorityKeyIdentifier;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.CRLDistPoint;
 import org.bouncycastle.asn1.x509.CRLReason;
@@ -208,8 +213,12 @@ class RFC3280CertPathUtilities
                     }
                     if (!matches)
                     {
+                        // github #800: include the conflicting names so operators
+                        // can see which CRL was returned for which cert DP.
                         throw new AnnotatedException(
-                            "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
+                            "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point."
+                                + " cert DP names: " + java.util.Arrays.asList(genNames)
+                                + "; CRL IDP names: " + names);
                     }
                 }
                 // verify that one of the names in
@@ -233,8 +242,12 @@ class RFC3280CertPathUtilities
                     }
                     if (!matches)
                     {
+                        // github #800: include the conflicting names so operators
+                        // can see which CRL was returned for which cert cRLIssuer.
                         throw new AnnotatedException(
-                            "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point.");
+                            "No match for certificate CRL issuing distribution point name to cRLIssuer CRL distribution point."
+                                + " cert cRLIssuer names: " + java.util.Arrays.asList(genNames)
+                                + "; CRL IDP names: " + names);
                     }
                 }
             }
@@ -501,6 +514,25 @@ class RFC3280CertPathUtilities
         {
             byte[] issuerPrincipal = PrincipalUtils.getIssuerPrincipal(crl).getEncoded();
             certSelector.setSubject(issuerPrincipal);
+
+            // RFC 5280 sec. 5.2.1: when the CRL has an authorityKeyIdentifier
+            // with a keyIdentifier field, narrow the candidate signer set by
+            // SubjectKeyIdentifier. With multiple trust anchors sharing the
+            // issuer DN this prevents O(N^depth) fan-out across distinct
+            // candidates (github #2291).
+            byte[] crlAkiExt = crl.getExtensionValue(Extension.authorityKeyIdentifier.getId());
+            if (crlAkiExt != null)
+            {
+                AuthorityKeyIdentifier akid = AuthorityKeyIdentifier.getInstance(
+                    ASN1OctetString.getInstance(crlAkiExt).getOctets());
+                ASN1OctetString keyID = akid.getKeyIdentifierObject();
+                if (keyID != null)
+                {
+                    // X509CertSelector.setSubjectKeyIdentifier wants the DER
+                    // encoding of the OCTET STRING wrapping the keyId bytes.
+                    certSelector.setSubjectKeyIdentifier(keyID.getEncoded(ASN1Encoding.DER));
+                }
+            }
         }
         catch (IOException e)
         {
@@ -1142,16 +1174,13 @@ class RFC3280CertPathUtilities
             throw new CertPathValidatorException("Subject alternative name extension could not be decoded.", e,
                 certPath, index);
         }
-        RDN[] emails = X500Name.getInstance(dns).getRDNs(BCStyle.EmailAddress);
-        for (int eI = 0; eI != emails.length; eI++)
+        String[] subjectEmails = extractEmailAddressesFromSubjectDN(X500Name.getInstance(dns));
+        for (int eI = 0; eI != subjectEmails.length; eI++)
         {
-            // TODO: this should take into account multi-valued RDNs
-            String email = ((ASN1String)emails[eI].getFirst().getValue()).getString();
-
             try
             {
-                nameConstraintValidator.checkPermittedEmail(email);
-                nameConstraintValidator.checkExcludedEmail(email);
+                nameConstraintValidator.checkPermittedEmail(subjectEmails[eI]);
+                nameConstraintValidator.checkExcludedEmail(subjectEmails[eI]);
             }
             catch (PKIXNameConstraintValidatorException ex)
             {
@@ -2453,6 +2482,42 @@ class RFC3280CertPathUtilities
         throws AnnotatedException
     {
         return CertPathValidatorUtilities.getExtensionValue(ext, oid);
+    }
+
+    /**
+     * Returns every {@code emailAddress} value present in {@code dn},
+     * including the values inside multi-valued RDNs that hold other
+     * attribute types in the same RDN.
+     * <p>
+     * Package-visible so the regression test at
+     * {@code prov/src/test/java/org/bouncycastle/jce/provider/MultiValuedRDNEmailTest.java}
+     * can call it without going through full cert-chain construction.
+     */
+    static String[] extractEmailAddressesFromSubjectDN(X500Name dn)
+    {
+        if (dn == null)
+        {
+            return new String[0];
+        }
+        List collected = new ArrayList();
+        RDN[] rdns = dn.getRDNs(BCStyle.EmailAddress);
+        for (int rI = 0; rI != rdns.length; rI++)
+        {
+            AttributeTypeAndValue[] tvs = rdns[rI].getTypesAndValues();
+            for (int tI = 0; tI != tvs.length; tI++)
+            {
+                AttributeTypeAndValue tv = tvs[tI];
+                if (!BCStyle.EmailAddress.equals(tv.getType()))
+                {
+                    continue;
+                }
+                if (tv.getValue() instanceof ASN1String)
+                {
+                    collected.add(((ASN1String)tv.getValue()).getString());
+                }
+            }
+        }
+        return (String[])collected.toArray(new String[collected.size()]);
     }
 
     private static String getUnsupportedCriticalExtensionMessage(Set criticalExtensions)
