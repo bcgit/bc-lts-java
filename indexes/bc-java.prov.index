@@ -631,3 +631,5 @@ f83aed6fda6aedb785b453af676179b0963e194e101fb2d2ddffd1889b0e5b73  prov/src/main/
 ea1e245bcee1f6cc7da65ea1045441d082d44624a0e59e6eb26214dbe4db8226  prov/src/main/java/org/bouncycastle/jce/provider/JDKPKCS12StoreParameter.java
 8998f408d42070e49813032005e307cf074d6b5b387391377583784e7ba7558b  prov/src/main/java/org/bouncycastle/jcajce/provider/util/SecurityExceptions.java
 82898023d8e04f8466f1a58c9f4222900bc1160c8af4c23e345820efb53f97cd  prov/src/main/jdk17/org/bouncycastle/jcajce/provider/asymmetric/MLKEM.java
+13e9bd1f8262fde5f7f4682849fc0442a88f1014a3f9cd1816cd39c4d534132a  prov/src/main/java/org/bouncycastle/jcajce/spec/Argon2KeySpec.java
+3968abf77fb051e0043088391f9c48082f647ea43d89dd92eebfa8f7c22804f5  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/ARGON2.java
