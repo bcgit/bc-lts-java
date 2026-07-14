@@ -843,3 +843,4 @@ ca9e8b167bb344530c2dd11f17ad6deb91fd0e0e2e51f27078b7ecd8fae845d2  pkix/src/main/
 fbafa985cb3609e9ccd64f54b260e029d9f3e1057b351c5b04e1439cd99760f3  pkix/src/main/java/org/bouncycastle/cms/AbstractRecipient.java
 557cb491cc6f0feceec52ee7ecfbf74cf65913759709da8f82e501032ea6c789  pkix/src/main/java/org/bouncycastle/cms/CMSAlgorithmNotAllowedException.java
 412ad16b35147449d52740375893f85a19014d0c0d896e5476c87c51fc5dee81  pkix/src/main/java/org/bouncycastle/cms/CMSTagLengthException.java
+03ac9e61d530545cf638bba1bc728970e4bb59b4d9f30aaf49072e1b907b0e92  pkix/src/test/java/org/bouncycastle/mime/test/SMIMEWriterHeaderInjectionTest.java
