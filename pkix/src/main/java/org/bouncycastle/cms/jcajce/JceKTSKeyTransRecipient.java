@@ -6,12 +6,15 @@ import java.security.PrivateKey;
 import java.security.Provider;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.cms.IssuerAndSerialNumber;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.cms.AbstractRecipient;
+import org.bouncycastle.cms.CMSAlgorithmNotAllowedException;
 import org.bouncycastle.cms.CMSException;
 import org.bouncycastle.cms.KeyTransRecipient;
 import org.bouncycastle.cms.KeyTransRecipientId;
@@ -20,6 +23,7 @@ import org.bouncycastle.operator.jcajce.JceKTSKeyUnwrapper;
 import org.bouncycastle.util.encoders.Hex;
 
 public abstract class JceKTSKeyTransRecipient
+    extends AbstractRecipient
     implements KeyTransRecipient
 {
     private static final byte[] ANONYMOUS_SENDER = Hex.decode("0c14416e6f6e796d6f75732053656e64657220202020");   // "Anonymous Sender    "
@@ -131,9 +135,30 @@ public abstract class JceKTSKeyTransRecipient
         return this;
     }
 
+    public JceKTSKeyTransRecipient setAllowedContentAlgorithms(Set<ASN1ObjectIdentifier> allowedContentAlgorithms)
+    {
+        setAllowedContentAlgorithmSet(allowedContentAlgorithms);
+
+        return this;
+    }
+
+    public JceKTSKeyTransRecipient setMinimumTagSize(int tagSizeInBits)
+    {
+        setMinimumTagSizeInBits(tagSizeInBits);
+
+        return this;
+    }
+
     protected Key extractSecretKey(AlgorithmIdentifier keyEncryptionAlgorithm, AlgorithmIdentifier encryptedKeyAlgorithm, byte[] encryptedEncryptionKey)
         throws CMSException
     {
+        if (!isContentAlgorithmAllowed(encryptedKeyAlgorithm.getAlgorithm()))
+        {
+            throw new CMSAlgorithmNotAllowedException("content-encryption algorithm not in recipient's allowed set: " + encryptedKeyAlgorithm.getAlgorithm());
+        }
+
+        checkTagSize(encryptedKeyAlgorithm);
+
         JceKTSKeyUnwrapper unwrapper = helper.createAsymmetricUnwrapper(keyEncryptionAlgorithm, recipientKey, ANONYMOUS_SENDER, partyVInfo);
 
         try
