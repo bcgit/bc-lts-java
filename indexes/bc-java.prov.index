@@ -633,3 +633,5 @@ ea1e245bcee1f6cc7da65ea1045441d082d44624a0e59e6eb26214dbe4db8226  prov/src/main/
 82898023d8e04f8466f1a58c9f4222900bc1160c8af4c23e345820efb53f97cd  prov/src/main/jdk17/org/bouncycastle/jcajce/provider/asymmetric/MLKEM.java
 13e9bd1f8262fde5f7f4682849fc0442a88f1014a3f9cd1816cd39c4d534132a  prov/src/main/java/org/bouncycastle/jcajce/spec/Argon2KeySpec.java
 3968abf77fb051e0043088391f9c48082f647ea43d89dd92eebfa8f7c22804f5  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/ARGON2.java
+ea17f76bbba3c54986ff35e1afbb5913a00ba50e93b1997ce8cf16803b74517f  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/edec/AlgorithmParametersSpi.java
+59f8a9aad0304d88c13f025298705f3b2a045e32b2b80ced405cb80b1dece790  prov/src/main/jdk1.15/org/bouncycastle/jcajce/provider/asymmetric/edec/AlgorithmParametersSpi.java

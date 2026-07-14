@@ -18,6 +18,7 @@ import org.bouncycastle.bcpg.PacketFormat;
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags;
 import org.bouncycastle.bcpg.PublicKeyPacket;
 import org.bouncycastle.bcpg.SecretKeyPacket;
+import org.bouncycastle.bcpg.SignaturePacket;
 import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
 import org.bouncycastle.bcpg.sig.Features;
 import org.bouncycastle.bcpg.sig.PreferredAEADCiphersuites;
@@ -35,9 +36,11 @@ import org.bouncycastle.openpgp.PGPSecretKeyRing;
 import org.bouncycastle.openpgp.PGPSignature;
 import org.bouncycastle.openpgp.PGPSignatureGenerator;
 import org.bouncycastle.openpgp.PGPSignatureSubpacketGenerator;
+import org.bouncycastle.openpgp.PGPSignatureSubpacketVector;
 import org.bouncycastle.openpgp.operator.KeyFingerPrintCalculator;
 import org.bouncycastle.openpgp.operator.bc.BcKeyFingerprintCalculator;
 import org.bouncycastle.openpgp.operator.bc.BcPGPContentSignerBuilder;
+import org.bouncycastle.openpgp.operator.bc.BcPGPContentVerifierBuilderProvider;
 import org.bouncycastle.openpgp.operator.bc.BcPGPDigestCalculatorProvider;
 import org.bouncycastle.openpgp.operator.bc.BcPGPKeyPair;
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator;
@@ -173,14 +176,19 @@ public class PGPv6KeyTest
                 primaryKey);
         uidSigGen.init(PGPSignature.POSITIVE_CERTIFICATION, pgpKp.getPrivateKey());
 
+        // Wire the issuer-fingerprint + creation-time subpackets into the UID certification
+        // so we can assert they survive the encode/parse round-trip below.
         hashed = new PGPSignatureSubpacketGenerator();
         hashed.setIssuerFingerprint(true, primaryKey);
         hashed.setSignatureCreationTime(true, creationTime);
+        uidSigGen.setHashedSubpackets(hashed.generate());
 
         PGPSignature uidSig = uidSigGen.generateCertification(uid, primaryKey);
 
         primaryKey = PGPPublicKey.addCertification(primaryKey, dkSig);
         primaryKey = PGPPublicKey.addCertification(primaryKey, uid, uidSig);
+
+        long primaryKeyID = primaryKey.getKeyID();
 
         PGPSecretKey primarySecKey = new PGPSecretKey(
                 pgpKp.getPrivateKey(),
@@ -198,7 +206,7 @@ public class PGPv6KeyTest
         certificate.encode(pOut);
         pOut.close();
         aOut.close();
-        System.out.println(bOut);
+        byte[] armoredCert = bOut.toByteArray();
 
         bOut = new ByteArrayOutputStream();
         aOut = new ArmoredOutputStream(bOut);
@@ -206,7 +214,73 @@ public class PGPv6KeyTest
         secretKey.encode(pOut);
         pOut.close();
         aOut.close();
-        System.out.println(bOut);
+        byte[] armoredKey = bOut.toByteArray();
+
+        // Re-parse the armored certificate and assert it round-trips as a valid v6 key.
+        ByteArrayInputStream certIn = new ByteArrayInputStream(armoredCert);
+        ArmoredInputStream certArmor = new ArmoredInputStream(certIn);
+        BCPGInputStream certBcIn = new BCPGInputStream(certArmor);
+        PGPPublicKeyRing parsedCert = new PGPPublicKeyRing(certBcIn, fingerPrintCalculator);
+
+        Iterator<PGPPublicKey> pIt = parsedCert.getPublicKeys();
+        isTrue("Parsed certificate MUST contain a public key", pIt.hasNext());
+        PGPPublicKey parsedPrimary = (PGPPublicKey)pIt.next();
+        isFalse("Generated certificate MUST have no subkeys", pIt.hasNext());
+
+        isEquals("Primary key version mismatch", PublicKeyPacket.VERSION_6, parsedPrimary.getVersion());
+        isTrue("Primary key MUST be a master key", parsedPrimary.isMasterKey());
+        isEquals("Primary key-ID mismatch", primaryKeyID, parsedPrimary.getKeyID());
+        isEquals("Primary key algorithm mismatch",
+                PublicKeyAlgorithmTags.RSA_GENERAL, parsedPrimary.getAlgorithm());
+
+        BcPGPContentVerifierBuilderProvider verifierProvider = new BcPGPContentVerifierBuilderProvider();
+
+        // Direct-key self-signature: exactly one, v6, and verifies.
+        int dkSigCount = 0;
+        PGPSignature parsedDkSig = null;
+        for (Iterator<PGPSignature> it = parsedPrimary.getSignaturesOfType(PGPSignature.DIRECT_KEY); it.hasNext();)
+        {
+            parsedDkSig = (PGPSignature)it.next();
+            dkSigCount++;
+        }
+        isEquals("Expected exactly one direct-key signature", 1, dkSigCount);
+        isEquals("Direct-key signature version mismatch", SignaturePacket.VERSION_6, parsedDkSig.getVersion());
+        parsedDkSig.init(verifierProvider, parsedPrimary);
+        isTrue("Direct-key self-signature MUST verify", parsedDkSig.verifyCertification(parsedPrimary));
+
+        // User-ID positive certification: exactly one, and verifies against the UID.
+        int uidSigCount = 0;
+        PGPSignature parsedUidSig = null;
+        for (Iterator<PGPSignature> it = parsedPrimary.getSignaturesForID(uid); it.hasNext();)
+        {
+            parsedUidSig = (PGPSignature)it.next();
+            uidSigCount++;
+        }
+        isEquals("Expected exactly one user-ID certification", 1, uidSigCount);
+        isEquals("User-ID certification version mismatch", SignaturePacket.VERSION_6, parsedUidSig.getVersion());
+        parsedUidSig.init(verifierProvider, parsedPrimary);
+        isTrue("User-ID certification MUST verify", parsedUidSig.verifyCertification(uid, parsedPrimary));
+
+        // The hashed subpackets wired into the UID certification survive the round-trip.
+        PGPSignatureSubpacketVector uidHashed = parsedUidSig.getHashedSubPackets();
+        isTrue("UID certification MUST carry an issuer-fingerprint subpacket",
+                uidHashed.getIssuerFingerprint() != null);
+        isEquals("UID certification creation-time subpacket mismatch",
+                creationTime, uidHashed.getSignatureCreationTime());
+
+        // The direct-key signature also carries its wired issuer-fingerprint subpacket.
+        isTrue("Direct-key signature MUST carry an issuer-fingerprint subpacket",
+                parsedDkSig.getHashedSubPackets().getIssuerFingerprint() != null);
+
+        // Sanity-check the secret-key encoding re-parses to the same v6 primary key.
+        ByteArrayInputStream keyIn = new ByteArrayInputStream(armoredKey);
+        ArmoredInputStream keyArmor = new ArmoredInputStream(keyIn);
+        BCPGInputStream keyBcIn = new BCPGInputStream(keyArmor);
+        PGPSecretKeyRing parsedSecKey = new PGPSecretKeyRing(keyBcIn, fingerPrintCalculator);
+        PGPSecretKey parsedSec = parsedSecKey.getSecretKey();
+        isEquals("Secret key version mismatch",
+                PublicKeyPacket.VERSION_6, parsedSec.getPublicKey().getVersion());
+        isEquals("Secret key-ID mismatch", primaryKeyID, parsedSec.getKeyID());
     }
 
     private void parseUnprotectedCertTest()

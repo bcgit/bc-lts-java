@@ -149,11 +149,13 @@ public class OERInputStream
             //
             int j = BigIntegers.fromUnsignedByteArray(lenEnc).intValue();
 
-            // Every OER seq-of element occupies at least one byte, so a declared count larger than the
-            // bytes left in the input is truncated or hostile. Bound it before the parse loop so a few
-            // count bytes (e.g. a long-form 7F FF FF FF) cannot drive ~2^31 parse iterations and object
-            // allocations before the per-element reads run out of input.
-            if (j < 0 || j > available())
+            // A SEQUENCE OF element can decode from zero input bytes (e.g. a child with a default), so a
+            // hostile count cannot always be bounded by the bytes remaining - the parse loop would just
+            // iterate ~count times allocating objects. Bound the declared count against the same
+            // configured maximum that caps every byte-array allocation in this decoder, rather than
+            // available() (which a socket stream may under-report as 0, wrongly rejecting a valid
+            // non-empty SEQUENCE OF). A count above maxByteAllocation is truncated or hostile.
+            if (j < 0 || j > maxByteAllocation)
             {
                 throw new IOException("SEQUENCE OF length " + j + " out of range");
             }

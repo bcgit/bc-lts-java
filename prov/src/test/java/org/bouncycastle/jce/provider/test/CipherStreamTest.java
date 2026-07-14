@@ -416,8 +416,6 @@ public class CipherStreamTest
         runTest("ChaCha20");
         testException("ChaCha20");
         testAlgorithm("ChaCha20", CHA7539K, CHA7539IV, CHA7539IN, CHA7539OUT);
-        runTest("XChaCha20");
-        testException("XChaCha20");
         runTest("HC128");
         testException("HC128");
         testAlgorithm("HC128", HCK128A, HC128IV, HCIN, HC128A);

@@ -151,14 +151,19 @@ public class LocalizedMessage
         try
         {
             ResourceBundle bundle;
-            if (loader == null)
+            ClassLoader bundleLoader = (loader == null)
+                ? LocalizedMessage.class.getClassLoader() : loader;
+            try
             {
-                bundle = ResourceBundle.getBundle(resource, loc,
-                    LocalizedMessage.class.getClassLoader(), NO_FALLBACK_CONTROL);
+                bundle = ResourceBundle.getBundle(resource, loc, bundleLoader, NO_FALLBACK_CONTROL);
             }
-            else
+            catch (UnsupportedOperationException e)
             {
-                bundle = ResourceBundle.getBundle(resource, loc, loader, NO_FALLBACK_CONTROL);
+                // ResourceBundle.getBundle(..., Control) throws UnsupportedOperationException when
+                // called from a named JPMS module (JDK contract), and pkix is a named module. Fall
+                // back to the plain overload so localized messages still resolve on the module path;
+                // this loses only the default-locale no-fallback behaviour added for gh #2249.
+                bundle = ResourceBundle.getBundle(resource, loc, bundleLoader);
             }
             String result = bundle.getString(entry);
             if (!encoding.equals(DEFAULT_ENCODING))

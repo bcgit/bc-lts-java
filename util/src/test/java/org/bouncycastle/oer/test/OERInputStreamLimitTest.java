@@ -54,9 +54,10 @@ public class OERInputStreamLimitTest
     {
         Element schema = OERDefinition.seqof(OERDefinition.integer(0, 255)).build();
 
-        // Count length-determinant 0x03 (count encoded in 3 bytes), count = 0x0186A0 (100000), and
-        // then no element bytes at all - so the declared count vastly exceeds the remaining input.
-        byte[] payload = new byte[]{0x03, 0x01, (byte)0x86, (byte)0xA0};
+        // Count length-determinant 0x03 (count encoded in 3 bytes), count = 0xFFFFFF (16777215) - above
+        // the decoder's 1Mb maxByteAllocation ceiling - and then no element bytes at all, so the declared
+        // count is rejected by the configured-maximum bound before the parse loop runs.
+        byte[] payload = new byte[]{0x03, (byte)0xFF, (byte)0xFF, (byte)0xFF};
 
         try
         {
