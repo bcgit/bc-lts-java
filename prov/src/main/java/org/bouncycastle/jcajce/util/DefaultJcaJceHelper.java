@@ -88,13 +88,6 @@ public class DefaultJcaJceHelper
         return KeyPairGenerator.getInstance(algorithm);
     }
 
-    /** @deprecated Use createMessageDigest instead */
-    public MessageDigest createDigest(String algorithm)
-        throws NoSuchAlgorithmException
-    {
-        return MessageDigest.getInstance(algorithm);
-    }
-
     public MessageDigest createMessageDigest(String algorithm)
         throws NoSuchAlgorithmException
     {

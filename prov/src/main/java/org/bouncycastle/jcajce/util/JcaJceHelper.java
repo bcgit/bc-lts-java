@@ -60,10 +60,6 @@ public interface JcaJceHelper
     KeyPairGenerator createKeyPairGenerator(String algorithm)
         throws NoSuchAlgorithmException, NoSuchProviderException;
 
-    /** @deprecated Use createMessageDigest instead */
-    MessageDigest createDigest(String algorithm)
-        throws NoSuchAlgorithmException, NoSuchProviderException;
-
     MessageDigest createMessageDigest(String algorithm)
         throws NoSuchAlgorithmException, NoSuchProviderException;
 

@@ -17,11 +17,12 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.ShortBufferException;
 
+import org.bouncycastle.asn1.x9.X9IntegerConverter;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.EphemeralKeyPair;
 import org.bouncycastle.crypto.KeyEncoder;
 import org.bouncycastle.crypto.Mac;
-import org.bouncycastle.crypto.agreement.ECDHCRawAgreement;
+import org.bouncycastle.crypto.agreement.ECDHCBasicAgreement;
 import org.bouncycastle.crypto.engines.IESEngine;
 import org.bouncycastle.crypto.generators.ECKeyPairGenerator;
 import org.bouncycastle.crypto.generators.EphemeralKeyPairGenerator;
@@ -50,8 +51,10 @@ import org.bouncycastle.util.Exceptions;
 public class IESKEMCipher
     extends BaseCipherSpi
 {
+    private static final X9IntegerConverter converter = new X9IntegerConverter();
+
     private final JcaJceHelper helper = new BCJcaJceHelper();
-    private final ECDHCRawAgreement agreement;
+    private final ECDHCBasicAgreement agreement;
     private final KDF2BytesGenerator kdf;
     private final Mac hMac;
     private final int macKeyLength;
@@ -68,7 +71,7 @@ public class IESKEMCipher
     private boolean dhaesMode = false;
     private AsymmetricKeyParameter otherKeyParameter = null;
 
-    public IESKEMCipher(ECDHCRawAgreement agreement, KDF2BytesGenerator kdf, Mac hMac, int macKeyLength, int macLength)
+    public IESKEMCipher(ECDHCBasicAgreement agreement, KDF2BytesGenerator kdf, Mac hMac, int macKeyLength, int macLength)
     {
         this.agreement = agreement;
         this.kdf = kdf;
@@ -339,8 +342,8 @@ public class IESKEMCipher
             EphemeralKeyPair kp = kGen.generate();
 
             agreement.init(kp.getKeyPair().getPrivate());
-            byte[] secret = new byte[agreement.getAgreementSize()];
-            agreement.calculateAgreement(key, secret, 0);
+
+            byte[] secret = converter.integerToBytes(agreement.calculateAgreement(key), converter.getByteLength(ecParams.getCurve()));
             byte[] out = new byte[inputLen + macKeyLength];
 
             kdf.init(new KDFParameters(secret, engineSpec.getRecipientInfo()));
@@ -390,8 +393,9 @@ public class IESKEMCipher
             // Decrypt the buffer
             agreement.init(key);
 
-            byte[] secret = new byte[agreement.getAgreementSize()];
-            agreement.calculateAgreement(new ECPublicKeyParameters(q, k.getParameters()), secret, 0);
+            byte[] secret = converter.integerToBytes(
+                agreement.calculateAgreement(new ECPublicKeyParameters(q, k.getParameters())),
+                converter.getByteLength(ecParams.getCurve()));
             byte[] out = new byte[keyLength + macKeyLength];
 
             kdf.init(new KDFParameters(secret, engineSpec.getRecipientInfo()));
@@ -455,7 +459,7 @@ public class IESKEMCipher
     {
         public KEM(Digest kdfDigest, Digest macDigest, int macKeyLength, int macLength)
         {
-            super(new ECDHCRawAgreement(), new KDF2BytesGenerator(kdfDigest), new HMac(macDigest), macKeyLength, macLength);
+            super(new ECDHCBasicAgreement(), new KDF2BytesGenerator(kdfDigest), new HMac(macDigest), macKeyLength, macLength);
         }
     }
 
