@@ -29,6 +29,7 @@ import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DERSet;
 import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.DLSet;
+import org.bouncycastle.asn1.bsi.BSIObjectIdentifiers;
 import org.bouncycastle.asn1.cms.AttributeTable;
 import org.bouncycastle.asn1.cms.CCMParameters;
 import org.bouncycastle.asn1.cms.CMSObjectIdentifiers;
@@ -94,6 +95,15 @@ class CMSUtils
         ecAlgs.add(PKCSObjectIdentifiers.dhSinglePass_stdDH_hkdf_sha256_scheme);
         ecAlgs.add(PKCSObjectIdentifiers.dhSinglePass_stdDH_hkdf_sha384_scheme);
         ecAlgs.add(PKCSObjectIdentifiers.dhSinglePass_stdDH_hkdf_sha512_scheme);
+
+        // BSI TR-03111 ECKA-EG with X9.63 KDF (structurally the ECC-CMS-SharedInfo path per
+        // BSI TR-03109-3 / ICAO 9303-11); github #790 - dispatch these as EC key agreement too.
+        ecAlgs.add(BSIObjectIdentifiers.ecka_eg_X963kdf_SHA1);
+        ecAlgs.add(BSIObjectIdentifiers.ecka_eg_X963kdf_SHA224);
+        ecAlgs.add(BSIObjectIdentifiers.ecka_eg_X963kdf_SHA256);
+        ecAlgs.add(BSIObjectIdentifiers.ecka_eg_X963kdf_SHA384);
+        ecAlgs.add(BSIObjectIdentifiers.ecka_eg_X963kdf_SHA512);
+        ecAlgs.add(BSIObjectIdentifiers.ecka_eg_X963kdf_RIPEMD160);
 
         gostAlgs.add(CryptoProObjectIdentifiers.gostR3410_2001_CryptoPro_ESDH);
         gostAlgs.add(CryptoProObjectIdentifiers.gostR3410_2001);
