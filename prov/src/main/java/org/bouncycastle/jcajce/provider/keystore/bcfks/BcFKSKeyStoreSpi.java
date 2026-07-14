@@ -100,6 +100,7 @@ import org.bouncycastle.jcajce.util.DefaultJcaJceHelper;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
 import org.bouncycastle.jce.interfaces.ECKey;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.jcajce.provider.util.SecurityExceptions;
 import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.Strings;
@@ -221,7 +222,7 @@ class BcFKSKeyStoreSpi
                 }
                 catch (Exception e)
                 {
-                    throw new UnrecoverableKeyException("BCFKS KeyStore unable to recover private key (" + alias + "): " + e.getMessage());
+                    throw SecurityExceptions.unrecoverableKeyException("BCFKS KeyStore unable to recover private key (" + alias + "): " + e.getMessage(), e);
                 }
             }
             else if (ent.getType().equals(SECRET_KEY) || ent.getType().equals(PROTECTED_SECRET_KEY))
@@ -237,7 +238,7 @@ class BcFKSKeyStoreSpi
                 }
                 catch (Exception e)
                 {
-                    throw new UnrecoverableKeyException("BCFKS KeyStore unable to recover secret key (" + alias + "): " + e.getMessage());
+                    throw SecurityExceptions.unrecoverableKeyException("BCFKS KeyStore unable to recover secret key (" + alias + "): " + e.getMessage(), e);
                 }
             }
             else if (ent.getType().equals(PBKDF_KEY))
@@ -257,7 +258,7 @@ class BcFKSKeyStoreSpi
                 }
                 catch (Exception e)
                 {
-                    throw new UnrecoverableKeyException("BCFKS KeyStore unable to recover PBE key (" + alias + "): " + e.getMessage());
+                    throw SecurityExceptions.unrecoverableKeyException("BCFKS KeyStore unable to recover PBE key (" + alias + "): " + e.getMessage(), e);
                 }
             }
             else
@@ -1731,7 +1732,7 @@ class BcFKSKeyStoreSpi
             }
             catch (InvalidKeyException e)
             {   // this should never happen...
-                throw new UnrecoverableKeyException("unable to recover key (" + alias + "): " + e.getMessage());
+                throw SecurityExceptions.unrecoverableKeyException("unable to recover key (" + alias + "): " + e.getMessage(), e);
             }
 
             if (cache.containsKey(alias))
