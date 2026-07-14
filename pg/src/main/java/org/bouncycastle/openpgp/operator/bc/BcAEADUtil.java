@@ -639,11 +639,13 @@ public class BcAEADUtil
             {
                 c.init(true, new AEADParameters(secretKey, 128, getNonce(iv, chunkIndex), adata));  // always full tag.
 
-                int len = c.processBytes(data, 0, dataOff, data, 0);
-                out.write(data, 0, len);
-
-                len = c.doFinal(data, 0);
-                out.write(data, 0, len);
+                // Do not encrypt in-place into the chunk-sized 'data' buffer: getOutputSize() accounts
+                // for any bytes the cipher buffers internally plus the MAC, and the native GCM buffers
+                // differently from the pure-Java path, so doFinal can need more room than 'data' has.
+                byte[] encData = new byte[c.getOutputSize(dataOff)];
+                int len = c.processBytes(data, 0, dataOff, encData, 0);
+                len += c.doFinal(encData, len);
+                out.write(encData, 0, len);
             }
             catch (InvalidCipherTextException e)
             {
