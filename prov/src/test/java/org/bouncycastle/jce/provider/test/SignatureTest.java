@@ -11,6 +11,7 @@ import org.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.DigestInfo;
+import org.bouncycastle.crypto.SavableDigest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECNamedCurveGenParameterSpec;
@@ -197,7 +198,10 @@ public class SignatureTest
         KeyPair kp = kpGen.generateKeyPair();
 
         // Hand-built no-NULL-parameters DigestInfo (RFC 8017 sec. A.2.4 requires NULL).
-        SHA256Digest digest = (SHA256Digest)SHA256Digest.newInstance();
+        // newInstance() returns the native SHA256NativeDigest when native
+        // acceleration is active, so hold it via the SavableDigest interface
+        // rather than casting to the concrete SHA256Digest class.
+        SavableDigest digest = SHA256Digest.newInstance();
         digest.update(DATA, 0, DATA.length);
         byte[] hash = new byte[digest.getDigestSize()];
         digest.doFinal(hash, 0);
