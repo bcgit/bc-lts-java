@@ -47,6 +47,7 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.asn1.x9;
     exports org.bouncycastle.crypto;
     exports org.bouncycastle.crypto.agreement;
+    exports org.bouncycastle.crypto.agreement.ecjpake;
     exports org.bouncycastle.crypto.agreement.jpake;
     exports org.bouncycastle.crypto.agreement.kdf;
     exports org.bouncycastle.crypto.agreement.srp;
@@ -104,6 +105,7 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.jcajce.provider.keystore.bc;
     exports org.bouncycastle.jcajce.provider.keystore.bcfks;
     exports org.bouncycastle.jcajce.provider.keystore.pkcs12;
+    exports org.bouncycastle.jcajce.provider.keystore.util;
     exports org.bouncycastle.jcajce.provider.symmetric;
     exports org.bouncycastle.jcajce.provider.symmetric.util;
     exports org.bouncycastle.jcajce.provider.util;
@@ -116,6 +118,7 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.jce.netscape;
     exports org.bouncycastle.jce.provider;
     exports org.bouncycastle.jce.spec;
+    exports org.bouncycastle.ldap;
     exports org.bouncycastle.math;
     exports org.bouncycastle.math.ec;
     exports org.bouncycastle.math.ec.custom.djb;
@@ -134,6 +137,8 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.pqc.crypto.slhdsa;
     exports org.bouncycastle.pqc.crypto.util;
     exports org.bouncycastle.pqc.jcajce.interfaces;
+    exports org.bouncycastle.pqc.jcajce.provider.lms;
+    exports org.bouncycastle.pqc.jcajce.provider.util;
     exports org.bouncycastle.pqc.jcajce.spec;
     exports org.bouncycastle.util;
     exports org.bouncycastle.util.encoders;

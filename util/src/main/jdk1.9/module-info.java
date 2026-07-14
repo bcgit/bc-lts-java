@@ -20,6 +20,7 @@ module org.bouncycastle.lts.util
     exports org.bouncycastle.asn1.smime;
     exports org.bouncycastle.asn1.tsp;
     exports org.bouncycastle.oer;
+    exports org.bouncycastle.oer.its;
     exports org.bouncycastle.oer.its.etsi103097;
     exports org.bouncycastle.oer.its.etsi103097.extension;
     exports org.bouncycastle.oer.its.ieee1609dot2;
