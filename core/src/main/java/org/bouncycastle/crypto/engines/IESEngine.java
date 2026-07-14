@@ -184,16 +184,14 @@ public class IESEngine
 
             kdf.generateBytes(K, 0, K.length);
 
-            if (V.length != 0)
-            {
-                System.arraycopy(K, 0, K2, 0, K2.length);
-                System.arraycopy(K, K2.length, K1, 0, K1.length);
-            }
-            else
-            {
-                System.arraycopy(K, 0, K1, 0, K1.length);
-                System.arraycopy(K, inLen, K2, 0, K2.length);
-            }
+            // Derive the MAC key K2 from a fixed prefix of the KDF output and the keystream K1 from
+            // the remainder, regardless of whether an ephemeral V is present. Placing K1 first (the
+            // legacy static-key, V-absent layout) put K2 at a message-length-dependent offset behind
+            // the keystream, so a single known-plaintext leak of K1 also exposed the MAC key of any
+            // shorter message - a cross-message forgery in the deterministic static-key mode. A fixed
+            // K2 offset is never covered by the keystream, closing that.
+            System.arraycopy(K, 0, K2, 0, K2.length);
+            System.arraycopy(K, K2.length, K1, 0, K1.length);
 
             C = new byte[inLen];
 
@@ -288,16 +286,9 @@ public class IESEngine
 
             kdf.generateBytes(K, 0, K.length);
 
-            if (V.length != 0)
-            {
-                System.arraycopy(K, 0, K2, 0, K2.length);
-                System.arraycopy(K, K2.length, K1, 0, K1.length);
-            }
-            else
-            {
-                System.arraycopy(K, 0, K1, 0, K1.length);
-                System.arraycopy(K, K1.length, K2, 0, K2.length);
-            }
+            // K2 (MAC key) from a fixed prefix, K1 (keystream) from the remainder - see encryptBlock.
+            System.arraycopy(K, 0, K2, 0, K2.length);
+            System.arraycopy(K, K2.length, K1, 0, K1.length);
 
             // process the message
             M = new byte[K1.length];
