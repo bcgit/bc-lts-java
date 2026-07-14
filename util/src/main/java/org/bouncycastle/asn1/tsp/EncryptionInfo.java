@@ -45,6 +45,14 @@ public class EncryptionInfo
      */
     private ASN1Encodable encryptionInfoValue;
 
+    /**
+     * @deprecated Use {@link EncryptionInfo#getInstance(Object)} instead.
+     */
+    public static EncryptionInfo getInstance(final ASN1Object obj)
+    {
+        return getInstance((Object)obj);
+    }
+
     public static EncryptionInfo getInstance(final Object obj)
     {
         if (obj instanceof EncryptionInfo)
