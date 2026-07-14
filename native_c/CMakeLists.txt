@@ -94,15 +94,44 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
         set(PLATFORM_TARGET ${NATIVE_INSTALL_ROOT}/linux/arm64)
         set(OPTIONS -Wconversion -Werror=return-type)
         set(PROBE_OPTIONS ${OPTIMISE_FLAG})
-        set(ARM64_NEON_OPTIONS ${OPTIONS} -march=armv8.4-a+crypto+sha2+sha3 ${OPTIMISE_FLAG})
+        #
+        # The variant-wide baseline is the SUPPORT FLOOR: armv8-a plus the original
+        # crypto extension (FEAT_AES/FEAT_PMULL/FEAT_SHA256) — i.e. Graviton 1/2,
+        # Neoverse N1, Cortex-A72-with-crypto class cores. Nothing outside the
+        # per-file list below may contain newer instructions, so code that is not
+        # runtime-gated (the JNI bridges, the always-on AES/CBC/CFB/CTR/CCM/GCM
+        # kernels, glue) can never SIGILL on a floor CPU. Do NOT raise this back to
+        # armv8.2+/8.4 "because the kernels need it": at armv8.x+sha3 GCC lowers
+        # ordinary triple-XORs to the FEAT_SHA3 EOR3 instruction and scatters it
+        # through CBC/CTR/GCM, which then SIGILLs on Graviton 2. Give the kernel's
+        # TU a per-file -march instead, and gate the service on the matching HWCAP
+        # in arm/jni/services.h.
+        #
+        set(ARM64_NEON_OPTIONS ${OPTIONS} -march=armv8-a+crypto ${OPTIMISE_FLAG})
         set(ARM_BE -mbig-endian)
+
+        #
+        # Only these TUs may use FEAT_SHA512 (sha512h...) / FEAT_SHA3 (eor3/rax1/
+        # xar/bcax) instructions; arm/keccak/keccak.h's inline permutation must only
+        # be included from files in this list. Each is runtime-gated per service in
+        # arm/jni/services.h (SHA384/SHA512 <- sha512 HWCAP, SHA3/SHAKE <- sha3
+        # HWCAP), so a host without the HWCAP never executes them. The per-file
+        # -march is appended after the target options, so it wins for these files
+        # while they still inherit -Wconversion/-Werror/-O3 from ARM64_NEON_OPTIONS.
+        #
+        set_source_files_properties(
+                arm/sha/sha384.c
+                arm/sha/sha512.c
+                arm/sha/sha3.c
+                arm/sha/shake.c
+                PROPERTIES COMPILE_OPTIONS "-march=armv8.2-a+crypto+sha2+sha3")
     endif ()
 
     MESSAGE("JNI_INCLUDE_PLATFORM " ${JNI_INCLUDE_PLATFORM})
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${JNI_INCLUDE} ${JNI_INCLUDE_PLATFORM} ${LTS_JAVA_HEADERS} ${LTS_TEST_JAVA_HEADERS})
 
     set(PROBE arm/jni/variant_selector_arm.c)
-    set(COMMON arm/jni/native_features.c arm/jni/ident_jni.c arm/util/util.h arm/util/util.c)
+    set(COMMON arm/jni/native_features.c arm/jni/services.h arm/jni/ident_jni.c arm/util/util.h arm/util/util.c)
     set(COMMON_NEON
             arm/aes/aes_common_neon.h
             arm/aes/aes_key.c

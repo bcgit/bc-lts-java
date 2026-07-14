@@ -49,6 +49,7 @@ void probe_system() {
     if (!cpu_info.loaded) {
         cpu_info.loaded = true;
         cpu_info.aes = has_feature("hw.optional.arm.FEAT_AES");
+        cpu_info.pmull = has_feature("hw.optional.arm.FEAT_PMULL");
         cpu_info.sha256 = has_feature("hw.optional.arm.FEAT_SHA256");
         cpu_info.sha512 = has_feature("hw.optional.arm.FEAT_SHA512");
         cpu_info.sha3 = has_feature("hw.optional.arm.FEAT_SHA3");
@@ -79,6 +80,9 @@ void probe_system() {
 
         cpu_info.loaded = true;
         cpu_info.aes = hwcaps & HWCAP_AES;
+        // FEAT_PMULL (poly64 PMULL/PMULL2, used by GCM's GHASH) is a separate HWCAP
+        // from FEAT_AES; do not infer one from the other.
+        cpu_info.pmull = hwcaps & HWCAP_PMULL;
         cpu_info.sha256 = hwcaps & HWCAP_SHA2; //  has_feature("hw.optional.arm.FEAT_SHA256");
         cpu_info.sha512 = hwcaps & HWCAP_SHA512; // has_feature("hw.optional.arm.FEAT_SHA512");
         cpu_info.sha3 = hwcaps & HWCAP_SHA3; // has_feature("hw.optional.arm.FEAT_SHA512");
@@ -143,7 +147,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_bouncycastle_crypto_VariantSelector_getF
         jclass stringClass = (*env)->FindClass(env, "java/lang/String");
         bc_assert(stringClass != NULL);
 
-        jobjectArray arm64 = (*env)->NewObjectArray(env, 7, stringClass, NULL);
+        jobjectArray arm64 = (*env)->NewObjectArray(env, 8, stringClass, NULL);
         bc_assert(arm64 != NULL);
 
         (*env)->SetObjectArrayElement(env, outerArray, 0, arm64);
@@ -151,6 +155,7 @@ JNIEXPORT jobjectArray JNICALL Java_org_bouncycastle_crypto_VariantSelector_getF
         (*env)->SetObjectArrayElement(env, arm64, t++, new_str(env, "neon-le"));
 
         (*env)->SetObjectArrayElement(env, arm64, t++, new_str(env, cpu_info.aes ? "+aes" : "-aes"));
+        (*env)->SetObjectArrayElement(env, arm64, t++, new_str(env, cpu_info.pmull ? "+pmull" : "-pmull"));
         (*env)->SetObjectArrayElement(env, arm64, t++, new_str(env, cpu_info.sha256 ? "+sha256" : "-sha256"));
         (*env)->SetObjectArrayElement(env, arm64, t++, new_str(env, cpu_info.sha512 ? "+sha512" : "-sha512"));
         (*env)->SetObjectArrayElement(env, arm64, t++, new_str(env, cpu_info.sha3 ? "+sha3" : "-sha3"));

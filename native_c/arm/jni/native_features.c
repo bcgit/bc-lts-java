@@ -1,19 +1,16 @@
-
+/*
+ * JNI feature bridge: every CPU-gated per-service answer comes from the shared
+ * requirement table in arm/jni/services.h. Keep no per-service feature logic
+ * here — a service is available iff the host HWCAPs satisfy its mask, otherwise
+ * the Java layer falls back to the pure-Java implementation (a knocked-out
+ * service, never a SIGILL on a CPU that lacks the instructions).
+ */
 #include <stdbool.h>
 #include "org_bouncycastle_crypto_NativeFeatures.h"
-#include "../../jniutil/variant_selector.h"
+#include "services.h"
 
 
-static struct cpuid_info cpu_info = {
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false,
-        false
-};
+static struct cpuid_info cpu_info = {0};
 
 #ifdef __APPLE__
 
@@ -38,9 +35,10 @@ void probe_system() {
     if (!cpu_info.loaded) {
         cpu_info.loaded = true;
         cpu_info.aes = has_feature("hw.optional.arm.FEAT_AES");
+        cpu_info.pmull = has_feature("hw.optional.arm.FEAT_PMULL");
         cpu_info.sha256 = has_feature("hw.optional.arm.FEAT_SHA256");
         cpu_info.sha512 = has_feature("hw.optional.arm.FEAT_SHA512");
-        cpu_info.sha3 = has_feature("hw.optional.arm.FEAT_SHA512");
+        cpu_info.sha3 = has_feature("hw.optional.arm.FEAT_SHA3");
         cpu_info.neon = has_feature("hw.optional.neon");
         cpu_info.arm64 = has_feature("hw.optional.arm64");
         cpu_info.le = is_le();
@@ -65,6 +63,9 @@ void probe_system() {
 
         cpu_info.loaded = true;
         cpu_info.aes = hwcaps & HWCAP_AES;
+        // FEAT_PMULL (poly64 PMULL/PMULL2, used by GCM's GHASH) is a separate
+        // HWCAP from FEAT_AES; do not infer one from the other.
+        cpu_info.pmull = hwcaps & HWCAP_PMULL;
         cpu_info.sha256 = hwcaps & HWCAP_SHA2;
         cpu_info.sha512 = hwcaps & HWCAP_SHA512;
         cpu_info.sha3 = hwcaps & HWCAP_SHA3;
@@ -86,6 +87,11 @@ void probe_system() {
 }
 #endif
 
+static jboolean available(bc_arm_service svc) {
+    probe_system();
+    return bc_arm_service_available(&cpu_info, svc) ? JNI_TRUE : JNI_FALSE;
+}
+
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
  * Method:    nativeCBC
@@ -93,9 +99,7 @@ void probe_system() {
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCBC
         (JNIEnv *env, jclass cl) {
-    probe_system();
-
-    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
+    return available(BC_SVC_CBC);
 }
 
 /*
@@ -115,8 +119,7 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCBC
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCFB
         (JNIEnv *env, jclass cl) {
-    probe_system();
-    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
+    return available(BC_SVC_CFB);
 }
 
 /*
@@ -132,13 +135,12 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCFB
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
- * Method:    nativeCFB
+ * Method:    nativeCTR
  * Signature: ()Z
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCTR
         (JNIEnv *env, jclass cl) {
-    probe_system();
-    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
+    return available(BC_SVC_CTR);
 }
 
 
@@ -160,10 +162,7 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCTR
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeAES
         (JNIEnv *env, jclass cl) {
-
-    probe_system();
-    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
-
+    return available(BC_SVC_ECB);
 }
 
 /*
@@ -173,11 +172,7 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeGCM
         (JNIEnv *env, jclass cl) {
-
-    probe_system();
-
-    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
-
+    return available(BC_SVC_GCM);
 }
 
 /*
@@ -226,35 +221,32 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
- * Method:    nativeSHA2
+ * Method:    nativeSHA256
  * Signature: ()Z
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA256
         (JNIEnv *env, jclass cl) {
-    probe_system();
-    return cpu_info.neon && cpu_info.sha256 ? JNI_TRUE : JNI_FALSE;
+    return available(BC_SVC_SHA256);
 }
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
- * Method:    nativeSHA2
+ * Method:    nativeSHA224
  * Signature: ()Z
  */
 __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA224
         (JNIEnv *env, jclass cl) {
-    probe_system();
-    return cpu_info.neon && cpu_info.sha256 ? JNI_TRUE : JNI_FALSE;
+    return available(BC_SVC_SHA224);
 }
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
- * Method:    nativeSHA512
+ * Method:    nativeSHA384
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA384
         (JNIEnv *env, jclass cl) {
-    probe_system();
-    return cpu_info.neon && cpu_info.sha512 ? JNI_TRUE : JNI_FALSE;
+    return available(BC_SVC_SHA384);
 }
 
 
@@ -266,8 +258,7 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA512
         (JNIEnv *env, jclass cl) {
-    probe_system();
-    return cpu_info.neon && cpu_info.sha512 ? JNI_TRUE : JNI_FALSE;
+    return available(BC_SVC_SHA512);
 }
 
 
@@ -288,20 +279,18 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeMul
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeCCM
         (JNIEnv *env, jclass cl) {
-    probe_system();
-    return cpu_info.aes && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
+    return available(BC_SVC_CCM);
 }
 
 
 /*
  * Class:     org_bouncycastle_crypto_NativeFeatures
- * Method:    nativeCCM
+ * Method:    nativeSHA3
  * Signature: ()Z
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA3
         (JNIEnv *env, jclass cl) {
-    probe_system();
-    return cpu_info.sha3 && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
+    return available(BC_SVC_SHA3);
 }
 
 /*
@@ -311,8 +300,7 @@ JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHA
  */
 JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_NativeFeatures_nativeSHAKE
         (JNIEnv *env, jclass cl) {
-    probe_system();
-    return cpu_info.sha3 && cpu_info.neon ? JNI_TRUE : JNI_FALSE;
+    return available(BC_SVC_SHAKE);
 }
 
 

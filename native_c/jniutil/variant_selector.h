@@ -11,6 +11,7 @@
 struct cpuid_info {
     bool loaded;
     bool aes;
+    bool pmull;
     bool sha256;
     bool sha512;
     bool sha3;
