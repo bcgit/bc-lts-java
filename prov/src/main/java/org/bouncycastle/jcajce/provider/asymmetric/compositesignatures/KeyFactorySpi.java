@@ -218,6 +218,10 @@ public class KeyFactorySpi
             {
                 data = keyInfo.getPrivateKey().getOctets();
             }
+            if (data.length < 32)
+            {
+                throw new IOException("malformed composite private key: body shorter than the ML-DSA seed");
+            }
             v.add(new DEROctetString(Arrays.copyOfRange(data, 0, 32)));
             String traditionAlg = factories.get(1).getAlgorithm();
             if (traditionAlg.equals("Ed25519"))
@@ -328,6 +332,11 @@ public class KeyFactorySpi
         {
             int numKeys = (seq == null) ? componentKeys.length : seq.size();
 
+            if (numKeys != 2)
+            {
+                throw new IOException("malformed composite public key: expected exactly two components");
+            }
+
             List<KeyFactory> factories = getKeyFactoriesFromIdentifier(keyIdentifier);
             ASN1BitString[] componentBitStrings = new ASN1BitString[numKeys];
             for (int i = 0; i < numKeys; i++)
@@ -369,9 +378,14 @@ public class KeyFactorySpi
     }
 
     byte[][] split(ASN1ObjectIdentifier algorithm, ASN1BitString publicKeyData)
+        throws IOException
     {
         int[] sizes = componentKeySizes.get(algorithm);
         byte[] keyData = publicKeyData.getOctets();
+        if (sizes == null || keyData.length < sizes[0])
+        {
+            throw new IOException("malformed composite public key: body shorter than the first component");
+        }
         byte[][] components = new byte[][]{new byte[sizes[0]], new byte[keyData.length - sizes[0]]};
         System.arraycopy(keyData, 0, components[0], 0, sizes[0]);
         System.arraycopy(keyData, sizes[0], components[1], 0, components[1].length);
