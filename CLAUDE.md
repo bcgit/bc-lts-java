@@ -122,12 +122,22 @@ Both scripts remap 13 asn1 OID subpackages from `core` to `util` (`cryptlib|edec
 
 `check-indexes.sh` compares the *recorded hash* against *upstream*, **not against the local source file**. So a file whose index already equals the current upstream hash but whose LTS source is a *stale older version* is **invisible** to `check-indexes` — it never appears in the mismatch list even though the code is behind. This class of drift was introduced by an accidental `git checkout` that reverted source while indexes stayed bumped.
 
-The only reliable detector is **compiling the code**: a downstream module (or its tests) referencing a method/class the stale file is missing fails to compile. The productive sweep is therefore:
+**The direct detector — a residual scan.** `check-indexes` is blind here, but the residual has an exact signature you *can* query directly: **`recorded index hash == current upstream hash`, AND `local source hash != upstream`**. Scan the whole module index for it (this is how the 2026-07 sweep found ~500 candidates across all seven modules without compiling anything):
+```
+# for each "<hash>␣␣<path>" line in indexes/bc-java.<mod>.index:
+#   up_path = path              (for core, remap the 13 asn1 OID subpackages core->util, per check-indexes.sh)
+#   flag if  hash == sha256(<bc-java>/up_path)  AND  sha256(local path) != sha256(<bc-java>/up_path)
+```
+The candidate set = **hidden residuals + deliberate divergences** (leave-diverged curation is legitimate and shows the same signature), so it must be **triaged**, not blind-adopted. Rank by the "strictly-behind" signal — `diff -w <upstream> <local>`: few/no local-only lines (`<`) but many upstream-only lines (`>`) = local is an older upstream (residual); substantial local-only content = LTS curation / LTS-ahead (leave). Then classify each candidate **STALE** (adopt) / **INTENTIONAL** (curation, dropped class, native hook, or LTS-ahead — leave) / **COSMETIC** (javadoc/whitespace — leave). A candidate is INTENTIONAL/**blocked-by-curation** whenever the upstream version references a class/method absent from the LTS tree (dropped `X509Name`/`X509Extensions`/PQC/lightweight-AEAD, `BufferedBlockCipher`-as-interface, etc.).
+
+**Compiling and tests are the behavioural complement.** A downstream module (or its tests) referencing a method/class the stale file is missing fails to compile:
 ```
 ./gradlew --continue :util:compileJava :prov:compileJava :pkix:compileJava :tls:compileJava :pg:compileJava :mail:compileJava
 ./gradlew --continue :util:compileTestJava :prov:compileTestJava ... :mail:compileTestJava
 ```
-plus running the KAT/regression suites (see below) — a stale file that still compiles can still be behaviourally behind, which only tests catch. When a compile flushes out a `cannot find symbol` on an LTS `core`/`util` class, check whether that file is a hidden residual (`recorded index == upstream hash` but local source diverged) and adopt the upstream version.
+plus running the KAT/regression suites (see below) — a stale file that still compiles can still be behaviourally behind, which only tests catch. When a compile flushes out a `cannot find symbol` on an LTS `core`/`util` class, check whether that file is a hidden residual and adopt the upstream version.
+
+**Adopting a residual — the workflow.** Adopt in **themed batches**, and after *each* batch: recompile the module (main + test, plus the MR source sets — `compileJava11Java`/`compileJava15Java`/`compileJava17Java`), run the affected KAT/regression + AllTests suites, and **run japi (see below)**. Prefer verbatim `cp` of the upstream file when it is a pure residual (local a strict subset); go surgical (extract only the security-relevant hunk) when the file also carries LTS curation or LTS-ahead hardening you must preserve. After a clean adoption the local file matches its recorded index again; a deliberate surgical divergence leaves the index at the upstream baseline (do **not** bump it to hide the divergence). Gotcha seen repeatedly: a verbatim `cp` re-introduces `new BufferedBlockCipher(...)` (an interface in LTS) — swap back to `new DefaultBufferedBlockCipher(...)`.
 
 Running `SimpleTest` regression suites standalone is the fastest KAT check (bypasses the `test`→`testIntegration` native dependency):
 ```
@@ -136,6 +146,21 @@ java -cp core/build/classes/java/main:core/build/classes/java/test \
      org.bouncycastle.crypto.test.RegressionTest   # or asn1.test.RegressionTest
 ```
 JUnit `AllTests` suites need `junit`/`hamcrest` on the classpath (find them under `~/.gradle/caches`) and run via `org.junit.runner.JUnitCore <suite>`.
+
+#### API compatibility gate (`japi-compliance-checker`)
+
+The LTS release is bound by an **API-stability gate**: `japi-compliance-checker` (`/usr/bin/japi-compliance-checker`, v2.4) must report **0 removed methods and 0 high-severity problems for every shipped lib** — `bccore`, `bcprov`, `bcutil`, `bcpkix`, `bcpg`, `bctls` (note `core` ships **both** as a standalone `bccore` jar **and** folded into `bcprov`, so both must pass). This is the enforcement arm of the "preserve existing public API, only add" rule.
+
+```
+./gradlew :<module>:jar                       # core->bccore, prov->bcprov, util->bcutil, pkix->bcpkix, pg->bcpg, tls->bctls
+japi-compliance-checker -lib <bclib> \
+    -old ../bc-lts-java-jars/<last-release>/<bclib>-lts8on-<last-release>.jar \
+    -new <module>/build/libs/<bclib>-lts8on-<version>.jar \
+    -report-path <out>.html
+```
+Baseline = the most recent released jar under `../bc-lts-java-jars/<ver>/` (e.g. `2.73.11`); current `version`/`maxVersion` are in `gradle.properties`. In the HTML report the failures live under the `Binary_Removed` / `Source_Removed` anchors and the "high severity" data-type problems.
+
+**Run japi after every residual adoption — "verbatim-safe to compile" is NOT the same as binary-compatible.** Adopting an upstream file verbatim silently breaks the ABI when upstream has: removed/changed a public constructor (e.g. `IESKEMCipher` switched `ECDHCBasicAgreement`→`ECDHCRawAgreement`), changed a method's return type (`CertificateRepMessage.toASN1Structure()` `ASN1Encodable`→`CertRepMessage`) or a parameter type (`setHeaderList(ArrayList)`→`(List)`), made a public class **abstract** (`MLKEMSpi`), or **added a method to a public interface** (`JcaJceHelper.createDigest` — breaks downstream implementors). All of these compile and pass tests but fail the gate. The fix is to preserve the old API: keep the removed member / non-abstract class and apply only the additive or internal part (revert the file and graft the valuable hunk surgically).
 
 #### Multi-release source sets and `javax.crypto.KEM`
 
