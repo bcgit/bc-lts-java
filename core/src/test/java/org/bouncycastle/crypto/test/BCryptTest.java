@@ -3,6 +3,7 @@ package org.bouncycastle.crypto.test;
 import org.bouncycastle.crypto.generators.BCrypt;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Integers;
+import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
 
@@ -45,6 +46,45 @@ public class BCryptTest
         testParameters();
         testShortKeys();
         testVectors();
+        testAddTerminator();
+        testBcryptPbkdf();
+    }
+
+    private void testBcryptPbkdf()
+    {
+        // OpenSSH bcrypt_pbkdf, cross-checked against the OpenBSD reference implementation
+        // (via the python "bcrypt" package's bcrypt.kdf).
+        byte[] salt16 = new byte[16];
+        for (int i = 0; i != salt16.length; i++)
+        {
+            salt16[i] = (byte)i;
+        }
+
+        isTrue("bcrypt_pbkdf vec1", areEqual(
+            BCrypt.pbkdfGenerate(Strings.toByteArray("password"), Strings.toByteArray("salt"), 16, 32),
+            Hex.decode("c3d7ec5f693f16055b6d2f0af904795f79a924bbeb6fbdb805e82409d56d1e63")));
+
+        isTrue("bcrypt_pbkdf vec2", areEqual(
+            BCrypt.pbkdfGenerate(Strings.toByteArray("passphrase-here"), salt16, 8, 48),
+            Hex.decode("30446fa60d600082c87e2a00450f9cad0c3cd9e182830ce4d4bdc35488b6e32a76edd48232dbc23a4f62e8f2f034899c")));
+
+        // argument validation
+        try
+        {
+            BCrypt.pbkdfGenerate(Strings.toByteArray("p"), new byte[0], 1, 16);
+            fail("empty salt accepted");
+        }
+        catch (IllegalArgumentException expected)
+        {
+        }
+        try
+        {
+            BCrypt.pbkdfGenerate(Strings.toByteArray("p"), Strings.toByteArray("salt"), 0, 16);
+            fail("zero rounds accepted");
+        }
+        catch (IllegalArgumentException expected)
+        {
+        }
     }
 
     private void testShortKeys()
@@ -143,6 +183,73 @@ public class BCryptTest
         {
             fail("Hash for " + new String(Hex.encode(password)), new String(Hex.encode(expected)),
                 new String(Hex.encode(hash)));
+        }
+    }
+
+    private void testAddTerminator()
+    {
+        // Test vector from testVectors[]: "61 00" (i.e. 'a' + terminator) at cost 6 with the
+        // given salt produces a known hash. Feeding the un-terminated input "61" through the new
+        // overload with addTerminator=true must produce the same hash.
+        byte[] salt = Hex.decode("a3612d8c9a37dac2f99d94da03bd4521");
+        byte[] expected = Hex.decode("e6d53831f82060dc08a2e8489ce850ce48fbf976978738f3");
+        byte[] pwA = Hex.decode("61");
+
+        byte[] hashWithTerm = BCrypt.generate(pwA, salt, 6, true);
+        if (!Arrays.areEqual(hashWithTerm, expected))
+        {
+            fail("addTerminator=true should match pre-terminated test vector",
+                new String(Hex.encode(expected)), new String(Hex.encode(hashWithTerm)));
+        }
+
+        // addTerminator=true is equivalent to feeding the input through passwordToByteArray first.
+        byte[] hashHelperFed = BCrypt.generate(
+            BCrypt.passwordToByteArray("a".toCharArray()), salt, 6, false);
+        if (!Arrays.areEqual(hashWithTerm, hashHelperFed))
+        {
+            fail("addTerminator=true must equal passwordToByteArray-fed generate",
+                new String(Hex.encode(hashHelperFed)), new String(Hex.encode(hashWithTerm)));
+        }
+
+        // addTerminator=false must be byte-equivalent to the deprecated 3-arg form.
+        byte[] hashLegacy = BCrypt.generate(pwA, salt, 6);
+        byte[] hashWithoutTerm = BCrypt.generate(pwA, salt, 6, false);
+        if (!Arrays.areEqual(hashLegacy, hashWithoutTerm))
+        {
+            fail("addTerminator=false must equal legacy 3-arg generate",
+                new String(Hex.encode(hashLegacy)), new String(Hex.encode(hashWithoutTerm)));
+        }
+
+        // The flag must actually change the hash for a sub-72-byte un-terminated input.
+        if (Arrays.areEqual(hashWithTerm, hashWithoutTerm))
+        {
+            fail("addTerminator=true should differ from addTerminator=false for non-terminated input");
+        }
+
+        // At the 72-byte boundary the flag is ignored — no room for the terminator.
+        byte[] pw72 = new byte[72];
+        for (int i = 0; i < pw72.length; i++)
+        {
+            pw72[i] = (byte)('a' + (i % 26));
+        }
+        byte[] hash72With = BCrypt.generate(pw72, salt, 4, true);
+        byte[] hash72Without = BCrypt.generate(pw72, salt, 4, false);
+        if (!Arrays.areEqual(hash72With, hash72Without))
+        {
+            fail("addTerminator must be ignored when pwInput.length == 72",
+                new String(Hex.encode(hash72Without)), new String(Hex.encode(hash72With)));
+        }
+
+        // A 73-byte input is rejected regardless of the flag — the limit applies to pwInput, not
+        // to the post-append length.
+        try
+        {
+            BCrypt.generate(new byte[73], salt, 4, true);
+            fail("addTerminator=true must not bypass the 72-byte input limit");
+        }
+        catch (IllegalArgumentException e)
+        {
+            // expected
         }
     }
 
