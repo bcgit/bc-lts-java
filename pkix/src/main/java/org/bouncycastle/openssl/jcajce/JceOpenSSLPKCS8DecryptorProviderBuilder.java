@@ -214,8 +214,16 @@ public class JceOpenSSLPKCS8DecryptorProviderBuilder
             throw new IOException("scrypt block size (" + blockSize + ") greater than " + MAX_SCRYPT_BLOCK_SIZE);
         }
 
+        BigInteger p = params.getParallelizationParameter();
+        if (p == null || p.signum() <= 0 || p.bitLength() > 31)
+        {
+            throw new IOException("invalid scrypt parameters");
+        }
+
         long maxMemory = Properties.asInteger(Properties.PBE_MAX_SCRYPT_MEMORY, 1 << 30);
-        if (n.longValue() > maxMemory / (128L * blockSize))
+        // scrypt peak memory is 128 * r * (N + p); bound the whole sum, not just N, so a large
+        // parallelization parameter cannot slip a multi-hundred-megabyte allocation past the ceiling.
+        if (n.longValue() + p.longValue() > maxMemory / (128L * blockSize))
         {
             throw new IOException("scrypt cost parameters require more than " + maxMemory + " bytes");
         }

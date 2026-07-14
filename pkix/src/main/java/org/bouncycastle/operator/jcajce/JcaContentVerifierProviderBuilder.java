@@ -458,6 +458,18 @@ public class JcaContentVerifierProviderBuilder
             {
                 throw new RuntimeOperatorException("exception obtaining signature: " + e.getMessage(), e);
             }
+            catch (IllegalArgumentException e)
+            {
+                // malformed composite signature structure (bad ASN.1 SEQUENCE / BIT STRING) -
+                // treat as a verification failure rather than letting an unchecked exception escape.
+                return false;
+            }
+            catch (IllegalStateException e)
+            {
+                // a component BIT STRING with non-zero pad bits (getOctets()) - a valid signature is
+                // always octet-aligned, so reject cleanly instead of crashing the caller.
+                return false;
+            }
         }
     }
 }

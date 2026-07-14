@@ -713,8 +713,30 @@ public class ESTService
                 // resp.close() in the finally block doesn't trip the
                 // LimitedInputStream's "Stream closed before limit fully read"
                 // guard and obscure the actual 404 status with a useless wrapper
-                // exception (github #781).
-                Streams.drain(resp.getInputStream());
+                // exception (github #781) - but bound the read by the declared Content-Length so a
+                // kept-alive HTTP/1.1 connection (no EOF, and no socket timeout by default) cannot
+                // hang the calling thread draining bytes that never arrive. A chunked error body
+                // has no Content-Length and EOFs at its terminating chunk, so draining it is safe.
+                Long drainLen = resp.getContentLength();
+                InputStream drainIn = resp.getInputStream();
+                if (drainLen != null)
+                {
+                    byte[] drainBuf = new byte[4096];
+                    long drainRemaining = drainLen.longValue();
+                    while (drainRemaining > 0)
+                    {
+                        int drained = drainIn.read(drainBuf, 0, (int)Math.min(drainBuf.length, drainRemaining));
+                        if (drained < 0)
+                        {
+                            break;
+                        }
+                        drainRemaining -= drained;
+                    }
+                }
+                else
+                {
+                    Streams.drain(drainIn);
+                }
                 response = null;
                 break;
             default:
