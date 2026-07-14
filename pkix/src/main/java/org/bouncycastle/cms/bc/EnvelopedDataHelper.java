@@ -3,9 +3,7 @@ package org.bouncycastle.cms.bc;
 import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
@@ -24,6 +22,7 @@ import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.digests.SHA384Digest;
 import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.engines.AESEngine;
+import org.bouncycastle.crypto.engines.CamelliaEngine;
 import org.bouncycastle.crypto.engines.DESEngine;
 import org.bouncycastle.crypto.engines.DESedeEngine;
 import org.bouncycastle.crypto.engines.RC2Engine;
@@ -32,6 +31,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.util.AlgorithmIdentifierFactory;
 import org.bouncycastle.crypto.util.CipherFactory;
 import org.bouncycastle.crypto.util.CipherKeyGeneratorFactory;
+import org.bouncycastle.operator.OidCatalogue;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.bc.BcDigestProvider;
 
@@ -39,8 +39,6 @@ class EnvelopedDataHelper
 {
     protected static final Map BASE_CIPHER_NAMES = new HashMap();
     protected static final Map MAC_ALG_NAMES = new HashMap();
-
-    private static final Set authEnvelopedAlgorithms = new HashSet();
     private static final Map prfs = createTable();
 
     private static Map createTable()
@@ -98,14 +96,6 @@ class EnvelopedDataHelper
         MAC_ALG_NAMES.put(CMSAlgorithm.AES192_CBC, "AESMac");
         MAC_ALG_NAMES.put(CMSAlgorithm.AES256_CBC, "AESMac");
         MAC_ALG_NAMES.put(CMSAlgorithm.RC2_CBC, "RC2Mac");
-
-        authEnvelopedAlgorithms.add(CMSAlgorithm.AES128_GCM);
-        authEnvelopedAlgorithms.add(CMSAlgorithm.AES192_GCM);
-        authEnvelopedAlgorithms.add(CMSAlgorithm.AES256_GCM);
-        authEnvelopedAlgorithms.add(CMSAlgorithm.AES128_CCM);
-        authEnvelopedAlgorithms.add(CMSAlgorithm.AES192_CCM);
-        authEnvelopedAlgorithms.add(CMSAlgorithm.AES256_CCM);
-        authEnvelopedAlgorithms.add(CMSAlgorithm.ChaCha20Poly1305);
     }
 
     EnvelopedDataHelper()
@@ -126,6 +116,12 @@ class EnvelopedDataHelper
             || NISTObjectIdentifiers.id_aes256_CBC.equals(algorithm))
         {
             return new RFC3211WrapEngine(AESEngine.newInstance());
+        }
+        else if (CMSAlgorithm.CAMELLIA128_CBC.equals(algorithm)
+            || CMSAlgorithm.CAMELLIA192_CBC.equals(algorithm)
+            || CMSAlgorithm.CAMELLIA256_CBC.equals(algorithm))
+        {
+            return new RFC3211WrapEngine(new CamelliaEngine());
         }
         else if (PKCSObjectIdentifiers.des_EDE3_CBC.equals(algorithm))
         {
@@ -187,6 +183,6 @@ class EnvelopedDataHelper
 
     boolean isAuthEnveloped(ASN1ObjectIdentifier algorithm)
     {
-        return authEnvelopedAlgorithms.contains(algorithm);
+        return OidCatalogue.isAuthEnveloped(algorithm);
     }
 }
