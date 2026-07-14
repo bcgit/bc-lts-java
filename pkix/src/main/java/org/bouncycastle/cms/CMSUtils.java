@@ -30,9 +30,11 @@ import org.bouncycastle.asn1.DERSet;
 import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.DLSet;
 import org.bouncycastle.asn1.cms.AttributeTable;
+import org.bouncycastle.asn1.cms.CCMParameters;
 import org.bouncycastle.asn1.cms.CMSObjectIdentifiers;
 import org.bouncycastle.asn1.cms.ContentInfo;
 import org.bouncycastle.asn1.cms.EncryptedContentInfo;
+import org.bouncycastle.asn1.cms.GCMParameters;
 import org.bouncycastle.asn1.cms.OriginatorInfo;
 import org.bouncycastle.asn1.cms.OtherRevocationInfoFormat;
 import org.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
@@ -50,6 +52,7 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.operator.DigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DigestCalculator;
 import org.bouncycastle.operator.GenericKey;
+import org.bouncycastle.operator.OidCatalogue;
 import org.bouncycastle.operator.OutputAEADEncryptor;
 import org.bouncycastle.operator.OutputEncryptor;
 import org.bouncycastle.util.Store;
@@ -329,6 +332,26 @@ class CMSUtils
         }
 
         return new DERSet(v);
+    }
+
+    /**
+     * Return the AEAD tag length carried in AuthEnvelopedData's mac field, or
+     * -1 when the algorithm is not recognised.
+     */
+    static int getAEADMacLength(AlgorithmIdentifier encAlgId)
+    {
+        ASN1ObjectIdentifier algorithm = encAlgId.getAlgorithm();
+
+        if (OidCatalogue.isGCM(algorithm))
+        {
+            return GCMParameters.getInstance(encAlgId.getParameters()).getIcvLen();
+        }
+        if (OidCatalogue.isCCM(algorithm))
+        {
+            return CCMParameters.getInstance(encAlgId.getParameters()).getIcvLen();
+        }
+
+        return -1;
     }
 
     static OutputStream createBEROctetOutputStream(OutputStream s,
