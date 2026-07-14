@@ -234,6 +234,41 @@ public class BcEnvelopedDataTest
         return new CMSTestSetup(new TestSuite(BcEnvelopedDataTest.class));
     }
 
+    public void testKeyTransAllowedContentAlgorithms()
+        throws Exception
+    {
+        byte[] data = "WallaWallaWashington".getBytes();
+
+        CMSEnvelopedDataGenerator edGen = new CMSEnvelopedDataGenerator();
+
+        edGen.addRecipientInfoGenerator(new BcRSAKeyTransRecipientInfoGenerator(new JcaX509CertificateHolder(_reciCert)));
+
+        CMSEnvelopedData ed = edGen.generate(
+            new CMSProcessableByteArray(data),
+            new BcCMSContentEncryptorBuilder(CMSAlgorithm.AES256_CBC).build());
+
+        RecipientInformation recipient = (RecipientInformation)ed.getRecipientInfos().getRecipients().iterator().next();
+
+        // when the content-encryption algorithm is in the allowed set, recovery proceeds as normal
+        byte[] recData = recipient.getContent(new BcRSAKeyTransEnvelopedRecipient(PrivateKeyFactory.createKey(_reciKP.getPrivate().getEncoded()))
+            .setAllowedContentAlgorithms(Collections.singleton(CMSAlgorithm.AES256_CBC)));
+
+        assertTrue(Arrays.equals(data, recData));
+
+        // when the actual content-encryption algorithm is not in the allowed set, recovery is refused
+        try
+        {
+            recipient.getContent(new BcRSAKeyTransEnvelopedRecipient(PrivateKeyFactory.createKey(_reciKP.getPrivate().getEncoded()))
+                .setAllowedContentAlgorithms(Collections.singleton(CMSAlgorithm.AES128_CBC)));
+
+            fail("content recovered under a disallowed content-encryption algorithm");
+        }
+        catch (CMSAlgorithmNotAllowedException e)
+        {
+            // expected
+        }
+    }
+
     public void testUnprotectedAttributes()
         throws Exception
     {
@@ -520,6 +555,41 @@ public class BcEnvelopedDataTest
         tryKeyTrans(CMSAlgorithm.AES256_CBC, NISTObjectIdentifiers.id_aes256_CBC, 32, DEROctetString.class);
     }
 
+    /**
+     * Verify that {@link BcCMSContentEncryptorBuilder#build(KeyParameter)} produces
+     * an OutputEncryptor that round-trips through CMSEnvelopedData with the
+     * caller-supplied key, mirroring the JceCMSContentEncryptorBuilder.build(SecretKey)
+     * / build(byte[]) path. The key bytes carried inside the encryptor's
+     * GenericKey must match exactly what the caller passed in.
+     */
+    public void testProvidedKeyAsKeyParameter()
+        throws Exception
+    {
+        byte[] data = "WallaWallaWashington".getBytes();
+        byte[] keyBytes = Hex.decode("000102030405060708090a0b0c0d0e0f");
+
+        CMSEnvelopedDataGenerator edGen = new CMSEnvelopedDataGenerator();
+        edGen.addRecipientInfoGenerator(new BcRSAKeyTransRecipientInfoGenerator(new JcaX509CertificateHolder(_reciCert)));
+
+        OutputEncryptor encryptor = new BcCMSContentEncryptorBuilder(CMSAlgorithm.AES128_CBC)
+            .build(new KeyParameter(keyBytes));
+
+        // The OutputEncryptor's GenericKey representation must be the bytes we provided.
+        assertTrue(Arrays.equals(keyBytes, (byte[])encryptor.getKey().getRepresentation()));
+
+        CMSEnvelopedData ed = edGen.generate(new CMSProcessableByteArray(data), encryptor);
+
+        assertEquals(CMSAlgorithm.AES128_CBC.getId(), ed.getEncryptionAlgOID());
+
+        // Decrypt and verify the plaintext came through unchanged.
+        Collection c = ed.getRecipientInfos().getRecipients();
+        assertEquals(1, c.size());
+        RecipientInformation recipient = (RecipientInformation)c.iterator().next();
+        byte[] recData = recipient.getContent(
+            new BcRSAKeyTransEnvelopedRecipient(PrivateKeyFactory.createKey(PrivateKeyInfo.getInstance(_reciKP.getPrivate().getEncoded()))));
+        assertTrue(Arrays.equals(data, recData));
+    }
+
     private void tryKeyTrans(ASN1ObjectIdentifier generatorOID, ASN1ObjectIdentifier checkOID, int keySize, Class asn1Params)
         throws Exception
     {
@@ -755,6 +825,47 @@ public class BcEnvelopedDataTest
         passwordUTF8Test(CMSAlgorithm.DES_EDE3_CBC);
     }
 
+    public void testPasswordCamellia256()
+        throws Exception
+    {
+        passwordTest(CMSAlgorithm.CAMELLIA256_CBC);
+        passwordUTF8Test(CMSAlgorithm.CAMELLIA256_CBC);
+    }
+
+    /**
+     * github #491: id-aes-GCM and id-aes-WRAP cannot be PWRI-KEK inner KEKs
+     * per RFC 3211 sec. 2.3 — those modes are not CBC. Verify the
+     * BcPasswordRecipientInfoGenerator constructor rejects both with a
+     * message that points the caller at the spec, not the previous
+     * "cannot find key size for algorithm: ..." message.
+     */
+    public void testPasswordRejectsNonCbcKeks()
+    {
+        ASN1ObjectIdentifier[] invalidKeks = {
+            CMSAlgorithm.AES128_GCM, CMSAlgorithm.AES256_GCM,
+            CMSAlgorithm.AES128_WRAP, CMSAlgorithm.AES256_WRAP,
+            CMSAlgorithm.AES128_WRAP_PAD, CMSAlgorithm.AES256_WRAP_PAD,
+        };
+
+        for (int i = 0; i != invalidKeks.length; i++)
+        {
+            try
+            {
+                new BcPasswordRecipientInfoGenerator(invalidKeks[i], "password".toCharArray());
+                fail("BcPasswordRecipientInfoGenerator accepted non-CBC kekAlgorithm " + invalidKeks[i]);
+            }
+            catch (IllegalArgumentException e)
+            {
+                if (e.getMessage() == null
+                    || e.getMessage().indexOf("RFC 3211") < 0
+                    || e.getMessage().indexOf("CBC") < 0)
+                {
+                    fail("expected an RFC 3211 / CBC pointer in the rejection message, got: " + e.getMessage());
+                }
+            }
+        }
+    }
+
     public void testRFC4134ex5_1()
         throws Exception
     {
@@ -980,41 +1091,6 @@ public class BcEnvelopedDataTest
         else
         {
             fail("no recipient found");
-        }
-    }
-
-    public void testKeyTransAllowedContentAlgorithms()
-        throws Exception
-    {
-        byte[] data = "WallaWallaWashington".getBytes();
-
-        CMSEnvelopedDataGenerator edGen = new CMSEnvelopedDataGenerator();
-
-        edGen.addRecipientInfoGenerator(new BcRSAKeyTransRecipientInfoGenerator(new JcaX509CertificateHolder(_reciCert)));
-
-        CMSEnvelopedData ed = edGen.generate(
-            new CMSProcessableByteArray(data),
-            new BcCMSContentEncryptorBuilder(CMSAlgorithm.AES256_CBC).build());
-
-        RecipientInformation recipient = (RecipientInformation)ed.getRecipientInfos().getRecipients().iterator().next();
-
-        // when the content-encryption algorithm is in the allowed set, recovery proceeds as normal
-        byte[] recData = recipient.getContent(new BcRSAKeyTransEnvelopedRecipient(PrivateKeyFactory.createKey(_reciKP.getPrivate().getEncoded()))
-            .setAllowedContentAlgorithms(Collections.singleton(CMSAlgorithm.AES256_CBC)));
-
-        assertTrue(Arrays.equals(data, recData));
-
-        // when the actual content-encryption algorithm is not in the allowed set, recovery is refused
-        try
-        {
-            recipient.getContent(new BcRSAKeyTransEnvelopedRecipient(PrivateKeyFactory.createKey(_reciKP.getPrivate().getEncoded()))
-                .setAllowedContentAlgorithms(Collections.singleton(CMSAlgorithm.AES128_CBC)));
-
-            fail("content recovered under a disallowed content-encryption algorithm");
-        }
-        catch (CMSAlgorithmNotAllowedException e)
-        {
-            // expected
         }
     }
 }
