@@ -11,6 +11,7 @@ import org.bouncycastle.asn1.cms.ContentInfo;
 import org.bouncycastle.operator.InputExpander;
 import org.bouncycastle.operator.InputExpanderProvider;
 import org.bouncycastle.util.Encodable;
+import org.bouncycastle.util.Exceptions;
 
 /**
  * containing class for an CMS Compressed Data object
@@ -77,15 +78,21 @@ public class CMSCompressedData
     }
 
     public CMSTypedStream getContentStream(InputExpanderProvider expanderProvider)
-        throws CMSException
     {
         ContentInfo     content = comData.getEncapContentInfo();
 
-        ASN1OctetString bytes = getEncapsulatedContent(content);
-        InputExpander   expander = expanderProvider.get(comData.getCompressionAlgorithmIdentifier());
-        InputStream     zIn = expander.getInputStream(bytes.getOctetStream());
+        try
+        {
+            ASN1OctetString bytes = getEncapsulatedContent(content);
+            InputExpander expander = expanderProvider.get(comData.getCompressionAlgorithmIdentifier());
+            InputStream zIn = expander.getInputStream(bytes.getOctetStream());
 
-        return new CMSTypedStream(content.getContentType(), zIn);
+            return new CMSTypedStream(content.getContentType(), zIn);
+        }
+        catch (CMSException e)
+        {
+            throw Exceptions.illegalStateException(e.getMessage(), e);
+        }
     }
 
     /**
