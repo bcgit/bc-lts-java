@@ -59,9 +59,17 @@ public class MLKEMDecapsulatorSpi
         boolean useKDF = parameterSpec.getKdfAlgorithm() != null;
 
         byte[] secret = kemExt.extractSecret(encapsulation);
-        byte[] secretKey = Arrays.copyOfRange(KdfUtil.makeKeyBytes(parameterSpec, secret), from, to);
+        byte[] kdfOut = KdfUtil.makeKeyBytes(parameterSpec, secret);
+        byte[] secretKey = Arrays.copyOfRange(kdfOut, from, to);
 
-        return new SecretKeySpec(secretKey, algorithm);
+        SecretKey result = new SecretKeySpec(secretKey, algorithm);
+
+        // zeroize intermediate key material - SecretKeySpec has already copied secretKey
+        Arrays.fill(secret, (byte)0);
+        Arrays.fill(kdfOut, (byte)0);
+        Arrays.fill(secretKey, (byte)0);
+
+        return result;
     }
 
     @Override

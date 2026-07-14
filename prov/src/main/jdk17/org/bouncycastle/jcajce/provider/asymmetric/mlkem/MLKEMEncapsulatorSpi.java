@@ -58,9 +58,17 @@ public class MLKEMEncapsulatorSpi
 
         byte[] encapsulation = secEnc.getEncapsulation();
         byte[] secret = secEnc.getSecret();
-        byte[] secretKey = Arrays.copyOfRange(KdfUtil.makeKeyBytes(parameterSpec, secret), from, to);
+        byte[] kdfOut = KdfUtil.makeKeyBytes(parameterSpec, secret);
+        byte[] secretKey = Arrays.copyOfRange(kdfOut, from, to);
 
-        return new KEM.Encapsulated(new SecretKeySpec(secretKey, algorithm), encapsulation, null); //TODO: DER encoding for params    }
+        KEM.Encapsulated result = new KEM.Encapsulated(new SecretKeySpec(secretKey, algorithm), encapsulation, null); //TODO: DER encoding for params
+
+        // zeroize intermediate key material - SecretKeySpec has already copied secretKey
+        Arrays.fill(secret, (byte)0);
+        Arrays.fill(kdfOut, (byte)0);
+        Arrays.fill(secretKey, (byte)0);
+
+        return result;
     }
 
     @Override
