@@ -28,7 +28,7 @@ f3c7277c823d0c60e9b90c7869f34adffb833f513ab3b961df6444554dda553a  prov/src/test/
 b3dc5e45f99600a68ef1c80d44a8f11d8a49998f3e6bd213154e1191f9c63b9d  prov/src/test/java/org/bouncycastle/jce/provider/test/rsa3/RSA3CertTest.java
 ebd0346c631caaacfc2cf7d0ab77b073d46006195dd286daabf31c47314652af  prov/src/test/java/org/bouncycastle/jce/provider/test/SlotTwoTest.java
 a32d1c8014d4b9100d75917bda58823b78d3764b768360865a634e8b281a2991  prov/src/test/java/org/bouncycastle/jce/provider/test/SerialisationTest.java
-7821af2b5d9c1ea4165934b9689d1d874729e1eb34f42ed4b8b4b8a3a65d558f  prov/src/test/java/org/bouncycastle/jce/provider/test/DSTU7624Test.java
+dd4ad0ffadc6d9a46c19a1dd8588d502fdadb48c28a9ac56373ac950b06859de  prov/src/test/java/org/bouncycastle/jce/provider/test/DSTU7624Test.java
 0eda8877bd5bdc5ede1b0f45b9e73e4f2d8f1e757b2bb576b7c2f813bc66b2e3  prov/src/test/java/org/bouncycastle/jce/provider/test/KeccakTest.java
 6307729642c4e6f9c8e55cb406a5271c6f2f9577e8c3a75131c29a6008bc8b8c  prov/src/test/java/org/bouncycastle/jce/provider/test/CamelliaTest.java
 81a7f0fccff16eabc4c8aec7ac86baa5bfc44a37701c0ad4150a8e91faea2ae6  prov/src/test/java/org/bouncycastle/jce/provider/test/GOST3410KeyPairTest.java
