@@ -162,7 +162,6 @@ def registerTestTask(TaskContainer taskContainer, String taskName, String expect
         testLogging.showExceptions = true
         testLogging.showStackTraces = true
 
-        systemProperty 'bc.test.data.home', bcTestDataHome
         minHeapSize = "4096m"
         maxHeapSize = "8192m"
 
