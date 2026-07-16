@@ -667,6 +667,158 @@ public class SHAKENativeDigestTests
 
     }
 
+    public void testRestoreStateRateLimits()
+            throws Exception
+    {
+        if (!TestUtil.hasNativeService(NativeServices.SHAKE))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("shake"))
+            {
+                fail("Skipping SHAKE Limit Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        SecureRandom random = new SecureRandom();
+
+        final int bufSize = 192;
+
+        for (int bitLen : new int[]{128, 256})
+        {
+            int rate = (1600 - (bitLen << 1)) >> 3; // 168, 136
+
+            byte[] msg = new byte[rate - 1];
+            random.nextBytes(msg);
+
+            SHAKENativeDigest original = new SHAKENativeDigest(bitLen);
+            original.update(msg, 0, msg.length);
+
+            SHAKENativeDigest restored = new SHAKENativeDigest(bitLen).restoreState(original.getEncodedState(), 0);
+
+            original.update((byte) 0xAA);
+            restored.update((byte) 0xAA);
+
+            byte[] d1 = new byte[original.getDigestSize()];
+            byte[] d2 = new byte[restored.getDigestSize()];
+            original.doFinal(d1, 0);
+            restored.doFinal(d2, 0);
+            TestCase.assertTrue("restore at bufPtr = rate - 1 diverged for SHAKE" + bitLen, Arrays.areEqual(d1, d2));
+
+            SHAKENativeDigest dig = new SHAKENativeDigest(bitLen);
+            dig.update((byte) 1);
+            dig.update((byte) 1);
+            dig.update((byte) 1);
+            dig.update((byte) 1);
+            dig.update((byte) 5);
+            byte[] saneState = dig.getEncodedState();
+
+            int indexOfFive = -1;
+            for (int t = 0; t < saneState.length; t++)
+            {
+                if (saneState[t] == 5)
+                {
+                    indexOfFive = t;
+                    break;
+                }
+            }
+            TestCase.assertTrue("bufPtr not found in encoded state", indexOfFive >= 0);
+
+            // Control: the unmodified state must restore cleanly.
+            new SHAKENativeDigest(bitLen).restoreState(saneState, 0);
+
+            //
+            //
+            for (int bufPtr : new int[]{rate, rate + ((bufSize - rate) / 2), bufSize - 1, bufSize})
+            {
+                byte[] state = Arrays.clone(saneState);
+                state[indexOfFive] = (byte) bufPtr;
+
+                try
+                {
+                    new SHAKENativeDigest(bitLen).restoreState(state, 0);
+                    fail("SHAKE" + bitLen + " accepted bufPtr " + bufPtr + " >= rate " + rate);
+                }
+                catch (Exception ex)
+                {
+                    TestCase.assertTrue(ex.getMessage().contains("invalid shake encoded state"));
+                }
+            }
+
+            SHAKENativeDigest sq = new SHAKENativeDigest(bitLen);
+            sq.update((byte) 1);
+            byte[] tmp = new byte[8];
+            sq.doOutput(tmp, 0, 3);
+            byte[] s1 = sq.getEncodedState();
+            sq.doOutput(tmp, 0, 4);
+            byte[] s2 = sq.getEncodedState();
+
+            int indexOfOutputPtr = -1;
+            for (int t = 0; t < s1.length; t++)
+            {
+                if (s1[t] != s2[t])
+                {
+                    TestCase.assertEquals("more than one byte changed between squeezes", -1, indexOfOutputPtr);
+                    indexOfOutputPtr = t;
+                }
+            }
+            TestCase.assertTrue("outputPtr not found in encoded state", indexOfOutputPtr >= 0);
+            TestCase.assertEquals(3, s1[indexOfOutputPtr]);
+            TestCase.assertEquals(7, s2[indexOfOutputPtr]);
+            TestCase.assertTrue(indexOfOutputPtr + 8 <= s2.length);
+
+            // The higher bytes of the little-endian value are zero in the sane state.
+            for (int t = 1; t < 8; t++)
+            {
+                TestCase.assertEquals("expected zero high byte in outputPtr", 0, s2[indexOfOutputPtr + t]);
+            }
+
+            // outputPtr == rate is legal (the next squeeze permutes and resets it) and
+            // the restored digest must remain usable.
+            byte[] state = Arrays.clone(s2);
+            state[indexOfOutputPtr] = (byte) rate;
+            new SHAKENativeDigest(bitLen).restoreState(state, 0).doOutput(tmp, 0, tmp.length);
+
+            state = Arrays.clone(s2);
+            state[indexOfOutputPtr] = (byte) (rate + 1);
+            try
+            {
+                new SHAKENativeDigest(bitLen).restoreState(state, 0);
+                fail("SHAKE" + bitLen + " accepted outputPtr " + (rate + 1) + " > rate " + rate);
+            }
+            catch (Exception ex)
+            {
+                TestCase.assertTrue(ex.getMessage().contains("invalid shake encoded state"));
+            }
+
+            // A value carried in the higher bytes must be rejected too.
+            state = Arrays.clone(s2);
+            state[indexOfOutputPtr] = 0;
+            state[indexOfOutputPtr + 1] = 1; // 256, little-endian
+            try
+            {
+                new SHAKENativeDigest(bitLen).restoreState(state, 0);
+                fail("SHAKE" + bitLen + " accepted outputPtr 256");
+            }
+            catch (Exception ex)
+            {
+                TestCase.assertTrue(ex.getMessage().contains("invalid shake encoded state"));
+            }
+
+            SHAKENativeDigest a = new SHAKENativeDigest(bitLen);
+            a.update((byte) 2);
+            byte[] block = new byte[rate];
+            a.doOutput(block, 0, rate);
+
+            SHAKENativeDigest b = new SHAKENativeDigest(bitLen).restoreState(a.getEncodedState(), 0);
+
+            byte[] o1 = new byte[64];
+            byte[] o2 = new byte[64];
+            a.doOutput(o1, 0, o1.length);
+            b.doOutput(o2, 0, o2.length);
+            TestCase.assertTrue("restore at outputPtr == rate diverged for SHAKE" + bitLen, Arrays.areEqual(o1, o2));
+        }
+    }
+
     public void testRecreatingFromMemoable()
             throws Exception
     {

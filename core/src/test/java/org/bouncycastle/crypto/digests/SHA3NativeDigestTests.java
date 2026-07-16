@@ -608,6 +608,95 @@ public class SHA3NativeDigestTests
 
     }
 
+    public void testRestoreStateRateLimits()
+            throws Exception
+    {
+        if (!TestUtil.hasNativeService("SHA3"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("sha3"))
+            {
+                fail("Skipping SHA3 Limit Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        SecureRandom random = new SecureRandom();
+
+        final int bufSize = 144;
+
+        for (int bitLen : new int[]{224, 256, 384, 512})
+        {
+            int rate = (1600 - (bitLen << 1)) >> 3; // 144, 136, 104, 72
+
+            //
+            //
+            byte[] msg = new byte[rate - 1];
+            random.nextBytes(msg);
+
+            SHA3NativeDigest original = new SHA3NativeDigest(bitLen);
+            original.update(msg, 0, msg.length);
+
+            SHA3NativeDigest restored = new SHA3NativeDigest(bitLen);
+            restored.restoreFullState(original.getEncodedState(), 0);
+
+            // Crosses the rate boundary, forcing both digests to absorb a block.
+            original.update((byte) 0xAA);
+            restored.update((byte) 0xAA);
+
+            byte[] d1 = new byte[original.getDigestSize()];
+            byte[] d2 = new byte[restored.getDigestSize()];
+            original.doFinal(d1, 0);
+            restored.doFinal(d2, 0);
+            TestCase.assertTrue("restore at bufPtr = rate - 1 diverged for SHA3-" + bitLen, Arrays.areEqual(d1, d2));
+
+            //
+            //
+            SHA3NativeDigest dig = new SHA3NativeDigest(bitLen);
+            dig.update((byte) 1);
+            dig.update((byte) 1);
+            dig.update((byte) 1);
+            dig.update((byte) 1);
+            dig.update((byte) 5);
+            byte[] saneState = dig.getEncodedState();
+
+            int indexOfFive = -1;
+            for (int t = 0; t < saneState.length; t++)
+            {
+                if (saneState[t] == 5)
+                {
+                    indexOfFive = t;
+                    break;
+                }
+            }
+            TestCase.assertTrue("bufPtr not found in encoded state", indexOfFive >= 0);
+
+            new SHA3NativeDigest(bitLen).restoreFullState(saneState, 0);
+
+            //
+            //
+            for (int bufPtr : new int[]{rate, rate + ((bufSize - rate) / 2), bufSize - 1, bufSize})
+            {
+                if (bufPtr < rate)
+                {
+                    continue;
+                }
+
+                byte[] state = Arrays.clone(saneState);
+                state[indexOfFive] = (byte) bufPtr;
+
+                try
+                {
+                    new SHA3NativeDigest(bitLen).restoreFullState(state, 0);
+                    fail("SHA3-" + bitLen + " accepted bufPtr " + bufPtr + " >= rate " + rate);
+                }
+                catch (Exception ex)
+                {
+                    TestCase.assertTrue(ex.getMessage().contains("invalid sha3 encoded state"));
+                }
+            }
+        }
+    }
+
     public void testRecreatingFromMemoable()
             throws Exception
     {
