@@ -86,6 +86,12 @@ task sourcesJar(type: Jar) {
     into('native/jniutil') {
         from '../native_c/jniutil'
     }
+
+    // git commit time, consumed by generateCbom / generateSbom (gradle/cbom.gradle,
+    // gradle/sbom.gradle) as the SOURCE_DATE_EPOCH fallback for reproducible BOM timestamps.
+    manifest.attributes('Source-Date-Epoch': providers.exec {
+        commandLine 'git', 'log', '-1', '--format=%ct'
+    }.standardOutput.asText.get().trim())
 }
 
 javadoc {

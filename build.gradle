@@ -1233,3 +1233,7 @@ tasks.named("copyAndScanJars").configure {
 test.dependsOn([':core:test', ':prov:test', ':pkix:test', ':mail:test', 'pg:test', ':tls:test'])
 
 
+apply from: "gradle/cbom.gradle"
+apply from: "gradle/sbom.gradle"
+
+
