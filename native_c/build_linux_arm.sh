@@ -109,39 +109,3 @@ make clean; make;
 # Do the actual install so if it fails we can see what is happening.
 make install
 
-
-#
-# execstack is found in the prelink package on ubuntu
-# sudo apt install prelink
-#
-# It edits the ELF GNU_STACK flag and works on cross-built ARM binaries too.
-#
-
-if [ -x "$(command -v execstack)" ]; then
-
-echo "Execstack:"
-
-targets=( "${installDir}/neon-le/libbc-lts-neon-le.so" "${installDir}/probe/libbc-probe-le.so" )
-
-for target in "${targets[@]}"
-do
-  if [[ -f "$target" ]]; then
-     execstack -c "$target"
-     echo "applied execstack to $target"
-  else
-    echo "Skipping: $target"
-  fi
-
-done
-
-else
-echo ""
-echo "!! WARNING !!"
-echo "!! 'execstack' is not install on this build host"
-echo "!! For release builds make sure the build host has the 'prelink' package installed"
-echo "!! The JVM will report a stackguard warning without it"
-echo "!! For general testing this is probably ok but if you can install it then do"
-echo ""
-fi
-
-exit;

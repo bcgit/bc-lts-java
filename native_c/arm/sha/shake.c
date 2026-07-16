@@ -258,7 +258,12 @@ bool shake_restoreFullState(shake_ctx *ctx, const uint8_t *oldState) {
     newState.rate_bytes = (1600 - ((uint32_t) newState.bitLen << 1)) >> 3;
 
 
-    if (newState.buf_u8_index >= BUF_SIZE_SHAKE) {
+    if (newState.buf_u8_index >= newState.rate_bytes) {
+        return false;
+    }
+
+
+    if (newState.state_output_index > newState.rate_bytes) {
         return false;
     }
 

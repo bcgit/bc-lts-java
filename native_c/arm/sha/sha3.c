@@ -185,7 +185,7 @@ bool sha3_restoreFullState(sha3_ctx *ctx, const uint8_t *oldState) {
     // Recalculate these
     newState.rate_bytes = (1600 - ((uint32_t) newState.bitLen << 1))>>3;
 
-    if (newState.buf_u8_index >= BUF_SIZE_SHA3) {
+    if (newState.buf_u8_index >= newState.rate_bytes) {
         return false;
     }
 
