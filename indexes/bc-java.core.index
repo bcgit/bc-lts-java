@@ -84,7 +84,7 @@ a3760ed392424348a291b159515fd4e228c7e2bd2fe37a40f4169162d07a6cf3  core/src/test/
 63dd1e4002a8279a83cb3e92d729bfe95827acc864d64db612a58296e52bd45a  core/src/test/java/org/bouncycastle/crypto/test/CCMTest.java
 6c9fdb6c0d453bf881c2a09ed19160d818248bb1f0a5b935b34aaf3ede13bdaa  core/src/test/java/org/bouncycastle/crypto/test/DESTest.java
 c1163dc1f70c9e933cfa2690cc5c6d48c2857fbff66bf01315e0c8cf31bceba8  core/src/test/java/org/bouncycastle/crypto/test/WhirlpoolDigestTest.java
-f3ce20fb14cd1edd7da57887837de411509fda0b68a158bdd144fef7a73a60aa  core/src/test/java/org/bouncycastle/crypto/test/RegressionTest.java
+6f5a4948d8d327c0d2b9825629fe85c873c02cb556b9da47fdb7800818228143  core/src/test/java/org/bouncycastle/crypto/test/RegressionTest.java
 408eb4d91b123a449f8b35b61034c2dcb77137983bcfa6dbfa4e24644a46d99f  core/src/test/java/org/bouncycastle/crypto/test/MGF1GeneratorTest.java
 90f749bf9168ce32193f305de869fa0624c2b906b580047cfac577e42894803b  core/src/test/java/org/bouncycastle/crypto/test/CramerShoupTest.java
 ee80f0578e597b879ba5b3db853bfa014ebfff85d1c6d8923bbb77cfd1d54cb5  core/src/test/java/org/bouncycastle/crypto/test/RFC3211WrapTest.java
@@ -361,7 +361,7 @@ e90b55df11c39e1e5b2ffd1c31e4c46664a48b8070064e6519af9d5e3c7ebfe8  core/src/main/
 7bd0692d37e294e4e7de31efa9c20f3421ce78861dc40999dacce1146b10249e  core/src/main/java/org/bouncycastle/crypto/modes/G3413OFBBlockCipher.java
 675e803671e17c4a5dffa3311e42781e465c8aef8ba26a585aa7bd62a968773d  core/src/main/java/org/bouncycastle/crypto/modes/GOFBBlockCipher.java
 5bdb93ed32b7c34ce50fd0a26a7a388468e90ebca5622393681faeda6d5510c9  core/src/main/java/org/bouncycastle/crypto/modes/GOST3413CipherUtil.java
-79efd6004b0b9a6a3aebc22cd0816eef4b3d512619b63299a903e879df1528ca  core/src/main/java/org/bouncycastle/crypto/modes/SICBlockCipher.java
+684c6f355af6369c119d4f66a8a4f59b10631d068ec5a7a61bceff2cc66da2c1  core/src/main/java/org/bouncycastle/crypto/modes/SICBlockCipher.java
 71073946b488792b87e82ddd1f272cd02b0153833afcde80d1a246d9bc2230f7  core/src/main/java/org/bouncycastle/crypto/modes/AEADCipher.java
 6c459a7d6f70bda8636f3dc37bd9484086feb3be3ab57e2c8fd5db4b012b1724  core/src/main/java/org/bouncycastle/crypto/modes/PGPCFBBlockCipher.java
 4b5640ea46355c8072bd1c19115bc8d07f9c8e733eb9dfdd62e2938c1bfa3741  core/src/main/java/org/bouncycastle/crypto/modes/G3413CBCBlockCipher.java
@@ -1759,3 +1759,4 @@ a7f1fc4f70ff417fecac191082896fb21a48870b656a98a6621ab4a905bed9fd  core/src/test/
 91c2cfe5cf0b21c0cdc16e33ad4c042ed1f81777c42f0cee38090bc8046c3690  core/src/test/java/org/bouncycastle/pqc/crypto/lms/PublicKeyParseTests.java
 00f650db3caa9edd1862dd2479ccaca4f4f828348aa5111373eb62e24a48c5e7  core/src/test/java/org/bouncycastle/util/utiltest/StreamsTest.java
 e06ac935a92dad92ae3cafaafef52d2b3433bbeb8e7419f98c8cabe31d72c522  core/src/test/java/org/bouncycastle/util/utiltest/AggregateRuntimeExceptionTest.java
+b1cdf9087bad879a4e65730acc69c787ffb162c522737b75293ab49d13381ef8  core/src/test/java/org/bouncycastle/crypto/test/SICPositionTest.java
