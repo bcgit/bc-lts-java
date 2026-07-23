@@ -61,7 +61,7 @@ dbc30e599de56b91716e006183f13ee779d667cbed5e674da973677019f41109  pkix/src/test/
 17bac0afdb8848832c6426dc1265e88ef787a35de5d6e8b2c1750d91cafe9d2b  pkix/src/test/java/org/bouncycastle/cert/test/ExternalKeyTest.java
 acbe3dd44babf2e10b60565d4bc33088e21270b49bf1d294afd8fd568566503a  pkix/src/test/java/org/bouncycastle/cert/test/BcPKCS10Test.java
 05db65bf5234dcef6e1fbf7ce41e9012fb6d79db339ba1eb2dd4b012e3de8c28  pkix/src/test/java/org/bouncycastle/cert/ocsp/test/AllTests.java
-a755ac5397b06459865fb3f53f314af0e38f6bb1c31c86ef59df17d474d7d0d7  pkix/src/test/java/org/bouncycastle/cert/ocsp/test/PKIXRevocationTest.java
+4ab293e9fba0fe4f07df728424d5456d1303f6d0e2546443da627a4f3d668fbb  pkix/src/test/java/org/bouncycastle/cert/ocsp/test/PKIXRevocationTest.java
 6d94267f624810aad46482a65d6e255c2eb6433d6fb20ef0edb1faab926357fe  pkix/src/test/java/org/bouncycastle/cert/ocsp/test/OCSPTest.java
 ad576edde7523b61eb5f16f4c50e57b271255037145b6381ac4bf949cf80d314  pkix/src/test/java/org/bouncycastle/cert/ocsp/test/OCSPTestUtil.java
 fdec2bf5064880e8ee5275b4fd3955a25f8ef110a7f2207e1f04206f4981cc96  pkix/src/test/java/org/bouncycastle/cert/cmp/test/AllTests.java
