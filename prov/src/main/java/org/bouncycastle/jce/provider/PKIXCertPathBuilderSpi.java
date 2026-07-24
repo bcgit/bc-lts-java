@@ -21,6 +21,7 @@ import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.jcajce.PKIXExtendedBuilderParameters;
 import org.bouncycastle.jcajce.PKIXExtendedParameters;
 import org.bouncycastle.jcajce.provider.asymmetric.x509.CertificateFactory;
+import org.bouncycastle.util.Properties;
 
 /**
  * Implements the PKIX CertPathBuilding algorithm for BouncyCastle.
@@ -82,12 +83,22 @@ public class PKIXCertPathBuilderSpi
 
         CertPathBuilderResult result = null;
 
+        maxNodes = Properties.asInteger(Properties.X509_MAX_CERT_PATH_BUILD_NODES, 262144);
+        nodesVisited = 0;
+
         // check all potential target certificates
         targetIter = targets.iterator();
-        while (targetIter.hasNext() && result == null)
+        try
         {
-            cert = (X509Certificate) targetIter.next();
-            result = build(cert, paramsPKIX, certPathList);
+            while (targetIter.hasNext() && result == null)
+            {
+                cert = (X509Certificate) targetIter.next();
+                result = build(cert, paramsPKIX, certPathList);
+            }
+        }
+        catch (NodeBudgetExceededException e)
+        {
+            throw new CertPathBuilderException(e.getMessage());
         }
 
         if (result == null && certPathException != null)
@@ -112,9 +123,23 @@ public class PKIXCertPathBuilderSpi
 
     private Exception certPathException;
 
+    private int maxNodes;
+    private int nodesVisited;
+
     protected CertPathBuilderResult build(X509Certificate tbvCert,
         PKIXExtendedBuilderParameters pkixParams, List tbvPath)
     {
+        // Keep the depth-first search bounded: candidate issuers are matched by subject name
+        // only, so a store full of like-named certificates that never chain to a trust anchor
+        // could otherwise be explored as a very large number of partial paths (see
+        // Properties.X509_MAX_CERT_PATH_BUILD_NODES).
+        if (++nodesVisited > maxNodes)
+        {
+            throw new NodeBudgetExceededException(
+                "certification path build exceeded node limit set by "
+                    + Properties.X509_MAX_CERT_PATH_BUILD_NODES);
+        }
+
         // If tbvCert is readily present in tbvPath, it indicates having run
         // into a cycle in the
         // PKI graph.
@@ -246,6 +271,19 @@ public class PKIXCertPathBuilderSpi
             tbvPath.remove(tbvCert);
         }
         return builderResult;
+    }
+
+    /**
+     * Unchecked so it unwinds the whole recursive build (which catches only the checked
+     * AnnotatedException) back to engineBuild, where it becomes a CertPathBuilderException.
+     */
+    private static class NodeBudgetExceededException
+        extends RuntimeException
+    {
+        NodeBudgetExceededException(String message)
+        {
+            super(message);
+        }
     }
 
 }

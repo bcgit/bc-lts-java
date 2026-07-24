@@ -936,7 +936,7 @@ c1b6114bfcb4450513f6bf965fe7b82e757798d801b30085a8eaa385854ff643  core/src/main/
 e34ec800eb5646ec8282b0ba3f5a274e01658191e510a2087528767c3d28e2b3  core/src/main/java/org/bouncycastle/util/Bytes.java
 37b2b197611260a9def36aeb7a05358dbdab4987edff59726fbde8659e506620  core/src/main/java/org/bouncycastle/util/StreamParsingException.java
 e55f9f839ac54df0ad44ead088fe111a35816be710b76678613530958c23a113  core/src/main/java/org/bouncycastle/util/Arrays.java
-6266837f263a0423f4f42d0e1f03c3455764fa85172fa3a4f13b87a6d12eb66e  core/src/main/java/org/bouncycastle/util/Properties.java
+e7756201b635a533860fa164db11c7b747c9f3346240ed59c7a1a4fce893115c  core/src/main/java/org/bouncycastle/util/Properties.java
 fb81274afed0e24edc4ad0c15119888ef8c25fa4d8c82845fc92af8874eb7d0e  core/src/main/java/org/bouncycastle/util/Encodable.java
 1678286a097fa6d539ebf3b549a392ba3d118202c25daac0e06d3fee17091954  core/src/main/java/org/bouncycastle/util/Characters.java
 06d767867463f6d4b34a21e0dbab3f65e2e08c31ed3564a5be4870a551e496f3  core/src/main/java/org/bouncycastle/util/Longs.java

@@ -311,12 +311,7 @@ class ProvOcspRevocationChecker
                                 }
                             }
 
-                            // Reaching here means no SingleResponse was bound to this certificate's
-                            // CertID (any full match returns or throws above). A signed-but-unrelated
-                            // stapled response - e.g. a 'good' status for a different serial from the
-                            // same CA - must not be treated as evidence that THIS certificate is good;
-                            // fail recoverably so CRL fallback can run, matching the network-fetch
-                            // path's OcspCache.isCertIDFoundAndCurrent enforcement.
+                            // no SingleResponse was bound to this certificate's CertID: fail recoverably so CRL fallback can run, matching the network-fetch path's binding enforcement.
                             throw new RecoverableCertPathValidatorException(
                                 "no OCSP response found for certificate", null, parameters.getCertPath(), parameters.getIndex());
                         }
@@ -483,10 +478,11 @@ class ProvOcspRevocationChecker
                 if (nonce != null)
                 {
                     Extensions exts = basicResp.getTbsResponseData().getResponseExtensions();
+                    org.bouncycastle.asn1.x509.Extension ext = (exts == null)
+                        ? null : exts.getExtension(OCSPObjectIdentifiers.id_pkix_ocsp_nonce);
 
-                    org.bouncycastle.asn1.x509.Extension ext = exts.getExtension(OCSPObjectIdentifiers.id_pkix_ocsp_nonce);
-
-                    if (!Arrays.areEqual(nonce, ext.getExtnValue().getOctets()))
+                    // a caller-supplied nonce the (validly signed) response does not echo back is a nonce failure, not an internal error: reject cleanly rather than NPE on absent responseExtensions/nonce.
+                    if (ext == null || !Arrays.areEqual(nonce, ext.getExtnValue().getOctets()))
                     {
                         throw new CertPathValidatorException("nonce mismatch in OCSP response", null, parameters.getCertPath(), parameters.getIndex());
                     }
