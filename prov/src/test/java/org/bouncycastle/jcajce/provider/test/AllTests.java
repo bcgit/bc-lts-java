@@ -35,6 +35,8 @@ public class AllTests
         suite.addTestSuite(BouncyCastleProviderTest.class);
         suite.addTestSuite(PQCSignatureTest.class);
         suite.addTestSuite(SecretKeyUtilTest.class);
+        suite.addTestSuite(PQCKeyDestructionTest.class);
+        suite.addTestSuite(PQCPrivateKeyDestroyTest.class);
 
         return new BCTestSetup(suite);
     }
