@@ -13,6 +13,7 @@ import org.bouncycastle.asn1.bc.BCObjectIdentifiers;
 import org.bouncycastle.asn1.bsi.BSIObjectIdentifiers;
 import org.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
 import org.bouncycastle.asn1.eac.EACObjectIdentifiers;
+import org.bouncycastle.asn1.iana.IANAObjectIdentifiers;
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
 import org.bouncycastle.asn1.gm.GMObjectIdentifiers;
 import org.bouncycastle.asn1.isara.IsaraObjectIdentifiers;
@@ -339,6 +340,32 @@ public class DefaultSignatureAlgorithmIdentifierFinder
         addAlgorithm("HASHMLDSA87-ECDSA-P384-SHA512", MiscObjectIdentifiers.id_HashMLDSA87_ECDSA_P384_SHA512);
         addAlgorithm("HASHMLDSA87-ECDSA-BRAINPOOLP384R1-SHA512", MiscObjectIdentifiers.id_HashMLDSA87_ECDSA_brainpoolP384r1_SHA512);
         addAlgorithm("HASHMLDSA87-ED448-SHA512", MiscObjectIdentifiers.id_HashMLDSA87_Ed448_SHA512);
+
+        //
+        // Composite ML-DSA on the IANA arc (draft-ietf-lamps-pq-composite-sigs). The later draft
+        // revisions pair ML-DSA-65/87 with SHA-512 throughout, where the earlier BC-arc entries
+        // above use SHA-256/SHA-384, so these are distinct names and register alongside them
+        // rather than replacing them.
+        //
+        // Note the four MLDSA44-* suites and MLDSA65-ED25519-SHA512 are deliberately absent here:
+        // their pairings did not change between revisions, so the IANA arc reuses names already
+        // bound to the BC arc above. addAlgorithm rejects a duplicate name from a static
+        // initialiser, and registering them would mean remapping which OID those names emit - an
+        // interop-visible change, not an addition.
+        //
+        addAlgorithm("MLDSA65-RSA3072-PSS-SHA512", IANAObjectIdentifiers.id_MLDSA65_RSA3072_PSS_SHA512);
+        addAlgorithm("MLDSA65-RSA3072-PKCS15-SHA512", IANAObjectIdentifiers.id_MLDSA65_RSA3072_PKCS15_SHA512);
+        addAlgorithm("MLDSA65-RSA4096-PSS-SHA512", IANAObjectIdentifiers.id_MLDSA65_RSA4096_PSS_SHA512);
+        addAlgorithm("MLDSA65-RSA4096-PKCS15-SHA512", IANAObjectIdentifiers.id_MLDSA65_RSA4096_PKCS15_SHA512);
+        addAlgorithm("MLDSA65-ECDSA-P256-SHA512", IANAObjectIdentifiers.id_MLDSA65_ECDSA_P256_SHA512);
+        addAlgorithm("MLDSA65-ECDSA-P384-SHA512", IANAObjectIdentifiers.id_MLDSA65_ECDSA_P384_SHA512);
+        addAlgorithm("MLDSA65-ECDSA-BRAINPOOLP256R1-SHA512", IANAObjectIdentifiers.id_MLDSA65_ECDSA_brainpoolP256r1_SHA512);
+        addAlgorithm("MLDSA87-RSA3072-PSS-SHA512", IANAObjectIdentifiers.id_MLDSA87_RSA3072_PSS_SHA512);
+        addAlgorithm("MLDSA87-RSA4096-PSS-SHA512", IANAObjectIdentifiers.id_MLDSA87_RSA4096_PSS_SHA512);
+        addAlgorithm("MLDSA87-ECDSA-P384-SHA512", IANAObjectIdentifiers.id_MLDSA87_ECDSA_P384_SHA512);
+        addAlgorithm("MLDSA87-ECDSA-P521-SHA512", IANAObjectIdentifiers.id_MLDSA87_ECDSA_P521_SHA512);
+        addAlgorithm("MLDSA87-ECDSA-BRAINPOOLP384R1-SHA512", IANAObjectIdentifiers.id_MLDSA87_ECDSA_brainpoolP384r1_SHA512);
+        addAlgorithm("MLDSA87-ED448-SHAKE256", IANAObjectIdentifiers.id_MLDSA87_Ed448_SHAKE256);
 
         //
         // According to RFC 3279, the ASN.1 encoding SHALL (id-dsa-with-sha1) or MUST (ecdsa-with-SHA*) omit the parameters field.

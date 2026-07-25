@@ -352,23 +352,27 @@ class CMSUtils
     {
         ASN1ObjectIdentifier algorithm = encAlgId.getAlgorithm();
 
-        // parameters are attacker-controlled on a decrypt; absent AEAD parameters give no tag
-        // length to check (the missing parameters fail the AEAD cipher setup later). A genuinely
-        // malformed SEQUENCE / out-of-range ICV still throws IllegalArgumentException here, which
-        // callers on the unauthenticated path (AbstractRecipient.checkTagSize) map to a typed
-        // CMSException rather than letting it escape.
-        if (encAlgId.getParameters() == null)
+        try
         {
-            return -1;
+            if (OidCatalogue.isGCM(algorithm))
+            {
+                return GCMParameters.getInstance(encAlgId.getParameters()).getIcvLen();
+            }
+            if (OidCatalogue.isCCM(algorithm))
+            {
+                return CCMParameters.getInstance(encAlgId.getParameters()).getIcvLen();
+            }
         }
-
-        if (OidCatalogue.isGCM(algorithm))
+        catch (RuntimeException e)
         {
-            return GCMParameters.getInstance(encAlgId.getParameters()).getIcvLen();
-        }
-        if (OidCatalogue.isCCM(algorithm))
-        {
-            return CCMParameters.getInstance(encAlgId.getParameters()).getIcvLen();
+            // encAlgId.getParameters() is attacker-controlled on the decrypt path. Absent params
+            // (getInstance(null) -> null -> getIcvLen NPE) or a too-short ICV (rejected by
+            // GCMParameters/CCMParameters' own validateICVLen) would otherwise let an unchecked
+            // exception escape the CMSException contract. Report a zero-length MAC so a recipient
+            // with a minimum-tag-size floor rejects the message as a CMSTagLengthException
+            // (fail-closed). On the generation path the parameters are well-formed, so this branch
+            // is not reached there.
+            return 0;
         }
 
         return -1;
