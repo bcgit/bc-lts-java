@@ -100,7 +100,7 @@ f837a43a23f1d370ad6fa5769e9c02527b2ad1f0b76916b049eff81a383789bb  pkix/src/test/
 a384b085ff80ae5ae08c9e98f6afc5e4074392e589abc26faabf15b7317af80a  pkix/src/test/java/org/bouncycastle/cms/test/NewAuthenticatedDataStreamTest.java
 0274943ecd69af05e010e960d474d8f2da2a5fa42d286e0790262bb2686d1bfa  pkix/src/test/java/org/bouncycastle/cms/test/Rfc4134Test.java
 2d462c97f519d1703767c3dab5af7be6c25ce21b30211c3fab6f378969d4d36e  pkix/src/test/java/org/bouncycastle/cms/test/CMSTestSetup.java
-18f906be68f17644996139cd6680528b265ff55fc38c5b823db859dfff7d0305  pkix/src/test/java/org/bouncycastle/cms/test/NewSignedDataTest.java
+0c370e7e965e6c2684e9b1dec10699490cdcf79765d9772a7347566f407c661d  pkix/src/test/java/org/bouncycastle/cms/test/NewSignedDataTest.java
 2c0b0616577ef27be68be7e781ac8720c21d8023dd58ce31fe4a57397dce5e3e  pkix/src/test/java/org/bouncycastle/cms/test/CMSSampleMessages.java
 14098d5588a93925e072e998da73c2226fe29c456a2e5a6fbfdc250af4298b2d  pkix/src/test/java/org/bouncycastle/cms/test/ConverterTest.java
 56b9e3e7a37e65a89831eb8c73005b8bfda72a9e483e0dbf9a4cf59d36aebdf8  pkix/src/test/java/org/bouncycastle/cms/test/CMSTestUtil.java

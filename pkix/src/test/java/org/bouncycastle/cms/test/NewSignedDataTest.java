@@ -1,6 +1,7 @@
 package org.bouncycastle.cms.test;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -144,6 +145,9 @@ public class NewSignedDataTest
 
     private static KeyPair         _signEcGostKP;
     private static X509Certificate _signEcGostCert;
+
+    private static KeyPair         _signEcGost2012_256KP;
+    private static X509Certificate _signEcGost2012_256Cert;
 
     private static KeyPair         _signDsaKP;
     private static X509Certificate _signDsaCert;
@@ -869,6 +873,12 @@ public class NewSignedDataTest
 
             _signEcGostKP = CMSTestUtil.makeEcGostKeyPair();
             _signEcGostCert = CMSTestUtil.makeCertificate(_signEcGostKP, _signDN, _origKP, _origDN);
+
+            if (CMSTestUtil.ecGost2012_256Kpg != null)
+            {
+                _signEcGost2012_256KP = CMSTestUtil.makeEcGost2012_256KeyPair();
+                _signEcGost2012_256Cert = CMSTestUtil.makeCertificate(_signEcGost2012_256KP, _signDN, _origKP, _origDN);
+            }
 
             _signEd25519KP   = CMSTestUtil.makeEd25519KeyPair();
             _signEd25519Cert = CMSTestUtil.makeCertificate(_signEd25519KP, _signDN, _origKP, _origDN);
@@ -2015,6 +2025,11 @@ public class NewSignedDataTest
         assertEquals(si.toASN1Structure().getEncoded(ASN1Encoding.DER).length, predicted);
     }
 
+    /**
+     * The id-shake256-len parameter is what makes the length knowable, so a missing or malformed
+     * parameter must yield -1 ("fall back to indefinite-length") rather than a wrong length that
+     * would be committed to a DL header before the body is written.
+     */
     public void testMalformedShake256LenGivesNoPrediction()
         throws Exception
     {
@@ -2039,6 +2054,10 @@ public class NewSignedDataTest
             NISTObjectIdentifiers.id_shake256_len, new ASN1Integer(new BigInteger("18446744073709551616")))));
     }
 
+    /**
+     * CMSUtils is package-private to org.bouncycastle.cms, so reach it reflectively rather than
+     * adding public API for a test.
+     */
     private int invokeGetDigestOutputLength(AlgorithmIdentifier digAlgId)
         throws Exception
     {
@@ -2047,6 +2066,301 @@ public class NewSignedDataTest
         m.setAccessible(true);
 
         return ((Integer)m.invoke(null, new Object[]{digAlgId})).intValue();
+    }
+
+    private boolean verifyAllSigners(CMSSignedData data)
+        throws Exception
+    {
+        return verifyAllSigners(data.getSignerInfos(), data.getCertificates());
+    }
+
+    private boolean verifyAllSigners(SignerInformationStore signers, Store certs)
+        throws Exception
+    {
+        for (Iterator it = signers.getSigners().iterator(); it.hasNext();)
+        {
+            SignerInformation signer = (SignerInformation)it.next();
+            X509CertificateHolder holder = (X509CertificateHolder)certs.getMatches(signer.getSID()).iterator().next();
+            if (!signer.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider(BC).build(holder)))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void testAsVersion()
+        throws Exception
+    {
+        // replaceSigners recomputes the CMS version per RFC 5652 (a non-id-data eContentType such
+        // as Authenticode's SPC_INDIRECT_DATA computes to version 3), but a producer can pin a
+        // specific version with CMSSignedData.asVersion(int) - e.g. Authenticode requires 1.
+        // Regression test for github #2344.
+        ASN1ObjectIdentifier spcIndirectData = new ASN1ObjectIdentifier("1.3.6.1.4.1.311.2.1.4");
+
+        List certList = new ArrayList();
+        certList.add(_origCert);
+        certList.add(_signCert);
+        Store certs = new JcaCertStore(certList);
+
+        CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
+        DigestCalculatorProvider digProvider = new JcaDigestCalculatorProviderBuilder().setProvider(BC).build();
+        JcaSignerInfoGeneratorBuilder sigGenBuilder = new JcaSignerInfoGeneratorBuilder(digProvider);
+        ContentSigner sha1Signer = new JcaContentSignerBuilder("SHA1withRSA").setProvider(BC).build(_origKP.getPrivate());
+        gen.addSignerInfoGenerator(sigGenBuilder.build(sha1Signer, _origCert));
+        gen.addCertificates(certs);
+
+        CMSSignedData s = gen.generate(new CMSProcessableByteArray(spcIndirectData, "hello world".getBytes()), true);
+
+        // a non-id-data eContentType yields version 3 both on generation and after replaceSigners.
+        assertEquals("generated version", 3, s.getVersion());
+        CMSSignedData replaced = CMSSignedData.replaceSigners(s, s.getSignerInfos());
+        assertEquals("replaceSigners recomputes to version 3", 3, replaced.getVersion());
+
+        // asVersion(1) pins the Authenticode version without disturbing anything else.
+        CMSSignedData pinned = replaced.asVersion(1);
+        assertEquals("asVersion pins the version", 1, pinned.getVersion());
+
+        // the content type, certificates and signer are untouched, and the signature still verifies.
+        assertEquals(spcIndirectData, pinned.getSignedContent().getContentType());
+        assertEquals(replaced.getCertificates().getMatches(null).size(), pinned.getCertificates().getMatches(null).size());
+
+        SignerInformation signer = (SignerInformation)pinned.getSignerInfos().getSigners().iterator().next();
+        X509CertificateHolder cert = (X509CertificateHolder)pinned.getCertificates().getMatches(signer.getSID()).iterator().next();
+        assertTrue("signature valid after asVersion",
+            signer.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider(BC).build(cert)));
+
+        // asVersion round-trips through an encode/decode.
+        assertEquals(1, new CMSSignedData(pinned.getEncoded()).getVersion());
+    }
+
+    public void testEmptySignersRejected()
+        throws Exception
+    {
+        List certList = new ArrayList();
+        certList.add(_origCert);
+        Store certs = new JcaCertStore(certList);
+
+        // Degenerate / certs-only SignedData: certificates but no SignerInfos.
+        CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
+        gen.addCertificates(certs);
+
+        CMSSignedData s = gen.generate(new CMSProcessableByteArray("attacker payload".getBytes()), true);
+        s = new CMSSignedData(s.getEncoded());
+
+        assertTrue("expected no signers", s.getSignerInfos().getSigners().isEmpty());
+
+        SignerInformationVerifierProvider vProv = new SignerInformationVerifierProvider()
+        {
+            public SignerInformationVerifier get(SignerId signerId)
+                throws OperatorCreationException
+            {
+                return new JcaSimpleSignerInfoVerifierBuilder().setProvider(BC).build(_signCert);
+            }
+        };
+
+        try
+        {
+            s.verifySignatures(vProv);
+            fail("verifySignatures must reject a SignedData with no signers");
+        }
+        catch (CMSException e)
+        {
+            assertEquals("no signers present in SignedData", e.getMessage());
+        }
+    }
+
+    public void testEncapsulatedWithDEREncoding()
+        throws Exception
+    {
+        List              certList = new ArrayList();
+        CMSTypedData      msg = new CMSProcessableByteArray("Hello world!".getBytes());
+
+        certList.add(_origCert);
+        certList.add(_signCert);
+
+        Store           certs = new JcaCertStore(certList);
+
+        CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
+        ContentSigner sha256Signer = new JcaContentSignerBuilder("SHA256withRSA").setProvider(BC).build(_origKP.getPrivate());
+
+        gen.addSignerInfoGenerator(new JcaSignerInfoGeneratorBuilder(new JcaDigestCalculatorProviderBuilder().setProvider(BC).build()).build(sha256Signer, _origCert));
+
+        gen.addCertificates(certs);
+
+        gen.setEncoding(ASN1Encoding.DER);
+
+        CMSSignedData s = gen.generate(msg, true);
+
+        // canonical - re-encoding as DER is the identity
+        byte[] enc = s.getEncoded();
+
+        assertTrue(org.bouncycastle.util.Arrays.areEqual(enc, ContentInfo.getInstance(enc).getEncoded(ASN1Encoding.DER)));
+
+        //
+        // compute expected content digest and verify the round trip
+        //
+        MessageDigest md = MessageDigest.getInstance("SHA256", BC);
+
+        verifySignatures(new CMSSignedData(enc), md.digest("Hello world!".getBytes()));
+    }
+
+    /**
+     * Parser robustness: a CMS ContentInfo whose content is tagged [APPLICATION 0]
+     * instead of context [0] makes the ASN.1 layer throw an IllegalArgumentException
+     * ("Expected CONTEXT tag but found APPLICATION") out of ContentInfo. Before the
+     * parse hardening this escaped CMSSignedData(byte[])'s declared "throws CMSException"
+     * as a raw RuntimeException; it must now surface as a CMSException carrying the
+     * original ASN.1 exception as its cause.
+     */
+    public void testMalformedContentTagSurfacesAsCMSException()
+        throws Exception
+    {
+        // SEQUENCE { OBJECT IDENTIFIER 1.2.840.113549.1.7.2 (id-signedData),
+        //            [APPLICATION 0] { INTEGER 0 } }  -- content tagged 0x60, not context [0] 0xA0
+        byte[] malformed = new byte[]{
+            0x30, 0x10, 0x06, 0x09, 0x2a, (byte)0x86, 0x48, (byte)0x86,
+            (byte)0xf7, 0x0d, 0x01, 0x07, 0x02, 0x60, 0x03, 0x02, 0x01, 0x00
+        };
+
+        try
+        {
+            new CMSSignedData(malformed);
+            fail("malformed CMS content must not parse");
+        }
+        catch (CMSException e)
+        {
+            assertTrue("expected the ASN.1 exception to be wrapped as the cause, was "
+                + e.getCause(), e.getCause() instanceof IllegalArgumentException);
+        }
+    }
+
+    public void testNestedCounterSignature()
+        throws Exception
+    {
+        List certList = new ArrayList();
+        CMSTypedData msg = new CMSProcessableByteArray("Hello World!".getBytes());
+
+        certList.add(_signCert);
+        certList.add(_origCert);
+
+        Store certStore = new JcaCertStore(certList);
+
+        CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
+
+        ContentSigner sha1Signer = new JcaContentSignerBuilder("SHA1withRSA").setProvider(BC).build(_signKP.getPrivate());
+        gen.addSignerInfoGenerator(new JcaSignerInfoGeneratorBuilder(new JcaDigestCalculatorProviderBuilder().setProvider(BC).build()).build(sha1Signer, _signCert));
+        gen.addCertificates(certStore);
+
+        CMSSignedData s = gen.generate(msg, true);
+        SignerInformation origSigner = (SignerInformation)s.getSignerInfos().getSigners().toArray()[0];
+
+        // First-level counter-signer: signed by _origKP, counters the primary signer.
+        CMSSignedDataGenerator firstLevelGen = new CMSSignedDataGenerator();
+        ContentSigner firstLevelSigner = new JcaContentSignerBuilder("SHA1withRSA").setProvider(BC).build(_origKP.getPrivate());
+        firstLevelGen.addSignerInfoGenerator(new JcaSignerInfoGeneratorBuilder(new JcaDigestCalculatorProviderBuilder().setProvider(BC).build()).build(firstLevelSigner, _origCert));
+        SignerInformationStore firstLevel = firstLevelGen.generateCounterSigners(origSigner);
+
+        SignerInformation enriched = SignerInformation.addCounterSigners(origSigner, firstLevel);
+
+        // Second-level counter-signer: signed by _signKP, counters the first-level counter-signer.
+        SignerInformation firstLevelCs = (SignerInformation)enriched.getCounterSignatures().getSigners().iterator().next();
+        SignerId firstLevelCsId = firstLevelCs.getSID();
+
+        CMSSignedDataGenerator secondLevelGen = new CMSSignedDataGenerator();
+        ContentSigner secondLevelSigner = new JcaContentSignerBuilder("SHA1withRSA").setProvider(BC).build(_signKP.getPrivate());
+        secondLevelGen.addSignerInfoGenerator(new JcaSignerInfoGeneratorBuilder(new JcaDigestCalculatorProviderBuilder().setProvider(BC).build()).build(secondLevelSigner, _signCert));
+        SignerInformationStore secondLevel = secondLevelGen.generateCounterSigners(firstLevelCs);
+
+        SignerInformation nested = SignerInformation.addCounterSigners(enriched, firstLevelCsId, secondLevel);
+
+        // Outer signer still has exactly one first-level counter-signer.
+        assertEquals(1, nested.getCounterSignatures().size());
+
+        SignerInformation reachedFirst = (SignerInformation)nested.getCounterSignatures().getSigners().iterator().next();
+        assertTrue(reachedFirst.getSID().equals(firstLevelCsId));
+        assertTrue(reachedFirst.isCounterSignature());
+        assertTrue(reachedFirst.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider(BC).build(_origCert)));
+
+        // The first-level counter-signer now has exactly one nested counter-signer.
+        SignerInformationStore nestedStore = reachedFirst.getCounterSignatures();
+        assertEquals(1, nestedStore.size());
+
+        SignerInformation reachedSecond = (SignerInformation)nestedStore.getSigners().iterator().next();
+        assertTrue(reachedSecond.isCounterSignature());
+        assertTrue(reachedSecond.verify(new JcaSimpleSignerInfoVerifierBuilder().setProvider(BC).build(_signCert)));
+
+        // Replace the signer in the original SignedData and verify the whole structure round-trips.
+        List signers = new ArrayList();
+        signers.add(nested);
+        CMSSignedData enrichedSd = CMSSignedData.replaceSigners(s, new SignerInformationStore(signers));
+
+        SignerInformation roundTripped = (SignerInformation)enrichedSd.getSignerInfos().getSigners().iterator().next();
+        assertEquals(1, roundTripped.getCounterSignatures().size());
+        SignerInformation roundTrippedFirst = (SignerInformation)roundTripped.getCounterSignatures().getSigners().iterator().next();
+        assertEquals(1, roundTrippedFirst.getCounterSignatures().size());
+
+        // Mismatched SignerId rejected with IllegalArgumentException.
+        try
+        {
+            SignerInformation.addCounterSigners(enriched, new SignerId(new byte[]{ 1, 2, 3 }), secondLevel);
+            fail("expected IllegalArgumentException for non-matching SignerId");
+        }
+        catch (IllegalArgumentException e)
+        {
+            assertEquals("no counter-signer matches the supplied SignerId", e.getMessage());
+        }
+    }
+
+    /**
+     * Regression test for https://github.com/bcgit/bc-java/issues/1501 - a
+     * GOST3411-2012-256WITHECGOST3410-2012-256 direct signature (no signed
+     * attributes) read back through CMSSignedDataParser must verify. The
+     * parser path leaves SignerInformation with resultDigest pre-computed
+     * and content == null, so doVerify can only succeed via the
+     * RawContentVerifier branch — exercises the BC registration of
+     * NONEWITHECGOST3410-2012-256.
+     */
+    public void testEcGost2012_256NoAttributesEncapsulatedViaParser()
+        throws Exception
+    {
+        if (_signEcGost2012_256Cert == null)
+        {
+            // GOST-2012 absent from this distribution (see CMSTestUtil static init).
+            return;
+        }
+
+        List certList = new ArrayList();
+        certList.add(_signEcGost2012_256Cert);
+        Store certStore = new JcaCertStore(certList);
+
+        CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
+        ContentSigner signer = new JcaContentSignerBuilder("GOST3411-2012-256WITHECGOST3410-2012-256")
+            .setProvider(BC).build(_signEcGost2012_256KP.getPrivate());
+        gen.addSignerInfoGenerator(
+            new JcaSignerInfoGeneratorBuilder(
+                new JcaDigestCalculatorProviderBuilder().setProvider(BC).build())
+                .setDirectSignature(true)
+                .build(signer, _signEcGost2012_256Cert));
+        gen.addCertificates(certStore);
+
+        CMSSignedData signedData = gen.generate(new CMSProcessableByteArray(new byte[]{1, 2, 3, 4, 5}), true);
+
+        // Sanity: signed-attribute set must be absent on the direct signature.
+        SignerInformation built = (SignerInformation)signedData.getSignerInfos().getSigners().iterator().next();
+        assertNull(built.getSignedAttributes());
+
+        byte[] encoded = signedData.getEncoded();
+
+        // control: the non-parser path was never affected
+        assertTrue(verifyAllSigners(new CMSSignedData(encoded)));
+
+        // regression: the parser path leaves content == null with resultDigest pre-computed
+        CMSSignedDataParser parser = new CMSSignedDataParser(
+            new JcaDigestCalculatorProviderBuilder().setProvider(BC).build(),
+            new ByteArrayInputStream(encoded));
+        parser.getSignedContent().drain();
+        assertTrue(verifyAllSigners(parser.getSignerInfos(), parser.getCertificates()));
     }
 
     public void testEd25519WithNoAttr()
