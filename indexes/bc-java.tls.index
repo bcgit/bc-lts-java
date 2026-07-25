@@ -371,7 +371,7 @@ fe1ee07758af94137433f974f7c3d23683cb8a97f65e848ccc936ed3a8007a59  tls/src/main/j
 36f4779374a55ac6fefae140e46d98ca0075f935a2aa005239c51edd13e34002  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaTlsStreamVerifier.java
 7306f9544ffe0251d23faae08572f9c6acbab344de379707e96a1f58df5318f8  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JceTlsDH.java
 bbe779fd8658e3a155acc1ede6c9f0efe3a5fb3fdc541cb07be0aa5a2fee39ba  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaTlsEd25519Signer.java
-7977fb34149050e3efe13f7ac24f443fda83e78bc32610b6c8ae8378b9083647  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaTlsCrypto.java
+7d63eb37a694724f590074030f9458ba76520d681d1cadeb106e74ddec2af608  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaTlsCrypto.java
 541fc2106b10c2c16d45a8b9268d24de1f740426a341bac5b9a92b9a71183cf5  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaTls13Verifier.java
 395be7e5a190bd3214d3b0793520f4c256d06c2fbde3b90cf0f823a2ba0884ce  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaTlsHash.java
 149ce4170e053848006d1925fea6d8ce5d0ad1efbbc71cf32eb0fc1680dcef93  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaTlsDSSVerifier.java
