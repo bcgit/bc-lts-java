@@ -24,7 +24,15 @@ public class AllTests
                         new OnePassSignaturePacketTest(),
                         new OpenPgpMessageTest(),
                         new FingerprintUtilTest(),
-                        new EncryptedMessagePacketTest()
+                        new EncryptedMessagePacketTest(),
+                        // These five are present in this package but were not listed here, so they
+                        // never ran. The build only collects classes matching AllTest*, so a packet
+                        // test is only executed if it appears in this array.
+                        new BCPGOutputStreamTest(),
+                        new OCBEncryptedDataPacketTest(),
+                        new SignatureSubpacketsTest(),
+                        new UnknownPublicKeyPacketTest(),
+                        new UnknownSecretKeyPacketTest()
                 };
 
         for (int i = 0; i != tests.length; i++)
