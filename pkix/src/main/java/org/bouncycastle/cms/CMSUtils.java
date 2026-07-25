@@ -530,7 +530,16 @@ class CMSUtils
             AttributeTable attrTable = authAttrsGenerator.getAttributes(getEmptyParameters());
 
             authenticatedAttrSet = new DERSet(attrTable.toASN1EncodableVector());
-            encryptor.getAADStream().write(authenticatedAttrSet.getEncoded(ASN1Encoding.DER));
+
+            // An AEAD encryptor that cannot collect associated data returns null here rather than a
+            // stream (see JceCMSContentEncryptorBuilder, which probes for Cipher.updateAAD). Report
+            // that as the declared IOException instead of dereferencing null.
+            OutputStream aadStream = encryptor.getAADStream();
+            if (aadStream == null)
+            {
+                throw new IOException("authenticated attributes require AEAD AAD support (JDK 1.7+)");
+            }
+            aadStream.write(authenticatedAttrSet.getEncoded(ASN1Encoding.DER));
         }
         return authenticatedAttrSet;
     }
