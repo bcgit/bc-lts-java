@@ -135,6 +135,14 @@ public abstract class JceKTSKeyTransRecipient
         return this;
     }
 
+    /**
+     * Set the content-encryption algorithms this recipient is willing to unwrap a key for. When set, an
+     * attempt to recover content protected under any other algorithm is rejected, mitigating an attacker
+     * substituting a weaker content-encryption algorithm into the recipient info.
+     *
+     * @param allowedContentAlgorithms the set of permitted content-encryption algorithm OIDs.
+     * @return this recipient.
+     */
     public JceKTSKeyTransRecipient setAllowedContentAlgorithms(Set<ASN1ObjectIdentifier> allowedContentAlgorithms)
     {
         setAllowedContentAlgorithmSet(allowedContentAlgorithms);
@@ -142,6 +150,14 @@ public abstract class JceKTSKeyTransRecipient
         return this;
     }
 
+    /**
+     * Set the minimum AEAD authentication tag size (in bits) this recipient will accept. When set, an
+     * attempt to recover content whose AEAD content algorithm carries a shorter tag is rejected,
+     * mitigating an attacker downgrading the tag to a weaker length.
+     *
+     * @param tagSizeInBits the minimum acceptable AEAD tag size, in bits.
+     * @return this recipient.
+     */
     public JceKTSKeyTransRecipient setMinimumTagSize(int tagSizeInBits)
     {
         setMinimumTagSizeInBits(tagSizeInBits);

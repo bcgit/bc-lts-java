@@ -79,7 +79,7 @@ efacc706165f6eec599c04a30b97f5a7d29eede684c7dba9910d0e3287527586  pg/src/main/ja
 05cd4d6cb49b72bdc5c5e223964366b9249fb90defc7494497a0c929513757af  pg/src/main/java/org/bouncycastle/bcpg/AEADAlgorithmTags.java
 7880aaa430254db5b66d39f1aca035b2df8ecec9d3da4560b69b23751925500e  pg/src/main/java/org/bouncycastle/bcpg/CompressedDataPacket.java
 787f8b7fe4c4f1e204d4ac46a860145718066ce8ddcaafa836e12f71764e9323  pg/src/main/java/org/bouncycastle/bcpg/CRC24.java
-5fd7d924e03305df045ca0994624b77b9b666a577fc27d88f99e851f9ccc03ca  pg/src/main/java/org/bouncycastle/bcpg/SymmetricEncIntegrityPacket.java
+2818da873b2bdff32fb4939e215f6500a85ff5d6eb1f3016c6cd0b5f6ae5b733  pg/src/main/java/org/bouncycastle/bcpg/SymmetricEncIntegrityPacket.java
 fd573f130b310f75a2ded9f333c1b21f3fcf5d838a727e18e85dc63ac0a8e60e  pg/src/main/java/org/bouncycastle/bcpg/ExperimentalPacket.java
 cfc456ff9719b3bad7658dc3e84aef0f54f8863840090d8d89002528d0fcb6ab  pg/src/main/java/org/bouncycastle/bcpg/AEADUtils.java
 7c1f3091790afdd90cbbacb2608b0d15116e9c955cce80c01c9e9e9a8fab6adb  pg/src/main/java/org/bouncycastle/bcpg/InputStreamPacket.java
@@ -357,7 +357,7 @@ f18c62040c90ae95e93e0d56f0ca6e8ce21e940cfe332a7d9b59595cb13088c0  pg/src/main/ja
 eb035eb0c41ff208398821b454f5a0ec2723413eeab93d841ce6458edd06e109  pg/src/test/java/org/bouncycastle/bcpg/test/AbstractPacketTest.java
 494c35f36b1bd7d3b4102de40241fb4671941ccb0e3d571c1aaec9b1423b7e06  pg/src/test/java/org/bouncycastle/bcpg/test/AllTests.java
 3399bc697aba6c5d77cd77b1ac16595f53db503986ac895b7d77d18e9ea4c982  pg/src/test/java/org/bouncycastle/bcpg/test/BCPGOutputStreamTest.java
-f15100e7d089681f9d62c3b3b7effad80d8dc7a840292aebb186a42abf1de4ce  pg/src/test/java/org/bouncycastle/bcpg/test/EncryptedMessagePacketTest.java
+8829822a3420e181159ca69413cd8243b523a570d8bbdc92353c51bdd98579c2  pg/src/test/java/org/bouncycastle/bcpg/test/EncryptedMessagePacketTest.java
 6621108ba372b4a67f7de15b4759407282498c19658725ee955e7f3b403748aa  pg/src/test/java/org/bouncycastle/bcpg/test/FingerprintUtilTest.java
 577e9ab22c3fa26cb149e797ae0ec30fd00ba0d3be416e829f5ba89777883874  pg/src/test/java/org/bouncycastle/bcpg/test/OCBEncryptedDataPacketTest.java
 935007efbc615cd97cf07dbb1756af30ca3a93796b6a261b36674b80e65f827a  pg/src/test/java/org/bouncycastle/bcpg/test/OnePassSignaturePacketTest.java
