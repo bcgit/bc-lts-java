@@ -77,16 +77,13 @@ public class PredictedEncodedLengthTest
     }
 
     /**
-     * Ed448 is a documented fixed-length signer - JcaContentSignerBuilder declares 114 octets - yet
-     * the prediction is unavailable, because Ed448 digests under id-shake256-len
-     * (2.16.840.1.101.3.4.2.18) and CMSUtils.getDigestOutputLength only maps plain id-shake256
-     * (...2.12). That OID carries its output length as a parameter, so it cannot simply be added to
-     * a fixed table.
-     * <p>
-     * Asserted rather than fixed so the limitation is recorded and a future change that closes it
-     * fails here loudly instead of passing unnoticed.
+     * Ed448 is a fixed-length signer (114 octets) and, with signed attributes, digests under
+     * id-shake256-len (2.16.840.1.101.3.4.2.18) per RFC 8419 sec. 3.1 rather than plain
+     * id-shake256 (...2.12). That OID carries its output length in bits as an ASN.1 parameter, so
+     * the prediction has to read the parameter instead of consulting a fixed table - this test
+     * pins that it does.
      */
-    public void testEd448IsFixedLengthButStillUnpredictable()
+    public void testEd448PredictionMatchesActual()
         throws Exception
     {
         KeyPair kp = KeyPairGenerator.getInstance("Ed448", BC).generateKeyPair();
@@ -95,12 +92,7 @@ public class PredictedEncodedLengthTest
         assertTrue("Ed448 should present as fixed-length", signer instanceof FixedLengthContentSigner);
         assertEquals("Ed448 signature length", 114, ((FixedLengthContentSigner)signer).getSignatureLength());
 
-        long predicted = generatorFor(signer, certFor(kp, "Ed448"))
-            .getPredictedEncodedLength(CMSObjectIdentifiers.data);
-
-        assertEquals("Ed448 prediction is expected to be unavailable while id-shake256-len is "
-            + "unmapped; if this now succeeds, verify it against the actual encoding and update "
-            + "this test", -1L, predicted);
+        checkPredictionExact("Ed448", "Ed448", -1);
     }
 
     private void checkPredictionExact(String sigAlg, String keyAlg, int keySize)
