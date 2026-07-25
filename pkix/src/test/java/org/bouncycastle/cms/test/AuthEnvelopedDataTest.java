@@ -471,29 +471,35 @@ public class AuthEnvelopedDataTest
         }
     }
 
-    // Disabled in this distribution: this distribution emits definite-length (0x82) where the test expects the BER indefinite-length (0x80) form - the definite-length CMS divergence.
-//    public void testGCMEncodings()
-//        throws Exception
-//    {
-//        if (!CMSTestUtil.isAeadAvailable())
-//        {
-//            return;
-//        }
-////        byte[] message = Strings.toByteArray("Hello, world!");
-////        // default - outer ContentInfo uses the indefinite-length (BER) method
-//        byte[] enc = gcmEncode(message, null);
-////        assertEquals((byte)0x80, enc[1]);
-//        gcmDecode(enc, message);
-////        // DL - definite-length throughout, re-encoding as DL is the identity
-//        enc = gcmEncode(message, ASN1Encoding.DL);
-////        assertTrue(enc[1] != (byte)0x80);
-//        assertTrue(Arrays.areEqual(enc, ContentInfo.getInstance(enc).getEncoded(ASN1Encoding.DL)));
-//        gcmDecode(enc, message);
-////        // DER - canonical, re-encoding as DER is the identity
-//        enc = gcmEncode(message, ASN1Encoding.DER);
-////        assertTrue(Arrays.areEqual(enc, ContentInfo.getInstance(enc).getEncoded(ASN1Encoding.DER)));
-//        gcmDecode(enc, message);
-//    }
+    public void testGCMEncodings()
+        throws Exception
+    {
+        if (!CMSTestUtil.isAeadAvailable())
+        {
+            return;
+        }
+
+        byte[] message = Strings.toByteArray("Hello, world!");
+
+        // default - outer ContentInfo uses the indefinite-length (BER) method
+        byte[] enc = gcmEncode(message, null);
+
+        assertEquals((byte)0x80, enc[1]);
+        gcmDecode(enc, message);
+
+        // DL - definite-length throughout, re-encoding as DL is the identity
+        enc = gcmEncode(message, ASN1Encoding.DL);
+
+        assertTrue(enc[1] != (byte)0x80);
+        assertTrue(Arrays.areEqual(enc, ContentInfo.getInstance(enc).getEncoded(ASN1Encoding.DL)));
+        gcmDecode(enc, message);
+
+        // DER - canonical, re-encoding as DER is the identity
+        enc = gcmEncode(message, ASN1Encoding.DER);
+
+        assertTrue(Arrays.areEqual(enc, ContentInfo.getInstance(enc).getEncoded(ASN1Encoding.DER)));
+        gcmDecode(enc, message);
+    }
 
     private byte[] gcmEncode(byte[] message, String encoding)
         throws Exception

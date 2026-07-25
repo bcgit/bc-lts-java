@@ -1119,25 +1119,24 @@ public class NewEnvelopedDataTest
         assertTrue(collection.iterator().next() instanceof RecipientInformation);
     }
 
-    // Disabled in this distribution: definite-length (DL) CMS generation is not part of this distribution.
-//    public void testKeyTransEncodings()
-//        throws Exception
-//    {
-//        byte[] data = "WallaWallaWashington".getBytes();
-////        // default - outer ContentInfo uses the indefinite-length (BER) method
-//        byte[] enc = keyTransEncode(data, null);
-////        assertEquals((byte)0x80, enc[1]);
-//        keyTransDecode(enc, data);
-////        // DL - definite-length throughout, re-encoding as DL is the identity
-//        enc = keyTransEncode(data, ASN1Encoding.DL);
-////        assertTrue(enc[1] != (byte)0x80);
-//        assertTrue(Arrays.equals(enc, ContentInfo.getInstance(enc).getEncoded(ASN1Encoding.DL)));
-//        keyTransDecode(enc, data);
-////        // DER - canonical, re-encoding as DER is the identity
-//        enc = keyTransEncode(data, ASN1Encoding.DER);
-////        assertTrue(Arrays.equals(enc, ContentInfo.getInstance(enc).getEncoded(ASN1Encoding.DER)));
-//        keyTransDecode(enc, data);
-//    }
+    public void testKeyTransEncodings()
+        throws Exception
+    {
+        byte[] data = "WallaWallaWashington".getBytes();
+//        // default - outer ContentInfo uses the indefinite-length (BER) method
+        byte[] enc = keyTransEncode(data, null);
+//        assertEquals((byte)0x80, enc[1]);
+        keyTransDecode(enc, data);
+//        // DL - definite-length throughout, re-encoding as DL is the identity
+        enc = keyTransEncode(data, ASN1Encoding.DL);
+//        assertTrue(enc[1] != (byte)0x80);
+        assertTrue(Arrays.equals(enc, ContentInfo.getInstance(enc).getEncoded(ASN1Encoding.DL)));
+        keyTransDecode(enc, data);
+//        // DER - canonical, re-encoding as DER is the identity
+        enc = keyTransEncode(data, ASN1Encoding.DER);
+//        assertTrue(Arrays.equals(enc, ContentInfo.getInstance(enc).getEncoded(ASN1Encoding.DER)));
+        keyTransDecode(enc, data);
+    }
 
     private byte[] keyTransEncode(byte[] data, String encoding)
         throws Exception

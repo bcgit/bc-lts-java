@@ -1762,3 +1762,4 @@ e06ac935a92dad92ae3cafaafef52d2b3433bbeb8e7419f98c8cabe31d72c522  core/src/test/
 b1cdf9087bad879a4e65730acc69c787ffb162c522737b75293ab49d13381ef8  core/src/test/java/org/bouncycastle/crypto/test/SICPositionTest.java
 78442cafb6436cb5b742691d7529cd26d28305953ad56dda3fd7eeb308849232  core/src/main/java/org/bouncycastle/asn1/DLGenerator.java
 355a8415d133ac47a08b0f86112c6de9f5c86d47b5d2f4d77da7ac04c833a047  core/src/main/java/org/bouncycastle/asn1/DLSequenceGenerator.java
+0f3bb3e0f4c27ce823e91b01f52cd7fd567a48a059acb905ba4edd655b72bc71  core/src/main/java/org/bouncycastle/asn1/DLOctetStringGenerator.java
