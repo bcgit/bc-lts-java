@@ -853,14 +853,17 @@ public class PGPPublicKey
     /**
      * Check whether this (sub)key has a revocation signature on it.
      *
-     * @return boolean indicating whether this (sub)key has had a (possibly invalid) revocation attached..
+     * @return boolean indicating whether this (sub)key has had a (possibly invalid) revocation attached.
      */
     public boolean hasRevocation()
     {
         int ns = 0;
         boolean revoked = false;
 
-        if (this.isMasterKey())    // Master key
+        // subSigs is null for a primary key and non-null for a subkey; it is the reliable discriminator here
+        // (isMasterKey can be false for an encryption-algorithm primary, whose subSigs would be null, which
+        // previously threw a NullPointerException).
+        if (subSigs == null)    // Primary key
         {
             while (!revoked && (ns < keySigs.size()))
             {
