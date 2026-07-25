@@ -70,9 +70,19 @@ public class AllTests
 
     public static void main(String[] args)
     {
-        TestSuite suite = new TestSuite();
+        PrintTestResult.printResult(junit.textui.TestRunner.run(suite()));
+    }
+
+    public static junit.framework.Test suite()
+    {
+        // The build only collects classes matching AllTest*, so any other test class in this package
+        // has to be named here or it silently never runs.
+        TestSuite suite = new TestSuite("Operator tests");
+
         suite.addTestSuite(AllTests.class);
-        PrintTestResult.printResult(junit.textui.TestRunner.run(suite));
+        suite.addTestSuite(CompositeSignatureNameResolutionTest.class);
+
+        return suite;
     }
 
     public void testAgainstKnownList()

@@ -311,17 +311,28 @@ public class DefaultSignatureAlgorithmIdentifierFinder
         addAlgorithm("SHA3-512WITHPICNIC", BCObjectIdentifiers.picnic_with_sha3_512);
         addAlgorithm("SHAKE256WITHPICNIC", BCObjectIdentifiers.picnic_with_shake256);
 
-        addAlgorithm("MLDSA44-RSA2048-PSS-SHA256", MiscObjectIdentifiers.id_MLDSA44_RSA2048_PSS_SHA256);
-        addAlgorithm("MLDSA44-RSA2048-PKCS15-SHA256", MiscObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256);
-        addAlgorithm("MLDSA44-ED25519-SHA512", MiscObjectIdentifiers.id_MLDSA44_Ed25519_SHA512);
-        addAlgorithm("MLDSA44-ECDSA-P256-SHA256", MiscObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256);
+        //
+        // Composite ML-DSA. Five of these suites - the four MLDSA44-* and MLDSA65-ED25519-SHA512 -
+        // kept the same hash pairing across draft-ietf-lamps-pq-composite-sigs revisions, so the
+        // IANA arc reuses the names the earlier BC arc used. They are bound to the IANA OIDs here
+        // because that is the arc the provider registers a Signature for: CompositeIndex keys the
+        // plain names on IANA (the BC arc carries only the HashMLDSA* variants), so returning a BC
+        // OID for these names produced an AlgorithmIdentifier that JcaContentSignerBuilder could
+        // not resolve - "no such algorithm: 2.16.840.1.114027.80.8.1.21". The remaining suites
+        // below changed pairing between revisions and so appear under both arcs, with distinct
+        // names.
+        //
+        addAlgorithm("MLDSA44-RSA2048-PSS-SHA256", IANAObjectIdentifiers.id_MLDSA44_RSA2048_PSS_SHA256);
+        addAlgorithm("MLDSA44-RSA2048-PKCS15-SHA256", IANAObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256);
+        addAlgorithm("MLDSA44-ED25519-SHA512", IANAObjectIdentifiers.id_MLDSA44_Ed25519_SHA512);
+        addAlgorithm("MLDSA44-ECDSA-P256-SHA256", IANAObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256);
         addAlgorithm("MLDSA65-RSA3072-PSS-SHA256", MiscObjectIdentifiers.id_MLDSA65_RSA3072_PSS_SHA256);
         addAlgorithm("MLDSA65-RSA3072-PKCS15-SHA256", MiscObjectIdentifiers.id_MLDSA65_RSA3072_PKCS15_SHA256);
         addAlgorithm("MLDSA65-RSA4096-PSS-SHA384", MiscObjectIdentifiers.id_MLDSA65_RSA4096_PSS_SHA384);
         addAlgorithm("MLDSA65-RSA4096-PKCS15-SHA384", MiscObjectIdentifiers.id_MLDSA65_RSA4096_PKCS15_SHA384);
         addAlgorithm("MLDSA65-ECDSA-P384-SHA384", MiscObjectIdentifiers.id_MLDSA65_ECDSA_P384_SHA384);
         addAlgorithm("MLDSA65-ECDSA-BRAINPOOLP256R1-SHA256", MiscObjectIdentifiers.id_MLDSA65_ECDSA_brainpoolP256r1_SHA256);
-        addAlgorithm("MLDSA65-ED25519-SHA512", MiscObjectIdentifiers.id_MLDSA65_Ed25519_SHA512);
+        addAlgorithm("MLDSA65-ED25519-SHA512", IANAObjectIdentifiers.id_MLDSA65_Ed25519_SHA512);
         addAlgorithm("MLDSA87-ECDSA-P384-SHA384", MiscObjectIdentifiers.id_MLDSA87_ECDSA_P384_SHA384);
         addAlgorithm("MLDSA87-ECDSA-BRAINPOOLP384R1-SHA384", MiscObjectIdentifiers.id_MLDSA87_ECDSA_brainpoolP384r1_SHA384);
         addAlgorithm("MLDSA87-ED448-SHA512", MiscObjectIdentifiers.id_MLDSA87_Ed448_SHA512);
