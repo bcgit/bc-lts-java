@@ -850,3 +850,4 @@ fd4999b44047587ad20daf71d9d47167141629decb9183340393f2ffc8d4382e  pkix/src/main/
 c5ad3a83c5736ad10f7be2098961469a1b3ff845abb89a2a63afeec65003f81f  pkix/src/main/java/org/bouncycastle/cms/jcajce/JceKEMAuthEnvelopedRecipient.java
 1b343332ad9b86debc90269a8ff1472fc50e8d06a87174b45a98d787560c5f07  pkix/src/main/java/org/bouncycastle/cms/jcajce/JceKEMRecipientId.java
 5431858b15430bf3eed2cd0bc7871549755fcbdcc65cd7172d460f723995f9d5  pkix/src/main/java/org/bouncycastle/cms/jcajce/JceKEMRecipientInfoGenerator.java
+7a5498926a3d8748145c68675dc0f5f18af4f372c7444cd7dd311cd92f7f3850  pkix/src/main/java/org/bouncycastle/cms/jcajce/CMSInputAEADDecryptor.java
