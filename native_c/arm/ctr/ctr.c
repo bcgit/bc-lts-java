@@ -32,7 +32,8 @@ void ctr_reset(ctr_ctx *ctx) {
 
 
 int64_t ctr_get_position(ctr_ctx *pCtr) {
-    return (int64_t) ((pCtr->ctr * 16) + pCtr->buf_pos);
+    // position is relative to initialCTR, masked to the counter region as in ctr_shift_counter
+    return (int64_t) ((((pCtr->ctr - pCtr->initialCTR) & pCtr->ctrMask) * 16) + pCtr->buf_pos);
 }
 
 
