@@ -68,7 +68,7 @@ a63833560223305d35c1d4ef08c74e57490d29e3b4f1a19cc4616ddc87f19421  core/src/test/
 a890999690f42794820032aa4db7da4a83830170f9c2979bbacaeb7d69275254  core/src/test/java/org/bouncycastle/crypto/test/MD5DigestTest.java
 152070271463f6d754234c652376f905d5a5e827f8e3c1d6152166cc85240b0e  core/src/test/java/org/bouncycastle/crypto/test/HCFamilyTest.java
 daed977fb78e76196ef3db10f262050b0d7c0ae2c9720606e6a4d845b79c65f3  core/src/test/java/org/bouncycastle/crypto/test/BigIntegersTest.java
-cf74f6af8ceb539dfca16b870e77dea2b98cce2d8e6f7c738addc486cec8777c  core/src/test/java/org/bouncycastle/crypto/test/Salsa20Test.java
+b43d329f5168e7417f89e2dd8022460c89e29cd7125750eb9b0ef2b89e30bcfa  core/src/test/java/org/bouncycastle/crypto/test/Salsa20Test.java
 9a1b2acd6d71fb1af827d940db68b34c080326ec7767fb3dcd0fb0720ecd5c43  core/src/test/java/org/bouncycastle/crypto/test/RIPEMD320DigestTest.java
 7751213ec5270aac2d5a16bb28167be7cb3a1c206e64c8fc2bd71123ad6f6ad8  core/src/test/java/org/bouncycastle/crypto/test/DESedeTest.java
 38efdfbd214d45321e5d85dc99cf3ed578828749a8aae60486a373fbaba22e27  core/src/test/java/org/bouncycastle/crypto/test/SHA224HMacTest.java
@@ -486,7 +486,7 @@ bf63646c8677cabba1b4b3969fc851ee22a3f1fd02e82e36a83c44c04e1a40ca  core/src/main/
 ca68e44b25eadb3e7c8a41bd483e7ac2779f84cbcc1c8583f49895ce32cd1863  core/src/main/java/org/bouncycastle/crypto/engines/AESWrapPadEngine.java
 8c3c82775d97ea296c3243ba3468632367e0b1502bf8da539dbe5e9aca56d59b  core/src/main/java/org/bouncycastle/crypto/engines/RijndaelEngine.java
 6b4fd028c78e52c0a73a77c005b235184f44997bb843982f2c768d996d346b1a  core/src/main/java/org/bouncycastle/crypto/engines/Zuc256Engine.java
-431a5b129b880badbdc6519e7a6c4b44b340b208da3fa994144498c1602403a3  core/src/main/java/org/bouncycastle/crypto/engines/Salsa20Engine.java
+a06727963615fbd8704e536c664d6362f3353f76d2c534a5a9ae5f18e64da81d  core/src/main/java/org/bouncycastle/crypto/engines/Salsa20Engine.java
 1ff95b6ebd917d0a3ee221eb63d1f9097b2b3495013959c02d12854aab989d6f  core/src/main/java/org/bouncycastle/crypto/engines/VMPCKSA3Engine.java
 2f53a9dcd07d49d6dc048fb7e3bc2a0b7398bd9c2e5381e31a6e46780719f424  core/src/main/java/org/bouncycastle/crypto/engines/OldIESEngine.java
 cdcedd903ae21a8809927ee0aeee10b7c7e68ebe4453a42266afad0c6962b429  core/src/main/java/org/bouncycastle/crypto/engines/RFC5649WrapEngine.java
