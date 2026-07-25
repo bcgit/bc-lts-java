@@ -51,6 +51,7 @@ import org.bouncycastle.asn1.x509.TBSCertList;
 import org.bouncycastle.asn1.x509.Time;
 import org.bouncycastle.jcajce.CompositePublicKey;
 import org.bouncycastle.jcajce.io.OutputStreamFactory;
+import org.bouncycastle.jcajce.provider.util.SecurityExceptions;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Exceptions;
@@ -224,7 +225,7 @@ abstract class X509CRLImpl
         catch (NoSuchProviderException e)
         {
             // can't happen, but just in case
-            throw new NoSuchAlgorithmException("provider issue: " + e.getMessage());
+            throw SecurityExceptions.noSuchAlgorithmException("provider issue: " + e.getMessage(), e);
         }
     }
 
