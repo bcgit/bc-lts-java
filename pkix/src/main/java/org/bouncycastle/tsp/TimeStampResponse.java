@@ -6,6 +6,7 @@ import java.io.InputStream;
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1InputStream;
 import org.bouncycastle.asn1.ASN1Object;
+import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.DLSequence;
 import org.bouncycastle.asn1.cmp.PKIFailureInfo;
 import org.bouncycastle.asn1.cmp.PKIFreeText;
@@ -43,7 +44,12 @@ public class TimeStampResponse
     {
         try
         {
-            return TimeStampResp.getInstance(new ASN1InputStream(in).readObject());
+            ASN1Primitive obj = new ASN1InputStream(in).readObject();
+            if (obj == null)
+            {
+                throw new IOException("no ASN.1 object found in response");
+            }
+            return TimeStampResp.getInstance(obj);
         }
         catch (IllegalArgumentException e)
         {
@@ -58,6 +64,13 @@ public class TimeStampResponse
     private final TimeStampResp resp;
     private final TimeStampToken timeStampToken;
 
+    /**
+     * Create a TimeStampResponse from the passed in ASN.1 structure.
+     *
+     * @param resp the ASN.1 TimeStampResp the response is based on.
+     * @throws TSPException if the embedded time-stamp token is malformed.
+     * @throws IOException if the embedded time-stamp token cannot be processed.
+     */
     public TimeStampResponse(TimeStampResp resp)
         throws TSPException, IOException
     {
@@ -111,11 +124,17 @@ public class TimeStampResponse
         }
     }
 
+    /**
+     * @return the PKIStatus value of the response (e.g. PKIStatus.GRANTED).
+     */
     public int getStatus()
     {
         return resp.getStatus().getStatusObject().intValueExact();
     }
 
+    /**
+     * @return the concatenated free-text status string, null if none was supplied.
+     */
     public String getStatusString()
     {
         if (resp.getStatus().getStatusString() == null)
@@ -132,16 +151,22 @@ public class TimeStampResponse
         return statusStringBuf.toString();
     }
 
+    /**
+     * @return the failure information for a non-granted response, null if none is present.
+     */
     public PKIFailureInfo getFailInfo()
     {
         if (resp.getStatus().getFailInfo() != null)
         {
             return new PKIFailureInfo(resp.getStatus().getFailInfo());
         }
-        
+
         return null;
     }
 
+    /**
+     * @return the time-stamp token carried by the response, null if the request was not granted.
+     */
     public TimeStampToken getTimeStampToken()
     {
         return timeStampToken;
