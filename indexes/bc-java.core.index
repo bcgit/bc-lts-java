@@ -361,7 +361,7 @@ e90b55df11c39e1e5b2ffd1c31e4c46664a48b8070064e6519af9d5e3c7ebfe8  core/src/main/
 7bd0692d37e294e4e7de31efa9c20f3421ce78861dc40999dacce1146b10249e  core/src/main/java/org/bouncycastle/crypto/modes/G3413OFBBlockCipher.java
 675e803671e17c4a5dffa3311e42781e465c8aef8ba26a585aa7bd62a968773d  core/src/main/java/org/bouncycastle/crypto/modes/GOFBBlockCipher.java
 5bdb93ed32b7c34ce50fd0a26a7a388468e90ebca5622393681faeda6d5510c9  core/src/main/java/org/bouncycastle/crypto/modes/GOST3413CipherUtil.java
-684c6f355af6369c119d4f66a8a4f59b10631d068ec5a7a61bceff2cc66da2c1  core/src/main/java/org/bouncycastle/crypto/modes/SICBlockCipher.java
+f2c357f5ea97d25e5c38f59d96b6e63ecd49b8b0cd2e1810b2e70bf0e1c797e9  core/src/main/java/org/bouncycastle/crypto/modes/SICBlockCipher.java
 71073946b488792b87e82ddd1f272cd02b0153833afcde80d1a246d9bc2230f7  core/src/main/java/org/bouncycastle/crypto/modes/AEADCipher.java
 6c459a7d6f70bda8636f3dc37bd9484086feb3be3ab57e2c8fd5db4b012b1724  core/src/main/java/org/bouncycastle/crypto/modes/PGPCFBBlockCipher.java
 4b5640ea46355c8072bd1c19115bc8d07f9c8e733eb9dfdd62e2938c1bfa3741  core/src/main/java/org/bouncycastle/crypto/modes/G3413CBCBlockCipher.java
@@ -1759,7 +1759,7 @@ a7f1fc4f70ff417fecac191082896fb21a48870b656a98a6621ab4a905bed9fd  core/src/test/
 91c2cfe5cf0b21c0cdc16e33ad4c042ed1f81777c42f0cee38090bc8046c3690  core/src/test/java/org/bouncycastle/pqc/crypto/lms/PublicKeyParseTests.java
 00f650db3caa9edd1862dd2479ccaca4f4f828348aa5111373eb62e24a48c5e7  core/src/test/java/org/bouncycastle/util/utiltest/StreamsTest.java
 e06ac935a92dad92ae3cafaafef52d2b3433bbeb8e7419f98c8cabe31d72c522  core/src/test/java/org/bouncycastle/util/utiltest/AggregateRuntimeExceptionTest.java
-b1cdf9087bad879a4e65730acc69c787ffb162c522737b75293ab49d13381ef8  core/src/test/java/org/bouncycastle/crypto/test/SICPositionTest.java
+d3f996de88fbb7adaacaad0e502476504b1693fbc8d378cd96c71d695ac8169b  core/src/test/java/org/bouncycastle/crypto/test/SICPositionTest.java
 78442cafb6436cb5b742691d7529cd26d28305953ad56dda3fd7eeb308849232  core/src/main/java/org/bouncycastle/asn1/DLGenerator.java
 355a8415d133ac47a08b0f86112c6de9f5c86d47b5d2f4d77da7ac04c833a047  core/src/main/java/org/bouncycastle/asn1/DLSequenceGenerator.java
 0f3bb3e0f4c27ce823e91b01f52cd7fd567a48a059acb905ba4edd655b72bc71  core/src/main/java/org/bouncycastle/asn1/DLOctetStringGenerator.java

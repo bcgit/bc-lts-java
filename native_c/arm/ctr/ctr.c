@@ -209,7 +209,9 @@ bool ctr_skip(ctr_ctx *pCtr, int64_t numberOfBytes) {
             return false;
         }
 
-        if (pCtr->ctrAtEnd && bpos != 0) {
+        // an explicit skip/seekTo must not land past the last usable block; the per-block
+        // increment path still sets ctrAtEnd so that final block is produced before output stops
+        if (pCtr->ctrAtEnd) {
             return false;
         }
 
