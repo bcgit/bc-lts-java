@@ -31,7 +31,7 @@ e840126ae817df5c5cc26be7bb460968f37af28e2fe02779fce679019bfc1964  pkix/src/test/
 d84cb0522cb591e0efb35a2394701596f68babb2201335f4a7dcc44141a907cb  pkix/src/test/java/org/bouncycastle/mime/test/MIMETestSetup.java
 bef4edba7d25de2d52d4970861604864d9c0cd400bafb9dd4eb520258fb41b34  pkix/src/test/java/org/bouncycastle/mime/test/TestBoundaryLimitedInputStream.java
 5603c00a75e0bd5760b4a70233ddfc5cab39e84fb7c2156caa19f02d5d65d998  pkix/src/test/java/org/bouncycastle/operator/test/AllTests.java
-7f7155998c9124403f5f512721d320b168d50a8ab784662df879b0bf82a726cc  pkix/src/test/java/org/bouncycastle/est/test/AllTests.java
+a7b0669575fc3c119d19f279e24e38592e03f63ccae47ed341424d4a489ddda0  pkix/src/test/java/org/bouncycastle/est/test/AllTests.java
 71936d63068c3ca3335a2c3dab941de0aff315022b8fb1ca16b30378d414d20d  pkix/src/test/java/org/bouncycastle/est/test/ESTResponseTest.java
 5eed6409809813617714df8cc808b3df7bf3c78b54479dbc3eea4fd6a527f63d  pkix/src/test/java/org/bouncycastle/est/test/TestChunkedInputStream.java
 405ad3ff733d3a23a457362e8370d9202b3bc50cd6d07415ae8e11011b704dcf  pkix/src/test/java/org/bouncycastle/est/test/ESTTestSetup.java
@@ -353,7 +353,7 @@ d821aa68a408976ad275db22cd2abb7cc4a248e4b60ed1d49742f047eb039916  pkix/src/main/
 cdd8860fc1af29ad1a8ed11265f9d39021d1bb3d3ecd6c95716fa11af3f09697  pkix/src/main/java/org/bouncycastle/est/ESTAuth.java
 2e7a1d7e99d11940f399586ba00fa5f82a6dd5484195f2d66519f1a7f21a7f2a  pkix/src/main/java/org/bouncycastle/est/ESTSourceConnectionListener.java
 d1739980b3336bcc7491c0e3a091003c85eda5a8e2ed6c7ff04c7dfa6d9adb72  pkix/src/main/java/org/bouncycastle/est/CSRAttributesResponse.java
-d36c0a667b2401907e2068c028e26e9d43b378cb8ca568b6b2c01d2f005da218  pkix/src/main/java/org/bouncycastle/est/ESTService.java
+7373a9e9417de904f513d6211b93f1cca7c804962d3e6e6d151f62675384008a  pkix/src/main/java/org/bouncycastle/est/ESTService.java
 61c543d8c2e68ce924108d35690854754a523cb36cec6b66683e1bfc3b3a8d3c  pkix/src/main/java/org/bouncycastle/est/ESTException.java
 ee843f95946bad4648a3a3627cefcd4f1a1fbd7fe43903a65ee0729f24fd2510  pkix/src/main/java/org/bouncycastle/est/ESTResponse.java
 266a6e9fd7ef98dcc6484dcceb461e60c6477122e84fb627ba185d6124dc791c  pkix/src/main/java/org/bouncycastle/est/LimitedSource.java
@@ -853,3 +853,5 @@ c5ad3a83c5736ad10f7be2098961469a1b3ff845abb89a2a63afeec65003f81f  pkix/src/main/
 7a5498926a3d8748145c68675dc0f5f18af4f372c7444cd7dd311cd92f7f3850  pkix/src/main/java/org/bouncycastle/cms/jcajce/CMSInputAEADDecryptor.java
 b0dd4f0627059ec2505ea51cf13e23fe61ee41fec0327adbbab29bbaad9ecb81  pkix/src/main/java/org/bouncycastle/operator/FixedLengthContentSigner.java
 5a3d0e44b60c5938fb8e315b198965811c95492918685a97d5573fe2171b25b2  pkix/src/main/java/org/bouncycastle/operator/KnownLengthOutputEncryptor.java
+5e50fd108126070c1c5828f3991530a0f3d73c2aa98ee7a79abdb2825284222b  pkix/src/main/java/org/bouncycastle/est/TlsUniqueAttributeUtil.java
+9feab29184719083e3df051bbf3a5bb72dd48f5d60285d9f9be0b21a4bc66475  pkix/src/test/java/org/bouncycastle/est/test/Rfc7894AttributesTest.java

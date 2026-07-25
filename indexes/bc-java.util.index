@@ -591,3 +591,7 @@ daf12ff72581ce8f733a9771ea1b03a78b5a2dfcfdcd1b5fc60846b268462b21  util/src/main/
 5e5377c202a5e9369e512ad2b5d714929383b7eeccef2b50186932a61ec3a38d  util/src/test/java/org/bouncycastle/asn1/cms/test/CCMParametersTest.java
 f9b8802392fafb45372dddaa0ed04c88da927f0cd98782bdc9c11e01bafd85ad  util/src/test/java/org/bouncycastle/asn1/cms/test/GCMParametersTest.java
 aca3c8b29e3e2a5f0b4628e81f7cdb4d35abecd28d94959ec1e40d8b59076ff6  util/src/test/java/org/bouncycastle/oer/test/OERInputStreamLimitTest.java
+da4b36598956cdab49e2dccb8546709609a09e4435c1d2daad0bc56bf893a298  util/src/main/java/org/bouncycastle/asn1/est/EstIdentityLinking.java
+deae06e645fd286824ff21fc4f57a17a1b703485408bdb538d91af4c90a077ba  util/src/main/java/org/bouncycastle/asn1/est/CSRChallengeAttribute.java
+4ca8d9dd20472bd0e84cbe846ecea8d3c398f7a6909235e653f0006bcd20b474  util/src/main/java/org/bouncycastle/asn1/est/OtpChallenge.java
+ec8a60e389a9e88caefd16289552d73bac151660ad6e71e5d34976b3350d2d2d  util/src/main/java/org/bouncycastle/asn1/est/RevocationChallenge.java
