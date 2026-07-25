@@ -18,4 +18,17 @@ public abstract class KEMKeyWrapper
     public abstract int getKekLength();
 
     public abstract AlgorithmIdentifier getWrapAlgorithmIdentifier();
+
+    /**
+     * Return the optional user keying material to carry in the KEMRecipientInfo, or null if none is
+     * set (RFC 9629 sec. 3: ukm is OPTIONAL).
+     * <p>
+     * Concrete rather than abstract, deliberately: this class is public and adding an abstract
+     * method to it would break any existing subclass outside the library. Wrappers that support
+     * user keying material override this.
+     */
+    public byte[] getUkm()
+    {
+        return null;
+    }
 }

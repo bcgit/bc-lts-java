@@ -39,6 +39,7 @@ class JceCMSKEMKeyWrapper
     private Map extraMappings = new HashMap();
     private PublicKey publicKey;
     private SecureRandom random;
+    private byte[] ukm;
     private AlgorithmIdentifier kdfAlgorithm = new AlgorithmIdentifier(X9ObjectIdentifiers.id_kdf_kdf3, new AlgorithmIdentifier(NISTObjectIdentifiers.id_sha256, DERNull.INSTANCE));
     private byte[] encapsulation;
 
@@ -70,6 +71,25 @@ class JceCMSKEMKeyWrapper
         this.kdfAlgorithm = kdfAlgorithm;
 
         return this;
+    }
+
+    /**
+     * Set the optional user keying material to carry in the KEMRecipientInfo and mix into the
+     * key-derivation input (RFC 9629 sec. 3, ukm is OPTIONAL).
+     *
+     * @param ukm the user keying material, or null for none.
+     * @return the current wrapper.
+     */
+    public JceCMSKEMKeyWrapper setUKM(byte[] ukm)
+    {
+        this.ukm = Arrays.clone(ukm);
+
+        return this;
+    }
+
+    public byte[] getUkm()
+    {
+        return Arrays.clone(ukm);
     }
 
     public JceCMSKEMKeyWrapper setSecureRandom(SecureRandom random)
@@ -124,7 +144,7 @@ class JceCMSKEMKeyWrapper
     {
         try
         {
-            byte[] oriInfoEnc = new CMSORIforKEMOtherInfo(symWrapAlgorithm, kekLength).getEncoded();
+            byte[] oriInfoEnc = new CMSORIforKEMOtherInfo(symWrapAlgorithm, kekLength, ukm).getEncoded();
 
             if (publicKey instanceof RSAPublicKey)
             {
