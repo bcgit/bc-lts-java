@@ -9,6 +9,7 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.PSSParameterSpec;
@@ -17,6 +18,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1Sequence;
@@ -27,6 +29,8 @@ import org.bouncycastle.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.pkcs.RSASSAPSSparams;
+import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
+import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.jcajce.CompositePrivateKey;
@@ -36,6 +40,7 @@ import org.bouncycastle.jcajce.util.DefaultJcaJceHelper;
 import org.bouncycastle.jcajce.util.NamedJcaJceHelper;
 import org.bouncycastle.jcajce.util.ProviderJcaJceHelper;
 import org.bouncycastle.operator.ContentSigner;
+import org.bouncycastle.operator.FixedLengthContentSigner;
 import org.bouncycastle.operator.DefaultDigestAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
 import org.bouncycastle.operator.DigestAlgorithmIdentifierFinder;
@@ -58,6 +63,7 @@ public class JcaContentSignerBuilder
 
     static
     {
+        isAlgIdFromPrivate.add("COMPOSITE");
         isAlgIdFromPrivate.add("DILITHIUM");
         isAlgIdFromPrivate.add("SPHINCS+");
         isAlgIdFromPrivate.add("SPHINCSPlus");
@@ -141,7 +147,7 @@ public class JcaContentSignerBuilder
         this.signatureAlgorithm = signatureAlgorithm;
         this.signatureDigestAlgorithm = signatureDigestAlgorithmID;
     }
-
+    
     public JcaContentSignerBuilder(String signatureAlgorithm, AlgorithmParameterSpec sigParamSpec)
     {
         this(signatureAlgorithm, sigParamSpec, null);
@@ -151,14 +157,14 @@ public class JcaContentSignerBuilder
     {
         this.signatureAlgorithm = signatureAlgorithm;
         this.signatureDigestAlgorithm = signatureDigestAlgorithmID;
-
+        
         if (sigParamSpec instanceof PSSParameterSpec)
         {
             PSSParameterSpec pssSpec = (PSSParameterSpec)sigParamSpec;
 
             this.sigAlgSpec = pssSpec;
             this.sigAlgId = new AlgorithmIdentifier(
-                PKCSObjectIdentifiers.id_RSASSA_PSS, createPSSParams(pssSpec));
+                                    PKCSObjectIdentifiers.id_RSASSA_PSS, createPSSParams(pssSpec));
         }
         else if (sigParamSpec instanceof CompositeAlgorithmSpec)
         {
@@ -166,12 +172,12 @@ public class JcaContentSignerBuilder
 
             this.sigAlgSpec = compSpec;
             this.sigAlgId = new AlgorithmIdentifier(
-                MiscObjectIdentifiers.id_alg_composite, createCompParams(compSpec));
+                                    MiscObjectIdentifiers.id_alg_composite, createCompParams(compSpec));
         }
         else
         {
             throw new IllegalArgumentException("unknown sigParamSpec: "
-                + ((sigParamSpec == null) ? "null" : sigParamSpec.getClass().getName()));
+                            + ((sigParamSpec == null) ? "null" : sigParamSpec.getClass().getName()));
         }
     }
 
@@ -200,11 +206,13 @@ public class JcaContentSignerBuilder
         throws OperatorCreationException
     {
         //Use this legacy method only for composite private keys (they have that identifier)
+        // CompositePrivateKey.getAlgorithmID() returns the OID directly in this distribution, where
+        // upstream's getAlgorithmIdentifier() returns an AlgorithmIdentifier needing .getAlgorithm().
         if (privateKey instanceof CompositePrivateKey && ((CompositePrivateKey)privateKey).getAlgorithmID().equals(MiscObjectIdentifiers.id_composite_key))
         {
             return buildComposite((CompositePrivateKey)privateKey);
         }
-
+        
         try
         {
             if (sigAlgSpec == null)
@@ -281,6 +289,33 @@ public class JcaContentSignerBuilder
             }
             else
             {
+                final int fixedLength = getFixedSignatureLength(signatureAlgId, privateKey);
+                if (fixedLength > 0)
+                {
+                    return new FixedLengthContentSigner()
+                    {
+                        public int getSignatureLength()
+                        {
+                            return fixedLength;
+                        }
+
+                        public AlgorithmIdentifier getAlgorithmIdentifier()
+                        {
+                            return contentSigner.getAlgorithmIdentifier();
+                        }
+
+                        public OutputStream getOutputStream()
+                        {
+                            return contentSigner.getOutputStream();
+                        }
+
+                        public byte[] getSignature()
+                        {
+                            return contentSigner.getSignature();
+                        }
+                    };
+                }
+
                 return contentSigner;
             }
         }
@@ -290,6 +325,44 @@ public class JcaContentSignerBuilder
         }
     }
 
+    /**
+     * Return the fixed signature length in octets for the passed in algorithm
+     * and key, or -1 when the length varies (e.g. DER-encoded ECDSA/DSA) or
+     * cannot be determined. RSA (PKCS#1 v1.5 and PSS) signatures are the
+     * modulus size; Ed25519/Ed448 and ML-DSA are constants.
+     */
+    private static int getFixedSignatureLength(AlgorithmIdentifier sigAlgId, PrivateKey privateKey)
+    {
+        if (privateKey instanceof RSAPrivateKey)
+        {
+            return (((RSAPrivateKey)privateKey).getModulus().bitLength() + 7) / 8;
+        }
+
+        ASN1ObjectIdentifier algorithm = sigAlgId.getAlgorithm();
+        if (EdECObjectIdentifiers.id_Ed25519.equals(algorithm))
+        {
+            return 64;
+        }
+        if (EdECObjectIdentifiers.id_Ed448.equals(algorithm))
+        {
+            return 114;
+        }
+        if (NISTObjectIdentifiers.id_ml_dsa_44.equals(algorithm))
+        {
+            return 2420;
+        }
+        if (NISTObjectIdentifiers.id_ml_dsa_65.equals(algorithm))
+        {
+            return 3309;
+        }
+        if (NISTObjectIdentifiers.id_ml_dsa_87.equals(algorithm))
+        {
+            return 4627;
+        }
+
+        return -1;
+    }
+
     private AlgorithmIdentifier getSigAlgId(PrivateKey privateKey)
     {
         if (isAlgIdFromPrivate.contains(Strings.toUpperCase(signatureAlgorithm)))
@@ -297,7 +370,7 @@ public class JcaContentSignerBuilder
             AlgorithmIdentifier sigAlgId = SIGNATURE_ALGORITHM_IDENTIFIER_FINDER.find(privateKey.getAlgorithm());
             if (sigAlgId == null)
             {
-                return PrivateKeyInfo.getInstance(privateKey.getEncoded()).getPrivateKeyAlgorithm();
+               return PrivateKeyInfo.getInstance(privateKey.getEncoded()).getPrivateKeyAlgorithm();
             }
             return sigAlgId;
         }
@@ -399,8 +472,8 @@ public class JcaContentSignerBuilder
         return new RSASSAPSSparams(
             digId,
             new AlgorithmIdentifier(PKCSObjectIdentifiers.id_mgf1, mgfDig),
-            new ASN1Integer(pssSpec.getSaltLength()),
-            new ASN1Integer(pssSpec.getTrailerField()));
+            ASN1Integer.valueOf(pssSpec.getSaltLength()),
+            ASN1Integer.valueOf(pssSpec.getTrailerField()));
     }
 
     private static ASN1Sequence createCompParams(CompositeAlgorithmSpec compSpec)

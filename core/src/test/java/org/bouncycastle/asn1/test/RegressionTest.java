@@ -63,7 +63,8 @@ public class RegressionTest
         new X509AltTest(),
         new CertIDTest(),
         new IANAObjectIdentifierTest(),
-        new StreamLimitTest()
+        new StreamLimitTest(),
+        new DLSequenceGeneratorTest()
     };
 
     public static void main(String[] args)

@@ -40,6 +40,7 @@ public class AllTests
         suite.addTest(CMSAuthEnvelopedDataStreamGeneratorTest.suite());
         suite.addTest(InputStreamWithMACTest.suite());
         suite.addTest(new TestSuite(AEADMacLengthTest.class));
+        suite.addTest(new TestSuite(PredictedEncodedLengthTest.class));
         
         suite.addTest(new CMSTestSetup(new TestSuite(GOSTR3410_2012_256CmsSignVerifyDetached.class)));
 

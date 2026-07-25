@@ -773,7 +773,7 @@ b6384423d6936391ff7da1c8b30b32ef36bf13c5b0f328ff25947e0d11d0d5ee  pkix/src/main/
 1103e8e39c2af2c20f1d7810d766db079c0c54f9ea9697f7b8becedcfde5d264  pkix/src/main/java/org/bouncycastle/cms/CMSSecureReadableWithAAD.java
 6961e31cba51143838f93bea3420b07b21109d004b5d723fc4f170d9951566f7  pkix/src/main/java/org/bouncycastle/cms/CMSSignedDataGenerator.java
 0689624e7c4e9ac49e6909f8857d799e7f0e31ea0aa0c857ea1d6c419dda6748  pkix/src/main/java/org/bouncycastle/cms/CMSSignedGenerator.java
-3e75542a5e1aa6a27e97b4404af8e61d89b5e61f837da4370b16020e11db2ab2  pkix/src/main/java/org/bouncycastle/cms/CMSUtils.java
+adbdc3f12804c0b4c1b1a1172ef772235a3d9e352116a66e22928589c6f6f110  pkix/src/main/java/org/bouncycastle/cms/CMSUtils.java
 9bb1dfd0f7610b22aed419db27bb32f77ff2e034de2517c8285928ccdcb28a3e  pkix/src/main/java/org/bouncycastle/cms/InputStreamWithMAC.java
 9cf7eee32e6bd834d35ed3ab86e0242fc9235ecb7be6f9d16bffe706d4ab1b93  pkix/src/main/java/org/bouncycastle/cms/jcajce/EnvelopedDataHelper.java
 a0cfa98f7a742079e4f019f7fad605ab157f8c70144a9baa3e009574b17e054f  pkix/src/main/java/org/bouncycastle/cms/jcajce/JceCMSContentEncryptorBuilder.java
@@ -851,3 +851,4 @@ c5ad3a83c5736ad10f7be2098961469a1b3ff845abb89a2a63afeec65003f81f  pkix/src/main/
 1b343332ad9b86debc90269a8ff1472fc50e8d06a87174b45a98d787560c5f07  pkix/src/main/java/org/bouncycastle/cms/jcajce/JceKEMRecipientId.java
 5431858b15430bf3eed2cd0bc7871549755fcbdcc65cd7172d460f723995f9d5  pkix/src/main/java/org/bouncycastle/cms/jcajce/JceKEMRecipientInfoGenerator.java
 7a5498926a3d8748145c68675dc0f5f18af4f372c7444cd7dd311cd92f7f3850  pkix/src/main/java/org/bouncycastle/cms/jcajce/CMSInputAEADDecryptor.java
+b0dd4f0627059ec2505ea51cf13e23fe61ee41fec0327adbbab29bbaad9ecb81  pkix/src/main/java/org/bouncycastle/operator/FixedLengthContentSigner.java

@@ -1760,3 +1760,5 @@ a7f1fc4f70ff417fecac191082896fb21a48870b656a98a6621ab4a905bed9fd  core/src/test/
 00f650db3caa9edd1862dd2479ccaca4f4f828348aa5111373eb62e24a48c5e7  core/src/test/java/org/bouncycastle/util/utiltest/StreamsTest.java
 e06ac935a92dad92ae3cafaafef52d2b3433bbeb8e7419f98c8cabe31d72c522  core/src/test/java/org/bouncycastle/util/utiltest/AggregateRuntimeExceptionTest.java
 b1cdf9087bad879a4e65730acc69c787ffb162c522737b75293ab49d13381ef8  core/src/test/java/org/bouncycastle/crypto/test/SICPositionTest.java
+78442cafb6436cb5b742691d7529cd26d28305953ad56dda3fd7eeb308849232  core/src/main/java/org/bouncycastle/asn1/DLGenerator.java
+355a8415d133ac47a08b0f86112c6de9f5c86d47b5d2f4d77da7ac04c833a047  core/src/main/java/org/bouncycastle/asn1/DLSequenceGenerator.java
