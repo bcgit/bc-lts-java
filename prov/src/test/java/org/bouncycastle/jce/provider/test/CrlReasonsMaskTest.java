@@ -34,16 +34,21 @@ import org.bouncycastle.util.test.SimpleTest;
  * Regression test for RFC 5280 sec. 6.3.3 (d)(3) in
  * {@code RFC3280CertPathUtilities.processCRLD}. When the CRL's IssuingDistributionPoint is
  * present but omits {@code onlySomeReasons}, and the certificate's DistributionPoint includes
- * a {@code reasons} field, the interim reasons mask must be {@code dp.reasons} (the IDP
- * contributes all-reasons to the intersection). The pre-fix code guarded only {@code idp == null},
- * so it passed {@code null} to {@code new ReasonsMask(ReasonFlags)} whose ctor dereferences
- * {@code reasons.intValue()} -> NullPointerException. That NPE is not an {@code AnnotatedException},
- * so it escaped {@code checkCRL}'s handler as a raw unchecked exception out of revocation checking.
+ * a {@code reasons} field, the interim reasons mask must be {@code dp.reasons} - an absent
+ * {@code onlySomeReasons} means the IDP contributes all-reasons to the intersection.
+ * <p>
+ * Historically that case reached revocation checking as a NullPointerException: the mask
+ * arithmetic guarded only {@code idp == null}, so an IDP that was present but carried no
+ * {@code onlySomeReasons} still had its absent reasons dereferenced. An NPE is not an
+ * {@code AnnotatedException}, so it escaped {@code checkCRL}'s handler as a raw unchecked
+ * exception. {@code processCRLD} has since been rewritten to intersect the IDP and DP reason
+ * flags directly, defaulting either side to all-reasons when absent, which removes the
+ * dereference altogether; this test pins the resulting mask so the behaviour cannot regress
+ * through a future rewrite.
  *
  * <p>{@code processCRLD} is {@code protected static} in a different package, so it is exercised by
  * reflection; the alternative (a full CertPathValidator run with a reason-scoped CRL DP and a
- * matching CRL whose IDP omits onlySomeReasons) would test the same one-line computation far less
- * directly.
+ * matching CRL whose IDP omits onlySomeReasons) would test the same computation far less directly.
  */
 public class CrlReasonsMaskTest
     extends SimpleTest

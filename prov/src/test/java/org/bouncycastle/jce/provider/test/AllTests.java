@@ -22,6 +22,9 @@ public class AllTests
         TestSuite suite = new TestSuite("JCE Tests");
 
         suite.addTestSuite(SimpleTestTest.class);
+        // lives in org.bouncycastle.jce.provider for package access to ReasonsMask, so it is
+        // registered from here rather than carrying its own AllTests
+        suite.addTestSuite(org.bouncycastle.jce.provider.ReasonsMaskTest.class);
 
         return new BCTestSetup(suite);
     }

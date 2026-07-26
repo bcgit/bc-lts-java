@@ -1,4 +1,4 @@
-af905cd4be3a54bd77e707eac3a99ede1e3638e0a5e0b629754d084fa0170135  pkix/src/test/java/org/bouncycastle/pkix/test/AllTests.java
+d92d108f495e83a63fe1775223c4783734f8f02fcc1f4cec5f751ff08bf952d5  pkix/src/test/java/org/bouncycastle/pkix/test/AllTests.java
 1730cf956a71987b9c37489a6078e2d1be25e584b7a26d5cec381eb1e8eb6b08  pkix/src/test/java/org/bouncycastle/pkix/test/RevocationTest.java
 9889c0b546cad9e5909ed2dbb0c6bdc34c6f5dd7448ca0176a70a5500d23d6e2  pkix/src/test/java/org/bouncycastle/pkix/test/TestUtil.java
 6359451fa91c4ec9a3663f215d1ae6dadb90fa4a7bf2d5f0e5699a0007855c1f  pkix/src/test/java/org/bouncycastle/pkix/test/CheckerTest.java
@@ -132,8 +132,8 @@ a8b7976035b6a38233da1e58d0993893a01820554c561ed168f990ea1089abef  pkix/src/main/
 b0e99db9ab46fae772fc89d6d234417844f642f21c37e08f63f29fb7d91bb2b4  pkix/src/main/java/org/bouncycastle/pkix/jcajce/CRLNotFoundException.java
 85d73f152cff459ff660d686af9d9f58f9fd0ef6ff427f5279a5d4b4744d7e88  pkix/src/main/java/org/bouncycastle/pkix/jcajce/CertPathReviewerException.java
 a416a2f458360d78aa8bb163acee00186721f4206f865f6df72b440f0098a2c3  pkix/src/main/java/org/bouncycastle/pkix/jcajce/CrlCache.java
-d51e64d3e81cb818e1ed27114459e9fe3045ba3346656d8d2d1d103cf3c0ba12  pkix/src/main/java/org/bouncycastle/pkix/jcajce/RFC3280CertPathUtilities.java
-694ff980aaa4503acc016a88db970431b747b511d5901b6eaad489aed8733348  pkix/src/main/java/org/bouncycastle/pkix/jcajce/ReasonsMask.java
+749168fdc3b3186ff0c33c8a1c50153729eedffd9e9afb73fb8ed94c3cb1187c  pkix/src/main/java/org/bouncycastle/pkix/jcajce/RFC3280CertPathUtilities.java
+3bfa0a50ebc24d000bc9cd292971ec4f2f1ee86441a82802f6522d3d081325db  pkix/src/main/java/org/bouncycastle/pkix/jcajce/ReasonsMask.java
 70a79eeb2a84ac9398a933f2c91e041dcb753a877f1f8cde5fde7f13417d5020  pkix/src/main/java/org/bouncycastle/pkix/jcajce/JcaPKIXIdentity.java
 dc5bc10b136c85bc3779cc3bf3833b50dd918e57eb26f2b864273f7dd45492d9  pkix/src/main/java/org/bouncycastle/pkix/jcajce/X509CertStoreSelector.java
 52369c9dd37e423e8eadb62a48de6c9c26c55268846bd2a9893d0bd68941a065  pkix/src/main/java/org/bouncycastle/pkix/jcajce/AnnotatedException.java
@@ -855,3 +855,5 @@ b0dd4f0627059ec2505ea51cf13e23fe61ee41fec0327adbbab29bbaad9ecb81  pkix/src/main/
 5a3d0e44b60c5938fb8e315b198965811c95492918685a97d5573fe2171b25b2  pkix/src/main/java/org/bouncycastle/operator/KnownLengthOutputEncryptor.java
 5e50fd108126070c1c5828f3991530a0f3d73c2aa98ee7a79abdb2825284222b  pkix/src/main/java/org/bouncycastle/est/TlsUniqueAttributeUtil.java
 9feab29184719083e3df051bbf3a5bb72dd48f5d60285d9f9be0b21a4bc66475  pkix/src/test/java/org/bouncycastle/est/test/Rfc7894AttributesTest.java
+c05768935e41e65f206d0af1328ab189d63fc5b3add84f9b5c12266c134aa704  pkix/src/test/java/org/bouncycastle/pkix/jcajce/ReasonsMaskTest.java
+05c26a9e152ea8b2ccea160daa8de9bce740245dbe269672b07cfae755a2f0e2  pkix/src/test/java/org/bouncycastle/pkix/jcajce/AllTests.java
