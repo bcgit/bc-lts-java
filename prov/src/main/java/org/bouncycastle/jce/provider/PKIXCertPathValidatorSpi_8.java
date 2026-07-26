@@ -32,7 +32,6 @@ import org.bouncycastle.jcajce.PKIXExtendedParameters;
 import org.bouncycastle.jcajce.interfaces.BCX509Certificate;
 import org.bouncycastle.jcajce.util.BCJcaJceHelper;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
-import org.bouncycastle.jce.exception.ExtCertPathValidatorException;
 
 /**
  * CertPathValidatorSpi implementation for X.509 Certificate validation � la RFC
@@ -274,7 +273,7 @@ public class PKIXCertPathValidatorSpi_8
         }
         catch (RuntimeException ex)
         {
-            throw new ExtCertPathValidatorException("Subject of trust anchor could not be (re)encoded.", ex, certPath,
+            throw new CertPathValidatorException("Subject of trust anchor could not be (re)encoded.", ex, certPath,
                     -1);
         }
 
@@ -285,7 +284,7 @@ public class PKIXCertPathValidatorSpi_8
         }
         catch (CertPathValidatorException e)
         {
-            throw new ExtCertPathValidatorException(
+            throw new CertPathValidatorException(
                     "Algorithm identifier of public key of trust anchor could not be read.", e, certPath, -1);
         }
 
@@ -301,7 +300,7 @@ public class PKIXCertPathValidatorSpi_8
         PKIXCertStoreSelector targetConstraints = paramsPKIX.getTargetConstraints();
         if (targetConstraints != null && !targetConstraints.match((X509Certificate)certs.get(0)))
         {
-            throw new ExtCertPathValidatorException(
+            throw new CertPathValidatorException(
                 "Target certificate in certification path does not match targetConstraints.", null, certPath, 0);
         }
 
