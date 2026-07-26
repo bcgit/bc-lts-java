@@ -1231,5 +1231,52 @@ public class CTRJavaAgreementTest extends TestCase
         }
     }
 
+    /**
+     * getPosition() at the one-past-the-last-block end position. The counter has wrapped there, so
+     * the masked difference underlying the position reads as zero - the start of the stream. That is
+     * the dangerous answer: a caller resuming with seekTo(getPosition() + n) would silently rewind
+     * and reuse keystream. The true end offset is reported instead, or -1 for the 8/16 byte IV cases
+     * where 2^68 bytes exceeds a long.
+     */
+    @Test
+    public void testPositionAtEndOfCounter() throws Exception
+    {
+        if (!TestUtil.hasNativeService("AES/CTR"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
+            {
+                TestCase.fail("Skipping CTR testPositionAtEndOfCounter: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        for (int ivLen : new int[]{15, 14, 13, 12, 11, 10, 9, 8, 16})
+        {
+            AESNativeCTR ctr = new AESNativeCTR();
+            ctr.init(true, new ParametersWithIV(new KeyParameter(new byte[16]), new byte[ivLen]));
+
+            moveCtrToEnd(ivLen, ctr);
+
+            long pos = ctr.getPosition();
+
+            TestCase.assertTrue("ivLen " + ivLen + ": end position must not read as the stream start",
+                pos != 0);
+
+            if (ivLen == 8 || ivLen == 16)
+            {
+                TestCase.assertEquals("ivLen " + ivLen + ": end offset exceeds a long", -1L, pos);
+            }
+            else
+            {
+                long maxBlock = 0;
+                for (int j = 0; j < 16 - ivLen; j++)
+                {
+                    maxBlock <<= 8;
+                    maxBlock |= 0xFF;
+                }
+                TestCase.assertEquals("ivLen " + ivLen + ": end offset", (maxBlock + 1) * 16, pos);
+            }
+        }
+    }
 
 }

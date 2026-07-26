@@ -98,7 +98,12 @@ public class SICPositionTest
         catch (IllegalStateException e)
         {
             isTrue("wrong message: " + e.getMessage(), OUT_OF_RANGE.equals(e.getMessage()));
-            isTrue("threw after " + skips + " skips", skips == 63);
+            // LTS divergence: the native CTR treats the one-past-the-last-block position as a legal
+            // resting place - skip(0) is valid there and only advancing or producing output fails -
+            // so it accepts one more chunk than the Java implementation. CTRJavaAgreementTest pins
+            // that behaviour, so the bound is asserted per implementation rather than unified.
+            int expected = (cipher instanceof SICBlockCipher) ? 63 : 64;
+            isTrue("threw after " + skips + " skips", skips == expected);
         }
 
         // the failure is sticky for output...

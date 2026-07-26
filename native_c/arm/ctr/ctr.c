@@ -32,6 +32,12 @@ void ctr_reset(ctr_ctx *ctx) {
 
 
 int64_t ctr_get_position(ctr_ctx *pCtr) {
+    // at the one-past-the-last-block end position the masked difference below reads as 0, so report
+    // the true end offset, or -1 where it exceeds the return type - a small wrapped value would let
+    // seekTo(getPosition() + n) silently restart the keystream. buf_pos is 0 whenever ctrAtEnd is set.
+    if (pCtr->ctrAtEnd) {
+        return (pCtr->ctrMask == 0xFFFFFFFFFFFFFFFF) ? -1 : (int64_t) ((pCtr->ctrMask + 1) * 16);
+    }
     // position is relative to initialCTR, masked to the counter region as in ctr_shift_counter
     return (int64_t) ((((pCtr->ctr - pCtr->initialCTR) & pCtr->ctrMask) * 16) + pCtr->buf_pos);
 }
@@ -209,9 +215,9 @@ bool ctr_skip(ctr_ctx *pCtr, int64_t numberOfBytes) {
             return false;
         }
 
-        // an explicit skip/seekTo must not land past the last usable block; the per-block
-        // increment path still sets ctrAtEnd so that final block is produced before output stops
-        if (pCtr->ctrAtEnd) {
+        // arriving at the one-past-the-last-block end position is legal and CTRJavaAgreementTest
+        // relies on it: skip(0) is valid there, only producing output or advancing further is not
+        if (pCtr->ctrAtEnd && bpos != 0) {
             return false;
         }
 
