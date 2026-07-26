@@ -58,6 +58,7 @@ public class AllIntegrationTests
 
         suite.addTestSuite(NativeEntropyLimitTest.class);
         suite.addTestSuite(NativeFailsafeTest.class);
+        suite.addTestSuite(GCMBlocksRemainingFailureTest.class);
 
        return new BCTestSetup(suite);
     }

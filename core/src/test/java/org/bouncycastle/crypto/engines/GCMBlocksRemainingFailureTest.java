@@ -50,7 +50,7 @@ public class GCMBlocksRemainingFailureTest extends TestCase
 
 
     @Test
-    public void failWholeBlockExtra()
+    public void testFailWholeBlockExtra()
         throws Exception
     {
         if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM))
@@ -76,6 +76,7 @@ public class GCMBlocksRemainingFailureTest extends TestCase
         try
         {
             gcmEngine.doFinal(scratch, 0);
+            Assert.fail("doFinal past the GCM block limit did not throw");
         }
         catch (IllegalArgumentException ilex)
         {
@@ -86,7 +87,7 @@ public class GCMBlocksRemainingFailureTest extends TestCase
 
 
     @Test
-    public void failWholeBlockExtraAfterFour()
+    public void testFailWholeBlockExtraAfterFour()
         throws Exception
     {
         if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM))
@@ -111,6 +112,7 @@ public class GCMBlocksRemainingFailureTest extends TestCase
         try
         {
             gcmEngine.processBytes(largeMessage, 0, largeMessage.length, scratch, 0); // Block 1
+            Assert.fail("processBytes past the GCM block limit did not throw");
         }
         catch (IllegalArgumentException ilex)
         {
@@ -122,7 +124,7 @@ public class GCMBlocksRemainingFailureTest extends TestCase
 
 
     @Test
-    public void failDueToPartialFinalBlock()
+    public void testFailDueToPartialFinalBlock()
         throws Exception
     {
         if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM))
@@ -145,7 +147,7 @@ public class GCMBlocksRemainingFailureTest extends TestCase
         try
         {
             gcmEngine.doFinal(scratch, 0);
-            Assert.fail();
+            Assert.fail("doFinal with a partial final block past the limit did not throw");
         }
         catch (IllegalArgumentException ilex)
         {
@@ -171,6 +173,7 @@ public class GCMBlocksRemainingFailureTest extends TestCase
         try
         {
             gcmEngine.setBlocksRemainingDown(-10); // Attempt to wind the counter back
+            Assert.fail("winding the blocks-remaining counter back did not throw");
         }
         catch (IllegalArgumentException ilex)
         {
@@ -198,6 +201,7 @@ public class GCMBlocksRemainingFailureTest extends TestCase
         try
         {
             gcmEngine.setBlocksRemainingDown(1); // Attempt after use
+            Assert.fail("adjusting blocks remaining after use did not throw");
         }
         catch (IllegalArgumentException ilex)
         {
