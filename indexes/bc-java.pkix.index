@@ -1,4 +1,4 @@
-d92d108f495e83a63fe1775223c4783734f8f02fcc1f4cec5f751ff08bf952d5  pkix/src/test/java/org/bouncycastle/pkix/test/AllTests.java
+233fa2f73c81ff99ae0f92cc93d58d5f6acd90b7772f59cbc4af9890e7418c4e  pkix/src/test/java/org/bouncycastle/pkix/test/AllTests.java
 1730cf956a71987b9c37489a6078e2d1be25e584b7a26d5cec381eb1e8eb6b08  pkix/src/test/java/org/bouncycastle/pkix/test/RevocationTest.java
 9889c0b546cad9e5909ed2dbb0c6bdc34c6f5dd7448ca0176a70a5500d23d6e2  pkix/src/test/java/org/bouncycastle/pkix/test/TestUtil.java
 6359451fa91c4ec9a3663f215d1ae6dadb90fa4a7bf2d5f0e5699a0007855c1f  pkix/src/test/java/org/bouncycastle/pkix/test/CheckerTest.java
@@ -858,3 +858,4 @@ b0dd4f0627059ec2505ea51cf13e23fe61ee41fec0327adbbab29bbaad9ecb81  pkix/src/main/
 c05768935e41e65f206d0af1328ab189d63fc5b3add84f9b5c12266c134aa704  pkix/src/test/java/org/bouncycastle/pkix/jcajce/ReasonsMaskTest.java
 1ae8f64aaaf4b1e4c2d65bb33b4b6f5c34ba7d95714c6d0177edea4da9ee7968  pkix/src/test/java/org/bouncycastle/pkix/jcajce/AllTests.java
 2fb60a3a689de3d9f5da421e0e3c3004a4bce8f49eb39abacd9552d17589ac14  pkix/src/test/java/org/bouncycastle/pkix/jcajce/RevocationUtilitiesTest.java
+2796db7887c6342ffd2551e7710e70b9112e58ba30084b5ad3c4b7d86faa4928  pkix/src/test/java/org/bouncycastle/pkix/test/PKIXCertPathReviewerCrlReasonTest.java
