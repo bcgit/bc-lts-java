@@ -61,6 +61,7 @@ import org.bouncycastle.asn1.x509.DistributionPointName;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.GeneralName;
 import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.PKIXCRLValidator;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.internal.asn1.isismtt.ISISMTTObjectIdentifiers;
 import org.bouncycastle.jcajce.PKIXCRLStore;
@@ -68,11 +69,11 @@ import org.bouncycastle.jcajce.PKIXCRLStoreSelector;
 import org.bouncycastle.jcajce.PKIXCertRevocationCheckerParameters;
 import org.bouncycastle.jcajce.PKIXCertStore;
 import org.bouncycastle.jcajce.PKIXCertStoreSelector;
+import org.bouncycastle.jce.exception.ExtCertPathBuilderException;
+import org.bouncycastle.jce.exception.ExtCertPathValidatorException;
 import org.bouncycastle.jcajce.PKIXExtendedBuilderParameters;
 import org.bouncycastle.jcajce.PKIXExtendedParameters;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
-import org.bouncycastle.jce.exception.ExtCertPathBuilderException;
-import org.bouncycastle.jce.exception.ExtCertPathValidatorException;
 import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.Selector;
 import org.bouncycastle.util.Store;
@@ -904,11 +905,7 @@ class CertPathValidatorUtilities
             :   reasonCode.intValueExact();
 
         // for reason keyCompromise, caCompromise, aACompromise or unspecified
-        if (!(validDate.getTime() < crl_entry.getRevocationDate().getTime())
-            || reasonCodeValue == CRLReason.unspecified
-            || reasonCodeValue == CRLReason.keyCompromise
-            || reasonCodeValue == CRLReason.cACompromise
-            || reasonCodeValue == CRLReason.aACompromise)
+        if (PKIXCRLValidator.isRevocationEffective(validDate, crl_entry.getRevocationDate(), reasonCodeValue))
         {
             // (i) or (j)
             certStatus.setCertStatus(reasonCodeValue);

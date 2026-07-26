@@ -1763,3 +1763,5 @@ d3f996de88fbb7adaacaad0e502476504b1693fbc8d378cd96c71d695ac8169b  core/src/test/
 78442cafb6436cb5b742691d7529cd26d28305953ad56dda3fd7eeb308849232  core/src/main/java/org/bouncycastle/asn1/DLGenerator.java
 355a8415d133ac47a08b0f86112c6de9f5c86d47b5d2f4d77da7ac04c833a047  core/src/main/java/org/bouncycastle/asn1/DLSequenceGenerator.java
 0f3bb3e0f4c27ce823e91b01f52cd7fd567a48a059acb905ba4edd655b72bc71  core/src/main/java/org/bouncycastle/asn1/DLOctetStringGenerator.java
+bc3b69002b3d441aa64a4f849586683b8a9957ac552685f9051b916e9bac96a2  core/src/main/java/org/bouncycastle/asn1/x509/CRLValidatorException.java
+179934b0e2bc62de3ee9db8d3bbe787db33d44733a72c1eb5c04ff5dda062411  core/src/main/java/org/bouncycastle/asn1/x509/PKIXCRLValidator.java
