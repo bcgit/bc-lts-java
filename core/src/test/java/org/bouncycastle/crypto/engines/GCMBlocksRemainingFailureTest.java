@@ -70,13 +70,16 @@ public class GCMBlocksRemainingFailureTest extends TestCase
         //
         // Expect failure from remaining whole blocks.
         //
+        // The feed is inside the try because the throw point is implementation dependent: a wide
+        // implementation buffers these blocks and accounts for them in doFinal, a narrower one can
+        // reject them in processBytes. Either is acceptable, silence is not.
         gcmEngine.setBlocksRemainingDown((1L << 32) - 3L);
-        gcmEngine.processBytes(msg, 0, msg.length, scratch, 0); // Block 1
-        gcmEngine.processBytes(msg, 0, msg.length, scratch, 0); // Block 2
         try
         {
+            gcmEngine.processBytes(msg, 0, msg.length, scratch, 0); // Block 1
+            gcmEngine.processBytes(msg, 0, msg.length, scratch, 0); // Block 2
             gcmEngine.doFinal(scratch, 0);
-            Assert.fail("doFinal past the GCM block limit did not throw");
+            Assert.fail("processing past the GCM block limit did not throw");
         }
         catch (IllegalArgumentException ilex)
         {
@@ -105,14 +108,21 @@ public class GCMBlocksRemainingFailureTest extends TestCase
         byte[] largeMessage = new byte[64];
 
         //
-        // Expect failure at four block level
+        // Expect failure from the four blocks of largeMessage exceeding the three remaining.
+        //
+        // Which call reports it is implementation dependent and must not be asserted: the 128 bit
+        // wide path (avx, vaes) checks in units of four blocks and rejects this inside processBytes,
+        // while the 512 bit wide path (vaesf) checks in units of sixteen, buffers the four blocks
+        // and only accounts for them per block in doFinal. Requiring the pair to throw pins the
+        // property that matters - the limit is enforced - without pinning where.
         //
         gcmEngine.setBlocksRemainingDown((1L << 32) - 5L);
 
         try
         {
-            gcmEngine.processBytes(largeMessage, 0, largeMessage.length, scratch, 0); // Block 1
-            Assert.fail("processBytes past the GCM block limit did not throw");
+            gcmEngine.processBytes(largeMessage, 0, largeMessage.length, scratch, 0);
+            gcmEngine.doFinal(scratch, 0);
+            Assert.fail("processing past the GCM block limit did not throw");
         }
         catch (IllegalArgumentException ilex)
         {
@@ -143,11 +153,11 @@ public class GCMBlocksRemainingFailureTest extends TestCase
 
         byte[] longerMessage = new byte[20];
         byte[] scratch = new byte[256];
-        gcmEngine.processBytes(longerMessage, 0, longerMessage.length, scratch, 0);
         try
         {
+            gcmEngine.processBytes(longerMessage, 0, longerMessage.length, scratch, 0);
             gcmEngine.doFinal(scratch, 0);
-            Assert.fail("doFinal with a partial final block past the limit did not throw");
+            Assert.fail("processing a partial final block past the limit did not throw");
         }
         catch (IllegalArgumentException ilex)
         {
