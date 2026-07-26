@@ -190,7 +190,9 @@ task withNative() {
 def registerUnitTestTask(TaskContainer taskContainer, String taskName, String expectEnvVar, int jvmVersion, String expectedJvm, String variant, String interfaceType = "any", String ignore = "") {
 
     taskContainer.register("${taskName}Unit", Test) {
-        onlyIf { System.getenv(expectEnvVar) != null }
+        // skip rather than dump core when the host CPU cannot execute the variant (e.g. vaesf
+        // needs AVX-512); the env gate alone does not cover that
+        onlyIf { System.getenv(expectEnvVar) != null && ExtraFunctions.cpuSupportsVariant(variant) }
         failOnNoDiscoveredTests = true
         javaLauncher = javaToolchains.launcherFor {
             languageVersion = JavaLanguageVersion.of(jvmVersion)
@@ -227,7 +229,9 @@ def registerUnitTestTask(TaskContainer taskContainer, String taskName, String ex
 def registerIntegrationTestTask(TaskContainer taskContainer, String taskName, String expectEnvVar, int jvmVersion, String expectedJvm, String variant, String interfaceType = "any", String ignore) {
 
     taskContainer.register("${taskName}Integration", Test.class) {
-        onlyIf { System.getenv(expectEnvVar) != null }
+        // skip rather than dump core when the host CPU cannot execute the variant (e.g. vaesf
+        // needs AVX-512); the env gate alone does not cover that
+        onlyIf { System.getenv(expectEnvVar) != null && ExtraFunctions.cpuSupportsVariant(variant) }
         failOnNoDiscoveredTests = true
         javaLauncher = javaToolchains.launcherFor {
             languageVersion = JavaLanguageVersion.of(jvmVersion)

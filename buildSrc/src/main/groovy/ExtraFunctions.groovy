@@ -64,6 +64,81 @@ class ExtraFunctions {
 
 
     /**
+     * Whether this host's CPU can run a native variant. The per-variant requirements mirror the
+     * probe's own table, as printed by 'DumpInfo -a': avx needs avx, vaes needs vaes, and vaesf
+     * additionally needs avx512f, avx512bw and vpclmulqdq.
+     * <p>
+     * Forcing a variant the CPU cannot execute does not fail cleanly - the JVM takes an illegal
+     * instruction and dumps core - so the variant test tasks gate on this and skip instead. When the
+     * flags cannot be read the answer is 'true': leaving a task enabled surfaces a problem, whereas
+     * silently skipping hides the coverage.
+     */
+    static boolean cpuSupportsVariant(String variant) {
+        if (variant == null || variant.isEmpty() || "java".equals(variant) || "auto".equals(variant)) {
+            return true;
+        }
+
+        // ASIMD is mandatory on ARMv8-A, and the neon-le tasks are only registered on aarch64.
+        if ("neon-le".equals(variant)) {
+            return true;
+        }
+
+        Set<String> flags = cpuFlags();
+        if (flags.isEmpty()) {
+            return true;
+        }
+
+        switch (variant) {
+            case "avx":
+                return flags.contains("avx");
+            case "vaes":
+                return flags.contains("vaes");
+            case "vaesf":
+                return flags.contains("vaes") && flags.contains("avx512f") &&
+                        flags.contains("avx512bw") && flags.contains("vpclmulqdq");
+            default:
+                return true;
+        }
+    }
+
+    /**
+     * The host CPU feature flags, lower-cased, or an empty set when they cannot be determined.
+     */
+    static Set<String> cpuFlags() {
+        try {
+            if ("linux".equals(os())) {
+                File cpuinfo = new File("/proc/cpuinfo");
+                if (!cpuinfo.exists()) {
+                    return Collections.emptySet();
+                }
+                Set<String> found = new HashSet<String>();
+                cpuinfo.eachLine { String line ->
+                    // x86 reports 'flags', aarch64 reports 'Features'
+                    if (line.startsWith("flags") || line.startsWith("Features")) {
+                        int colon = line.indexOf((int)(':' as char));
+                        if (colon >= 0) {
+                            found.addAll(line.substring(colon + 1).trim().toLowerCase().split("\\s+") as List);
+                        }
+                    }
+                }
+                return found;
+            }
+
+            // darwin
+            Set<String> found = new HashSet<String>();
+            for (String key : ["machdep.cpu.features", "machdep.cpu.leaf7_features"]) {
+                Process p = ["sysctl", "-n", key].execute();
+                p.waitFor();
+                found.addAll(p.text.trim().toLowerCase().split("\\s+") as List);
+            }
+            return found;
+        } catch (Exception ignored) {
+            return Collections.emptySet();
+        }
+    }
+
+
+    /**
      * Fetches a test property value of the following format
      * 'testing.<taskName>.<os>.<arch>.<id>'
      *
