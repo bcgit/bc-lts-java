@@ -149,7 +149,7 @@ public final class BouncyCastleProvider
      * <code>Security.addProvider()</code> mechanism.
      */
     public BouncyCastleProvider()
-    {
+    {q
         super(PROVIDER_NAME, 2.731202, info);
 
         AccessController.doPrivileged(new PrivilegedAction()
