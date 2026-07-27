@@ -68,6 +68,11 @@ public class SICPositionTest
         checkBackwardSkipBelowStart(aesKey);
         checkShortIVProcessBlockRange(aesKey);
 
+        // the same bound on an 8-byte block cipher, where there is no upper counter lane
+        checkSmallBlockRangeBySkip(desKey);
+        checkSmallBlockBoundIsExact(desKey);
+        checkSmallBlockBackwardSkipBelowStart(desKey);
+
         // skip() at the extremes of the long range
         checkSkipLongMinValue(aesKey, "000102030405060708090a0b0c0d0e0f");        // full-block IV
         checkSkipLongMinValue(aesKey, "0001020304050607");                        // partial IV
@@ -275,6 +280,179 @@ public class SICPositionTest
         catch (IllegalStateException e)
         {
             isTrue("wrong message: " + e.getMessage(), OUT_OF_RANGE.equals(e.getMessage()));
+        }
+    }
+
+    // 2^59 DES blocks per skip, so 32 chunks reach 2^64 blocks
+    private static final long DES_SKIP_CHUNK = 1L << 62;
+    private static final String DES_FULL_IV = "00112233445566ee";
+
+    /**
+     * With a full-block IV on a block size of 8 or less there is no upper counter lane for
+     * populateDelta() to scan, so the bound rests entirely on the block accumulator. checkCounter()
+     * used to resync that accumulator from the counter delta on every skip, which cleared the wrap
+     * latch: a lap of 2^64 blocks made by skip() alone reported no error and quietly re-issued the
+     * block-0 keystream for the same key and IV.
+     */
+    private void checkSmallBlockRangeBySkip(byte[] desKey)
+    {
+        CTRModeCipher reference = desCipher();
+        reference.init(true, params(desKey, DES_FULL_IV));
+
+        byte[] block0 = new byte[8];
+        reference.processBytes(new byte[8], 0, 8, block0, 0);
+
+        CTRModeCipher cipher = desCipher();
+        cipher.init(true, params(desKey, DES_FULL_IV));
+
+        int skips = 0;
+        try
+        {
+            for (; skips != 40; skips++)
+            {
+                cipher.skip(DES_SKIP_CHUNK);
+            }
+            fail("skip past 2^64 blocks did not throw for an 8-byte block cipher");
+        }
+        catch (IllegalStateException e)
+        {
+            isTrue("wrong message: " + e.getMessage(), OUT_OF_RANGE.equals(e.getMessage()));
+            isTrue("threw after " + skips + " skips", skips == 31);
+        }
+
+        // the lap must not have produced keystream, and the failure is sticky for output
+        try
+        {
+            cipher.processBytes(new byte[8], 0, 8, new byte[8], 0);
+            fail("processBytes after range failure did not throw");
+        }
+        catch (IllegalStateException e)
+        {
+            isTrue("wrong message: " + e.getMessage(), OUT_OF_RANGE.equals(e.getMessage()));
+        }
+
+        // ...until the latch is cleared by reset()
+        cipher.reset();
+
+        byte[] recovered = new byte[8];
+        cipher.processBytes(new byte[8], 0, 8, recovered, 0);
+
+        if (!areEqual(recovered, block0))
+        {
+            fail("keystream after reset does not return to block 0");
+        }
+    }
+
+    // 2^64 - 1 blocks is the last legal position; the block there is real keystream, and
+    // one block further throws - checked one shot and byte at a time
+    private void checkSmallBlockBoundIsExact(byte[] desKey)
+    {
+        CTRModeCipher reference = desCipher();
+        reference.init(true, params(desKey, DES_FULL_IV));
+
+        byte[] block0 = new byte[8];
+        reference.processBytes(new byte[8], 0, 8, block0, 0);
+
+        for (int chunked = 0; chunked != 2; chunked++)
+        {
+            CTRModeCipher cipher = desCipher();
+            cipher.init(true, params(desKey, DES_FULL_IV));
+
+            for (int i = 0; i != 31; i++)
+            {
+                cipher.skip(DES_SKIP_CHUNK);
+            }
+            cipher.skip(DES_SKIP_CHUNK - 8);        // 2^64 - 1 blocks in total
+
+            byte[] last = new byte[8];
+            if (chunked == 0)
+            {
+                cipher.processBytes(new byte[8], 0, 8, last, 0);
+            }
+            else
+            {
+                for (int i = 0; i != 8; i++)
+                {
+                    cipher.processBytes(new byte[1], 0, 1, last, i);
+                }
+            }
+
+            if (areEqual(last, block0))
+            {
+                fail("block 2^64 - 1 repeats the block-0 keystream");
+            }
+
+            try
+            {
+                cipher.processBytes(new byte[1], 0, 1, new byte[1], 0);
+                fail("generation at block 2^64 did not throw");
+            }
+            catch (IllegalStateException e)
+            {
+                isTrue("wrong message: " + e.getMessage(), OUT_OF_RANGE.equals(e.getMessage()));
+            }
+        }
+
+        // and the same bound reached by skip rather than by generating
+        CTRModeCipher cipher = desCipher();
+        cipher.init(true, params(desKey, DES_FULL_IV));
+
+        for (int i = 0; i != 31; i++)
+        {
+            cipher.skip(DES_SKIP_CHUNK);
+        }
+        cipher.skip(DES_SKIP_CHUNK - 8);
+
+        try
+        {
+            cipher.skip(8);
+            fail("skip to block 2^64 did not throw");
+        }
+        catch (IllegalStateException e)
+        {
+            isTrue("wrong message: " + e.getMessage(), OUT_OF_RANGE.equals(e.getMessage()));
+        }
+    }
+
+    // dropping below the initial counter re-enters keystream already issued - the 8-byte
+    // block path used to allow it, reporting a negative position
+    private void checkSmallBlockBackwardSkipBelowStart(byte[] desKey)
+    {
+        CTRModeCipher cipher = desCipher();
+        cipher.init(true, params(desKey, DES_FULL_IV));
+
+        try
+        {
+            cipher.skip(-8);
+            fail("skip below the initial counter did not throw, position " + cipher.getPosition());
+        }
+        catch (IllegalStateException e)
+        {
+            isTrue("wrong message: " + e.getMessage(), OUT_OF_RANGE.equals(e.getMessage()));
+        }
+
+        // a mid-block backward move below the start is caught the same way
+        cipher.init(true, params(desKey, DES_FULL_IV));
+        cipher.processBytes(new byte[3], 0, 3, new byte[3], 0);
+
+        try
+        {
+            cipher.skip(-4);
+            fail("mid-block skip below the initial counter did not throw, position " + cipher.getPosition());
+        }
+        catch (IllegalStateException e)
+        {
+            isTrue("wrong message: " + e.getMessage(), OUT_OF_RANGE.equals(e.getMessage()));
+        }
+
+        // a legal backward move within the stream still works
+        cipher.init(true, params(desKey, DES_FULL_IV));
+        cipher.skip(64);
+        cipher.skip(-64);
+
+        if (cipher.getPosition() != 0)
+        {
+            fail("legal backward skip landed at " + cipher.getPosition());
         }
     }
 

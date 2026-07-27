@@ -8,6 +8,7 @@ import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.StreamBlockCipher;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Longs;
 import org.bouncycastle.util.Pack;
 
 /**
@@ -36,7 +37,8 @@ public class SICBlockCipher
     private boolean         fullBlockIV;
     // full-block IV, block size over 8: counter[laneOff - 1] != guardByte proves the advance since init is below 2^64 blocks
     private byte            guardByte;
-    // full-block IV, block size of 8 or less: advance since init in blocks mod 2^64, resynced on skip/seekTo
+    // full-block IV, block size of 8 or less: advance since init in blocks mod 2^64, maintained
+    // across skip/seekTo as well as per block - coming around latches overflow
     private long            used;
     // full-block IV only: the advance since init has been seen to be out of range
     private boolean         overflow;
@@ -240,11 +242,6 @@ public class SICBlockCipher
                 overflow = true;
                 throw new IllegalStateException("Counter in CTR/SIC mode out of range.");
             }
-            if (laneOff == 0)
-            {
-                // no upper lane to watch per block - resync the block accumulator instead
-                used = Pack.bigEndianToLong(delta, delta.length - 8);
-            }
         }
     }
 
@@ -306,6 +303,20 @@ public class SICBlockCipher
             counter[i] = (byte)sum;
             carry = sum >>> 8;
         }
+
+        if (laneOff == 0)
+        {
+            // no upper lane to watch per block, so the accumulator is the only record of the
+            // advance since init - it has to follow skip/seekTo, not just the per-block increment
+            long advanced = used + numBlocks;
+
+            if (fullBlockIV && Longs.compareUnsigned(advanced, used) < 0)
+            {
+                overflow = true;
+            }
+
+            used = advanced;
+        }
     }
 
     // single big-endian subtraction of a 64-bit block count from the counter, modular like addToCounter
@@ -330,6 +341,17 @@ public class SICBlockCipher
                 borrow = 0;
             }
             counter[i] = (byte)v;
+        }
+
+        if (laneOff == 0)
+        {
+            if (fullBlockIV && Longs.compareUnsigned(numBlocks, used) > 0)
+            {
+                // dropping below the initial counter re-enters keystream already issued
+                overflow = true;
+            }
+
+            used -= numBlocks;
         }
     }
 
