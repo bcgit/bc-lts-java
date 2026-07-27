@@ -3,7 +3,9 @@ package org.bouncycastle.crypto.test;
 import java.security.SecureRandom;
 
 import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.SkippingStreamCipher;
 import org.bouncycastle.crypto.StreamCipher;
+import org.bouncycastle.crypto.engines.ChaCha7539Engine;
 import org.bouncycastle.crypto.engines.ChaChaEngine;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
@@ -159,6 +161,154 @@ public class ChaChaTest
                   set6v1_0, set6v1_65472, set6v1_65536);
         reinitBug();
         skipTest();
+        skipCarryTest();
+    }
+
+    private byte[] keyStream(SkippingStreamCipher engine, int len)
+    {
+        byte[] out = new byte[len];
+
+        engine.processBytes(new byte[len], 0, len, out, 0);
+
+        return out;
+    }
+
+    /**
+     * The block counter carry on the skip() path used to be tested with a signed comparison
+     * (oldState != 0 &amp;&amp; engineState[12] &lt; oldState). Once the low 32-bit counter word crossed
+     * 0x80000000 or wrapped past 0xFFFFFFFF the test misfired in both directions: the real carry
+     * was missed - so ChaCha silently re-emitted keystream it had already produced and ChaCha7539
+     * silently wrapped its 2^32-block RFC 7539 limit back to block 0 under the same key and nonce -
+     * and a spurious carry could fire the other way, jumping the stream 2^32 blocks ahead.
+     */
+    private void skipCarryTest()
+    {
+        byte[] key = new byte[32];
+        for (int i = 0; i != key.length; i++)
+        {
+            key[i] = (byte)i;
+        }
+
+        CipherParameters chachaParams = new ParametersWithIV(new KeyParameter(key), new byte[8]);
+        CipherParameters rfcParams = new ParametersWithIV(new KeyParameter(key), new byte[12]);
+
+        // a real carry out of the low counter word must be taken: two legal 2^31-block skips
+        // land on block 2^32, not back on block 0
+        SkippingStreamCipher engine = new ChaChaEngine();
+
+        engine.init(true, chachaParams);
+
+        byte[] block0 = keyStream(engine, 64);
+
+        engine.init(true, chachaParams);
+        engine.skip(0x80000000L * 64L);
+        engine.skip(0x80000000L * 64L);
+
+        byte[] twoHalves = keyStream(engine, 64);
+
+        if (areEqual(twoHalves, block0))
+        {
+            fail("ChaCha reused block 0 keystream after skipping 2^32 blocks");
+        }
+
+        if (engine.getPosition() != 274877907008L)
+        {
+            fail("ChaCha two-half skip landed at " + engine.getPosition());
+        }
+
+        // reaching the same block in one skip goes through the hi branch, which was always correct
+        SkippingStreamCipher reference = new ChaChaEngine();
+
+        reference.init(true, chachaParams);
+        reference.skip(1L << 38);
+
+        if (!areEqual(twoHalves, keyStream(reference, 64)))
+        {
+            fail("ChaCha two-half skip disagrees with the single-skip reference");
+        }
+
+        // ... and no carry may be invented when the low word merely crosses 0x80000000
+        SkippingStreamCipher stepped = new ChaChaEngine();
+
+        stepped.init(true, chachaParams);
+        stepped.skip(0x7FFFFFFFL * 64L);
+        stepped.skip(2 * 64L);
+
+        SkippingStreamCipher direct = new ChaChaEngine();
+
+        direct.init(true, chachaParams);
+        direct.skip(0x80000001L * 64L);
+
+        if (stepped.getPosition() != direct.getPosition())
+        {
+            fail("ChaCha spurious carry: " + stepped.getPosition() + " != " + direct.getPosition());
+        }
+
+        if (!areEqual(keyStream(stepped, 64), keyStream(direct, 64)))
+        {
+            fail("ChaCha keystream differs after crossing 0x80000000 in two steps");
+        }
+
+        // ChaCha7539 has no upper word to carry into, so the same wrap must be refused
+        SkippingStreamCipher rfc = new ChaCha7539Engine();
+
+        rfc.init(true, rfcParams);
+        rfc.skip(0x80000000L * 64L);
+
+        try
+        {
+            rfc.skip(0x80000000L * 64L);
+            fail("ChaCha7539 skipped past 2^32 blocks without throwing");
+        }
+        catch (IllegalStateException e)
+        {
+            isTrue("wrong message: " + e.getMessage(), "attempt to increase counter past 2^32.".equals(e.getMessage()));
+        }
+
+        // the bound is exact: the last block is reachable, one block further is not
+        rfc.init(true, rfcParams);
+        rfc.skip(0xFFFFFFFFL * 64L);
+
+        if (rfc.getPosition() != 274877906880L)
+        {
+            fail("ChaCha7539 last legal block at " + rfc.getPosition());
+        }
+
+        try
+        {
+            rfc.skip(64);
+            fail("ChaCha7539 wrapped past its last block without throwing");
+        }
+        catch (IllegalStateException e)
+        {
+            isTrue("wrong message: " + e.getMessage(), "attempt to increase counter past 2^32.".equals(e.getMessage()));
+        }
+
+        // a legal RFC 7539 position must still be accepted
+        rfc.init(true, rfcParams);
+        rfc.skip(0x80000000L * 64L);
+
+        if (rfc.getPosition() != 137438953472L)
+        {
+            fail("ChaCha7539 legal 2^31 block landed at " + rfc.getPosition());
+        }
+
+        // and a carry taken going forward must be given back going the other way
+        engine.init(true, chachaParams);
+        engine.skip(0x80000000L * 64L);
+        engine.skip(0x80000000L * 64L);
+        engine.skip(-(0x80000000L * 64L));
+        engine.skip(-(0x80000000L * 64L));
+
+        if (engine.getPosition() != 0)
+        {
+            fail("ChaCha carry round trip landed at " + engine.getPosition());
+        }
+
+        if (!areEqual(keyStream(engine, 64), block0))
+        {
+            fail("ChaCha keystream after a carry round trip does not match block 0");
+        }
     }
 
     private void chachaTest1(int rounds, CipherParameters params, String v0, String v192, String v256, String v448)

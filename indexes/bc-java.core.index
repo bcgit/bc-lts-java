@@ -127,7 +127,7 @@ b9ed57728c65a02274b897a80bda45c1dee542ec3b3d6f4e183a5738c25451d3  core/src/test/
 00c415c680a9f4ca85f80a50f38850190b1d0149f63b8fbaed9dc12beccd7331  core/src/test/java/org/bouncycastle/crypto/test/SHA512t224DigestTest.java
 164608190d96079522462b86843ddf4a638dfba67379dba19b7e4d80bba63755  core/src/test/java/org/bouncycastle/crypto/test/TwofishTest.java
 3469c431972f5426e65e5609995a7cc29e1ebddca45f33c710f62a6d73d592ec  core/src/test/java/org/bouncycastle/crypto/test/ElGamalTest.java
-48a6fae90a4b36cc39d291180c3e5995318285605d2fd1822a7fb1abb3f90981  core/src/test/java/org/bouncycastle/crypto/test/ChaChaTest.java
+bcd226a88ece48bef91776982748f17e753096ac91d628baeacb15a44cbc5d28  core/src/test/java/org/bouncycastle/crypto/test/ChaChaTest.java
 c25303085205871340884e5b951d9fa68abe7e50b5edda07c958e817530af82f  core/src/test/java/org/bouncycastle/crypto/test/BCryptTest.java
 5a1041db6221fca6f289b873e247006d9b74c13d15b41fb637a3b4364866aa5c  core/src/test/java/org/bouncycastle/crypto/test/OpenBSDBCryptTest.java
 5d5b3ca6bb22b88efabf42d1fa9f50cc3e3abe39d25a87f4d74d7d629105ee1e  core/src/test/java/org/bouncycastle/crypto/test/Shacal2Test.java
