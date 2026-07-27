@@ -23,11 +23,22 @@ void ctr_free_ctx(ctr_ctx *ctx) {
     free(ctx);
 }
 
+// rebuild IV_le for the current carry state - only meaningful for a full 16 byte IV, where the
+// low lane is zero in IV_le and the counter is xored into it when a block is generated
+static void ctr_apply_high_lane(ctr_ctx *pCtr) {
+    pCtr->IV_le = vreinterpretq_u8_u64(
+            vsetq_lane_u64(pCtr->initialHi + (pCtr->hiCarried ? 1 : 0), vdupq_n_u64(0), 1));
+}
+
 void ctr_reset(ctr_ctx *ctx) {
     ctx->partialBlock = vdupq_n_u8(0);
     ctx->buf_pos = 0;
     ctx->ctr = ctx->initialCTR;
     ctx->ctrAtEnd = false;
+    if (ctx->fullIV) {
+        ctx->hiCarried = false;
+        ctr_apply_high_lane(ctx);
+    }
 }
 
 
@@ -99,6 +110,8 @@ void ctr_init(ctr_ctx *pCtx, unsigned char *key, size_t keyLen, unsigned char *i
         }
 
         pCtx->initialCTR = 0;
+        pCtx->fullIV = false;
+        pCtx->initialHi = 0;
     } else {
         //
         // Users know what they are getting into.
@@ -111,7 +124,12 @@ void ctr_init(ctr_ctx *pCtx, unsigned char *key, size_t keyLen, unsigned char *i
         pCtx->initialCTR = pCtx->ctr;
 
         pCtx->IV_le = vandq_u8(pCtx->IV_le, minus_one);//   _mm_and_si128(pCtx->IV_le, _mm_set_epi64x(-1, 0));
+
+        // the upper 8 bytes are counter too, so they have to move when the low lane wraps
+        pCtx->fullIV = true;
+        pCtx->initialHi = vgetq_lane_u64(vreinterpretq_u64_u8(pCtx->IV_le), 1);
     }
+    pCtx->hiCarried = false;
     ctr_reset(pCtx);
 
 }
@@ -128,6 +146,12 @@ bool ctr_shift_counter(ctr_ctx *pCtr, uint64_t magnitude, bool positive) {
             return false;
         }
         pCtr->ctrAtEnd = magnitude > lastBlockIndex - blockIndex;
+        // a full 16 byte IV counts the whole block, so a low lane wrap carries into the high one.
+        // the total advance is capped at 2^64 blocks above, so this can happen at most once
+        if (pCtr->fullIV && pCtr->ctr + magnitude < pCtr->ctr) {
+            pCtr->hiCarried = true;
+            ctr_apply_high_lane(pCtr);
+        }
         pCtr->ctr += magnitude;
     } else {
         if (pCtr->ctrAtEnd) {
@@ -140,10 +164,54 @@ bool ctr_shift_counter(ctr_ctx *pCtr, uint64_t magnitude, bool positive) {
             }
         }
 
+        if (pCtr->fullIV && magnitude > pCtr->ctr) {
+            // borrowing out of the low lane gives the carry back
+            pCtr->hiCarried = false;
+            ctr_apply_high_lane(pCtr);
+        }
         pCtr->ctr -= magnitude;
         pCtr->ctrAtEnd = false;
     }
     pCtr->ctr &= pCtr->ctrMask;
+
+    return true;
+}
+
+/**
+ * The wide keystream generators add each block's offset into the low 64 bit lane only, so a run of
+ * blocks that straddles a low lane wrap would be generated with the pre-wrap high lane. Step over
+ * the crossing one block at a time instead - ctr_shift_counter moves the high lane as it goes - and
+ * let the caller resume its wide path afterwards. Only reachable for a full 16 byte IV, and at most
+ * once in the 2^64 block life of one keystream, so the scalar cost does not matter.
+ */
+bool ctr_step_over_lane_wrap(ctr_ctx *pCtr, unsigned char **src, unsigned char **dest, size_t *len) {
+    if (!pCtr->fullIV || pCtr->hiCarried || pCtr->ctr == 0) {
+        return true;
+    }
+
+    uint64_t blocksToWrap = 0 - pCtr->ctr;      // == 2^64 - ctr
+
+    if (blocksToWrap > CTR_MAX_WIDE_BLOCKS) {
+        return true;
+    }
+
+    while (blocksToWrap > 0 && *len >= CTR_BLOCK_SIZE) {
+        ctr_generate_partial_block(pCtr);
+
+        const unsigned char *ks = (const unsigned char *) &pCtr->partialBlock;
+        for (size_t i = 0; i < CTR_BLOCK_SIZE; i++) {
+            (*dest)[i] = (unsigned char) ((*src)[i] ^ ks[i]);
+        }
+
+        *src += CTR_BLOCK_SIZE;
+        *dest += CTR_BLOCK_SIZE;
+        *len -= CTR_BLOCK_SIZE;
+        blocksToWrap--;
+
+        if (!ctr_incCtr(pCtr, 1)) {
+            return false;
+        }
+    }
 
     return true;
 }

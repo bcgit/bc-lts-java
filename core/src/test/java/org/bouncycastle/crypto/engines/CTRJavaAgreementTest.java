@@ -14,6 +14,7 @@ import org.bouncycastle.util.encoders.Hex;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.security.Security;
 
@@ -1446,6 +1447,169 @@ public class CTRJavaAgreementTest extends TestCase
                             expected, nativeCtr.getPosition());
                     }
                 }
+            }
+        }
+    }
+
+    // AES-ECB of the counter block the spec asks for at blockIndex: IV + blockIndex over the full
+    // 128 bits. Neither engine is involved, so a block can be checked without assuming either is right.
+    private byte[] referenceBlock(byte[] key, byte[] iv, long blockIndex)
+    {
+        BigInteger counter = new BigInteger(1, iv)
+            .add(BigInteger.valueOf(blockIndex))
+            .mod(BigInteger.ONE.shiftLeft(128));
+
+        byte[] raw = counter.toByteArray();
+        byte[] block = new byte[16];
+        int copy = Math.min(16, raw.length);
+        System.arraycopy(raw, raw.length - copy, block, 16 - copy, copy);
+
+        AESEngine ecb = new AESEngine();
+        ecb.init(true, new KeyParameter(key));
+
+        byte[] out = new byte[16];
+        ecb.processBlock(block, 0, out, 0);
+
+        return out;
+    }
+
+    /**
+     * A full 16-byte IV makes the whole block the counter, so once the low 8-byte lane runs out it
+     * has to carry into the high one. Java did; native froze the high lane at init and wrapped the
+     * low lane modulo 2^64, so from the wrap onward the two produced different keystream for the
+     * same key and IV while getPosition() agreed on both - encrypting on one and decrypting on the
+     * other corrupted silently. The wide native paths add block offsets into the low lane only, so
+     * the crossing is stepped over one block at a time.
+     */
+    @Test
+    public void testFullIVLowLaneWrapAgreement() throws Exception
+    {
+        if (!TestUtil.hasNativeService("AES/CTR"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
+            {
+                TestCase.fail("Skipping CTR testFullIVLowLaneWrapAgreement: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        long seed = System.currentTimeMillis();
+        SecureRandom rand = new SecureRandom();
+        rand.setSeed(seed);
+
+        // high lane fixed, low lane placed so the wrap lands at block 1, block 8, and never
+        String[] ivs = new String[]{
+            "0011223344556677FFFFFFFFFFFFFFFF",     // wraps after 1 block
+            "0011223344556677FFFFFFFFFFFFFFF8",     // wraps after 8 blocks
+            "0011223344556677FFFFFFFF00000000"      // control, no wrap in range
+        };
+        long[] wrapAt = new long[]{1, 8, -1};
+
+        // chunkings drive different dispatcher paths, which is where a missed step shows up
+        int[] chunks = new int[]{64 * 16, 16, 1, 15, 17, 4 * 16};
+
+        int blocks = 64;
+        int total = blocks * 16;
+
+        for (int v = 0; v != ivs.length; v++)
+        {
+            byte[] iv = Hex.decode(ivs[v]);
+
+            for (int ks : new int[]{16, 24, 32})
+            {
+                byte[] key = new byte[ks];
+                rand.nextBytes(key);
+
+                CipherParameters params = new ParametersWithIV(new KeyParameter(key), iv);
+                String at = "iv " + ivs[v] + " keyLen " + ks + " (seed " + seed + ")";
+
+                byte[] in = new byte[total];
+                rand.nextBytes(in);
+
+                SkippingStreamCipher javaCtr = new SICBlockCipher(new AESEngine());
+                javaCtr.init(true, params);
+
+                byte[] javaOut = new byte[total];
+                javaCtr.processBytes(in, 0, total, javaOut, 0);
+
+                // the Java path is itself checked against the spec, so a shared error cannot hide here
+                if (wrapAt[v] > 0)
+                {
+                    long past = wrapAt[v] + 2;
+                    byte[] expect = referenceBlock(key, iv, past);
+                    byte[] actual = new byte[16];
+                    for (int i = 0; i != 16; i++)
+                    {
+                        actual[i] = (byte)(javaOut[(int)past * 16 + i] ^ in[(int)past * 16 + i]);
+                    }
+                    TestCase.assertTrue("java block " + past + " past the wrap " + at,
+                        Arrays.areEqual(expect, actual));
+                }
+
+                for (int c = 0; c != chunks.length; c++)
+                {
+                    SkippingStreamCipher nativeCtr = new AESNativeCTR();
+                    nativeCtr.init(true, params);
+
+                    byte[] nativeOut = new byte[total];
+
+                    int done = 0;
+                    while (done < total)
+                    {
+                        int n = Math.min(chunks[c], total - done);
+                        nativeCtr.processBytes(in, done, n, nativeOut, done);
+                        done += n;
+                    }
+
+                    TestCase.assertTrue("keystream chunk " + chunks[c] + " " + at,
+                        Arrays.areEqual(javaOut, nativeOut));
+                    TestCase.assertEquals("position chunk " + chunks[c] + " " + at,
+                        (long)total, nativeCtr.getPosition());
+                }
+
+                if (wrapAt[v] < 0)
+                {
+                    continue;
+                }
+
+                // seek straight past the wrap, then walk back over it and out again
+                long past = (wrapAt[v] + 3) * 16;
+                long before = (wrapAt[v] - 1) * 16;
+
+                SkippingStreamCipher nativeCtr = new AESNativeCTR();
+                nativeCtr.init(true, params);
+                javaCtr.seekTo(past);
+                nativeCtr.seekTo(past);
+
+                byte[] jb = new byte[16];
+                byte[] nb = new byte[16];
+
+                javaCtr.processBytes(in, 0, 16, jb, 0);
+                nativeCtr.processBytes(in, 0, 16, nb, 0);
+
+                TestCase.assertTrue("keystream after seek past the wrap " + at, Arrays.areEqual(jb, nb));
+                TestCase.assertEquals("position after seek past the wrap " + at,
+                    javaCtr.getPosition(), nativeCtr.getPosition());
+
+                // back across the wrap - the carry has to be given back
+                javaCtr.seekTo(before);
+                nativeCtr.seekTo(before);
+
+                javaCtr.processBytes(in, 0, 16, jb, 0);
+                nativeCtr.processBytes(in, 0, 16, nb, 0);
+
+                TestCase.assertTrue("keystream back before the wrap " + at, Arrays.areEqual(jb, nb));
+
+                // and forward over it once more from there
+                javaCtr.skip(32);
+                nativeCtr.skip(32);
+
+                javaCtr.processBytes(in, 0, 16, jb, 0);
+                nativeCtr.processBytes(in, 0, 16, nb, 0);
+
+                TestCase.assertTrue("keystream forward over the wrap again " + at, Arrays.areEqual(jb, nb));
+                TestCase.assertEquals("position forward over the wrap again " + at,
+                    javaCtr.getPosition(), nativeCtr.getPosition());
             }
         }
     }

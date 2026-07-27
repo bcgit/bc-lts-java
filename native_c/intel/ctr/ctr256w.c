@@ -399,6 +399,14 @@ bool ctr_process_bytes(ctr_ctx *pCtr, unsigned char *src, size_t len, unsigned c
 
         while (len >= CTR_BLOCK_SIZE) {
 
+            // the wide paths below add block offsets into the low counter lane only, so a run that
+            // straddles a low lane wrap has to be stepped over before one is chosen
+            if (!ctr_step_over_lane_wrap(pCtr, &src, &dest, &len)) {
+                return false;
+            }
+            if (len < CTR_BLOCK_SIZE) {
+                continue;
+            }
 
             uint64_t blockIndex = (pCtr->ctr - pCtr->initialCTR) & pCtr->ctrMask;
             uint64_t lastBlockIndex = pCtr->ctrMask;

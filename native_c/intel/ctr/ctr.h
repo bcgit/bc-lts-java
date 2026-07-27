@@ -12,6 +12,9 @@
 
 #define CTR_BLOCK_SIZE 16
 
+// the widest run of blocks any dispatcher generates from one base counter register
+#define CTR_MAX_WIDE_BLOCKS 16
+
 // matches java one
 #define CTR_ERROR_MSG "Counter in CTR/SIC mode out of range."
 
@@ -25,6 +28,12 @@ typedef struct {
     uint32_t num_rounds;
     uint64_t ctrMask;
     bool ctrAtEnd;
+    // a 16 byte IV makes the whole block the counter, so the low lane can carry into the high one
+    bool fullIV;
+    // the low lane has wrapped: IV_le's high lane currently holds initialHi + 1
+    bool hiCarried;
+    // the high lane as supplied at init
+    uint64_t initialHi;
 } ctr_ctx;
 
 ctr_ctx *ctr_create_ctx();
@@ -50,6 +59,8 @@ bool ctr_incCtr(ctr_ctx *pCtr, uint64_t delta);
 bool ctr_process_byte(ctr_ctx *pCtx, unsigned char *io);
 
 bool ctr_process_bytes(ctr_ctx *ctr, unsigned char *src, size_t len, unsigned char *dest, size_t *written);
+
+bool ctr_step_over_lane_wrap(ctr_ctx *pCtr, unsigned char **src, unsigned char **dest, size_t *len);
 
 bool ctr_check(ctr_ctx *ctr);
 
