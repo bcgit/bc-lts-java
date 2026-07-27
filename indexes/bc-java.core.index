@@ -15,7 +15,7 @@ a165ac2bddc7d169c1eee64c79ee7d8a00e5b5343f6ee79f877aba97bc08064c  core/src/test/
 e5e1697b853e2e163fe6f869dd44d95afd0b145040bdfc24a287f8a1caad82e1  core/src/test/java/org/bouncycastle/crypto/test/BlowfishTest.java
 dae578c3119c3d03813cf5803cef96ab6087f6265c9962482851a41fe81853f3  core/src/test/java/org/bouncycastle/crypto/test/Threefish256Test.java
 40eb61854e6ee2e3eb9986c376fc3c76cbee857f80d19cf4fe27e2a985b7b19f  core/src/test/java/org/bouncycastle/crypto/test/Blake2sDigestTest.java
-787d68105870bfcb7d27480e2f1c8a21bbfdb7dbac0d982869b72b030b34ce73  core/src/test/java/org/bouncycastle/crypto/test/AllTests.java
+311d591a1fd6e6ca1f84abda5f2358171acb882f6940408fe2c166275de02d42  core/src/test/java/org/bouncycastle/crypto/test/AllTests.java
 e4426eaa6d835410fd9382237783e5a436c4dfd86dbb70fe0987187576f279a3  core/src/test/java/org/bouncycastle/crypto/test/RIPEMD256DigestTest.java
 1f43ab7fa465a75f7e330aca9245636c058101619e11a4c388e39e34b0db329c  core/src/test/java/org/bouncycastle/crypto/test/HKDFGeneratorTest.java
 af75b668624a4f8994f9f49ff0b3b6b718d4b4cb1e65973a04415da791c7dcda  core/src/test/java/org/bouncycastle/crypto/test/SM2KeyExchangeTest.java
