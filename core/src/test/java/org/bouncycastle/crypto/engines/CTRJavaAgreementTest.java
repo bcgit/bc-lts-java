@@ -1,6 +1,7 @@
 package org.bouncycastle.crypto.engines;
 
 import junit.framework.TestCase;
+import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 
 import org.bouncycastle.crypto.SkippingStreamCipher;
@@ -1275,6 +1276,176 @@ public class CTRJavaAgreementTest extends TestCase
                     maxBlock |= 0xFF;
                 }
                 TestCase.assertEquals("ivLen " + ivLen + ": end offset", (maxBlock + 1) * 16, pos);
+            }
+        }
+    }
+
+    /**
+     * getPosition() agreement between the pure-Java and native CTR engines at in-range positions.
+     * testPositionAtEndOfCounter covers the end of the counter space only; the positions a caller
+     * actually resumes from are the ones in the middle, and nothing asserted that the two engines
+     * report the same offset there - or that they emit the same keystream once they have.
+     * <p>
+     * Full 16-byte IVs are given a low counter lane well away from its wrap. Java carries into the
+     * high lane there and native wraps modulo 2^64, which is a real divergence but a separate one;
+     * this test is about positions where the two are required to agree.
+     */
+    @Test
+    public void testInRangePositionAgreement() throws Exception
+    {
+        if (!TestUtil.hasNativeService("AES/CTR"))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("ctr"))
+            {
+                TestCase.fail("Skipping CTR testInRangePositionAgreement: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        long seed = System.currentTimeMillis();
+        SecureRandom rand = new SecureRandom();
+        rand.setSeed(seed);
+
+        String because = " (seed " + seed + ")";
+
+        for (int ivLen : new int[]{16, 15, 14, 13, 12, 11, 10, 9, 8})
+        {
+            for (int ks : new int[]{16, 24, 32})
+            {
+                byte[] key = new byte[ks];
+                byte[] iv = new byte[ivLen];
+
+                rand.nextBytes(key);
+                rand.nextBytes(iv);
+
+                if (ivLen == 16)
+                {
+                    // keep the low counter lane far from its wrap - see the javadoc
+                    for (int i = 8; i != 16; i++)
+                    {
+                        iv[i] = 0;
+                    }
+                }
+
+                CipherParameters params = new ParametersWithIV(new KeyParameter(key), iv);
+
+                SkippingStreamCipher javaCtr = new SICBlockCipher(new AESEngine());
+                SkippingStreamCipher nativeCtr = new AESNativeCTR();
+
+                javaCtr.init(true, params);
+                nativeCtr.init(true, params);
+
+                String at = "ivLen " + ivLen + " keyLen " + ks + because;
+
+                // one past the last byte the counter space can produce; reads have to stay inside
+                // it, since running off the end is a range failure rather than a disagreement
+                long spaceEnd;
+                if (ivLen == 8 || ivLen == 16)
+                {
+                    spaceEnd = 1L << 45;            // 2^68 bytes really, capped to keep positions exact
+                }
+                else
+                {
+                    long maxBlock = 0;
+                    for (int j = 0; j < 16 - ivLen; j++)
+                    {
+                        maxBlock <<= 8;
+                        maxBlock |= 0xFF;
+                    }
+                    spaceEnd = (maxBlock + 1) * 16;
+                }
+
+                long lastBlockStart = spaceEnd - 16;
+
+                long[] positions = new long[]{
+                    0, 1, 15, 16, 17, 31, 4095,
+                    (rand.nextLong() >>> 1) % spaceEnd,
+                    lastBlockStart - 16, lastBlockStart - 1, lastBlockStart
+                };
+
+                for (long p : positions)
+                {
+                    if (p < 0 || p > lastBlockStart)
+                    {
+                        continue;
+                    }
+
+                    javaCtr.seekTo(p);
+                    nativeCtr.seekTo(p);
+
+                    TestCase.assertEquals("java seekTo(" + p + ") " + at, p, javaCtr.getPosition());
+                    TestCase.assertEquals("native seekTo(" + p + ") " + at, p, nativeCtr.getPosition());
+
+                    int len = 1 + rand.nextInt(64);
+                    if (len > spaceEnd - p)
+                    {
+                        len = (int)(spaceEnd - p);
+                    }
+
+                    byte[] in = new byte[len];
+                    rand.nextBytes(in);
+
+                    byte[] javaOut = new byte[len];
+                    byte[] nativeOut = new byte[len];
+
+                    javaCtr.processBytes(in, 0, len, javaOut, 0);
+                    nativeCtr.processBytes(in, 0, len, nativeOut, 0);
+
+                    TestCase.assertTrue("keystream at " + p + " " + at,
+                        Arrays.areEqual(javaOut, nativeOut));
+                    TestCase.assertEquals("position after " + len + " bytes from " + p + " " + at,
+                        javaCtr.getPosition(), nativeCtr.getPosition());
+                }
+
+                // a random walk of signed skips, kept clear of both ends of the counter space
+                int readLen = 24;
+                long walkCeiling = spaceEnd - readLen;
+
+                javaCtr.seekTo(0);
+                nativeCtr.seekTo(0);
+
+                long expected = 0;
+
+                for (int step = 0; step != 200; step++)
+                {
+                    long delta = rand.nextInt(4096) - 2048;
+
+                    if (expected + delta < 0 || expected + delta > walkCeiling)
+                    {
+                        delta = -delta;
+                    }
+                    if (expected + delta < 0 || expected + delta > walkCeiling)
+                    {
+                        continue;
+                    }
+
+                    javaCtr.skip(delta);
+                    nativeCtr.skip(delta);
+                    expected += delta;
+
+                    TestCase.assertEquals("java walk step " + step + " " + at, expected, javaCtr.getPosition());
+                    TestCase.assertEquals("native walk step " + step + " " + at, expected, nativeCtr.getPosition());
+
+                    if (step % 10 == 0)
+                    {
+                        byte[] in = new byte[readLen];
+                        rand.nextBytes(in);
+
+                        byte[] javaOut = new byte[readLen];
+                        byte[] nativeOut = new byte[readLen];
+
+                        javaCtr.processBytes(in, 0, readLen, javaOut, 0);
+                        nativeCtr.processBytes(in, 0, readLen, nativeOut, 0);
+
+                        TestCase.assertTrue("keystream at walk step " + step + " " + at,
+                            Arrays.areEqual(javaOut, nativeOut));
+
+                        expected += readLen;
+
+                        TestCase.assertEquals("position after walk read " + step + " " + at,
+                            expected, nativeCtr.getPosition());
+                    }
+                }
             }
         }
     }
