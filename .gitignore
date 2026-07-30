@@ -27,3 +27,4 @@ core/src/main/resources/META-INF/DRIVERS
 /KDFDblPipelineNoCounter.gen
 /KDFFeedbackCounter.gen
 /KDFFeedbackNoCounter.gen
+/reviews/
