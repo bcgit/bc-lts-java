@@ -100,7 +100,13 @@ public class AllTests
 
     public static Test suite()
     {
-        return new TestSuite(AllTests.class);
+        TestSuite suite = new TestSuite("CMP tests");
+
+        suite.addTestSuite(AllTests.class);
+        // In this package but named by no suite, so it never ran.
+        suite.addTestSuite(ElgamalDSATest.class);
+
+        return suite;
     }
 
     public void setUp()

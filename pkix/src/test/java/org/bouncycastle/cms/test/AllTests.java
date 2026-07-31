@@ -34,6 +34,8 @@ public class AllTests
         suite.addTest(MiscDataStreamTest.suite());
         suite.addTest(Rfc4134Test.suite());
         suite.addTest(ConverterTest.suite());
+        // In this package but named by no suite, so it never ran.
+        suite.addTestSuite(AnnotatedKeyTest.class);
 
         suite.addTest(BcEnvelopedDataTest.suite());
         suite.addTest(BcSignedDataTest.suite());

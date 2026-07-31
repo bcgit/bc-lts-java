@@ -37,6 +37,12 @@ public class AllTests
         suite.addTestSuite(SecretKeyUtilTest.class);
         suite.addTestSuite(PQCKeyDestructionTest.class);
         suite.addTestSuite(PQCPrivateKeyDestroyTest.class);
+        // These five are in this package but were not listed here, so they never ran.
+        suite.addTestSuite(CryptoServiceConstraintsTest.class);
+        suite.addTestSuite(LMSTest.class);
+        suite.addTestSuite(MLDSATest.class);
+        suite.addTestSuite(MLKEMTest.class);
+        suite.addTestSuite(SLHDSATest.class);
 
         return new BCTestSetup(suite);
     }

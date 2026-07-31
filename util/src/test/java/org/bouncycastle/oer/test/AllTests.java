@@ -42,6 +42,8 @@ public class AllTests
         suite.addTestSuite(OERExtensionTest.class);
         suite.addTestSuite(OERInputStreamLimitTest.class);
         suite.addTestSuite(OERInputStreamMalformedTest.class);
+        // In this package but named by no suite, so it never ran.
+        suite.addTestSuite(TestFromVector.class);
 
         return new BCTestSetup(suite);
     }

@@ -4,6 +4,8 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.bouncycastle.math.MulLimitTest;
+import org.bouncycastle.math.MulTest;
 import org.bouncycastle.test.PrintTestResult;
 
 public class AllTests
@@ -21,6 +23,12 @@ public class AllTests
         TestSuite suite = new TestSuite("Math tests");
 
         suite.addTestSuite(PrimesTest.class);
+
+        // These two live in org.bouncycastle.math and no suite named them, so they never ran.
+        // MulLimitTest is the negative-path cover for the native Mul path: negative offsets,
+        // null arrays and sizes out of range, which cross the JNI boundary as a jint.
+        suite.addTestSuite(MulLimitTest.class);
+        suite.addTestSuite(MulTest.class);
 
         return new BCTestSetup(suite);
     }

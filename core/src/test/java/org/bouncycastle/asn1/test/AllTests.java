@@ -38,6 +38,8 @@ public class AllTests
         suite.addTestSuite(GetInstanceTest.class);
         suite.addTestSuite(SetSortEncodingCountTest.class);
         suite.addTestSuite(ASN1SequenceParserTest.class);
+        // In this package but named by no suite, so it never ran.
+        suite.addTestSuite(EnumeratedTest.class);
 
         return new BCTestSetup(suite);
     }

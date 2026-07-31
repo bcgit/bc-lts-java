@@ -24,6 +24,9 @@ public class AllTests
         suite.addTestSuite(RevocationTest.class);
         suite.addTestSuite(CheckNameConstraintsTest.class);
         suite.addTestSuite(PKIXCertPathReviewerCrlReasonTest.class);
+        // These two are in this package but were not listed here, so they never ran.
+        suite.addTestSuite(HTMLFilterTest.class);
+        suite.addTestSuite(SQLFilterTest.class);
 
         return new BCTestSetup(suite);
     }
