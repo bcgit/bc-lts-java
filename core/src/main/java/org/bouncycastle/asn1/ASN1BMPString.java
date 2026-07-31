@@ -212,7 +212,7 @@ public abstract class ASN1BMPString
             throw new IOException("malformed BMPString encoding encountered");
         }
 
-        // NOTE: read through toByteArray, which grows it's buffer as bytes actually arrive. Sizing
+        // NOTE: read through toByteArray, which grows its buffer as bytes actually arrive. Sizing
         // a char[] from getRemaining() up front - the only primitive still doing so - let a short
         // crafted header drive an allocation of up to 1GB before any of the content was read.
         return new DERBMPString(defIn.toByteArray());
