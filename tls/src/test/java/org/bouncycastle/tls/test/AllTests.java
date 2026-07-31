@@ -42,6 +42,7 @@ public class AllTests
         suite.addTestSuite(TlsRawKeysProtocolTest.class);
         suite.addTestSuite(TlsSRPProtocolTest.class);
         suite.addTestSuite(TlsUtilsTest.class);
+        suite.addTestSuite(TlsUtilsReadFullyTest.class);
 
         suite.addTest(DTLSTestSuite.suite());
         suite.addTest(TlsTestSuite.suite());
