@@ -263,7 +263,7 @@ ed5691913a27da9db837a8f6a8bb54ee1d3f7e9f910a108366c34384e6385925  core/src/test/
 54df048f50f9c412ce4c3ee85383762c31a095858f9b9c058a18ae7d09dd28bf  core/src/test/java/org/bouncycastle/asn1/test/QCStatementUnitTest.java
 7036d1632342bffa4ff236e7c8defbcde99df748a14e2d4eb2377b0111a9a3e4  core/src/test/java/org/bouncycastle/asn1/test/GetInstanceTest.java
 5b132891189b405ce1827d7ee6c71b9da17a272eef59d25baefb8de6290fcced  core/src/test/java/org/bouncycastle/asn1/test/PersonalDataUnitTest.java
-2c7741f4027bb65e7c53ff0a150ab8a102fa42f7b8dedf3fe5a6a978476cad2b  core/src/test/java/org/bouncycastle/asn1/test/StringTest.java
+686ffecac6fd44721fa5bd7c7526d43ff2eb0f9d61d410cb25c3206d96d89fe5  core/src/test/java/org/bouncycastle/asn1/test/StringTest.java
 07ddcf597d0f51182ec29e2fd3ed1a0b0d41390690abcb2e071e31880bc64124  core/src/test/java/org/bouncycastle/asn1/test/X9Test.java
 3322d725f80330591b2b84bb9e9b0a0852ce6ca83f59bd78bb9d5a24d1794cbd  core/src/test/java/org/bouncycastle/asn1/test/TypeOfBiometricDataUnitTest.java
 0c0e26b8f56598f52cbf6ad28f491a47fa260bdf61b38c297bf65f476bb1401f  core/src/test/java/org/bouncycastle/asn1/test/RegressionTest.java
@@ -983,7 +983,7 @@ fb386e0699dd9347e2641f0b90ce32d62fc86615073b29bb25f1789113599d04  core/src/main/
 cefaa3295891a185d59d3daae6a2cfc861e30e2c979ee86ef6860b2617250f31  core/src/main/java/org/bouncycastle/asn1/microsoft/MicrosoftObjectIdentifiers.java
 dcf545bc358a1c1931c5ff499abbbfcbe4a00405d6332f47caae6a962edcf993  core/src/main/java/org/bouncycastle/asn1/DERUTF8String.java
 ae08b85f4bba7884ad046ee903843e461196dd17038a7f3db1f801bf506f8768  core/src/main/java/org/bouncycastle/asn1/ASN1String.java
-b851a3b6020de5865ff5abc02cdfb502547181d40122fde1e173c00f0912068e  core/src/main/java/org/bouncycastle/asn1/ASN1BMPString.java
+4d1277d2a2894f30fea5f4457527fa577d88b3202a640c705402712a73b54772  core/src/main/java/org/bouncycastle/asn1/ASN1BMPString.java
 2689cb5314dd890be6db2018a721200175d9126a3bb61237c98ba5127e396fdf  core/src/main/java/org/bouncycastle/asn1/BERTags.java
 394df810165683b9c1c54a0d1bef4687cde5aff09738d437edbf16319f90681c  core/src/main/java/org/bouncycastle/asn1/ASN1Enumerated.java
 dc3a5285d117119ab42d4efe1dfac935ebf0b813bfebee055375b4795230e2d2  core/src/main/java/org/bouncycastle/asn1/DLTaggedObjectParser.java
