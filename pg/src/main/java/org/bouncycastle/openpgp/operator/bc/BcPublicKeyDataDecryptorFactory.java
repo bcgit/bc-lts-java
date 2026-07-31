@@ -170,6 +170,7 @@ public class BcPublicKeyDataDecryptorFactory
         byte[] enc = secKeyData[0];
         byte[] pEnc;
         byte[] keyEnc;
+        checkRange(2, enc);
         int pLen = ((((enc[0] & 0xff) << 8) + (enc[1] & 0xff)) + 7) / 8;
         checkRange(2 + pLen + 1, enc);
 
@@ -263,6 +264,7 @@ public class BcPublicKeyDataDecryptorFactory
         byte[] ephemeralKey = Arrays.copyOf(enc, pLen);
 
         // size of following fields
+        checkRange(pLen + 1, enc);
         int size = enc[pLen] & 0xff;
         checkRange(pLen + 1 + size, enc);
 
