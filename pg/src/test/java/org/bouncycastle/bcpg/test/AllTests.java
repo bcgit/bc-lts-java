@@ -32,7 +32,8 @@ public class AllTests
                         new OCBEncryptedDataPacketTest(),
                         new SignatureSubpacketsTest(),
                         new UnknownPublicKeyPacketTest(),
-                        new UnknownSecretKeyPacketTest()
+                        new UnknownSecretKeyPacketTest(),
+                        new ArmoredInputStreamCrcTest()
                 };
 
         for (int i = 0; i != tests.length; i++)
