@@ -48,11 +48,7 @@ class NativeEntropySource
         byte[] buf = new byte[effectiveSize];
         seedBuffer(buf, useSeedSource);
 
-        if (areAllZeroes(buf, 0, buf.length))
-        {
-            throw new IllegalStateException("entropy source return array of len "
-                + buf.length + " where all elements are 0");
-        }
+
 
         if (size != effectiveSize)
         {
@@ -70,15 +66,7 @@ class NativeEntropySource
         return size * 8;
     }
 
-    public boolean areAllZeroes(byte[] buf, int off, int len)
-    {
-        int bits = 0;
-        for (int i = 0; i < len; ++i)
-        {
-            bits |= buf[off + i];
-        }
-        return bits == 0;
-    }
+
 
 }
 

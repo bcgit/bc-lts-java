@@ -6,11 +6,20 @@
 #include "stdint.h"
 #include "../../jniutil/bytearrays.h"
 #include "../../jniutil/exceptions.h"
+#include "../util/util.h"
 #include <immintrin.h>
 #include <string.h>
 
 
 #define RAND_MOD 8
+
+//
+// Bounded retry counts for the hardware entropy sources.
+// Per Intel SDM and Intel's "Digital Random Number Generator" software guide.
+// They have doubled for safety.
+//
+#define MAX_RDRAND_RETRIES 20   // Intel-recommended baseline: 10
+#define MAX_RDSEED_RETRIES 200  // Intel-recommended baseline: 100
 
 /*
  * Class:     org_bouncycastle_crypto_NativeEntropySource
@@ -58,8 +67,8 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_seedBuff
         goto exit;
     }
 
-    // Clear on the way in.
-    memset(buf.bytearray, 0, buf.size);
+    // Clear on the way in. Use memzero (un-elidable) rather than memset.
+    memzero(buf.bytearray, buf.size);
 
     size_t count = buf.size / RAND_MOD;
 
@@ -69,7 +78,17 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_seedBuff
         // Use RDSEED
         for (size_t i = 0; i < count; i++) {
             int flag = _rdseed64_step(&val);
+            int tries = 0;
             while (flag == 0) {
+                if (++tries > MAX_RDSEED_RETRIES) {
+                    // Drop any partial entropy already written so the caller
+                    // does not observe a partly-filled buffer alongside the
+                    // exception. Use memzero (un-elidable) rather than memset.
+                    memzero(buf.bytearray, buf.size);
+                    throw_java_invalid_state(env,
+                        "RDSEED persistently failed to produce entropy");
+                    goto exit;
+                }
                 _mm_pause();
                 flag = _rdseed64_step(&val);
             }
@@ -79,7 +98,14 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_seedBuff
         // Use RDRAND
         for (size_t i = 0; i < count; i++) {
             int flag = _rdrand64_step(&val);
+            int tries = 0;
             while (flag == 0) {
+                if (++tries > MAX_RDRAND_RETRIES) {
+                    memzero(buf.bytearray, buf.size);
+                    throw_java_invalid_state(env,
+                        "RDRAND persistently failed to produce entropy");
+                    goto exit;
+                }
                 _mm_pause();
                 flag = _rdrand64_step(&val);
             }
