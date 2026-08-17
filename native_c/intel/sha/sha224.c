@@ -151,10 +151,7 @@ void sha224_digest(sha224_ctx *ctx, uint8_t *output) {
 
 
 #ifdef BC_AVX
-    uint32_t *p = (uint32_t *) (output + 16);
-    p[0] = ((uint32_t *) &last)[0];
-    p[1] = ((uint32_t *) &last)[1];
-    p[2] = ((uint32_t *) &last)[2];
+    memcpy(output + 16, &last, 12);
 #else
     _mm_maskstore_epi32((int *)  (output + 16), _mm_set_epi32(0, -1, -1, -1), last);
 #endif

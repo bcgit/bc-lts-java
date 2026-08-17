@@ -709,4 +709,46 @@ public class SHA224NativeDigestTests
     }
 
 
+    @Test
+    public void testUnalignedOutputOffset() throws Exception
+    {
+        if (skip())
+        {
+            return;
+        }
+
+        java.security.MessageDigest jdk = java.security.MessageDigest.getInstance("SHA-224");
+
+        byte[] message = new byte[97];
+        for (int i = 0; i < message.length; i++)
+        {
+            message[i] = (byte)(i * 37 + 11);
+        }
+        byte[] expected = jdk.digest(message);
+
+        final byte canary = (byte)0x69;
+        for (int offset = 0; offset <= 3; offset++)
+        {
+            SavableDigest dig = SHA224Digest.newInstance();
+            TestCase.assertTrue(dig instanceof SHA224NativeDigest);
+            dig.update(message, 0, message.length);
+
+            byte[] out = new byte[offset + expected.length + 7];
+            Arrays.fill(out, canary);
+            TestCase.assertEquals(expected.length, dig.doFinal(out, offset));
+
+            TestCase.assertTrue("digest at offset " + offset,
+                    Arrays.areEqual(expected, Arrays.copyOfRange(out, offset, offset + expected.length)));
+
+            for (int i = 0; i < out.length; i++)
+            {
+                if (i < offset || i >= offset + expected.length)
+                {
+                    TestCase.assertEquals("canary changed at " + i + " (offset " + offset + ")", canary, out[i]);
+                }
+            }
+        }
+    }
+
+
 }
