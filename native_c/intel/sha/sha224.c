@@ -186,6 +186,7 @@ bool sha224_restoreFullState(sha224_ctx *ctx, const uint8_t *oldState) {
 
 size_t sha224_encodeFullState(const sha224_ctx *ctx, uint8_t *output) {
     memcpy(output, ctx, sizeof(sha224_ctx));
+    memzero(output + offsetof(sha224_ctx, buf) + ctx->buf_index, BUF_SIZE_SHA224 - ctx->buf_index);
     return sizeof(sha224_ctx);
 }
 

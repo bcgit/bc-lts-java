@@ -751,4 +751,62 @@ public class SHA224NativeDigestTests
     }
 
 
+    @Test
+    public void testEncodedStateNoRetainedBlock() throws Exception
+    {
+        if (skip())
+        {
+            return;
+        }
+
+        byte[] block = new byte[64];
+        for (int i = 0; i < block.length; i++)
+        {
+            block[i] = (byte)(i * 29 + 7);
+        }
+
+        // 64 byte-at-a-time updates: the block is compressed and the cursor returns to zero.
+        SavableDigest dig = SHA224Digest.newInstance();
+        TestCase.assertTrue(dig instanceof SHA224NativeDigest);
+        for (byte b : block)
+        {
+            dig.update(b);
+        }
+
+        byte[] state = dig.getEncodedState();
+        TestCase.assertTrue("C06-01: encoded state must not retain the processed block",
+                indexOfSub(state, block) < 0);
+
+        // restore from the exported state must still reproduce the digest.
+        SavableDigest restored = SHA224Digest.newInstance(state, 0);
+        byte[] fromState = new byte[restored.getDigestSize()];
+        TestCase.assertEquals(28, restored.doFinal(fromState, 0));
+
+        byte[] res = new byte[dig.getDigestSize()];
+        TestCase.assertEquals(28, dig.doFinal(res, 0));
+
+        byte[] oracle = java.security.MessageDigest.getInstance("SHA-224").digest(block);
+        TestCase.assertTrue(Arrays.areEqual(res, oracle));
+        TestCase.assertTrue(Arrays.areEqual(fromState, oracle));
+    }
+
+
+    private static int indexOfSub(byte[] hay, byte[] needle)
+    {
+        outer:
+        for (int i = 0; i + needle.length <= hay.length; i++)
+        {
+            for (int j = 0; j < needle.length; j++)
+            {
+                if (hay[i + j] != needle[j])
+                {
+                    continue outer;
+                }
+            }
+            return i;
+        }
+        return -1;
+    }
+
+
 }

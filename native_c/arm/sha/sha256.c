@@ -189,6 +189,7 @@ bool sha256_restoreFullState(sha256_ctx *ctx, const uint8_t *oldState) {
 
 size_t sha256_encodeFullState(const sha256_ctx *ctx, uint8_t *output) {
     memcpy(output, ctx, sizeof(sha256_ctx));
+    memzero(output + offsetof(sha256_ctx, buf) + ctx->buf_index, BUF_SIZE_SHA256 - ctx->buf_index);
     return sizeof(sha256_ctx);
 }
 
