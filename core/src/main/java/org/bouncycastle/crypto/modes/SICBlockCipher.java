@@ -407,9 +407,23 @@ public class SICBlockCipher
 
     public long skip(long numberOfBytes)
     {
+        byte[] savedCounter = Arrays.clone(counter);
+        int savedByteCount = byteCount;
+        long savedUsed = used;
+
         adjustCounter(numberOfBytes);
 
-        checkCounter();
+        try
+        {
+            checkCounter();
+        }
+        catch (RuntimeException e)
+        {
+            System.arraycopy(savedCounter, 0, counter, 0, counter.length);
+            byteCount = savedByteCount;
+            used = savedUsed;
+            throw e;
+        }
 
         cipher.processBlock(counter, 0, counterOut, 0);
 

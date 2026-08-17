@@ -66,6 +66,7 @@ public class SICPositionTest
         checkFullBlockRangeBySkip(aesKey, "8899aabbccddeeffFFFFFFFFFFFFFFFF");    // carry at block 1
         checkFullBlockRangeAtGeneration(aesKey);
         checkBackwardSkipBelowStart(aesKey);
+        checkRejectedSkipIsFailureAtomic(aesKey);
         checkShortIVProcessBlockRange(aesKey);
 
         // the same bound on an 8-byte block cipher, where there is no upper counter lane
@@ -176,6 +177,44 @@ public class SICPositionTest
         {
             isTrue("wrong message: " + e.getMessage(), OUT_OF_RANGE.equals(e.getMessage()));
         }
+    }
+
+    private void checkRejectedSkipIsFailureAtomic(byte[] aesKey)
+    {
+        String iv = "000102030405060708090a0b0c0d0e";   // 15-byte IV: a 1-byte counter
+
+        CTRModeCipher cipher = aesCipher();
+        cipher.init(true, params(aesKey, iv));
+
+        // advance to a mid-block position (5 bytes into block 0); zero input, so output == keystream
+        byte[] out = new byte[64];
+        cipher.processBytes(new byte[64], 0, 5, out, 0);
+        isTrue("setup position not 5, got " + cipher.getPosition(), cipher.getPosition() == 5);
+
+        // the correct keystream byte at position 5, from a clean cipher
+        CTRModeCipher ref = aesCipher();
+        ref.init(true, params(aesKey, iv));
+        byte[] refOut = new byte[6];
+        ref.processBytes(new byte[6], 0, 6, refOut, 0);
+        byte expectedByte5 = refOut[5];
+
+        try
+        {
+            cipher.skip(-17);
+            fail("rejected backward skip did not throw");
+        }
+        catch (IllegalStateException e)
+        {
+            isTrue("wrong message: " + e.getMessage(), OUT_OF_RANGE.equals(e.getMessage()));
+        }
+
+        isTrue("C05-02: position changed after a rejected skip, got " + cipher.getPosition(),
+                cipher.getPosition() == 5);
+
+        byte[] one = new byte[1];
+        cipher.processBytes(new byte[1], 0, 1, one, 0);
+        isTrue("C05-02: byte after a rejected skip re-used an earlier keystream byte",
+                one[0] == expectedByte5);
     }
 
     // skip(Long.MIN_VALUE): -n overflows back to Long.MIN_VALUE in adjustCounter's negative
