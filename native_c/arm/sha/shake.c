@@ -193,40 +193,7 @@ void shake_squeeze(shake_ctx *ctx, uint8_t *output, size_t len) {
 
 // final
 void shake_digest(shake_ctx *ctx, uint8_t *output, size_t len) {
-
-    pad_and_switch_squeezing(ctx);
-
-    // squeeze final
-    // This needs to be reentrant and cope with 0, 1 to n bytes.
-    // Keep counter of output, when it hits rate_bytes do another permute again..
-
-    while (len >= ctx->rate_bytes) {
-        KF1600_StatePermute(ctx->state, K);
-        for (int t = 0; t < ctx->rate_bytes >> 3; t++) {
-            vst1_u8(output, (uint8x8_t) vgetq_lane_u64(ctx->state[t], 0));
-            output += 8;
-            len -= 8;
-        }
-    }
-
-    if (len > 0) {
-        KF1600_StatePermute(ctx->state, K);
-
-        int stateIndex = 0;
-        // Partial
-        while (len >= 8) {
-            vst1_u8(output, (uint8x8_t) vgetq_lane_u64(ctx->state[stateIndex++], 0));
-            output += 8;
-            len -= 8;
-        }
-
-        if (len) {
-            bc_assert(len < 8);
-            // sub 64 bit
-            memcpy(output, &ctx->state[stateIndex], len); // TODO Endian issue on BE systems
-        }
-    }
-
+    shake_squeeze(ctx, output, len);
     shake_reset(ctx);
 }
 
