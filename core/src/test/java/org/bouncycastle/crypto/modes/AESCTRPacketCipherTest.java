@@ -509,6 +509,71 @@ public class AESCTRPacketCipherTest
     }
 
 
+    /**
+     * C07-02 regression: when the KeyParameter key backing array is also passed as the output
+     * array of a packet operation, the result must be the ciphertext, never the raw AES key.
+     * The affected native build commits a stale copy of the input key over the committed
+     * ciphertext, so the output array ends up holding the key. This fires on the affected native
+     * build and passes on the Java path and on a corrected native build.
+     */
+    @Test
+    public void testKeyOutputAliasKeepsCiphertext()
+            throws Exception
+    {
+        if (TestUtil.skipPS())
+        {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
+        SecureRandom secureRandom = new SecureRandom();
+
+        PacketCipher ctrPS = AESCTRPacketCipher.newInstance();
+        if (isNativeVariant())
+        {
+            TestCase.assertTrue(ctrPS instanceof AESNativeCTRPacketCipher);
+        }
+
+        for (int ks : new int[]{16, 24, 32})
+        {
+            byte[] originalKey = new byte[ks];
+            secureRandom.nextBytes(originalKey);
+
+            byte[] iv = new byte[16];
+            secureRandom.nextBytes(iv);
+
+            byte[] plaintext = new byte[ks];
+            secureRandom.nextBytes(plaintext);
+
+            // Independent expected ciphertext from the Java reference, distinct arrays throughout.
+            byte[] expected = new byte[plaintext.length];
+            CTRModeCipher ref = new SICBlockCipher(new AESEngine());
+            ref.init(true, new ParametersWithIV(new KeyParameter(originalKey), iv));
+            ref.processBytes(plaintext, 0, plaintext.length, expected, 0);
+
+            // Control: distinct output object, same key bytes -> correct ciphertext.
+            KeyParameter kpControl = new KeyParameter(originalKey);
+            byte[] distinctOutput = Arrays.clone(kpControl.getKey());
+            int lenControl = ctrPS.processPacket(true, new ParametersWithIV(kpControl, iv),
+                    plaintext, 0, plaintext.length, distinctOutput, 0);
+            TestCase.assertEquals(plaintext.length, lenControl);
+            TestCase.assertTrue("distinct-owner control must equal the reference ciphertext",
+                    Arrays.areEqual(expected, distinctOutput));
+
+            // Alias: the KeyParameter key backing array is the output array.
+            KeyParameter kp = new KeyParameter(originalKey);
+            byte[] outputAlias = kp.getKey();
+            int len = ctrPS.processPacket(true, new ParametersWithIV(kp, iv),
+                    plaintext, 0, plaintext.length, outputAlias, 0);
+            TestCase.assertEquals(plaintext.length, len);
+
+            TestCase.assertFalse("C07-02: aliased output must not be the raw AES key",
+                    Arrays.areEqual(outputAlias, originalKey));
+            TestCase.assertTrue("C07-02: aliased output must equal the reference ciphertext",
+                    Arrays.areEqual(expected, outputAlias));
+        }
+    }
+
     private boolean isNativeVariant()
     {
         String variant = CryptoServicesRegistrar.getNativeServices().getVariant();
