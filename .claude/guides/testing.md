@@ -50,6 +50,16 @@ segfaults the JVM.
   not configured. Verify the env var is set before claiming a test ran, and
   check the result XML shows `skipped=0`. A native test that skips looks the same
   as one that passes; `-Dtest.bclts.expected_jvm` is the in-test backstop.
+- **A no-op native test reports SUCCESS, not skipped.** This is the trap, and the
+  skip column will not show it. The native gates behave in two ways. If the
+  service is absent and the ignore CSV does **not** name it, the gate calls
+  `fail()`, so a genuine loader problem fails loudly. If the ignore CSV **does**
+  name it, the gate returns early inside the test body, and JUnit records the
+  test as succeeded. So audit the **succeeded** count against the ignore list,
+  not the skip count. Worked example on the `neon-le` variant: the seven AES
+  `*JavaAgreementTest` classes report 58 succeeded and 0 skipped. Five of those
+  are `GCMSIVJavaAgreementTest` methods that did nothing, because ARM has no
+  native GCM-SIV and `gcmsiv` is in the ignore list. Only 53 compared anything.
 - **Tests are serialized on purpose.** `forkEvery = 1`,
   `maxParallelForks = 1`, and `org.gradle.parallel=false` in `gradle.properties`.
   The native library state is process-global, not per-thread. Do not add
@@ -116,8 +126,9 @@ follow them, not the weakest existing example.
 - **Cover all key sizes and parameter sets** (AES 16/24/32, every SHA / SHAKE /
   KEM variant).
 - **Gate native availability** with `TestUtil.hasNativeService(...)` /
-  `TestUtil.skipPS()` and the `-Dtest.bclts.ignore.native` CSV, so an absent
-  native service skips rather than fails.
+  `TestUtil.skipPS()` and the `-Dtest.bclts.ignore.native` CSV. An absent
+  service then fails loudly when the CSV does not name it, and returns early as
+  a recorded success when it does. See the succeeded-count warning above.
 
 ## Runtime / test system properties
 
@@ -128,6 +139,10 @@ follow them, not the weakest existing example.
 - `-Dorg.bouncycastle.packet_cipher_enabled=true` — enable the one-shot packet
   ciphers (off by default).
 - `-Dtest.bclts.ignore.native=<csv>` — skip native checks for the listed
-  services (for example `gcm,cbc,sha256,shake`).
+  services. The live values are in `core/build.gradle:13-14`:
+  `rand,seed,es,gcmsiv,nops,slhdsa_sha256` for the ARM variant tasks, and
+  `sha512,sha384,shake,sha3` for the Intel ones. A hand-run container or
+  standalone run must pass the matching list, or absent services fail instead of
+  skipping.
 - `-Dtest.bclts.expected_jvm=1.8|17|21|any` — assert the tests ran on the JDK
   they were configured for.
