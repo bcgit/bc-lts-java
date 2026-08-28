@@ -149,6 +149,47 @@ cast. Allocations like `n * sizeof(T)` or `len + 16` need an upper bound to avoi
 wraparound. Casting `size_t` back to `jint` needs an explicit `> INT32_MAX`
 check.
 
+**Wider-lvalue access to a caller pointer.** A java array reaches native code as a
+`uint8_t *`, often at a caller-chosen offset, so it carries byte alignment only.
+Casting it to a wider type and accessing through that type is undefined
+behaviour, on alignment and on strict aliasing. Two shapes appear:
+
+- a scalar lvalue, `uint32_t *p = (uint32_t *) (out + 16); p[0] = v;`
+- an intrinsic argument, `vld1q_u32((uint32_t *) &block[0])`
+
+Fix the first with `memcpy(out + 16, &v, sizeof(v))`. Fix the second with the
+byte-pointer form of the same intrinsic, `vreinterpretq_u32_u8(vld1q_u8(&block[0]))`.
+Both fold back to the same single instruction. Confirm that by disassembly, and
+treat any real codegen change as a finding to raise before you proceed.
+
+**A sanitiser cannot find the intrinsic shape. Silence there is not evidence.**
+`-fsanitize=alignment` instruments C lvalue accesses. It does not instrument a
+pointer handed to an intrinsic. Measured in this tree: a misaligned
+`vld1q_u32((uint32_t *) p)` ran clean under UBSan, while a misaligned
+`q[0] = v` in the same build halted with "store to misaligned address". So a
+clean UBSan column means something only with two positive controls:
+
+- prove the misaligned path really ran. Show that the output changes with the
+  offset.
+- prove the build can report at all. Fire it on a scalar store you inserted.
+
+**The guard against the cast returning is this sweep, not a test.** The fixes
+above emit the same machine code, so the output does not change. **No
+output-comparison test can detect a regression here.** Run the sweep instead:
+
+```bash
+# candidate sites: wider-typed casts, excluding the safe byte and void forms
+grep -rnE "\((uint16_t|uint32_t|uint64_t|unsigned long long|size_t|int|long) \*\)" \
+     native_c --include=*.c --include=*.h | grep -vE "\(void \*\)|\(char \*\)|\(uint8_t \*\)|\(const "
+# alignment-requiring SSE forms; the unaligned "u" variants are the safe ones
+grep -rnE "_mm(256|512)?_(store|load)_si(128|256|512)\b" native_c --include=*.c --include=*.h
+```
+
+Then, for each hit, decide whether a caller offset can reach it, and disassemble
+to see the instruction actually emitted. An intrinsic argument that no rewrite
+can express in byte-pointer form may be accepted as a residual. Record the
+reasoning and the reachability when you accept one.
+
 **String functions.** `strcpy`, `strcat`, `sprintf`, `gets` are banned.
 `strncpy` does not NUL-terminate when the source is longer than the destination;
 write the NUL or use `snprintf`. Strings really only appear in the probe and

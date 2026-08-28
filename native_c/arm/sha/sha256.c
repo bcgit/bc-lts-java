@@ -205,10 +205,10 @@ void hashBlock(sha256_ctx *ctx, uint8_t *block) {
     s0 = abef_save = ctx->s0;
     s1 = cdgh_save = ctx->s1;
 
-    msg0 = vld1q_u32((uint32_t *) &block[0 * 16]);
-    msg1 = vld1q_u32((uint32_t *) &block[1 * 16]);
-    msg2 = vld1q_u32((uint32_t *) &block[2 * 16]);
-    msg3 = vld1q_u32((uint32_t *) &block[3 * 16]);
+    msg0 = vreinterpretq_u32_u8(vld1q_u8(&block[0 * 16]));
+    msg1 = vreinterpretq_u32_u8(vld1q_u8(&block[1 * 16]));
+    msg2 = vreinterpretq_u32_u8(vld1q_u8(&block[2 * 16]));
+    msg3 = vreinterpretq_u32_u8(vld1q_u8(&block[3 * 16]));
 
 
     msg0 = vreinterpretq_u32_u8(vrev32q_u8(vreinterpretq_u8_u32(msg0)));
