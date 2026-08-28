@@ -1,21 +1,7 @@
 
 #include <stdbool.h>
 #include "org_bouncycastle_crypto_NativeFeatures.h"
-
-
-typedef struct cpuid_struct {
-    unsigned int eax;
-    unsigned int ebx;
-    unsigned int ecx;
-    unsigned int edx;
-} cpuid_t;
-
-void cpuid(cpuid_t *info, unsigned int leaf, unsigned int subleaf) {
-    __asm__ volatile("cpuid"
-            : "=a" (info->eax), "=b" (info->ebx), "=c" (info->ecx), "=d" (info->edx)
-            : "a" (leaf), "c" (subleaf)
-            );
-}
+#include "cpuid_util.h"
 
 
 /*
@@ -214,7 +200,6 @@ __attribute__((unused)) JNIEXPORT jboolean JNICALL Java_org_bouncycastle_crypto_
     return (info.ecx & (1 << 25)) != 0 ? JNI_TRUE : JNI_FALSE;
 
 }
-
 
 
 /*

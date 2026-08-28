@@ -2,21 +2,8 @@
 
 #include <stdbool.h>
 #include "org_bouncycastle_crypto_VariantSelector.h"
+#include "cpuid_util.h"
 
-
-typedef struct cpuid_struct {
-    unsigned int eax;
-    unsigned int ebx;
-    unsigned int ecx;
-    unsigned int edx;
-} cpuid_t;
-
-void cpuid(cpuid_t *info, unsigned int leaf, unsigned int subleaf) {
-    __asm__ volatile("cpuid"
-            : "=a" (info->eax), "=b" (info->ebx), "=c" (info->ecx), "=d" (info->edx)
-            : "a" (leaf), "c" (subleaf)
-            );
-}
 
 /*
  * Class:     org_bouncycastle_crypto_Probe
@@ -167,9 +154,6 @@ JNIEXPORT jstring JNICALL Java_org_bouncycastle_crypto_VariantSelector_getBestVa
     }
 
     (*env)->SetObjectArrayElement(env,outerArray, 2, avxArray);
-
-
-
 
 
     return outerArray;

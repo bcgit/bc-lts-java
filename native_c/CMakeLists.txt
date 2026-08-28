@@ -359,8 +359,8 @@ else ()
             ${LTS_TEST_JAVA_HEADERS})
 
 
-    set(PROBE intel/jni/variant_selector_intel.c)
-    set(IDENT_IMPL intel/jni/ident_jni.c intel/jni/native_features.c)
+    set(PROBE intel/jni/variant_selector_intel.c intel/jni/cpuid_util.h)
+    set(IDENT_IMPL intel/jni/ident_jni.c intel/jni/native_features.c intel/jni/cpuid_util.h)
     set(COMMON intel/common.c intel/common.h intel/util/util.h intel/util/xor.h ${COMMON_ASM})
 
 
@@ -537,7 +537,7 @@ else ()
             intel/packet/ctr_pc/ctr_pc_utils.h
     )
 
-    set(RAND intel/jni/rand_jni.c)
+    set(RAND intel/jni/rand_jni.c intel/jni/cpuid_util.h)
 
     set(SHA256
             intel/sha/sha256.c
