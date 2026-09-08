@@ -114,13 +114,34 @@ public class LMSPrivateKeyParameters
                 throw new IllegalStateException("expected version 0 lms private key");
             }
 
-            LMSigParameters parameter = LMSigParameters.getParametersForType(dIn.readInt());
-            LMOtsParameters otsParameter = LMOtsParameters.getParametersForType(dIn.readInt());
+            int sigType = dIn.readInt();
+            LMSigParameters parameter = LMSigParameters.getParametersForType(sigType);
+            if (parameter == null)
+            {
+                throw new IOException("unknown LMS type code: " + sigType);
+            }
+            int otsType = dIn.readInt();
+            LMOtsParameters otsParameter = LMOtsParameters.getParametersForType(otsType);
+            if (otsParameter == null)
+            {
+                throw new IOException("unknown LM-OTS type code: " + otsType);
+            }
             byte[] I = new byte[16];
             dIn.readFully(I);
 
             int q = dIn.readInt();
             int maxQ = dIn.readInt();
+            // q selects the LM-OTS leaf and maxQ bounds it, so a stored value outside the tree is not
+            // a harmless oddity: the key signs with a one-time key the public key does not commit to,
+            // and the signature simply does not verify (github #2414). RFC 8554 sec. 5.3 has
+            // 0 <= q < 2^h; maxQ is 2^h for a whole key and lower for a shard (extractKeyShard), and
+            // q == maxQ is the legitimate exhausted state.
+            int twoToH = 1 << parameter.getH();
+            if (q < 0 || maxQ < 0 || maxQ > twoToH || q > maxQ)
+            {
+                throw new IOException(
+                    "LMS private key q/maxQ out of range: q=" + q + " maxQ=" + maxQ + " 2^h=" + twoToH);
+            }
             int l = dIn.readInt();
             if (l < 0)
             {

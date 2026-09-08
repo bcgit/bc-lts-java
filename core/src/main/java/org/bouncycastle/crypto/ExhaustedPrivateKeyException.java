@@ -1,10 +1,10 @@
-package org.bouncycastle.pqc.crypto;
+package org.bouncycastle.crypto;
 
 /**
  * Exception thrown by a stateful signature algorithm when the private key counter is exhausted.
  */
 public class ExhaustedPrivateKeyException
-    extends org.bouncycastle.crypto.ExhaustedPrivateKeyException
+    extends IllegalStateException
 {
     public ExhaustedPrivateKeyException(String msg)
     {
