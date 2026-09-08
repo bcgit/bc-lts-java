@@ -122,7 +122,8 @@ public class ECNRSigner
         // generate s
         BigInteger x = privKey.getD();                // private key value
         BigInteger u = ((ECPrivateKeyParameters)tempPair.getPrivate()).getD();    // temp's private key value
-        s = u.subtract(r.multiply(x)).mod(n);
+        // the secret x and the ephemeral u are kept off BigInteger.mod, whose cost follows the quotient; x is in [1, n-1] by validatePrivateScalar, u comes from a generated key pair and r is reduced and non-zero, and n is odd
+        s = BigIntegers.modSubtract(n, u, BigIntegers.modMult(n, r, x));
 
         BigInteger[]  res = new BigInteger[2];
         res[0] = r;

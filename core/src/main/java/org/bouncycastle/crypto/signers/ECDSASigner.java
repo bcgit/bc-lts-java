@@ -97,7 +97,8 @@ public class ECDSASigner
     {
         ECDomainParameters ec = key.getParameters();
         BigInteger n = ec.getN();
-        BigInteger e = calculateE(n, message);
+        // e is public, and calculateE can leave it past n, which modAdd below rejects rather than reduces
+        BigInteger e = calculateE(n, message).mod(n);
         BigInteger d = ((ECPrivateKeyParameters)key).getD();
 
         if (kCalculator.isDeterministic())
@@ -128,7 +129,9 @@ public class ECDSASigner
             }
             while (r.equals(ZERO));
 
-            s = BigIntegers.modOddInverse(n, k).multiply(e.add(d.multiply(r))).mod(n);
+            // s = k^-1 * (e + d * r) mod n, with the secret d and k^-1 kept off BigInteger.mod, whose cost follows the quotient; d is in [1, n-1] by validatePrivateScalar, r is reduced and non-zero, and n is odd
+            s = BigIntegers.modMult(n, BigIntegers.modOddInverse(n, k),
+                BigIntegers.modAdd(n, e, BigIntegers.modMult(n, d, r)));
         }
         while (s.equals(ZERO));
 

@@ -99,7 +99,8 @@ public class DSTU4145Signer
             }
             while (r.signum() == 0);
 
-            s = r.multiply(d).add(e).mod(n);
+            // the secret d and ephemeral e are kept off BigInteger.mod, whose cost follows the quotient; d is in [1, n-1] by validatePrivateScalar, e is drawn in that range and r is truncated below 2^(n.bitLength()-1), and n is odd
+            s = BigIntegers.modAdd(n, BigIntegers.modMult(n, r, d), e);
         }
         while (s.signum() == 0);
 

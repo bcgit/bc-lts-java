@@ -69,10 +69,11 @@ public class ECGOST3410Signer
         byte[] message)
     {
         byte[] mRev = Arrays.reverse(message); // conversion is little-endian
-        BigInteger e = new BigInteger(1, mRev);
 
         ECDomainParameters ec = key.getParameters();
         BigInteger n = ec.getN();
+        // e is public, and the digest can exceed n, which modMult below rejects rather than reduces
+        BigInteger e = new BigInteger(1, mRev).mod(n);
         BigInteger d = ((ECPrivateKeyParameters)key).getD();
 
         BigInteger r, s;
@@ -88,7 +89,7 @@ public class ECGOST3410Signer
                 {
                     k = BigIntegers.createRandomBigInteger(n.bitLength(), random);
                 }
-                while (k.equals(ECConstants.ZERO));
+                while (k.equals(ECConstants.ZERO) || k.compareTo(n) >= 0);
 
                 ECPoint p = basePointMultiplier.multiply(ec.getG(), k).normalize();
 
@@ -96,7 +97,8 @@ public class ECGOST3410Signer
             }
             while (r.equals(ECConstants.ZERO));
 
-            s = (k.multiply(e)).add(d.multiply(r)).mod(n);
+            // the secret d and nonce k are kept off BigInteger.mod, whose cost follows the quotient; d is in [1, n-1] by validatePrivateScalar, k is now redrawn until it is below n, r is reduced, and n is odd
+            s = BigIntegers.modAdd(n, BigIntegers.modMult(n, k, e), BigIntegers.modMult(n, d, r));
         }
         while (s.equals(ECConstants.ZERO));
 

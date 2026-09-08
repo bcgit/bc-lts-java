@@ -90,7 +90,8 @@ public class DSASigner
     {
         DSAParameters   params = key.getParameters();
         BigInteger      q = params.getQ();
-        BigInteger      m = calculateE(q, message);
+        // m is public, and calculateE can leave it past q, which modAdd below rejects rather than reduces
+        BigInteger      m = calculateE(q, message).mod(q);
         BigInteger      x = ((DSAPrivateKeyParameters)key).getX();
 
         if (kCalculator.isDeterministic())
@@ -105,11 +106,11 @@ public class DSASigner
         BigInteger  k = kCalculator.nextK();
 
         // the randomizer is to conceal timing information related to k and x.
-        BigInteger  r = params.getG().modPow(k.add(getRandomizer(q, random)), params.getP()).mod(q);
+        BigInteger  r = params.getG().modPow(BigIntegers.createBlindedExponent(k, q, CryptoServicesRegistrar.getSecureRandom(random)), params.getP()).mod(q);
 
-        k = BigIntegers.modOddInverse(q, k).multiply(m.add(x.multiply(r)));
-
-        BigInteger  s = k.mod(q);
+        // s = k^-1 * (m + x * r) mod q, with the secret x and k^-1 kept off BigInteger.mod, whose cost follows the quotient; x is in [1, q-1] by DSAPrivateKeyParameters, r is reduced, and q is prime and so odd
+        BigInteger  s = BigIntegers.modMult(q, BigIntegers.modOddInverse(q, k),
+            BigIntegers.modAdd(q, m, BigIntegers.modMult(q, x, r)));
 
         return new BigInteger[]{ r, s };
     }
@@ -172,13 +173,5 @@ public class DSASigner
     protected SecureRandom initSecureRandom(boolean needed, SecureRandom provided)
     {
         return needed ? CryptoServicesRegistrar.getSecureRandom(provided) : null;
-    }
-
-    private BigInteger getRandomizer(BigInteger q, SecureRandom provided)
-    {
-        // Calculate a random multiple of q to add to k. Note that g^q = 1 (mod p), so adding multiple of q to k does not change r.
-        int randomBits = 7;
-
-        return BigIntegers.createRandomBigInteger(randomBits, CryptoServicesRegistrar.getSecureRandom(provided)).add(BigInteger.valueOf(128)).multiply(q);
     }
 }

@@ -228,8 +228,9 @@ public class SM2Signer
             // A6
             BigInteger dPlus1ModN = BigIntegers.modOddInverse(n, d.add(ONE));
 
-            s = k.subtract(r.multiply(d)).mod(n);
-            s = dPlus1ModN.multiply(s).mod(n);
+            // the secret d and (1 + d)^-1 are kept off BigInteger.mod, whose cost follows the quotient; d is in [1, n-1] by validatePrivateScalar, k and r are reduced, and n is odd
+            s = BigIntegers.modSubtract(n, k, BigIntegers.modMult(n, r, d));
+            s = BigIntegers.modMult(n, dPlus1ModN, s);
         }
         while (s.equals(ZERO));
 
@@ -331,7 +332,26 @@ public class SM2Signer
         return result;
     }
 
-    private byte[] getZ(byte[] userID)
+    /**
+     * Compute the SM2 <code>Z</code> value -
+     * <code>H(ENTL || ID || a || b || xG || yG || xA || yA)</code> as given in 5.1.4.4 of the draft
+     * RFC "SM2 Public Key Algorithms". This is called once from
+     * {@link #init(boolean, org.bouncycastle.crypto.CipherParameters) init} with the digest
+     * freshly reset, and the value returned is prepended to the message before <code>e</code> is
+     * calculated.
+     * <p>
+     * An override must leave the digest empty on return - this implementation feeds the digest and
+     * then consumes it with a <code>doFinal()</code>. Returning a zero-length array leaves the
+     * message unprefixed, so a signer constructed with a
+     * {@link org.bouncycastle.crypto.digests.NullDigest} will then sign and verify a caller-supplied
+     * pre-hashed <code>e</code> as passed in, for the case where <code>Z</code> and the message hash
+     * are calculated elsewhere.
+     * </p>
+     *
+     * @param userID the SM2 user ID passed in at init, or the default one if none was given.
+     * @return the Z value the message is to be prefixed with.
+     */
+    protected byte[] getZ(byte[] userID)
     {
         addUserID(digest, userID);
 
