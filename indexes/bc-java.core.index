@@ -891,7 +891,7 @@ f142fcc66ce9a955811e8736fa13fac35ad51562f192f90257fc98c23998716a  core/src/main/
 20dd47900b2c5c6a40666a6d47071d189067ce7b7bc3223fd5e6345e0271445c  core/src/main/java/org/bouncycastle/util/test/FixedSecureRandom.java
 af3f6003af7ca8d4024ce024a224d8eb01fb259195a3e8c1f1aed174339fe019  core/src/main/java/org/bouncycastle/util/test/TestRandomBigInteger.java
 f5a10f5dd953d05d241a8c8770b69c5a75675c44cc8b4251c45ff734258820c6  core/src/main/java/org/bouncycastle/util/StoreException.java
-7e238a4015ae753052fe4456da758c061c20a9fcc39dfe2ea5d8bcbc1d6a443d  core/src/main/java/org/bouncycastle/util/BigIntegers.java
+c47483273704654eab0cb4ea1bea3eaa7dbcf9c69d51207ceb326b0b2d1367a3  core/src/main/java/org/bouncycastle/util/BigIntegers.java
 3e1c99386168f5651cfb2ac93eb94b0e0040c284322e9fca8dd23baffe147be3  core/src/main/java/org/bouncycastle/util/io/Streams.java
 94b0cd94a5348793f514e85fdcc12dd9e27ff46fbab1ec45ac3b6db66a2920a1  core/src/main/java/org/bouncycastle/util/io/TeeInputStream.java
 79cf00b9e0ff69ec8f4b4b030e04107a94dd61108585c639657c5b2d85abc787  core/src/main/java/org/bouncycastle/util/io/SimpleOutputStream.java
@@ -1334,7 +1334,7 @@ a2de1553a6b700e5635dc0064caa31cefe9bd7e68ff3f8b74bd11a399aff7ec7  core/src/main/
 3dfbafd7e94e0b96ab4e65a4953150ede229f7b86f188729090bee50062b36b1  core/src/main/java/org/bouncycastle/math/ec/WNafL2RMultiplier.java
 5abcc880992df090020d5c2c252c6d3df9de4aac08bc2dbc8ffc15ac5e6323cb  core/src/main/java/org/bouncycastle/math/ec/ValidityPrecompInfo.java
 452e372b5e4b7231edb1817a5b4b6195d2023d68e317b363718c6ae93acbbf8a  core/src/main/java/org/bouncycastle/math/ec/ScaleXNegateYPointMap.java
-3e6595c46ebcf7c88c11516e95248d5b75a924f023c9fc32feb1093d527473f3  core/src/main/java/org/bouncycastle/math/ec/ECAlgorithms.java
+f8acf534cbdc9b61f77501bf8b61bc99ef62aececfa6ae5bab901f443b312b2f  core/src/main/java/org/bouncycastle/math/ec/ECAlgorithms.java
 0ae1852e0030710fbd88962e1b1bbd50c392f6328be6bfb4e3d1754cc0407bbc  core/src/main/java/org/bouncycastle/math/ec/WNafUtil.java
 02d7f8cc876fd4cf93d51ea93d3f810165838d0fc5f57ad91e93f61e0a70cebe  core/src/main/java/org/bouncycastle/math/ec/ECFieldElement.java
 589180df1bc0827f9ee80505d41771db522528e1f7d24c14b303ed11a44d567a  core/src/main/java/org/bouncycastle/math/ec/endo/GLVTypeBEndomorphism.java
@@ -1765,3 +1765,4 @@ e06ac935a92dad92ae3cafaafef52d2b3433bbeb8e7419f98c8cabe31d72c522  core/src/test/
 0f3bb3e0f4c27ce823e91b01f52cd7fd567a48a059acb905ba4edd655b72bc71  core/src/main/java/org/bouncycastle/asn1/DLOctetStringGenerator.java
 bc3b69002b3d441aa64a4f849586683b8a9957ac552685f9051b916e9bac96a2  core/src/main/java/org/bouncycastle/asn1/x509/CRLValidatorException.java
 179934b0e2bc62de3ee9db8d3bbe787db33d44733a72c1eb5c04ff5dda062411  core/src/main/java/org/bouncycastle/asn1/x509/PKIXCRLValidator.java
+d0c0931bc981929f3da0a55ca1408f3770d5021ec5b3b4d984da416c5fcc3e06  core/src/main/java/org/bouncycastle/math/ec/ECConstantTimeMultiplier.java
