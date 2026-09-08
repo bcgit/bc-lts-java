@@ -47,7 +47,7 @@ db695f433dcf2c56b8c1b48dd6e918bc81131bfb52b783a412553f5abfd5acfd  util/src/test/
 10a186cc5e7b0c5d8d3935780482c4cfee981aa1c9b8178849360004fd53460e  util/src/test/java/org/bouncycastle/asn1/cmp/test/PKIFailureInfoTest.java
 5d78bdfdf832afe0829e23fb388035fce4f4c22101036b4d25514a93605793e9  util/src/test/java/org/bouncycastle/asn1/cmp/test/CertifiedKeyPairTest.java
 c8ccbdb00c8c71e6ce939ad8d65168b3022e4117c0f7f0de651d4c62082e7dca  util/src/test/java/org/bouncycastle/asn1/cmp/test/PollReqContentTest.java
-055eb509194a6f120124f27267555e6b8750d0a8486755ec57f354cb2175ae47  util/src/test/java/org/bouncycastle/asn1/util/test/AllTests.java
+729b892d10b768e6da8a4d5dd88a31ec6f862b628bf6f6ea1371573485e9ba1c  util/src/test/java/org/bouncycastle/asn1/util/test/AllTests.java
 36843407a873fbd4437a0085f52a93fdc4a177efc9e4ec7d122ec5cb5ac14baf  util/src/test/java/org/bouncycastle/asn1/util/test/ASN1UnitTest.java
 bdd25969a422d135acba9b5361a058704f825a6d427b70c80fd073100df64dcd  util/src/test/java/org/bouncycastle/asn1/util/test/RegressionTest.java
 4b26fac79f11ff9f40d39fd40d8b37a01622b1dfd9ba29f07718df7ed280108c  util/src/test/java/org/bouncycastle/asn1/util/test/BitStringConstantTester.java
@@ -69,7 +69,7 @@ f1dfb673e2d953e273761d90ef859deefec597a8e5e33f6b0e51ce1ce4466ed4  util/src/test/
 64e21a2be3f6975522e19a833ce5e91bb88cd7e0dd1267a2e92fcc33c0c6dc79  util/src/test/java/org/bouncycastle/asn1/cms/test/OctetStringTest.java
 084be1ddf7be78ec868eca1151471f5e092b662d8b13cf8f81121cfad5b515ee  util/src/test/java/org/bouncycastle/asn1/cms/test/ParseTest.java
 0582363c23353e7d4ba9cc197b98b53418f93bc317e050a863754659f44692f0  util/src/test/java/org/bouncycastle/asn1/cms/test/CMSTest.java
-2ab70f1700ff1403fd35fb4e02635697bded1bfed235c52fc191826548e3621f  util/src/test/java/org/bouncycastle/oer/test/AllTests.java
+8f978e578383061b7fd33fc00af289955cd7b56d73422d7ab5ea5585d23b9cea  util/src/test/java/org/bouncycastle/oer/test/AllTests.java
 cf04ebfb7025f5e38af390abddec49da35133cec5d42eab039ef4963a6024b05  util/src/test/java/org/bouncycastle/oer/test/ExpansionCaveats.java
 ec6fb1af887714f5542fe44656ecb096ccb89de7d3874dfec449dc0df85e31df  util/src/test/java/org/bouncycastle/oer/test/OERExtensionTest.java
 083eb95550628c039affd45da33ae1729fad374862fec8f63dab00f1d35addcd  util/src/test/java/org/bouncycastle/oer/test/Exerciser.java
@@ -81,7 +81,7 @@ ec6fb1af887714f5542fe44656ecb096ccb89de7d3874dfec449dc0df85e31df  util/src/test/
 72e445ccc54216bd9a2df16a9edadd41737fa7b4143b2f2bd5c98790b781ee7d  util/src/test/java/org/bouncycastle/oer/test/TestFromVector.java
 3e9e6e5ed51d704d690474863e2f62d322e736711424020c4ad58d5f6d65f99d  util/src/test/java/org/bouncycastle/oer/test/TestBuilders.java
 c6f2d989dc8e8dac27d81f86b8570216e3007b1ed0cc122c11d60f7147345824  util/src/test/java/org/bouncycastle/oer/test/Populate.java
-5d5ed7c8d57931ec70ce139ab8364867388e74fdc09a8e642b657d49d82155a2  util/src/main/jdk1.9/module-info.java
+98cb17e50324ee5699528a8f507dbc23817799e539e9ced213975cdf7d6b98e3  util/src/main/jdk1.9/module-info.java
 440187e59c481bf46e67a91c9ed3c2ab68bb165095fa2c5eec3a60797c79ea69  util/src/main/java/org/bouncycastle/asn1/cmc/IdentityProofV2.java
 457be4f323553ea3d918563930acab4de45db4c861f8bf9a39b1182908289f27  util/src/main/java/org/bouncycastle/asn1/cmc/Utils.java
 bf0b1139bc934cf46b6d369ad9370edc15ea7e9d1f2dc44b045607a4994839a5  util/src/main/java/org/bouncycastle/asn1/cmc/PublishTrustAnchors.java
@@ -566,7 +566,7 @@ b41995129e2f90924fd0f652592fe399ebf069bc5521f389d6a50bcdf7f35fc1  util/src/main/
 84625d8fa5c9edcdbfbe7348af5a07dae1059532f6b0aea76794678d0502bbae  util/src/main/java/org/bouncycastle/oer/Switch.java
 491fbb90f3bce0915fca8d0521935b30701eb3e704effa707890ce23b4b12e5d  util/src/main/java/org/bouncycastle/oer/OEROptional.java
 826150491e4cb688a2ab020e8285cf2fbe43a7c3d256ead32697285fd1fd82e6  util/src/main/java/org/bouncycastle/oer/BitBuilder.java
-5ff0c73bc5397971d384255edae9070e5c2de2d0b88fcbe37acc6ef26176e256  util/src/main/java/org/bouncycastle/oer/OERInputStream.java
+ebe412e69a2878fa7140a4fb68cd5bdb4a5d35675100289298eacc776153372b  util/src/main/java/org/bouncycastle/oer/OERInputStream.java
 46c6576c2a4cff2f3418fcec6d69344cb310ade5a0c2d8cd01b5aeabe1781f57  util/src/main/java/org/bouncycastle/oer/OEREncoder.java
 72ca10195aabbfe0865d2ab610dc5619130acf5cc51071c0d74296b72a476d34  util/src/main/java/org/bouncycastle/asn1/bsi/package-info.java
 9564f30f5da4e32cf61b80f2a2c85d25285e0d55fcdb0bdd49b5d169ea620dd7  util/src/main/java/org/bouncycastle/asn1/cmc/package-info.java
@@ -590,7 +590,7 @@ daf12ff72581ce8f733a9771ea1b03a78b5a2dfcfdcd1b5fc60846b268462b21  util/src/main/
 a462d58a14b404710542f9ea10cb111ed7a12a1e1493a33455f3f7148493330a  util/src/test/java/org/bouncycastle/test/TestResourceFinder.java
 5e5377c202a5e9369e512ad2b5d714929383b7eeccef2b50186932a61ec3a38d  util/src/test/java/org/bouncycastle/asn1/cms/test/CCMParametersTest.java
 f9b8802392fafb45372dddaa0ed04c88da927f0cd98782bdc9c11e01bafd85ad  util/src/test/java/org/bouncycastle/asn1/cms/test/GCMParametersTest.java
-aca3c8b29e3e2a5f0b4628e81f7cdb4d35abecd28d94959ec1e40d8b59076ff6  util/src/test/java/org/bouncycastle/oer/test/OERInputStreamLimitTest.java
+ad33fec32506d27312b7e00defd57905238b89c958eb8a6016b11e74c954ca50  util/src/test/java/org/bouncycastle/oer/test/OERInputStreamLimitTest.java
 da4b36598956cdab49e2dccb8546709609a09e4435c1d2daad0bc56bf893a298  util/src/main/java/org/bouncycastle/asn1/est/EstIdentityLinking.java
 deae06e645fd286824ff21fc4f57a17a1b703485408bdb538d91af4c90a077ba  util/src/main/java/org/bouncycastle/asn1/est/CSRChallengeAttribute.java
 4ca8d9dd20472bd0e84cbe846ecea8d3c398f7a6909235e653f0006bcd20b474  util/src/main/java/org/bouncycastle/asn1/est/OtpChallenge.java
