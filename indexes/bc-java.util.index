@@ -32,7 +32,7 @@ c90a1e2b47aeb749a87a117e69cd991290d52f3196b7450c946ca068a94acb70  util/src/test/
 fb13bbaa97c0250d854e00e4eb23406aff4f649915004b86bfeb3054f1c6fc06  util/src/test/java/org/bouncycastle/asn1/cmc/test/CMCCertificationRequestTest.java
 edeee3adb5beb9e0a0a5f5d630bc178455c6cddef5c6effdfb1e2834143379cc  util/src/test/java/org/bouncycastle/asn1/cmc/test/BodyPartIDTest.java
 106c7b621953e45b5bc92bd8edd2f80d00baf34e0f3fd06b1dd6e9ef0b66d31f  util/src/test/java/org/bouncycastle/asn1/cmc/test/BodyPartReferenceTest.java
-eb77eca52544a71cb6de6384bab506074eb11b13d5079fb31bdac6a3c9a215eb  util/src/test/java/org/bouncycastle/asn1/misc/test/GetInstanceTest.java
+3f60c7507ebfd44b4285cb00905235ca9e687aee3ec594c4248d822a0fa4824f  util/src/test/java/org/bouncycastle/asn1/misc/test/GetInstanceTest.java
 7b47bf3bc3095019aad08fcc89f5d4452c249cff7492025d9d0916c3917677a7  util/src/test/java/org/bouncycastle/asn1/misc/test/CMPUpdates16Test.java
 b136db7c019729861eabda8d17ab484207177ae5881d5c4b99033c857210b40a  util/src/test/java/org/bouncycastle/asn1/esf/test/CommitmentTypeIndicationUnitTest.java
 3e89ba8981946746c818bf70ca74feb287cae3e3864bde95f429f89edf95f0b9  util/src/test/java/org/bouncycastle/asn1/esf/test/SignerLocationUnitTest.java
@@ -587,7 +587,7 @@ e8df06a9922f7f29dbee0b9a2517656db4bb14d55377f06488055622357f079b  util/src/main/
 f82121b5441fecf1bd1dc39e3f4c7b94e4665b443a3bfa9909789ae31f83bbe5  util/src/main/java/org/bouncycastle/asn1/package-info.java
 daf12ff72581ce8f733a9771ea1b03a78b5a2dfcfdcd1b5fc60846b268462b21  util/src/main/java/org/bouncycastle/asn1/smime/package-info.java
 02c7af2b520f10767ae13098c6f4789b1aa1a7ae35b9b204f4099cd25870ae33  util/src/main/java/org/bouncycastle/asn1/tsp/package-info.java
-108fd4baec6db7716ea550e7cddad4894f8ef1188d9a3d1051fbaea3d0d81b64  util/src/test/java/org/bouncycastle/test/TestResourceFinder.java
+a462d58a14b404710542f9ea10cb111ed7a12a1e1493a33455f3f7148493330a  util/src/test/java/org/bouncycastle/test/TestResourceFinder.java
 5e5377c202a5e9369e512ad2b5d714929383b7eeccef2b50186932a61ec3a38d  util/src/test/java/org/bouncycastle/asn1/cms/test/CCMParametersTest.java
 f9b8802392fafb45372dddaa0ed04c88da927f0cd98782bdc9c11e01bafd85ad  util/src/test/java/org/bouncycastle/asn1/cms/test/GCMParametersTest.java
 aca3c8b29e3e2a5f0b4628e81f7cdb4d35abecd28d94959ec1e40d8b59076ff6  util/src/test/java/org/bouncycastle/oer/test/OERInputStreamLimitTest.java
