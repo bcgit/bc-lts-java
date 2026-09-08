@@ -79,6 +79,7 @@ compileJava9Java {
             '--module-path', "$lts_prov:$lts_util:$lts_pkix:${rootProject.projectDir}/libs/jakarta.mail-2.0.1.jar:${rootProject.projectDir}/libs/jakarta.activation-api-2.0.0.jar"
     ]
     options.sourcepath = files(['build/src/main/java', 'src/main/jdk1.9'])
+    options.compilerArgs << '-implicit:none'  // avoid recompiling every baseline class implicitly loaded via sourcepath
 }
 
 jar {

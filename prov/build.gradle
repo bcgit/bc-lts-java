@@ -93,6 +93,7 @@ compileJava9Java {
     options.release = 9
     options.debug = rootProject.ext.debugBuild
     options.sourcepath = files(['../core/src/main/java', 'src/main/java', 'src/main/jdk1.9', '../core/src/main/jdk1.9/org'])
+    options.compilerArgs << '-implicit:none'  // avoid recompiling every baseline class implicitly loaded via sourcepath
 }
 
 compileJava11Java {

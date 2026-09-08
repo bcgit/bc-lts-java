@@ -50,6 +50,7 @@ compileJava9Java {
             '--module-path', "$lts_prov:$lts_util"
     ]
     options.sourcepath = files(['src/main/java', 'src/main/jdk1.9'])
+    options.compilerArgs << '-implicit:none'  // avoid recompiling every baseline class implicitly loaded via sourcepath
 }
 
 jar {
