@@ -264,11 +264,9 @@ public class PublicKeyFactory
             if (dhValidationParms != null)
             {
                 byte[] seed = dhValidationParms.getSeed();
-                BigInteger pgenCounter = dhValidationParms.getPgenCounter();
 
-                // TODO Check pgenCounter size?
-
-                validation = new DHValidationParameters(seed, pgenCounter.intValue());
+                // TODO Perhaps avoid forcing unsigned interpretation and add guards elsewhere
+                validation = new DHValidationParameters(seed, dhValidationParms.getPgenCounterObject().intPositiveValueExact());
             }
 
             return new DHPublicKeyParameters(y, new DHParameters(p, g, q, j, validation));

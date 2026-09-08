@@ -32,6 +32,11 @@ public interface IANAObjectIdentifiers
     //
 
 
+    /** Kerberos V5; 1.3.6.1.5.2 */
+    ASN1ObjectIdentifier    kerberosv5           = security.branch("2");
+    /** PKINIT, RFC 4556 sec. 3.2.2; 1.3.6.1.5.2.3 */
+    ASN1ObjectIdentifier    id_pkinit            = kerberosv5.branch("3");
+
     /** IANA security mechanisms; 1.3.6.1.5.5 */
     ASN1ObjectIdentifier    security_mechanisms  = security.branch("5");
     /** IANA security nametypes;  1.3.6.1.5.6 */
@@ -67,6 +72,12 @@ public interface IANAObjectIdentifiers
     ASN1ObjectIdentifier id_ecdsa_with_shake128 = id_alg.branch("32");
 
     ASN1ObjectIdentifier id_ecdsa_with_shake256 = id_alg.branch("33");
+
+    /** 1.3.6.1.5.5.7.6.34 id-alg-xmss-hashsig (RFC 9802) */
+    ASN1ObjectIdentifier id_alg_xmss_hashsig = id_alg.branch("34");
+
+    /** 1.3.6.1.5.5.7.6.35 id-alg-xmssmt-hashsig (RFC 9802) */
+    ASN1ObjectIdentifier id_alg_xmssmt_hashsig = id_alg.branch("35");
 
     ASN1ObjectIdentifier id_alg_unsigned = id_alg.branch("36");
 
@@ -106,5 +117,36 @@ public interface IANAObjectIdentifiers
     ASN1ObjectIdentifier id_MLDSA87_RSA4096_PSS_SHA512 = id_alg.branch("53");
     /** 1.3.6.1.5.5.7.6.54 id-MLDSA87-ECDSA-P521-SHA512 */
     ASN1ObjectIdentifier id_MLDSA87_ECDSA_P521_SHA512 = id_alg.branch("54");
+
+    /** 1.3.6.1.5.5.7.6.55 id-MLKEM768-RSA2048-SHA3-256 */
+    ASN1ObjectIdentifier id_MLKEM768_RSA2048_SHA3_256 = id_alg.branch("55");
+    /** 1.3.6.1.5.5.7.6.56 id-MLKEM768-RSA3072-SHA3-256 */
+    ASN1ObjectIdentifier id_MLKEM768_RSA3072_SHA3_256 = id_alg.branch("56");
+    /** 1.3.6.1.5.5.7.6.57 id-MLKEM768-RSA4096-SHA3-256 */
+    ASN1ObjectIdentifier id_MLKEM768_RSA4096_SHA3_256 = id_alg.branch("57");
+    /** 1.3.6.1.5.5.7.6.58 id-MLKEM768-X25519-SHA3-256 */
+    ASN1ObjectIdentifier id_MLKEM768_X25519_SHA3_256 = id_alg.branch("58");
+    /** 1.3.6.1.5.5.7.6.59  id-MLKEM768-ECDH-P256-SHA3-256 */
+    ASN1ObjectIdentifier id_MLKEM768_ECDH_P256_SHA3_256 = id_alg.branch("59");
+    /** 1.3.6.1.5.5.7.6.60 id-MLKEM768-ECDH-P384-SHA3-256 */
+    ASN1ObjectIdentifier id_MLKEM768_ECDH_P384_SHA3_256 = id_alg.branch("60");
+    /** 1.3.6.1.5.5.7.6.61 id-MLKEM768-ECDH-brainpoolP256r1-SHA3-256 */
+    ASN1ObjectIdentifier id_MLKEM768_ECDH_brainpoolP256r1_SHA3_256 = id_alg.branch("61");
+    /** @deprecated use id_MLKEM768_ECDH_brainpoolP256r1_SHA3_256 instead */
+    @Deprecated
+    ASN1ObjectIdentifier id_MLKEM768_ECDH_BP256_SHA3_256 = id_MLKEM768_ECDH_brainpoolP256r1_SHA3_256;
+    /** 1.3.6.1.5.5.7.6.62 id-MLKEM1024-RSA3072-SHA3-256 */
+    ASN1ObjectIdentifier id_MLKEM1024_RSA3072_SHA3_256 = id_alg.branch("62");
+    /** 1.3.6.1.5.5.7.6.63 id-MLKEM1024-ECDH-P384-SHA3-256 */
+    ASN1ObjectIdentifier id_MLKEM1024_ECDH_P384_SHA3_256 = id_alg.branch("63");
+    /** 1.3.6.1.5.5.7.6.64 id-MLKEM1024-ECDH-brainpoolP384r1-SHA3-256 */
+    ASN1ObjectIdentifier id_MLKEM1024_ECDH_brainpoolP384r1_SHA3_256 = id_alg.branch("64");
+    /** @deprecated use id_MLKEM1024_ECDH_brainpoolP384r1_SHA3_256 instead */
+    @Deprecated
+    ASN1ObjectIdentifier id_MLKEM1024_ECDH_BP384_SHA3_256 = id_MLKEM1024_ECDH_brainpoolP384r1_SHA3_256;
+    /** 1.3.6.1.5.5.7.6.65 id-MLKEM1024-X448-SHA3-256 */
+    ASN1ObjectIdentifier id_MLKEM1024_X448_SHA3_256 = id_alg.branch("65");
+    /** 1.3.6.1.5.5.7.6.66 id-MLKEM1024-ECDH-P521-SHA3-256 */
+    ASN1ObjectIdentifier id_MLKEM1024_ECDH_P521_SHA3_256 = id_alg.branch("66");
 
 }
