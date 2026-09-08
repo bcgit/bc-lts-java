@@ -156,6 +156,11 @@ public class DSTU7624WrapEngine
             throw new DataLengthException("unwrap data must be a multiple of " + engine.getBlockSize() + " bytes");
         }
 
+        if (inLen < engine.getBlockSize())
+        {
+            throw new InvalidCipherTextException("unwrap data too short");
+        }
+
         int n = 2 * inLen / engine.getBlockSize();
 
         int V = (n - 1) * 6;
@@ -215,7 +220,7 @@ public class DSTU7624WrapEngine
         System.arraycopy(buffer, buffer.length - engine.getBlockSize(), checkSumArray, 0, engine.getBlockSize());
 
         byte[] wrappedBuffer = new byte[buffer.length - engine.getBlockSize()];
-        if (!Arrays.areEqual(checkSumArray, zeroArray))
+        if (!Arrays.constantTimeAreEqual(checkSumArray, zeroArray))
         {
             throw new InvalidCipherTextException("checksum failed");
         }
