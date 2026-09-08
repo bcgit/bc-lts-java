@@ -4,6 +4,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 
 import org.bouncycastle.crypto.CryptoException;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.Mac;
 import org.bouncycastle.crypto.macs.HMac;
@@ -26,6 +27,23 @@ public class JPAKEUtil
 {
     static final BigInteger ZERO = BigInteger.valueOf(0);
     static final BigInteger ONE = BigInteger.valueOf(1);
+
+    /**
+     * Add a random multiple of q to a private exponent, so that the variable-time
+     * {@link BigInteger#modPow(BigInteger, BigInteger)} applied to it sees a different exponent on
+     * each call. The result is unchanged because every base J-PAKE raises is known to have order q:
+     * the generator g is checked with <code>g^q = 1</code> when the
+     * {@link JPAKEPrimeOrderGroup} is built, and each value received from the other participant is
+     * checked the same way by
+     * {@link #validateZeroKnowledgeProof(BigInteger, BigInteger, BigInteger, BigInteger, BigInteger[], String, Digest)}
+     * before it is ever used as a base. That is what makes a multiple of q sound here rather than
+     * one of p-1, and it matters for cost: the exponents are the size of q, so blinding with p-1
+     * would grow them to the size of p.
+     */
+    private static BigInteger blindExponent(BigInteger e, BigInteger q, SecureRandom random)
+    {
+        return BigIntegers.createBlindedExponent(e, q, CryptoServicesRegistrar.getSecureRandom(random));
+    }
 
     /**
      * Return a value that can be used as x1 or x3 during round 1.
@@ -56,6 +74,17 @@ public class JPAKEUtil
     }
 
     /**
+     * Converts the given password to a {@link BigInteger}
+     * for use in arithmetic calculations.
+     * 
+     * @deprecated Use version including the modulus instead.
+     */
+    public static BigInteger calculateS(char[] password)
+    {
+        return new BigInteger(1, Strings.toUTF8ByteArray(password));
+    }
+
+    /**
      * Converts the given password to a {@link BigInteger} mod q.
      */
     public static BigInteger calculateS(BigInteger q, byte[] password)
@@ -80,13 +109,37 @@ public class JPAKEUtil
 
     /**
      * Calculate g^x mod p as done in round 1.
+     *
+     * @deprecated x is a private ephemeral value, and this method has no q to randomise the
+     * exponent with, so it falls back to a multiple of p-1 - always sound, but it grows the exponent
+     * from the size of q to the size of p. Use
+     * {@link #calculateGx(BigInteger, BigInteger, BigInteger, BigInteger, SecureRandom)} instead.
      */
     public static BigInteger calculateGx(
         BigInteger p,
         BigInteger g,
         BigInteger x)
     {
-        return g.modPow(x, p);
+        return g.modPow(blindExponent(x, p.subtract(ONE), null), p);
+    }
+
+    /**
+     * Calculate g^x mod p as done in round 1.
+     * <p>
+     * x is the participant's private ephemeral value; leaking it lets an attacker brute-force the
+     * password, so the exponent is randomised with a multiple of q before it is raised.
+     *
+     * @param random source of the randomisation, may be null to take the default from
+     * {@link CryptoServicesRegistrar}.
+     */
+    public static BigInteger calculateGx(
+        BigInteger p,
+        BigInteger q,
+        BigInteger g,
+        BigInteger x,
+        SecureRandom random)
+    {
+        return g.modPow(blindExponent(x, q, random), p);
     }
 
 
@@ -125,8 +178,27 @@ public class JPAKEUtil
         BigInteger gA,
         BigInteger x2s)
     {
+        return calculateA(p, q, gA, x2s, null);
+    }
+
+    /**
+     * Calculate A as done in round 2.
+     * <p>
+     * x2s carries the password, so the exponent is randomised with a multiple of q before it is
+     * raised. gA is a product of values each checked to have order q, so it has order q too.
+     *
+     * @param random source of the randomisation, may be null to take the default from
+     * {@link CryptoServicesRegistrar}.
+     */
+    public static BigInteger calculateA(
+        BigInteger p,
+        BigInteger q,
+        BigInteger gA,
+        BigInteger x2s,
+        SecureRandom random)
+    {
         // A = ga^(x*s)
-        return gA.modPow(x2s, p);
+        return gA.modPow(blindExponent(x2s, q, random), p);
     }
 
     /**
@@ -150,7 +222,9 @@ public class JPAKEUtil
         BigInteger vMax = q.subtract(ONE);
         BigInteger v = BigIntegers.createRandomInRange(vMin, vMax, random);
 
-        BigInteger gv = g.modPow(v, p);
+        // r below is published, so recovering v from the timing of this call would give up x as
+        // (v - r) / h. The exponent is randomised with a multiple of q before it is raised.
+        BigInteger gv = g.modPow(blindExponent(v, q, random), p);
         BigInteger h = calculateHashForZeroKnowledgeProof(g, gv, gx, participantId, digest); // h
 
         zeroKnowledgeProof[0] = gv;
@@ -271,7 +345,36 @@ public class JPAKEUtil
         BigInteger s,
         BigInteger B)
     {
-        return gx4.modPow(x2.multiply(s).negate().mod(q), p).multiply(B).modPow(x2, p);
+        return calculateKeyingMaterial(p, q, gx4, x2, s, B, null);
+    }
+
+    /**
+     * Calculates the keying material, which can be done after round 2 has completed.
+     * A session key must be derived from this key material using a secure key derivation function (KDF).
+     * The KDF used to derive the key is handled externally (i.e. not by {@link JPAKEParticipant}).
+     * <pre>
+     * KeyingMaterial = (B/g^{x2*x4*s})^x2
+     * </pre>
+     * <p>
+     * One exponent carries the password and the other the private ephemeral x2, so both are
+     * randomised with a multiple of q before they are raised. gx4 and B have each been checked to
+     * have order q, so the product raised by the second call does too.
+     *
+     * @param random source of the randomisation, may be null to take the default from
+     * {@link CryptoServicesRegistrar}.
+     */
+    public static BigInteger calculateKeyingMaterial(
+        BigInteger p,
+        BigInteger q,
+        BigInteger gx4,
+        BigInteger x2,
+        BigInteger s,
+        BigInteger B,
+        SecureRandom random)
+    {
+        BigInteger negX2s = blindExponent(x2.multiply(s).negate().mod(q), q, random);
+
+        return gx4.modPow(negX2s, p).multiply(B).modPow(blindExponent(x2, q, random), p);
     }
 
     /**
@@ -358,6 +461,25 @@ public class JPAKEUtil
         BigInteger keyingMaterial,
         Digest digest)
     {
+        return new BigInteger(calculateMacTagEncoded(
+            participantId, partnerParticipantId, gx1, gx2, gx3, gx4, keyingMaterial, digest));
+    }
+
+    /**
+     * As {@link #calculateMacTag}, but leaving the result in the MAC's own fixed-width output form
+     * for {@link #constantTimeEquals}. Read back as a BigInteger the encoding is minimal, so its
+     * length would vary with the value.
+     */
+    private static byte[] calculateMacTagEncoded(
+        String participantId,
+        String partnerParticipantId,
+        BigInteger gx1,
+        BigInteger gx2,
+        BigInteger gx3,
+        BigInteger gx4,
+        BigInteger keyingMaterial,
+        Digest digest)
+    {
         byte[] macKey = calculateMacKey(
             keyingMaterial,
             digest);
@@ -381,8 +503,7 @@ public class JPAKEUtil
 
         Arrays.fill(macKey, (byte)0);
 
-        return new BigInteger(macOutput);
-
+        return macOutput;
     }
 
     /**
@@ -434,7 +555,7 @@ public class JPAKEUtil
          *            x1 <-> x3
          *            x2 <-> x4
          */
-        BigInteger expectedMacTag = calculateMacTag(
+        byte[] expectedMacTag = calculateMacTagEncoded(
             partnerParticipantId,
             participantId,
             gx3,
@@ -444,12 +565,54 @@ public class JPAKEUtil
             keyingMaterial,
             digest);
 
-        if (!expectedMacTag.equals(partnerMacTag))
+        if (!constantTimeEquals(expectedMacTag, partnerMacTag))
         {
             throw new CryptoException(
                 "Partner MacTag validation failed. "
                     + "Therefore, the password, MAC, or digest algorithm of each participant does not match.");
         }
+    }
+
+    /**
+     * Constant-time comparison of the partner's MacTag against the expected one.
+     * <p>
+     * The expected value is kept in the MAC's own output form so the comparison runs over a fixed
+     * number of bytes; read back as a BigInteger its encoding is minimal, so the length alone would
+     * vary with the secret-derived value. Note calculateMacTag reads the MAC output with the
+     * <i>signed</i> BigInteger(byte[]) constructor, so a MacTag is negative about half the time and
+     * the supplied value has to be encoded two's-complement and sign-extended to match:
+     * BigIntegers.asUnsignedByteArray zero-pads instead, which does not round-trip a negative tag.
+     * A value too wide to be a MacTag cannot match and is rejected before any comparison, a
+     * decision taken purely on what the partner sent.
+     *
+     * @param expectedEnc the locally computed MacTag, as the MAC produced it.
+     * @param supplied the MacTag received from the partner.
+     * @return true if the two are equal.
+     */
+    private static boolean constantTimeEquals(byte[] expectedEnc, BigInteger supplied)
+    {
+        int length = expectedEnc.length;
+
+        if (supplied.bitLength() >= length * 8)
+        {
+            return false;
+        }
+
+        byte[] suppliedEnc = new byte[length];
+        if (supplied.signum() < 0)
+        {
+            Arrays.fill(suppliedEnc, (byte)0xFF);
+        }
+
+        byte[] minimal = supplied.toByteArray();
+        System.arraycopy(minimal, 0, suppliedEnc, length - minimal.length, minimal.length);
+
+        boolean rv = Arrays.constantTimeAreEqual(expectedEnc, suppliedEnc);
+
+        Arrays.fill(minimal, (byte)0);
+        Arrays.fill(suppliedEnc, (byte)0);
+
+        return rv;
     }
 
     private static void updateDigest(Digest digest, BigInteger bigInteger)

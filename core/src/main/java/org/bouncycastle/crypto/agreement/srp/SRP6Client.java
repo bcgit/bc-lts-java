@@ -4,8 +4,10 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 
 import org.bouncycastle.crypto.CryptoException;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.params.SRP6GroupParameters;
+import org.bouncycastle.util.BigIntegers;
 
 /**
  * Implements the client side SRP-6a protocol. Note that this class is stateful, and therefore NOT threadsafe.
@@ -68,7 +70,7 @@ public class SRP6Client
     {
         this.x = SRP6Util.calculateX(digest, N, salt, identity, password);
         this.a = selectPrivateValue();
-        this.A = g.modPow(a, N);
+        this.A = g.modPow(blindExponent(a), N);
 
         return A;
     }
@@ -97,10 +99,26 @@ public class SRP6Client
     {
         BigInteger k = SRP6Util.calculateK(digest, N, g);
         BigInteger exp = u.multiply(x).add(a);
-        BigInteger tmp = g.modPow(x, N).multiply(k).mod(N);
-        return B.subtract(tmp).mod(N).modPow(exp, N);
+        BigInteger tmp = g.modPow(blindExponent(x), N).multiply(k).mod(N);
+        return B.subtract(tmp).mod(N).modPow(blindExponent(exp), N);
     }
-    
+
+    /**
+     * Add a random multiple of N-1 to a private exponent, so that the variable-time
+     * BigInteger.modPow applied to it sees a different exponent on each call. Raising any value
+     * coprime to the prime N to the power N-1 gives 1 by Fermat's little theorem, so the result is
+     * unchanged; a base of 0 is likewise unaffected, since 0 to any positive power is 0. The
+     * multiple is of N-1 rather than of the order of g because the bases blinded here include a
+     * server-supplied value that need not lie in the subgroup g generates, and for a safe prime an
+     * odd multiple of that order would give the wrong answer for the values that do not.
+     */
+    private BigInteger blindExponent(BigInteger e)
+    {
+        return BigIntegers.createBlindedExponent(e, N.subtract(BigIntegers.ONE),
+            CryptoServicesRegistrar.getSecureRandom(random));
+    }
+
+
     /**
      * Computes the client evidence message M1 using the previously received values.
      * To be called after calculating the secret S.
@@ -135,8 +153,8 @@ public class SRP6Client
         }
 
         // Compute the own server evidence message 'M2'
-        BigInteger computedM2 = SRP6Util.calculateM2(digest, N, A, M1, S);
-        if (computedM2.equals(serverM2))
+        byte[] computedM2 = SRP6Util.calculateM2Encoded(digest, N, A, M1, S);
+        if (SRP6Util.constantTimeEquals(computedM2, serverM2))
         {
             this.M2 = serverM2;
             return true;
