@@ -18,6 +18,7 @@ import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
 import org.bouncycastle.math.ec.ECFieldElement;
 import org.bouncycastle.math.ec.ECMultiplier;
+import org.bouncycastle.math.ec.ECAlgorithms;
 import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.math.ec.FixedPointCombMultiplier;
 import org.bouncycastle.util.Arrays;
@@ -74,25 +75,30 @@ public class SM2Engine
     {
         this.forEncryption = forEncryption;
 
+        SecureRandom providedRandom = null;
+        if (param instanceof ParametersWithRandom)
+        {
+            ParametersWithRandom withRandom = (ParametersWithRandom)param;
+            providedRandom = withRandom.getRandom();
+            param = withRandom.getParameters();
+        }
+
+        ecKey = (ECKeyParameters)param;
+        ecParams = ecKey.getParameters();
+
         if (forEncryption)
         {
-            ParametersWithRandom rParam = (ParametersWithRandom)param;
-
-            ecKey = (ECKeyParameters)rParam.getParameters();
-            ecParams = ecKey.getParameters();
+            random = CryptoServicesRegistrar.getSecureRandom(providedRandom);
 
             ECPoint s = ((ECPublicKeyParameters)ecKey).getQ().multiply(ecParams.getH());
             if (s.isInfinity())
             {
                 throw new IllegalArgumentException("invalid key: [h]Q at infinity");
             }
-
-            random = rParam.getRandom();
         }
         else
         {
-            ecKey = (ECKeyParameters)param;
-            ecParams = ecKey.getParameters();
+            random = null;
         }
 
         curveLength = ecParams.getCurve().getFieldElementEncodingLength();
@@ -140,21 +146,22 @@ public class SM2Engine
 
         ECMultiplier multiplier = createBasePointMultiplier();
 
-        byte[] c1;
+        BigInteger k;
         ECPoint kPB;
         do
         {
-            BigInteger k = nextK();
-
-            ECPoint c1P = multiplier.multiply(ecParams.getG(), k).normalize();
-
-            c1 = c1P.getEncoded(false);
-
-            kPB = ((ECPublicKeyParameters)ecKey).getQ().multiply(k).normalize();
+            k = nextK();
+            // k is a secret ephemeral: constant-time multiplier
+            kPB = ECAlgorithms.multiplySecret(((ECPublicKeyParameters)ecKey).getQ(), k,
+                ecParams.getN()).normalize();
 
             kdf(digest, kPB, c2);
         }
         while (notEncrypted(c2, in, inOff));
+
+        ECPoint c1P = multiplier.multiply(ecParams.getG(), k).normalize();
+
+        byte[] c1 = c1P.getEncoded(false);
 
         byte[] c3 = new byte[digest.getDigestSize()];
 
@@ -176,7 +183,16 @@ public class SM2Engine
     private byte[] decrypt(byte[] in, int inOff, int inLen)
         throws InvalidCipherTextException
     {
-        byte[] c1 = new byte[curveLength * 2 + 1];
+        // The SM2 ciphertext is C1 (an encoded point, curveLength*2+1 bytes) || C3 (a digest) || C2;
+        // reject an input too short to hold C1 and C3 rather than over-read C1 (AIOOBE) or underflow the
+        // C2 length (NegativeArraySizeException) past the declared throws InvalidCipherTextException.
+        int c1Len = curveLength * 2 + 1;
+        if (inLen < c1Len + digest.getDigestSize())
+        {
+            throw new InvalidCipherTextException("data too short");
+        }
+
+        byte[] c1 = new byte[c1Len];
 
         System.arraycopy(in, inOff, c1, 0, c1.length);
 
@@ -188,7 +204,9 @@ public class SM2Engine
             throw new InvalidCipherTextException("[h]C1 at infinity");
         }
 
-        c1P = c1P.multiply(((ECPrivateKeyParameters)ecKey).getD()).normalize();
+        // C1 comes from the ciphertext and d is the private key: constant-time multiplier
+        c1P = ECAlgorithms.multiplySecret(c1P, ((ECPrivateKeyParameters)ecKey).getD(),
+            ecParams.getN()).normalize();
 
         int digestSize = this.digest.getDigestSize();
         byte[] c2 = new byte[inLen - c1.length - digestSize];
@@ -310,8 +328,7 @@ public class SM2Engine
 
     private void addFieldElement(Digest digest, ECFieldElement v)
     {
-        byte[] p = BigIntegers.asUnsignedByteArray(curveLength, v.toBigInteger());
-
+        byte[] p = v.getEncoded();
         digest.update(p, 0, p.length);
     }
 }
