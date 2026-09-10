@@ -44,6 +44,18 @@ public final class CryptoServicesRegistrar
 
     private static final String infoString = "BouncyCastle APIs (LTS edition) v2.73.12.2-SNAPSHOT";
 
+    /**
+     * Default maximum number of retries for the hardware RNG instructions (RDSEED/RDRAND).
+     */
+    public static final int DEFAULT_MAX_RNG_RETRIES = 200;
+
+    private static final String MAX_RNG_RETRIES_PROPERTY = "org.bouncycastle.native.rand.max_retries";
+
+    // Carries the default from the outset so that a re-entrant read during class initialisation
+    // cannot see 0 - 0 is the "retry indefinitely" setting. The static block below refines this
+    // from MAX_RNG_RETRIES_PROPERTY.
+    private static volatile int maxRNGRetries = DEFAULT_MAX_RNG_RETRIES;
+
     private static final Permission CanSetDefaultProperty =
             new CryptoServicesPermission(CryptoServicesPermission.GLOBAL_CONFIG);
     private static final Permission CanSetThreadProperty =
@@ -153,6 +165,77 @@ public final class CryptoServicesRegistrar
         NativeLoader.loadDriver();
 
         nativeServices = new DefaultNativeServices();
+
+        maxRNGRetries = readMaxRNGRetries();
+    }
+
+    /**
+     * Read the RNG retry limit from MAX_RNG_RETRIES_PROPERTY. Where the property is not set at all
+     * DEFAULT_MAX_RNG_RETRIES is returned. Where it is set it must hold an integer of 0 or greater,
+     * anything else is rejected rather than silently replaced with the default.
+     */
+    private static int readMaxRNGRetries()
+    {
+        int maxRetries;
+
+        try
+        {
+            maxRetries = Properties.asInteger(MAX_RNG_RETRIES_PROPERTY, DEFAULT_MAX_RNG_RETRIES);
+        }
+        catch (NumberFormatException e)
+        {
+            throw new IllegalArgumentException(
+                    MAX_RNG_RETRIES_PROPERTY + " must be an integer of 0 or greater: " + e.getMessage(), e);
+        }
+
+        if (maxRetries < 0)
+        {
+            throw new IllegalArgumentException(
+                    MAX_RNG_RETRIES_PROPERTY + " must be an integer of 0 or greater: " + maxRetries);
+        }
+
+        return maxRetries;
+    }
+
+    /**
+     * Return the maximum number of times a hardware RNG instruction (RDSEED/RDRAND) is retried
+     * before a failure is declared. A return of 0 means the instruction is retried indefinitely.
+     * <p>
+     * The initial value comes from the system/security property
+     * org.bouncycastle.native.rand.max_retries. Where that property is not set at all the value
+     * is DEFAULT_MAX_RNG_RETRIES. Where it is set it must hold an integer of 0 or greater.
+     * </p>
+     * <p>
+     * <b>Note</b>: the property is read in the static initialiser of this class, so a value that
+     * is not an integer of 0 or greater makes class initialisation fail with
+     * IllegalArgumentException. That is deliberate. A retry limit the caller asked for and that
+     * cannot be read must not fall back to the default without a word.
+     * </p>
+     *
+     * @return the current RNG retry limit.
+     */
+    public static int getMaxRNGRetries()
+    {
+        return maxRNGRetries;
+    }
+
+    /**
+     * Set the maximum number of times a hardware RNG instruction (RDSEED/RDRAND) is retried
+     * before a failure is declared. A value of 0 means retry indefinitely.
+     *
+     * @param maxRetries the retry limit, 0 for indefinite retry.
+     * @throws IllegalArgumentException if maxRetries is negative.
+     */
+    public static void setMaxRNGRetries(int maxRetries)
+    {
+        checkPermission(CanSetDefaultProperty);
+
+        if (maxRetries < 0)
+        {
+            throw new IllegalArgumentException("maxRetries cannot be negative");
+        }
+
+        maxRNGRetries = maxRetries;
     }
 
 

@@ -22,6 +22,7 @@ public class AllTests
         suite.addTestSuite(GCMReorderTest.class);
         suite.addTestSuite(HPKETestVectors.class);
         suite.addTestSuite(BigSkippingCipherTest.class);
+        suite.addTestSuite(CryptoServicesRegistrarRNGRetriesTest.class);
         return new BCTestSetup(suite);
     }
     

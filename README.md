@@ -233,6 +233,7 @@ a segfault.
 | org.bouncycastle.native.cpu_variant     | avx, vaes, vaesf or neon-le | Specify a variant to use  see "Selecting a specific variant" for warnings.                           |
 | org.bouncycastle.packet_cipher_enabled  | true or false               | False by default, enable or disable use of packet ciphers where appropriate.                         |
 | org.bouncycastle.native.cleanup_delay   | 1000ms / 1                  | Delays freeing of native allocations by the given time in milliseconds or seconds, the default is 0. |
+| org.bouncycastle.native.rand.max_retries | integer 0 or greater        | Bounds each 64 bit RDRAND / RDSEED read, the default is 200. A value of 0 means retry without limit.  |
 
 
 ### Disposal Daemon / Freeing native allocations
