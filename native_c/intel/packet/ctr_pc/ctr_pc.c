@@ -60,6 +60,23 @@ ctr_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *iv
         IV_le = _mm_and_si128(IV_le, _mm_set_epi64x(-1, 0));
     }
     ctr = initialCTR;
+
+    //
+    // Preflight the IV-derived counter range for small counters, matching the portable
+    // AESCTRPacketCipher. A 1..3 byte counter can be overflowed by a caller-sized input, so a
+    // request past the terminal block must be rejected before any output is written. This keeps
+    // the operation failure-atomic and stops it reporting success for bytes it never transformed.
+    // A 4+ byte counter cannot be overflowed by a java int length, and a full 16-byte IV is the
+    // caller's responsibility.
+    //
+    size_t ctrSize = BLOCK_SIZE - ivLen;
+    if (ctrSize > 0 && ctrSize < 4) {
+        uint64_t maxLen = ((uint64_t) 1 << (ctrSize * 8)) * BLOCK_SIZE;
+        if ((uint64_t) inLen > maxLen) {
+            return make_packet_error("Counter in CTR/SIC mode out of range.", ILLEGAL_STATE);
+        }
+    }
+
     size_t written = 0;
     ctr_pc_process_bytes(p_in, inLen, p_out, &written, &buf_pos, &ctr, initialCTR, ctrMask, &ctrAtEnd, &IV_le,
                          roundKeys, num_rounds, &partialBlock);

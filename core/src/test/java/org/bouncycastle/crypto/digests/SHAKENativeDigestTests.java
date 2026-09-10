@@ -1098,4 +1098,53 @@ public class SHAKENativeDigestTests
 
     }
 
+
+    @Test
+    public void testMixedDoOutputThenDoFinal()
+        throws Exception
+    {
+        if (!TestUtil.hasNativeService(NativeServices.SHAKE))
+        {
+            if (!System.getProperty("test.bclts.ignore.native", "").contains("shake"))
+            {
+                fail("Skipping SHAKE mixed final test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        for (int bits : new int[]{128, 256})
+        {
+            for (int msgLen : new int[]{0, 1, 200})
+            {
+                byte[] msg = new byte[msgLen];
+                for (int i = 0; i < msgLen; i++)
+                {
+                    msg[i] = (byte)(i * 7 + 3);
+                }
+
+                for (int prefix : new int[]{1, 8, 63, 64, 200})
+                {
+                    int tail = 64;
+
+                    Xof ref = new SHAKEDigest(bits);
+                    ref.update(msg, 0, msg.length);
+                    byte[] expected = new byte[prefix + tail];
+                    ref.doFinal(expected, 0, prefix + tail);
+
+                    Xof nat = SHAKEDigest.newInstance(bits);
+                    TestCase.assertTrue(nat instanceof SHAKENativeDigest);
+                    nat.update(msg, 0, msg.length);
+                    byte[] mixed = new byte[prefix + tail];
+                    nat.doOutput(mixed, 0, prefix);
+                    nat.doFinal(mixed, prefix, tail);
+
+                    TestCase.assertTrue(
+                        "C03-01 SHAKE" + bits + " msgLen=" + msgLen + " prefix=" + prefix
+                            + ": mixed doOutput/doFinal must continue the stream",
+                        Arrays.areEqual(expected, mixed));
+                }
+            }
+        }
+    }
+
 }

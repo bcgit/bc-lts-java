@@ -237,7 +237,9 @@ void ctr_generate_partial_block(ctr_ctx *pCtr) {
 //    pCtr->partialBlock = _mm_aesenclast_si128(c, pCtr->roundKeys[r]);
 }
 
-bool ctr_skip(ctr_ctx *pCtr, int64_t numberOfBytes) {
+bool ctr_skip(ctr_ctx *pCtrIn, int64_t numberOfBytes) {
+    ctr_ctx work = *pCtrIn;
+    ctr_ctx *pCtr = &work;
 
     uint64_t delta = (numberOfBytes < 0)
                      ? -(uint64_t) numberOfBytes
@@ -295,6 +297,7 @@ bool ctr_skip(ctr_ctx *pCtr, int64_t numberOfBytes) {
 
     ctr_generate_partial_block(pCtr);
 
+    *pCtrIn = work;
     return true;
 }
 

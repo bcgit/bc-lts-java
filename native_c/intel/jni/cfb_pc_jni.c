@@ -152,9 +152,9 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCFBPacketCi
     exit:
     release_critical_ctx(&input);
     release_critical_ctx(&output);
-    release_bytearray_ctx(&key);
-    release_bytearray_ctx(&iv);
-    release_bytearray_ctx(&ad);
+    release_bytearray_ctx_unchanged(&key);
+    release_bytearray_ctx_unchanged(&iv);
+    release_bytearray_ctx_unchanged(&ad);
     handle_cfb_pc_result(env, err);
     return (jint) outputLen;
 }

@@ -13,12 +13,15 @@ global _inv_128
 global _inv_192
 global _inv_256
 
+
+
 SECTION .text
 align 16
 ;
 ; extern void _schedule_128(uint8_t *key (rdi), __m128i *roundKeys (rsi) );
 ;
 _schedule_128:
+     endbr64
      movdqu xmm1,[rdi] ; rdi = user key
      movdqu [rsi],xmm1 ; rsi = key schedule
 ASSISTS:
@@ -76,6 +79,7 @@ PREPARE_ROUNDKEY_128:
 ;
 align 16
 _schedule_192:
+     endbr64
     movdqu xmm1,[rdi];  (%rdi), %xmm1 rdi = user key
     movdqu xmm3,[16+rdi];  16(%rdi), %xmm3 rsi = key schedule
     movdqu [rsi],xmm1;   %xmm1, (%rsi)
@@ -164,6 +168,7 @@ PREPARE_ROUNDKEY_192:
 ;
 align 16
 _schedule_256:
+     endbr64
     movdqu xmm1, [rdi]; (%rdi), %xmm1
     movdqu xmm3,[rdi+16];  16(%rdi), %xmm3
     movdqu [rsi],xmm1; %xmm1, (%rsi)
@@ -245,6 +250,7 @@ MAKE_RK256_b:
 ;
 align 16
 _inv_256:
+     endbr64
    movdqu xmm1,[14*16+rdi]
    movdqu xmm2,[0*16+rdi]
    movdqu [0*16+rdi],xmm1
@@ -303,6 +309,7 @@ ret ; inv_256
 
 align 16
 _inv_192:
+     endbr64
   movdqu xmm1,[12*16+rdi]
    movdqu xmm2,[0*16+rdi]
    movdqu [0*16+rdi],xmm1
@@ -354,6 +361,7 @@ ret ; _inv_192
 
 align 16
 _inv_128:
+     endbr64
  movdqu xmm1,[10*16+rdi]
    movdqu xmm2,[0*16+rdi]
    movdqu [0*16+rdi],xmm1
@@ -395,3 +403,31 @@ _inv_128:
    pxor xmm2,xmm2
 
 ret
+
+;
+; Mark the object non executable stack.  Without this NASM emits no
+; .note.GNU-stack section, the linker conservatively marks the whole shared
+; library RWE, and the JVM prints a stack guard warning.  Every assembly
+; source must declare this section.
+;
+SECTION .note.GNU-stack noalloc noexec nowrite progbits
+
+;
+; Mark the object as supporting Intel CET (IBT + SHSTK).  The GNU property is
+; AND-ed across every input object, so every assembly source must carry it
+; (the C objects get it from the compiler) or the shared library ships with
+; no CET marking at all.  IBT requires an endbr64 at every indirectly
+; reachable entry point, which includes every exported function: intra-library
+; calls to exported symbols go through the PLT, and a PLT jump is an indirect
+; branch.
+;
+SECTION .note.gnu.property note alloc noexec align=8
+    dd      4                           ; n_namesz  = sizeof "GNU"
+    dd      16                          ; n_descsz
+    dd      5                           ; n_type    = NT_GNU_PROPERTY_TYPE_0
+    db      "GNU", 0
+    dd      0xc0000002                  ; GNU_PROPERTY_X86_FEATURE_1_AND
+    dd      4                           ; pr_datasz
+    dd      3                           ; GNU_PROPERTY_X86_FEATURE_1_IBT
+                                        ;   | GNU_PROPERTY_X86_FEATURE_1_SHSTK
+    dd      0                           ; pad to 8 byte alignment

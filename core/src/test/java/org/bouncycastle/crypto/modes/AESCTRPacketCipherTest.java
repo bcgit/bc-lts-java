@@ -491,7 +491,7 @@ public class AESCTRPacketCipherTest
                     new ParametersWithIV(new KeyParameter(key), iv),
                     msg, 0, msg.length, out, 0);
         }
-        catch (IllegalStateException ise)
+        catch (PacketCipherException | IllegalStateException ise)
         {
             TestCase.assertTrue(ise.getMessage().contains("Counter in CTR/SIC mode out of range"));
         }
@@ -508,6 +508,145 @@ public class AESCTRPacketCipherTest
 
     }
 
+
+    /**
+     * C07-02 regression: when the KeyParameter key backing array is also passed as the output
+     * array of a packet operation, the result must be the ciphertext, never the raw AES key.
+     * The affected native build commits a stale copy of the input key over the committed
+     * ciphertext, so the output array ends up holding the key. This fires on the affected native
+     * build and passes on the Java path and on a corrected native build.
+     */
+    @Test
+    public void testKeyOutputAliasKeepsCiphertext()
+            throws Exception
+    {
+        if (TestUtil.skipPS())
+        {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
+        SecureRandom secureRandom = new SecureRandom();
+
+        PacketCipher ctrPS = AESCTRPacketCipher.newInstance();
+        if (isNativeVariant())
+        {
+            TestCase.assertTrue(ctrPS instanceof AESNativeCTRPacketCipher);
+        }
+
+        for (int ks : new int[]{16, 24, 32})
+        {
+            byte[] originalKey = new byte[ks];
+            secureRandom.nextBytes(originalKey);
+
+            byte[] iv = new byte[16];
+            secureRandom.nextBytes(iv);
+
+            byte[] plaintext = new byte[ks];
+            secureRandom.nextBytes(plaintext);
+
+            // Independent expected ciphertext from the Java reference, distinct arrays throughout.
+            byte[] expected = new byte[plaintext.length];
+            CTRModeCipher ref = new SICBlockCipher(new AESEngine());
+            ref.init(true, new ParametersWithIV(new KeyParameter(originalKey), iv));
+            ref.processBytes(plaintext, 0, plaintext.length, expected, 0);
+
+            // Control: distinct output object, same key bytes -> correct ciphertext.
+            KeyParameter kpControl = new KeyParameter(originalKey);
+            byte[] distinctOutput = Arrays.clone(kpControl.getKey());
+            int lenControl = ctrPS.processPacket(true, new ParametersWithIV(kpControl, iv),
+                    plaintext, 0, plaintext.length, distinctOutput, 0);
+            TestCase.assertEquals(plaintext.length, lenControl);
+            TestCase.assertTrue("distinct-owner control must equal the reference ciphertext",
+                    Arrays.areEqual(expected, distinctOutput));
+
+            // Alias: the KeyParameter key backing array is the output array.
+            KeyParameter kp = new KeyParameter(originalKey);
+            byte[] outputAlias = kp.getKey();
+            int len = ctrPS.processPacket(true, new ParametersWithIV(kp, iv),
+                    plaintext, 0, plaintext.length, outputAlias, 0);
+            TestCase.assertEquals(plaintext.length, len);
+
+            TestCase.assertFalse("C07-02: aliased output must not be the raw AES key",
+                    Arrays.areEqual(outputAlias, originalKey));
+            TestCase.assertTrue("C07-02: aliased output must equal the reference ciphertext",
+                    Arrays.areEqual(expected, outputAlias));
+        }
+    }
+
+    /**
+     * C05-01 regression: for an IV that leaves a small counter, the packet cipher must reject a
+     * request that runs past the counter capacity. It must never report a full success length for
+     * bytes it did not transform. The last legal length must still succeed and match the Java
+     * reference. This fires on the affected native build (which returns the full length after
+     * transforming only the legal prefix) and passes on the Java path and on a corrected native
+     * build.
+     */
+    @Test
+    public void testCounterExhaustionRejected()
+            throws Exception
+    {
+        if (TestUtil.skipPS())
+        {
+            System.out.println("Skipping packet cipher test.");
+            return;
+        }
+
+        SecureRandom secureRandom = new SecureRandom();
+
+        PacketCipher ctrPS = AESCTRPacketCipher.newInstance();
+        if (isNativeVariant())
+        {
+            TestCase.assertTrue(ctrPS instanceof AESNativeCTRPacketCipher);
+        }
+
+        byte[] key = new byte[16];
+        secureRandom.nextBytes(key);
+
+        // ivLen -> the last legal byte count for a counter that starts at zero.
+        // A 15-byte IV leaves a 1-byte counter (256 blocks = 4096 bytes); a 14-byte IV leaves 2.
+        int[][] cases = {{15, 256 * 16}, {14, 65536 * 16}};
+
+        for (int[] c : cases)
+        {
+            int ivLen = c[0];
+            int maxLen = c[1];
+
+            byte[] iv = new byte[ivLen];
+            secureRandom.nextBytes(iv);
+            ParametersWithIV params = new ParametersWithIV(new KeyParameter(key), iv);
+
+            // Java reference for the full legal range.
+            byte[] legalIn = new byte[maxLen];
+            secureRandom.nextBytes(legalIn);
+            byte[] expected = new byte[maxLen];
+            CTRModeCipher ref = new SICBlockCipher(new AESEngine());
+            ref.init(true, params);
+            ref.processBytes(legalIn, 0, maxLen, expected, 0);
+
+            // The last legal length succeeds and matches the reference.
+            byte[] legalOut = new byte[maxLen];
+            int returned = ctrPS.processPacket(true, params, legalIn, 0, maxLen, legalOut, 0);
+            TestCase.assertEquals(maxLen, returned);
+            TestCase.assertTrue("legal " + maxLen + " bytes must match the Java reference (ivLen " + ivLen + ")",
+                    Arrays.areEqual(expected, legalOut));
+
+            // One byte past the counter capacity must be rejected, not reported as a success.
+            byte[] illegalIn = new byte[maxLen + 1];
+            secureRandom.nextBytes(illegalIn);
+            byte[] illegalOut = new byte[maxLen + 1];
+            try
+            {
+                int bad = ctrPS.processPacket(true, params, illegalIn, 0, maxLen + 1, illegalOut, 0);
+                fail("C05-01: a request of " + (maxLen + 1) + " bytes past the counter capacity must be"
+                        + " rejected, but it returned " + bad + " (ivLen " + ivLen + ")");
+            }
+            catch (PacketCipherException | IllegalStateException expected2)
+            {
+                // expected on the Java path and on a corrected native build
+            }
+        }
+    }
 
     private boolean isNativeVariant()
     {

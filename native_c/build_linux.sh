@@ -52,36 +52,24 @@ make install
 
 
 #
-# execstack is found in the prelink package on ubuntu
-# sudo apt install prelink
+# Every assembly source declares .note.GNU-stack, so the libraries link with a
+# non-executable stack and need no execstack post-processing. Verify it here so
+# a new assembly file that omits the section fails the build instead of
+# shipping an executable stack.
 #
-
-if [ -x "$(command -v execstack)" ]; then
-
-echo "Execstack:"
-
-targets=( "target/linux/x86_64/avx/libbc-lts-avx.so" "target/linux/x86_64/vaes/libbc-lts-vaes.so" "target/linux/x86_64/vaesf/libbc-lts-vaesf.so" )
-
-for target in "${targets[@]}"
-do
+for target in "target/linux/x86_64/avx/libbc-lts-avx.so" \
+              "target/linux/x86_64/vaes/libbc-lts-vaes.so" \
+              "target/linux/x86_64/vaesf/libbc-lts-vaesf.so"; do
   if [[ -f "$target" ]]; then
-     execstack -c "$target"
-     echo "applied execstack to $target"
+    if readelf -lW "$target" | grep GNU_STACK | grep -q E; then
+      echo "ERROR: $target has an executable stack; an assembly source is missing its .note.GNU-stack section"
+      exit 1
+    fi
+    echo "verified non-executable stack: $target"
   else
     echo "Skipping: $target"
   fi
-
 done
-
-else
-echo ""
-echo "!! WARNING !!"
-echo "!! 'execstack' is not install on this build host"
-echo "!! For release builds make sure the build host has the 'prelink' package installed"
-echo "!! The JVM will report a stackguard warning without it"
-echo "!! For general testing this is probably ok but if you can install it then do"
-echo ""
-fi
 
 #
 # rather than mess with clean task we remove everything in the install location

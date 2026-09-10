@@ -130,8 +130,10 @@ if ((${CMAKE_SYSTEM_PROCESSOR} STREQUAL "arm64") OR (${CMAKE_SYSTEM_PROCESSOR} S
     MESSAGE("JNI_INCLUDE_PLATFORM " ${JNI_INCLUDE_PLATFORM})
     include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src ${JNI_INCLUDE} ${JNI_INCLUDE_PLATFORM} ${LTS_JAVA_HEADERS} ${LTS_TEST_JAVA_HEADERS})
 
+    enable_language(ASM)
+
     set(PROBE arm/jni/variant_selector_arm.c)
-    set(COMMON arm/jni/native_features.c arm/jni/services.h arm/jni/ident_jni.c arm/util/util.h arm/util/util.c)
+    set(COMMON arm/jni/native_features.c arm/jni/services.h arm/jni/ident_jni.c arm/util/util.h arm/util/memzero_aarch64.S)
     set(COMMON_NEON
             arm/aes/aes_common_neon.h
             arm/aes/aes_key.c
@@ -332,7 +334,7 @@ else ()
             set(VAES_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 ${OPTIONS})
             set(VAESF_OPTIONS ${OPTIMISE_FLAG} -mavx -msha -maes -mpclmul -mrdrnd -mrdseed -mlzcnt -mvaes -mavx2 -mavx512f -mavx512bw -mvpclmulqdq ${OPTIONS})
             set(ASM_OPTIONS -f elf64)
-            set(COMMON_ASM intel/common_sysV.asm)
+            set(COMMON_ASM intel/common_sysV.asm intel/util/memzero_sysV.asm)
         endif ()
     else ()
         MESSAGE("Building for Windows Intel")
@@ -357,9 +359,9 @@ else ()
             ${LTS_TEST_JAVA_HEADERS})
 
 
-    set(PROBE intel/jni/variant_selector_intel.c)
-    set(IDENT_IMPL intel/jni/ident_jni.c intel/jni/native_features.c)
-    set(COMMON intel/common.c intel/common.h intel/util/util.c intel/util/util.h intel/util/util.c intel/util/xor.h ${COMMON_ASM})
+    set(PROBE intel/jni/variant_selector_intel.c intel/jni/cpuid_util.h)
+    set(IDENT_IMPL intel/jni/ident_jni.c intel/jni/native_features.c intel/jni/cpuid_util.h)
+    set(COMMON intel/common.c intel/common.h intel/util/util.h intel/util/xor.h ${COMMON_ASM})
 
 
     set(MUL_AVX intel/jni/cmul_jni.c intel/mul/cmul.h intel/mul/cmul128.c)
@@ -535,7 +537,7 @@ else ()
             intel/packet/ctr_pc/ctr_pc_utils.h
     )
 
-    set(RAND intel/jni/rand_jni.c)
+    set(RAND intel/jni/rand_jni.c intel/jni/cpuid_util.h)
 
     set(SHA256
             intel/sha/sha256.c

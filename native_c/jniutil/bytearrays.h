@@ -38,4 +38,13 @@ int load_bytearray_ctx(java_bytearray_ctx *ctx, JNIEnv *env, jbyteArray array);
  */
 void release_bytearray_ctx(java_bytearray_ctx *ctx);
 
+
+/**
+ * release_bytearray_ctx_unchanged releases a java byte ctx whose contents the native code did not
+ * change (for example a read-only key, IV, or AAD array). It uses JNI_ABORT, so the native copy is
+ * discarded without copy-back.
+ * @param ctx
+ */
+void release_bytearray_ctx_unchanged(java_bytearray_ctx *ctx);
+
 #endif //BC_FIPS_BYTEARRAYS_H

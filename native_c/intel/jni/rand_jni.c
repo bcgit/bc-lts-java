@@ -7,6 +7,7 @@
 #include "../../jniutil/bytearrays.h"
 #include "../../jniutil/exceptions.h"
 #include "../util/util.h"
+#include "cpuid_util.h"
 #include <immintrin.h>
 #include <string.h>
 
@@ -20,6 +21,49 @@
 //
 #define MAX_RDRAND_RETRIES 20   // Intel-recommended baseline: 10
 #define MAX_RDSEED_RETRIES 200  // Intel-recommended baseline: 100
+
+//
+// Cached CPU support for the two hardware entropy instructions.
+//
+// seedBuffer takes useSeed from its caller, so the java-side service selection is
+// not by itself a guarantee that the selected instruction exists on this CPU.
+// Issuing RDRAND or RDSEED without support raises #UD, which kills the JVM
+// instead of throwing. Re-check here, from a one-time cpuid read.
+//
+// The bits are the ones NativeFeatures probes: leaf 1 ecx bit 30 for RDRAND,
+// leaf 7 ebx bit 18 for RDSEED. Any racing first call computes the same value and
+// stores it, so the relaxed atomic accesses keep the fast path free without
+// introducing a data race.
+//
+// The cpuid read is bounded, and the bound is why this matters. See cpuid_util.h.
+//
+#define RAND_SUPPORT_UNKNOWN 0
+#define RAND_SUPPORT_YES     1
+#define RAND_SUPPORT_NO      2
+
+static int rdrandSupport = RAND_SUPPORT_UNKNOWN;
+static int rdseedSupport = RAND_SUPPORT_UNKNOWN;
+
+static int hardwareSupports(int useSeed) {
+    int *slot = useSeed ? &rdseedSupport : &rdrandSupport;
+    int cached = __atomic_load_n(slot, __ATOMIC_RELAXED);
+
+    if (cached == RAND_SUPPORT_UNKNOWN) {
+        cpuid_t info;
+        int present;
+
+        if (useSeed) {
+            present = cpuid(&info, 7, 0) && (info.ebx & (1 << 18)) != 0;
+        } else {
+            present = cpuid(&info, 1, 0) && (info.ecx & (1 << 30)) != 0;
+        }
+
+        cached = present ? RAND_SUPPORT_YES : RAND_SUPPORT_NO;
+        __atomic_store_n(slot, cached, __ATOMIC_RELAXED);
+    }
+
+    return cached == RAND_SUPPORT_YES;
+}
 
 /*
  * Class:     org_bouncycastle_crypto_NativeEntropySource
@@ -64,6 +108,17 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_seedBuff
 
     if (buf.size % RAND_MOD != 0) {
         throw_java_illegal_argument(env, "array must be multiple of modulus");
+        goto exit;
+    }
+
+    //
+    // Re-check the instruction this call is about to issue. Reject before the
+    // caller's buffer is touched, so a rejected call leaves it unchanged.
+    //
+    if (!hardwareSupports(useSeed == JNI_TRUE)) {
+        throw_java_invalid_state(env, useSeed == JNI_TRUE
+                ? "RDSEED is not supported by this CPU"
+                : "RDRAND is not supported by this CPU");
         goto exit;
     }
 

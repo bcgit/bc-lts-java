@@ -98,4 +98,49 @@ public class SHA224JavaAgreementTest extends TestCase
             }
         }
     }
+
+    /**
+     * The native Arm cores hand the caller's buffer straight to hashBlock, so an update at a caller
+     * offset makes the block pointer misaligned. Pin that path: sweep the update and output offsets
+     * across 0..3 with lengths that guarantee at least one whole block after the offset, and require
+     * the native result to match pure java.
+     */
+    @Test
+    public void testSHA224MisalignedCallerOffsets() throws Exception
+    {
+        if (!TestUtil.hasNativeService(NativeServices.SHA224))
+        {
+            if (!(System.getProperty("test.bclts.ignore.native", "").contains("sha") ||
+                    System.getProperty("test.bclts.ignore.native", "").contains("sha224")))
+            {
+                TestCase.fail("Skipping SHA224 Agreement Test: " + TestUtil.errorMsg());
+            }
+            return;
+        }
+
+        SecureRandom random = new SecureRandom();
+
+        for (int jitter = 0; jitter <= 3; jitter++)
+        {
+            for (int blocks = 1; blocks <= 4; blocks++)
+            {
+                for (int extra = 0; extra < 3; extra++)
+                {
+                    byte[] msg = new byte[jitter + blocks * 64 + extra];
+                    random.nextBytes(msg);
+
+                    CryptoServicesRegistrar.setNativeEnabled(false);
+                    byte[] java = takeDigest(msg, false, jitter);
+
+                    CryptoServicesRegistrar.setNativeEnabled(true);
+                    byte[] nativeDigest = takeDigest(msg, true, jitter);
+
+                    TestCase.assertTrue(
+                            "SHA224 java vs native at update/output offset " + jitter
+                                    + ", message length " + msg.length,
+                            Arrays.areEqual(java, nativeDigest));
+                }
+            }
+        }
+    }
 }

@@ -151,10 +151,7 @@ void sha224_digest(sha224_ctx *ctx, uint8_t *output) {
 
 
 #ifdef BC_AVX
-    uint32_t *p = (uint32_t *) (output + 16);
-    p[0] = ((uint32_t *) &last)[0];
-    p[1] = ((uint32_t *) &last)[1];
-    p[2] = ((uint32_t *) &last)[2];
+    memcpy(output + 16, &last, 12);
 #else
     _mm_maskstore_epi32((int *)  (output + 16), _mm_set_epi32(0, -1, -1, -1), last);
 #endif
@@ -189,6 +186,7 @@ bool sha224_restoreFullState(sha224_ctx *ctx, const uint8_t *oldState) {
 
 size_t sha224_encodeFullState(const sha224_ctx *ctx, uint8_t *output) {
     memcpy(output, ctx, sizeof(sha224_ctx));
+    memzero(output + offsetof(sha224_ctx, buf) + ctx->buf_index, BUF_SIZE_SHA224 - ctx->buf_index);
     return sizeof(sha224_ctx);
 }
 
