@@ -315,7 +315,7 @@ public class PKCS12PBMAC1KeyStoreSpi
         }
         catch (Exception e)
         {
-            throw new RuntimeException("error creating key");
+            throw Exceptions.illegalStateException("error creating key", e);
         }
     }
 
@@ -436,29 +436,25 @@ public class PKCS12PBMAC1KeyStoreSpi
     public String engineGetCertificateAlias(
         Certificate cert)
     {
-        Enumeration c = certs.elements();
-        Enumeration k = certs.keys();
-
-        while (c.hasMoreElements())
+        // the certs table's keys() enumerates a copy of the table, so it cannot be
+        // paired positionally with elements() - look each alias up instead (github #2384).
+        for (Enumeration k = certs.keys(); k.hasMoreElements();)
         {
-            Certificate tc = (Certificate)c.nextElement();
             String ta = (String)k.nextElement();
+            Certificate tc = (Certificate)certs.get(ta);
 
-            if (tc.equals(cert))
+            if (tc != null && tc.equals(cert))
             {
                 return ta;
             }
         }
 
-        c = keyCerts.elements();
-        k = keyCerts.keys();
-
-        while (c.hasMoreElements())
+        for (Enumeration k = keyCerts.keys(); k.hasMoreElements();)
         {
-            Certificate tc = (Certificate)c.nextElement();
             String ta = (String)k.nextElement();
+            Certificate tc = (Certificate)keyCerts.get(ta);
 
-            if (tc.equals(cert))
+            if (tc != null && tc.equals(cert))
             {
                 return ta;
             }
@@ -616,6 +612,11 @@ public class PKCS12PBMAC1KeyStoreSpi
             throw new KeyStoreException("There is a key entry with the name " + alias + ".");
         }
 
+        if (cert.getPublicKey() == null)
+        {
+            throw new KeyStoreException("unable to resolve public key for certificate");
+        }
+
         certs.put(alias, cert);
         chainCerts.put(new CertId(cert.getPublicKey()), cert);
     }
@@ -638,7 +639,7 @@ public class PKCS12PBMAC1KeyStoreSpi
     {
         if (key instanceof PrivateKey)
         {
-            if (chain == null)
+            if (chain == null || chain.length == 0)
             {
                 throw new KeyStoreException("no certificate chain for private key");
             }
@@ -659,13 +660,25 @@ public class PKCS12PBMAC1KeyStoreSpi
             throw new KeyStoreException("PKCS12 does not support non-PrivateKey/non-SecretKey entries");
         }
 
+        // a certificate whose algorithm has no key info converter has a null public key and so no CertId - reject before storing anything (github #2419)
+        if (chain != null)
+        {
+            for (int i = 0; i != chain.length; i++)
+            {
+                if (chain[i].getPublicKey() == null)
+                {
+                    throw new KeyStoreException("unable to resolve public key for certificate " + i + " in chain");
+                }
+            }
+        }
+
         if (keys.get(alias) != null)
         {
             engineDeleteEntry(alias);
         }
 
         keys.put(alias, key);
-        if (chain != null)
+        if (chain != null && chain.length != 0)
         {
             certs.put(alias, chain[0]);
 
@@ -2264,7 +2277,10 @@ public class PKCS12PBMAC1KeyStoreSpi
                 byte[] pbSalt = new byte[32];
                 helper.createSecureRandom("DEFAULT").nextBytes(pbSalt);
 
-                PBKDF2Params pbkdf2Params = new PBKDF2Params(pbSalt, 1 << 16, 256, new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA256));
+                // RFC 9579 sec. 5: the derived key SHOULD be the size of the HMAC output, which is 64
+                // for the HMAC-SHA-512 auth scheme below. Releases up to 1.86 asked for 256 here; those
+                // files still verify, since the length is read back from the file.
+                PBKDF2Params pbkdf2Params = new PBKDF2Params(pbSalt, 1 << 16, 64, new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA256));
                 AlgorithmIdentifier keyDevFunc = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBKDF2, pbkdf2Params);
                 AlgorithmIdentifier authScheme = new AlgorithmIdentifier(id_hmacWithSHA512);
                 PBMAC1Params pbmac1Params = new PBMAC1Params(keyDevFunc, authScheme);

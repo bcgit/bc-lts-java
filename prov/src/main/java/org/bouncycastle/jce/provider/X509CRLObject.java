@@ -38,7 +38,6 @@ import org.bouncycastle.asn1.x509.CRLNumber;
 import org.bouncycastle.asn1.x509.CertificateList;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.Extensions;
-import org.bouncycastle.asn1.x509.GeneralNames;
 import org.bouncycastle.asn1.x509.IssuingDistributionPoint;
 import org.bouncycastle.asn1.x509.TBSCertList;
 import org.bouncycastle.asn1.x509.Time;
@@ -315,15 +314,7 @@ public class X509CRLObject
             TBSCertList.CRLEntry entry = (TBSCertList.CRLEntry)certs.nextElement();
             X509CRLEntryObject crlEntry = new X509CRLEntryObject(entry, isIndirect, previousCertificateIssuer);
             entrySet.add(crlEntry);
-            if (isIndirect && entry.hasExtensions())
-            {
-                Extension currentCaName = entry.getExtensions().getExtension(Extension.certificateIssuer);
-
-                if (currentCaName != null)
-                {
-                    previousCertificateIssuer = X500Name.getInstance(GeneralNames.getInstance(currentCaName.getParsedValue()).getNames()[0].getName());
-                }
-            }
+            previousCertificateIssuer = X509CRLEntryObject.loadCertificateIssuer(entry, isIndirect, previousCertificateIssuer);
         }
 
         return entrySet;
@@ -343,15 +334,7 @@ public class X509CRLObject
                 return new X509CRLEntryObject(entry, isIndirect, previousCertificateIssuer);
             }
 
-            if (isIndirect && entry.hasExtensions())
-            {
-                Extension currentCaName = entry.getExtensions().getExtension(Extension.certificateIssuer);
-
-                if (currentCaName != null)
-                {
-                    previousCertificateIssuer = X500Name.getInstance(GeneralNames.getInstance(currentCaName.getParsedValue()).getNames()[0].getName());
-                }
-            }
+            previousCertificateIssuer = X509CRLEntryObject.loadCertificateIssuer(entry, isIndirect, previousCertificateIssuer);
         }
 
         return null;
@@ -556,14 +539,10 @@ public class X509CRLObject
             {
                 TBSCertList.CRLEntry entry = TBSCertList.CRLEntry.getInstance(certs.nextElement());
 
-                if (isIndirect && entry.hasExtensions())
+                caName = X509CRLEntryObject.loadCertificateIssuer(entry, isIndirect, caName);
+                if (caName == null)
                 {
-                    Extension currentCaName = entry.getExtensions().getExtension(Extension.certificateIssuer);
-
-                    if (currentCaName != null)
-                    {
-                        caName = X500Name.getInstance(GeneralNames.getInstance(currentCaName.getParsedValue()).getNames()[0].getName());
-                    }
+                    caName = c.getIssuer(); // an entry with no certificate issuer of its own is the CRL issuer's
                 }
 
                 if (entry.getUserCertificate().hasValue(serial))
