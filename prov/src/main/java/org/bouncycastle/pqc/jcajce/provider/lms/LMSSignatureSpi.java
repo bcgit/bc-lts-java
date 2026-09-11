@@ -10,8 +10,8 @@ import java.security.spec.AlgorithmParameterSpec;
 
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.NullDigest;
+import org.bouncycastle.jcajce.provider.util.SecurityExceptions;
 import org.bouncycastle.pqc.crypto.ExhaustedPrivateKeyException;
-import org.bouncycastle.pqc.crypto.MessageSigner;
 import org.bouncycastle.pqc.crypto.lms.LMSContext;
 import org.bouncycastle.pqc.crypto.lms.LMSContextBasedSigner;
 import org.bouncycastle.pqc.crypto.lms.LMSContextBasedVerifier;
@@ -25,8 +25,6 @@ public class LMSSignatureSpi
     }
 
     private Digest digest;
-    private MessageSigner signer;
-    private SecureRandom random;
 
     private LMSContextBasedSigner lmOtsSigner;
     private LMSContextBasedVerifier lmOtsVerifier;
@@ -57,7 +55,7 @@ public class LMSSignatureSpi
     protected void engineInitSign(PrivateKey privateKey, SecureRandom random)
         throws InvalidKeyException
     {
-        this.random = random;
+        // the random is not used: LMS derives its message randomiser from the seed and q
         engineInitSign(privateKey);
     }
 
@@ -79,6 +77,14 @@ public class LMSSignatureSpi
         }
     }
 
+    /**
+     * Note the one-time key this signature will use is claimed here, at the first update(), rather
+     * than at sign(): getSigner() takes the signing context from the key, which advances its index.
+     * A Signature that is initialised and updated and then abandoned therefore spends an index
+     * without producing a signature. That is the safe direction for a one-time scheme - the
+     * alternative risks issuing the same one-time key twice - but it is worth knowing when
+     * budgeting a key's usages.
+     */
     protected void engineUpdate(byte b)
         throws SignatureException
     {
@@ -108,7 +114,7 @@ public class LMSSignatureSpi
         }
         catch (ExhaustedPrivateKeyException e)
         {
-            throw new SignatureException(e.getMessage(), e);
+            throw SecurityExceptions.signatureException(e.getMessage(), e);
         }
     }
 
@@ -132,22 +138,54 @@ public class LMSSignatureSpi
         {
             if (e instanceof IllegalStateException)
             {
-                throw new SignatureException(e.getMessage(), e);
+                throw SecurityExceptions.signatureException(e.getMessage(), e);
             }
-            throw new SignatureException(e.toString(), e);
+            throw SecurityExceptions.signatureException(e.toString(), e);
         }
     }
 
     protected boolean engineVerify(byte[] sigBytes)
         throws SignatureException
     {
-        LMSContext context = lmOtsVerifier.generateLMSContext(sigBytes);
+        try
+        {
+            LMSContext context;
 
-        byte[] hash = DigestUtil.getDigestResult(digest);
+            // only the decode is guarded: past it the engine reports an inconsistent signature by
+            // returning false rather than by throwing, so a wider catch would swallow genuine
+            // internal errors without covering anything the narrow one misses.
+            try
+            {
+                context = lmOtsVerifier.generateLMSContext(sigBytes);
+            }
+            catch (IllegalArgumentException e)
+            {
+                // the signature decoded, but names an OTS type other than the one the key was
+                // generated for: this engine cannot process it, which the JCA reports as a
+                // SignatureException rather than as a verification failure.
+                throw SecurityExceptions.signatureException(e.getMessage(), e);
+            }
+            catch (RuntimeException e)
+            {
+                // a signature that will not decode at all is simply not a valid signature - the
+                // JCA contract is to say so rather than to let the lightweight API's unchecked
+                // exception escape (see ML-DSA, SLH-DSA, XMSS).
+                return false;
+            }
 
-        context.update(hash, 0, hash.length);
+            byte[] hash = DigestUtil.getDigestResult(digest);
 
-        return lmOtsVerifier.verify(context);
+            context.update(hash, 0, hash.length);
+
+            return lmOtsVerifier.verify(context);
+        }
+        finally
+        {
+            // however this method leaves, the accumulated message is consumed and the signature
+            // object goes back to the state initVerify left it in, ready for fresh data. On the
+            // success path getDigestResult() has already reset it, so this is then a no-op.
+            digest.reset();
+        }
     }
 
     protected void engineSetParameter(AlgorithmParameterSpec params)

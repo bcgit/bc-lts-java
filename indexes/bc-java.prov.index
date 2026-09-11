@@ -549,7 +549,7 @@ d5f0a6d097005012e1755780fa939c7fd650e3cfaeb50a46177b87f23944dede  prov/src/main/
 ce5436da298de99e011b0281ad4bb431ca380a6dd91cdd98b1b0e579c75552b5  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/slhdsa/SLHDSAKeyFactorySpi.java
 e9d9289fc7ec65d5dec48fb1b5eb708523de59b8f7d1209dced8e7d22496b985  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/slhdsa/SLHDSAKeyPairGeneratorSpi.java
 3bc24fd4c9128ab6e0c15779c4d401129f4a3ddda817335a51b3fb7d3e51ef12  prov/src/main/java/org/bouncycastle/pqc/jcajce/provider/lms/LMSKeyFactorySpi.java
-350c050a4f778b0bb4195e87140e4f996c71e517e034f3020d4f5c1f08363e67  prov/src/main/java/org/bouncycastle/pqc/jcajce/provider/lms/LMSSignatureSpi.java
+35b021eaf9db4b7cbd04f945413ac6e8a4f1a1ef7ce40b44734dd453943f6a86  prov/src/main/java/org/bouncycastle/pqc/jcajce/provider/lms/LMSSignatureSpi.java
 6bf03afb8650968c8da2ed78cced41c86eb5b9071edb9ec8994a05e82d3e5c7c  prov/src/main/java/org/bouncycastle/pqc/jcajce/provider/lms/DigestUtil.java
 350f72f144aebc1fbe2a3eee6c213cad156de3eff17a3f1ac7e18375c34bb9b0  prov/src/main/java/org/bouncycastle/pqc/jcajce/provider/lms/BCLMSPrivateKey.java
 f8f7eb43580ce262a448ba6e2d74e5b0484f0f60c92dd186d1d5597682748e5e  prov/src/main/java/org/bouncycastle/pqc/jcajce/provider/lms/BCLMSPublicKey.java
