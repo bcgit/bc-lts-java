@@ -544,8 +544,8 @@ efd9faaf1e47f61d0817932651904699e2ef79fc9ceabcad3bf7f55f77f3c4e5  prov/src/main/
 b64832f6b71580a8337228ffd2aa5048af5ff881f3600b78cb41b1d24aa87c39  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mlkem/MLKEMKeyPairGeneratorSpi.java
 a21b17954a1f983ee3d316673e2c87e2de1a7b130a22e9a68f264117b2bc4639  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/slhdsa/BCSLHDSAPrivateKey.java
 116cbe7e95bf3c98b3284a3d7a308062044abb838a0c0c9595ca61d67f5bfd80  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/slhdsa/BCSLHDSAPublicKey.java
-d5f0a6d097005012e1755780fa939c7fd650e3cfaeb50a46177b87f23944dede  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/slhdsa/HashSignatureSpi.java
-4081d1178989ba1b1639ba9efb9e70e00ecf3b38ef01f9b68358923eb2b7394b  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/slhdsa/SignatureSpi.java
+1238be340d08061b96e1315eca54c9f1cff7d6820e8be21105ffd36e111864d9  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/slhdsa/HashSignatureSpi.java
+b6250060897ee9c521a7ea3a4518fe787ceee9a5d16d55e2b5bb9998bfb6d4f3  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/slhdsa/SignatureSpi.java
 ce5436da298de99e011b0281ad4bb431ca380a6dd91cdd98b1b0e579c75552b5  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/slhdsa/SLHDSAKeyFactorySpi.java
 e9d9289fc7ec65d5dec48fb1b5eb708523de59b8f7d1209dced8e7d22496b985  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/slhdsa/SLHDSAKeyPairGeneratorSpi.java
 3bc24fd4c9128ab6e0c15779c4d401129f4a3ddda817335a51b3fb7d3e51ef12  prov/src/main/java/org/bouncycastle/pqc/jcajce/provider/lms/LMSKeyFactorySpi.java
@@ -580,7 +580,7 @@ aa827caf429ed164d1745da9b599a12d4dbe0750823f74240db0a42e388f92c2  prov/src/main/
 84b5dcb91a219c69cbd81d59c18a96a8ffb97a0e7ea44b270c113f3f846ca762  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mldsa/Utils.java
 bceee975f19af9fde69eb5d30ea22da75f89bcf5bd21fe3afbc13b9f8f207695  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/MLKEM.java
 fe99507bbb511b477a872d1ba7069eb2ad4896a7adf24d5c58b29924119f7acd  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mlkem/Utils.java
-1e62dcddd4dd2695532080b5fed1ab0c7485c0d48e15657fce43b1419aed2a90  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/SLHDSA.java
+52b757192d2397ed265563f7166ff9d067343beb8201e320ba3bc7329c955edb  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/SLHDSA.java
 920e795b24106ba7c14d8451eba8149a3b72350822d19d0464f8cc5df385965e  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/util/BaseDeterministicOrRandomSignature.java
 efbf10272cbd97212eeff99c0f1b4e42bd1df02c7d0b11b49c4baad945e12cbd  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/util/BasePQCKeyFactorySpi.java
 1606fb9b6f1eb9248f1b68ad03fbfad59a04d80dd9a17e99ba9fb119826d4531  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/util/KdfUtil.java
