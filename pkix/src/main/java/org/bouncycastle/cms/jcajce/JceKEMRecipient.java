@@ -23,7 +23,7 @@ public abstract class JceKEMRecipient
 {
     private PrivateKey recipientKey;
 
-    protected EnvelopedDataHelper helper = new EnvelopedDataHelper(new DefaultJcaJceExtHelper());
+    protected EnvelopedDataHelper helper = CMSUtils.createDefaultHelper();
     protected EnvelopedDataHelper contentHelper = helper;
     protected Map extraMappings = new HashMap();
     protected boolean validateKeySize = false;
@@ -42,7 +42,7 @@ public abstract class JceKEMRecipient
      */
     public JceKEMRecipient setProvider(Provider provider)
     {
-        this.helper = new EnvelopedDataHelper(new ProviderJcaJceExtHelper(provider));
+        this.helper = CMSUtils.createProviderHelper(provider);
         this.contentHelper = helper;
 
         return this;
@@ -56,7 +56,7 @@ public abstract class JceKEMRecipient
      */
     public JceKEMRecipient setProvider(String providerName)
     {
-        this.helper = new EnvelopedDataHelper(new NamedJcaJceExtHelper(providerName));
+        this.helper = CMSUtils.createNamedHelper(providerName);
         this.contentHelper = helper;
 
         return this;
@@ -186,7 +186,23 @@ public abstract class JceKEMRecipient
         // TODO: note there is a move to change the type for KEMs from KeyTrans, expect this to change
         KEMRecipientInfo gktParams = KEMRecipientInfo.getInstance(keyEncryptionAlgorithm.getParameters());
 
-        JceCMSKEMKeyUnwrapper unwrapper = (JceCMSKEMKeyUnwrapper)helper.createKEMUnwrapper(keyEncryptionAlgorithm, recipientKey); // TODO: .setMustProduceEncodableUnwrappedKey(unwrappedKeyMustBeEncodable);
+        JceCMSKEMKeyUnwrapper unwrapper;
+        try
+        {
+            unwrapper = (JceCMSKEMKeyUnwrapper)helper.createKEMUnwrapper(keyEncryptionAlgorithm, recipientKey); // TODO: .setMustProduceEncodableUnwrappedKey(unwrappedKeyMustBeEncodable);
+        }
+        catch (IllegalArgumentException e)
+        {
+            throw new CMSException("unable to create KEM unwrapper: " + e.getMessage(), e);
+        }
+
+        // RFC 9629 3: "Implementations MUST confirm that the value provided is consistent with the
+        // key-encryption algorithm identified in the wrap field below."
+        if (gktParams.getKekLength() != unwrapper.getKekLength())
+        {
+            throw new CMSException("kekLength " + gktParams.getKekLength() + " inconsistent with wrap algorithm "
+                + gktParams.getWrap().getAlgorithm() + ": expected " + unwrapper.getKekLength());
+        }
 
         if (!extraMappings.isEmpty())
         {
