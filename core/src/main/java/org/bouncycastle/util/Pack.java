@@ -163,6 +163,23 @@ public abstract class Pack
         return bigEndianToLong_Low(bs, off, len) << ((8 - len) << 3);
     }
 
+    /**
+     * Reads the <code>len</code> bytes at <code>bs[off]</code> as a big-endian value and returns it
+     * in the low <code>len</code> bytes of the result: a <code>len</code> of 3 returns what
+     * {@link #bigEndianToLong(byte[], int)} would return for those three bytes preceded by five
+     * zero ones.
+     * <p>
+     * It is the read side of {@link #longToBigEndian_Low(long, byte[], int, int)} and carries the
+     * same unenforced 1..8 bound, for a related reason: the first byte is read ahead of the loop,
+     * so a <code>len</code> of 0 reads one byte anyway and returns it rather than returning zero,
+     * and a <code>len</code> above 8 goes on shifting and so yields the last eight bytes read
+     * rather than the first. The callers here are the XMSS ones reading back RFC 8391's
+     * toByte(x, y): the index field of a stored private key, in {@code XMSSPrivateKeyCodec}, which
+     * is the one codec both families' keys are decoded through, and the index field of an XMSS^MT
+     * signature in {@code XMSSMTSignature}. Each passes the constant 4 or ceil(h/8) for a height
+     * its parameter class holds to 2..62, so both are inside the bound already, as are the reads
+     * the package's own tests make with the same two lengths.
+     */
     public static long bigEndianToLong_Low(byte[] bs, int off, int len)
     {
 //        assert 1 <= len && len <= 8;
@@ -214,6 +231,26 @@ public abstract class Pack
         }
     }
 
+    /**
+     * Writes the most significant <code>len</code> bytes of <code>n</code> to <code>bs</code> at
+     * <code>off</code>, in big-endian order: a <code>len</code> of 3 writes the three bytes
+     * {@link #longToBigEndian(long, byte[], int)} would put at <code>bs[off]</code> to
+     * <code>bs[off + 2]</code>, and drops the other five.
+     * <p>
+     * It is the write side of {@link #bigEndianToLong_High(byte[], int, int)}. The pair is shaped
+     * for the short final block of a big-endian sponge, where the bytes the block has occupy the
+     * top of the rate word and the remainder of that word is padding - so both conversions work
+     * against the high end of the word rather than the low one. Upstream's callers are the Ascon
+     * v1.2 lightweight-AEAD classes, which this distribution does not carry; final Ascon is
+     * little-endian and goes through {@link #longToLittleEndian_Low(long, byte[], int, int)}.
+     * <p>
+     * <code>len</code> must be 1..8, and nothing enforces it. The first store sits ahead of the
+     * loop, so a <code>len</code> of 0 writes one byte anyway - <code>n</code>'s top one - and
+     * throws <code>ArrayIndexOutOfBoundsException</code> where the array has no room for it; and
+     * because Java takes a shift distance mod 64, a <code>len</code> above 8 wraps round and
+     * repeats <code>n</code>'s bytes rather than running to zero. Callers whose length can reach 0
+     * guard the call themselves.
+     */
     public static void longToBigEndian_High(long n, byte[] bs, int off, int len)
     {
 //        assert 1 <= len && len <= 8;
@@ -227,6 +264,26 @@ public abstract class Pack
         }
     }
 
+    /**
+     * Writes the least significant <code>len</code> bytes of <code>n</code> to <code>bs</code> at
+     * <code>off</code>, in big-endian order: a <code>len</code> of 3 writes the three bytes
+     * {@link #longToBigEndian(long, byte[], int)} would put at <code>bs[off + 5]</code> to
+     * <code>bs[off + 7]</code>, and drops the other five.
+     * <p>
+     * It is {@link #longToBigEndian_High(long, byte[], int, int)} applied to <code>n</code>
+     * shifted up past the bytes being dropped, the write side of
+     * {@link #bigEndianToLong_Low(byte[], int, int)}, and it carries the same unenforced 1..8
+     * bound for the same reason. It is the low-end counterpart of the _High pair the Ascon v1.2
+     * classes use (not carried in this distribution); its callers here are the XMSS ones building
+     * RFC 8391's toByte(x, y), which pads left of the eight bytes rather than absorbing into the
+     * top of a word, so it wants the low end. Two of the five pass a length that is not a
+     * constant, and both are inside the bound because they say so: {@code XMSSUtil.toBytesBigEndian},
+     * whose size is its caller's argument, and {@code XMSSEngine}'s H_msg key, whose length is the
+     * security parameter, each taking a min() with 8. The other three are inside it by
+     * construction - the index field of a stored private key in {@code XMSSPrivateKeyCodec} and of
+     * an XMSS^MT signature in {@code XMSSMTSignature}, both 4 or ceil(h/8), and {@code WOTSPlus}'s
+     * PRF index at the constant 8.
+     */
     public static void longToBigEndian_Low(long n, byte[] bs, int off, int len)
     {
         longToBigEndian_High(n << ((8 - len) << 3), bs, off, len);

@@ -64,21 +64,29 @@ public class GOST3410Signer
             byte[] message)
         {
             byte[] mRev = Arrays.reverse(message); // conversion is little-endian
-            BigInteger      m = new BigInteger(1, mRev);
             GOST3410Parameters   params = key.getParameters();
+            // m is public, and the digest can exceed q, which modMult below rejects rather than reduces
+            BigInteger      m = new BigInteger(1, mRev).mod(params.getQ());
             BigInteger      k;
 
             do
             {
                 k = BigIntegers.createRandomBigInteger(params.getQ().bitLength(), random);
             }
-            while (k.compareTo(params.getQ()) >= 0);
+            while (k.signum() == 0 || k.compareTo(params.getQ()) >= 0);
 
-            BigInteger  r = params.getA().modPow(k, params.getP()).mod(params.getQ());
+            // the randomizer conceals timing information related to k, which is what s below would
+            // give up the private key from if it leaked. a has order q by construction, so a^q = 1
+            // (mod p) and adding a multiple of q to k leaves r alone - the same randomizer DSASigner
+            // applies to its own k.
+            BigInteger  blindedK = BigIntegers.createBlindedExponent(k, params.getQ(), random);
 
-            BigInteger  s = k.multiply(m).
-                                add(((GOST3410PrivateKeyParameters)key).getX().multiply(r)).
-                                    mod(params.getQ());
+            BigInteger  r = params.getA().modPow(blindedK, params.getP()).mod(params.getQ());
+
+            // the secret x and nonce k are kept off BigInteger.mod, whose cost follows the quotient; x is in [1, q-1] by GOST3410PrivateKeyParameters, k is drawn below q above, r is reduced, and q is prime and so odd
+            BigInteger  s = BigIntegers.modAdd(params.getQ(),
+                                BigIntegers.modMult(params.getQ(), k, m),
+                                BigIntegers.modMult(params.getQ(), ((GOST3410PrivateKeyParameters)key).getX(), r));
 
             BigInteger[]  res = new BigInteger[2];
 

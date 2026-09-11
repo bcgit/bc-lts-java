@@ -2,10 +2,15 @@ package org.bouncycastle.crypto.params;
 
 import java.math.BigInteger;
 
+import javax.security.auth.Destroyable;
+
 public class GOST3410PrivateKeyParameters
         extends GOST3410KeyParameters
+        implements Destroyable
 {
     private BigInteger      x;
+
+    private volatile boolean destroyed;
 
     public GOST3410PrivateKeyParameters(
         BigInteger      x,
@@ -32,6 +37,37 @@ public class GOST3410PrivateKeyParameters
 
     public BigInteger getX()
     {
-        return x;
+        BigInteger value = x;
+
+        // the null check catches a destroy() in progress whose flag write is not yet visible;
+        // as BigInteger is immutable a non-null snapshot is always the intact pre-destroy value.
+        if (destroyed || value == null)
+        {
+            throw new IllegalStateException("key destroyed");
+        }
+
+        return value;
+    }
+
+    /**
+     * Destroy this object, dropping its reference to the private value.
+     * <p>
+     * As {@link BigInteger} is immutable the private value cannot be zeroized in place;
+     * destruction drops the internal reference so the value becomes unreachable (cleared on
+     * garbage collection). The (public) domain parameters are retained. After destruction
+     * {@link #getX()} throws {@link IllegalStateException}.
+     */
+    public synchronized void destroy()
+    {
+        if (!destroyed)
+        {
+            destroyed = true;
+            this.x = null;
+        }
+    }
+
+    public boolean isDestroyed()
+    {
+        return destroyed;
     }
 }

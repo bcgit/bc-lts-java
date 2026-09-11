@@ -175,7 +175,7 @@ public class ParallelHash
             compress();
         }
         byte[] nOut = XofUtils.rightEncode(nCount);
-        byte[] encOut = XofUtils.rightEncode(outputSize * 8);
+        byte[] encOut = XofUtils.rightEncode(outputSize * 8L);
 
         cshake.update(nOut, 0, nOut.length);
         cshake.update(encOut, 0, encOut.length);
@@ -198,11 +198,26 @@ public class ParallelHash
         return rv;
     }
 
+    /**
+     * Output the results of the final calculation for this digest to outLen number of bytes.
+     * <p>
+     * The requested output length is the L parameter bound into the calculation, so the result is
+     * ParallelHash(X, B, outLen * 8, S) as defined in NIST SP 800-185 section 6.3, rather than the
+     * first outLen bytes of the digest produced at this object's configured output size. Section
+     * 6.1 requires this: "Changing any input parameter to ParallelHash, even the requested output
+     * length, will result in unrelated output."
+     * </p>
+     *
+     * @param out output array to write the output bytes to.
+     * @param outOff offset to start writing the bytes at.
+     * @param outLen the number of output bytes requested.
+     * @return the number of bytes written
+     */
     public int doFinal(byte[] out, int outOff, int outLen)
     {
         if (firstOutput)
         {
-            wrapUp(outputLength);
+            wrapUp(outLen);
         }
 
         int rv = cshake.doFinal(out, outOff, outLen);

@@ -123,11 +123,26 @@ public class TupleHash
         return rv;
     }
 
+    /**
+     * Output the results of the final calculation for this digest to outLen number of bytes.
+     * <p>
+     * The requested output length is the L parameter bound into the calculation, so the result is
+     * TupleHash(X, outLen * 8, S) as defined in NIST SP 800-185 section 5.3, rather than the first
+     * outLen bytes of the digest produced at this object's configured output size. Section 5.1
+     * requires this: "Changing any input to the function, including the requested output length,
+     * will almost certainly change the final output."
+     * </p>
+     *
+     * @param out output array to write the output bytes to.
+     * @param outOff offset to start writing the bytes at.
+     * @param outLen the number of output bytes requested.
+     * @return the number of bytes written
+     */
     public int doFinal(byte[] out, int outOff, int outLen)
     {
         if (firstOutput)
         {
-            wrapUp(getDigestSize());
+            wrapUp(outLen);
         }
         
         int rv = cshake.doFinal(out, outOff, outLen);
