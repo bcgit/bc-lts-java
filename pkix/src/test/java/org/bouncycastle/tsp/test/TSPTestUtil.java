@@ -8,6 +8,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.security.spec.DSAParameterSpec;
 import java.util.Date;
 
 import javax.crypto.KeyGenerator;
@@ -37,6 +38,8 @@ public class TSPTestUtil
 
     public static KeyPairGenerator kpg;
 
+    public static KeyPairGenerator dsaKpg;
+
     public static KeyGenerator desede128kg;
 
     public static KeyGenerator desede192kg;
@@ -64,6 +67,14 @@ public class TSPTestUtil
 
             kpg = KeyPairGenerator.getInstance("RSA", "BC");
             kpg.initialize(1024, rand);
+
+            dsaKpg = KeyPairGenerator.getInstance("DSA", "BC");
+            DSAParameterSpec dsaSpec = new DSAParameterSpec(
+                new BigInteger("7434410770759874867539421675728577177024889699586189000788950934679315164676852047058354758883833299702695428196962057871264685291775577130504050839126673"),
+                new BigInteger("1138656671590261728308283492178581223478058193247"),
+                new BigInteger("4182906737723181805517018315469082619513954319976782448649747742951189003482834321192692620856488639629011570381138542789803819092529658402611668375788410"));
+
+            dsaKpg.initialize(dsaSpec, new SecureRandom());
 
             desede128kg = KeyGenerator.getInstance("DESEDE", "BC");
             desede128kg.init(112, rand);
@@ -116,6 +127,11 @@ public class TSPTestUtil
     public static KeyPair makeKeyPair()
     {
         return kpg.generateKeyPair();
+    }
+
+    public static KeyPair makeDsaKeyPair()
+    {
+        return dsaKpg.generateKeyPair();
     }
 
     public static SecretKey makeDesede128Key()
