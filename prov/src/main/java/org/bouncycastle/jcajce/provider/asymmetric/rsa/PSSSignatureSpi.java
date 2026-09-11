@@ -30,6 +30,9 @@ import org.bouncycastle.jcajce.util.JcaJceHelper;
 public class PSSSignatureSpi
     extends SignatureSpi
 {
+    // RFC 4055 3.1: the RSASSA-PSS-params trailerField "value MUST be 1" (RFC 8017 A.2.3 trailerFieldBC).
+    private static final int TRAILER_FIELD_BC = 1;
+
     private final JcaJceHelper helper = new BCJcaJceHelper();
 
     private AlgorithmParameters engineParams;
@@ -50,7 +53,7 @@ public class PSSSignatureSpi
     private byte getTrailer(
         int trailerField)
     {
-        if (trailerField == 1)
+        if (trailerField == TRAILER_FIELD_BC)
         {
             return org.bouncycastle.crypto.signers.PSSSigner.TRAILER_IMPLICIT;
         }
@@ -263,6 +266,12 @@ public class PSSSignatureSpi
                 throw new InvalidAlgorithmParameterException("no match on MGF algorithm: "+ newParamSpec.getMGFAlgorithm());
             }
 
+            // checked ahead of the assignments below so a rejected spec leaves the engine as it was.
+            if (newParamSpec.getTrailerField() != TRAILER_FIELD_BC)
+            {
+                throw new InvalidAlgorithmParameterException("unknown trailer field");
+            }
+
             this.engineParams = null;
             this.paramSpec = newParamSpec;
             this.mgfDigest = mgfDigest;
@@ -369,6 +378,33 @@ public class PSSSignatureSpi
         public SHA1withRSAandSHAKE256()
         {
             super(new RSABlindedEngine(), new PSSParameterSpec("SHA1", "SHAKE256", null, 20, 1));
+        }
+    }
+
+    static public class RIPEMD128withRSA
+        extends PSSSignatureSpi
+    {
+        public RIPEMD128withRSA()
+        {
+            super(new RSABlindedEngine(), new PSSParameterSpec("RIPEMD128", "MGF1", new MGF1ParameterSpec("RIPEMD128"), 16, 1));
+        }
+    }
+
+    static public class RIPEMD160withRSA
+        extends PSSSignatureSpi
+    {
+        public RIPEMD160withRSA()
+        {
+            super(new RSABlindedEngine(), new PSSParameterSpec("RIPEMD160", "MGF1", new MGF1ParameterSpec("RIPEMD160"), 20, 1));
+        }
+    }
+
+    static public class RIPEMD256withRSA
+        extends PSSSignatureSpi
+    {
+        public RIPEMD256withRSA()
+        {
+            super(new RSABlindedEngine(), new PSSParameterSpec("RIPEMD256", "MGF1", new MGF1ParameterSpec("RIPEMD256"), 32, 1));
         }
     }
 
