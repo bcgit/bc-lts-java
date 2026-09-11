@@ -357,7 +357,7 @@ b98c48fd68c477229200abfc6114be0ce2f5e6135f16784b9320ceb9fab2911f  prov/src/main/
 aa87bd6677408f5a910e07687e65c88f0c1bb20b121b2d43c72509064bd5e3f8  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/dh/BCDHPublicKey.java
 c2a1e2e787f7085dff904f48eee9557b6b26b29d58315e36439762f57b9af696  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/dh/AlgorithmParametersSpi.java
 f8645704a6a3a52f49b4db9cd9028d44de4373d973576a1be2b3823f0d629379  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/dh/BCDHPrivateKey.java
-f2f21a2eaed982ede1a8584bb0d75f016f5b6f35f8986f4dc2725fcc73b5d21a  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/dh/KeyAgreementSpi.java
+f2b0b99508969b6c962ad9e52b127d1677332b8eb306714ee44c700e1bc5f5c8  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/dh/KeyAgreementSpi.java
 68573465361113d29db0af461eb9a7cdc44dee29279d9b2146cd6ea0fc70ef9a  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/dh/IESCipher.java
 85313ee2dcc2975b0a7ac27c924e8186d27de4c44f67e7a541fd60a5d5724145  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/dh/KeyPairGeneratorSpi.java
 9afbf798b82a2ef1f3f4cf5173ad814e25676abbdc93ebab15ef1ee3623d69b9  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/dh/KeyFactorySpi.java
