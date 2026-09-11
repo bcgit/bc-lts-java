@@ -106,8 +106,8 @@ f837a43a23f1d370ad6fa5769e9c02527b2ad1f0b76916b049eff81a383789bb  pkix/src/test/
 56b9e3e7a37e65a89831eb8c73005b8bfda72a9e483e0dbf9a4cf59d36aebdf8  pkix/src/test/java/org/bouncycastle/cms/test/CMSTestUtil.java
 8934f1dd4bcd585cda01f911e71fb98c6364c6981451c4ca87347eaf89968cda  pkix/src/test/java/org/bouncycastle/cms/test/NewCompressedDataStreamTest.java
 7dd87704e52acde803ee5db9ea7e34fa88ab75fe4629075a50b503ce32490f3a  pkix/src/test/java/org/bouncycastle/openssl/test/WriterTest.java
-67da0c4f058acae806aa3d5f83bf9daf6b156ffc6547c39b5f7c07b4147f6800  pkix/src/test/java/org/bouncycastle/openssl/test/AllTests.java
-029e200b1a339672239045d81d60409a055b8788b6f5cc991ea4aa3a8c8aa413  pkix/src/test/java/org/bouncycastle/openssl/test/CompositeKeyTest.java
+a130e7d7829dd9a95b50789c926362cf8fb022374c84ff3bde3ea9bed6dfba39  pkix/src/test/java/org/bouncycastle/openssl/test/AllTests.java
+0c024ecda2c1bf9690b3daef4376722eec319abad0fdca97803a8c6724dde078  pkix/src/test/java/org/bouncycastle/openssl/test/CompositeKeyTest.java
 d6904f7a1949755c0d60ce55e5e668fa080f626e6c62a2f86523a4554efee4da  pkix/src/test/java/org/bouncycastle/openssl/test/ParserTest.java
 b0368d6a2c8dc4ba80f9fa69b059aba064a04d0de03962e15b35bc3f440c6fdc  pkix/src/main/jdk1.9/module-info.java
 57df738eea3e5b5cd448c7d16ccb499ba02582244fca68f0d1f467a605500ca8  pkix/src/main/java/org/bouncycastle/pkix/SubjectPublicKeyInfoChecker.java

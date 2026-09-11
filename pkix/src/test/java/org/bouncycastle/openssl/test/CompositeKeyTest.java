@@ -1,32 +1,27 @@
 package org.bouncycastle.openssl.test;
 
-import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.math.BigInteger;
-import java.security.KeyFactory;
+import java.security.GeneralSecurityException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Security;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
-import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.Signature;
 import java.security.spec.RSAKeyGenParameterSpec;
-import java.security.spec.X509EncodedKeySpec;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import junit.framework.TestCase;
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.DERSequence;
-import org.bouncycastle.asn1.cms.ContentInfo;
 import org.bouncycastle.asn1.iana.IANAObjectIdentifiers;
 import org.bouncycastle.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
@@ -35,21 +30,10 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.cert.X509CertificateHolder;
-import org.bouncycastle.cert.X509v3CertificateBuilder;
-import org.bouncycastle.cert.jcajce.JcaCertStore;
-import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
-import org.bouncycastle.cms.CMSProcessableByteArray;
-import org.bouncycastle.cms.CMSSignedData;
-import org.bouncycastle.cms.CMSSignedDataGenerator;
-import org.bouncycastle.cms.CMSTypedData;
-import org.bouncycastle.cms.SignerInformation;
-import org.bouncycastle.cms.SignerInformationStore;
-import org.bouncycastle.cms.jcajce.JcaSignerInfoGeneratorBuilder;
-import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
 import org.bouncycastle.jcajce.CompositePrivateKey;
 import org.bouncycastle.jcajce.CompositePublicKey;
-import org.bouncycastle.jcajce.spec.CompositeAlgorithmSpec;
+import org.bouncycastle.jcajce.spec.MLDSAParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECNamedCurveGenParameterSpec;
 import org.bouncycastle.openssl.PEMParser;
@@ -58,12 +42,10 @@ import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.ContentVerifier;
 import org.bouncycastle.operator.ContentVerifierProvider;
-import org.bouncycastle.operator.DigestCalculatorProvider;
-import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.bouncycastle.operator.DefaultSignatureAlgorithmIdentifierFinder;
+import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.jcajce.JcaContentVerifierProviderBuilder;
-import org.bouncycastle.operator.jcajce.JcaDigestCalculatorProviderBuilder;
 import org.bouncycastle.util.Arrays;
-import org.bouncycastle.util.Store;
 import org.bouncycastle.util.Strings;
 
 /**
@@ -132,7 +114,7 @@ public class CompositeKeyTest
             "iv0uXxv+mnrHI4wjuOmlVQIDAQAB\n"+
             "-----END PUBLIC KEY-----\n";
 
-    private static final String expPrivKey = 
+    private static final String expPrivKey =
                "-----BEGIN PRIVATE KEY-----\n"+
                "MIIFFwIBADAFBgMqAwQEggUJMIIFBTBBAgEAMBMGByqGSM49AgEGCCqGSM49AwEH\n"+
                "BCcwJQIBAQQgI3SKEJyCDmfwAu2T22RBmqD9YsSbk158yL+R03Tpn24wggS+AgEA\n"+
@@ -193,146 +175,6 @@ public class CompositeKeyTest
         PrivateKeyInfo privKey = (PrivateKeyInfo)pemParser.readObject();
     }
 
-    public void testRSAAndECCompositeGen()
-        throws Exception
-    {
-        //
-        // set up the keys
-        //
-        KeyPairGenerator ecKpg = KeyPairGenerator.getInstance("EC", "BC");
-
-        ecKpg.initialize(new ECNamedCurveGenParameterSpec("P-256"));
-
-        KeyPair ecKp = ecKpg.generateKeyPair();
-
-        PrivateKey ecPriv = ecKp.getPrivate();
-        PublicKey ecPub = ecKp.getPublic();
-
-        KeyPairGenerator rsaKpg = KeyPairGenerator.getInstance("RSA", "BC");
-
-        rsaKpg.initialize(new RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4));
-
-        KeyPair lmsKp = rsaKpg.generateKeyPair();
-
-        PrivateKey lmsPriv = lmsKp.getPrivate();
-        PublicKey lmsPub = lmsKp.getPublic();
-
-        //
-        // create the certificate - version 3
-        //
-        CompositeAlgorithmSpec compAlgSpec = new CompositeAlgorithmSpec.Builder()
-            .add("SHA256withECDSA")
-            .add("SHA256withRSA")
-            .build();
-        CompositePublicKey compPub = new CompositePublicKey(ecPub, lmsPub);
-        CompositePrivateKey compPrivKey = new CompositePrivateKey(ecPriv, lmsPriv);
-
-        ContentSigner sigGen = new JcaContentSignerBuilder("Composite", compAlgSpec).build(compPrivKey);
-
-        X500Name issuerName = new X500Name("CN=Composite EC/RSA Test");
-        X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(
-            issuerName,
-            BigInteger.valueOf(1),
-            new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), issuerName,
-            compPub);
-
-        X509CertificateHolder ecCertHldr = certGen.build(sigGen);
-
-        ContentVerifierProvider vProv = new JcaContentVerifierProviderBuilder()
-            .build(compPub);
-
-        assertTrue("ec multi failed", ecCertHldr.isSignatureValid(vProv));
-
-        vProv = new JcaContentVerifierProviderBuilder().build(ecPub);
-
-        assertTrue("ec failed", ecCertHldr.isSignatureValid(vProv));
-
-        X509Certificate cert = new JcaX509CertificateConverter().setProvider("BC").getCertificate(ecCertHldr);
-
-        cert.checkValidity(new Date());
-
-        //
-        // check verifies in general
-        //
-        cert.verify(compPub);
-
-        cert.verify(ecPub);      // ec key only
-
-        cert.verify(ecPub, "BC");      // ec key only
-
-       // cert.verify(ecPub, new BouncyCastleProvider());      // ec key only
-
-        //
-        // check verifies with contained key
-        //
-        cert.verify(cert.getPublicKey());
-
-        ByteArrayInputStream bIn = new ByteArrayInputStream(cert.getEncoded());
-        CertificateFactory fact = CertificateFactory.getInstance("X.509", "BC");
-
-        cert = (X509Certificate)fact.generateCertificate(bIn);
-
-        org.bouncycastle.asn1.x509.Certificate crt = org.bouncycastle.asn1.x509.Certificate.getInstance(cert.getEncoded());
-
-        assertTrue(MiscObjectIdentifiers.id_composite_key.equals(crt.getSubjectPublicKeyInfo().getAlgorithm().getAlgorithm()));
-        assertTrue(null == crt.getSubjectPublicKeyInfo().getAlgorithm().getParameters());
-
-        KeyFactory kFact = KeyFactory.getInstance("Composite", "BC");
-
-        CompositePublicKey pubKey = (CompositePublicKey)kFact.generatePublic(new X509EncodedKeySpec(compPub.getEncoded()));
-        CompositePrivateKey privKey = (CompositePrivateKey)kFact.generatePrivate(new PKCS8EncodedKeySpec(compPrivKey.getEncoded()));
-
-        assertTrue(pubKey.equals(compPub));
-        assertTrue(privKey.equals(compPrivKey));
-
-        StringWriter sWrt = new StringWriter();
-        JcaPEMWriter pWrt = new JcaPEMWriter(sWrt);
-
-        pWrt.writeObject(cert);
-        pWrt.close();
-
-        String certKeyStr = sWrt.toString();
-
-        sWrt = new StringWriter();
-        pWrt = new JcaPEMWriter(sWrt);
-
-        pWrt.writeObject(privKey);
-        pWrt.close();
-        
-        String privKeyStr = sWrt.toString();
-
-        sWrt = new StringWriter();
-        pWrt = new JcaPEMWriter(sWrt);
-
-        pWrt.writeObject(pubKey);
-        pWrt.close();
-
-        String pubKeyStr = sWrt.toString();
-
-        PEMParser pemParser = new PEMParser(new StringReader(certKeyStr));
-
-        X509CertificateHolder certHldr = (X509CertificateHolder)pemParser.readObject();
-
-        assertTrue(Arrays.areEqual(cert.getEncoded(), certHldr.getEncoded()));
-
-        pemParser = new PEMParser(new StringReader(privKeyStr));
-
-        PrivateKeyInfo privInfo = (PrivateKeyInfo)pemParser.readObject();
-
-        assertTrue(Arrays.areEqual(privKey.getEncoded(), privInfo.getEncoded()));
-
-        pemParser = new PEMParser(new StringReader(pubKeyStr));
-
-        SubjectPublicKeyInfo pubInfo = (SubjectPublicKeyInfo)pemParser.readObject();
-
-        assertTrue(Arrays.areEqual(pubKey.getEncoded(), pubInfo.getEncoded()));
-
-//        doOutput("/tmp/comp_cert_1.pem", certKeyStr);
-//        doOutput("/tmp/comp_priv_1.pem", privKeyStr);
-//        doOutput("/tmp/comp_pub_1.pem", pubKeyStr);
-    }
-
-
     public void testCompositeSignatureStripping()
         throws Exception
     {
@@ -340,6 +182,11 @@ public class CompositeKeyTest
         // accepted a composite signature truncated to a single verifiable
         // component. The empty-sequence case was fixed; an under-length sequence
         // still passed. A composite signature MUST carry every component.
+        //
+        // Legacy composite signature *creation* via JcaContentSignerBuilder has
+        // since been removed (verification is unaffected), so the genuine 2-of-2
+        // signature below is built directly from two raw java.security.Signature
+        // instances rather than through the builder.
         KeyPairGenerator ecKpg = KeyPairGenerator.getInstance("EC", "BC");
         ecKpg.initialize(new ECNamedCurveGenParameterSpec("P-256"));
         KeyPair ecKp = ecKpg.generateKeyPair();
@@ -348,15 +195,52 @@ public class CompositeKeyTest
         rsaKpg.initialize(new RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4));
         KeyPair rsaKp = rsaKpg.generateKeyPair();
 
-        // component 0 = ECDSA, component 1 = RSA
-        CompositeAlgorithmSpec compAlgSpec = new CompositeAlgorithmSpec.Builder()
-            .add("SHA256withECDSA")
-            .add("SHA256withRSA")
-            .build();
         CompositePublicKey compPub = new CompositePublicKey(ecKp.getPublic(), rsaKp.getPublic());
-        CompositePrivateKey compPriv = new CompositePrivateKey(ecKp.getPrivate(), rsaKp.getPrivate());
 
-        ContentSigner sigGen = new JcaContentSignerBuilder("Composite", compAlgSpec).build(compPriv);
+        // component 0 = ECDSA, component 1 = RSA
+        final DefaultSignatureAlgorithmIdentifierFinder algFinder = new DefaultSignatureAlgorithmIdentifierFinder();
+        final AlgorithmIdentifier compSigAlgId = new AlgorithmIdentifier(
+            MiscObjectIdentifiers.id_alg_composite,
+            new DERSequence(algFinder.find("SHA256withECDSA"), algFinder.find("SHA256withRSA")));
+        final Signature ecSig = Signature.getInstance("SHA256withECDSA", "BC");
+        ecSig.initSign(ecKp.getPrivate());
+        final Signature rsaSig = Signature.getInstance("SHA256withRSA", "BC");
+        rsaSig.initSign(rsaKp.getPrivate());
+
+        ContentSigner sigGen = new ContentSigner()
+        {
+            private final ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+
+            public AlgorithmIdentifier getAlgorithmIdentifier()
+            {
+                return compSigAlgId;
+            }
+
+            public OutputStream getOutputStream()
+            {
+                return bOut;
+            }
+
+            public byte[] getSignature()
+            {
+                try
+                {
+                    byte[] tbs = bOut.toByteArray();
+                    ecSig.update(tbs);
+                    rsaSig.update(tbs);
+                    return new DERSequence(new DERBitString(ecSig.sign()), new DERBitString(rsaSig.sign()))
+                        .getEncoded(ASN1Encoding.DER);
+                }
+                catch (GeneralSecurityException e)
+                {
+                    throw new RuntimeException(e);
+                }
+                catch (IOException e)
+                {
+                    throw new RuntimeException(e);
+                }
+            }
+        };
 
         X500Name name = new X500Name("CN=Composite Strip Test");
         X509CertificateHolder certHldr = new JcaX509v3CertificateBuilder(
@@ -384,132 +268,70 @@ public class CompositeKeyTest
         assertFalse("composite signature stripped of a component must not verify", cv.verify(strippedSig));
     }
 
-    public void testRSAAndECCompositeSignedDataGen()
+    public void testModernCompositeKeyRejectsLegacyCompositeSignature()
         throws Exception
     {
-        //
-        // set up the keys
-        //
-        KeyPairGenerator ecKpg = KeyPairGenerator.getInstance("EC", "BC");
+        // A modern fixed-algorithm composite public key (id_MLDSA44_Ed25519_SHA512, two
+        // components) must never be checked via the legacy generic id_alg_composite signature
+        // format. That format trusts an attacker-controlled AlgorithmIdentifier parameter
+        // sequence to say both how many components to check and which key indexes to check them
+        // against - accepting it against a modern key let a one-component (ML-DSA-44 only)
+        // legacy-shaped signature satisfy verification of the two-component modern key, silently
+        // dropping the Ed25519 check the composite identity exists to require.
+        KeyPairGenerator mlDsaKpg = KeyPairGenerator.getInstance("ML-DSA", "BC");
+        mlDsaKpg.initialize(MLDSAParameterSpec.ml_dsa_44);
+        KeyPair mlDsaKp = mlDsaKpg.generateKeyPair();
 
-        ecKpg.initialize(new ECNamedCurveGenParameterSpec("P-256"));
+        KeyPairGenerator edKpg = KeyPairGenerator.getInstance("Ed25519", "BC");
+        KeyPair edKp = edKpg.generateKeyPair();
 
-        KeyPair ecKp = ecKpg.generateKeyPair();
+        CompositePublicKey modernPub = new CompositePublicKey(
+            IANAObjectIdentifiers.id_MLDSA44_Ed25519_SHA512, mlDsaKp.getPublic(), edKp.getPublic());
 
-        PrivateKey ecPriv = ecKp.getPrivate();
-        PublicKey ecPub = ecKp.getPublic();
+        byte[] message = Strings.toByteArray("modern composite key, legacy signature downgrade regression test");
 
-        KeyPairGenerator rsaKpg = KeyPairGenerator.getInstance("RSA", "BC");
+        Signature mlDsaSigner = Signature.getInstance("ML-DSA-44", "BC");
+        mlDsaSigner.initSign(mlDsaKp.getPrivate());
+        mlDsaSigner.update(message);
+        byte[] mlDsaSignature = mlDsaSigner.sign();
 
-        rsaKpg.initialize(new RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4));
+        // a one-component legacy AlgorithmIdentifier/signature pair naming only ML-DSA-44
+        AlgorithmIdentifier oneComponentLegacyAlgId = new AlgorithmIdentifier(
+            MiscObjectIdentifiers.id_alg_composite,
+            new DERSequence(new AlgorithmIdentifier(NISTObjectIdentifiers.id_ml_dsa_44)));
+        byte[] oneComponentLegacySignature = new DERSequence(new DERBitString(mlDsaSignature)).getEncoded(ASN1Encoding.DER);
 
-        KeyPair lmsKp = rsaKpg.generateKeyPair();
+        ContentVerifierProvider provider = new JcaContentVerifierProviderBuilder().setProvider("BC").build(modernPub);
 
-        PrivateKey lmsPriv = lmsKp.getPrivate();
-        PublicKey lmsPub = lmsKp.getPublic();
+        try
+        {
+            ContentVerifier cv = provider.get(oneComponentLegacyAlgId);
+            OutputStream sOut = cv.getOutputStream();
+            sOut.write(message);
+            sOut.close();
 
-        //
-        // create the certificate - version 3
-        //
-        CompositeAlgorithmSpec compAlgSpec = new CompositeAlgorithmSpec.Builder()
-            .add("SHA256withECDSA")
-            .add("SHA256withRSA")
-            .build();
-        CompositePublicKey compPub = new CompositePublicKey(ecPub, lmsPub);
-        CompositePrivateKey compPrivKey = new CompositePrivateKey(ecPriv, lmsPriv);
+            assertFalse("legacy one-component signature must not verify a modern composite key",
+                cv.verify(oneComponentLegacySignature));
+        }
+        catch (OperatorCreationException e)
+        {
+            // rejecting the algorithm/key combination outright is the expected, stronger response
+        }
 
-        ContentSigner sigGen = new JcaContentSignerBuilder("Composite", compAlgSpec).build(compPrivKey);
+        // the modern key's own algorithm must still verify a genuine two-component signature
+        CompositePrivateKey modernPriv = new CompositePrivateKey(
+            IANAObjectIdentifiers.id_MLDSA44_Ed25519_SHA512, mlDsaKp.getPrivate(), edKp.getPrivate());
 
-        X500Name issuerName = new X500Name("CN=Composite EC/RSA Test");
-        X509v3CertificateBuilder certGen = new JcaX509v3CertificateBuilder(
-            issuerName,
-            BigInteger.valueOf(1),
-            new Date(System.currentTimeMillis() - 50000), new Date(System.currentTimeMillis() + 50000), issuerName,
-            compPub);
+        Signature modernSigner = Signature.getInstance("MLDSA44-Ed25519-SHA512", "BC");
+        modernSigner.initSign(modernPriv);
+        modernSigner.update(message);
+        byte[] genuineModernSignature = modernSigner.sign();
 
-        X509CertificateHolder ecCertHldr = certGen.build(sigGen);
-
-        ContentVerifierProvider vProv = new JcaContentVerifierProviderBuilder()
-            .build(compPub);
-
-        assertTrue("ec multi failed", ecCertHldr.isSignatureValid(vProv));
-
-        vProv = new JcaContentVerifierProviderBuilder().build(ecPub);
-
-        assertTrue("ec failed", ecCertHldr.isSignatureValid(vProv));
-
-        X509Certificate cert = new JcaX509CertificateConverter().setProvider("BC").getCertificate(ecCertHldr);
-
-        cert.checkValidity(new Date());
-
-        //
-        // check verifies in general
-        //
-        cert.verify(compPub);
-
-        //
-        // check verifies with contained key
-        //
-        cert.verify(cert.getPublicKey());
-
-        ByteArrayInputStream bIn = new ByteArrayInputStream(cert.getEncoded());
-        CertificateFactory fact = CertificateFactory.getInstance("X.509", "BC");
-
-        cert = (X509Certificate)fact.generateCertificate(bIn);
-
-        org.bouncycastle.asn1.x509.Certificate crt = org.bouncycastle.asn1.x509.Certificate.getInstance(cert.getEncoded());
-
-        assertTrue(MiscObjectIdentifiers.id_composite_key.equals(crt.getSubjectPublicKeyInfo().getAlgorithm().getAlgorithm()));
-        assertTrue(null == crt.getSubjectPublicKeyInfo().getAlgorithm().getParameters());
-
-        byte[]              data = "Hello World!".getBytes();
-        List certList = new ArrayList();
-        CMSTypedData msg = new CMSProcessableByteArray(data);
-
-        certList.add(cert);
-
-        Store certs = new JcaCertStore(certList);
-
-        CMSSignedDataGenerator gen = new CMSSignedDataGenerator();
-
-        DigestCalculatorProvider digProvider = new JcaDigestCalculatorProviderBuilder().setProvider("BC").build();
-        JcaSignerInfoGeneratorBuilder signerInfoGeneratorBuilder = new JcaSignerInfoGeneratorBuilder(digProvider);
-
-        signerInfoGeneratorBuilder.setContentDigest(new AlgorithmIdentifier(NISTObjectIdentifiers.id_sha256));
-        
-        gen.addSignerInfoGenerator(signerInfoGeneratorBuilder.build(sigGen, cert));
-
-        gen.addCertificates(certs);
-
-        CMSSignedData s = gen.generate(msg, true);
-
-        s = new CMSSignedData(s.getEncoded());
-
-        SignerInformationStore sigStore = s.getSignerInfos();
-        Store certStore = s.getCertificates();
-
-        SignerInformation sigInf = (SignerInformation)sigStore.getSigners().iterator().next();
-
-        assertTrue(sigInf.verify(new JcaSimpleSignerInfoVerifierBuilder().build((X509CertificateHolder)certStore.getMatches(null).iterator().next())));
-
-        StringWriter sWrt = new StringWriter();
-        JcaPEMWriter pWrt = new JcaPEMWriter(sWrt);
-
-        pWrt.writeObject(s.toASN1Structure());
-        pWrt.close();
-
-        PEMParser parser = new PEMParser(new StringReader(sWrt.toString()));
-
-        s = new CMSSignedData((ContentInfo)parser.readObject());
-
-        sigStore = s.getSignerInfos();
-        certStore = s.getCertificates();
-
-        sigInf = (SignerInformation)sigStore.getSigners().iterator().next();
-
-        assertTrue(sigInf.verify(new JcaSimpleSignerInfoVerifierBuilder().build((X509CertificateHolder)certStore.getMatches(null).iterator().next())));
-
-        //doOutput("/tmp/comp_cms_1.pem", sWrt.toString());
+        Signature modernVerifier = Signature.getInstance("MLDSA44-Ed25519-SHA512", "BC");
+        modernVerifier.initVerify(modernPub);
+        modernVerifier.update(message);
+        assertTrue("genuine two-component modern composite signature should verify",
+            modernVerifier.verify(genuineModernSignature));
     }
 
     public void testMLDSA44andP256()
