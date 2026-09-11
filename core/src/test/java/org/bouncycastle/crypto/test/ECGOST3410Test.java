@@ -3,6 +3,8 @@ package org.bouncycastle.crypto.test;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
+import org.bouncycastle.asn1.cryptopro.ECGOST3410NamedCurves;
+import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.digests.GOST3411Digest;
 import org.bouncycastle.crypto.generators.ECKeyPairGenerator;
@@ -14,7 +16,9 @@ import org.bouncycastle.crypto.params.ParametersWithRandom;
 import org.bouncycastle.crypto.signers.ECGOST3410Signer;
 import org.bouncycastle.math.ec.ECConstants;
 import org.bouncycastle.math.ec.ECCurve;
+import org.bouncycastle.util.BigIntegers;
 import org.bouncycastle.util.encoders.Hex;
+import org.bouncycastle.util.test.FixedSecureRandom;
 import org.bouncycastle.util.test.SimpleTest;
 import org.bouncycastle.util.test.TestRandomData;
 
@@ -305,6 +309,98 @@ public class ECGOST3410Test
         }
     }
 
+    /**
+     * The nonce is drawn over n.bitLength() bits, so on a curve whose order sits well below that
+     * power of two a draw can land at or past n. Such a draw has to be discarded and replaced
+     * rather than folded down by the reduction that follows: folding makes the bottom of the range
+     * likelier than the top, which is the bias a lattice attack consumes. GostR3410-2001-CryptoPro-C
+     * is one of the curves where it can happen - its order is about 0.61 of 2^256.
+     * <p>
+     * So an out-of-range draw followed by an in-range one must produce exactly the signature the
+     * in-range value produces on its own.
+     */
+    private void ecGOST3410_NonceRange()
+    {
+        X9ECParameters x9 = ECGOST3410NamedCurves.getByNameX9("GostR3410-2001-CryptoPro-C");
+        ECDomainParameters params = new ECDomainParameters(x9.getCurve(), x9.getG(), x9.getN());
+        BigInteger n = params.getN();
+
+        // the curve has to be one where the draw can exceed the order, or the test proves nothing
+        if (n.bitLength() != 256 || n.compareTo(ECConstants.ONE.shiftLeft(255)) <= 0)
+        {
+            fail("CryptoPro-C order is not the shape this test needs");
+        }
+
+        BigInteger inRange = n.subtract(BigInteger.valueOf(12345));
+        BigInteger outOfRange = n.add(BigInteger.valueOf(12345));
+
+        if (outOfRange.bitLength() > 256)
+        {
+            fail("the out of range value does not fit the width of the draw");
+        }
+
+        ECPrivateKeyParameters priv = new ECPrivateKeyParameters(
+            new BigInteger("0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20", 16), params);
+
+        byte[] message = new byte[32];
+        for (int i = 0; i != message.length; i++)
+        {
+            message[i] = (byte)i;
+        }
+
+        BigInteger[] afterReject;
+        try
+        {
+            afterReject = signWith(priv, message,
+                new FixedSecureRandom(new FixedSecureRandom.Source[]
+                {
+                    new FixedSecureRandom.BigInteger(nonceBytes(outOfRange)),
+                    new FixedSecureRandom.BigInteger(nonceBytes(inRange))
+                }));
+        }
+        catch (IllegalArgumentException e)
+        {
+            // the constant-time assembly needs its operands reduced, so a draw that is not
+            // redrawn now fails here rather than being folded silently as it once was
+            fail("nonce at or past the order was not redrawn: " + e.getMessage());
+            return;
+        }
+
+        BigInteger[] direct = signWith(priv, message,
+            new FixedSecureRandom(new FixedSecureRandom.Source[]
+            {
+                new FixedSecureRandom.BigInteger(nonceBytes(inRange))
+            }));
+
+        if (!afterReject[0].equals(direct[0]) || !afterReject[1].equals(direct[1]))
+        {
+            fail("nonce at or past the order was folded rather than redrawn");
+        }
+
+        ECGOST3410Signer verifier = new ECGOST3410Signer();
+        verifier.init(false, new ECPublicKeyParameters(
+            params.getG().multiply(priv.getD()).normalize(), params));
+
+        if (!verifier.verifySignature(message, afterReject[0], afterReject[1]))
+        {
+            fail("signature after a rejected nonce does not verify");
+        }
+    }
+
+    private BigInteger[] signWith(ECPrivateKeyParameters priv, byte[] message, SecureRandom random)
+    {
+        ECGOST3410Signer signer = new ECGOST3410Signer();
+
+        signer.init(true, new ParametersWithRandom(priv, random));
+
+        return signer.generateSignature(message);
+    }
+
+    private static byte[] nonceBytes(BigInteger k)
+    {
+        return BigIntegers.asUnsignedByteArray(32, k);
+    }
+
     public String getName()
     {
         return "ECGOST3410";
@@ -317,6 +413,7 @@ public class ECGOST3410Test
         ecGOST3410_AParam();
         ecGOST3410_BParam();
         ecGOST3410_CParam();
+        ecGOST3410_NonceRange();
     }
 
     public static void main(

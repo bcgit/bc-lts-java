@@ -1,6 +1,7 @@
 package org.bouncycastle.asn1.test;
 
 import java.io.IOException;
+import java.util.Locale;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -23,6 +24,7 @@ import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStrictStyle;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x500.style.IETFUtils;
+import org.bouncycastle.asn1.x500.style.RFC4519Style;
 import org.bouncycastle.asn1.x509.X509DefaultEntryConverter;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
@@ -151,6 +153,9 @@ public class X500NameTest
         ietfUtilsTest();
         bogusEqualsTest();
         emptyRDNHashCodeTest();
+        dnQualifierAliasParseTest();
+        stateOrProvinceAliasParseTest();
+        turkishLocaleCanonicalizeTest();
 
         testEncodingPrintableString(BCStyle.C, "AU");
         testEncodingPrintableString(BCStyle.SERIALNUMBER, "123456");
@@ -681,6 +686,129 @@ public class X500NameTest
         throws Exception
     {
         IETFUtils.valueToString(new DERUTF8String(" "));
+    }
+
+    /**
+     * BCStyle / RFC4519Style now accept "DN", "DNQ" and "dnQualifier"
+     * as parser aliases for the dnQualifier attribute (OID 2.5.4.46).
+     * The motivating case was that {@code java.security.cert.X509Certificate.getSubjectX500Principal().toString()}
+     * emits "DNQ=" on some JDKs (Amazon Corretto 17 observed) and
+     * "DNQUALIFIER=" on others, neither of which round-tripped through
+     * {@code new X500Name(principal.toString())} under BCStyle's
+     * historical "DN" form (issue #1622).
+     */
+    private void dnQualifierAliasParseTest()
+        throws Exception
+    {
+        String[] aliases = new String[]{ "DN", "DNQ", "dnQualifier", "dn", "dnq", "dnqualifier" };
+        for (int i = 0; i != aliases.length; ++i)
+        {
+            String alias = aliases[i];
+
+            X500Name viaBcStyle = new X500Name(BCStyle.INSTANCE,
+                "CN=Foo," + alias + "=ABC123");
+            RDN[] rdnsBc = viaBcStyle.getRDNs(BCStyle.DN_QUALIFIER);
+            if (rdnsBc.length != 1)
+            {
+                fail("BCStyle: alias '" + alias
+                    + "' did not parse to a single dnQualifier RDN");
+            }
+
+            X500Name viaRfc = new X500Name(RFC4519Style.INSTANCE,
+                "CN=Foo," + alias + "=ABC123");
+            RDN[] rdnsRfc = viaRfc.getRDNs(RFC4519Style.dnQualifier);
+            if (rdnsRfc.length != 1)
+            {
+                fail("RFC4519Style: alias '" + alias
+                    + "' did not parse to a single dnQualifier RDN");
+            }
+        }
+    }
+
+    /**
+     * BCStyle / RFC4519Style now accept "S" as a parser alias for the
+     * stateOrProvinceName attribute (OID 2.5.4.8), in addition to the
+     * RFC 2253/4514 short form "ST". Microsoft's CertNameToStr emits "S="
+     * for 2.5.4.8 ("This value is different from the RFC 1779 X.500 key
+     * name ('ST')."), so DN strings produced by Windows tooling did not
+     * round-trip through {@code new X500Name(...)}. Output still uses the
+     * canonical "ST" symbol (issue #1301).
+     */
+    private void stateOrProvinceAliasParseTest()
+        throws Exception
+    {
+        String[] aliases = new String[]{"ST", "st", "S", "s"};
+        for (int i = 0; i != aliases.length; ++i)
+        {
+            String alias = aliases[i];
+
+            X500Name viaBcStyle = new X500Name(BCStyle.INSTANCE,
+                "CN=Foo," + alias + "=California");
+            RDN[] rdnsBc = viaBcStyle.getRDNs(BCStyle.ST);
+            if (rdnsBc.length != 1)
+            {
+                fail("BCStyle: alias '" + alias
+                    + "' did not parse to a single stateOrProvinceName RDN");
+            }
+
+            X500Name viaRfc = new X500Name(RFC4519Style.INSTANCE,
+                "CN=Foo," + alias + "=California");
+            RDN[] rdnsRfc = viaRfc.getRDNs(RFC4519Style.st);
+            if (rdnsRfc.length != 1)
+            {
+                fail("RFC4519Style: alias '" + alias
+                    + "' did not parse to a single stateOrProvinceName RDN");
+            }
+        }
+
+        // output uses the canonical "ST" symbol regardless of the input alias
+        X500Name fromS = new X500Name(BCStyle.INSTANCE, "CN=Foo,S=California");
+        if (!fromS.toString().equals("CN=Foo,ST=California"))
+        {
+            fail("BCStyle: 'S' alias did not normalise to ST on output, got: " + fromS);
+        }
+    }
+
+    /**
+     * IETFUtils.canonicalize — and hence X500Name equality / hashCode — folds
+     * case through the locale-independent Strings.toLowerCase, not
+     * String.toLowerCase(). Under the Turkish locale String.toLowerCase("IT")
+     * yields "ıt" (dotless i), which would make c=IT and c=it canonicalize
+     * differently and compare unequal. This pins the behaviour to ASCII
+     * case-folding regardless of the default locale (issue #1103).
+     */
+    private void turkishLocaleCanonicalizeTest()
+        throws Exception
+    {
+        Locale turkish = new Locale("tr", "TR");
+
+        // Precondition: confirm the JVM's Turkish locale really does the
+        // dotless-i fold (String.toLowerCase("IT") -> "ıt", not "it"),
+        // otherwise the test would pass vacuously.
+        isTrue("Turkish locale dotless-i fold not active", !"IT".toLowerCase(turkish).equals("it"));
+
+        Locale defaultLocale = Locale.getDefault();
+        try
+        {
+            Locale.setDefault(turkish);
+
+            isTrue("canonicalize must ASCII-fold under Turkish locale", "it".equals(IETFUtils.canonicalize("IT")));
+
+            X500Name upper = new X500Name("CN=ITALY,C=IT");
+            X500Name lower = new X500Name("CN=italy,C=it");
+            if (!upper.equals(lower))
+            {
+                fail("X500Name equality is locale-sensitive under Turkish locale");
+            }
+            if (upper.hashCode() != lower.hashCode())
+            {
+                fail("X500Name hashCode is locale-sensitive under Turkish locale");
+            }
+        }
+        finally
+        {
+            Locale.setDefault(defaultLocale);
+        }
     }
 
     /**

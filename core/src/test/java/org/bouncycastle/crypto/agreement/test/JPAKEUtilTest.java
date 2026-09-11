@@ -5,6 +5,7 @@ import java.security.SecureRandom;
 
 import junit.framework.TestCase;
 import org.bouncycastle.crypto.CryptoException;
+import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.agreement.jpake.JPAKEPrimeOrderGroup;
 import org.bouncycastle.crypto.agreement.jpake.JPAKEPrimeOrderGroups;
@@ -138,6 +139,62 @@ public class JPAKEUtilTest
         }
     }
 
+    /**
+     * The MacTag comparison encodes both sides to the MAC's fixed width so its running time does
+     * not depend on the expected - secret-derived - value. calculateMacTag reads the MAC output
+     * with the <i>signed</i> BigInteger(byte[]) constructor, so a tag is negative about half the
+     * time, and about one tag in 240 has a two's-complement encoding shorter than the MAC. Those
+     * are the tags a zero-padding fixed-width encoding (BigIntegers.asUnsignedByteArray) fails to
+     * round-trip, so enough tags are exercised here to include some, and every one of them has to
+     * validate. A tag too wide to be one is rejected.
+     */
+    public void testValidateMacTagEncoding()
+        throws CryptoException
+    {
+        JPAKEPrimeOrderGroup pg1 = JPAKEPrimeOrderGroups.SUN_JCE_1024;
+
+        Digest digest = SHA256Digest.newInstance();
+
+        BigInteger gx1 = BigInteger.valueOf(11);
+        BigInteger gx2 = BigInteger.valueOf(22);
+        BigInteger gx3 = BigInteger.valueOf(33);
+        BigInteger gx4 = BigInteger.valueOf(44);
+
+        int shortEncodings = 0;
+
+        for (int i = 0; i != 4096; i++)
+        {
+            BigInteger keyingMaterial = BigInteger.valueOf(i + 1);
+
+            BigInteger macTag = JPAKEUtil.calculateMacTag(
+                "participantId", "partnerParticipantId", gx1, gx2, gx3, gx4, keyingMaterial, digest);
+
+            if (macTag.toByteArray().length != digest.getDigestSize())
+            {
+                shortEncodings++;
+            }
+
+            /* the tag the partner computed must always validate */
+            JPAKEUtil.validateMacTag("partnerParticipantId", "participantId",
+                gx3, gx4, gx1, gx2, keyingMaterial, digest, macTag);
+
+            /* and a tag too wide to be one must not */
+            try
+            {
+                JPAKEUtil.validateMacTag("partnerParticipantId", "participantId",
+                    gx3, gx4, gx1, gx2, keyingMaterial, digest,
+                    macTag.add(BigInteger.ONE.shiftLeft(8 * digest.getDigestSize())));
+                fail("oversized MacTag accepted");
+            }
+            catch (CryptoException e)
+            {
+                // pass
+            }
+        }
+
+        assertTrue("no short-encoding MacTags were exercised", shortEncodings > 0);
+    }
+
     public void testValidateNotNull()
     {
         JPAKEUtil.validateNotNull("a", "description");
@@ -150,6 +207,103 @@ public class JPAKEUtilTest
         catch (NullPointerException e)
         {
             // pass
+        }
+    }
+
+    /**
+     * Every exponent carrying private material is randomised with a multiple of q before it is
+     * raised, so each of those calls draws exactly one blinding factor. The values themselves must
+     * not move, which is what the plain BigInteger arithmetic here checks - a multiple of the wrong
+     * order would change them, and nothing else in the suite would notice.
+     */
+    public void testPrivateExponentsAreBlinded()
+        throws CryptoException
+    {
+        JPAKEPrimeOrderGroup pg = JPAKEPrimeOrderGroups.SUN_JCE_1024;
+        BigInteger p = pg.getP();
+        BigInteger q = pg.getQ();
+        BigInteger g = pg.getG();
+
+        SecureRandom random = new SecureRandom();
+        Digest digest = SHA256Digest.newInstance();
+
+        BigInteger x1 = JPAKEUtil.generateX1(q, random);
+        BigInteger x2 = JPAKEUtil.generateX2(q, random);
+        BigInteger x3 = JPAKEUtil.generateX1(q, random);
+        BigInteger x4 = JPAKEUtil.generateX2(q, random);
+        BigInteger s = JPAKEUtil.calculateS(q, "password".toCharArray());
+
+        CountingRandom counting = new CountingRandom(random);
+
+        BigInteger gx1 = JPAKEUtil.calculateGx(p, q, g, x1, counting);
+        assertEquals("g^x1 did not blind its exponent", 1, counting.count);
+        assertEquals("g^x1 changed under blinding", g.modPow(x1, p), gx1);
+
+        BigInteger gx3 = JPAKEUtil.calculateGx(p, q, g, x3, counting);
+        BigInteger gx4 = JPAKEUtil.calculateGx(p, q, g, x4, counting);
+
+        BigInteger gA = JPAKEUtil.calculateGA(p, gx1, gx3, gx4);
+        BigInteger x2s = JPAKEUtil.calculateX2s(q, x2, s);
+
+        counting.count = 0;
+        BigInteger a = JPAKEUtil.calculateA(p, q, gA, x2s, counting);
+        assertEquals("A did not blind its exponent", 1, counting.count);
+        assertEquals("A changed under blinding", gA.modPow(x2s, p), a);
+
+        counting.count = 0;
+        BigInteger[] zkp = JPAKEUtil.calculateZeroKnowledgeProof(p, q, g, gx1, x1, "participant1", digest, counting);
+        assertEquals("g^v did not blind its exponent", 1, counting.count);
+        JPAKEUtil.validateZeroKnowledgeProof(p, q, g, gx1, zkp, "participant1", digest);
+
+        // the other participant's B, as round 2 would produce it
+        BigInteger gB = JPAKEUtil.calculateGA(p, gx3, gx1, JPAKEUtil.calculateGx(p, q, g, x2, counting));
+        BigInteger b = JPAKEUtil.calculateA(p, q, gB, JPAKEUtil.calculateX2s(q, x4, s), counting);
+
+        counting.count = 0;
+        BigInteger keyingMaterial = JPAKEUtil.calculateKeyingMaterial(p, q, gx4, x2, s, b, counting);
+        assertEquals("keying material did not blind both exponents", 2, counting.count);
+        assertEquals("keying material changed under blinding",
+            gx4.modPow(x2.multiply(s).negate().mod(q), p).multiply(b).modPow(x2, p), keyingMaterial);
+
+        // the deprecated overload has no q to work with, so it blinds by p-1 instead, and takes its
+        // randomness from CryptoServicesRegistrar since it has nowhere else to get it
+        counting.count = 0;
+        CryptoServicesRegistrar.setSecureRandom(counting);
+        try
+        {
+            assertEquals("g^x1 changed under p-1 blinding", gx1, JPAKEUtil.calculateGx(p, g, x1));
+            assertEquals("the deprecated g^x did not blind its exponent", 1, counting.count);
+        }
+        finally
+        {
+            CryptoServicesRegistrar.setSecureRandom(null);
+        }
+    }
+
+    /**
+     * Counts blinding factors specifically. A blinding factor is seven bits, so it is the only
+     * single-byte request any of these calls makes - everything else here draws a value the size of
+     * q. Counting every request instead would not be exact, since createRandomInRange retries.
+     */
+    private static class CountingRandom
+        extends SecureRandom
+    {
+        private final SecureRandom delegate;
+
+        int count;
+
+        CountingRandom(SecureRandom delegate)
+        {
+            this.delegate = delegate;
+        }
+
+        public void nextBytes(byte[] bytes)
+        {
+            if (bytes.length == 1)
+            {
+                count++;
+            }
+            delegate.nextBytes(bytes);
         }
     }
 

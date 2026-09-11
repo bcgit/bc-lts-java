@@ -11,18 +11,22 @@ import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.asn1.x9.X9ECParameters;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.Digest;
+import org.bouncycastle.crypto.digests.NullDigest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.digests.SM3Digest;
 import org.bouncycastle.crypto.generators.ECKeyPairGenerator;
 import org.bouncycastle.crypto.generators.SM2KeyPairGenerator;
 import org.bouncycastle.crypto.params.ECDomainParameters;
 import org.bouncycastle.crypto.params.ECKeyGenerationParameters;
+import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.params.ParametersWithID;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
 import org.bouncycastle.crypto.signers.SM2Signer;
 import org.bouncycastle.math.ec.ECConstants;
 import org.bouncycastle.math.ec.ECCurve;
+import org.bouncycastle.math.ec.ECFieldElement;
 import org.bouncycastle.math.ec.ECPoint;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.BigIntegers;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.test.FixedSecureRandom;
@@ -224,6 +228,131 @@ public class SM2SignerTest
         isTrue("verification failed", signer.verifySignature(sig3));
     }
 
+    /**
+     * A signer for the case where Z and the message hash are calculated elsewhere and only the
+     * resulting e is handed to the signer - see github #2429. The zero-length Z leaves the
+     * NullDigest holding exactly the bytes passed to update().
+     */
+    private static class PrehashSM2Signer
+        extends SM2Signer
+    {
+        PrehashSM2Signer()
+        {
+            super(new NullDigest());
+        }
+
+        protected byte[] getZ(byte[] userID)
+        {
+            return new byte[0];
+        }
+    }
+
+    private void doPrehashSignerTest()
+        throws Exception
+    {
+        ECDomainParameters domainParams = PARAMS_FP_DRAFT;
+
+        byte[] idBytes = Strings.toByteArray("ALICE123@YAHOO.COM");
+        byte[] msgBytes = Strings.toByteArray("message digest");
+
+        AsymmetricCipherKeyPair kp = generateKeyPair(domainParams, "128B2FA8BD433C6C068C8D803DFF79792A519A55171B1B650C23661D15897263");
+
+        byte[] e = calculateSM2E(domainParams, (ECPublicKeyParameters)kp.getPublic(), idBytes, msgBytes);
+
+        SM2Signer prehashSigner = new PrehashSM2Signer();
+
+        prehashSigner.init(true, new ParametersWithID(
+            new ParametersWithRandom(kp.getPrivate(), new TestRandomBigInteger("6CB28D99385C175C94F94E934817663FC176D925DD72B727260DBAAE1FB2F96F", 16)),
+            idBytes));
+
+        prehashSigner.update(e, 0, e.length);
+
+        byte[] sig = prehashSigner.generateSignature();
+
+        BigInteger[] rs = decode(sig);
+
+        // the draft RFC test vector for the message - a pre-hashed sign must land on the same signature
+        isTrue("prehash r wrong", rs[0].equals(new BigInteger("40F1EC59F793D9F49E09DCEF49130D4194F79FB1EED2CAA55BACDB49C4E755D1", 16)));
+        isTrue("prehash s wrong", rs[1].equals(new BigInteger("6FC6DAC32C5D5CF10C77DFB20F7C2EB667A457872FB09EC56327A67EC7DEEBE7", 16)));
+
+        // a standard signer must accept a signature the pre-hashed one produced
+        SM2Signer signer = new SM2Signer();
+
+        signer.init(false, new ParametersWithID(kp.getPublic(), idBytes));
+        signer.update(msgBytes, 0, msgBytes.length);
+        isTrue("standard verify of prehash signature failed", signer.verifySignature(sig));
+
+        // ... and the pre-hashed one a signature the standard signer produced
+        signer.init(true, new ParametersWithID(
+            new ParametersWithRandom(kp.getPrivate(), new TestRandomBigInteger("6CB28D99385C175C94F94E934817663FC176D925DD72B727260DBAAE1FB2F96F", 16)),
+            idBytes));
+        signer.update(msgBytes, 0, msgBytes.length);
+        byte[] stdSig = signer.generateSignature();
+
+        isTrue("prehash signature not the same as the standard one", areEqual(sig, stdSig));
+
+        prehashSigner.init(false, new ParametersWithID(kp.getPublic(), idBytes));
+        prehashSigner.update(e, 0, e.length);
+        isTrue("prehash verify of standard signature failed", prehashSigner.verifySignature(stdSig));
+
+        // a wrong e must not verify
+        byte[] wrongE = Arrays.clone(e);
+
+        wrongE[0] ^= 0x01;
+
+        prehashSigner.init(false, new ParametersWithID(kp.getPublic(), idBytes));
+        prehashSigner.update(wrongE, 0, wrongE.length);
+        isTrue("prehash verify of altered e succeeded", !prehashSigner.verifySignature(stdSig));
+
+        // reuse: the signer must go back to a clean e on reset()
+        prehashSigner.init(false, new ParametersWithID(kp.getPublic(), idBytes));
+        prehashSigner.update(wrongE, 0, wrongE.length);
+        prehashSigner.reset();
+        prehashSigner.update(e, 0, e.length);
+        isTrue("prehash verify after reset failed", prehashSigner.verifySignature(stdSig));
+    }
+
+    private static byte[] calculateSM2E(ECDomainParameters domainParams, ECPublicKeyParameters pubKey, byte[] idBytes, byte[] msgBytes)
+    {
+        Digest digest = new SM3Digest();
+
+        int len = idBytes.length * 8;
+
+        digest.update((byte)(len >>> 8));
+        digest.update((byte)len);
+        digest.update(idBytes, 0, idBytes.length);
+
+        addFieldElement(digest, domainParams.getCurve().getA());
+        addFieldElement(digest, domainParams.getCurve().getB());
+        addFieldElement(digest, domainParams.getG().getAffineXCoord());
+        addFieldElement(digest, domainParams.getG().getAffineYCoord());
+
+        ECPoint q = pubKey.getQ().normalize();
+
+        addFieldElement(digest, q.getAffineXCoord());
+        addFieldElement(digest, q.getAffineYCoord());
+
+        byte[] z = new byte[digest.getDigestSize()];
+
+        digest.doFinal(z, 0);
+
+        digest.update(z, 0, z.length);
+        digest.update(msgBytes, 0, msgBytes.length);
+
+        byte[] e = new byte[digest.getDigestSize()];
+
+        digest.doFinal(e, 0);
+
+        return e;
+    }
+
+    private static void addFieldElement(Digest digest, ECFieldElement v)
+    {
+        byte[] p = v.getEncoded();
+
+        digest.update(p, 0, p.length);
+    }
+
     private void doVerifyBoundsCheck()
         throws IOException
     {
@@ -298,6 +427,7 @@ public class SM2SignerTest
         doSignerTestFpP256SM3();
         doSignerTestFpP256Sha256();
         doSignerTestF2m();
+        doPrehashSignerTest();
         doVerifyBoundsCheck();
         doKeyGenAndSignBoundsCheck();
     }

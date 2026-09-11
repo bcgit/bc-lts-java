@@ -20,6 +20,7 @@ import org.bouncycastle.crypto.params.ECPrivateKeyParameters;
 import org.bouncycastle.crypto.params.ECPublicKeyParameters;
 import org.bouncycastle.crypto.params.GOST3410KeyGenerationParameters;
 import org.bouncycastle.crypto.params.GOST3410Parameters;
+import org.bouncycastle.crypto.params.GOST3410PrivateKeyParameters;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
 import org.bouncycastle.crypto.signers.GOST3410Signer;
 import org.bouncycastle.crypto.util.PrivateKeyFactory;
@@ -69,7 +70,9 @@ public class GOST3410Test
             new GOST3410_DParam(),
             new GOST3410_AExParam(),
             new GOST3410_BExParam(),
-            new GOST3410_CExParam()
+            new GOST3410_CExParam(),
+            new GOST3410_BlindedNonce(),
+            new GOST3410_ZeroNonce()
         };
 
     public static void main(
@@ -94,6 +97,182 @@ public class GOST3410Test
         }
 
         return new SimpleTestResult(true, "GOST3410: Okay");
+    }
+
+    /**
+     * Signing randomises the exponent k before raising a to it, so that the timing of the
+     * exponentiation does not reveal k - which the s component would then give up the private key
+     * from. The KAT sub-tests above already notice if that randomiser disappears, because their
+     * FixedSecureRandom would be left with an unconsumed byte, but they report it as "unexpected
+     * number of bytes used", which reads like a test bug and invites deleting the byte. This says
+     * what it means.
+     */
+    private static class GOST3410_BlindedNonce
+        implements Test
+    {
+        public String getName()
+        {
+            return "GOST3410-BLINDED-NONCE";
+        }
+
+        public TestResult perform()
+        {
+            GOST3410Parameters params = new GOST3410Parameters(
+                new BigInteger("EE8172AE8996608FB69359B89EB82A69854510E2977A4D63BC97322CE5DC3386"
+                    + "EA0A12B343E9190F23177539845839786BB0C345D165976EF2195EC9B1C379E3", 16),
+                new BigInteger("98915E7EC8265EDFCDA31E88F24809DDB064BDC7285DD50D7289F0AC6F49DD2D", 16),
+                new BigInteger("9E96031500C8774A869582D4AFDE2127AFAD2538B4B6270A6F7C8837B50D50F2"
+                    + "06755984A49E509304D648BE2AB5AAB18EBE2CD46AC3D8495B142AA6CE23E21C", 16));
+
+            GOST3410KeyPairGenerator kpGen = new GOST3410KeyPairGenerator();
+            kpGen.init(new GOST3410KeyGenerationParameters(new SecureRandom(), params));
+            AsymmetricCipherKeyPair pair = kpGen.generateKeyPair();
+
+            CountingRandom counting = new CountingRandom(new SecureRandom());
+
+            GOST3410Signer signer = new GOST3410Signer();
+            signer.init(true, new ParametersWithRandom(pair.getPrivate(), counting));
+
+            byte[] message = Hex.decode("3042453136414534424341374533364339313734453431443642453241453435");
+
+            for (int i = 0; i != 4; i++)
+            {
+                counting.count = 0;
+
+                BigInteger[] sig = signer.generateSignature(message);
+
+                if (counting.count != 1)
+                {
+                    return new SimpleTestResult(false, getName() + ": nonce was not blinded (round "
+                        + i + ", draws " + counting.count + ")");
+                }
+
+                GOST3410Signer verifier = new GOST3410Signer();
+                verifier.init(false, pair.getPublic());
+
+                if (!verifier.verifySignature(message, sig[0], sig[1]))
+                {
+                    return new SimpleTestResult(false, getName()
+                        + ": blinded signature did not verify (round " + i + ")");
+                }
+            }
+
+            return new SimpleTestResult(true, getName() + ": Okay");
+        }
+    }
+
+    /**
+     * A nonce of zero has to be discarded and redrawn. It was not: the draw was rejected only for
+     * landing at or past q, so a zero survived, and a zero is the one value that gives the signing
+     * key away outright - the blinded exponent becomes a multiple of q so r is 1, and s = k * m +
+     * x * r then collapses to x itself. It is a 2^-256 event, but it is the sibling of the range
+     * check the GOST R 34.10-2001 signer needed, and free to close.
+     */
+    private static class GOST3410_ZeroNonce
+        implements Test
+    {
+        public String getName()
+        {
+            return "GOST3410-ZERO-NONCE";
+        }
+
+        public TestResult perform()
+        {
+            GOST3410Parameters params = new GOST3410Parameters(
+                new BigInteger("EE8172AE8996608FB69359B89EB82A69854510E2977A4D63BC97322CE5DC3386"
+                    + "EA0A12B343E9190F23177539845839786BB0C345D165976EF2195EC9B1C379E3", 16),
+                new BigInteger("98915E7EC8265EDFCDA31E88F24809DDB064BDC7285DD50D7289F0AC6F49DD2D", 16),
+                new BigInteger("9E96031500C8774A869582D4AFDE2127AFAD2538B4B6270A6F7C8837B50D50F2"
+                    + "06755984A49E509304D648BE2AB5AAB18EBE2CD46AC3D8495B142AA6CE23E21C", 16));
+
+            GOST3410KeyPairGenerator kpGen = new GOST3410KeyPairGenerator();
+            kpGen.init(new GOST3410KeyGenerationParameters(new SecureRandom(), params));
+            AsymmetricCipherKeyPair pair = kpGen.generateKeyPair();
+
+            BigInteger x = ((GOST3410PrivateKeyParameters)pair.getPrivate()).getX();
+
+            GOST3410Signer signer = new GOST3410Signer();
+            signer.init(true, new ParametersWithRandom(pair.getPrivate(),
+                new ZeroFirstRandom(new SecureRandom())));
+
+            byte[] message = Hex.decode("3042453136414534424341374533364339313734453431443642453241453435");
+
+            BigInteger[] sig = signer.generateSignature(message);
+
+            if (sig[1].equals(x))
+            {
+                return new SimpleTestResult(false, getName()
+                    + ": zero nonce was used - s is the private key");
+            }
+
+            GOST3410Signer verifier = new GOST3410Signer();
+            verifier.init(false, pair.getPublic());
+
+            if (!verifier.verifySignature(message, sig[0], sig[1]))
+            {
+                return new SimpleTestResult(false, getName()
+                    + ": signature after a rejected zero nonce did not verify");
+            }
+
+            return new SimpleTestResult(true, getName() + ": Okay");
+        }
+    }
+
+    /**
+     * Zero for the first request - the nonce - then real randomness, so the redraw that has to
+     * follow gets a usable value. Signing draws k before the exponent randomiser.
+     */
+    private static class ZeroFirstRandom
+        extends SecureRandom
+    {
+        private final SecureRandom delegate;
+
+        private boolean first = true;
+
+        ZeroFirstRandom(SecureRandom delegate)
+        {
+            this.delegate = delegate;
+        }
+
+        public void nextBytes(byte[] bytes)
+        {
+            if (first)
+            {
+                first = false;
+                Arrays.fill(bytes, (byte)0);
+            }
+            else
+            {
+                delegate.nextBytes(bytes);
+            }
+        }
+    }
+
+    /**
+     * Counts randomiser draws only. The randomiser is seven bits, so it is the only single-byte
+     * request signing makes - k is the size of q. Counting every request would not be exact, because
+     * k is drawn in a rejection loop and can take more than one attempt.
+     */
+    private static class CountingRandom
+        extends SecureRandom
+    {
+        private final SecureRandom delegate;
+
+        int count;
+
+        CountingRandom(SecureRandom delegate)
+        {
+            this.delegate = delegate;
+        }
+
+        public void nextBytes(byte[] bytes)
+        {
+            if (bytes.length == 1)
+            {
+                count++;
+            }
+            delegate.nextBytes(bytes);
+        }
     }
 
     private static class GOST3410EncodingDecoding
@@ -941,7 +1120,11 @@ public class GOST3410Test
 
         FixedSecureRandom init_random = new FixedSecureRandom(
             new FixedSecureRandom.Source[]{new FixedSecureRandom.Data(Hex.decode("00005EC900007341")), new FixedSecureRandom.Data(zeroTwo(64))});
-        FixedSecureRandom random = new TestRandomData(Hex.decode("90F3A564439242F5186EBB224C8E223811B7105C64E4F5390807E6362DF4C72A"));
+        // the trailing byte feeds the randomizer the signer adds to k, in the same way DSATest's
+        // signing randoms carry one - the signature values below are unchanged by it, since a^q = 1
+        FixedSecureRandom random = new FixedSecureRandom(new FixedSecureRandom.Source[]{
+            new FixedSecureRandom.Data(Hex.decode("90F3A564439242F5186EBB224C8E223811B7105C64E4F5390807E6362DF4C72A")),
+            new FixedSecureRandom.Data(Hex.decode("01"))});
         FixedSecureRandom keyRandom = new TestRandomData(Hex.decode("3036314538303830343630454235324435324234314132373832433138443046"));
 
         BigInteger pValue = new BigInteger("EE8172AE8996608FB69359B89EB82A69854510E2977A4D63BC97322CE5DC3386EA0A12B343E9190F23177539845839786BB0C345D165976EF2195EC9B1C379E3", 16);
@@ -1043,7 +1226,11 @@ public class GOST3410Test
 
         FixedSecureRandom init_random = new FixedSecureRandom(
             new FixedSecureRandom.Source[]{new FixedSecureRandom.Data(Hex.decode("000000003DFC46F1000000000000000D")), new FixedSecureRandom.Data(zeroTwo(64))});
-        FixedSecureRandom random = new TestRandomData(Hex.decode("90F3A564439242F5186EBB224C8E223811B7105C64E4F5390807E6362DF4C72A"));
+        // the trailing byte feeds the randomizer the signer adds to k, in the same way DSATest's
+        // signing randoms carry one - the signature values below are unchanged by it, since a^q = 1
+        FixedSecureRandom random = new FixedSecureRandom(new FixedSecureRandom.Source[]{
+            new FixedSecureRandom.Data(Hex.decode("90F3A564439242F5186EBB224C8E223811B7105C64E4F5390807E6362DF4C72A")),
+            new FixedSecureRandom.Data(Hex.decode("01"))});
         FixedSecureRandom keyRandom = new TestRandomData(Hex.decode("3036314538303830343630454235324435324234314132373832433138443046"));
 
         BigInteger pValue = new BigInteger("8b08eb135af966aab39df294538580c7da26765d6d38d30cf1c06aae0d1228c3316a0e29198460fad2b19dc381c15c888c6dfd0fc2c565abb0bf1faff9518f85", 16);

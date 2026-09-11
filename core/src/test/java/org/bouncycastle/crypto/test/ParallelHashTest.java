@@ -120,6 +120,48 @@ public class ParallelHashTest
 
         testEmpty();
         testClone();
+        testVariableOutputLength();
+    }
+
+    private void testVariableOutputLength()
+    {
+        byte[] data = Hex.decode("00 01 02 03 04 05 06 07 08 09 0A 0B 10 11 12 13 14 15 16 17 18 19 1A 1B 20 21 22 23 24 25 26 27 28 29 2A 2B 30 31 32 33 34 35 36 37 38 39 3A 3B 40 41 42 43 44 45 46 47 48 49 4A 4B 50 51 52 53 54 55 56 57 58 59 5A 5B");
+
+        // the requested length is the L parameter, so asking a 512 bit ParallelHash for 32 bytes
+        // is ParallelHash128(X, 12, 256, S), the sample value above, not a truncation of the 64 byte one.
+        ParallelHash pHash = new ParallelHash(128, Strings.toByteArray("Parallel Data"), 12, 512);
+
+        pHash.update(data, 0, data.length);
+
+        byte[] res = new byte[32];
+
+        pHash.doFinal(res, 0, res.length);
+
+        isTrue("oops!", Arrays.areEqual(Hex.decode("F7 FD 53 12 89 6C 66 85 C8 28 AF 7E 2A DB 97 E3 93 E7 F8 D5 4E 3C 2E A4 B9 5E 5A CA 37 96 E8 FC"), res));
+
+        pHash = new ParallelHash(256, Strings.toByteArray("Parallel Data"), 12, 256);
+
+        pHash.update(data, 0, data.length);
+
+        res = new byte[64];
+
+        pHash.doFinal(res, 0, res.length);
+
+        isTrue("oops!", Arrays.areEqual(Hex.decode("69 D0 FC B7 64 EA 05 5D D0 93 34 BC 60 21 CB 7E 4B 61 34 8D FF 37 5D A2 62 67 1C DE C3 EF FA 8D 1B 45 68 A6 CC E1 6B 1C AD 94 6D DD E2 7F 6C E2 B8 DE E4 CD 1B 24 85 1E BF 00 EB 90 D4 38 13 E9"), res));
+
+        // SP 800-185 sec. 6.1: changing the requested output length gives unrelated output, so the shorter one is not a prefix of the longer.
+        byte[] shortRes = new byte[32];
+        byte[] longRes = new byte[64];
+
+        pHash = new ParallelHash(128, Strings.toByteArray("Parallel Data"), 12);
+        pHash.update(data, 0, data.length);
+        pHash.doFinal(shortRes, 0, shortRes.length);
+
+        pHash = new ParallelHash(128, Strings.toByteArray("Parallel Data"), 12);
+        pHash.update(data, 0, data.length);
+        pHash.doFinal(longRes, 0, longRes.length);
+
+        isTrue("oops!", !Arrays.areEqual(shortRes, Arrays.copyOfRange(longRes, 0, 32)));
     }
 
     private void testEmpty()
