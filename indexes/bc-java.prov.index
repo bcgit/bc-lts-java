@@ -234,14 +234,14 @@ fbab4e0500c67efaf6e1f13f6aff7f9ee07c133e5a1c558bbd8641c528a2f88d  prov/src/main/
 8e18a261867703b0ee2be921208d703cdcbc7979ab0bad2e9c41b1d33b0ade89  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/RC2.java
 2cbe13cdf5e023a5035751b82ecb85eb3a3146653c5bd60e5edd695d9c641143  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/TEA.java
 96c6b462e61b2d3ac183e19fb5b99fc9c1bdd2fa9d6ea6a6106ae055920aef28  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/ARC4.java
-98b909d699d2b08c9c9460dfc025f6317ea1be9a6f850449ef3159db45e3a810  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/SM4.java
+6828d4906bc91a89b6da1d8363dcbeb82736d57584e1e6cb8bbe9116bb73b076  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/SM4.java
 fdf6b9600b8169030963e9d9f2d75b4f2bc58bf2ef4d05722a1b9c5a1d6f8a4e  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/Twofish.java
 33307870965efae79002a26eb2f69364f55f40739a29db491ea33b48f5d67a1e  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/XSalsa20.java
 db185b83b72e8bca79b50d69633328f33e2727081e52a57ec02372866dda889d  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/Zuc.java
 788a26f1cc34265b2414e5c834206206433f37b2dcfd3892458e3e2839fdf528  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/GOST28147.java
 290a6ffdd49f40f700807b039624ecfdb01d228507740eef757c968a412c4785  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/Rijndael.java
 3c5e8a7eea820b794c261ba8703ba94e779a6670d308f0fac6a69cf8b32b1dea  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/DESede.java
-26dbda27401964ae12304bbe0e657b770b0856636a359b792e1147f2fbb541ec  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/ARIA.java
+78f297230f08f6068a2318af3876e2c3be25329d731e7138978af4e68de2d6de  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/ARIA.java
 08ef38b7f1cb8c8170da57c7d8473d5d72e85a4f94f5a5be7c10f366b34bc228  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/TLSKDF.java
 909b61811101603f57ce10b54fcb0b7f87c9650f05a42dc3c1ea35a672b2e76a  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/RC6.java
 c2b541230fc949788fadbd2ac6f5672c93a880763360a8997b5f5e6436e851ef  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/RC5.java
@@ -267,7 +267,7 @@ ea893e8cc44bcf0c4251d6d45e63eceb75d6a8a499b4ac2b4b0d5328cc702bfc  prov/src/main/
 f972307b7cc1af972f8548db1e015de06ae972f2d3f4ed89b955a426b3ee115e  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/BCPBEKey.java
 6c803ec9c98fd968f157a2c3008ddf80afaa59b06f3c463024e0739e12dfbd22  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/PBEPBKDF1.java
 3d81bddca4832beae29144ac9ccea265b14d3d3ee823be0a32d94d06496624a7  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/Skipjack.java
-403ac67e6fd9d92c9551d87eff826d306ad7b9e863b0861b0c72f4688f9a3e87  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/PBEPBKDF2.java
+f46d255707d351667f0356fc13e3772f2a09aebbd5c7afeea2c25390d7ad24fb  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/PBEPBKDF2.java
 c30bca5cb4e4bbf9e7c76b5a659d03f813f57e6e3b34ec19bac2193976667973  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/Grainv1.java
 0b315ca5733b71e8e49e3abef334a14defc30ef746b12bee7983178427dab416  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/Grain128.java
 25d0f18a97fac9281509f8b07b90182c003df383bc35ef0f37fd6e9d02f51617  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/VMPC.java
@@ -277,7 +277,7 @@ c947b87293b1f043497aeee91a52576b3128bfedbd0e1fec19580d97f82a419e  prov/src/main/
 07db99cb3f00af6599bd64a19042af00100c4b228c824cf4a3fd592b7b923ac5  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/Serpent.java
 7fd362c233158dafe616128fd5f462340c6a7657f1c22efd02db982c28c8b9e5  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/Noekeon.java
 df3e4f6bf1a62c9e3122e387dd4be7f681ad2e09c16f56f9660f0a5f41361fe8  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/PBEPKCS12.java
-afa2f7ebf44255dec44b80d793e1f79f924f2555c26ee3993bbd14030fbad772  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/AES.java
+6a0fbdd3e5112b658ba00065056eebd50a47f014d5a5a1c62dc84049a32db698  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/AES.java
 63a53cdcb9dc744e0de61c1a7630943009c66c63c4527c31709bfba69c36a246  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/SymmetricAlgorithmProvider.java
 2452fa7ff8dba2dee0505a812ca2eb851e80ef5b5c24c946d4273778f2b05eff  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/DSTU7624.java
 eb9173802300632c27ba5205e29fb6b333023f5fda2afbad704c17a7616ad41b  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/Blowfish.java
