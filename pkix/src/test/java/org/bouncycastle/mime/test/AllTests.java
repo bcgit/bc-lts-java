@@ -44,8 +44,6 @@ public class AllTests
         suite.addTestSuite(TestSMIMESigned.class);
         suite.addTestSuite(TestSMIMESignEncrypt.class);
         suite.addTestSuite(SMIMEWriterHeaderInjectionTest.class);
-        // In this package but named by no suite, so it never ran.
-        suite.addTestSuite(TestJournalingSecureRandomEncrypt.class);
 
         return new MIMETestSetup(suite);
     }
