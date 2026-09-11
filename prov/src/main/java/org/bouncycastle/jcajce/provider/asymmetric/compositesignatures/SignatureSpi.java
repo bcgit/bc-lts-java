@@ -21,22 +21,20 @@ import java.security.spec.PSSParameterSpec;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.digests.SHA384Digest;
 import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.digests.SHAKEDigest;
-import org.bouncycastle.internal.asn1.iana.IANAObjectIdentifiers;
+import org.bouncycastle.asn1.iana.IANAObjectIdentifiers;
 import org.bouncycastle.internal.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.jcajce.CompositePrivateKey;
 import org.bouncycastle.jcajce.CompositePublicKey;
 import org.bouncycastle.jcajce.interfaces.BCKey;
+import org.bouncycastle.jcajce.provider.util.SecurityExceptions;
 import org.bouncycastle.jcajce.spec.CompositeSignatureSpec;
 import org.bouncycastle.jcajce.spec.ContextParameterSpec;
 import org.bouncycastle.jcajce.util.BCJcaJceHelper;
@@ -54,24 +52,12 @@ public class SignatureSpi
 {
     //the byte encoding of the ASCII string "CompositeAlgorithmSignatures2025"
     private static final byte[] prefix = Hex.decode("436f6d706f73697465416c676f726974686d5369676e61747572657332303235");
-    private static final Map<String, String> canonicalNames = new HashMap<String, String>();
     private static final HashMap<ASN1ObjectIdentifier, byte[]> domainSeparators = new LinkedHashMap<ASN1ObjectIdentifier, byte[]>();
     private static final HashMap<ASN1ObjectIdentifier, AlgorithmParameterSpec> algorithmsParameterSpecs = new HashMap<ASN1ObjectIdentifier, AlgorithmParameterSpec>();
-    private static final String ML_DSA_44 = "ML-DSA-44";
-    private static final String ML_DSA_65 = "ML-DSA-65";
-    private static final String ML_DSA_87 = "ML-DSA-87";
-    private final SecureRandom random = CryptoServicesRegistrar.getSecureRandom();
     private Key compositeKey;
 
     static
     {
-        canonicalNames.put("MLDSA44", ML_DSA_44);
-        canonicalNames.put("MLDSA65", ML_DSA_65);
-        canonicalNames.put("MLDSA87", ML_DSA_87);
-        canonicalNames.put(NISTObjectIdentifiers.id_ml_dsa_44.getId(), ML_DSA_44);
-        canonicalNames.put(NISTObjectIdentifiers.id_ml_dsa_65.getId(), ML_DSA_65);
-        canonicalNames.put(NISTObjectIdentifiers.id_ml_dsa_87.getId(), ML_DSA_87);
-        
         domainSeparators.put(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PSS_SHA256, Hex.decode("434f4d505349472d4d4c44534134342d525341323034382d5053532d534841323536")); // COMPSIG-MLDSA44-RSA2048-PSS-SHA256
         domainSeparators.put(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256, Hex.decode("434f4d505349472d4d4c44534134342d525341323034382d504b435331352d534841323536")); // COMPSIG-MLDSA44-RSA2048-PKCS15-SHA256
         domainSeparators.put(IANAObjectIdentifiers.id_MLDSA44_Ed25519_SHA512, Hex.decode("434f4d505349472d4d4c44534134342d456432353531392d534841353132")); // COMPSIG-MLDSA44-Ed25519-SHA512
@@ -116,10 +102,17 @@ public class SignatureSpi
     private JcaJceHelper helper = new BCJcaJceHelper();
 
     private Digest preHashDigest;
+    private SecureRandom sigRandom;
     private ContextParameterSpec contextSpec;
     private AlgorithmParameters engineParams = null;
 
     private boolean unprimed = true;
+
+    // a CompositeSignatureSpec can arrive before the composite algorithm is known, in which case
+    // there is no baseDigest yet to build the pre-hash digest from - its choice is recorded here
+    // and applied when the key names the algorithm.
+    private boolean prehashOverride;
+    private boolean prehashOverrideSet;
 
     SignatureSpi(ASN1ObjectIdentifier algorithm, Digest preHashDigest)
     {
@@ -150,6 +143,7 @@ public class SignatureSpi
         }
 
         this.compositeKey = publicKey;
+        this.sigRandom = null;
 
         CompositePublicKey compositePublicKey = (CompositePublicKey)this.compositeKey;
 
@@ -166,7 +160,7 @@ public class SignatureSpi
 
             this.algorithm = sigAlgorithm;
             this.baseDigest = CompositeIndex.getDigest(sigAlgorithm);
-            this.preHashDigest = isPrehash ? new NullDigest(baseDigest.getDigestSize()) : baseDigest;
+            setPreHashDigest();
             this.domain = domainSeparators.get(sigAlgorithm);
             this.algs = CompositeIndex.getPairing(sigAlgorithm);
             this.componentSignatures = new Signature[algs.length];
@@ -191,6 +185,24 @@ public class SignatureSpi
     protected void engineInitSign(PrivateKey privateKey)
         throws InvalidKeyException
     {
+        initSign(privateKey, null);
+    }
+
+    /**
+     * The JCA base class only records the SecureRandom in appRandom, where nothing would consult it,
+     * so the composite has to override this to hand the random down to each component signer.
+     */
+    protected void engineInitSign(PrivateKey privateKey, SecureRandom random)
+        throws InvalidKeyException
+    {
+        initSign(privateKey, random);
+    }
+
+    private void initSign(PrivateKey privateKey, SecureRandom random)
+        throws InvalidKeyException
+    {
+        this.sigRandom = random;
+
         if (!(privateKey instanceof CompositePrivateKey))
         {
             throw new InvalidKeyException("Private key is not composite.");
@@ -212,7 +224,7 @@ public class SignatureSpi
 
             this.algorithm = sigAlgorithm;
             this.baseDigest = CompositeIndex.getDigest(sigAlgorithm);
-            this.preHashDigest = isPrehash ? new NullDigest(baseDigest.getDigestSize()) : baseDigest;
+            setPreHashDigest();
             this.domain = domainSeparators.get(sigAlgorithm);
             this.algs = CompositeIndex.getPairing(sigAlgorithm);
             this.componentSignatures = new Signature[algs.length];
@@ -276,9 +288,23 @@ public class SignatureSpi
         //for each component signature run initVerify with the corresponding private key.
         for (int i = 0; i < this.componentSignatures.length; i++)
         {
-            this.componentSignatures[i].initSign(compositePrivateKey.getPrivateKeys().get(i));
+            if (sigRandom != null)
+            {
+                this.componentSignatures[i].initSign(compositePrivateKey.getPrivateKeys().get(i), sigRandom);
+            }
+            else
+            {
+                this.componentSignatures[i].initSign(compositePrivateKey.getPrivateKeys().get(i));
+            }
         }
         this.unprimed = true;
+    }
+
+    private void setPreHashDigest()
+    {
+        boolean prehash = prehashOverrideSet ? prehashOverride : isPrehash;
+
+        this.preHashDigest = prehash ? new NullDigest(baseDigest.getDigestSize()) : baseDigest;
     }
 
     private void baseSigInit()
@@ -348,8 +374,9 @@ public class SignatureSpi
     }
 
     /**
-     * Method which calculates each component signature and constructs a composite signature
-     * which is a sequence of BIT STRINGs https://www.ietf.org/archive/id/draft-ounsworth-pq-composite-sigs-13.html#name-compositesignaturevalue
+     * Method which calculates each component signature over the composite message representative M'
+     * and returns their concatenation, mldsaSig || tradSig, as the CompositeSignatureValue of
+     * draft-ietf-lamps-pq-composite-sigs sec. 4.2.
      *
      * @return composite signature bytes
      * @throws SignatureException
@@ -357,27 +384,36 @@ public class SignatureSpi
     protected byte[] engineSign()
         throws SignatureException
     {
-        byte[] r = new byte[32];
-        random.nextBytes(r); // Secure random generator
-
-        if (preHashDigest != null)
+        try
         {
-            processPreHashedMessage(null);
+            // an empty message reaches here with no engineUpdate call to have primed the components
+            if (unprimed)
+            {
+                baseSigInit();
+            }
+
+            if (preHashDigest != null)
+            {
+                processPreHashedMessage();
+            }
+
+            byte[] mldsaSig = this.componentSignatures[0].sign();
+            byte[] tradSig = this.componentSignatures[1].sign();
+
+            // Concatenate: ML-DSA sig || Traditional sig
+            byte[] compositeSig = new byte[mldsaSig.length + tradSig.length];
+            System.arraycopy(mldsaSig, 0, compositeSig, 0, mldsaSig.length);
+            System.arraycopy(tradSig, 0, compositeSig, mldsaSig.length, tradSig.length);
+
+            return compositeSig;
         }
-
-        byte[] mldsaSig = this.componentSignatures[0].sign();
-        byte[] tradSig = this.componentSignatures[1].sign();
-
-        // Concatenate: ML-DSA sig || Traditional sig
-        byte[] compositeSig = new byte[mldsaSig.length + tradSig.length];
-        //System.arraycopy(r, 0, compositeSig, 0, 32);
-        System.arraycopy(mldsaSig, 0, compositeSig, 0, mldsaSig.length);
-        System.arraycopy(tradSig, 0, compositeSig, mldsaSig.length, tradSig.length);
-
-        return compositeSig;
+        finally
+        {
+            resetPreHashDigest();
+        }
     }
 
-    private void processPreHashedMessage(byte[] r)
+    private void processPreHashedMessage()
         throws SignatureException
     {
         byte[] dig = new byte[baseDigest.getDigestSize()];
@@ -388,9 +424,11 @@ public class SignatureSpi
         }
         catch (IllegalStateException e)
         {
-            throw new SignatureException(e.getMessage());
+            throw SecurityExceptions.signatureException(e.getMessage(), e);
         }
 
+        // M' = Prefix || Label || len(ctx) || ctx || PH(M) per sec. 2.2 of
+        // draft-ietf-lamps-pq-composite-sigs (no randomizer).
         for (int i = 0; i < this.componentSignatures.length; i++)
         {
             Signature componentSig = this.componentSignatures[i];
@@ -402,14 +440,11 @@ public class SignatureSpi
             }
             else
             {
+                // setContext has already bounded this at 255, per sec. 4.1 of the draft
                 byte[] ctx = contextSpec.getContext();
 
                 componentSig.update((byte)ctx.length);
                 componentSig.update(ctx);
-            }
-            if (r != null)
-            {
-                componentSig.update(r, 0, r.length);
             }
             componentSig.update(dig, 0, dig.length);
         }
@@ -417,11 +452,9 @@ public class SignatureSpi
 
     public static byte[][] splitCompositeSignature(byte[] compositeSignature, int mldsaSigLen)
     {
-        //byte[] r = new byte[32];
         byte[] mldsaSig = new byte[mldsaSigLen];
         byte[] tradSig = new byte[compositeSignature.length - mldsaSigLen];
 
-        //System.arraycopy(compositeSignature, 0, r, 0, 32);
         System.arraycopy(compositeSignature, 0, mldsaSig, 0, mldsaSigLen);
         System.arraycopy(compositeSignature, mldsaSigLen, tradSig, 0, tradSig.length);
 
@@ -440,47 +473,81 @@ public class SignatureSpi
     protected boolean engineVerify(byte[] signature)
         throws SignatureException
     {
-        int mldsaSigLen = 0;
-        if (algs[0].indexOf("44") > 0)
+        try
         {
-            mldsaSigLen = 2420;
-        }
-        else if (algs[0].indexOf("65") > 0)
-        {
-            mldsaSigLen = 3309;
-        }
-        else if (algs[0].indexOf("87") > 0)
-        {
-            mldsaSigLen = 4627;
-        }
-        if (mldsaSigLen == 0 || signature.length < mldsaSigLen)
-        {
-            throw new SignatureException("malformed composite signature");
-        }
-        byte[][] signatures = splitCompositeSignature(signature, mldsaSigLen);
-
-        if (preHashDigest != null)
-        {
-            processPreHashedMessage(null);
-        }
-
-        // Currently all signatures try to verify even if, e.g., the first is invalid.
-        // If each component verify() is constant time, then this is also, otherwise it does not make sense to iterate over all if one of them already fails.
-        // However, it is important that we do not provide specific error messages, e.g., "only the 2nd component failed to verify".
-        boolean fail = false;
-
-        for (int i = 0; i < this.componentSignatures.length; i++)
-        {
-            //signatures[0] is 32-byte random number
-            if (!this.componentSignatures[i].verify(signatures[i]))
+            // an empty message reaches here with no engineUpdate call to have primed the components
+            if (unprimed)
             {
-                fail = true;
+                baseSigInit();
             }
-        }
 
-        return !fail;
+            int mldsaSigLen = 0;
+            if (algs[0].indexOf("44") > 0)
+            {
+                mldsaSigLen = 2420;
+            }
+            else if (algs[0].indexOf("65") > 0)
+            {
+                mldsaSigLen = 3309;
+            }
+            else if (algs[0].indexOf("87") > 0)
+            {
+                mldsaSigLen = 4627;
+            }
+            if (mldsaSigLen == 0 || signature.length < mldsaSigLen)
+            {
+                throw new SignatureException("malformed composite signature");
+            }
+            byte[][] signatures = splitCompositeSignature(signature, mldsaSigLen);
+
+            if (preHashDigest != null)
+            {
+                processPreHashedMessage();
+            }
+
+            // Currently all signatures try to verify even if, e.g., the first is invalid.
+            // If each component verify() is constant time, then this is also, otherwise it does not make sense to iterate over all if one of them already fails.
+            // However, it is important that we do not provide specific error messages, e.g., "only the 2nd component failed to verify".
+            boolean fail = false;
+
+            for (int i = 0; i < this.componentSignatures.length; i++)
+            {
+                if (!this.componentSignatures[i].verify(signatures[i]))
+                {
+                    fail = true;
+                }
+            }
+
+            return !fail;
+        }
+        finally
+        {
+            resetPreHashDigest();
+        }
     }
 
+    /**
+     * However sign/verify leaves, the accumulated message has to go with it, or the bytes fed before
+     * a rejected signature are still there for the next update() to append to and the following
+     * verify fails for no visible reason. On the success path doFinal() has already reset the digest,
+     * so this is a no-op there.
+     */
+    private void resetPreHashDigest()
+    {
+        if (preHashDigest != null)
+        {
+            preHashDigest.reset();
+        }
+    }
+
+    /**
+     * Set the signature context, either before or after engineInitSign / engineInitVerify. Where
+     * the signature has a key already the component signatures are re-initialised with the new
+     * context at once; where it does not the context is recorded and applied when the key arrives,
+     * as the base ML-DSA and SLH-DSA engines do (see github #2396). Calling this first used to let
+     * a NullPointerException out of a method declared to throw InvalidAlgorithmParameterException,
+     * from dereferencing the key that was not there yet (github #2412).
+     */
     protected void engineSetParameter(AlgorithmParameterSpec algorithmParameterSpec)
         throws InvalidAlgorithmParameterException
     {
@@ -491,7 +558,74 @@ public class SignatureSpi
 
         if (algorithmParameterSpec instanceof ContextParameterSpec)
         {
-            contextSpec = (ContextParameterSpec)algorithmParameterSpec;
+            setContext((ContextParameterSpec)algorithmParameterSpec);
+        }
+        else if (algorithmParameterSpec instanceof CompositeSignatureSpec)
+        {
+            CompositeSignatureSpec compositeSignatureSpec = (CompositeSignatureSpec)algorithmParameterSpec;
+
+            prehashOverrideSet = true;
+            prehashOverride = compositeSignatureSpec.isPrehashMode();
+
+            if (baseDigest != null)
+            {
+                setPreHashDigest();
+            }
+
+            AlgorithmParameterSpec secondarySpec = compositeSignatureSpec.getSecondarySpec();
+
+            if (secondarySpec == null || secondarySpec instanceof ContextParameterSpec)
+            {
+                setContext((ContextParameterSpec)secondarySpec);
+            }
+            else
+            {
+                byte[] context = SpecUtil.getContextFrom(secondarySpec);
+                if (context != null)
+                {
+                    setContext(new ContextParameterSpec(context));
+                }
+                else
+                {
+                    throw new InvalidAlgorithmParameterException("unknown parameterSpec passed to composite signature");
+                }
+            }
+        }
+        else
+        {
+            byte[] context = SpecUtil.getContextFrom(algorithmParameterSpec);
+            if (context != null)
+            {
+                setContext(new ContextParameterSpec(context));
+            }
+            else
+            {
+                // this throw used to be unconditional, so a spec that did carry a context had it
+                // applied and was then reported as rejected by the same call.
+                throw new InvalidAlgorithmParameterException("unknown parameterSpec passed to composite signature");
+            }
+        }
+    }
+
+    private void setContext(ContextParameterSpec context)
+        throws InvalidAlgorithmParameterException
+    {
+        // len(ctx) travels in M' as a single byte, so the draft requires an error over 255 rather than
+        // the silent truncation that would follow. The ML-DSA component is initialised with the domain
+        // separator as its context, so its own FIPS 204 bound is never the one that applies here.
+        if (context != null && context.getContext().length > 255)
+        {
+            throw new InvalidAlgorithmParameterException("context too long");
+        }
+
+        this.contextSpec = context;
+        this.engineParams = null;
+
+        // the context itself is only consumed when the message is assembled, so the re-init is
+        // just to hand the component signatures a clean state - there is nothing to reset, and no
+        // key to reset it with, before initSign / initVerify has been called.
+        if (compositeKey != null)
+        {
             try
             {
                 if (compositeKey instanceof PublicKey)
@@ -505,77 +639,9 @@ public class SignatureSpi
             }
             catch (InvalidKeyException e)
             {
-                throw new InvalidAlgorithmParameterException("keys invalid on reset: " + e.getMessage(), e);
+                throw SecurityExceptions.invalidAlgorithmParameterException("keys invalid on reset: " + e.getMessage(), e);
             }
         }
-        else if (algorithmParameterSpec instanceof CompositeSignatureSpec)
-        {
-            CompositeSignatureSpec compositeSignatureSpec = (CompositeSignatureSpec)algorithmParameterSpec;
-
-            if (compositeSignatureSpec.isPrehashMode())
-            {
-                this.preHashDigest = new NullDigest(baseDigest.getDigestSize());
-            }
-            else
-            {
-                this.preHashDigest = this.baseDigest;
-            }
-            AlgorithmParameterSpec secondarySpec = compositeSignatureSpec.getSecondarySpec();
-
-            if (secondarySpec == null || secondarySpec instanceof ContextParameterSpec)
-            {
-                this.contextSpec = (ContextParameterSpec)compositeSignatureSpec.getSecondarySpec();
-            }
-            else
-            {
-                byte[] context = SpecUtil.getContextFrom(secondarySpec);
-                if (context != null)
-                {
-                    contextSpec = new ContextParameterSpec(context);
-                }
-                else
-                {
-                    throw new InvalidAlgorithmParameterException("unknown parameterSpec passed to composite signature");
-                }
-            }
-        }
-        else
-        {
-            byte[] context = SpecUtil.getContextFrom(algorithmParameterSpec);
-            if (context != null)
-            {
-                contextSpec = new ContextParameterSpec(context);
-                try
-                {
-                    if (compositeKey instanceof PublicKey)
-                    {
-                        sigInitVerify();
-                    }
-                    else
-                    {
-                        sigInitSign();
-                    }
-                }
-                catch (InvalidKeyException e)
-                {
-                    throw new InvalidAlgorithmParameterException("keys invalid on reset: " + e.getMessage(), e);
-                }
-            }
-
-            throw new InvalidAlgorithmParameterException("unknown parameterSpec passed to composite signature");
-        }
-    }
-
-    private String getCanonicalName(String baseName)
-    {
-        String name = canonicalNames.get(baseName);
-
-        if (name != null)
-        {
-            return name;
-        }
-
-        return baseName;
     }
 
     protected void engineSetParameter(String s, Object o)
@@ -1009,19 +1075,6 @@ public class SignatureSpi
         public MLDSA87_ECDSA_P521_SHA512_PREHASH()
         {
             super(IANAObjectIdentifiers.id_MLDSA87_ECDSA_P521_SHA512, new SHA512Digest(), true);
-        }
-    }
-
-    private static final class ErasableOutputStream
-        extends ByteArrayOutputStream
-    {
-        public ErasableOutputStream()
-        {
-        }
-
-        public byte[] getBuf()
-        {
-            return buf;
         }
     }
 
