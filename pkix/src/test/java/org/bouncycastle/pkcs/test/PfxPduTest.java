@@ -1222,6 +1222,53 @@ public class PfxPduTest
         }
     }
 
+    // A PBMAC1 keyLength is attacker-controlled and read before any password/MAC check, so an
+    // oversized value must be rejected before the derivation it sizes runs, not after.
+    public void testPfxPduPBMac1KeyLengthBound()
+        throws Exception
+    {
+        PBMAC1Params pbmac1Params = new PBMAC1Params(
+            new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBKDF2,
+                new PBKDF2Params(Strings.toByteArray("saltsalt"), 1, 2000, new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA256))),
+            new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA512));
+
+        BcPKCS12PBMac1CalculatorBuilder builder = new BcPKCS12PBMac1CalculatorBuilder(pbmac1Params);
+
+        try
+        {
+            builder.build(passwd);
+            fail("no exception");
+        }
+        catch (IllegalStateException e)
+        {
+            assertEquals("keyLength 2000 greater than 1024", e.getMessage());
+        }
+    }
+
+    // RFC 9579 sec. 9: a PBMAC1 keyLength below 20 octets makes the MAC key brute-forceable, so a PFX
+    // declaring one would have its integrity MAC checked against a key an attacker can guess without
+    // the password. Rejected before the derivation it sizes runs, as the upper bound already was.
+    public void testPfxPduPBMac1KeyLengthMinimum()
+        throws Exception
+    {
+        PBMAC1Params pbmac1Params = new PBMAC1Params(
+            new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBKDF2,
+                new PBKDF2Params(Strings.toByteArray("saltsalt"), 1, 8, new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA256))),
+            new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA512));
+
+        BcPKCS12PBMac1CalculatorBuilder builder = new BcPKCS12PBMac1CalculatorBuilder(pbmac1Params);
+
+        try
+        {
+            builder.build(passwd);
+            fail("no exception");
+        }
+        catch (IllegalStateException e)
+        {
+            assertEquals("keyLength 8 less than 20", e.getMessage());
+        }
+    }
+
     public void testBcEncryptedPrivateKeyInfo()
         throws Exception
     {

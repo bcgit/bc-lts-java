@@ -195,7 +195,7 @@ public class JcePBMac1CalculatorBuilder
                 {
                     throw new OperatorCreationException("iteration count (" + iterationCount + ") greater than " + maxIT);
                 }
-                keySize = PKCS12Util.validateKeyLength(pbeParams.getKeyLength()) * 8;
+                keySize = PKCS12Util.validateMacKeyLength(pbeParams.getKeyLength()) * 8;
                 prf = pbeParams.getPrf();
             }
             
@@ -209,9 +209,14 @@ public class JcePBMac1CalculatorBuilder
             {
                 public AlgorithmIdentifier getAlgorithmIdentifier()
                 {
+                    // the PBMAC1 keyDerivationFunc names the KDF itself, so it is id-PBKDF2 and not
+                    // id-PBES2 (RFC 9579 sec. 4, RFC 8018 app. A.2). BC's own readers ignore this OID
+                    // and take the PBKDF2Params regardless, but BcPKCS12PBMac1CalculatorBuilder does
+                    // not - it refuses anything but id-PBKDF2 with "unrecognised PBKDF" - so a PFX
+                    // this builder MACed could not be verified through the lightweight path.
                     return new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBMAC1,
                         new PBMAC1Params(
-                            new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBES2, new PBKDF2Params(salt, iterationCount, (keySize + 7) / 8, prf)),
+                            new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBKDF2, new PBKDF2Params(salt, iterationCount, (keySize + 7) / 8, prf)),
                             macAlgorithm));
                 }
 
