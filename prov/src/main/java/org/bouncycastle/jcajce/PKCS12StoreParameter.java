@@ -30,11 +30,21 @@ public class PKCS12StoreParameter
     private final AlgorithmIdentifier macAlgorithm;
     private final boolean useISO8859d1ForDecryption;
 
+    /**
+     * Builder for the PBMAC1 integrity-MAC algorithm identifier of a PKCS#12 file, with PBKDF2 as the
+     * key-derivation function, as specified by
+     * <a href="https://www.rfc-editor.org/rfc/rfc9579">RFC 9579</a>. Pass the result to
+     * {@link Builder#setMacAlgorithm(AlgorithmIdentifier)}.
+     * <p>
+     * The defaults are 16384 iterations, a 64-octet derived key, HMAC-SHA-256 as the PBKDF2 PRF and
+     * HMAC-SHA-512 as the message-authentication scheme. A salt has no default and must be supplied.
+     * </p>
+     */
     public static class PBMAC1WithPBKDF2Builder
     {
         private int iterationCount = 16384;
         private byte[] salt = null;
-        private int keySizeinBits = 256;
+        private int keySizeInOctets = 64;
         private ASN1ObjectIdentifier prf = PKCSObjectIdentifiers.id_hmacWithSHA256;
         private ASN1ObjectIdentifier mac = PKCSObjectIdentifiers.id_hmacWithSHA512;
 
@@ -43,6 +53,12 @@ public class PKCS12StoreParameter
 
         }
 
+        /**
+         * Set the PBKDF2 iteration count. The default is 16384.
+         *
+         * @param iterationCount the iteration count to derive the MAC key with.
+         * @return this builder.
+         */
         public PBMAC1WithPBKDF2Builder setIterationCount(int iterationCount)
         {
             this.iterationCount = iterationCount;
@@ -50,6 +66,12 @@ public class PKCS12StoreParameter
             return this;
         }
 
+        /**
+         * Set the PBKDF2 salt. There is no default - {@link #build()} fails without one.
+         *
+         * @param salt the salt to derive the MAC key with; the array is copied.
+         * @return this builder.
+         */
         public PBMAC1WithPBKDF2Builder setSalt(byte[] salt)
         {
             this.salt = Arrays.clone(salt);
@@ -57,13 +79,33 @@ public class PKCS12StoreParameter
             return this;
         }
 
-        public PBMAC1WithPBKDF2Builder setKeySize(int keySizeinBits)
+        /**
+         * Set the length of the MAC key PBKDF2 derives, <b>in octets</b> - this is the PBKDF2-params
+         * keyLength field, which RFC 8018 app. A.2 defines in octets rather than bits.
+         * <p>
+         * RFC 9579 sec. 5 has it match the output size of the message-authentication scheme set by
+         * {@link #setMac(ASN1ObjectIdentifier)}: 64 for the default HMAC-SHA-512, 32 for HMAC-SHA-256.
+         * Sec. 9 of the same document asks that a length below 20 octets be rejected, and BC does so
+         * when the MAC is derived. The default is 64.
+         * </p>
+         *
+         * @param keySizeInOctets the length in octets of the key to derive.
+         * @return this builder.
+         */
+        public PBMAC1WithPBKDF2Builder setKeySize(int keySizeInOctets)
         {
-            this.keySizeinBits = keySizeinBits;
+            this.keySizeInOctets = keySizeInOctets;
 
             return this;
         }
 
+        /**
+         * Set the PBKDF2 pseudo-random function. The default is HMAC-SHA-256, which RFC 9579 sec. 5
+         * requires every implementation to support.
+         *
+         * @param prf OID of the PRF to derive the MAC key with.
+         * @return this builder.
+         */
         public PBMAC1WithPBKDF2Builder setPrf(ASN1ObjectIdentifier prf)
         {
             this.prf = prf;
@@ -71,6 +113,13 @@ public class PKCS12StoreParameter
             return this;
         }
 
+        /**
+         * Set the message-authentication scheme the derived key is used with. The default is
+         * HMAC-SHA-512. Changing it means changing {@link #setKeySize(int)} to match its output size.
+         *
+         * @param mac OID of the HMAC to authenticate the file with.
+         * @return this builder.
+         */
         public PBMAC1WithPBKDF2Builder setMac(ASN1ObjectIdentifier mac)
         {
             this.mac = mac;
@@ -78,6 +127,12 @@ public class PKCS12StoreParameter
             return this;
         }
 
+        /**
+         * Build the PBMAC1 algorithm identifier.
+         *
+         * @return an AlgorithmIdentifier for id-PBMAC1 carrying the configured PBMAC1-params.
+         * @throws IllegalStateException if no salt has been set.
+         */
         public AlgorithmIdentifier build()
         {
             if (salt == null)
@@ -85,7 +140,7 @@ public class PKCS12StoreParameter
                 throw new IllegalStateException("salt must be non-null");
             }
 
-            PBKDF2Params pbkdf2Params = new PBKDF2Params(salt, iterationCount, keySizeinBits,
+            PBKDF2Params pbkdf2Params = new PBKDF2Params(salt, iterationCount, keySizeInOctets,
                 new AlgorithmIdentifier(prf));
             AlgorithmIdentifier keyDevFunc = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBKDF2, pbkdf2Params);
             AlgorithmIdentifier authScheme = new AlgorithmIdentifier(mac);
@@ -95,6 +150,11 @@ public class PKCS12StoreParameter
         }
     }
 
+    /**
+     * Return a builder for an RFC 9579 PBMAC1 algorithm identifier using PBKDF2.
+     *
+     * @return a new {@link PBMAC1WithPBKDF2Builder}.
+     */
     public static PBMAC1WithPBKDF2Builder pbmac1WithPBKDF2Builder()
     {
         return new PBMAC1WithPBKDF2Builder();
