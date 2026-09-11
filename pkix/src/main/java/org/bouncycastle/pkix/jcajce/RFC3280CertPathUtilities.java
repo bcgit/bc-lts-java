@@ -346,7 +346,9 @@ class RFC3280CertPathUtilities
             }
             catch (CertPathBuilderException e)
             {
-                throw new AnnotatedException("CertPath for CRL signer failed to validate.", e);
+                throw new AnnotatedException(
+                    "CertPath for CRL signer failed to validate. Per RFC 5280 sec. 6.3.3 (f) the CRL issuer's"
+                        + " certification path must be anchored at the same trust anchor as the certificate being checked.", e);
             }
             catch (CertPathValidatorException e)
             {
