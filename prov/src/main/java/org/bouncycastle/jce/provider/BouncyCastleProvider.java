@@ -25,6 +25,7 @@ import org.bouncycastle.jcajce.provider.config.ProviderConfiguration;
 import org.bouncycastle.jcajce.provider.symmetric.util.ClassUtil;
 import org.bouncycastle.jcajce.provider.util.AlgorithmProvider;
 import org.bouncycastle.jcajce.provider.util.AsymmetricKeyInfoConverter;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Strings;
 
 /**
@@ -356,7 +357,10 @@ public final class BouncyCastleProvider
 
     public AsymmetricKeyInfoConverter getKeyInfoConverter(ASN1ObjectIdentifier oid)
     {
-        return (AsymmetricKeyInfoConverter) keyInfoConverters.get(oid);
+        synchronized (keyInfoConverters)
+        {
+            return (AsymmetricKeyInfoConverter) keyInfoConverters.get(oid);
+        }
     }
 
     public void addAttributes(String key, Map<String, String> attributeMap)
@@ -387,27 +391,53 @@ public final class BouncyCastleProvider
     public static PublicKey getPublicKey(SubjectPublicKeyInfo publicKeyInfo)
             throws IOException
     {
-        AsymmetricKeyInfoConverter converter = getAsymmetricKeyInfoConverter(publicKeyInfo.getAlgorithm().getAlgorithm());
-
-        if (converter == null)
+        try
         {
-            return null;
-        }
+            AsymmetricKeyInfoConverter converter = getAsymmetricKeyInfoConverter(publicKeyInfo.getAlgorithm().getAlgorithm());
 
-        return converter.generatePublic(publicKeyInfo);
+            if (converter == null)
+            {
+                return null;
+            }
+
+            return converter.generatePublic(publicKeyInfo);
+        }
+        catch (IOException e)
+        {
+            throw e;
+        }
+        catch (RuntimeException e)
+        {
+            // a converter must not leak a RuntimeException out of the declared IOException contract
+            // when handed a malformed SubjectPublicKeyInfo decoded from untrusted input
+            throw Exceptions.ioException("malformed public key", e);
+        }
     }
 
     public static PrivateKey getPrivateKey(PrivateKeyInfo privateKeyInfo)
             throws IOException
     {
-        AsymmetricKeyInfoConverter converter = getAsymmetricKeyInfoConverter(privateKeyInfo.getPrivateKeyAlgorithm().getAlgorithm());
-
-        if (converter == null)
+        try
         {
-            return null;
-        }
+            AsymmetricKeyInfoConverter converter = getAsymmetricKeyInfoConverter(privateKeyInfo.getPrivateKeyAlgorithm().getAlgorithm());
 
-        return converter.generatePrivate(privateKeyInfo);
+            if (converter == null)
+            {
+                return null;
+            }
+
+            return converter.generatePrivate(privateKeyInfo);
+        }
+        catch (IOException e)
+        {
+            throw e;
+        }
+        catch (RuntimeException e)
+        {
+            // a converter must not leak a RuntimeException out of the declared IOException contract
+            // when handed a malformed PrivateKeyInfo decoded from untrusted input
+            throw Exceptions.ioException("malformed private key", e);
+        }
     }
 
     private static CryptoServiceProperties service(String name, int bitsOfSecurity)

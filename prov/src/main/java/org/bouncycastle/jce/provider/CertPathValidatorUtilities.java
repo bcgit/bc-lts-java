@@ -641,7 +641,7 @@ class CertPathValidatorUtilities
         }
 
         // if the named CRL store is empty, and we're told to check with CRLDP
-        if (stores.isEmpty() && Properties.isOverrideSet("org.bouncycastle.x509.enableCRLDP"))
+        if (stores.isEmpty() && Properties.isOverrideSet(Properties.X509_ENABLE_CRLDP))
         {
             CertificateFactory certFact;
             try
@@ -985,7 +985,7 @@ class CertPathValidatorUtilities
         Set deltaCRLs = getDeltaCRLs(PKIXCRLUtil.findCRLs(deltaSelect, validityDate, certStores, pkixCrlStores));
 
         // if the named CRL store is empty, and we're told to check with CRLDP
-        if (deltaCRLs.isEmpty() && Properties.isOverrideSet("org.bouncycastle.x509.enableCRLDP"))
+        if (deltaCRLs.isEmpty() && Properties.isOverrideSet(Properties.X509_ENABLE_CRLDP))
         {
             CertificateFactory certFact;
             try
@@ -1126,16 +1126,18 @@ class CertPathValidatorUtilities
                 byte[] extBytes = issuedCert.getExtensionValue(ISISMTTObjectIdentifiers.id_isismtt_at_dateOfCertGen.getId());
                 if (extBytes != null)
                 {
-                    dateOfCertgen = ASN1GeneralizedTime.getInstance(ASN1Primitive.fromByteArray(extBytes));
+                    // getExtensionValue returns the DER encoding of the extnValue OCTET STRING
+                    byte[] extValue = ASN1OctetString.getInstance(extBytes).getOctets();
+                    dateOfCertgen = ASN1GeneralizedTime.getInstance(ASN1Primitive.fromByteArray(extValue));
                 }
             }
             catch (IOException e)
             {
-                throw new AnnotatedException("Date of cert gen extension could not be read.");
+                throw new AnnotatedException("Date of cert gen extension could not be read.", e);
             }
             catch (IllegalArgumentException e)
             {
-                throw new AnnotatedException("Date of cert gen extension could not be read.");
+                throw new AnnotatedException("Date of cert gen extension could not be read.", e);
             }
             if (dateOfCertgen != null)
             {

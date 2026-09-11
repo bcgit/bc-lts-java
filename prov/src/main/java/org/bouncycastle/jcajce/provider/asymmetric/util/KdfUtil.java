@@ -62,6 +62,16 @@ public class KdfUtil
 
         if (kdfAlgorithm == null)
         {
+            // With no KDF the shared secret is the key material, so a request for more bits than the
+            // mechanism produced cannot be met. Refuse rather than truncate the request silently: a
+            // caller that asked for a 256-bit key and was handed a shorter secret would have no way
+            // of telling.
+            if (secret.length < keyBytes.length)
+            {
+                throw new IllegalArgumentException("no KDF specified and the shared secret is "
+                    + (secret.length * 8) + " bits, " + keySize + " requested");
+            }
+
             System.arraycopy(secret, 0, keyBytes, 0, keyBytes.length);
         }
         else if (X9ObjectIdentifiers.id_kdf_kdf2.equals(kdfAlgorithm.getAlgorithm()))
