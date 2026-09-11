@@ -1,6 +1,7 @@
 package org.bouncycastle.jcajce.provider.asymmetric.mldsa;
 
 import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidParameterException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -53,7 +54,8 @@ public class MLDSAKeyPairGeneratorSpi
         int strength,
         SecureRandom random)
     {
-        throw new IllegalArgumentException("use AlgorithmParameterSpec");
+        // what the JCA specifies here; it extends IllegalArgumentException, so catches still match
+        throw new InvalidParameterException("use AlgorithmParameterSpec");
     }
 
     public void initialize(
@@ -133,7 +135,10 @@ public class MLDSAKeyPairGeneratorSpi
         }
         else
         {
-            return Strings.toUpperCase(SpecUtil.getNameFrom(paramSpec));
+            String name = SpecUtil.getNameFrom(paramSpec);
+
+            // null where the spec has no getName(), which the caller reports as the exception it declares
+            return (name == null) ? null : Strings.toUpperCase(name);
         }
     }
 

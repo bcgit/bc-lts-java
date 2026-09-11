@@ -1,6 +1,7 @@
 package org.bouncycastle.jcajce.provider.asymmetric.slhdsa;
 
 import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidParameterException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -60,6 +61,7 @@ public class SLHDSAKeyPairGeneratorSpi
 
     SecureRandom random = CryptoServicesRegistrar.getSecureRandom();
     boolean initialised = false;
+    private SLHDSAParameters slhdsaParameters;
 
     public SLHDSAKeyPairGeneratorSpi(String name)
     {
@@ -68,9 +70,11 @@ public class SLHDSAKeyPairGeneratorSpi
 
     protected SLHDSAKeyPairGeneratorSpi(SLHDSAParameterSpec paramSpec)
     {
-        super("SLH-DSA" + "-" + Strings.toUpperCase(paramSpec.getName()));
+        super(Strings.toUpperCase(paramSpec.getName()));
 
-        param = new SLHDSAKeyGenerationParameters(random, (SLHDSAParameters)parameters.get(paramSpec.getName()));
+        this.slhdsaParameters = (SLHDSAParameters)parameters.get(paramSpec.getName());
+
+        param = new SLHDSAKeyGenerationParameters(random, slhdsaParameters);
 
         engine.init(param);
         initialised = true;
@@ -80,7 +84,8 @@ public class SLHDSAKeyPairGeneratorSpi
         int strength,
         SecureRandom random)
     {
-        throw new IllegalArgumentException("use AlgorithmParameterSpec");
+        // what the JCA specifies here; it extends IllegalArgumentException, so catches still match
+        throw new InvalidParameterException("use AlgorithmParameterSpec");
     }
 
     public void initialize(
@@ -97,6 +102,12 @@ public class SLHDSAKeyPairGeneratorSpi
             {
                 throw new InvalidAlgorithmParameterException("unknown parameter set name: " + name);
             }
+
+            if (slhdsaParameters != null && !parameters.getName().equals(slhdsaParameters.getName()))
+            {
+                throw new InvalidAlgorithmParameterException("key pair generator locked to " + getAlgorithm());
+            }
+
             param = new SLHDSAKeyGenerationParameters(random, parameters);
 
             engine.init(param);
@@ -141,7 +152,10 @@ public class SLHDSAKeyPairGeneratorSpi
         }
         else
         {
-            return Strings.toUpperCase(SpecUtil.getNameFrom(paramSpec));
+            String name = SpecUtil.getNameFrom(paramSpec);
+
+            // null where the spec has no getName(), which the caller reports as the exception it declares
+            return (name == null) ? null : Strings.toUpperCase(name);
         }
     }
 
