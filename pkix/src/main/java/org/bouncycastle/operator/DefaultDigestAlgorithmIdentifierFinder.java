@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.bc.BCObjectIdentifiers;
@@ -14,6 +15,7 @@ import org.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
 import org.bouncycastle.asn1.eac.EACObjectIdentifiers;
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
 import org.bouncycastle.asn1.gm.GMObjectIdentifiers;
+import org.bouncycastle.asn1.iana.IANAObjectIdentifiers;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
@@ -23,7 +25,34 @@ import org.bouncycastle.asn1.teletrust.TeleTrusTObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.X509ObjectIdentifiers;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
+import org.bouncycastle.util.Strings;
 
+/**
+ * Default implementation of {@link DigestAlgorithmIdentifierFinder}, returning
+ * the {@code AlgorithmIdentifier} that names a digest in the contexts where
+ * this finder is used by CMS / S/MIME / PKIX operator builders.
+ *
+ * <p><b>Parameter-field convention:</b> SHA-2 and SHA-3 digest identifiers are
+ * produced with the {@code parameters} field <em>absent</em>, per
+ * <a href="https://www.rfc-editor.org/rfc/rfc5754#section-2">RFC 5754 §2</a>:
+ * <em>"Implementations MUST generate SHA2 AlgorithmIdentifiers with absent
+ * parameters."</em> SHA-1 keeps {@code NULL} parameters (RFC 3370). Old
+ * algorithms with historic NULL-parameter conventions (MD2 / MD4 / MD5,
+ * GOST R 34.11-94) follow their own RFCs.</p>
+ *
+ * <p>This is a different convention from
+ * {@link DefaultSignatureAlgorithmIdentifierFinder}, which when building
+ * {@code RSASSA-PSS-params} emits the SHA-2 / SHA-3 hash sub-identifier with
+ * {@code NULL} parameters per <a href="https://www.rfc-editor.org/rfc/rfc4055#section-2.1">
+ * RFC 4055 §2.1</a> ({@code sha256Identifier ::= { id-sha256, NULL }} etc.).
+ * Both forms are standards-compliant in their respective slots; a single CMS
+ * SignedData carrying an RSA-PSS SignerInfo will validly contain the same
+ * SHA-2 OID twice, once with absent parameters (in {@code digestAlgorithm})
+ * and once with NULL parameters (inside the PSS parameter structure).
+ * Receiver-side {@code AlgorithmIdentifier.equals()} on the two encodings
+ * returns {@code false} but both are accepted by RFC 5754 §2 and by other
+ * mainstream verifiers (OpenSSL, the JDK providers, GnuTLS).</p>
+ */
 public class DefaultDigestAlgorithmIdentifierFinder
     implements DigestAlgorithmIdentifierFinder
 {
@@ -106,34 +135,34 @@ public class DefaultDigestAlgorithmIdentifierFinder
         digestOids.put(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_256, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256);
         digestOids.put(RosstandartObjectIdentifiers.id_tc26_signwithdigest_gost_3410_12_512, RosstandartObjectIdentifiers.id_tc26_gost_3411_12_512);
 
-//        digestOids.put(BCObjectIdentifiers.sphincs256_with_SHA3_512, NISTObjectIdentifiers.id_sha3_512);
-//        digestOids.put(BCObjectIdentifiers.sphincs256_with_SHA512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(BCObjectIdentifiers.sphincs256_with_SHA3_512, NISTObjectIdentifiers.id_sha3_512);
+        digestOids.put(BCObjectIdentifiers.sphincs256_with_SHA512, NISTObjectIdentifiers.id_sha512);
 
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_128s_r3, NISTObjectIdentifiers.id_sha256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_128f_r3, NISTObjectIdentifiers.id_sha256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_128s_r3, NISTObjectIdentifiers.id_shake256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_128f_r3, NISTObjectIdentifiers.id_shake256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_192s_r3, NISTObjectIdentifiers.id_sha256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_192f_r3, NISTObjectIdentifiers.id_sha256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_192s_r3, NISTObjectIdentifiers.id_shake256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_192f_r3, NISTObjectIdentifiers.id_shake256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_256s_r3, NISTObjectIdentifiers.id_sha256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_256f_r3, NISTObjectIdentifiers.id_sha256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_256s_r3, NISTObjectIdentifiers.id_shake256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_256f_r3, NISTObjectIdentifiers.id_shake256);
-//
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_128s_r3_simple, NISTObjectIdentifiers.id_sha256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_128f_r3_simple, NISTObjectIdentifiers.id_sha256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_128s_r3_simple, NISTObjectIdentifiers.id_shake256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_128f_r3_simple, NISTObjectIdentifiers.id_shake256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_192s_r3_simple, NISTObjectIdentifiers.id_sha256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_192f_r3_simple, NISTObjectIdentifiers.id_sha256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_192s_r3_simple, NISTObjectIdentifiers.id_shake256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_192f_r3_simple, NISTObjectIdentifiers.id_shake256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_256s_r3_simple, NISTObjectIdentifiers.id_sha256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_256f_r3_simple, NISTObjectIdentifiers.id_sha256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_256s_r3_simple, NISTObjectIdentifiers.id_shake256);
-//        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_256f_r3_simple, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_128s_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_128f_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_128s_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_128f_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_192s_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_192f_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_192s_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_192f_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_256s_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_256f_r3, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_256s_r3, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_256f_r3, NISTObjectIdentifiers.id_shake256);
+
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_128s_r3_simple, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_128f_r3_simple, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_128s_r3_simple, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_128f_r3_simple, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_192s_r3_simple, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_192f_r3_simple, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_192s_r3_simple, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_192f_r3_simple, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_256s_r3_simple, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_sha2_256f_r3_simple, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_256s_r3_simple, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.sphincsPlus_shake_256f_r3_simple, NISTObjectIdentifiers.id_shake256);
 
         digestOids.put(NISTObjectIdentifiers.id_slh_dsa_sha2_128s, NISTObjectIdentifiers.id_sha256);
         digestOids.put(NISTObjectIdentifiers.id_slh_dsa_sha2_128f, NISTObjectIdentifiers.id_sha256);
@@ -168,14 +197,36 @@ public class DefaultDigestAlgorithmIdentifierFinder
         digestOids.put(NISTObjectIdentifiers.id_hash_ml_dsa_65_with_sha512, NISTObjectIdentifiers.id_sha512);
         digestOids.put(NISTObjectIdentifiers.id_hash_ml_dsa_87_with_sha512, NISTObjectIdentifiers.id_sha512);
 
-//        digestOids.put(BCObjectIdentifiers.falcon, NISTObjectIdentifiers.id_shake256);
-//        digestOids.put(BCObjectIdentifiers.falcon_512, NISTObjectIdentifiers.id_shake256);
-//        digestOids.put(BCObjectIdentifiers.falcon_1024, NISTObjectIdentifiers.id_shake256);
-//
-//        digestOids.put(BCObjectIdentifiers.picnic_signature, NISTObjectIdentifiers.id_shake256);
-//        digestOids.put(BCObjectIdentifiers.picnic_with_sha512, NISTObjectIdentifiers.id_sha512);
-//        digestOids.put(BCObjectIdentifiers.picnic_with_sha3_512, NISTObjectIdentifiers.id_sha3_512);
-//        digestOids.put(BCObjectIdentifiers.picnic_with_shake256, NISTObjectIdentifiers.id_shake256);
+        // IANA composite ML-DSA + classical sig OIDs: each scheme's prehash is fixed by
+        // the OID name suffix and matches what the composite SignatureSpi feeds the
+        // inner signers (github #1767).
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PSS_SHA256, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA44_Ed25519_SHA512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256, NISTObjectIdentifiers.id_sha256);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA65_RSA3072_PSS_SHA512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA65_RSA3072_PKCS15_SHA512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA65_RSA4096_PSS_SHA512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA65_RSA4096_PKCS15_SHA512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA65_ECDSA_P256_SHA512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA65_ECDSA_P384_SHA512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA65_ECDSA_brainpoolP256r1_SHA512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA65_Ed25519_SHA512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA87_ECDSA_P384_SHA512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA87_ECDSA_brainpoolP384r1_SHA512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA87_Ed448_SHAKE256, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA87_RSA4096_PSS_SHA512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA87_ECDSA_P521_SHA512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(IANAObjectIdentifiers.id_MLDSA87_RSA3072_PSS_SHA512, NISTObjectIdentifiers.id_sha512);
+        
+        digestOids.put(BCObjectIdentifiers.falcon, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.falcon_512, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.falcon_1024, NISTObjectIdentifiers.id_shake256);
+
+        digestOids.put(BCObjectIdentifiers.picnic_signature, NISTObjectIdentifiers.id_shake256);
+        digestOids.put(BCObjectIdentifiers.picnic_with_sha512, NISTObjectIdentifiers.id_sha512);
+        digestOids.put(BCObjectIdentifiers.picnic_with_sha3_512, NISTObjectIdentifiers.id_sha3_512);
+        digestOids.put(BCObjectIdentifiers.picnic_with_shake256, NISTObjectIdentifiers.id_shake256);
 
 //        digestOids.put(GMObjectIdentifiers.sm2sign_with_rmd160, TeleTrusTObjectIdentifiers.ripemd160);
 //        digestOids.put(GMObjectIdentifiers.sm2sign_with_sha1, OIWObjectIdentifiers.idSHA1);
@@ -272,15 +323,12 @@ public class DefaultDigestAlgorithmIdentifierFinder
 
         shake256oids.add(EdECObjectIdentifiers.id_Ed448);
 
-//        shake256oids.add(BCObjectIdentifiers.dilithium2);
-//        shake256oids.add(BCObjectIdentifiers.dilithium3);
-//        shake256oids.add(BCObjectIdentifiers.dilithium5);
-//        shake256oids.add(BCObjectIdentifiers.dilithium2_aes);
-//        shake256oids.add(BCObjectIdentifiers.dilithium3_aes);
-//        shake256oids.add(BCObjectIdentifiers.dilithium5_aes);
-//
-//        shake256oids.add(BCObjectIdentifiers.falcon_512);
-//        shake256oids.add(BCObjectIdentifiers.falcon_1024);
+        shake256oids.add(BCObjectIdentifiers.dilithium2);
+        shake256oids.add(BCObjectIdentifiers.dilithium3);
+        shake256oids.add(BCObjectIdentifiers.dilithium5);
+
+        shake256oids.add(BCObjectIdentifiers.falcon_512);
+        shake256oids.add(BCObjectIdentifiers.falcon_1024);
     }
 
     private static void addDigestAlgId(ASN1ObjectIdentifier oid, boolean withNullParams)
@@ -311,7 +359,7 @@ public class DefaultDigestAlgorithmIdentifierFinder
                 return new AlgorithmIdentifier(NISTObjectIdentifiers.id_sha256);
             }
 
-            return new AlgorithmIdentifier(NISTObjectIdentifiers.id_shake256_len, new ASN1Integer(512));
+            return new AlgorithmIdentifier(NISTObjectIdentifiers.id_shake256_len, ASN1Integer.valueOf(512));
         }
 
         ASN1ObjectIdentifier digAlgOid;
@@ -351,23 +399,36 @@ public class DefaultDigestAlgorithmIdentifierFinder
         }
     }
 
+    public boolean hasAlgorithm(String digAlgName)
+    {
+        // digestNameToOids, not digestOidToAlgIds: the latter is keyed by ASN1ObjectIdentifier, so
+        // a name could never be found in it. This has to accept exactly what find(String) does -
+        // the name table, then a dotted OID, which find(ASN1ObjectIdentifier) names whatever it is.
+        if (!this.digestNameToOids.containsKey(Strings.toUpperCase(digAlgName)))
+        {
+             return ASN1ObjectIdentifier.tryFromID(digAlgName) != null;
+        }
+
+        return true;
+    }
+
     public AlgorithmIdentifier find(String digAlgName)
     {
-        ASN1ObjectIdentifier oid = (ASN1ObjectIdentifier)digestNameToOids.get(digAlgName);
+        ASN1ObjectIdentifier oid = (ASN1ObjectIdentifier)digestNameToOids.get(Strings.toUpperCase(digAlgName));
         if (oid != null)
         {
             return find(oid);
         }
 
-        try
+        oid = ASN1ObjectIdentifier.tryFromID(digAlgName);
+        if (oid != null)
         {
-            return find(new ASN1ObjectIdentifier(digAlgName));
-        }
-        catch (RuntimeException e)
-        {
-            // ignore - tried it but it didn't work...
+            return find(oid);
         }
 
-        return null;
+        // NOTE: only the name lookup reports failure this way. find(AlgorithmIdentifier) still
+        // returns null when it cannot derive a digest from a signature algorithm - github #1767
+        // depends on that, and testCompositeMLDsaDigestLookupIssue1767 pins it.
+        throw new IllegalArgumentException("Unknown digest algorithm requested: " + digAlgName);
     }
 }

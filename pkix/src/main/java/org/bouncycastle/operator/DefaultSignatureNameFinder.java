@@ -8,8 +8,10 @@ import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.bsi.BSIObjectIdentifiers;
 import org.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
+import org.bouncycastle.asn1.gm.GMObjectIdentifiers;
 import org.bouncycastle.asn1.eac.EACObjectIdentifiers;
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
+import org.bouncycastle.asn1.iana.IANAObjectIdentifiers;
 import org.bouncycastle.asn1.isara.IsaraObjectIdentifiers;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
@@ -48,6 +50,8 @@ public class DefaultSignatureNameFinder
         addSignatureName(PKCSObjectIdentifiers.id_RSASSA_PSS, "RSASSA-PSS");
         addSignatureName(EdECObjectIdentifiers.id_Ed25519, "ED25519");
         addSignatureName(EdECObjectIdentifiers.id_Ed448, "ED448");
+        addSignatureName(GMObjectIdentifiers.sm2sign_with_sm3, "SM3WITHSM2");
+        addSignatureName(GMObjectIdentifiers.sm2sign_with_sha256, "SHA256WITHSM2");
         addSignatureName(new ASN1ObjectIdentifier("1.2.840.113549.1.1.5"), "SHA1WITHRSA");
         addSignatureName(PKCSObjectIdentifiers.sha224WithRSAEncryption, "SHA224WITHRSA");
         addSignatureName(PKCSObjectIdentifiers.sha256WithRSAEncryption, "SHA256WITHRSA");
@@ -76,6 +80,8 @@ public class DefaultSignatureNameFinder
         addSignatureName(EACObjectIdentifiers.id_TA_ECDSA_SHA_512, "SHA512WITHCVC-ECDSA");
         addSignatureName(IsaraObjectIdentifiers.id_alg_xmss, "XMSS");
         addSignatureName(IsaraObjectIdentifiers.id_alg_xmssmt, "XMSSMT");
+        addSignatureName(IANAObjectIdentifiers.id_alg_xmss_hashsig, "XMSS");
+        addSignatureName(IANAObjectIdentifiers.id_alg_xmssmt_hashsig, "XMSSMT");
         addSignatureName(TeleTrusTObjectIdentifiers.rsaSignatureWithripemd128, "RIPEMD128WITHRSA");
         addSignatureName(TeleTrusTObjectIdentifiers.rsaSignatureWithripemd160, "RIPEMD160WITHRSA");
         addSignatureName(TeleTrusTObjectIdentifiers.rsaSignatureWithripemd256, "RIPEMD256WITHRSA");

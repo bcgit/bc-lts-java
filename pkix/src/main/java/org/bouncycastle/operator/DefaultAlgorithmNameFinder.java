@@ -9,8 +9,10 @@ import org.bouncycastle.asn1.bc.BCObjectIdentifiers;
 import org.bouncycastle.asn1.bsi.BSIObjectIdentifiers;
 import org.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
 import org.bouncycastle.asn1.eac.EACObjectIdentifiers;
+import org.bouncycastle.asn1.gm.GMObjectIdentifiers;
 import org.bouncycastle.asn1.edec.EdECObjectIdentifiers;
 import org.bouncycastle.asn1.gnu.GNUObjectIdentifiers;
+import org.bouncycastle.asn1.iana.IANAObjectIdentifiers;
 import org.bouncycastle.asn1.kisa.KISAObjectIdentifiers;
 import org.bouncycastle.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
@@ -72,6 +74,27 @@ public class DefaultAlgorithmNameFinder
         addAlgorithm(NISTObjectIdentifiers.id_hash_ml_dsa_44_with_sha512, "ML-DSA-44-WITH-SHA512");
         addAlgorithm(NISTObjectIdentifiers.id_hash_ml_dsa_65_with_sha512, "ML-DSA-65-WITH-SHA512");
         addAlgorithm(NISTObjectIdentifiers.id_hash_ml_dsa_87_with_sha512, "ML-DSA-87-WITH-SHA512");
+
+        // Composite ML-DSA (draft-ietf-lamps-pq-composite-sigs); names as CompositeIndex spells them,
+        // so getAlgorithmName() round-trips to the name the BC provider registers the service under.
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PSS_SHA256, "MLDSA44-RSA2048-PSS-SHA256");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256, "MLDSA44-RSA2048-PKCS15-SHA256");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA44_Ed25519_SHA512, "MLDSA44-Ed25519-SHA512");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256, "MLDSA44-ECDSA-P256-SHA256");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA65_RSA3072_PSS_SHA512, "MLDSA65-RSA3072-PSS-SHA512");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA65_RSA3072_PKCS15_SHA512, "MLDSA65-RSA3072-PKCS15-SHA512");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA65_RSA4096_PSS_SHA512, "MLDSA65-RSA4096-PSS-SHA512");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA65_RSA4096_PKCS15_SHA512, "MLDSA65-RSA4096-PKCS15-SHA512");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA65_ECDSA_P256_SHA512, "MLDSA65-ECDSA-P256-SHA512");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA65_ECDSA_P384_SHA512, "MLDSA65-ECDSA-P384-SHA512");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA65_ECDSA_brainpoolP256r1_SHA512, "MLDSA65-ECDSA-brainpoolP256r1-SHA512");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA65_Ed25519_SHA512, "MLDSA65-Ed25519-SHA512");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA87_ECDSA_P384_SHA512, "MLDSA87-ECDSA-P384-SHA512");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA87_ECDSA_brainpoolP384r1_SHA512, "MLDSA87-ECDSA-brainpoolP384r1-SHA512");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA87_Ed448_SHAKE256, "MLDSA87-Ed448-SHAKE256");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA87_RSA3072_PSS_SHA512, "MLDSA87-RSA3072-PSS-SHA512");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA87_RSA4096_PSS_SHA512, "MLDSA87-RSA4096-PSS-SHA512");
+        addAlgorithm(IANAObjectIdentifiers.id_MLDSA87_ECDSA_P521_SHA512, "MLDSA87-ECDSA-P521-SHA512");
 
         addAlgorithm(NISTObjectIdentifiers.id_slh_dsa_sha2_128s, "SLH-DSA-SHA2-128S");
         addAlgorithm(NISTObjectIdentifiers.id_slh_dsa_sha2_128f, "SLH-DSA-SHA2-128F");
@@ -135,6 +158,15 @@ public class DefaultAlgorithmNameFinder
         addAlgorithm(BCObjectIdentifiers.sphincsPlus_shake_256f_r3_simple, "SPHINCS+");
         addAlgorithm(BCObjectIdentifiers.sphincsPlus_haraka_256s_r3_simple, "SPHINCS+");
         addAlgorithm(BCObjectIdentifiers.sphincsPlus_haraka_256f_r3_simple, "SPHINCS+");
+
+        // ML-KEM (FIPS 203); names as MLKEMParameters.getName() spells them
+        addAlgorithm(NISTObjectIdentifiers.id_alg_ml_kem_512, "ML-KEM-512");
+        addAlgorithm(NISTObjectIdentifiers.id_alg_ml_kem_768, "ML-KEM-768");
+        addAlgorithm(NISTObjectIdentifiers.id_alg_ml_kem_1024, "ML-KEM-1024");
+
+        addAlgorithm(GMObjectIdentifiers.sm3, "SM3");
+        addAlgorithm(GMObjectIdentifiers.sm2sign_with_sm3, "SM3WITHSM2");
+        addAlgorithm(GMObjectIdentifiers.sm2sign_with_sha256, "SHA256WITHSM2");
 
         addAlgorithm(NISTObjectIdentifiers.id_sha224, "SHA224");
         addAlgorithm(NISTObjectIdentifiers.id_sha256, "SHA256");
