@@ -13,7 +13,8 @@ import org.bouncycastle.crypto.digests.SHA384Digest;
 import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.digests.SHAKEDigest;
 import org.bouncycastle.asn1.iana.IANAObjectIdentifiers;
-import org.bouncycastle.internal.asn1.misc.MiscObjectIdentifiers;
+import org.bouncycastle.jcajce.spec.EdDSAParameterSpec;
+import org.bouncycastle.jcajce.spec.MLDSAParameterSpec;
 import org.bouncycastle.jce.spec.ECNamedCurveGenParameterSpec;
 
 public class CompositeIndex
@@ -44,54 +45,26 @@ public class CompositeIndex
         pairings.put(IANAObjectIdentifiers.id_MLDSA87_RSA4096_PSS_SHA512, new String[]{"ML-DSA-87", "RSASSA-PSS"});
         pairings.put(IANAObjectIdentifiers.id_MLDSA87_ECDSA_P521_SHA512, new String[]{"ML-DSA-87", "SHA512withECDSA"});
 
-        kpgInitSpecs.put(MiscObjectIdentifiers.id_HashMLDSA44_RSA2048_PSS_SHA256, new AlgorithmParameterSpec[]{null, new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4)});
-        kpgInitSpecs.put(MiscObjectIdentifiers.id_HashMLDSA44_RSA2048_PKCS15_SHA256, new AlgorithmParameterSpec[]{null, new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4)});
-        kpgInitSpecs.put(MiscObjectIdentifiers.id_HashMLDSA44_Ed25519_SHA512, new AlgorithmParameterSpec[]{null, null});
-        kpgInitSpecs.put(MiscObjectIdentifiers.id_HashMLDSA44_ECDSA_P256_SHA256, new AlgorithmParameterSpec[]{null, new ECNamedCurveGenParameterSpec("P-256")});
-        kpgInitSpecs.put(MiscObjectIdentifiers.id_HashMLDSA65_RSA3072_PSS_SHA512, new AlgorithmParameterSpec[]{null, new RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4)});
-        kpgInitSpecs.put(MiscObjectIdentifiers.id_HashMLDSA65_RSA3072_PKCS15_SHA512, new AlgorithmParameterSpec[]{null, new RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4)});
-        kpgInitSpecs.put(MiscObjectIdentifiers.id_HashMLDSA65_RSA4096_PSS_SHA512, new AlgorithmParameterSpec[]{null, new RSAKeyGenParameterSpec(4096, RSAKeyGenParameterSpec.F4)});
-        kpgInitSpecs.put(MiscObjectIdentifiers.id_HashMLDSA65_RSA4096_PKCS15_SHA512, new AlgorithmParameterSpec[]{null, new RSAKeyGenParameterSpec(4096, RSAKeyGenParameterSpec.F4)});
-        kpgInitSpecs.put(MiscObjectIdentifiers.id_HashMLDSA65_ECDSA_P384_SHA512, new AlgorithmParameterSpec[]{null, new ECNamedCurveGenParameterSpec("P-384")});
-        kpgInitSpecs.put(MiscObjectIdentifiers.id_HashMLDSA65_ECDSA_brainpoolP256r1_SHA512, new AlgorithmParameterSpec[]{null, new ECNamedCurveGenParameterSpec("brainpoolP256r1")});
-        kpgInitSpecs.put(MiscObjectIdentifiers.id_HashMLDSA65_Ed25519_SHA512, new AlgorithmParameterSpec[]{null, null});
-        kpgInitSpecs.put(MiscObjectIdentifiers.id_HashMLDSA87_ECDSA_P384_SHA512, new AlgorithmParameterSpec[]{null, new ECNamedCurveGenParameterSpec("P-384")});
-        kpgInitSpecs.put(MiscObjectIdentifiers.id_HashMLDSA87_ECDSA_brainpoolP384r1_SHA512, new AlgorithmParameterSpec[]{null, new ECNamedCurveGenParameterSpec("brainpoolP384r1")});
-        kpgInitSpecs.put(MiscObjectIdentifiers.id_HashMLDSA87_Ed448_SHA512, new AlgorithmParameterSpec[]{null, null});
-
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PSS_SHA256, new AlgorithmParameterSpec[]{null, new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4)});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256, new AlgorithmParameterSpec[]{null, new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4)});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA44_Ed25519_SHA512, new AlgorithmParameterSpec[]{null, null});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256, new AlgorithmParameterSpec[]{null, new ECNamedCurveGenParameterSpec("P-256")});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_RSA3072_PSS_SHA512, new AlgorithmParameterSpec[]{null, new RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4)});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_RSA3072_PKCS15_SHA512, new AlgorithmParameterSpec[]{null, new RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4)});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_RSA4096_PSS_SHA512, new AlgorithmParameterSpec[]{null, new RSAKeyGenParameterSpec(4096, RSAKeyGenParameterSpec.F4)});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_RSA4096_PKCS15_SHA512, new AlgorithmParameterSpec[]{null, new RSAKeyGenParameterSpec(4096, RSAKeyGenParameterSpec.F4)});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_ECDSA_P256_SHA512, new AlgorithmParameterSpec[]{null, new ECNamedCurveGenParameterSpec("P-256")});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_ECDSA_P384_SHA512, new AlgorithmParameterSpec[]{null, new ECNamedCurveGenParameterSpec("P-384")});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_ECDSA_brainpoolP256r1_SHA512, new AlgorithmParameterSpec[]{null, new ECNamedCurveGenParameterSpec("brainpoolP256r1")});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_Ed25519_SHA512, new AlgorithmParameterSpec[]{null, null});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA87_ECDSA_P384_SHA512, new AlgorithmParameterSpec[]{null, new ECNamedCurveGenParameterSpec("P-384")});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA87_ECDSA_brainpoolP384r1_SHA512, new AlgorithmParameterSpec[]{null, new ECNamedCurveGenParameterSpec("brainpoolP384r1")});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA87_Ed448_SHAKE256, new AlgorithmParameterSpec[]{null, null});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA87_RSA4096_PSS_SHA512, new AlgorithmParameterSpec[]{null, new RSAKeyGenParameterSpec(4096, RSAKeyGenParameterSpec.F4)});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA87_ECDSA_P521_SHA512, new AlgorithmParameterSpec[]{null, new ECNamedCurveGenParameterSpec("P-521")});
-        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA87_RSA3072_PSS_SHA512, new AlgorithmParameterSpec[]{null, new RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4)});
-
-        algorithmNames.put(MiscObjectIdentifiers.id_HashMLDSA44_RSA2048_PSS_SHA256, "HashMLDSA44-RSA2048-PSS-SHA256");
-        algorithmNames.put(MiscObjectIdentifiers.id_HashMLDSA44_RSA2048_PKCS15_SHA256, "HashMLDSA44-RSA2048-PKCS15-SHA256");
-        algorithmNames.put(MiscObjectIdentifiers.id_HashMLDSA44_Ed25519_SHA512, "HashMLDSA44-Ed25519-SHA512");
-        algorithmNames.put(MiscObjectIdentifiers.id_HashMLDSA44_ECDSA_P256_SHA256, "HashMLDSA44-ECDSA-P256-SHA256");
-        algorithmNames.put(MiscObjectIdentifiers.id_HashMLDSA65_RSA3072_PSS_SHA512, "HashMLDSA65-RSA3072-PSS-SHA512");
-        algorithmNames.put(MiscObjectIdentifiers.id_HashMLDSA65_RSA3072_PKCS15_SHA512, "HashMLDSA65-RSA3072-PKCS15-SHA512");
-        algorithmNames.put(MiscObjectIdentifiers.id_HashMLDSA65_RSA4096_PSS_SHA512, "HashMLDSA65-RSA4096-PSS-SHA512");
-        algorithmNames.put(MiscObjectIdentifiers.id_HashMLDSA65_RSA4096_PKCS15_SHA512, "HashMLDSA65-RSA4096-PKCS15-SHA512");
-        algorithmNames.put(MiscObjectIdentifiers.id_HashMLDSA65_ECDSA_P384_SHA512, "HashMLDSA65-ECDSA-P384-SHA512");
-        algorithmNames.put(MiscObjectIdentifiers.id_HashMLDSA65_ECDSA_brainpoolP256r1_SHA512, "HashMLDSA65-ECDSA-brainpoolP256r1-SHA512");
-        algorithmNames.put(MiscObjectIdentifiers.id_HashMLDSA65_Ed25519_SHA512, "HashMLDSA65-Ed25519-SHA512");
-        algorithmNames.put(MiscObjectIdentifiers.id_HashMLDSA87_ECDSA_P384_SHA512, "HashMLDSA87-ECDSA-P384-SHA512");
-        algorithmNames.put(MiscObjectIdentifiers.id_HashMLDSA87_ECDSA_brainpoolP384r1_SHA512, "HashMLDSA87-ECDSA-brainpoolP384r1-SHA512");
-        algorithmNames.put(MiscObjectIdentifiers.id_HashMLDSA87_Ed448_SHA512, "HashMLDSA87-Ed448-SHA512");
+        // every component carries a spec, including the ones whose parameter set the service name
+        // already fixes, because initialize(null, random) can only reach a component through one.
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PSS_SHA256, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_44, new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4)});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_44, new RSAKeyGenParameterSpec(2048, RSAKeyGenParameterSpec.F4)});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA44_Ed25519_SHA512, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_44, new EdDSAParameterSpec(EdDSAParameterSpec.Ed25519)});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_44, new ECNamedCurveGenParameterSpec("P-256")});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_RSA3072_PSS_SHA512, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_65, new RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4)});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_RSA3072_PKCS15_SHA512, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_65, new RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4)});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_RSA4096_PSS_SHA512, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_65, new RSAKeyGenParameterSpec(4096, RSAKeyGenParameterSpec.F4)});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_RSA4096_PKCS15_SHA512, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_65, new RSAKeyGenParameterSpec(4096, RSAKeyGenParameterSpec.F4)});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_ECDSA_P256_SHA512, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_65, new ECNamedCurveGenParameterSpec("P-256")});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_ECDSA_P384_SHA512, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_65, new ECNamedCurveGenParameterSpec("P-384")});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_ECDSA_brainpoolP256r1_SHA512, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_65, new ECNamedCurveGenParameterSpec("brainpoolP256r1")});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA65_Ed25519_SHA512, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_65, new EdDSAParameterSpec(EdDSAParameterSpec.Ed25519)});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA87_ECDSA_P384_SHA512, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_87, new ECNamedCurveGenParameterSpec("P-384")});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA87_ECDSA_brainpoolP384r1_SHA512, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_87, new ECNamedCurveGenParameterSpec("brainpoolP384r1")});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA87_Ed448_SHAKE256, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_87, new EdDSAParameterSpec(EdDSAParameterSpec.Ed448)});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA87_RSA4096_PSS_SHA512, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_87, new RSAKeyGenParameterSpec(4096, RSAKeyGenParameterSpec.F4)});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA87_ECDSA_P521_SHA512, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_87, new ECNamedCurveGenParameterSpec("P-521")});
+        kpgInitSpecs.put(IANAObjectIdentifiers.id_MLDSA87_RSA3072_PSS_SHA512, new AlgorithmParameterSpec[]{MLDSAParameterSpec.ml_dsa_87, new RSAKeyGenParameterSpec(3072, RSAKeyGenParameterSpec.F4)});
 
         algorithmNames.put(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PSS_SHA256, "MLDSA44-RSA2048-PSS-SHA256");
         algorithmNames.put(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256, "MLDSA44-RSA2048-PKCS15-SHA256");

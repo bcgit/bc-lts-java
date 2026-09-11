@@ -10,7 +10,10 @@ import org.bouncycastle.jcajce.provider.config.ConfigurableProvider;
 import org.bouncycastle.jcajce.provider.util.AsymmetricAlgorithmProvider;
 
 /**
- * Experimental implementation of composite signatures according to https://www.ietf.org/archive/id/draft-ounsworth-pq-composite-sigs-13.
+ * Composite ML-DSA signatures, as specified by draft-ietf-lamps-pq-composite-sigs. One service is
+ * registered per combination on the IANA arc 1.3.6.1.5.5.7.6.37-54, plus a "-PREHASH" flavour of each
+ * that takes PH(M) from the caller rather than computing it, and the generic "COMPOSITE" service that
+ * learns the combination from the key. See {@link CompositeIndex} for the supported combinations.
  */
 public class CompositeSignatures
 {
@@ -33,7 +36,7 @@ public class CompositeSignatures
 
         public void configure(ConfigurableProvider provider)
         {
-            provider.addAlgorithm("Signature.COMPOSITE", PREFIX + "SignatureSpi$COMPOSITE");
+            provider.addAlgorithm("Signature.COMPOSITE", PREFIX + "SignatureSpi$COMPOSITE", compositesAttributes);
 
             for (ASN1ObjectIdentifier oid : CompositeIndex.getSupportedIdentifiers())
             {
@@ -46,11 +49,11 @@ public class CompositeSignatures
                 provider.addAlgorithm("KeyPairGenerator." + algorithmName, PREFIX + "KeyPairGeneratorSpi$" + className);
                 provider.addAlgorithm("Alg.Alias.KeyPairGenerator", oid, algorithmName);
 
-                provider.addAlgorithm("Signature." + algorithmName, PREFIX + "SignatureSpi$" + className);
+                provider.addAlgorithm("Signature." + algorithmName, PREFIX + "SignatureSpi$" + className, compositesAttributes);
                 provider.addAlgorithm("Alg.Alias.Signature", oid, algorithmName);
 
                 // add pre-hash versions
-                provider.addAlgorithm("Signature." + algorithmName + "-PREHASH", PREFIX + "SignatureSpi$" + className + "_PREHASH");
+                provider.addAlgorithm("Signature." + algorithmName + "-PREHASH", PREFIX + "SignatureSpi$" + className + "_PREHASH", compositesAttributes);
 
                 provider.addKeyInfoConverter(oid, new KeyFactorySpi());
             }

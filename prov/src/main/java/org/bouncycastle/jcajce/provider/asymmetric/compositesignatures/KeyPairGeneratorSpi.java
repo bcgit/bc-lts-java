@@ -1,6 +1,7 @@
 package org.bouncycastle.jcajce.provider.asymmetric.compositesignatures;
 
 import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
@@ -9,7 +10,7 @@ import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
-import org.bouncycastle.internal.asn1.iana.IANAObjectIdentifiers;
+import org.bouncycastle.asn1.iana.IANAObjectIdentifiers;
 import org.bouncycastle.internal.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.jcajce.CompositePrivateKey;
 import org.bouncycastle.jcajce.CompositePublicKey;
@@ -22,9 +23,6 @@ public class KeyPairGeneratorSpi
 {
     private final ASN1ObjectIdentifier algorithm;
     private final KeyPairGenerator[] generators;
-
-    private SecureRandom secureRandom;
-    private boolean parametersInitialized = false;
 
     KeyPairGeneratorSpi(ASN1ObjectIdentifier algorithm)
     {
@@ -64,7 +62,8 @@ public class KeyPairGeneratorSpi
     @Override
     public void initialize(int keySize, SecureRandom random)
     {
-        throw new IllegalArgumentException("use AlgorithmParameterSpec");
+        // what the JCA specifies here; it extends IllegalArgumentException, so catches still match
+        throw new InvalidParameterException("use AlgorithmParameterSpec");
     }
 
     /**
@@ -81,17 +80,15 @@ public class KeyPairGeneratorSpi
     {
         if (paramSpec != null)
         {
-            throw new IllegalArgumentException("Use initialize only for custom SecureRandom. AlgorithmParameterSpec must be null because it is determined by algorithm name.");
+            throw new InvalidAlgorithmParameterException("Use initialize only for custom SecureRandom. AlgorithmParameterSpec must be null because it is determined by algorithm name.");
         }
 
         AlgorithmParameterSpec[] initSpecs = CompositeIndex.getKeyPairSpecs(algorithm);
         for (int i = 0; i != initSpecs.length; i++)
         {
-            AlgorithmParameterSpec initSpec = initSpecs[i];
-            if (initSpec != null)
-            {
-                this.generators[i].initialize(initSpec, secureRandom);
-            }
+            // CompositeIndex gives every component a spec precisely because this call is the only way
+            // the caller's SecureRandom can reach one - a null slot here would silently drop it.
+            this.generators[i].initialize(initSpecs[i], secureRandom);
         }
     }
 
