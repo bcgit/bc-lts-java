@@ -10,6 +10,8 @@ import java.security.spec.ECPrivateKeySpec;
 import java.security.spec.EllipticCurve;
 import java.util.Enumeration;
 
+import javax.security.auth.Destroyable;
+
 import org.bouncycastle.asn1.ASN1BitString;
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Encoding;
@@ -42,9 +44,11 @@ import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.bouncycastle.jce.spec.ECNamedCurveSpec;
 import org.bouncycastle.math.ec.ECCurve;
 import org.bouncycastle.util.BigIntegers;
+import org.bouncycastle.util.Exceptions;
+import org.bouncycastle.util.Strings;
 
 public class BCECGOST3410PrivateKey
-    implements ECPrivateKey, org.bouncycastle.jce.interfaces.ECPrivateKey, PKCS12BagAttributeCarrier, ECPointEncoder
+    implements ECPrivateKey, org.bouncycastle.jce.interfaces.ECPrivateKey, Destroyable, PKCS12BagAttributeCarrier, ECPointEncoder
 {
     static final long serialVersionUID = 7245981689601667138L;
 
@@ -56,6 +60,9 @@ public class BCECGOST3410PrivateKey
     private transient ECParameterSpec ecSpec;
     private transient ASN1BitString publicKey;
     private transient PKCS12BagAttributeCarrierImpl attrCarrier = new PKCS12BagAttributeCarrierImpl();
+
+    private transient volatile boolean destroyed;
+    private transient int destroyedHashCode;
 
     protected BCECGOST3410PrivateKey()
     {
@@ -106,6 +113,9 @@ public class BCECGOST3410PrivateKey
         this.attrCarrier = key.attrCarrier;
         this.publicKey = key.publicKey;
         this.gostParams = key.gostParams;
+        // a copy of a destroyed key is destroyed: there is no value left to copy
+        this.destroyed = key.destroyed;
+        this.destroyedHashCode = key.destroyedHashCode;
     }
 
     public BCECGOST3410PrivateKey(
@@ -314,6 +324,11 @@ public class BCECGOST3410PrivateKey
      */
     public byte[] getEncoded()
     {
+        if (destroyed)
+        {
+            throw new IllegalStateException("key destroyed");
+        }
+
         if (gostParams != null)
         {
             byte[] encKey = new byte[32];
@@ -434,12 +449,21 @@ public class BCECGOST3410PrivateKey
 
     public BigInteger getS()
     {
-        return d;
+        BigInteger value = d;
+
+        // the null check catches a destroy() in progress whose flag write is not yet visible;
+        // as BigInteger is immutable a non-null snapshot is always the intact pre-destroy value.
+        if (destroyed || value == null)
+        {
+            throw new IllegalStateException("key destroyed");
+        }
+
+        return value;
     }
 
     public BigInteger getD()
     {
-        return d;
+        return getS();
     }
 
     public void setBagAttribute(
@@ -477,12 +501,23 @@ public class BCECGOST3410PrivateKey
 
     public boolean equals(Object o)
     {
+        if (o == this)
+        {
+            return true;
+        }
+
         if (!(o instanceof BCECGOST3410PrivateKey))
         {
             return false;
         }
 
         BCECGOST3410PrivateKey other = (BCECGOST3410PrivateKey)o;
+
+        // a destroyed key no longer exposes its value, so it is only equal to itself.
+        if (isDestroyed() || other.isDestroyed())
+        {
+            return false;
+        }
 
         int len = Math.max(
             (engineGetSpec().getN().bitLength() + 7) / 8,
@@ -492,14 +527,64 @@ public class BCECGOST3410PrivateKey
             && BigIntegers.areSecretValuesEqual(len, getD(), other.getD());
     }
 
-    public int hashCode()
+    public synchronized int hashCode()
     {
-        return ECUtil.privateKeyHashCode(getD(), engineGetSpec());
+        BigInteger value = d;
+
+        if (value == null)
+        {
+            return destroyedHashCode;
+        }
+
+        return ECUtil.privateKeyHashCode(value, engineGetSpec());
     }
 
     public String toString()
     {
-        return ECUtil.privateKeyToString(algorithm, d, engineGetSpec());
+        BigInteger value = d;
+
+        if (value == null)
+        {
+            return algorithm + " Private Key [DESTROYED]" + Strings.lineSeparator();
+        }
+
+        return ECUtil.privateKeyToString(algorithm, value, engineGetSpec());
+    }
+
+    /**
+     * Destroy this key, clearing the key material it holds.
+     * <p>
+     * The private value is held as a {@link BigInteger}, which is immutable and so cannot be
+     * zeroized in place - destruction drops the internal reference so the value becomes
+     * unreachable (cleared on garbage collection). The (public) domain parameters and public key
+     * details are retained. After destruction {@link #isDestroyed()} returns true, the
+     * secret-bearing accessors ({@link #getEncoded()}, {@link #getS()} and {@link #getD()}) throw
+     * {@link IllegalStateException}, the key can no longer be serialized, and it is equal only to
+     * itself; {@link #hashCode()} retains its pre-destruction value.
+     */
+    public synchronized void destroy()
+    {
+        if (!destroyed)
+        {
+            // freeze the hash before the private value is dropped, so hash containers holding
+            // this key keep working.
+            try
+            {
+                this.destroyedHashCode = hashCode();
+            }
+            catch (RuntimeException e)
+            {
+                this.destroyedHashCode = -1;
+            }
+
+            this.destroyed = true;
+            this.d = null;
+        }
+    }
+
+    public boolean isDestroyed()
+    {
+        return destroyed;
     }
 
     private ASN1BitString getPublicKeyDetails(BCECGOST3410PublicKey pub)
@@ -535,6 +620,13 @@ public class BCECGOST3410PrivateKey
     {
         out.defaultWriteObject();
 
-        out.writeObject(this.getEncoded());
+        try
+        {
+            out.writeObject(this.getEncoded());
+        }
+        catch (IllegalStateException e)
+        {
+            throw Exceptions.ioException(e.getMessage(), e);
+        }
     }
 }

@@ -9,6 +9,7 @@ import java.util.Enumeration;
 import javax.crypto.interfaces.DHPrivateKey;
 import javax.crypto.spec.DHParameterSpec;
 import javax.crypto.spec.DHPrivateKeySpec;
+import javax.security.auth.Destroyable;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Encoding;
@@ -28,7 +29,7 @@ import org.bouncycastle.jce.spec.ElGamalPrivateKeySpec;
 import org.bouncycastle.util.BigIntegers;
 
 public class BCElGamalPrivateKey
-    implements ElGamalPrivateKey, DHPrivateKey, PKCS12BagAttributeCarrier
+    implements ElGamalPrivateKey, DHPrivateKey, Destroyable, PKCS12BagAttributeCarrier
 {
     static final long serialVersionUID = 4819350091141529678L;
         
@@ -36,6 +37,9 @@ public class BCElGamalPrivateKey
 
     private transient ElGamalParameterSpec   elSpec;
     private transient PKCS12BagAttributeCarrierImpl attrCarrier = new PKCS12BagAttributeCarrierImpl();
+
+    private transient volatile boolean destroyed;
+    private transient int destroyedHashCode;
 
     protected BCElGamalPrivateKey()
     {
@@ -110,6 +114,11 @@ public class BCElGamalPrivateKey
      */
     public byte[] getEncoded()
     {
+        if (destroyed)
+        {
+            throw new IllegalStateException("key destroyed");
+        }
+
         try
         {
             PrivateKeyInfo          info = new PrivateKeyInfo(new AlgorithmIdentifier(OIWObjectIdentifiers.elGamalAlgorithm, new ElGamalParameter(elSpec.getP(), elSpec.getG())), new ASN1Integer(getX()));
@@ -134,18 +143,38 @@ public class BCElGamalPrivateKey
     
     public BigInteger getX()
     {
-        return x;
+        BigInteger value = x;
+
+        // the null check catches a destroy() in progress whose flag write is not yet visible;
+        // as BigInteger is immutable a non-null snapshot is always the intact pre-destroy value.
+        if (destroyed || value == null)
+        {
+            throw new IllegalStateException("key destroyed");
+        }
+
+        return value;
     }
 
     public boolean equals(
         Object o)
     {
+        if (o == this)
+        {
+            return true;
+        }
+
         if (!(o instanceof DHPrivateKey))
         {
             return false;
         }
 
         DHPrivateKey other = (DHPrivateKey)o;
+
+        // a destroyed key no longer exposes its value, so it is only equal to itself.
+        if (isDestroyed() || ((o instanceof Destroyable) && ((Destroyable)o).isDestroyed()))
+        {
+            return false;
+        }
 
         int len = Math.max(dhPrivateKeyByteLength(getParams()), dhPrivateKeyByteLength(other.getParams()));
 
@@ -155,9 +184,52 @@ public class BCElGamalPrivateKey
             && BigIntegers.areSecretValuesEqual(len, this.getX(), other.getX());
     }
 
-    public int hashCode()
+    public synchronized int hashCode()
     {
-        return PrivateKeyHashUtil.elGamalHashCode(getParameters(), getX());
+        BigInteger value = x;
+
+        if (value == null)
+        {
+            return destroyedHashCode;
+        }
+
+        return PrivateKeyHashUtil.elGamalHashCode(getParameters(), value);
+    }
+
+    /**
+     * Destroy this key, clearing the key material it holds.
+     * <p>
+     * The private value is held as a {@link BigInteger}, which is immutable and so cannot be
+     * zeroized in place - destruction drops the internal reference so the value becomes
+     * unreachable (cleared on garbage collection). The (public) domain parameters are
+     * retained. After destruction {@link #isDestroyed()} returns true, the secret-bearing
+     * accessors ({@link #getEncoded()} and {@link #getX()}) throw {@link IllegalStateException}, the key can no longer be
+     * serialized, and it is equal only to itself; {@link #hashCode()} retains its
+     * pre-destruction value.
+     */
+    public synchronized void destroy()
+    {
+        if (!destroyed)
+        {
+            // freeze the hash before the private value is dropped, so hash containers holding
+            // this key keep working.
+            try
+            {
+                this.destroyedHashCode = hashCode();
+            }
+            catch (RuntimeException e)
+            {
+                this.destroyedHashCode = -1;
+            }
+
+            this.destroyed = true;
+            this.x = null;
+        }
+    }
+
+    public boolean isDestroyed()
+    {
+        return destroyed;
     }
 
     private void readObject(
@@ -170,10 +242,17 @@ public class BCElGamalPrivateKey
         this.attrCarrier = new PKCS12BagAttributeCarrierImpl();
     }
 
-    private void writeObject(
+    private synchronized void writeObject(
         ObjectOutputStream  out)
         throws IOException
     {
+        // the private value is serialized directly by defaultWriteObject, so a destroyed key
+        // cannot be written; IOException, not IllegalStateException, as declared by the contract.
+        if (destroyed)
+        {
+            throw new IOException("key destroyed");
+        }
+
         out.defaultWriteObject();
 
         out.writeObject(elSpec.getP());

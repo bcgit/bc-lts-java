@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 
+import javax.security.auth.Destroyable;
+
 import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.crypto.params.MLKEMPrivateKeyParameters;
@@ -20,7 +22,7 @@ import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
 
 public class BCMLKEMPrivateKey
-    implements MLKEMPrivateKey, BCKey
+    implements MLKEMPrivateKey, Destroyable, BCKey
 {
     private static final long serialVersionUID = 1L;
 
@@ -68,6 +70,12 @@ public class BCMLKEMPrivateKey
         {
             BCMLKEMPrivateKey otherKey = (BCMLKEMPrivateKey)o;
 
+            // a destroyed key no longer exposes its value, so it is only equal to itself.
+            if (isDestroyed() || otherKey.isDestroyed())
+            {
+                return false;
+            }
+
             return Arrays.constantTimeAreEqual(params.getEncoded(), otherKey.params.getEncoded());
         }
 
@@ -89,6 +97,11 @@ public class BCMLKEMPrivateKey
 
     public byte[] getEncoded()
     {
+        if (params.isDestroyed())
+        {
+            throw new IllegalStateException("key destroyed");
+        }
+
         try
         {
             if (priorEncoding != null)

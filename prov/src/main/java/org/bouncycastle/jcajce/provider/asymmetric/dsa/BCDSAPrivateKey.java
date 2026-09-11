@@ -10,6 +10,8 @@ import java.security.spec.DSAParameterSpec;
 import java.security.spec.DSAPrivateKeySpec;
 import java.util.Enumeration;
 
+import javax.security.auth.Destroyable;
+
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
@@ -26,7 +28,7 @@ import org.bouncycastle.util.BigIntegers;
 import org.bouncycastle.util.Strings;
 
 public class BCDSAPrivateKey
-    implements DSAPrivateKey, PKCS12BagAttributeCarrier
+    implements DSAPrivateKey, Destroyable, PKCS12BagAttributeCarrier
 {
     private static final long serialVersionUID = -4677259546958385734L;
 
@@ -34,6 +36,9 @@ public class BCDSAPrivateKey
     private transient DSAParams dsaSpec;
 
     private transient PKCS12BagAttributeCarrierImpl attrCarrier = new PKCS12BagAttributeCarrierImpl();
+
+    private transient volatile boolean destroyed;
+    private transient int destroyedHashCode;
 
     protected BCDSAPrivateKey()
     {
@@ -94,6 +99,11 @@ public class BCDSAPrivateKey
      */
     public byte[] getEncoded()
     {
+        if (destroyed)
+        {
+            throw new IllegalStateException("key destroyed");
+        }
+
         return KeyUtil.getEncodedPrivateKeyInfo(new AlgorithmIdentifier(X9ObjectIdentifiers.id_dsa, new DSAParameter(dsaSpec.getP(), dsaSpec.getQ(), dsaSpec.getG()).toASN1Primitive()), new ASN1Integer(getX()));
     }
 
@@ -104,18 +114,38 @@ public class BCDSAPrivateKey
 
     public BigInteger getX()
     {
-        return x;
+        BigInteger value = x;
+
+        // the null check catches a destroy() in progress whose flag write is not yet visible;
+        // as BigInteger is immutable a non-null snapshot is always the intact pre-destroy value.
+        if (destroyed || value == null)
+        {
+            throw new IllegalStateException("key destroyed");
+        }
+
+        return value;
     }
 
     public boolean equals(
         Object o)
     {
+        if (o == this)
+        {
+            return true;
+        }
+
         if (!(o instanceof DSAPrivateKey))
         {
             return false;
         }
 
         DSAPrivateKey other = (DSAPrivateKey)o;
+
+        // a destroyed key no longer exposes its value, so it is only equal to itself.
+        if (isDestroyed() || ((o instanceof Destroyable) && ((Destroyable)o).isDestroyed()))
+        {
+            return false;
+        }
 
         int len = Math.max(
             (getParams().getQ().bitLength() + 7) / 8,
@@ -127,9 +157,52 @@ public class BCDSAPrivateKey
             && BigIntegers.areSecretValuesEqual(len, this.getX(), other.getX());
     }
 
-    public int hashCode()
+    public synchronized int hashCode()
     {
-        return PrivateKeyHashUtil.dsaHashCode(getParams(), getX());
+        BigInteger value = x;
+
+        if (value == null)
+        {
+            return destroyedHashCode;
+        }
+
+        return PrivateKeyHashUtil.dsaHashCode(getParams(), value);
+    }
+
+    /**
+     * Destroy this key, clearing the key material it holds.
+     * <p>
+     * The private value is held as a {@link BigInteger}, which is immutable and so cannot be
+     * zeroized in place - destruction drops the internal reference so the value becomes
+     * unreachable (cleared on garbage collection). The (public) domain parameters are
+     * retained. After destruction {@link #isDestroyed()} returns true, the secret-bearing
+     * accessors ({@link #getEncoded()} and {@link #getX()}) throw {@link IllegalStateException}, the key can no longer be
+     * serialized, and it is equal only to itself; {@link #hashCode()} retains its
+     * pre-destruction value.
+     */
+    public synchronized void destroy()
+    {
+        if (!destroyed)
+        {
+            // freeze the hash before the private value is dropped, so hash containers holding
+            // this key keep working.
+            try
+            {
+                this.destroyedHashCode = hashCode();
+            }
+            catch (RuntimeException e)
+            {
+                this.destroyedHashCode = -1;
+            }
+
+            this.destroyed = true;
+            this.x = null;
+        }
+    }
+
+    public boolean isDestroyed()
+    {
+        return destroyed;
     }
 
     public void setBagAttribute(
@@ -170,10 +243,17 @@ public class BCDSAPrivateKey
         this.attrCarrier = new PKCS12BagAttributeCarrierImpl();
     }
 
-    private void writeObject(
+    private synchronized void writeObject(
         ObjectOutputStream out)
         throws IOException
     {
+        // the private value is serialized directly by defaultWriteObject, so a destroyed key
+        // cannot be written; IOException, not IllegalStateException, as declared by the contract.
+        if (destroyed)
+        {
+            throw new IOException("key destroyed");
+        }
+
         out.defaultWriteObject();
 
         out.writeObject(dsaSpec.getP());
@@ -186,7 +266,14 @@ public class BCDSAPrivateKey
         StringBuilder   buf = new StringBuilder();
         String          nl = Strings.lineSeparator();
 
-        BigInteger y = getParams().getG().modPow(x, getParams().getP());
+        BigInteger value = x;
+
+        if (value == null)
+        {
+            return "DSA Private Key [DESTROYED]" + nl;
+        }
+
+        BigInteger y = getParams().getG().modPow(value, getParams().getP());
 
         buf.append("DSA Private Key [").append(DSAUtil.generateKeyFingerprint(y, getParams())).append("]").append(nl);
         buf.append("            Y: ").append(y.toString(16)).append(nl);

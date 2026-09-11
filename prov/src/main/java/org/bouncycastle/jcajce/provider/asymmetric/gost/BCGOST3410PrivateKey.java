@@ -7,6 +7,8 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.util.Enumeration;
 
+import javax.security.auth.Destroyable;
+
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1Integer;
@@ -29,9 +31,10 @@ import org.bouncycastle.jce.spec.GOST3410PrivateKeySpec;
 import org.bouncycastle.jce.spec.GOST3410PublicKeyParameterSetSpec;
 import org.bouncycastle.util.BigIntegers;
 import org.bouncycastle.util.Exceptions;
+import org.bouncycastle.util.Strings;
 
 public class BCGOST3410PrivateKey
-    implements GOST3410PrivateKey, PKCS12BagAttributeCarrier
+    implements GOST3410PrivateKey, Destroyable, PKCS12BagAttributeCarrier
 {
     static final long serialVersionUID = 8581661527592305464L;
 
@@ -39,6 +42,9 @@ public class BCGOST3410PrivateKey
 
     private transient   GOST3410Params      gost3410Spec;
     private transient   PKCS12BagAttributeCarrier attrCarrier = new PKCS12BagAttributeCarrierImpl();
+
+    private transient volatile boolean destroyed;
+    private transient int destroyedHashCode;
 
     protected BCGOST3410PrivateKey()
     {
@@ -123,6 +129,11 @@ public class BCGOST3410PrivateKey
      */
     public byte[] getEncoded()
     {
+        if (destroyed)
+        {
+            throw new IllegalStateException("key destroyed");
+        }
+
         PrivateKeyInfo          info;
         byte[]                  keyEnc = this.getX().toByteArray();
         byte[]                  keyBytes;
@@ -167,18 +178,38 @@ public class BCGOST3410PrivateKey
 
     public BigInteger getX()
     {
-        return x;
+        BigInteger value = x;
+
+        // the null check catches a destroy() in progress whose flag write is not yet visible;
+        // as BigInteger is immutable a non-null snapshot is always the intact pre-destroy value.
+        if (destroyed || value == null)
+        {
+            throw new IllegalStateException("key destroyed");
+        }
+
+        return value;
     }
 
     public boolean equals(
         Object o)
     {
+        if (o == this)
+        {
+            return true;
+        }
+
         if (!(o instanceof GOST3410PrivateKey))
         {
             return false;
         }
 
         GOST3410PrivateKey other = (GOST3410PrivateKey)o;
+
+        // a destroyed key no longer exposes its value, so it is only equal to itself.
+        if (isDestroyed() || ((o instanceof Destroyable) && ((Destroyable)o).isDestroyed()))
+        {
+            return false;
+        }
 
         int len = Math.max(
             (getParameters().getPublicKeyParameters().getQ().bitLength() + 7) / 8,
@@ -205,16 +236,66 @@ public class BCGOST3410PrivateKey
         return o1.equals(o2);
     }
 
-    public int hashCode()
+    public synchronized int hashCode()
     {
-        return PrivateKeyHashUtil.gostHashCode(getParameters(), getX());
+        BigInteger value = x;
+
+        if (value == null)
+        {
+            return destroyedHashCode;
+        }
+
+        return PrivateKeyHashUtil.gostHashCode(getParameters(), value);
+    }
+
+    /**
+     * Destroy this key, clearing the key material it holds.
+     * <p>
+     * The private value is held as a {@link BigInteger}, which is immutable and so cannot be
+     * zeroized in place - destruction drops the internal reference so the value becomes
+     * unreachable (cleared on garbage collection). The (public) domain parameters are
+     * retained. After destruction {@link #isDestroyed()} returns true, the secret-bearing
+     * accessors ({@link #getEncoded()} and {@link #getX()}) throw {@link IllegalStateException}, the key can no longer be
+     * serialized, and it is equal only to itself; {@link #hashCode()} retains its
+     * pre-destruction value.
+     */
+    public synchronized void destroy()
+    {
+        if (!destroyed)
+        {
+            // freeze the hash before the private value is dropped, so hash containers holding
+            // this key keep working.
+            try
+            {
+                this.destroyedHashCode = hashCode();
+            }
+            catch (RuntimeException e)
+            {
+                this.destroyedHashCode = -1;
+            }
+
+            this.destroyed = true;
+            this.x = null;
+        }
+    }
+
+    public boolean isDestroyed()
+    {
+        return destroyed;
     }
 
     public String toString()
     {
+        BigInteger value = x;
+
+        if (value == null)
+        {
+            return "GOST3410 Private Key [DESTROYED]" + Strings.lineSeparator();
+        }
+
         try
         {
-            return GOSTUtil.privateKeyToString("GOST3410", x,
+            return GOSTUtil.privateKeyToString("GOST3410", value,
                 ((GOST3410PrivateKeyParameters)GOST3410Util.generatePrivateKeyParameter(this)).getParameters());
         }
         catch (InvalidKeyException e)
@@ -271,10 +352,17 @@ public class BCGOST3410PrivateKey
         this.attrCarrier = new PKCS12BagAttributeCarrierImpl();
     }
 
-    private void writeObject(
+    private synchronized void writeObject(
         ObjectOutputStream out)
         throws IOException
     {
+        // the private value is serialized directly by defaultWriteObject, so a destroyed key
+        // cannot be written; IOException, not IllegalStateException, as declared by the contract.
+        if (destroyed)
+        {
+            throw new IOException("key destroyed");
+        }
+
         out.defaultWriteObject();
 
         if (gost3410Spec.getPublicKeyParamSetOID() != null)
