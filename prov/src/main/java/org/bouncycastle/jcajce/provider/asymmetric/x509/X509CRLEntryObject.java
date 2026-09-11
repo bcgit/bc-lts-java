@@ -70,7 +70,7 @@ class X509CRLEntryObject extends X509CRLEntry
         X500Name previousCertificateIssuer)
     {
         this.c = c;
-        this.certificateIssuer = loadCertificateIssuer(isIndirect, previousCertificateIssuer);
+        this.certificateIssuer = loadCertificateIssuer(c, isIndirect, previousCertificateIssuer);
     }
 
     /**
@@ -84,7 +84,7 @@ class X509CRLEntryObject extends X509CRLEntry
         return extensions != null && extensions.hasAnyCriticalExtensions();
     }
 
-    private X500Name loadCertificateIssuer(boolean isIndirect, X500Name previousCertificateIssuer)
+    static X500Name loadCertificateIssuer(TBSCertList.CRLEntry c, boolean isIndirect, X500Name previousCertificateIssuer)
     {
         if (!isIndirect)
         {
