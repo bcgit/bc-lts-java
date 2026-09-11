@@ -14,6 +14,7 @@ import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x9.ECNamedCurveTable;
 import org.bouncycastle.asn1.x9.X962Parameters;
 import org.bouncycastle.asn1.x9.X9ECParameters;
+import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
 import org.bouncycastle.crypto.ec.CustomNamedCurves;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.params.ECDomainParameters;
@@ -32,6 +33,7 @@ import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.math.ec.FixedPointCombMultiplier;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Fingerprint;
+import org.bouncycastle.jcajce.provider.util.SecurityExceptions;
 import org.bouncycastle.util.Strings;
 
 /**
@@ -252,10 +254,18 @@ public class ECUtil
         else if (key instanceof java.security.interfaces.ECPrivateKey)
         {
             java.security.interfaces.ECPrivateKey privKey = (java.security.interfaces.ECPrivateKey)key;
-            ECParameterSpec s = EC5Util.convertSpec(privKey.getParams());
-            return new ECPrivateKeyParameters(
-                            privKey.getS(),
-                            new ECDomainParameters(s.getCurve(), s.getG(), s.getN(), s.getH(), s.getSeed()));
+            try
+            {
+                ECParameterSpec s = EC5Util.convertSpec(privKey.getParams());
+                return new ECPrivateKeyParameters(
+                                privKey.getS(),
+                                new ECDomainParameters(s.getCurve(), s.getG(), s.getN(), s.getH(), s.getSeed()));
+            }
+            catch (RuntimeException e)
+            {
+                throw SecurityExceptions.invalidKeyException(
+                    "cannot recognise EC private key - its parameters are not accessible (a hardware-backed key?): " + e.getMessage(), e);
+            }
         }
         else
         {
@@ -360,6 +370,38 @@ public class ECUtil
         return null;
     }
 
+    /**
+     * Return the {@code subjectPublicKey} bytes of a SubjectPublicKeyInfo with an EC point
+     * normalised to its uncompressed encoding, and the bytes of any other key type unchanged.
+     * <p>
+     * The composite drafts (draft-ietf-lamps-pq-composite-sigs / -kem sec. 4) require an EC
+     * component to be carried as an uncompressed point, so a component key that would encode itself
+     * compressed - a BC EC key whose point format has been set through
+     * {@link org.bouncycastle.jce.interfaces.ECPointEncoder}, or a key from a provider that
+     * preserves a compressed encoding - has to be normalised on the way out rather than passed
+     * through as it came. This is a write-side normalisation only: a compressed component is still
+     * accepted on decode, as the component key factories decode either form.
+     *
+     * @param spki the key to take the component bytes from.
+     * @param configuration provider configuration, consulted only for implicitlyCA and additional
+     *                      curve parameters.
+     * @return the component key bytes, uncompressed if they are an EC point.
+     */
+    public static byte[] getUncompressedSubjectPublicKeyBytes(SubjectPublicKeyInfo spki, ProviderConfiguration configuration)
+    {
+        byte[] keyBytes = spki.getPublicKeyData().getOctets();
+
+        if (!X9ObjectIdentifiers.id_ecPublicKey.equals(spki.getAlgorithm().getAlgorithm()))
+        {
+            return keyBytes;
+        }
+
+        X962Parameters params = X962Parameters.getInstance(spki.getAlgorithm().getParameters());
+        ECDomainParameters domainParameters = getDomainParameters(configuration, params);
+
+        return domainParameters.getCurve().decodePoint(keyBytes).normalize().getEncoded(false);
+    }
+
     public static X9ECParameters getNamedCurveByOid(
         ASN1ObjectIdentifier oid)
     {
@@ -448,6 +490,8 @@ public class ECUtil
             return 0;
         }
 
-        return spec.getG().multiply(d).normalize().hashCode() ^ spec.hashCode();
+        // d is the private scalar, so use the cache-safe fixed-point comb, not the
+        // curve's default wNAF multiplier
+        return new FixedPointCombMultiplier().multiply(spec.getG(), d).normalize().hashCode() ^ spec.hashCode();
     }
 }
