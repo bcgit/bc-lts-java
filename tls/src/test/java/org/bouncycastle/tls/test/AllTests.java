@@ -27,6 +27,7 @@ public class AllTests
         suite.addTestSuite(ByteQueueInputStreamTest.class);
         suite.addTestSuite(DTLSAggregatedHandshakeRetransmissionTest.class);
         suite.addTestSuite(DTLSHandshakeRetransmissionTest.class);
+        suite.addTestSuite(DTLSInvalidRecordTest.class);
         suite.addTestSuite(DTLSProtocolTest.class);
         suite.addTestSuite(DTLSPSKProtocolTest.class);
         suite.addTestSuite(DTLSRawKeysProtocolTest.class);

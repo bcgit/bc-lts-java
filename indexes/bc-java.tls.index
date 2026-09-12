@@ -605,3 +605,4 @@ e8aefdf265ab1911feeaf052d0f73c950c9b72a589c6652c1fa3bce206656552  tls/src/test/j
 5ad13f68e1706639daef5c5a1ead79c39d9ec132da92d743f405df06324368a2  tls/src/main/java/org/bouncycastle/tls/crypto/impl/bc/BcVerifyingStreamSigner.java
 932f794564596350e3e9013a89af67521a654aeb5f92c3ee91691e424a9ddef9  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaVerifyingStreamSigner.java
 77f70ff95f5d0db77a4680cf4a2b081acaf1a9bb66156acacf877ff8241b5c94  tls/src/main/java/org/bouncycastle/jsse/provider/FileUtils.java
+bcf057a71ed923c6fbad84e254ed13afe955f71976f8814103372884f59b8903  tls/src/test/java/org/bouncycastle/tls/test/DTLSInvalidRecordTest.java
