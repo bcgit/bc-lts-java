@@ -41,7 +41,7 @@ b380933dc1e3c35043b13c3fc7fcfc1925a3b364c18d20ca18a87f73010aad57  pg/src/main/jd
 7776ee4e724d273942c4c1a2105290e83b7593be60e228f1efd6e69539b81a28  pg/src/main/java/org/bouncycastle/bcpg/EdSecretBCPGKey.java
 f086d2aa2dd79da8969602395b8ff1a11b6452b6a0d09571b8680179a807ca4a  pg/src/main/java/org/bouncycastle/bcpg/TrustPacket.java
 83f66b2c12daaeb77d48406b1142740250e519d8e0cb00ae2e0ff4bdc8df2e5b  pg/src/main/java/org/bouncycastle/bcpg/ArmoredInputException.java
-021ea7f7e5b345eff6b1642fc784d6705e6a6e5b784f9c9bedf4d55f8e349b60  pg/src/main/java/org/bouncycastle/bcpg/ArmoredInputStream.java
+8017e7f875954f3650480a4074d1d88228e1466f615647fb62b33ac4b7603bf5  pg/src/main/java/org/bouncycastle/bcpg/ArmoredInputStream.java
 a99366a7900b5156fa3b0af283d2d962f84a6d95181da9713c5f0eed2eb56fd4  pg/src/main/java/org/bouncycastle/bcpg/UserDataPacket.java
 7abd0dbae94774f19390f0c58deb3c19a8eb690a781bf065c961efe929bf33ab  pg/src/main/java/org/bouncycastle/bcpg/SymmetricEncDataPacket.java
 aa2edb2790cdb62cd526a498273178c51fb3cea721ae499413cf321ef7821aec  pg/src/main/java/org/bouncycastle/bcpg/MarkerPacket.java
@@ -104,10 +104,10 @@ f4d7ea435ae1d3cbb9ec343a78dcf75a5a3b18c0d8fc88a3f72daaca86f42411  pg/src/main/ja
 1aa5eab5e28482b31179c3d448d4fd65260307d0f5abab79eaef601dd408934b  pg/src/main/java/org/bouncycastle/bcpg/attr/ImageAttribute.java
 a15e6e69138484f896b346b6a6868f921a4eeceaee2c03aa9e12ba585290fd76  pg/src/main/java/org/bouncycastle/gpg/keybox/UserID.java
 4264b279ca8e313c706d50171594b9337dc69196bbbf5fa63375f61f47bb902f  pg/src/main/java/org/bouncycastle/gpg/keybox/KeyBox.java
-089b88bf8cd73603e9e784a541af8f16cc55993585b2f576a9fd64df0dfacb31  pg/src/main/java/org/bouncycastle/gpg/keybox/CertificateBlob.java
+4202923cd314ce6b75bfd55fb7925f1ea7c452d76b4bf1bebb5a0b7de447075c  pg/src/main/java/org/bouncycastle/gpg/keybox/CertificateBlob.java
 87e38bb3835838b3892c8a18cd7c8112f65643b5431d22d3e9ccb0a265618752  pg/src/main/java/org/bouncycastle/gpg/keybox/bc/BcKeyBox.java
 e8ec763dad0026e35ffe1fde8d4f96665b37d9de34c62d3a1772bae8dbd3b5c8  pg/src/main/java/org/bouncycastle/gpg/keybox/bc/BcBlobVerifier.java
-e5bbf4adc671803fadb86c837550d869be3114dce2307cf3793859427e962f21  pg/src/main/java/org/bouncycastle/gpg/keybox/PublicKeyRingBlob.java
+6bfd855e1023a6fecb9d8533b6ef2e5c303113c25ae239613787093a881cfdeb  pg/src/main/java/org/bouncycastle/gpg/keybox/PublicKeyRingBlob.java
 0cb07e8fbab436daa2635f8e998752c18e83f2dc0665770f45ef2a99b5004bdd  pg/src/main/java/org/bouncycastle/gpg/keybox/jcajce/JcaKeyBoxBuilder.java
 8510330acc01ad63489a72339dae4e9ff500dc5f3fde853b2f0679c1e1070288  pg/src/main/java/org/bouncycastle/gpg/keybox/jcajce/JcaKeyBox.java
 641a2453b638da6e709417ea27ebe7678affe3e07ec77918438e339dd96aef10  pg/src/main/java/org/bouncycastle/gpg/keybox/jcajce/JcaBlobVerifierBuilder.java
@@ -115,7 +115,7 @@ e5bbf4adc671803fadb86c837550d869be3114dce2307cf3793859427e962f21  pg/src/main/ja
 272faa7755fed08a9e837174f90693f2732d99d19e5a7d37e6063c7b345694ea  pg/src/main/java/org/bouncycastle/gpg/keybox/BlobVerifier.java
 f8c227de28294fea59050574ca44ba15762f475afae73f7985e20899bed54987  pg/src/main/java/org/bouncycastle/gpg/keybox/KeyInformation.java
 63c9aff7fdb2d2849bad82996cede519e166e301aae91605924dced729ab9650  pg/src/main/java/org/bouncycastle/gpg/keybox/BlobType.java
-d96bb865776134746daf35a4f0239fba84880a17401b8aa8dbcca2ec22e9e944  pg/src/main/java/org/bouncycastle/gpg/keybox/KeyBlob.java
+80fe1fbbc00ea6896545bf9738bed7fd9ac2c85e5a0d4e8c461ae326b755f104  pg/src/main/java/org/bouncycastle/gpg/keybox/KeyBlob.java
 cfd45c898d166ad39936c617b3c5a1b02460a9ea29cfbc605402338316821a43  pg/src/main/java/org/bouncycastle/gpg/keybox/FirstBlob.java
 6113c39d29b96f82d992a3541bbe6ed85cbaa6a779b1fcfed6ed563ff3b5e50b  pg/src/main/java/org/bouncycastle/gpg/keybox/Blob.java
 5ee3b68d3f8bc26698a68283f5ace04839aae42ecfe598f077a26127eadce069  pg/src/main/java/org/bouncycastle/gpg/PGPSecretKeyParser.java
@@ -271,9 +271,9 @@ d5552de9542b2158718b15a59637c2502aa23f3f9619985475e176c924435a11  pg/src/main/ja
 e3890c14a3bae62502a51a8c76d1d98631f426c3c3585575f15cbaf6796fc264  pg/src/main/java/org/bouncycastle/apache/bzip2/CBZip2OutputStream.java
 7ce3cb77c7da64765a375069e1bd7da634b32bd03c691e8ba4d5dfafa226bc13  pg/src/main/java/org/bouncycastle/openpgp/PGPSymmetricKeyEncryptedData.java
 dd77cfd87cf806434fd51ef5f116bcca8af4ff0c3d1855377ac71371948446c6  pg/src/main/java/org/bouncycastle/openpgp/PGPPublicKeyEncryptedData.java
-ee63cefef9b9743321e2d5199334f96cd38433c021e9a81982bccb2caea38b02  pg/src/main/java/org/bouncycastle/openpgp/PGPUtil.java
+b42016348f64bd54780147af179867caa69c11891e7f2354b148b55ed57f82d1  pg/src/main/java/org/bouncycastle/openpgp/PGPUtil.java
 6d292013856b5967c54865d60d7f535bc1d180bb3f37ed6940d582ba0624ad5e  pg/src/main/java/org/bouncycastle/openpgp/PGPOnePassSignature.java
-b133a0a83282aab0358aa3c5a2b32ba64f6a3a60d67631be706472baa8e503c6  pg/src/main/java/org/bouncycastle/openpgp/operator/PGPUtil.java
+3cec911aa11d32d2d527f50ee473311246cd14abb275d8061f310744662dc662  pg/src/main/java/org/bouncycastle/openpgp/operator/PGPUtil.java
 0d9e6dca2082cf334716a9997f0a157f41c06a85c9c6e11a8c09d169ab2e5cc1  pg/src/main/java/org/bouncycastle/openpgp/operator/bc/BcPBEKeyEncryptionMethodGenerator.java
 cda7b16906fc18211edb801b4d7d206b74e351976faf8cf9f9f10d0809e8f8e0  pg/src/main/java/org/bouncycastle/openpgp/operator/bc/BcPGPDataEncryptorBuilder.java
 c83b14248ebee7b577568c480f0f835d5163949e43f628f46444d251a24dbda5  pg/src/main/java/org/bouncycastle/openpgp/operator/bc/BcPBEDataDecryptorFactory.java
@@ -281,7 +281,7 @@ c83b14248ebee7b577568c480f0f835d5163949e43f628f46444d251a24dbda5  pg/src/main/ja
 e2e314fadd2daf5e9f6236fecdff6df083ee5ec34e3a3fdf1b5c605690db1c06  pg/src/main/java/org/bouncycastle/openpgp/operator/bc/BcImplProvider.java
 c15e9a285aa38c25601ff02a2c0e51604d7ce3b2e90f06282c14dd4ecd8782ba  pg/src/main/java/org/bouncycastle/openpgp/operator/bc/BcPGPKeyConverter.java
 11b9a50d7acd62e7d36d3d2ee23afc6e5feb285db4e7058ae33d4b703361316d  pg/src/main/java/org/bouncycastle/openpgp/operator/bc/RFC6637KDFCalculator.java
-ef3a0c4723b0fd040278b181bebbe385bb49bc893e362af3faaf4e4582616a6e  pg/src/main/java/org/bouncycastle/openpgp/operator/bc/BcAEADUtil.java
+8ec2006d4f38378ba2bd8519f1974a2899fcc670c3a0adda00f4f3d68ec0b11e  pg/src/main/java/org/bouncycastle/openpgp/operator/bc/BcAEADUtil.java
 eb5b796a87c3e03da77ee22f2bce779831bc4ca1871283667c89f94276277c7f  pg/src/main/java/org/bouncycastle/openpgp/operator/bc/BcPublicKeyDataDecryptorFactory.java
 4241995b4e48567cea61dc72fedbdc76878fd6267d31a556957074ba1e709fd8  pg/src/main/java/org/bouncycastle/openpgp/operator/bc/BcPublicKeyKeyEncryptionMethodGenerator.java
 5e10919a0201807f4d94ea935b2b8feb651f8862794206b5bf3a5168e66a2110  pg/src/main/java/org/bouncycastle/openpgp/operator/jcajce/JcaPGPContentVerifierBuilderProvider.java
@@ -324,7 +324,7 @@ a4f5cc3747b72924bd56ecd3ab93f2352c36613fe18401bd0d0c4fca5725d979  pg/src/main/ja
 0e39e308158e04585b54e523e2e68b424b548eb3b5a779e77dac01aae05d3d4a  pg/src/main/java/org/bouncycastle/bcpg/OctetArrayBCPGKey.java
 1b317be8c3d057360bdd1ee8965b4e6bb5fef05b229a8512f5a180394adfc513  pg/src/main/java/org/bouncycastle/bcpg/package-info.java
 59b7f884e1cc5b6656e8e91e81de0b408f44ec7abd764ee726a81d54d926506f  pg/src/main/java/org/bouncycastle/bcpg/PacketFormat.java
-787fd24c31206b04c5c1856090c10acb5027005c179cb43bb1500f34b371ec5c  pg/src/main/java/org/bouncycastle/bcpg/PublicKeyUtils.java
+e4c7b78dfa3957ae48935d600ea24b39922d028b6909f8d41ca145a782d0139b  pg/src/main/java/org/bouncycastle/bcpg/PublicKeyUtils.java
 37578ae00685dc7d9daad534e1abd46616ea042a9e399feb857a0c5ecf15d955  pg/src/main/java/org/bouncycastle/bcpg/sig/LibrePGPPreferredEncryptionModes.java
 7b8e476a5a5c0a3dd97f13e969c442c8cbf25c8643d8e1b2502611eede27b903  pg/src/main/java/org/bouncycastle/bcpg/sig/package-info.java
 0fab9e843267d7939554a8d7ad221c0232339ef91b806e55753349920e73591f  pg/src/main/java/org/bouncycastle/bcpg/sig/PreferredAEADCiphersuites.java
@@ -339,7 +339,7 @@ d102ff14d28df7338649d2c402198017c4b2fc46f318aca5835177bd10c0d638  pg/src/main/ja
 b810e20144762d33a32252b9a483db7282e4cf0037be05cd0cddaed61ac15215  pg/src/main/java/org/bouncycastle/gpg/package-info.java
 b2747cc92106738c860668dbc8633e139bf714b1859b5a25ebc5b6d032e917d8  pg/src/main/java/org/bouncycastle/openpgp/bc/package-info.java
 12836efcfb8977002828e9c66f3806442edae348b7842f6f829868697292f4c7  pg/src/main/java/org/bouncycastle/openpgp/jcajce/package-info.java
-62a36795ef869eeab05487ab3c62d7a2414b6c3c1dc4a3a45135761ec27b5479  pg/src/main/java/org/bouncycastle/openpgp/operator/AbstractPublicKeyDataDecryptorFactory.java
+b2bcdf3e90f15c67301a8e1f06f775b442ee7a4d0fa0b1d4458c0572842b2b0a  pg/src/main/java/org/bouncycastle/openpgp/operator/AbstractPublicKeyDataDecryptorFactory.java
 855d75422216bcb305c24ba6a042a7a1d2e4248de4d9cc0e4e692039ade0cd6e  pg/src/main/java/org/bouncycastle/openpgp/operator/AEADSecretKeyEncryptorBuilder.java
 28f1a621f468a4a2bb20bc4b71678d96474f34919de95949ce7babe4d9f07173  pg/src/main/java/org/bouncycastle/openpgp/operator/bc/BcAEADSecretKeyEncryptorBuilder.java
 90348609ff6752b56cb5d3576b77b60b5ac9432089016ca37d99e6bbdedabf14  pg/src/main/java/org/bouncycastle/openpgp/operator/bc/BcPGPKeyPairGeneratorProvider.java
@@ -351,7 +351,7 @@ bb75bbfce1069f0e75dd637d1df91641a6cedaee3d1d31a86bfa2fc91da38914  pg/src/main/ja
 29b8f64f17970e4f67e2dfd720022019cb5597265256aabfd6e340109afe38f4  pg/src/main/java/org/bouncycastle/openpgp/operator/package-info.java
 ce0ec07cd4a1abd147105b2dcc0899e2950fd1061f6b8a710847e79b1d1b4c21  pg/src/main/java/org/bouncycastle/openpgp/operator/PBESecretKeyDecryptorBuilder.java
 da3775e54c46dba92958262912c0a6a312ec1aed6bc155b9813c34ed70991e46  pg/src/main/java/org/bouncycastle/openpgp/operator/PGPAEADUtil.java
-695010bcb3b959d7d7cedeb15b422357b3a247a5d2f1b1c2b8ce76d1e3e8b8ed  pg/src/main/java/org/bouncycastle/openpgp/operator/PGPKeyPairGenerator.java
+aa322c0180d99e98f7997f2badbef981f7627d2d186e402893ccd5e63af3c167  pg/src/main/java/org/bouncycastle/openpgp/operator/PGPKeyPairGenerator.java
 b17f488adcdbb06f161322d9099206c70fd5178aa32e32a768e1334696fe7dda  pg/src/main/java/org/bouncycastle/openpgp/operator/PGPKeyPairGeneratorProvider.java
 f18c62040c90ae95e93e0d56f0ca6e8ce21e940cfe332a7d9b59595cb13088c0  pg/src/main/java/org/bouncycastle/openpgp/package-info.java
 eb035eb0c41ff208398821b454f5a0ec2723413eeab93d841ce6458edd06e109  pg/src/test/java/org/bouncycastle/bcpg/test/AbstractPacketTest.java

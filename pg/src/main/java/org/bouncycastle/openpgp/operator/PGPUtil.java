@@ -5,7 +5,7 @@ import java.io.OutputStream;
 
 import org.bouncycastle.bcpg.HashAlgorithmTags;
 import org.bouncycastle.bcpg.S2K;
-import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags;
+import org.bouncycastle.bcpg.SymmetricKeyUtils;
 import org.bouncycastle.openpgp.PGPException;
 import org.bouncycastle.util.Integers;
 import org.bouncycastle.util.Properties;
@@ -33,16 +33,15 @@ class PGPUtil
         throws PGPException
     {
         int keySize = getKeySize(algorithm);
-        if (s2kCalculator == null)
-        {
-            throw new PGPException("no PGPS2KCalculator configured for Argon2 S2K");
-        }
-        int digAlg = s2kCalculator.getType();
 
         if (s2k != null)
         {
             if (s2k.getType() == S2K.ARGON_2)
             {
+                if (s2kCalculator == null)
+                {
+                    throw new PGPException("no PGPS2KCalculator configured for Argon2 S2K");
+                }
                 int memorySizeExponent = s2k.getMemorySizeExponent();
                 // The passes, parallelism and memory-size fields are one-byte values taken verbatim from
                 // the (unauthenticated) S2K packet, and Argon2 must run before the message can be
@@ -68,14 +67,14 @@ class PGPUtil
 
                 return s2kCalculator.makeKey(passPhrase, s2k, (keySize + 7) / 8);
             }
-            else if (s2k.getHashAlgorithm() != digAlg)
+            else if (s2k.getHashAlgorithm() != s2kCalculator.getType())
             {
                 throw new PGPException("s2k/digestCalculator mismatch");
             }
         }
         else
         {
-            if (HashAlgorithmTags.MD5 != digAlg)
+            if (HashAlgorithmTags.MD5 != s2kCalculator.getType())
             {
                 throw new PGPException("digestCalculator not for MD5");
             }
@@ -89,30 +88,12 @@ class PGPUtil
     {
         int keySize;
 
-        switch (algorithm)
+        try
         {
-        case SymmetricKeyAlgorithmTags.TRIPLE_DES:
-        case SymmetricKeyAlgorithmTags.AES_192:
-        case SymmetricKeyAlgorithmTags.CAMELLIA_192:
-            keySize = 192;
-            break;
-        case SymmetricKeyAlgorithmTags.IDEA:
-        case SymmetricKeyAlgorithmTags.CAST5:
-        case SymmetricKeyAlgorithmTags.BLOWFISH:
-        case SymmetricKeyAlgorithmTags.SAFER:
-        case SymmetricKeyAlgorithmTags.AES_128:
-        case SymmetricKeyAlgorithmTags.CAMELLIA_128:
-            keySize = 128;
-            break;
-        case SymmetricKeyAlgorithmTags.DES:
-            keySize = 64;
-            break;
-        case SymmetricKeyAlgorithmTags.AES_256:
-        case SymmetricKeyAlgorithmTags.TWOFISH:
-        case SymmetricKeyAlgorithmTags.CAMELLIA_256:
-            keySize = 256;
-            break;
-        default:
+            keySize = SymmetricKeyUtils.getKeyLengthInBits(algorithm);
+        }
+        catch (IllegalArgumentException e)
+        {
             throw new PGPException("unknown symmetric algorithm: " + algorithm);
         }
         return keySize;
