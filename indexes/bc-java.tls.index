@@ -80,7 +80,7 @@ a2c2d7d0360e9e38c0ea6a5e1b456d067bc4b9e89e6231c9bb8a22ee8c4bf8a5  tls/src/test/j
 b91a0d703f2ba000fecbd83d8a941ec648cbdb3364b2be583546299cfd36439c  tls/src/test/java/org/bouncycastle/tls/test/MockSRPTlsServer.java
 f2f3cbfc5e1ebb526cd561698414098690e1531471ad4303900810cea2bd0333  tls/src/test/java/org/bouncycastle/tls/test/DTLSTestClientProtocol.java
 97917b9df7293df69680903534149745f8227e68b006699387318b6159e3ee5c  tls/src/test/java/org/bouncycastle/tls/test/DTLSTestCase.java
-19dca38e222d74a08a7555ce7b9ac00d6331649d57ca0f490f873cb57b9f96c6  tls/src/test/java/org/bouncycastle/tls/test/DTLSPSKProtocolTest.java
+39233eb88eb142c3acecd9985d0691e030563f67d8403dd346f5811de30609bf  tls/src/test/java/org/bouncycastle/tls/test/DTLSPSKProtocolTest.java
 c1a5ffa92b638f1e53a4478e69c8cac06080442ec333e260cede1b0e1e6fb246  tls/src/test/java/org/bouncycastle/tls/test/OCSPTest.java
 83585fc7e98b57d6751c8a198d06a6074024adbbf86a770c35346321e21e7216  tls/src/test/java/org/bouncycastle/tls/test/PRFTest.java
 b78c40889ac528ab25633b53ac5ad7099b72f9d948471ecdf9a7bf150b3d96b5  tls/src/test/java/org/bouncycastle/tls/test/PSKTlsServerTest.java
