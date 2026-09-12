@@ -360,6 +360,24 @@ public class Blake2bDigest
     }
 
     /**
+     * Add count to the low 64 bits of the (128-bit) input-byte counter, carrying into the high
+     * 64 bits on unsigned overflow. A plain {@code t0 == 0} check after the addition only catches
+     * the carry when the wraparound lands exactly on zero, which - for the non-block-aligned
+     * amounts doFinal() adds - is not guaranteed; comparing the result against the just-added
+     * amount is the standard unsigned-overflow test (the sum can only be smaller than an addend
+     * if it wrapped).
+     */
+    private void incrementCounter(int count)
+    {
+        long count64 = (long)count;
+        t0 += count64;
+        if (Longs.compareUnsigned(t0, count64) < 0)
+        {
+            ++t1;
+        }
+    }
+
+    /**
      * update the message digest with a single byte.
      *
      * @param b the input byte to be entered.
@@ -372,11 +390,7 @@ public class Blake2bDigest
         remainingLength = BLOCK_LENGTH_BYTES - bufferPos;
         if (remainingLength == 0)
         { // full buffer
-            t0 += BLOCK_LENGTH_BYTES;
-            if (t0 == 0)
-            { // if message > 2^64
-                t1++;
-            }
+            incrementCounter(BLOCK_LENGTH_BYTES);
             compress(buffer, 0);
             Arrays.fill(buffer, (byte)0);// clear buffer
             buffer[0] = b;
@@ -416,11 +430,7 @@ public class Blake2bDigest
             { // full buffer + at least 1 byte
                 System.arraycopy(message, offset, buffer, bufferPos,
                     remainingLength);
-                t0 += BLOCK_LENGTH_BYTES;
-                if (t0 == 0)
-                { // if message > 2^64
-                    t1++;
-                }
+                incrementCounter(BLOCK_LENGTH_BYTES);
                 compress(buffer, 0);
                 bufferPos = 0;
                 Arrays.fill(buffer, (byte)0);// clear buffer
@@ -439,11 +449,7 @@ public class Blake2bDigest
         for (messagePos = offset + remainingLength; messagePos < blockWiseLastPos; messagePos += BLOCK_LENGTH_BYTES)
         { // block wise 128 bytes
             // without buffer:
-            t0 += BLOCK_LENGTH_BYTES;
-            if (t0 == 0)
-            {
-                t1++;
-            }
+            incrementCounter(BLOCK_LENGTH_BYTES);
             compress(message, messagePos);
         }
 
@@ -473,10 +479,9 @@ public class Blake2bDigest
         {
             f1 = 0xFFFFFFFF;
         }
-        t0 += bufferPos;
-        if (bufferPos > 0 && t0 == 0)
+        if (bufferPos > 0)
         {
-            t1++;
+            incrementCounter(bufferPos);
         }
         compress(buffer, 0);
         Arrays.fill(buffer, (byte)0);// Holds eventually the key if input is null
