@@ -70,6 +70,7 @@ import org.bouncycastle.internal.asn1.rosstandart.RosstandartObjectIdentifiers;
 import org.bouncycastle.math.ec.ECCurve;
 import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.BigIntegers;
 
 /**
  * Factory to create asymmetric public key parameters for asymmetric ciphers from range of
@@ -253,11 +254,7 @@ public class PublicKeyFactory
             BigInteger g = dhParams.getG();
             BigInteger q = dhParams.getQ();
 
-            BigInteger j = null;
-            if (dhParams.getJ() != null)
-            {
-                j = dhParams.getJ();
-            }
+            BigInteger j = dhParams.getJ();
 
             DHValidationParameters validation = null;
             ValidationParams dhValidationParms = dhParams.getValidationParams();
