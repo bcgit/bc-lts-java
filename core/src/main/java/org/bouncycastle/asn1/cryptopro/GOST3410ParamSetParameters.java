@@ -63,6 +63,14 @@ public class GOST3410ParamSetParameters
         a = (ASN1Integer)e.nextElement();
     }
 
+    /**
+     * @deprecated use getKeySize
+     */
+    public int getLKeySize()
+    {
+        return keySize;
+    }
+
     public int getKeySize()
     {
         return keySize;
@@ -87,7 +95,7 @@ public class GOST3410ParamSetParameters
     {
         ASN1EncodableVector v = new ASN1EncodableVector(4);
 
-        v.add(new ASN1Integer(keySize));
+        v.add(ASN1Integer.valueOf(keySize));
         v.add(p);
         v.add(q);
         v.add(a);

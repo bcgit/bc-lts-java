@@ -10,6 +10,7 @@ import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1TaggedObject;
+import org.bouncycastle.asn1.DERIA5String;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERTaggedObject;
 
@@ -60,6 +61,16 @@ public class CrlID
         }
 
         return null;
+    }
+
+    /**
+     * @deprecated Use {@link #getCrlUrlIA5()} instead.
+     */
+    public DERIA5String getCrlUrl()
+    {
+        return null == crlUrl || crlUrl instanceof DERIA5String
+            ?   (DERIA5String)crlUrl
+            :   new DERIA5String(crlUrl.getString(), false);
     }
 
     public ASN1IA5String getCrlUrlIA5()
