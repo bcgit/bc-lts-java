@@ -7,8 +7,7 @@ import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.AsymmetricCipherKeyPairGenerator;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
 import org.bouncycastle.crypto.RawAgreement;
-import org.bouncycastle.crypto.agreement.BasicRawAgreement;
-import org.bouncycastle.crypto.agreement.ECDHCBasicAgreement;
+import org.bouncycastle.crypto.agreement.ECDHCRawAgreement;
 import org.bouncycastle.crypto.agreement.X25519Agreement;
 import org.bouncycastle.crypto.agreement.X448Agreement;
 import org.bouncycastle.crypto.ec.CustomNamedCurves;
@@ -36,6 +35,12 @@ import org.bouncycastle.util.BigIntegers;
 import org.bouncycastle.util.Pack;
 import org.bouncycastle.util.Strings;
 
+/**
+ * The Diffie-Hellman-based KEMs registered by RFC 9180 &sect;7.1: DHKEM(P-256, HKDF-SHA256),
+ * DHKEM(P-384, HKDF-SHA384), DHKEM(P-521, HKDF-SHA512), DHKEM(X25519, HKDF-SHA256),
+ * DHKEM(X448, HKDF-SHA512). Concrete {@link KEM} subclass selected by the {@code kemId}
+ * passed to the {@link HPKE} constructor.
+ */
 class DHKEM
     extends KEM
 {
@@ -63,7 +68,7 @@ class DHKEM
         case HPKE.kem_P256_SHA256:
             this.hkdf = new HKDF(HPKE.kdf_HKDF_SHA256);
             domainParams = getDomainParameters("P-256");
-            rawAgreement = new BasicRawAgreement(new ECDHCBasicAgreement());
+            rawAgreement = new ECDHCRawAgreement();
             bitmask = (byte)0xff;
             Nsk = 32;
             Nsecret = 32;
@@ -76,7 +81,7 @@ class DHKEM
         case HPKE.kem_P384_SHA384:
             this.hkdf = new HKDF(HPKE.kdf_HKDF_SHA384);
             domainParams = getDomainParameters("P-384");
-            rawAgreement = new BasicRawAgreement(new ECDHCBasicAgreement());
+            rawAgreement = new ECDHCRawAgreement();
             bitmask = (byte)0xff;
             Nsk = 48;
             Nsecret = 48;
@@ -89,7 +94,7 @@ class DHKEM
         case HPKE.kem_P521_SHA512:
             this.hkdf = new HKDF(HPKE.kdf_HKDF_SHA512);
             domainParams = getDomainParameters("P-521");
-            rawAgreement = new BasicRawAgreement(new ECDHCBasicAgreement());
+            rawAgreement = new ECDHCRawAgreement();
             bitmask = 0x01;
             Nsk = 66;
             Nsecret = 64;
