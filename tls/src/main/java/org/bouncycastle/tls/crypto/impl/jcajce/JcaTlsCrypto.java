@@ -953,7 +953,7 @@ public class JcaTlsCrypto
     protected TlsHash createHash(String digestName)
         throws GeneralSecurityException
     {
-        return new JcaTlsHash(helper.createMessageDigest(digestName));
+        return new JcaTlsHash(helper.createDigest(digestName));
     }
 
     protected Tls13NullCipher create13NullCipher(TlsCryptoParameters cryptoParams, int macAlgorithm)
