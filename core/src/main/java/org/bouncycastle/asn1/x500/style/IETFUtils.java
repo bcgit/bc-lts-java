@@ -1,5 +1,6 @@
 package org.bouncycastle.asn1.x500.style;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Enumeration;
 import java.util.Hashtable;
@@ -35,6 +36,12 @@ public class IETFUtils
         boolean escaped = false;
         boolean quoted = false;
         StringBuilder buf = new StringBuilder(elt.length());
+        // Accumulator for a run of consecutive \HH escapes. Per RFC 4514 sec. 2.4
+        // a \HH escape produces a single octet, and the resulting octet sequence
+        // is the UTF-8 encoding of the character — so a run of pairs must be
+        // decoded as UTF-8 (RFC 5280 sec. 4.1.2.4), not one Java char per pair.
+        ByteArrayOutputStream hexBytes = new ByteArrayOutputStream();
+        int[] lastEscapedHolder = new int[]{ -1 };
         int start = 0;
 
         // if it's an escaped hash string and not an actual encoding in string form
@@ -49,8 +56,7 @@ public class IETFUtils
         }
 
         boolean nonWhiteSpaceEncountered = false;
-        int lastEscaped = 0;
-        char hex1 = 0;
+        int hex1 = -1;
 
         for (int i = start; i != elt.length(); i++)
         {
@@ -69,6 +75,8 @@ public class IETFUtils
                 }
                 else
                 {
+                    checkCompleteHexPair(hex1);
+                    flushHexBytes(buf, hexBytes, lastEscapedHolder);
                     buf.append(c);
                     escaped = false;
                 }
@@ -76,40 +84,72 @@ public class IETFUtils
             else if (c == '\\' && !(escaped || quoted))
             {
                 escaped = true;
-                lastEscaped = buf.length();
+                // In case hexBytes is not empty, lastEscapedHolder will get updated when hexBytes is flushed
+                lastEscapedHolder[0] = buf.length();
+            }
+            else if (c == ' ' && !escaped && !nonWhiteSpaceEncountered)
+            {
+                // Skip leading spaces
+            }
+            else if (escaped && isHexDigit(c))
+            {
+                int hexDigit = convertHex(c);
+                if (hex1 < 0)
+                {
+                    hex1 = hexDigit;
+                }
+                else
+                {
+                    hexBytes.write(hex1 * 16 + hexDigit);
+                    escaped = false;
+                    hex1 = -1;
+                }
             }
             else
             {
-                if (c == ' ' && !escaped && !nonWhiteSpaceEncountered)
-                {
-                    continue;
-                }
-                if (escaped && isHexDigit(c))
-                {
-                    if (hex1 != 0)
-                    {
-                        buf.append((char)(convertHex(hex1) * 16 + convertHex(c)));
-                        escaped = false;
-                        hex1 = 0;
-                        continue;
-                    }
-                    hex1 = c;
-                    continue;
-                }
+                // A '\' followed by a single hex digit and then a non-hex char is an
+                // incomplete hexpair (RFC 4514 sec. 2.4 requires two), not a literal.
+                checkCompleteHexPair(hex1);
+                flushHexBytes(buf, hexBytes, lastEscapedHolder);
                 buf.append(c);
                 escaped = false;
             }
         }
 
+        // A '\' followed by a single hex digit at end of input is likewise incomplete.
+        checkCompleteHexPair(hex1);
+
+        flushHexBytes(buf, hexBytes, lastEscapedHolder);
+
         if (buf.length() > 0)
         {
-            while (buf.charAt(buf.length() - 1) == ' ' && lastEscaped != (buf.length() - 1))
+            while (buf.charAt(buf.length() - 1) == ' ' && lastEscapedHolder[0] < buf.length() - 1)
             {
                 buf.setLength(buf.length() - 1);
             }
         }
 
         return buf.toString();
+    }
+
+    private static void flushHexBytes(StringBuilder buf, ByteArrayOutputStream hexBytes, int[] lastEscapedHolder)
+    {
+        if (hexBytes.size() == 0)
+        {
+            return;
+        }
+        String decoded = Strings.fromUTF8ByteArray(hexBytes.toByteArray());
+        hexBytes.reset();
+        buf.append(decoded);
+        lastEscapedHolder[0] = buf.length() - 1;
+    }
+
+    private static void checkCompleteHexPair(int hex1)
+    {
+        if (hex1 >= 0)
+        {
+            throw new IllegalArgumentException("invalid hex escape in directory string");
+        }
     }
 
     private static boolean isHexDigit(char c)
@@ -219,24 +259,13 @@ public class IETFUtils
     }
 
     /**
-     * Consume the remaining tokens from an '='-separated tokenizer as the
+     * Consume the remaining input from an '='-separated tokenizer as the
      * attributeValue. RFC 4514 sec. 3 allows unescaped '=' in stringchar, so
-     * only the FIRST '=' separates the attributeType from the attributeValue;
-     * any additional unescaped '=' the tokenizer split out are rejoined here.
+     * only the FIRST '=' separates the attributeType from the attributeValue.
      */
     private static String collectValueToken(X500NameTokenizer tokenizer)
     {
-        String first = tokenizer.nextToken();
-        if (!tokenizer.hasMoreTokens())
-        {
-            return first;
-        }
-        StringBuilder buf = new StringBuilder(first);
-        while (tokenizer.hasMoreTokens())
-        {
-            buf.append('=').append(tokenizer.nextToken());
-        }
-        return buf.toString();
+        return tokenizer.remaining();
     }
 
     private static String[] toValueArray(Vector values)
@@ -522,7 +551,6 @@ public class IETFUtils
                 escape = false;
                 break;
             }
-
             if (escape)
             {
                 out.append('\\');
