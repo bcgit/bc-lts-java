@@ -344,10 +344,10 @@ a35b7113b3956d23d4e88630ca80eb015880389ecdc9588640909196f5faf2e4  tls/src/main/j
 64856dc0761ab066c3601b36c738bcaff86ca19273d51ac4f0649de4b6db62eb  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JceAEADCipherImpl.java
 1d989626ea674607776cd2558e87bb419f686000c31ec7ff45c471f37591ee77  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JceTlsDHDomain.java
 1c1d634556d66d3aa09f030306aff9afef1367e3c189ddabf5204e82335b4bf0  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaTlsECDSAVerifier.java
-52c6039a75684e32a5019f13dc68dac29a02566cd3e123f2a3d7eb7f5849cae1  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/srp/SRP6VerifierGenerator.java
-6aa7884d4b7de0bd153826a34f8544fb29e5840917dabf58896938d9087e5f73  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/srp/SRP6Server.java
-c15197282223b643161072e9b58e2870711e60192ec1752b86e8ba7a4531cc31  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/srp/SRP6Client.java
-223c03100733fb33b228c717178a277295cfe652f4e417cae9d9c8cb858d0b9f  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/srp/SRP6Util.java
+1e2834b399c3a84f76e71df887d54d87c31c2aaded90c76cab92bce3d33ab3bf  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/srp/SRP6VerifierGenerator.java
+abe83b7b501d80fcbdb2be00bd679d27e67153b2eedc8341be1ecfc612a2c888  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/srp/SRP6Server.java
+48e6cea6067c13d92ef143057cf94b8e82c3e8cc05e10548e84dabd5aed1b491  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/srp/SRP6Client.java
+9251e9ac156b0adf0b5a9a42e90617e083d1d8ed1687fad587868dfbcc25c7ef  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/srp/SRP6Util.java
 0adfe26fdf789f998c213ab36108c6a80de2f18bb8ec8410833901d293ec30a6  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JceX448Domain.java
 275f1f32f3aec214206793ea8e0887095f75d5a8cd001faff5ce2e4644a440a5  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JceTlsECDH.java
 b5ec2599b5805dee5f507b913d7361be1cc1c1c43e3ef6e47a9eea56f6901914  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JceTlsHMAC.java
