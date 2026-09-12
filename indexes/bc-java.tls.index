@@ -23,11 +23,11 @@ fd1d5153db4b2c28b3a7f31d2b442aa0ed4aa3a7e0f30ee412413e153bb641ad  tls/src/test/j
 ef54a088bbceff9fa8c2f50fe6c877221d057a1e717633955bfb2387994012f8  tls/src/test/java/org/bouncycastle/jsse/provider/test/CipherSuitesTestCase.java
 d5c7b9944c6b886bd51606420ef84c048c3ee54abd52b19b111e874c50da082c  tls/src/test/java/org/bouncycastle/jsse/provider/test/EdDSACredentialsTest.java
 b4c5fc3b103029a219c2d5a24d377a341cbccf89cfbd793243a70fb6eddce755  tls/src/test/java/org/bouncycastle/jsse/provider/test/PSSCredentialsTest.java
-6d32f1cdfd45af0f527301426ae65f510fb95e2164aa936d625e873bee74ec59  tls/src/test/java/org/bouncycastle/jsse/provider/test/TestUtils.java
+76c87f6a53bcf34da0ce4152d50567453c23baf9526798ee8ea05131dde79868  tls/src/test/java/org/bouncycastle/jsse/provider/test/TestUtils.java
 bfe95b7ca88728b7caec5d9cc22f8ce8f1c79b72fa9179787244048bb0ec82fd  tls/src/test/java/org/bouncycastle/jsse/provider/test/ConfigTest.java
 76102c49b158076769b94c72b7971bc362ac92fe5209f11cb60f6ed6b931a610  tls/src/test/java/org/bouncycastle/jsse/provider/test/KeyManagerFactoryTest.java
 3c7c3ff3d81efc73c18f2d679bad79b8c71d706b4f38b6321af2431eb1aaeb7e  tls/src/test/java/org/bouncycastle/jsse/provider/test/TrustManagerFactoryTest.java
-97fce565f8783abae704928ac541a758297e8036b23abdfea438143a58d2ab16  tls/src/test/java/org/bouncycastle/jsse/provider/test/ECDSACredentialsTest.java
+f6413bfdc65b8b4fd86cd8286d47b2d3a432d12e2691a3c9ad8d485cbf608e25  tls/src/test/java/org/bouncycastle/jsse/provider/test/ECDSACredentialsTest.java
 e0ee1d652de9de236806303c2467c62cf64c7e1618f4b273c5f8c83573f47bf8  tls/src/test/java/org/bouncycastle/tls/crypto/test/JcaTlsCryptoTest.java
 a71ebb154b167e4019b9bbdd835f13399e0f873f30b7cd7150ffd620a8c63d72  tls/src/test/java/org/bouncycastle/tls/crypto/test/TlsCryptoTest.java
 51453869e071755038e5e6692ddd0ee02e479642fa17d4127057811007127e82  tls/src/test/java/org/bouncycastle/tls/crypto/test/BcTlsCryptoTest.java
