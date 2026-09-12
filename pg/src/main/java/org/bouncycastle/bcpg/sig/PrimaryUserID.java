@@ -19,7 +19,7 @@ public class PrimaryUserID
         boolean    isLongLength,
         byte[]     data)
     {
-        super(SignatureSubpacketTags.PRIMARY_USER_ID, critical, isLongLength, data);
+        super(SignatureSubpacketTags.PRIMARY_USER_ID, critical, isLongLength, Utils.checkBooleanData(data));
     }
     
     public PrimaryUserID(

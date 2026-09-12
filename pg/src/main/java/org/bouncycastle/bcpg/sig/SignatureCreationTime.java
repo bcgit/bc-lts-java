@@ -31,7 +31,7 @@ public class SignatureCreationTime
         boolean    isLongLength,
         byte[]     data)
     {
-        super(SignatureSubpacketTags.CREATION_TIME, critical, isLongLength, data);
+        super(SignatureSubpacketTags.CREATION_TIME, critical, isLongLength, Utils.checkTimeData(data));
     }
 
     public SignatureCreationTime(

@@ -4,6 +4,7 @@ module org.bouncycastle.lts.pg
     requires org.bouncycastle.lts.util;
     requires java.logging;
 
+    exports org.bouncycastle.apache.bzip2;
     exports org.bouncycastle.bcpg;
     exports org.bouncycastle.gpg;
     exports org.bouncycastle.openpgp;

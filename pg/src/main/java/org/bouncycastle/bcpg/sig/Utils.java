@@ -50,6 +50,42 @@ class Utils
         }
     }
 
+    /**
+     * Check that the given subpacket body is the four octets RFC 9580 defines a time field as, so that
+     * {@link #timeFromBytes(byte[])} cannot fail once the subpacket has been constructed.
+     *
+     * @param data subpacket body
+     * @return data
+     */
+    static byte[] checkTimeData(byte[] data)
+    {
+        if (data.length != 4)
+        {
+            throw new IllegalArgumentException("Malformed data length. Expected 4, got " + data.length);
+        }
+        return data;
+    }
+
+    /**
+     * Check that the given subpacket body is the single "zero or one" octet RFC 9580 defines a flag
+     * field as, so that {@link #booleanFromByteArray(byte[])} cannot fail once the subpacket has been constructed.
+     *
+     * @param data subpacket body
+     * @return data
+     */
+    static byte[] checkBooleanData(byte[] data)
+    {
+        if (data.length != 1)
+        {
+            throw new IllegalArgumentException("Malformed data length. Expected 1, got " + data.length);
+        }
+        if (data[0] != 0 && data[0] != 1)
+        {
+            throw new IllegalArgumentException("Unexpected byte value for boolean encoding: " + data[0]);
+        }
+        return data;
+    }
+
     static long timeFromBytes(byte[] bytes)
     {
         if (bytes.length != 4)

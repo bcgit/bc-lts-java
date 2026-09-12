@@ -20,7 +20,7 @@ public class Exportable
         boolean    isLongLength,
         byte[]     data)
     {
-        super(SignatureSubpacketTags.EXPORTABLE, critical, isLongLength, data);
+        super(SignatureSubpacketTags.EXPORTABLE, critical, isLongLength, Utils.checkBooleanData(data));
     }
     
     public Exportable(

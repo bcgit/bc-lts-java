@@ -31,16 +31,27 @@ public class IssuerKeyID
         boolean    isLongLength,
         byte[]     data)
     {
-        super(SignatureSubpacketTags.ISSUER_KEY_ID, critical, isLongLength, data);
+        super(SignatureSubpacketTags.ISSUER_KEY_ID, critical, isLongLength, verifyData(data));
     }
-    
+
     public IssuerKeyID(
         boolean    critical,
         long       keyID)
     {
         super(SignatureSubpacketTags.ISSUER_KEY_ID, critical, false, keyIDToBytes(keyID));
     }
-    
+
+    // RFC 9580 5.2.3.12: the Issuer Key ID body is an 8-octet key ID, which is what
+    // FingerprintUtil.readKeyID requires of the body getKeyID() hands it.
+    private static byte[] verifyData(byte[] data)
+    {
+        if (data.length < 8)
+        {
+            throw new IllegalArgumentException("Truncated issuer key-ID subpacket");
+        }
+        return data;
+    }
+
     public long getKeyID()
     {
         return FingerprintUtil.readKeyID(data);

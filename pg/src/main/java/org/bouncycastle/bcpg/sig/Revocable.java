@@ -19,7 +19,7 @@ public class Revocable
         boolean    isLongLength,
         byte[]     data)
     {
-        super(SignatureSubpacketTags.REVOCABLE, critical, isLongLength, data);
+        super(SignatureSubpacketTags.REVOCABLE, critical, isLongLength, Utils.checkBooleanData(data));
     }
     
     public Revocable(

@@ -29,7 +29,7 @@ public class KeyExpirationTime
         boolean    isLongLength,
         byte[]     data)
     {
-        super(SignatureSubpacketTags.KEY_EXPIRE_TIME, critical, isLongLength, data);
+        super(SignatureSubpacketTags.KEY_EXPIRE_TIME, critical, isLongLength, Utils.checkTimeData(data));
     }
 
     public KeyExpirationTime(
