@@ -122,7 +122,7 @@ cec69954b495ab890ee7217cf7a7db6d27ad363b77ad876c7a5de51eeed76acd  tls/src/main/j
 e50b122d9c39135f05c60d660380747deffe1a5b1fac21007461f23d8caab2d9  tls/src/main/java/org/bouncycastle/jsse/provider/ProvSSLSessionHandshake.java
 12d59d26b39e8316b61e7f4bf7639f7c1a4011f36cd348a5f284a484086ce858  tls/src/main/java/org/bouncycastle/jsse/provider/JsseUtils.java
 85ef289810ed7dd43212ee69f82c1807ecca19f9a443c2b5260e346c35fc0ab0  tls/src/main/java/org/bouncycastle/jsse/provider/DefaultSSLContextSpi.java
-be1d7e7471f3597514d1eb7cfc081519bef0f49e7e275420648087c68d6131bc  tls/src/main/java/org/bouncycastle/jsse/provider/ProvSSLSocketWrap.java
+b742f4a67c80e15fb3240087f19b8f470e9400ede388b84bcfeba99cae107a01  tls/src/main/java/org/bouncycastle/jsse/provider/ProvSSLSocketWrap.java
 62a82bdd6d56c6762c500e663467005b043b4ada13dd726cbf734f8f0b8b360b  tls/src/main/java/org/bouncycastle/jsse/provider/ProvSSLParameters.java
 14423858de934295649b52c16f96dad193613b5629f35554191591aa067276bb  tls/src/main/java/org/bouncycastle/jsse/provider/ProvTlsPeer.java
 542caff90c2f085048e2084489644780f56e46bb6627e3ff16c1ab875729a967  tls/src/main/java/org/bouncycastle/jsse/provider/ExportSSLSession_8.java
@@ -192,7 +192,7 @@ e6c4780578f21eff1ba1fd30fcf02005217ae806680313ac83d60b74f74439bb  tls/src/main/j
 663f23c293dc2dcac27a6d94ec1463662deb4933cab30c1d41e4e25a6af29628  tls/src/main/java/org/bouncycastle/jsse/provider/ProvAlgorithmDecomposer.java
 17ce1d32d435705492c86bbb0790d54e1a2d66d3bd3fcfb5ba5ed5fc80f8e7cb  tls/src/main/java/org/bouncycastle/jsse/provider/ProvSSLSocketFactory.java
 2719a1cd97f983bfad704356a715737cf38e59f9d7abca647747423e06528c3a  tls/src/main/java/org/bouncycastle/jsse/provider/EngineCreator.java
-c65e06cfea458da07c478709fdeaabcacde3b1be62ba276ff3a3ac5866b57d34  tls/src/main/java/org/bouncycastle/jsse/provider/ProvSSLSocketDirect.java
+1c43c30d31b4693a1d2b51440c39abc77ec9f8e3cb1654d2bba516cd24e2a875  tls/src/main/java/org/bouncycastle/jsse/provider/ProvSSLSocketDirect.java
 fd75b9457f4a25ec7f50bd9abea96e444e44b1638eba5a1d0f00f4ab381f5e4e  tls/src/main/java/org/bouncycastle/jsse/provider/ProvSSLSessionBase.java
 1189c349aabb0da19bd7e1860c0e1ca6433f8f0c4df3a71c99b50e78de23190d  tls/src/main/java/org/bouncycastle/jsse/BCX509Key.java
 a0117b47df09b80551703dafcff59b17e44d5aae40cbe423aaf4a1c52a124f5d  tls/src/main/java/org/bouncycastle/jsse/BCX509ExtendedTrustManager.java
@@ -606,3 +606,5 @@ e8aefdf265ab1911feeaf052d0f73c950c9b72a589c6652c1fa3bce206656552  tls/src/test/j
 932f794564596350e3e9013a89af67521a654aeb5f92c3ee91691e424a9ddef9  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaVerifyingStreamSigner.java
 77f70ff95f5d0db77a4680cf4a2b081acaf1a9bb66156acacf877ff8241b5c94  tls/src/main/java/org/bouncycastle/jsse/provider/FileUtils.java
 bcf057a71ed923c6fbad84e254ed13afe955f71976f8814103372884f59b8903  tls/src/test/java/org/bouncycastle/tls/test/DTLSInvalidRecordTest.java
+4575b349fdb8c1cd0794554d83cc8df87be266a66d7077d0e9ee0bbb4a515c65  tls/src/main/java/org/bouncycastle/jsse/provider/HandshakeTimeoutInputStream.java
+cd414944b60d6508ea952d672ab9156d1fa5dcef72dfb0c96aa9bbd8c6a3943e  tls/src/test/java/org/bouncycastle/jsse/provider/test/HandshakeTimeoutTest.java

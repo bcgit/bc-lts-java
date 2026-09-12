@@ -50,6 +50,7 @@ class ProvSSLSocketDirect
 
     protected TlsProtocol protocol = null;
     protected ProvTlsPeer protocolPeer = null;
+    protected HandshakeTimeoutInputStream handshakeTimeoutInput = null;
     protected ProvSSLConnection connection = null;
     protected ProvSSLSession dummySession = null;
     protected ProvSSLSessionHandshake handshakeSession = null;
@@ -419,33 +420,55 @@ class ProvSSLSocketDirect
             InputStream input = super.getInputStream();
             OutputStream output = super.getOutputStream();
 
-            if (this.useClientMode)
+            int handshakeTimeout = contextData.getHandshakeTimeoutMillis();
+            if (handshakeTimeout > 0)
             {
-                TlsClientProtocol clientProtocol = new ProvTlsClientProtocol(input, output, socketCloser);
-                clientProtocol.setResumableHandshake(resumable);
-                this.protocol = clientProtocol;
-
-                ProvTlsClient client = new ProvTlsClient(this, sslParameters);
-                this.protocolPeer = client;
-
-                clientProtocol.connect(client);
+                this.handshakeTimeoutInput = new HandshakeTimeoutInputStream(input, this, handshakeTimeout);
+                input = this.handshakeTimeoutInput;
             }
-            else
+
+            try
             {
-                TlsServerProtocol serverProtocol = new ProvTlsServerProtocol(input, output, socketCloser);
-                serverProtocol.setResumableHandshake(resumable);
-                this.protocol = serverProtocol;
+                if (this.useClientMode)
+                {
+                    TlsClientProtocol clientProtocol = new ProvTlsClientProtocol(input, output, socketCloser);
+                    clientProtocol.setResumableHandshake(resumable);
+                    this.protocol = clientProtocol;
 
-                ProvTlsServer server = new ProvTlsServer(this, sslParameters);
-                this.protocolPeer = server;
+                    ProvTlsClient client = new ProvTlsClient(this, sslParameters);
+                    this.protocolPeer = client;
 
-                serverProtocol.accept(server);
+                    clientProtocol.connect(client);
+                }
+                else
+                {
+                    TlsServerProtocol serverProtocol = new ProvTlsServerProtocol(input, output, socketCloser);
+                    serverProtocol.setResumableHandshake(resumable);
+                    this.protocol = serverProtocol;
+
+                    ProvTlsServer server = new ProvTlsServer(this, sslParameters);
+                    this.protocolPeer = server;
+
+                    serverProtocol.accept(server);
+                }
+            }
+            finally
+            {
+                settleHandshakeTimeout();
             }
         }
         else if (protocol.isHandshaking())
         {
             protocol.setResumableHandshake(resumable);
-            protocol.resumeHandshake();
+
+            try
+            {
+                protocol.resumeHandshake();
+            }
+            finally
+            {
+                settleHandshakeTimeout();
+            }
         }
         else
         {
@@ -525,6 +548,27 @@ class ProvSSLSocketDirect
         }
 
         return dummySession;
+    }
+
+    /**
+     * Settle the handshake timeout, if one is armed, now that a handshake attempt has returned. A
+     * handshake still in progress was interrupted (resumably) rather than finished, so the deadline
+     * is left armed for the resumption and only the caller's SO_TIMEOUT is restored - otherwise a
+     * caller retrying after a per-read timeout would get an unbounded handshake.
+     */
+    private void settleHandshakeTimeout()
+    {
+        if (this.handshakeTimeoutInput != null)
+        {
+            if (this.protocol != null && this.protocol.isHandshaking())
+            {
+                this.handshakeTimeoutInput.suspend();
+            }
+            else
+            {
+                this.handshakeTimeoutInput.deactivate();
+            }
+        }
     }
 
     synchronized void handshakeIfNecessary(boolean resumable) throws IOException
