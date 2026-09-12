@@ -37,12 +37,15 @@ public class AllTests
         suite.addTestSuite(SM2Tls13Test.class);
         suite.addTestSuite(OCSPTest.class);
         suite.addTestSuite(PRFTest.class);
+        suite.addTestSuite(Tls13CertificateStatusTest.class);
         suite.addTestSuite(Tls13PSKProtocolTest.class);
+        suite.addTestSuite(TlsHandshakeTimeoutTest.class);
         suite.addTestSuite(TlsProtocolNonBlockingTest.class);
         suite.addTestSuite(TlsProtocolTest.class);
         suite.addTestSuite(TlsPSKProtocolTest.class);
         suite.addTestSuite(TlsRawKeysProtocolTest.class);
         suite.addTestSuite(TlsSRPProtocolTest.class);
+        suite.addTestSuite(TlsStatusRequestResumptionTest.class);
         suite.addTestSuite(TlsUtilsTest.class);
         suite.addTestSuite(TlsUtilsReadFullyTest.class);
 

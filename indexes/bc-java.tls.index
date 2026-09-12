@@ -34,7 +34,7 @@ a71ebb154b167e4019b9bbdd835f13399e0f873f30b7cd7150ffd620a8c63d72  tls/src/test/j
 554152b471bc880e98d1192fd698787a63cb8abf6296e3e8593280cce444b1d3  tls/src/test/java/org/bouncycastle/tls/test/Tls13PSKProtocolTest.java
 9bb24518e27378243f7fc4da9259505515edda2ecfadfb62bc6bf1ceb05ff5bc  tls/src/test/java/org/bouncycastle/tls/test/DTLSTestSuite.java
 17e97544531923441b2788dee5cc2f51a11b8fe1df9d1210070cf66440c59ba5  tls/src/test/java/org/bouncycastle/tls/test/TlsTestCase.java
-d7499802fe0ddeb74171a0d0a0bdbf7db160ecf75229bb0731442d8c5a139232  tls/src/test/java/org/bouncycastle/tls/test/AllTests.java
+bde53edc4ccfdc528e421eb7772bf0e6cffe3d18de2524c27cbf6fe4dcb0b4fc  tls/src/test/java/org/bouncycastle/tls/test/AllTests.java
 24944eb4d13ca75f5d77ce7e7b253f7c6898bc0b89f34e5742b7cf46964b8c90  tls/src/test/java/org/bouncycastle/tls/test/TlsProtocolNonBlockingTest.java
 bb66533738b573e8e3a4d6e96d7bacfe5107380d2125354308d92b387c1b3b98  tls/src/test/java/org/bouncycastle/tls/test/TlsTestServerImpl.java
 eaea6269a5c21d5d8210411212d041066ac6aee52d1c40ce389ef898f0c488de  tls/src/test/java/org/bouncycastle/tls/test/CertChainUtil.java
@@ -616,5 +616,8 @@ ff075bf0c412bfc97b7e3cb0e31895c9255b1ad4b397aecf72183993a7b043cc  tls/src/main/j
 8fbb6e1924c9d5e4938718e04cd3d97858bbd7cd571050570189acd1c3f07243  tls/src/test/java/org/bouncycastle/jsse/provider/test/TestOCSPResponder.java
 210151ceb13e497f4791ca972d958a0b700aa21f6e0272d98552bac623f05384  tls/src/main/java/org/bouncycastle/tls/crypto/impl/jcajce/JcaTlsRawKeyCertificate.java
 8fdde0d5f0a1f85c47e41bcdc196364678c933b1f093c379e41d2c6ba7b04e27  tls/src/test/java/org/bouncycastle/tls/test/JcaTlsRawKeysProtocolTest.java
+8fa1d91b07ad06b82038c0c1aebdefdb01b428d9ad85f99f039f4dc1ea0cd075  tls/src/test/java/org/bouncycastle/tls/test/TlsHandshakeTimeoutTest.java
+c9deef70e3661e012d00f1ae7c28cd32daeafd9a5d44808a14abaf449ef830f6  tls/src/test/java/org/bouncycastle/tls/test/Tls13CertificateStatusTest.java
+ddde60b75e2a67219f3b049c12e9f8ec293a8d05a9bb761eb3cb3f7f32c00bc5  tls/src/test/java/org/bouncycastle/tls/test/TlsStatusRequestResumptionTest.java
 8e3c492eb4ac9f85fef466bf241d5fe77e3302ca2218ca1cb1a88aa1477817c0  tls/src/test/java/org/bouncycastle/jsse/provider/test/NamedGroupTestUtil.java
 fac29ea86ef51ce7d82933eaa6adf742ba3d700ffc4835e6e149ceb48f7b15c0  tls/src/test/java/org/bouncycastle/jsse/provider/test/UseNamedGroupsOrderTest.java
