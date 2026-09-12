@@ -7,6 +7,7 @@ import org.bouncycastle.crypto.digests.SHAKEDigest;
 import org.bouncycastle.math.ec.rfc7748.X448;
 import org.bouncycastle.math.ec.rfc7748.X448Field;
 import org.bouncycastle.math.raw.Nat;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Integers;
 
 /**
@@ -17,6 +18,38 @@ import org.bouncycastle.util.Integers;
  * <a href="https://ia.cr/2012/309">Mike Hamburg, "Fast and compact elliptic-curve cryptography"</a>. Standard
  * <a href="https://hyperelliptic.org/EFD/g1p/auto-edwards-projective.html">projective coordinates</a> are
  * used for most point arithmetic.
+ * <p>
+ * <b>Algorithm map.</b>
+ * <ul>
+ *   <li>Key generation &mdash; {@code generatePrivateKey} returns a 57-byte seed;
+ *       {@code generatePublicKey} (via {@code scalarMultBaseEncoded}) computes
+ *       {@code A = s * B} where {@code s} is the SHAKE-256-expanded clamped secret scalar
+ *       (RFC 8032 sec. 5.2.5), using the constant-time signed multi-comb {@code scalarMultBase}.</li>
+ *   <li>Signing &mdash; {@code sign} computes {@code R = r * B} (signed multi-comb) where
+ *       {@code r = SHAKE-256(dom4(F, C) || prefix || M, 912 bits) mod L}, then
+ *       {@code S = (r + k * s) mod L} (RFC 8032 sec. 5.2.6). Reduction modulo {@code L} uses
+ *       {@code Scalar448.reduce912} (Barrett-style, straight-line). No variable-base scalar
+ *       multiplication is performed.</li>
+ *   <li>Verification &mdash; {@code verify} uses the basis reduction algorithm of
+ *       <a href="https://ia.cr/2020/454">Pornin</a> via {@code Scalar448.reduceBasisVar} then evaluates the
+ *       combined relation with Strauss-Shamir's trick in {@code scalarMultStraus225Var}. Both routines are
+ *       deliberately variable-time and operate only on public material (signature, message, public key).</li>
+ *   <li>Coordinates &mdash; the precomputed base-point comb table lives in
+ *       <a href="https://hyperelliptic.org/EFD/g1p/auto-edwards-projective.html">affine</a> form
+ *       (matching {@code PointAffine} in {@code pointLookup}); the signing-side accumulator is
+ *       projective (X : Y : Z). Verification uses projective coordinates throughout.</li>
+ * </ul>
+ * <p>
+ * <b>Side-channel scope.</b> The signing path (which operates on the secret seed, the derived secret
+ * scalar, and the secret per-message nonce) is written to be constant-time at the Java level: the comb
+ * {@code scalarMultBase} walks all precomputed entries via mask-based {@code cmov} rather than a
+ * secret-indexed array load, conditional sign application uses XOR-with-mask {@code cnegate}, scalar
+ * recoding via {@code toSignedDigits} uses mask-driven {@code caddTo}, and {@code Scalar448.reduce912}
+ * is fully unrolled straight-line arithmetic. This is sufficient against a remote network timing attacker
+ * but is not a substitute for a constant-time native implementation against a co-located
+ * cache-line-resolution adversary &mdash; JVM-level timing variance from JIT, GC and cache eviction is not
+ * addressable in pure Java. Verification routines (those suffixed {@code Var}) are deliberately
+ * variable-time and operate only on public material.
  */
 public abstract class Ed448
 {
@@ -45,6 +78,7 @@ public abstract class Ed448
     private static final int SCALAR_INTS = 14;
     private static final int SCALAR_BYTES = SCALAR_INTS * 4 + 1;
 
+    private static final int XOF_SIZE = SCALAR_BYTES * 2;
     public static final int PREHASH_SIZE = 64;
     public static final int PUBLIC_KEY_SIZE = POINT_BYTES;
     public static final int SECRET_KEY_SIZE = 57;
@@ -124,7 +158,7 @@ public abstract class Ed448
 
         Nat.mulAddTo(SCALAR_INTS, u, v, t);
 
-        byte[] result = new byte[SCALAR_BYTES * 2];
+        byte[] result = new byte[XOF_SIZE];
         Codec.encode32(t, 0, t.length, result, 0);
         return Scalar448.reduce912(result);
     }
@@ -309,6 +343,12 @@ public abstract class Ed448
 
     public static void encodePublicPoint(PublicPoint publicPoint, byte[] pk, int pkOff)
     {
+        if (publicPoint == null)
+        {
+            throw new NullPointerException("'publicPoint' cannot be null");
+        }
+        Arrays.validateSegment(pk, pkOff, PUBLIC_KEY_SIZE);
+
         F.encode(publicPoint.data, F.SIZE, pk, pkOff);
         pk[pkOff + POINT_BYTES - 1] = (byte)((publicPoint.data[0] & 1) << 7);
     }
@@ -325,6 +365,12 @@ public abstract class Ed448
         return result;
     }
 
+    private static void expandPrivateKey(Xof d, byte[] sk, int skOff, byte[] h, int hOff)
+    {
+        d.update(sk, skOff, SECRET_KEY_SIZE);
+        d.doFinal(h, hOff, XOF_SIZE);
+    }
+
     private static PublicPoint exportPoint(PointAffine p)
     {
         int[] data = new int[F.SIZE * 2];
@@ -336,6 +382,14 @@ public abstract class Ed448
 
     public static void generatePrivateKey(SecureRandom random, byte[] k)
     {
+        if (random == null)
+        {
+            throw new NullPointerException("'random' cannot be null");
+        }
+        if (k == null)
+        {
+            throw new NullPointerException("'k' cannot be null");
+        }
         if (k.length != SECRET_KEY_SIZE)
         {
             throw new IllegalArgumentException("k");
@@ -346,11 +400,11 @@ public abstract class Ed448
 
     public static void generatePublicKey(byte[] sk, int skOff, byte[] pk, int pkOff)
     {
-        Xof d = createXof();
-        byte[] h = new byte[SCALAR_BYTES * 2];
+        Arrays.validateSegment(sk, skOff, SECRET_KEY_SIZE);
+        Arrays.validateSegment(pk, pkOff, PUBLIC_KEY_SIZE);
 
-        d.update(sk, skOff, SECRET_KEY_SIZE);
-        d.doFinal(h, 0, h.length);
+        byte[] h = new byte[XOF_SIZE];
+        expandPrivateKey(createXof(), sk, skOff, h, 0);
 
         byte[] s = new byte[SCALAR_BYTES];
         pruneScalar(h, 0, s);
@@ -360,14 +414,18 @@ public abstract class Ed448
 
     public static PublicPoint generatePublicKey(byte[] sk, int skOff)
     {
-        Xof d = createXof();
-        byte[] h = new byte[SCALAR_BYTES * 2];
+        Arrays.validateSegment(sk, skOff, SECRET_KEY_SIZE);
 
-        d.update(sk, skOff, SECRET_KEY_SIZE);
-        d.doFinal(h, 0, h.length);
+        byte[] h = new byte[XOF_SIZE];
+        expandPrivateKey(createXof(), sk, skOff, h, 0);
 
+        return generatePublicPoint(h, 0);
+    }
+
+    private static PublicPoint generatePublicPoint(byte[] h, int hOff)
+    {
         byte[] s = new byte[SCALAR_BYTES];
-        pruneScalar(h, 0, s);
+        pruneScalar(h, hOff, s);
 
         PointProjective p = new PointProjective();
         scalarMultBase(s, p);
@@ -423,10 +481,9 @@ public abstract class Ed448
         }
 
         Xof d = createXof();
-        byte[] h = new byte[SCALAR_BYTES * 2];
 
-        d.update(sk, skOff, SECRET_KEY_SIZE);
-        d.doFinal(h, 0, h.length);
+        byte[] h = new byte[XOF_SIZE];
+        expandPrivateKey(d, sk, skOff, h, 0);
 
         byte[] s = new byte[SCALAR_BYTES];
         pruneScalar(h, 0, s);
@@ -446,10 +503,9 @@ public abstract class Ed448
         }
 
         Xof d = createXof();
-        byte[] h = new byte[SCALAR_BYTES * 2];
 
-        d.update(sk, skOff, SECRET_KEY_SIZE);
-        d.doFinal(h, 0, h.length);
+        byte[] h = new byte[XOF_SIZE];
+        expandPrivateKey(d, sk, skOff, h, 0);
 
         byte[] s = new byte[SCALAR_BYTES];
         pruneScalar(h, 0, s);
@@ -496,7 +552,7 @@ public abstract class Ed448
         }
 
         Xof d = createXof();
-        byte[] h = new byte[SCALAR_BYTES * 2];
+        byte[] h = new byte[XOF_SIZE];
 
         dom4(d, phflag, ctx);
         d.update(R, 0, POINT_BYTES);
@@ -560,7 +616,7 @@ public abstract class Ed448
         encodePublicPoint(publicPoint, A, 0);
 
         Xof d = createXof();
-        byte[] h = new byte[SCALAR_BYTES * 2];
+        byte[] h = new byte[XOF_SIZE];
 
         dom4(d, phflag, ctx);
         d.update(R, 0, POINT_BYTES);
@@ -1073,7 +1129,7 @@ public abstract class Ed448
     {
         System.arraycopy(n, nOff, r, 0, SCALAR_BYTES - 1);
 
-        r[0] &= 0xFC;
+        r[0               ] &= 0xFC;
         r[SCALAR_BYTES - 2] |= 0x80;
         r[SCALAR_BYTES - 1]  = 0x00;
     }
@@ -1191,11 +1247,30 @@ public abstract class Ed448
             throw new NullPointerException("This method is only for use by X448");
         }
 
+        Arrays.validateSegment(k, kOff, X448.SCALAR_SIZE);
+        if (x == null)
+        {
+            throw new NullPointerException("'x' cannot be null");
+        }
+        if (x.length != F.SIZE)
+        {
+            throw new IllegalArgumentException("x");
+        }
+        if (y == null)
+        {
+            throw new NullPointerException("'y' cannot be null");
+        }
+        if (y.length != F.SIZE)
+        {
+            throw new IllegalArgumentException("y");
+        }
+
         byte[] n = new byte[SCALAR_BYTES];
         pruneScalar(k, kOff, n);
 
         PointProjective p = new PointProjective();
         scalarMultBase(n, p);
+
         if (0 == checkPoint(p))
         {
             throw new IllegalStateException();
@@ -1209,7 +1284,7 @@ public abstract class Ed448
     {
         byte[] ws_p = new byte[447];
 
-        // NOTE: WNAF_WIDTH_225 because of the special structure of the order 
+        // NOTE: WNAF_WIDTH_225 because of the special structure of the order
         Scalar448.getOrderWnafVar(WNAF_WIDTH_225, ws_p);
 
         int count = 1 << (WNAF_WIDTH_225 - 2);
@@ -1275,7 +1350,7 @@ public abstract class Ed448
             }
         }
 
-        for (; bit >= 0; --bit)            
+        for (; bit >= 0; --bit)
         {
             int wb = ws_b[bit];
             if (wb != 0)
@@ -1371,6 +1446,8 @@ public abstract class Ed448
 
     public static boolean validatePublicKeyFull(byte[] pk, int pkOff)
     {
+        Arrays.validateSegment(pk, pkOff, PUBLIC_KEY_SIZE);
+
         byte[] A = copy(pk, pkOff, PUBLIC_KEY_SIZE);
 
         if (!checkPointFullVar(A))
@@ -1389,6 +1466,8 @@ public abstract class Ed448
 
     public static PublicPoint validatePublicKeyFullExport(byte[] pk, int pkOff)
     {
+        Arrays.validateSegment(pk, pkOff, PUBLIC_KEY_SIZE);
+
         byte[] A = copy(pk, pkOff, PUBLIC_KEY_SIZE);
 
         if (!checkPointFullVar(A))
@@ -1412,6 +1491,8 @@ public abstract class Ed448
 
     public static boolean validatePublicKeyPartial(byte[] pk, int pkOff)
     {
+        Arrays.validateSegment(pk, pkOff, PUBLIC_KEY_SIZE);
+
         byte[] A = copy(pk, pkOff, PUBLIC_KEY_SIZE);
 
         if (!checkPointFullVar(A))
@@ -1425,6 +1506,8 @@ public abstract class Ed448
 
     public static PublicPoint validatePublicKeyPartialExport(byte[] pk, int pkOff)
     {
+        Arrays.validateSegment(pk, pkOff, PUBLIC_KEY_SIZE);
+
         byte[] A = copy(pk, pkOff, PUBLIC_KEY_SIZE);
 
         if (!checkPointFullVar(A))
