@@ -129,6 +129,14 @@ public final class Ed25519PrivateKeyParameters
         }
     }
 
+    /**
+     * @deprecated use overload that doesn't take a public key
+     */
+    public void sign(int algorithm, Ed25519PublicKeyParameters publicKey, byte[] ctx, byte[] msg, int msgOff, int msgLen, byte[] sig, int sigOff)
+    {
+        sign(algorithm, ctx, msg, msgOff, msgLen, sig, sigOff);
+    }
+
     private static byte[] validate(byte[] buf)
     {
         if (buf.length != KEY_SIZE)
