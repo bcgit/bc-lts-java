@@ -5,11 +5,18 @@ import org.bouncycastle.bcpg.MalformedPacketException;
 import org.bouncycastle.bcpg.SignatureSubpacket;
 import org.bouncycastle.bcpg.SignatureSubpacketInputStream;
 import org.bouncycastle.bcpg.SignatureSubpacketTags;
+import org.bouncycastle.bcpg.sig.Exportable;
 import org.bouncycastle.bcpg.sig.Features;
+import org.bouncycastle.bcpg.sig.IssuerKeyID;
+import org.bouncycastle.bcpg.sig.KeyExpirationTime;
 import org.bouncycastle.bcpg.sig.LibrePGPPreferredEncryptionModes;
 import org.bouncycastle.bcpg.sig.NotationData;
+import org.bouncycastle.bcpg.sig.PrimaryUserID;
+import org.bouncycastle.bcpg.sig.Revocable;
 import org.bouncycastle.bcpg.sig.RevocationKey;
 import org.bouncycastle.bcpg.sig.RevocationReason;
+import org.bouncycastle.bcpg.sig.SignatureCreationTime;
+import org.bouncycastle.bcpg.sig.SignatureExpirationTime;
 import org.bouncycastle.bcpg.sig.SignatureTarget;
 import org.bouncycastle.bcpg.sig.TrustSignature;
 import org.bouncycastle.util.Arrays;
@@ -33,6 +40,7 @@ public class SignatureSubpacketsTest
     {
         testLibrePGPPreferredEncryptionModesSubpacket();
         testTruncatedSubpacketsRejected();
+        testFixedLengthSubpacketsRejected();
     }
 
     private void testLibrePGPPreferredEncryptionModesSubpacket()
@@ -109,12 +117,97 @@ public class SignatureSubpacketsTest
         isWireDecodeRejected(SignatureSubpacketTags.NOTATION_DATA, notationBody(2, 2, 0));
     }
 
+    /**
+     * The Signature Creation Time, Signature Expiration Time, Key Expiration Time, Issuer Key ID,
+     * Exportable Certification, Revocable and Primary User ID subpackets all have a body of a fixed
+     * length that their accessor requires: a 4-octet time field (RFC 9580 sec. 5.2.3.11, 5.2.3.18
+     * and 5.2.3.13), an 8-octet key ID (sec. 5.2.3.12) or a 1-octet flag "zero or one"
+     * (sec. 5.2.3.19, 5.2.3.20 and 5.2.3.27). A body of any other length has to be rejected when
+     * the subpacket is parsed rather than at the accessor, which reports it as an unchecked
+     * {@link IllegalStateException} from {@code Utils.timeFromBytes} /
+     * {@code Utils.booleanFromByteArray} - a certificate carrying such a body in a self-signature
+     * is signed content, so it passes signature verification and only fails later when an ordinary
+     * reader asks for the key expiry or the export policy (github #2426).
+     */
+    private void testFixedLengthSubpacketsRejected()
+            throws IOException
+    {
+        // getTime() reads a 4-octet time field
+        String[] timeSubpackets = new String[]{"SignatureCreationTime", "SignatureExpirationTime", "KeyExpirationTime"};
+        for (int i = 0; i != timeSubpackets.length; i++)
+        {
+            isConstructionRejected(timeSubpackets[i], new byte[0]);
+            isConstructionRejected(timeSubpackets[i], new byte[]{1});
+            isConstructionRejected(timeSubpackets[i], new byte[]{0, 0, 0});
+            isConstructionRejected(timeSubpackets[i], new byte[]{0, 0, 0, 0, 1});
+        }
+
+        // getKeyID() reads an 8-octet key ID
+        isConstructionRejected("IssuerKeyID", new byte[0]);
+        isConstructionRejected("IssuerKeyID", new byte[7]);
+
+        // the flag subpackets carry a single octet, and it is a 0 or a 1
+        String[] flagSubpackets = new String[]{"Exportable", "Revocable", "PrimaryUserID"};
+        for (int i = 0; i != flagSubpackets.length; i++)
+        {
+            isConstructionRejected(flagSubpackets[i], new byte[0]);
+            isConstructionRejected(flagSubpackets[i], new byte[]{1, 0});
+            isConstructionRejected(flagSubpackets[i], new byte[]{2});
+            isConstructionRejected(flagSubpackets[i], new byte[]{(byte)0xff});
+        }
+
+        testFixedLengthBodiesAccepted();
+
+        // the wrong-length body is reachable from the wire: a subpacket whose declared length
+        // matches the octets it carries passes the parser's range and truncation checks, so the
+        // constructor is the only place the fixed length can be enforced.
+        isWireDecodeRejected(SignatureSubpacketTags.CREATION_TIME, new byte[]{1});
+        isWireDecodeRejected(SignatureSubpacketTags.EXPIRE_TIME, new byte[]{0, 0, 0, 0, 1});
+        isWireDecodeRejected(SignatureSubpacketTags.KEY_EXPIRE_TIME, new byte[]{1});
+        isWireDecodeRejected(SignatureSubpacketTags.ISSUER_KEY_ID, new byte[]{1});
+        isWireDecodeRejected(SignatureSubpacketTags.EXPORTABLE, new byte[]{1, 0});
+        isWireDecodeRejected(SignatureSubpacketTags.REVOCABLE, new byte[]{2});
+        isWireDecodeRejected(SignatureSubpacketTags.PRIMARY_USER_ID, new byte[]{1, 0});
+    }
+
+    private void testFixedLengthBodiesAccepted()
+            throws IOException
+    {
+        SignatureCreationTime creationTime = new SignatureCreationTime(false, false, new byte[]{0, 0, 0, 1});
+        isTrue("SignatureCreationTime mismatch", creationTime.getTime().getTime() == 1000L);
+
+        SignatureExpirationTime expirationTime = new SignatureExpirationTime(false, false, new byte[]{0, 0, 1, 0});
+        isTrue("SignatureExpirationTime mismatch", expirationTime.getTime() == 256L);
+
+        KeyExpirationTime keyExpirationTime = new KeyExpirationTime(false, false, new byte[]{(byte)0xff, (byte)0xff, (byte)0xff, (byte)0xff});
+        isTrue("KeyExpirationTime mismatch", keyExpirationTime.getTime() == 0xFFFFFFFFL);
+
+        IssuerKeyID issuerKeyID = new IssuerKeyID(false, false, new byte[]{0, 0, 0, 0, 0, 0, 0, 1});
+        isTrue("IssuerKeyID mismatch", issuerKeyID.getKeyID() == 1L);
+
+        isTrue("Exportable(0) mismatch", !new Exportable(false, false, new byte[]{0}).isExportable());
+        isTrue("Exportable(1) mismatch", new Exportable(false, false, new byte[]{1}).isExportable());
+        isTrue("Revocable(0) mismatch", !new Revocable(false, false, new byte[]{0}).isRevocable());
+        isTrue("Revocable(1) mismatch", new Revocable(false, false, new byte[]{1}).isRevocable());
+        isTrue("PrimaryUserID(0) mismatch", !new PrimaryUserID(false, false, new byte[]{0}).isPrimaryUserID());
+        isTrue("PrimaryUserID(1) mismatch", new PrimaryUserID(false, false, new byte[]{1}).isPrimaryUserID());
+
+        // the parser's tolerance of a fixed-length field whose declared length overruns the end of
+        // the subpacket area (the body is truncated to the fixed length) has to survive the check:
+        // here a Key Expiration Time declares a 9-octet body and carries the 4 octets it should.
+        byte[] encoded = new byte[]{10, SignatureSubpacketTags.KEY_EXPIRE_TIME, 0, 0, 0, 1};
+        SignatureSubpacket parsed = new SignatureSubpacketInputStream(
+                new ByteArrayInputStream(encoded)).readPacket();
+        isTrue("Miscoded Key Expiration Time length not tolerated",
+                ((KeyExpirationTime)parsed).getTime() == 1L);
+    }
+
     private void isConstructionRejected(String name, byte[] body)
     {
         try
         {
             construct(name, body);
-            fail(name + " accepted a truncated " + body.length + "-octet body");
+            fail(name + " accepted a malformed " + body.length + "-octet body");
         }
         catch (IllegalArgumentException e)
         {
@@ -147,6 +240,34 @@ public class SignatureSubpacketsTest
         if (name.equals("NotationData"))
         {
             return new NotationData(false, false, body);
+        }
+        if (name.equals("SignatureCreationTime"))
+        {
+            return new SignatureCreationTime(false, false, body);
+        }
+        if (name.equals("SignatureExpirationTime"))
+        {
+            return new SignatureExpirationTime(false, false, body);
+        }
+        if (name.equals("KeyExpirationTime"))
+        {
+            return new KeyExpirationTime(false, false, body);
+        }
+        if (name.equals("IssuerKeyID"))
+        {
+            return new IssuerKeyID(false, false, body);
+        }
+        if (name.equals("Exportable"))
+        {
+            return new Exportable(false, false, body);
+        }
+        if (name.equals("Revocable"))
+        {
+            return new Revocable(false, false, body);
+        }
+        if (name.equals("PrimaryUserID"))
+        {
+            return new PrimaryUserID(false, false, body);
         }
         throw new IllegalStateException("unknown subpacket: " + name);
     }
