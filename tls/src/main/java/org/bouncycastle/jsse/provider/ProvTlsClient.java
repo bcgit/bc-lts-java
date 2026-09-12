@@ -379,8 +379,11 @@ class ProvTlsClient
                 String authType = JsseUtils.getAuthTypeServer(
                     context.getSecurityParametersHandshake().getKeyExchangeAlgorithm());
 
-                jsseSecurityParameters.statusResponses = JsseUtils.getStatusResponses(
-                    serverCertificate.getCertificateStatus());
+                /*
+                 * The status responses (if any) must be set before the checkServerTrusted call: the TrustManager
+                 * accesses them during chain validation via getStatusResponses on the handshake session.
+                 */
+                jsseSecurityParameters.statusResponses = JsseUtils.getStatusResponses(context, serverCertificate);
 
                 manager.checkServerTrusted(chain, authType);
             }

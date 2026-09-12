@@ -57,6 +57,7 @@ import org.bouncycastle.tls.SignatureAndHashAlgorithm;
 import org.bouncycastle.tls.TlsContext;
 import org.bouncycastle.tls.TlsCredentialedDecryptor;
 import org.bouncycastle.tls.TlsCredentialedSigner;
+import org.bouncycastle.tls.TlsServerCertificate;
 import org.bouncycastle.tls.TlsUtils;
 import org.bouncycastle.tls.TrustedAuthority;
 import org.bouncycastle.tls.crypto.TlsCertificate;
@@ -471,10 +472,12 @@ abstract class JsseUtils
         {
             JcaTlsCertificate certificate = new JcaTlsCertificate(crypto, chain[i]);
 
-            // TODO[tls13] Support various extensions
-            Hashtable<Integer, byte[]> extensions = null;
-
-            certificateEntryList[i] = new CertificateEntry(certificate, extensions);
+            /*
+             * TODO[tls13] Support various extensions. The OCSP staples of RFC 8446 sec. 4.4.2.1 are
+             * attached by the protocol layer from getCertificateStatus() - see
+             * TlsUtils.add13CertificateStatus.
+             */
+            certificateEntryList[i] = new CertificateEntry(certificate, null);
         }
 
         return new Certificate(certificateRequestContext, certificateEntryList);
@@ -582,6 +585,58 @@ abstract class JsseUtils
     static byte[] getStatusResponse(OCSPResponse ocspResponse) throws IOException
     {
         return null == ocspResponse ? TlsUtils.EMPTY_BYTES : ocspResponse.getEncoded(ASN1Encoding.DER);
+    }
+
+    static List<byte[]> getStatusResponses(TlsContext context, TlsServerCertificate serverCertificate)
+        throws IOException
+    {
+        if (TlsUtils.isTLSv13(context))
+        {
+            /*
+             * RFC 8446 4.4.2.1: TLS 1.3 has no CertificateStatus handshake message - the server's
+             * OCSP information rides in an extension of each CertificateEntry.
+             */
+            return getStatusResponses13(serverCertificate);
+        }
+
+        return getStatusResponses(serverCertificate.getCertificateStatus());
+    }
+
+    /**
+     * The stapled responses from a TLS 1.3 Certificate message, where RFC 8446 sec. 4.4.2.1 carries
+     * each one in a "status_request" extension of the CertificateEntry it belongs to rather than in a
+     * CertificateStatus handshake message. The reading of those extensions - including ignoring a
+     * staple the client never asked for - belongs to the TLS layer, which hands them over per
+     * certificate through {@link TlsServerCertificate#getCertificateStatusAt(int)}.
+     * <p/>
+     * The result is positional: element <code>i</code> answers for certificate <code>i</code> of the
+     * chain, with a zero-length element where an entry carried no staple. That is the contract
+     * {@link ProvX509TrustManager} relies on when it pairs the responses with the chain - appending
+     * only the staples that are present would attribute an intermediate's response to the
+     * end-entity.
+     *
+     * @return the responses, or null if no entry carried one.
+     */
+    static List<byte[]> getStatusResponses13(TlsServerCertificate serverCertificate) throws IOException
+    {
+        int count = serverCertificate.getCertificate().getLength();
+
+        ArrayList<byte[]> statusResponses = new ArrayList<byte[]>(count);
+
+        boolean anyStatusResponse = false;
+        for (int i = 0; i < count; ++i)
+        {
+            CertificateStatus certificateStatus = serverCertificate.getCertificateStatusAt(i);
+
+            byte[] statusResponse = null == certificateStatus
+                ?   TlsUtils.EMPTY_BYTES
+                :   getStatusResponse(certificateStatus.getOCSPResponse());
+
+            anyStatusResponse |= (statusResponse.length > 0);
+            statusResponses.add(statusResponse);
+        }
+
+        return anyStatusResponse ? Collections.unmodifiableList(statusResponses) : null;
     }
 
     static List<byte[]> getStatusResponses(CertificateStatus certificateStatus) throws IOException
