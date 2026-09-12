@@ -171,6 +171,17 @@ public class Extension
     public static final ASN1ObjectIdentifier noRevAvail = new ASN1ObjectIdentifier("2.5.29.56").intern();
 
     /**
+     * RelatedCertificate extension - RFC 9763 sec. 3.
+     * <p>
+     * SHOULD NOT be marked critical. Carries a {@code RelatedCertificate}
+     * SEQUENCE binding the certificate to a separately-issued related
+     * certificate by hash; used during post-quantum migration to assert
+     * that a traditional and a post-quantum end-entity certificate belong
+     * to the same subject.
+     */
+    public static final ASN1ObjectIdentifier relatedCertificate = X509ObjectIdentifiers.id_pe_relatedCert;
+
+    /**
      * TargetInformation extension in attribute certificates.
      */
     public static final ASN1ObjectIdentifier targetInformation = new ASN1ObjectIdentifier("2.5.29.55").intern();
@@ -181,7 +192,7 @@ public class Extension
     public static final ASN1ObjectIdentifier expiredCertsOnCRL = new ASN1ObjectIdentifier("2.5.29.60").intern();
 
     /**
-     * the subject’s alternative public key information
+     * the subject's alternative public key information
      */
     public static final ASN1ObjectIdentifier subjectAltPublicKeyInfo = new ASN1ObjectIdentifier("2.5.29.72").intern();
 
