@@ -112,7 +112,7 @@ public class SHA512Digest
      */
     public  SHA512Digest(byte[] encodedState)
     {
-        super(CryptoServicePurpose.values()[encodedState[encodedState.length - 1]]);
+        super(CryptoServicePurpose.forCode(encodedState[encodedState.length - 1]));
 
         restoreState(encodedState);
 
@@ -187,7 +187,7 @@ public class SHA512Digest
         byte[] encoded = new byte[getEncodedStateSize() + 1];
         super.populateState(encoded);
 
-        encoded[encoded.length - 1] = (byte) purpose.ordinal();
+        encoded[encoded.length - 1] = (byte)purpose.getCode();
 
         return encoded;
     }
