@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.io.Streams;
 
 import static org.bouncycastle.pqc.crypto.lms.HSS.rangeTestKeys;
@@ -77,9 +78,65 @@ public class HSSPrivateKeyParameters
     {
         HSSPrivateKeyParameters pKey = getInstance(privEnc);
 
-        pKey.publicKey = HSSPublicKeyParameters.getInstance(pubEnc);
+        HSSPublicKeyParameters pubKey = HSSPublicKeyParameters.getInstance(pubEnc);
+
+        // The public key that arrived alongside the private one is authoritative, so where the root
+        // tree already carries its root node in the cache it costs nothing to confirm the two agree.
+        // That catches a tree cache which is internally consistent but belongs to a different key -
+        // the one corruption the node-by-node check in LMSPrivateKeyParameters cannot see. It is
+        // deliberately skipped when the root is not cached: recomputing it there means rebuilding the
+        // whole tree, which is the work the cache exists to avoid (github #2414).
+        byte[] cachedRoot = pKey.getRootKey().peekRootT();
+
+        if (cachedRoot != null && !org.bouncycastle.util.Arrays.areEqual(
+                cachedRoot, pubKey.getLMSPublicKey().getT1()))
+        {
+            throw new IOException("HSS private key tree cache does not match the public key");
+        }
+
+        pKey.publicKey = pubKey;
 
         return pKey;
+    }
+
+    /**
+     * The HSS index and the component keys' one-time indices are two records of the same position in
+     * the key, and a decoded key whose records disagree is refused. RFC 8554 sec. 1 requires each
+     * one-time key to be used once; a stored key whose index has been rolled back while its
+     * component keys stayed advanced - a partial write, a restore from backup, a buggy storage layer
+     * - would otherwise sign a second message under a one-time key already used, and that signature
+     * would verify, so nothing would surface it. The check is the identity the two records satisfy:
+     * a level below the last contributes (q - 1) leaves of the levels beneath it, because its q has
+     * already advanced past the subtree it signed, and the last level contributes its q directly.
+     * Verified against every index of a two-level key and across a level boundary of a three-level
+     * one (github #2414).
+     * <p>
+     * Applied at decode only. The constructor is also reached from the hierarchy update, which
+     * rebuilds lower levels and is momentarily inconsistent by design; corrupt stored state can only
+     * arrive here.
+     */
+    private static void checkIndexAgainstKeys(int d, List<LMSPrivateKeyParameters> keys, long index)
+        throws IOException
+    {
+        long implied = keys.get(d - 1).getIndex();
+        int shift = 0;
+
+        for (int i = d - 2; i >= 0; i--)
+        {
+            shift += keys.get(i + 1).getSigParameters().getH();
+            if (shift >= 63)
+            {
+                // taller than the 64-bit index can address, so the two records cannot be compared
+                return;
+            }
+            implied += (((long)keys.get(i).getIndex()) - 1L) << shift;
+        }
+
+        if (implied != index)
+        {
+            throw new IOException("HSS private key index " + index
+                + " does not match the component key indices, which imply " + implied);
+        }
     }
 
     public static HSSPrivateKeyParameters getInstance(Object src)
@@ -91,13 +148,23 @@ public class HSSPrivateKeyParameters
         }
         else if (src instanceof DataInputStream)
         {
-            if (((DataInputStream)src).readInt() != 0)
+            int version = ((DataInputStream)src).readInt();
+            if (version != 0 && version != 1)
             {
-                throw new IllegalStateException("unknown version for hss private key");
+                throw new IOException("unknown version for hss private key");
             }
             int d = ((DataInputStream)src).readInt();
+            if (d < 1 || d > 8)    // RFC 8554, Section 6.
+            {
+                throw new IOException("d value of HSS private key out of range: " + d);
+            }
             long index = ((DataInputStream)src).readLong();
             long maxIndex = ((DataInputStream)src).readLong();
+            if (index < 0 || maxIndex < 0 || index > maxIndex)
+            {
+                throw new IOException(
+                    "HSS private key index out of range: index=" + index + " maxIndex=" + maxIndex);
+            }
             boolean limited = ((DataInputStream)src).readBoolean();
 
             ArrayList<LMSPrivateKeyParameters> keys = new ArrayList<LMSPrivateKeyParameters>();
@@ -105,13 +172,20 @@ public class HSSPrivateKeyParameters
 
             for (int t = 0; t < d; t++)
             {
-                keys.add(LMSPrivateKeyParameters.getInstance(src));
+                // The component keys share this stream with the keys and signatures that follow,
+                // so whether each one carries the tree-cache field cannot be inferred from the
+                // stream having more data - the encoding version says: a version 0 encoding
+                // predates the tree cache and its component keys end at the master secret, a
+                // version 1 component always carries the cache field (github #2365).
+                keys.add(LMSPrivateKeyParameters.readKey((DataInputStream)src, version != 0));
             }
 
             for (int t = 0; t < d - 1; t++)
             {
                 signatures.add(LMSSignature.getInstance(src));
             }
+
+            checkIndexAgainstKeys(d, keys, index);
 
             return new HSSPrivateKeyParameters(d, keys, signatures, index, maxIndex, limited);
         }
@@ -121,15 +195,40 @@ public class HSSPrivateKeyParameters
             try // 1.5 / 1.6 compatibility
             {
                 in = new DataInputStream(new ByteArrayInputStream((byte[])src));
+                Exception hssFailure;
+
                 try
                 {
                     return getInstance(in);
                 }
                 catch (Exception e)
                 {
+                    hssFailure = e;
+                }
+
+                try
+                {
                     // old style single LMS key.
                     LMSPrivateKeyParameters lmsKey = LMSPrivateKeyParameters.getInstance(src);
                     return new HSSPrivateKeyParameters(lmsKey, lmsKey.getIndex(), lmsKey.getIndexLimit());
+                }
+                catch (Exception e)
+                {
+                    //
+                    // Neither shape parsed. The retry as a single LMS key is a compatibility path for
+                    // encodings that predate HSS, so when it fails too the HSS failure is the one worth
+                    // reporting - it is what the field checks raise - rather than the retry complaining
+                    // about a version field it was never going to match (github #2414).
+                    //
+                    if (hssFailure instanceof RuntimeException)
+                    {
+                        throw (RuntimeException)hssFailure;
+                    }
+                    if (hssFailure instanceof IOException)
+                    {
+                        throw (IOException)hssFailure;
+                    }
+                    throw Exceptions.ioException(hssFailure.getMessage(), hssFailure);
                 }
             }
             finally
@@ -301,14 +400,21 @@ public class HSSPrivateKeyParameters
 
 
         //
-        // We need to replace the root key to a new q value.
+        // We need to replace the root key to a new q value; the last level reads the derived
+        // value itself, which for a single level hierarchy is the root.
         //
-        if (keys[0].getIndex() - 1 != qTreePath[0])
+        boolean rootQMatch = (qTreePath.length > 1)
+            ? qTreePath[0] == keys[0].getIndex() - 1
+            : qTreePath[0] == keys[0].getIndex();
+
+        if (!rootQMatch)
         {
-            keys[0] = LMS.generateKeys(
-                originalRootKey.getSigParameters(),
-                originalRootKey.getOtsParameters(),
-                (int)qTreePath[0], originalRootKey.getI(), originalRootKey.getMasterSecret());
+            //
+            // Only the position moves - the root's identifier, seed and parameter sets are its own
+            // and cannot have changed - so this is the same tree at a different one-time key, and
+            // the repositioned key keeps the tree the root has already built.
+            //
+            keys[0] = originalRootKey.repositionTo((int)qTreePath[0]);
             changed = true;
         }
 
@@ -369,13 +475,12 @@ public class HSSPrivateKeyParameters
             {
 
                 //
-                // Q is different so we can generate a new private key but it will have the same public
-                // key so we do not need to sign it again.
+                // Q is different, but seedEquals says the identifier and seed are not, so this is
+                // the same tree at a different one-time key: reposition within it rather than
+                // rebuild it. The public key is unchanged either way, so the chaining signature
+                // above it still stands and does not need making again.
                 //
-                keys[i] = LMS.generateKeys(
-                    originalKeys.get(i).getSigParameters(),
-                    originalKeys.get(i).getOtsParameters(),
-                    (int)qTreePath[i], childI, childSeed);
+                keys[i] = keys[i].repositionTo((int)qTreePath[i]);
                 changed = true;
             }
 
@@ -475,8 +580,11 @@ public class HSSPrivateKeyParameters
         // Private keys are implementation dependent.
         //
 
+        // Version 1: the component keys carry the mandatory tree-cache field their getEncoded
+        // appends; a version 0 encoding (any release before the tree cache) carries them without
+        // it. The version dispatch in getInstance is what keeps the shared stream unambiguous.
         Composer composer = Composer.compose()
-            .u32str(0) // Version.
+            .u32str(1) // Version.
             .u32str(l)
             .u64str(index)
             .u64str(indexLimit)
@@ -511,9 +619,11 @@ public class HSSPrivateKeyParameters
     public LMSContext generateLMSContext()
     {
         LMSSignedPubKey[] signed_pub_key;
-        LMSPrivateKeyParameters nextKey;
+        LMSContext context;
         int L = this.getL();
 
+        // the HSS index and the bottom key's q are two records of one position: claim both here,
+        // bottom key first so an exhausted one leaves each untouched.
         synchronized (this)
         {
             rangeTestKeys(this);
@@ -521,7 +631,7 @@ public class HSSPrivateKeyParameters
             List<LMSPrivateKeyParameters> keys = this.getKeys();
             List<LMSSignature> sig = this.getSig();
 
-            nextKey = this.getKeys().get(L - 1);
+            LMSPrivateKeyParameters nextKey = keys.get(L - 1);
 
             // Step 2. Stand in for sig[L-1]
             int i = 0;
@@ -534,13 +644,15 @@ public class HSSPrivateKeyParameters
                 i = i + 1;
             }
 
+            context = nextKey.generateLMSContext();
+
             //
             // increment the index.
             //
             this.incIndex();
         }
 
-        return nextKey.generateLMSContext().withSignedPublicKeys(signed_pub_key);
+        return context.withSignedPublicKeys(signed_pub_key);
     }
 
     public byte[] generateSignature(LMSContext context)

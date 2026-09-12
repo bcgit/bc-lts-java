@@ -17,7 +17,7 @@ public class LMSPrivateKeyParameters
     implements LMSContextBasedSigner
 {
     private static CacheKey T1 = new CacheKey(1);
-    private static CacheKey[] internedKeys = new CacheKey[129];
+    private static CacheKey[] internedKeys = new CacheKey[64];
 
     static
     {
@@ -62,6 +62,11 @@ public class LMSPrivateKeyParameters
 
     private LMSPrivateKeyParameters(LMSPrivateKeyParameters parent, int q, int maxQ)
     {
+        this(parent, q, maxQ, 1 << parent.parameters.getH());
+    }
+
+    private LMSPrivateKeyParameters(LMSPrivateKeyParameters parent, int q, int maxQ, int maxCacheR)
+    {
         super(true);
         this.parameters = parent.parameters;
         this.otsParameters = parent.otsParameters;
@@ -69,17 +74,40 @@ public class LMSPrivateKeyParameters
         this.I = parent.I;
         this.maxQ = maxQ;
         this.masterSecret = parent.masterSecret;
-        this.maxCacheR = 1 << parameters.getH();
+        this.maxCacheR = maxCacheR;
         this.tCache = parent.tCache;
         this.tDigest = DigestUtil.getDigest(parameters);
         this.publicKey = parent.publicKey;
+    }
+
+    /**
+     * This key's tree at a different one-time key. A Merkle tree is a function of the key
+     * identifier, the master secret and the parameter sets and not of q, so a key repositioned
+     * within its own tree has exactly the nodes this one has: it shares the node cache and the
+     * public key rather than rebuilding a tree that has already been built. HSS repositioning uses
+     * this in place of regenerating a component key whose identifier and seed have not changed,
+     * which otherwise costs about as much as key generation (github #2414).
+     *
+     * @param q the one-time key to position at.
+     */
+    synchronized LMSPrivateKeyParameters repositionTo(int q)
+    {
+        int twoToH = 1 << parameters.getH();
+
+        if (q < 0 || q > twoToH)
+        {
+            throw new IllegalArgumentException(
+                "LMS private key q out of range: q=" + q + " 2^h=" + twoToH);
+        }
+
+        return new LMSPrivateKeyParameters(this, q, twoToH, maxCacheR);
     }
 
     public static LMSPrivateKeyParameters getInstance(byte[] privEnc, byte[] pubEnc)
         throws IOException
     {
         LMSPrivateKeyParameters pKey = getInstance(privEnc);
-    
+
         pKey.publicKey = LMSPublicKeyParameters.getInstance(pubEnc);
 
         return pKey;
@@ -96,66 +124,26 @@ public class LMSPrivateKeyParameters
         {
             DataInputStream dIn = (DataInputStream)src;
 
-            /*
-            .u32str(0) // version
-            .u32str(parameters.getType()) // type
-            .u32str(otsParameters.getType()) // ots type
-            .bytes(I) // I at 16 bytes
-            .u32str(q) // q
-            .u32str(maxQ) // maximum q
-            .u32str(masterSecret.length) // length of master secret.
-            .bytes(masterSecret) // the master secret
-            .build();
-             */
+            LMSPrivateKeyParameters key = readCoreKey(dIn);
 
-
-            if (dIn.readInt() != 0)
+            //
+            // Anything after the master secret is a cache of the top of the Merkle tree (see
+            // getEncoded). Priming it here means the first signature made after the key is decoded
+            // does not have to rebuild the whole tree, which otherwise costs about as much as key
+            // generation. For a standalone key the cache is optional trailing data rather than a
+            // new version so that releases predating it still read the key - they stop at the
+            // master secret and ignore what follows - at the cost of it being absent rather than
+            // malformed when a stream supplies no more bytes. Component keys inside an HSS private
+            // key share their stream with the keys and signatures that follow, so "more data"
+            // means nothing there - they are read via readKey, where the enclosing HSS encoding's
+            // version dictates whether the cache field is present (github #2365).
+            //
+            if (dIn.available() > 0)
             {
-                throw new IllegalStateException("expected version 0 lms private key");
+                readTreeCache(dIn, key);
             }
 
-            int sigType = dIn.readInt();
-            LMSigParameters parameter = LMSigParameters.getParametersForType(sigType);
-            if (parameter == null)
-            {
-                throw new IOException("unknown LMS type code: " + sigType);
-            }
-            int otsType = dIn.readInt();
-            LMOtsParameters otsParameter = LMOtsParameters.getParametersForType(otsType);
-            if (otsParameter == null)
-            {
-                throw new IOException("unknown LM-OTS type code: " + otsType);
-            }
-            byte[] I = new byte[16];
-            dIn.readFully(I);
-
-            int q = dIn.readInt();
-            int maxQ = dIn.readInt();
-            // q selects the LM-OTS leaf and maxQ bounds it, so a stored value outside the tree is not
-            // a harmless oddity: the key signs with a one-time key the public key does not commit to,
-            // and the signature simply does not verify (github #2414). RFC 8554 sec. 5.3 has
-            // 0 <= q < 2^h; maxQ is 2^h for a whole key and lower for a shard (extractKeyShard), and
-            // q == maxQ is the legitimate exhausted state.
-            int twoToH = 1 << parameter.getH();
-            if (q < 0 || maxQ < 0 || maxQ > twoToH || q > maxQ)
-            {
-                throw new IOException(
-                    "LMS private key q/maxQ out of range: q=" + q + " maxQ=" + maxQ + " 2^h=" + twoToH);
-            }
-            int l = dIn.readInt();
-            if (l < 0)
-            {
-                throw new IllegalStateException("secret length less than zero");
-            }
-            if (l > dIn.available())
-            {
-                throw new IOException("secret length exceeded " + dIn.available());
-            }
-            byte[] masterSecret = new byte[l];
-            dIn.readFully(masterSecret);
-
-            return new LMSPrivateKeyParameters(parameter, otsParameter, q, I, maxQ, masterSecret);
-
+            return key;
         }
         else if (src instanceof byte[])
         {
@@ -181,6 +169,157 @@ public class LMSPrivateKeyParameters
         throw new IllegalArgumentException("cannot parse " + src);
     }
 
+    /**
+     * Read a component key from a stream shared with the other keys and signatures of an HSS
+     * private key. Unlike the public getInstance entry point, whether the tree-cache field is
+     * present is dictated by the caller - from the enclosing HSS encoding's version - rather
+     * than inferred from the stream having more data, which is meaningless mid-stream.
+     */
+    static LMSPrivateKeyParameters readKey(DataInputStream dIn, boolean withCache)
+        throws IOException
+    {
+        LMSPrivateKeyParameters key = readCoreKey(dIn);
+
+        if (withCache)
+        {
+            readTreeCache(dIn, key);
+        }
+
+        return key;
+    }
+
+    private static LMSPrivateKeyParameters readCoreKey(DataInputStream dIn)
+        throws IOException
+    {
+        /*
+        .u32str(0) // version
+        .u32str(parameters.getType()) // type
+        .u32str(otsParameters.getType()) // ots type
+        .bytes(I) // I at 16 bytes
+        .u32str(q) // q
+        .u32str(maxQ) // maximum q
+        .u32str(masterSecret.length) // length of master secret.
+        .bytes(masterSecret) // the master secret
+        .build();
+         */
+
+        if (dIn.readInt() != 0)
+        {
+            throw new IOException("expected version 0 lms private key");
+        }
+
+        int sigType = dIn.readInt();
+        LMSigParameters parameter = LMSigParameters.getParametersForType(sigType);
+        if (parameter == null)
+        {
+            throw new IOException("unknown LMS type code: " + sigType);
+        }
+        int otsType = dIn.readInt();
+        LMOtsParameters otsParameter = LMOtsParameters.getParametersForType(otsType);
+        if (otsParameter == null)
+        {
+            throw new IOException("unknown LM-OTS type code: " + otsType);
+        }
+        byte[] I = new byte[16];
+        dIn.readFully(I);
+
+        int q = dIn.readInt();
+        int maxQ = dIn.readInt();
+        // q selects the LM-OTS leaf and maxQ bounds it, so a stored value outside the tree is not
+        // a harmless oddity: the key signs with a one-time key the public key does not commit to,
+        // and the signature simply does not verify (github #2414). RFC 8554 sec. 5.3 has
+        // 0 <= q < 2^h; maxQ is 2^h for a whole key and lower for a shard (extractKeyShard), and
+        // q == maxQ is the legitimate exhausted state.
+        int twoToH = 1 << parameter.getH();
+        if (q < 0 || maxQ < 0 || maxQ > twoToH || q > maxQ)
+        {
+            throw new IOException(
+                "LMS private key q/maxQ out of range: q=" + q + " maxQ=" + maxQ + " 2^h=" + twoToH);
+        }
+        int l = dIn.readInt();
+        if (l < 0)
+        {
+            throw new IOException("secret length less than zero");
+        }
+        if (l > dIn.available())
+        {
+            throw new IOException("secret length exceeded " + dIn.available());
+        }
+        byte[] masterSecret = new byte[l];
+        dIn.readFully(masterSecret);
+
+        return new LMSPrivateKeyParameters(parameter, otsParameter, q, I, maxQ, masterSecret);
+    }
+
+    private static void readTreeCache(DataInputStream dIn, LMSPrivateKeyParameters key)
+        throws IOException
+    {
+        int cacheCount = dIn.readInt();
+        if (cacheCount < 0 || cacheCount >= internedKeys.length)
+        {
+            throw new IOException("tree cache node count out of range: " + cacheCount);
+        }
+        if (cacheCount != 0 && (cacheCount < 3 || ((cacheCount + 1) & cacheCount) != 0))
+        {
+            throw new IOException("tree cache node count is not a complete top of tree: " + cacheCount);
+        }
+        int m = key.getSigParameters().getM();
+        if ((long)cacheCount * m > dIn.available())
+        {
+            throw new IOException("tree cache length exceeded " + dIn.available());
+        }
+        byte[][] cachedT = new byte[cacheCount + 1][];
+        for (int r = 1; r <= cacheCount; r++)
+        {
+            cachedT[r] = new byte[m];
+            dIn.readFully(cachedT[r]);
+        }
+        validateTreeCache(key, cachedT, cacheCount);
+        key.primeTreeCache(cachedT);
+    }
+
+    /**
+     * Check the cached nodes are consistent with one another before they are trusted. Every node is
+     * a deterministic function of I, the master secret and the parameters, so a corrupt cache is
+     * detectable without rebuilding the tree: each cached interior node must be the hash of its two
+     * children, and for every node up to cacheCount / 2 both children are themselves cached. A
+     * single altered node therefore always fails its own parent's recomputation - including node 1,
+     * the root, whose children 2 and 3 are cached (github #2414).
+     * <p>
+     * That every node is covered holds only because the caller has already refused any node count
+     * that is not a complete top of tree - 2^k - 1 nodes, k at least 2. A node with no cached
+     * sibling pair above it is read but never recomputed: at a count of 1 or 2 that is the root
+     * itself, and at any even count it is the last node, whose parent would need the sibling the
+     * count stops one short of. This writer emits 63, or 31 for a height-5 shard, so the
+     * restriction refuses nothing it produces.
+     * <p>
+     * Only interior nodes are recomputed. A cached node at or beyond 2^h is a leaf, and deriving one
+     * costs an LM-OTS public key - which is the work the cache exists to avoid; a corrupt leaf is
+     * still caught, by its cached parent.
+     */
+    private static void validateTreeCache(LMSPrivateKeyParameters key, byte[][] cachedT, int cacheCount)
+        throws IOException
+    {
+        int twoToH = 1 << key.getSigParameters().getH();
+        Digest H = DigestUtil.getDigest(key.getSigParameters());
+
+        for (int r = 1; r < twoToH && 2 * r + 1 <= cacheCount; r++)
+        {
+            LmsUtils.byteArray(key.getI(), H);
+            LmsUtils.u32str(r, H);
+            LmsUtils.u16str(LMS.D_INTR, H);
+            LmsUtils.byteArray(cachedT[2 * r], H);
+            LmsUtils.byteArray(cachedT[2 * r + 1], H);
+
+            byte[] node = new byte[H.getDigestSize()];
+            H.doFinal(node, 0);
+
+            if (!Arrays.areEqual(node, cachedT[r]))
+            {
+                throw new IOException("LMS private key tree cache inconsistent at node " + r);
+            }
+        }
+    }
 
     LMOtsPrivateKey getCurrentOTSKey()
     {
@@ -405,6 +544,55 @@ public class LMSPrivateKeyParameters
         return T;
     }
 
+    /**
+     * Populate the node cache with the top-of-tree nodes recovered from the optional trailing
+     * cache in a version 0 encoding. Entries are keyed on the interned cache keys so they are not
+     * evicted, matching the state a freshly generated key reaches after its public key has been
+     * derived.
+     *
+     * @param cachedT nodes indexed by tree node number; index 0 is unused, entries 1..n are cached.
+     */
+    void primeTreeCache(byte[][] cachedT)
+    {
+        synchronized (tCache)
+        {
+            for (int r = 1; r < cachedT.length; r++)
+            {
+                if (cachedT[r] != null)
+                {
+                    tCache.put(internedKeys[r], cachedT[r]);
+                }
+            }
+        }
+    }
+
+    /**
+     * The root node if it is already in the cache, otherwise null. Unlike getPublicKey() this never
+     * computes it, so a caller can cross-check the root against an authoritative public key without
+     * paying for a tree rebuild when there is nothing cached (github #2414).
+     */
+    byte[] peekRootT()
+    {
+        synchronized (tCache)
+        {
+            return (byte[])tCache.get(T1);
+        }
+    }
+
+    /**
+     * Return true if the top of the Merkle tree is present in the node cache - either because
+     * this key has been used/queried, or because it was decoded from the optional trailing data in
+     * a version 0 encoding (see getEncoded). Used by the regression tests that verify tree-cache
+     * persistence.
+     */
+    boolean isTreeCachePrimed()
+    {
+        synchronized (tCache)
+        {
+            return tCache.get(T1) != null;
+        }
+    }
+
     @Override
     public boolean equals(Object o)
     {
@@ -461,7 +649,7 @@ public class LMSPrivateKeyParameters
         // It is implementation dependent.
         //
         // Format:
-        //     version u32
+        //     version u32                 (0)
         //     type u32
         //     otstype u32
         //     I u8x16
@@ -469,9 +657,22 @@ public class LMSPrivateKeyParameters
         //     maxQ u32
         //     master secret Length u32
         //     master secret u8[]
+        //     tree cache node count u32   (n; the top-of-tree nodes 1..n) - optional
+        //     tree cache nodes u8[]       (n * getSigParameters().getM() bytes) - optional
+        //
+        // The tree cache carries the top of the Merkle tree so that the first signature made after
+        // the key is decoded does not have to rebuild the whole tree - which otherwise costs about
+        // as much as key generation (see github #2365). The nodes are a deterministic function of I,
+        // the master secret and the parameters and are independent of q, so persisting them leaks
+        // nothing the (already encoded) master secret does not. The cache is appended after the
+        // master secret rather than announced by a new version number, so a key written by this
+        // method is still readable by releases that predate it: their decoder returns at the end of
+        // the master secret and never looks at the trailing bytes.
         //
 
-        return Composer.compose()
+        int cacheTop = Math.min(internedKeys.length, maxCacheR);
+
+        Composer composer = Composer.compose()
             .u32str(0) // version
             .u32str(parameters.getType()) // type
             .u32str(otsParameters.getType()) // ots type
@@ -480,7 +681,14 @@ public class LMSPrivateKeyParameters
             .u32str(maxQ) // maximum q
             .u32str(masterSecret.length) // length of master secret.
             .bytes(masterSecret) // the master secret
-            .build();
+            .u32str(cacheTop - 1); // number of cached tree nodes (nodes 1 .. cacheTop-1)
+
+        for (int r = 1; r < cacheTop; r++)
+        {
+            composer.bytes(findT(r)); // top-of-tree node r
+        }
+
+        return composer.build();
     }
 
     private static class CacheKey
