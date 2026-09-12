@@ -48,6 +48,15 @@ public class IESEngine
     /**
      * Set up for use with stream mode, where the key derivation function
      * is used to provide a stream of bytes to xor with the message.
+     * <p>
+     * <b>Security note:</b> when this engine is initialised with static keys on both sides (the
+     * {@link #init(boolean, CipherParameters, CipherParameters, CipherParameters)} entry point, which
+     * supplies no ephemeral component) the key-derivation input is the same for every message, so the
+     * stream-mode keystream is identical from message to message - encrypting more than one message
+     * under a given key pair is a many-time pad and leaks plaintext relationships. Use the ephemeral
+     * sender-key initialisation (the standard ECIES mode) for messages that must remain confidential;
+     * the static-static mode is effectively deterministic encryption.
+     * </p>
      *
      * @param agree the key agreement used as the basis for the encryption
      * @param kdf   the key derivation function used for byte generation
@@ -241,7 +250,7 @@ public class IESEngine
         byte[] T = new byte[mac.getMacSize()];
 
         mac.init(new KeyParameter(K2));
-        mac.update(C, 0, C.length);
+        mac.update(C, 0, len);
         if (P2 != null)
         {
             mac.update(P2, 0, P2.length);
@@ -362,6 +371,9 @@ public class IESEngine
         }
         else
         {
+            // MAC must be verified above before this doFinal: it removes padding (e.g. PKCS7), and a
+            // padding failure here is distinguishable from a MAC failure, which would be a CBC padding oracle.
+            // Only authenticated ciphertext reaches this point.
             len += cipher.doFinal(M, len);
 
             return Arrays.copyOfRange(M, 0, len);
