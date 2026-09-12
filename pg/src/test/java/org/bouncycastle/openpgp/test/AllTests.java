@@ -40,6 +40,7 @@ public class AllTests
         TestSuite suite = new TestSuite("OpenPGP Tests");
 
         suite.addTestSuite(AllTests.class);
+        suite.addTestSuite(BytesBooleansTest.class);
         suite.addTestSuite(DSA2Test.class);
         suite.addTestSuite(PGPUnicodeTest.class);
         suite.addTestSuite(AEADWithArgon2Test.class);
