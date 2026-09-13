@@ -61,7 +61,15 @@ public class TestResourceFinder
                     + "' from " + configuredSource + " not found." + ln
                     + "Test data available from: https://github.com/bcgit/bc-test-data.git");
             }
-            return new FileInputStream(new File(dataDir, homeDir + separator + fileName));
+            File configuredFile = new File(dataDir, homeDir + separator + fileName);
+            if (configuredFile.exists())
+            {
+                return new FileInputStream(configuredFile);
+            }
+            // The configured root exists but does not contain this resource (e.g. it is
+            // core/src/test/data, which only holds a couple of fixture trees). Do not treat
+            // the root's existence as authoritative - fall through to the working-directory
+            // walk-up so a partial data dir cannot shadow the full bc-test-data checkout.
         }
 
         String wrkDirName = System.getProperty("user.dir");
