@@ -187,7 +187,7 @@ public class GeneralName
                     return new GeneralName(tag, ASN1IA5String.getTagged(tagObj, false));
 
                 case directoryName:
-                    return new GeneralName(tag, X500Name.getInstance(tagObj, true));
+                    return new GeneralName(tag, X500Name.getTagged(tagObj, true));
                 case iPAddress:
                     return new GeneralName(tag, ASN1OctetString.getTagged(tagObj, false));
                 case registeredID:
