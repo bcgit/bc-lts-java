@@ -2,7 +2,7 @@
 b9494ea5065d735015f4032c094146de2eaa3a82c4638253e669bf7851d021ef  tls/src/test/jdk1.4/org/bouncycastle/tls/test/AtomicLong.java
 a0ffec7823958a459023430a5a2bcb2d856b7f11d490e317d946a13fab70f85a  tls/src/test/jdk1.4/org/bouncycastle/tls/test/TlsTestUtils.java
 6bc40a8b432e52be47cbeeb374766f870846303306d17a658dbb7f2051487cd6  tls/src/test/java/org/bouncycastle/test/PrintTestResult.java
-f7c9fb3075328466e7dea29c6397e90344c2d618d113ed5b5aa1a1d4826c7fc0  tls/src/test/java/org/bouncycastle/jsse/provider/test/AllTests.java
+9de429cd654d33539da20f392c2291134f0b566fbb96916bf81850d93daa98a3  tls/src/test/java/org/bouncycastle/jsse/provider/test/AllTests.java
 b43b6526a532aac1a4691b845ab8d2d79621ac0683af07ed0ddb92ce861554bd  tls/src/test/java/org/bouncycastle/jsse/provider/test/SSLUtils.java
 12641526fffbcc7e2f068915ae6013d7a46b257040cc9b7f9b63d5d7291614f6  tls/src/test/java/org/bouncycastle/jsse/provider/test/TestOIDs.java
 64d228aef56547768e7a97411b6ce01087cf4ed8ce40dca72abd89324cbf6f08  tls/src/test/java/org/bouncycastle/jsse/provider/test/FipsCipherSuitesTestSuite.java
@@ -98,7 +98,7 @@ bac0fdf2cf22b379902f68c723e263a2fd58a1be329f8778bce88f824bd880b9  tls/src/main/j
 827b111ee923a61d75d6e81fe0a2f9f076612f50090f9c9e93c29be46cff6c30  tls/src/main/jdk1.9/org/bouncycastle/jsse/provider/PKIXUtil.java
 9c3d458ac222f5be8b0e5a02dd9ba899c5b2fba1f55fa7a97e60ecb3648c0802  tls/src/main/jdk1.9/org/bouncycastle/jsse/provider/SSLSessionUtil.java
 5e2a1352fe84b954f78c4a22b59efbe079a1b6845753290b2175d4db0921892c  tls/src/main/jdk1.9/org/bouncycastle/jsse/provider/ProvSSLSocketDirect_9.java
-5f092e85027aacee53e878f2bb489712e07c1efa49e1d0f0566af260408d528f  tls/src/main/jdk1.9/org/bouncycastle/jsse/provider/SSLEngineUtil.java
+9c22bb59950beb5bca9f52e5ecf58750afa611ae76b09720afcc0eee06950fb7  tls/src/main/jdk1.9/org/bouncycastle/jsse/provider/SSLEngineUtil.java
 5345490db64cb8b5fe73a412c621fb70a608f1fa2b338222e31bb4837442bce5  tls/src/main/jdk1.9/org/bouncycastle/jsse/provider/IDNUtil.java
 7f5100e1a16414ec4d5e2f7ede9cd4ccaea7b5c2e466ce5121473efd74b9c718  tls/src/main/jdk1.9/org/bouncycastle/jsse/provider/X509TrustManagerUtil.java
 417c2d1111be28ccd1049953bd28a06f14d5e0ab92dd3311a1e6640b2d13e22a  tls/src/main/jdk1.9/org/bouncycastle/jsse/provider/ProvSSLSocketWrap_9.java
@@ -449,7 +449,7 @@ efcb55999570cdcbe63e8bb59d9e075af95e2c091fbb94f91d14aa36502dedb7  tls/src/main/j
 98254ad5437e34e8f03b6168ee01a09b42d528b91a67d0e49af51ac69ad89a4e  tls/src/main/java/org/bouncycastle/tls/TlsDHEKeyExchange.java
 0b7f568f0568296209324bc0a2ec202aa29e86b38c438362d0faf725feb402e7  tls/src/main/java/org/bouncycastle/tls/NullOutputStream.java
 57d84eec9bd73a5cd6953fff609c5e70ce2d0bbedf25968c11bb7e4f697feea2  tls/src/main/java/org/bouncycastle/tls/DTLSHandshakeRetransmit.java
-7312a7ee31dbcf966e9987f34ef5395c2470844ec34a393844dbaefa056e253e  tls/src/main/java/org/bouncycastle/tls/TlsProtocol.java
+5afc333dcd300e2c374e33b9500c5101a54d172f877b5889db23ac5bf47238b6  tls/src/main/java/org/bouncycastle/tls/TlsProtocol.java
 00fa739fa8c5e9d61409261a01fae5d83e2a4ec03db783b2eb21773b10a0ce52  tls/src/main/java/org/bouncycastle/tls/PskIdentity.java
 b1fb550bb92c7ca5b3cb05fd6712dc0c12f9f7acab121ca2e4e8993301cd6bf2  tls/src/main/java/org/bouncycastle/tls/ClientAuthenticationType.java
 28727206b16917c0b5316be0ec22a48e565f32adac6a38819e916b8b20598f57  tls/src/main/java/org/bouncycastle/tls/KeyShareEntry.java
@@ -621,3 +621,7 @@ c9deef70e3661e012d00f1ae7c28cd32daeafd9a5d44808a14abaf449ef830f6  tls/src/test/j
 ddde60b75e2a67219f3b049c12e9f8ec293a8d05a9bb761eb3cb3f7f32c00bc5  tls/src/test/java/org/bouncycastle/tls/test/TlsStatusRequestResumptionTest.java
 8e3c492eb4ac9f85fef466bf241d5fe77e3302ca2218ca1cb1a88aa1477817c0  tls/src/test/java/org/bouncycastle/jsse/provider/test/NamedGroupTestUtil.java
 fac29ea86ef51ce7d82933eaa6adf742ba3d700ffc4835e6e149ceb48f7b15c0  tls/src/test/java/org/bouncycastle/jsse/provider/test/UseNamedGroupsOrderTest.java
+3a8b9b1702380d2246ccb45c799910d6c84389fe1e4fae5d39e9561aaa509dc2  tls/src/test/java/org/bouncycastle/jsse/provider/test/NamedGroupsTest.java
+9cf0295341f407d5bf98775b1e095f3c1ce9d670f4ef1605687aaf2e298c8c18  tls/src/test/java/org/bouncycastle/jsse/provider/test/RequestedServerNamesTest.java
+e2600c93ebde42718d746919308638516d218c45a7161a14b4f08b6416766dfc  tls/src/test/java/org/bouncycastle/jsse/provider/test/SM2CredentialsTest.java
+283680c16027d97ced9ba26a530e3ae78b3555168433c48ef80d4bba5ce963c4  tls/src/test/java/org/bouncycastle/jsse/provider/test/TlsFipsTest.java

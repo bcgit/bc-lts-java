@@ -30,11 +30,15 @@ public class AllTests
         suite.addTestSuite(InstanceTest.class);
         suite.addTestSuite(KeyManagerFactoryTest.class);
         suite.addTestSuite(MLDSACredentialsTest.class);
+        suite.addTestSuite(NamedGroupsTest.class);
         suite.addTestSuite(OcspStaplingTest.class);
         suite.addTestSuite(PSSCredentialsTest.class);
+        suite.addTestSuite(RequestedServerNamesTest.class);
         suite.addTestSuite(SLHDSACredentialsTest.class);
+        suite.addTestSuite(SM2CredentialsTest.class);
         suite.addTestSuite(SSLServerSocketTest.class);
         suite.addTestSuite(SSLSocketTest.class);
+        suite.addTestSuite(TlsFipsTest.class);
         suite.addTestSuite(UseNamedGroupsOrderTest.class);
 
 
