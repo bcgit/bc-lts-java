@@ -17,6 +17,7 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
+import org.bouncycastle.asn1.gm.GMObjectIdentifiers;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.crypto.DerivationFunction;
@@ -40,7 +41,6 @@ import org.bouncycastle.util.Strings;
 public abstract class BaseAgreementSpi
     extends KeyAgreementSpi
 {
-    private static final Map<String, ASN1ObjectIdentifier> defaultOids = new HashMap<String, ASN1ObjectIdentifier>();
     private static final Map<String, Integer> keySizes = new HashMap<String, Integer>();
     private static final Map<String, String> nameTable = new HashMap<String, String>();
 
@@ -58,6 +58,7 @@ public abstract class BaseAgreementSpi
         keySizes.put("DESEDE", i192);
         keySizes.put("BLOWFISH", i128);
         keySizes.put("AES", i256);
+        keySizes.put("SM4", i128);
 
         keySizes.put(NISTObjectIdentifiers.id_aes128_ECB.getId(), i128);
         keySizes.put(NISTObjectIdentifiers.id_aes192_ECB.getId(), i192);
@@ -85,6 +86,16 @@ public abstract class BaseAgreementSpi
         keySizes.put(NTTObjectIdentifiers.id_camellia256_wrap.getId(), i256);
         keySizes.put(KISAObjectIdentifiers.id_npki_app_cmsSeed_wrap.getId(), i128);
 
+        // SM4 (GB/T 32907-2016) is a 128-bit-key-only cipher, so every mode takes the same size.
+        // Only the OIDs the provider can actually act on are listed - sms4_xts is deliberately
+        // absent, both because no SM4 XTS implementation is registered and because XTS takes a
+        // double-length key rather than a 128-bit one.
+        keySizes.put(GMObjectIdentifiers.sms4_cbc.getId(), i128);
+        keySizes.put(GMObjectIdentifiers.sms4_gcm.getId(), i128);
+        keySizes.put(GMObjectIdentifiers.sms4_ccm.getId(), i128);
+        keySizes.put(GMObjectIdentifiers.sms4_wrap.getId(), i128);
+        keySizes.put(GMObjectIdentifiers.sms4_wrap_pad.getId(), i128);
+
         keySizes.put(PKCSObjectIdentifiers.id_alg_CMS3DESwrap.getId(), i192);
         keySizes.put(PKCSObjectIdentifiers.des_EDE3_CBC.getId(), i192);
         keySizes.put(OIWObjectIdentifiers.desCBC.getId(), i64);
@@ -97,12 +108,6 @@ public abstract class BaseAgreementSpi
         keySizes.put(PKCSObjectIdentifiers.id_hmacWithSHA256.getId(), i256);
         keySizes.put(PKCSObjectIdentifiers.id_hmacWithSHA384.getId(), Integers.valueOf(384));
         keySizes.put(PKCSObjectIdentifiers.id_hmacWithSHA512.getId(), Integers.valueOf(512));
-
-        defaultOids.put("DESEDE", PKCSObjectIdentifiers.des_EDE3_CBC);
-        defaultOids.put("AES", NISTObjectIdentifiers.id_aes256_CBC);
-        defaultOids.put("CAMELLIA", NTTObjectIdentifiers.id_camellia256_cbc);
-        defaultOids.put("SEED", KISAObjectIdentifiers.id_seedCBC);
-        defaultOids.put("DES", OIWObjectIdentifiers.desCBC);
 
         nameTable.put(MiscObjectIdentifiers.cast5CBC.getId(), "CAST5");
         nameTable.put(MiscObjectIdentifiers.as_sys_sec_alg_ideaCBC.getId(), "IDEA");
@@ -133,6 +138,11 @@ public abstract class BaseAgreementSpi
         nameTable.put(KISAObjectIdentifiers.id_seedCBC.getId(), "SEED");
         nameTable.put(KISAObjectIdentifiers.id_seedMAC.getId(), "SEED");
         nameTable.put(CryptoProObjectIdentifiers.gostR28147_gcfb.getId(), "GOST28147");
+        nameTable.put(GMObjectIdentifiers.sms4_cbc.getId(), "SM4");
+        nameTable.put(GMObjectIdentifiers.sms4_gcm.getId(), "SM4");
+        nameTable.put(GMObjectIdentifiers.sms4_ccm.getId(), "SM4");
+        nameTable.put(GMObjectIdentifiers.sms4_wrap.getId(), "SM4");
+        nameTable.put(GMObjectIdentifiers.sms4_wrap_pad.getId(), "SM4");
 
         nameTable.put(NISTObjectIdentifiers.id_aes128_wrap.getId(), "AES");
         nameTable.put(NISTObjectIdentifiers.id_aes128_CCM.getId(), "AES");
@@ -141,6 +151,7 @@ public abstract class BaseAgreementSpi
         oids.put("DESEDE", PKCSObjectIdentifiers.des_EDE3_CBC);
         oids.put("AES", NISTObjectIdentifiers.id_aes256_CBC);
         oids.put("DES", OIWObjectIdentifiers.desCBC);
+        oids.put("SM4", GMObjectIdentifiers.sms4_cbc);
 
         des.put("DES", "DES");
         des.put("DESEDE", "DES");
@@ -186,6 +197,47 @@ public abstract class BaseAgreementSpi
         }
 
         return algDetails;
+    }
+
+    /**
+     * As {@link #getKeySize(String)}, but rejecting a malformed or unusable explicit key size
+     * rather than letting it through as an unchecked NumberFormatException / a size that is not a
+     * whole number of octets. Kept separate so {@link #getKeySize(String)} keeps its signature.
+     */
+    private static int getRequestedKeySize(String algDetails)
+        throws NoSuchAlgorithmException
+    {
+        int start = algDetails.indexOf('[');
+
+        if (start > 0)
+        {
+            int end = algDetails.indexOf(']', start);
+
+            if (end < 0)
+            {
+                throw new NoSuchAlgorithmException("missing closing bracket on key size for algorithm: " + algDetails);
+            }
+
+            int keySize;
+
+            try
+            {
+                keySize = Integer.parseInt(algDetails.substring(start + 1, end));
+            }
+            catch (NumberFormatException e)
+            {
+                throw new NoSuchAlgorithmException("unable to parse key size for algorithm: " + algDetails);
+            }
+
+            if (keySize <= 0 || (keySize % 8) != 0)
+            {
+                throw new NoSuchAlgorithmException("key size must be a positive multiple of 8 for algorithm: " + algDetails);
+            }
+
+            return keySize;
+        }
+
+        return getKeySize(algDetails);
     }
 
     protected static int getKeySize(String algDetails)
@@ -309,7 +361,7 @@ public abstract class BaseAgreementSpi
             oidAlgorithm = ((ASN1ObjectIdentifier)oids.get(algKey)).getId();
         }
 
-        int keySize = getKeySize(oidAlgorithm);
+        int keySize = getRequestedKeySize(oidAlgorithm);
 
         byte[] secret = getSharedSecretBytes(calcSecret(), oidAlgorithm, keySize);
 
@@ -370,7 +422,22 @@ public abstract class BaseAgreementSpi
         {
             if (keySize > 0)
             {
-                byte[] keyBytes = new byte[keySize / 8];
+                int keyLength = keySize / 8;
+
+                // without a KDF the key can only be taken from the shared secret itself - a
+                // KDF based agreement is the way to derive a key longer than the secret.
+                if (keyLength > secret.length)
+                {
+                    int available = secret.length * 8;
+
+                    Arrays.clear(secret);
+
+                    throw new NoSuchAlgorithmException("unable to generate " + keySize + " bit key for "
+                        + oidAlgorithm + ": shared secret is only " + available
+                        + " bits, use a KDF based agreement");
+                }
+
+                byte[] keyBytes = new byte[keyLength];
 
                 System.arraycopy(secret, 0, keyBytes, 0, keyBytes.length);
 
