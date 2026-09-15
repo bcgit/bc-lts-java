@@ -174,6 +174,8 @@ import org.bouncycastle.util.encoders.Hex;
  * <ul>
  * <li>{@link Properties#PKCS12_MAX_IT_COUNT} — caps the PBE iteration count
  *     accepted on load.</li>
+ * <li>{@link Properties#PKCS12_STORE_IT_COUNT} — the PBE iteration count used
+ *     when writing (default 600,000, twice that for the MAC).</li>
  * <li>{@link Properties#PKCS12_IGNORE_USELESS_PASSWD} — accepts a password
  *     supplied where none is needed.</li>
  * <li>{@link Properties#PKCS12_ALLOW_SUN_SECRET_KEYS} — opt-in SunJCE
@@ -191,7 +193,6 @@ public class PKCS12KeyStoreSpi
     private final JcaJceHelper helper = new BCJcaJceHelper();
 
     private static final int SALT_SIZE = 20;
-    private static final int MIN_ITERATIONS = 600000;
 
     private IgnoresCaseHashtable keys = new IgnoresCaseHashtable();
     private IgnoresCaseHashtable localIds = new IgnoresCaseHashtable();
@@ -225,7 +226,9 @@ public class PKCS12KeyStoreSpi
     private ASN1ObjectIdentifier certAlgorithm;
 
     private AlgorithmIdentifier macAlgorithm = new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1, DERNull.INSTANCE);
-    private int itCount = 2 * MIN_ITERATIONS;
+    // The MAC iteration count: taken from a loaded file so that storing it again preserves it,
+    // and -1 until then, meaning doStore should use the store-time default.
+    private int itCount = -1;
     private int saltLength = 20;
 
     private class CertId
@@ -800,6 +803,8 @@ public class PKCS12KeyStoreSpi
         char[] password)
         throws IOException
     {
+        // a PBES2 content-encryption keyLength, not a MAC one: 16 (AES-128) is legal here, so this
+        // stays on validateKeyLength and must not pick up validateMacKeyLength's 20-octet floor.
         PBEKeySpec pbeSpec = new PBEKeySpec(password, pbeParams.getSalt(),
             PKCS12Util.validateIterationCount(pbeParams.getIterationCount()),
             PKCS12Util.validateKeyLength(pbeParams.getKeyLength()) * 8);
@@ -1680,6 +1685,10 @@ public class PKCS12KeyStoreSpi
     private void doStore(OutputStream stream, char[] password, boolean useDEREncoding, boolean overwriteFriendlyName)
         throws IOException
     {
+        int storeItCount = PKCS12Util.getStoreIterationCount();
+        // a file loaded from disk keeps its own MAC count, otherwise twice the PBE count
+        int macItCount = (itCount > 0) ? itCount : 2 * storeItCount;
+
         if (!overwriteFriendlyName)
         {
             syncFriendlyName();
@@ -1767,7 +1776,7 @@ public class PKCS12KeyStoreSpi
             if (isPBKDF2(keyAlgorithm))
             {
                 // TODO: keySize hard coded to 256 bits
-                PBKDF2Params kParams = new PBKDF2Params(kSalt, MIN_ITERATIONS, getKeyLength(keyAlgorithm), new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA256, DERNull.INSTANCE));
+                PBKDF2Params kParams = new PBKDF2Params(kSalt, storeItCount, getKeyLength(keyAlgorithm), new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA256, DERNull.INSTANCE));
                 EncryptionScheme encScheme = new EncryptionScheme(keyAlgorithm, getAlgParams(keyAlgorithm));
                 kAlgId = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBES2, new PBES2Parameters(
                     new KeyDerivationFunc(PKCSObjectIdentifiers.id_PBKDF2, kParams), encScheme));
@@ -1775,7 +1784,7 @@ public class PKCS12KeyStoreSpi
             }
             else
             {
-                PKCS12PBEParams kParams = new PKCS12PBEParams(kSalt, MIN_ITERATIONS);
+                PKCS12PBEParams kParams = new PKCS12PBEParams(kSalt, storeItCount);
                 kBytes = wrapKey(keyAlgorithm.getId(), privKey, kParams, password);
                 kAlgId = new AlgorithmIdentifier(keyAlgorithm, kParams.toASN1Primitive());
             }
@@ -1863,13 +1872,13 @@ public class PKCS12KeyStoreSpi
         AlgorithmIdentifier cAlgId;
         if (isPBKDF2(certAlgorithm))
         {
-            PBKDF2Params cParams = new PBKDF2Params(cSalt, MIN_ITERATIONS, getKeyLength(certAlgorithm), new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA256, DERNull.INSTANCE));
+            PBKDF2Params cParams = new PBKDF2Params(cSalt, storeItCount, getKeyLength(certAlgorithm), new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA256, DERNull.INSTANCE));
             cAlgId = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBES2, new PBES2Parameters(
                 new KeyDerivationFunc(PKCSObjectIdentifiers.id_PBKDF2, cParams), new EncryptionScheme(certAlgorithm, getAlgParams(certAlgorithm))));
         }
         else
         {
-            PKCS12PBEParams cParams = new PKCS12PBEParams(cSalt, MIN_ITERATIONS);
+            PKCS12PBEParams cParams = new PKCS12PBEParams(cSalt, storeItCount);
             cAlgId = new AlgorithmIdentifier(certAlgorithm, cParams.toASN1Primitive());
         }
         Hashtable doneCerts = new Hashtable();
@@ -2117,11 +2126,11 @@ public class PKCS12KeyStoreSpi
         {
             try
             {
-                byte[] res = calculatePbeMac(helper, macAlgorithm, mSalt, itCount, password, false, data);
+                byte[] res = calculatePbeMac(helper, macAlgorithm, mSalt, macItCount, password, false, data);
 
                 DigestInfo dInfo = new DigestInfo(macAlgorithm, res);
 
-                mData = new MacData(dInfo, mSalt, itCount);
+                mData = new MacData(dInfo, mSalt, macItCount);
             }
             catch (Exception e)
             {
@@ -2297,7 +2306,7 @@ public class PKCS12KeyStoreSpi
                     pbkdf2Params.getSalt(),
                     PKCS12Util.validateIterationCount(pbkdf2Params.getIterationCount()));
 
-                CipherParameters key = generator.generateDerivedParameters(PKCS12Util.validateKeyLength(pbkdf2Params.getKeyLength()) * 8);
+                CipherParameters key = generator.generateDerivedParameters(PKCS12Util.validateMacKeyLength(pbkdf2Params.getKeyLength()) * 8);
 
                 Arrays.clear(generator.getPassword());
 

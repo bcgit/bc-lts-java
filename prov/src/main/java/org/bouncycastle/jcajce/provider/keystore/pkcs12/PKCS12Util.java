@@ -37,6 +37,20 @@ class PKCS12Util
     private static final BigInteger DEFAULT_MAX_IT_COUNT = BigInteger.valueOf(5000000);
 
     /**
+     * The PBE iteration count used when writing a PKCS#12 file, and half the count used for its
+     * integrity MAC. 600,000 is the OWASP figure for PBKDF2-HMAC-SHA256.
+     */
+    static final int DEFAULT_STORE_IT_COUNT = 600000;
+
+    /**
+     * Largest count {@link Properties#PKCS12_STORE_IT_COUNT} may name. Half of
+     * {@link #DEFAULT_MAX_IT_COUNT} so that the doubled MAC count still passes
+     * {@link #validateIterationCount(BigInteger)} on load: a file BC writes must be one BC can
+     * read back with the read-side cap left at its default.
+     */
+    private static final int MAX_STORE_IT_COUNT = 2500000;
+
+    /**
      * Key sizes (in bits) for the symmetric cipher OIDs that PKCS#12
      * parameter-derivation paths need to know about. Used by both
      * {@link PKCS12KeyStoreSpi} and {@link PKCS12PBMAC1KeyStoreSpi} to
@@ -314,7 +328,10 @@ class PKCS12Util
         return content;
     }
 
-    // A PBMAC1 MAC key is 20-64 bytes; anything beyond this is rejected as abusive.
+    // The RFC 9579 sec. 9 floor for a PBMAC1 MAC key; see validateMacKeyLength, which is the only
+    // thing that applies it - a PBES2 content-encryption keyLength legitimately goes below it.
+    private static final BigInteger MIN_MAC_KEY_LENGTH = BigInteger.valueOf(20);
+    // Any keyLength beyond this is rejected as abusive, whatever it is sizing.
     private static final BigInteger MAX_KEY_LENGTH = BigInteger.valueOf(1024);
 
     static int validateKeyLength(BigInteger keyLength)
@@ -333,6 +350,56 @@ class PKCS12Util
         }
 
         return BigIntegers.intValueExact(keyLength);
+    }
+
+    /**
+     * Validate a PBKDF2 keyLength that will size a <b>PBMAC1 MAC key</b>. As
+     * {@link #validateKeyLength(BigInteger)}, plus the floor RFC 9579 sec. 9 asks for: "It's
+     * RECOMMENDED to reject any KDF parameters that specify key lengths less than 20 octets." A MAC
+     * key of one or two octets is brute-forceable, so a PFX declaring one would have its integrity
+     * MAC checked against a key an attacker can guess without knowing the password. Sec. 5 has the
+     * length SHOULD match the HMAC output size, so no conforming file comes near the floor.
+     * <p>
+     * This is deliberately separate from {@link #validateKeyLength(BigInteger)}, which also bounds
+     * the PBES2 <i>content-encryption</i> keyLength - where 16 octets (AES-128) is legal and BC
+     * writes it itself. The upper bound stays at 1024 rather than the HMAC output size for the
+     * mirror-image reason: BC's PKCS12-PBMAC1 keystore asked for a 256-octet MAC key up to release
+     * 1.86, so a cap at the output size would refuse files BC itself produced.
+     *
+     * @param keyLength the keyLength from the wire.
+     * @return the validated keyLength in bytes.
+     * @throws IllegalStateException if the keyLength is absent, not positive, below 20 octets, or
+     *         larger than the maximum supported.
+     */
+    static int validateMacKeyLength(BigInteger keyLength)
+    {
+        int length = validateKeyLength(keyLength);
+
+        if (keyLength.compareTo(MIN_MAC_KEY_LENGTH) < 0)
+        {
+            throw new IllegalStateException("keyLength " + keyLength + " less than " + MIN_MAC_KEY_LENGTH);
+        }
+
+        return length;
+    }
+
+    /**
+     * The PBE iteration count to write with, {@link #DEFAULT_STORE_IT_COUNT} unless
+     * {@link Properties#PKCS12_STORE_IT_COUNT} names a usable value. A value outside
+     * 1 .. {@link #MAX_STORE_IT_COUNT} is ignored, so a mistyped property fails towards
+     * the default rather than towards a file with no PBE work in it. (A value that is not
+     * a number at all still throws out of {@link Properties#asInteger(String, int)}.)
+     */
+    static int getStoreIterationCount()
+    {
+        int itCount = Properties.asInteger(Properties.PKCS12_STORE_IT_COUNT, DEFAULT_STORE_IT_COUNT);
+
+        if (itCount < 1 || itCount > MAX_STORE_IT_COUNT)
+        {
+            return DEFAULT_STORE_IT_COUNT;
+        }
+
+        return itCount;
     }
 
     static int validateIterationCount(BigInteger ic)

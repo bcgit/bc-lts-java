@@ -23,7 +23,7 @@ aad5ca172b861bc755f9f4cf7550d25f47903a5e9885a662a413406ad3a00f3d  prov/src/test/
 af84eb6e8cff14ad6151540d35eb9e4500222ce18a0fab7b7fd5280a8ffbed74  prov/src/test/java/org/bouncycastle/jce/provider/test/CMacTest.java
 8207749fbff423b85794cd1b154eef88169c99fa0377b1472b20d1ce61260cac  prov/src/test/java/org/bouncycastle/jce/provider/test/BaseBlockCipherTest.java
 9405bd9800186ce299ece4c4068d8c6de53d451b8c81a62aefae6a08c7f84d11  prov/src/test/java/org/bouncycastle/jce/provider/test/CertPathValidatorTest.java
-810b20805734827970d44a2ae6159519233a2e369f908f9944ac8ef873d051b0  prov/src/test/java/org/bouncycastle/jce/provider/test/BCFKSStoreTest.java
+4dc8508be9e0fb81126608e26b7a058e20f2e7bbdc53c43804b0be10cb2f8fe7  prov/src/test/java/org/bouncycastle/jce/provider/test/BCFKSStoreTest.java
 f3c7277c823d0c60e9b90c7869f34adffb833f513ab3b961df6444554dda553a  prov/src/test/java/org/bouncycastle/jce/provider/test/rsa3/AllTests.java
 b3dc5e45f99600a68ef1c80d44a8f11d8a49998f3e6bd213154e1191f9c63b9d  prov/src/test/java/org/bouncycastle/jce/provider/test/rsa3/RSA3CertTest.java
 ebd0346c631caaacfc2cf7d0ab77b073d46006195dd286daabf31c47314652af  prov/src/test/java/org/bouncycastle/jce/provider/test/SlotTwoTest.java
@@ -626,7 +626,7 @@ ea293e0f8bf42c26ac9ac6bf55d3a6db05d8adef0afab8c757d0cc8dafa5dea0  prov/src/test/
 4ddd828e3860911414d27f692295237997d79664708750faed95fe61bb9b1c6e  prov/src/test/java/org/bouncycastle/jce/provider/test/CertLocaleTest.java
 ed16db7c8ab78dfbcc4548f0850df96d7e32ced8d00468531aaf7a46de8d742f  prov/src/test/java/org/bouncycastle/jce/provider/test/PQCDHTest.java
 73f41a6008a4f2388f643542f2ce46eb05bc53c8a7008e565ef42e2626854d67  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/util/PrivateKeyHashUtil.java
-94b5bd28e720708751467b23745e31d6ca02ad0ad327e34411893da8499b0f16  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/pkcs12/PKCS12Util.java
+a37a51a15c83f79748ab90d9c038ab9a1e5d8abfaec1066093c17297940ad8f4  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/pkcs12/PKCS12Util.java
 8bb6d574bfb775a715c7262801622405d96e9b74aa028ec6dbd077533f896c04  prov/src/main/java/org/bouncycastle/jcajce/PKCS12LoadStoreParameter.java
 ea1e245bcee1f6cc7da65ea1045441d082d44624a0e59e6eb26214dbe4db8226  prov/src/main/java/org/bouncycastle/jce/provider/JDKPKCS12StoreParameter.java
 bbd50c76540db22334623b7a61f651f6c7efc5d4cefccfb5f69c9abaee8dd69d  prov/src/main/java/org/bouncycastle/jcajce/provider/util/SecurityExceptions.java
