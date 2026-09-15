@@ -80,11 +80,11 @@ public class COMPOSITE
 
         public void configure(ConfigurableProvider provider)
         {
-            provider.addAlgorithm("KeyFactory.COMPOSITE", PREFIX + "$KeyFactory");
-            provider.addAlgorithm("KeyFactory." + MiscObjectIdentifiers.id_alg_composite, PREFIX + "$KeyFactory");
-            provider.addAlgorithm("KeyFactory.OID." + MiscObjectIdentifiers.id_alg_composite, PREFIX + "$KeyFactory");
-            provider.addAlgorithm("KeyFactory." + MiscObjectIdentifiers.id_composite_key, PREFIX + "$KeyFactory");
-            provider.addAlgorithm("KeyFactory.OID." + MiscObjectIdentifiers.id_composite_key, PREFIX + "$KeyFactory");
+            provider.addAlgorithm("KeyFactory.COMPOSITE", PREFIX + "$KeyFactory", compositeAttributes);
+            provider.addAlgorithm("KeyFactory." + MiscObjectIdentifiers.id_alg_composite, PREFIX + "$KeyFactory", compositeAttributes);
+            provider.addAlgorithm("KeyFactory.OID." + MiscObjectIdentifiers.id_alg_composite, PREFIX + "$KeyFactory", compositeAttributes);
+            provider.addAlgorithm("KeyFactory." + MiscObjectIdentifiers.id_composite_key, PREFIX + "$KeyFactory", compositeAttributes);
+            provider.addAlgorithm("KeyFactory.OID." + MiscObjectIdentifiers.id_composite_key, PREFIX + "$KeyFactory", compositeAttributes);
 
             baseConverter = new KeyFactorySpi(new ProviderJcaJceHelper((BouncyCastleProvider)provider));
 

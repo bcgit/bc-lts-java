@@ -4,13 +4,16 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
+import java.security.Provider;
 import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
@@ -29,12 +32,17 @@ import java.util.List;
 import java.util.Map;
 
 import junit.framework.TestCase;
+import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
-import org.bouncycastle.internal.asn1.iana.IANAObjectIdentifiers;
+import org.bouncycastle.asn1.iana.IANAObjectIdentifiers;
+import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.internal.asn1.misc.MiscObjectIdentifiers;
+import org.bouncycastle.jce.interfaces.ECPointEncoder;
 import org.bouncycastle.jcajce.CompositePrivateKey;
 import org.bouncycastle.jcajce.CompositePublicKey;
 import org.bouncycastle.jcajce.interfaces.MLDSAPrivateKey;
@@ -109,6 +117,159 @@ public class CompositeSignaturesTest
     public void setUp()
     {
         Security.addProvider(new BouncyCastleProvider());
+    }
+
+    /**
+     * CompositePublicKey.getEncoded() now normalises an EC component to an uncompressed point, as
+     * section 4 of the composite signature draft requires. That is a write-side change only: a
+     * composite public key that an earlier release wrote with a compressed EC component - the
+     * shorter body assembled by hand here - must still decode, and must still verify a signature
+     * made by the matching private key. Re-encoding it yields the normalised (longer) form.
+     */
+    public void testCompressedECComponentStillDecodes()
+        throws Exception
+    {
+        KeyPair kp = KeyPairGenerator.getInstance("MLDSA65-ECDSA-P256-SHA512", "BC").generateKeyPair();
+        CompositePublicKey pub = (CompositePublicKey)kp.getPublic();
+
+        byte[] mldsaPK = SubjectPublicKeyInfo.getInstance(pub.getPublicKeys().get(0).getEncoded()).getPublicKeyData().getOctets();
+
+        PublicKey ecPub = pub.getPublicKeys().get(1);
+        ((ECPointEncoder)ecPub).setPointFormat("COMPRESSED");
+        byte[] compressedEC = SubjectPublicKeyInfo.getInstance(ecPub.getEncoded()).getPublicKeyData().getOctets();
+        assertEquals("EC component should be a compressed point", 33, compressedEC.length);
+
+        SubjectPublicKeyInfo legacy = new SubjectPublicKeyInfo(
+            new AlgorithmIdentifier(IANAObjectIdentifiers.id_MLDSA65_ECDSA_P256_SHA512),
+            Arrays.concatenate(mldsaPK, compressedEC));
+
+        PublicKey decoded = KeyFactory.getInstance("MLDSA65-ECDSA-P256-SHA512", "BC")
+            .generatePublic(new X509EncodedKeySpec(legacy.getEncoded()));
+
+        Signature signer = Signature.getInstance("MLDSA65-ECDSA-P256-SHA512", "BC");
+        signer.initSign(kp.getPrivate());
+        signer.update(Strings.toByteArray(messageToBeSigned));
+        byte[] signature = signer.sign();
+
+        Signature verifier = Signature.getInstance("MLDSA65-ECDSA-P256-SHA512", "BC");
+        verifier.initVerify(decoded);
+        verifier.update(Strings.toByteArray(messageToBeSigned));
+        assertTrue("a key decoded from a compressed EC component must still verify", verifier.verify(signature));
+
+        // and the key that comes back re-encodes in the normalised form
+        assertTrue("re-encoding must produce the uncompressed form",
+            Arrays.areEqual(pub.getEncoded(), decoded.getEncoded()));
+    }
+
+    /**
+     * A truncated composite-signature public key whose body is the raw concatenation form (not a DER SEQUENCE)
+     * and is shorter than the first component must surface as a checked IOException from
+     * generatePublic(SubjectPublicKeyInfo), not an unchecked NegativeArraySizeException escaping the
+     * KeyFactorySpi.split helper. Mirrors the compositekem sibling guard.
+     */
+    public void testMalformedTruncatedCompositePublicKey()
+        throws Exception
+    {
+        org.bouncycastle.jcajce.provider.asymmetric.compositesignatures.KeyFactorySpi keyFactorySpi =
+            new org.bouncycastle.jcajce.provider.asymmetric.compositesignatures.KeyFactorySpi();
+
+        // id_MLDSA44_ECDSA_P256_SHA256 expects a first component of 1312 bytes; supply only 16 raw bytes
+        // that do not parse as a DER SEQUENCE, forcing the raw-concatenation split path.
+        byte[] truncatedBody = new byte[16];
+        SubjectPublicKeyInfo malformed = new SubjectPublicKeyInfo(
+            new AlgorithmIdentifier(IANAObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256), truncatedBody);
+
+        try
+        {
+            keyFactorySpi.generatePublic(malformed);
+            fail("expected IOException for truncated composite public key");
+        }
+        catch (java.io.IOException e)
+        {
+            TestCase.assertEquals("malformed composite public key: body shorter than the first component", e.getMessage());
+        }
+    }
+
+    /**
+     * A composite-signature public key whose body parses as a DER SEQUENCE but whose element count is
+     * not exactly two must surface as a checked IOException from generatePublic(SubjectPublicKeyInfo),
+     * not an unchecked ArrayIndexOutOfBoundsException (size 1) or IndexOutOfBoundsException (size 3)
+     * escaping through the fixed two-element factory list and getKeysSpecs. Mirrors the split() guard
+     * exercised by testMalformedTruncatedCompositePublicKey.
+     */
+    public void testMalformedCompositePublicKeyWrongComponentCount()
+        throws Exception
+    {
+        org.bouncycastle.jcajce.provider.asymmetric.compositesignatures.KeyFactorySpi keyFactorySpi =
+            new org.bouncycastle.jcajce.provider.asymmetric.compositesignatures.KeyFactorySpi();
+
+        // A one-element SEQUENCE body: getKeysSpecs would read subjectPublicKeys[1] and previously
+        // threw ArrayIndexOutOfBoundsException.
+        ASN1EncodableVector oneElement = new ASN1EncodableVector();
+        oneElement.add(new DEROctetString(new byte[8]));
+        SubjectPublicKeyInfo oneComponent = new SubjectPublicKeyInfo(
+            new AlgorithmIdentifier(IANAObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256),
+            new DERSequence(oneElement).getEncoded());
+
+        try
+        {
+            keyFactorySpi.generatePublic(oneComponent);
+            fail("expected IOException for one-component composite public key");
+        }
+        catch (java.io.IOException e)
+        {
+            TestCase.assertEquals("malformed composite public key: expected exactly two components", e.getMessage());
+        }
+
+        // A three-element SEQUENCE body: the factories.get(i) loop would read factories.get(2) and
+        // previously threw IndexOutOfBoundsException.
+        ASN1EncodableVector threeElements = new ASN1EncodableVector();
+        threeElements.add(new DEROctetString(new byte[8]));
+        threeElements.add(new DEROctetString(new byte[8]));
+        threeElements.add(new DEROctetString(new byte[8]));
+        SubjectPublicKeyInfo threeComponents = new SubjectPublicKeyInfo(
+            new AlgorithmIdentifier(IANAObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256),
+            new DERSequence(threeElements).getEncoded());
+
+        try
+        {
+            keyFactorySpi.generatePublic(threeComponents);
+            fail("expected IOException for three-component composite public key");
+        }
+        catch (java.io.IOException e)
+        {
+            TestCase.assertEquals("malformed composite public key: expected exactly two components", e.getMessage());
+        }
+    }
+
+    /**
+     * A truncated composite-signature private key whose body is shorter than the 32-byte ML-DSA seed
+     * must surface as a checked IOException from generatePrivate(PrivateKeyInfo), not an unchecked
+     * IllegalArgumentException ("32 &gt; N") escaping out of Arrays.copyOfRange. Mirrors the compositekem
+     * sibling guard and the generatePublic-side split() guard exercised by
+     * testMalformedTruncatedCompositePublicKey.
+     */
+    public void testMalformedTruncatedCompositePrivateKey()
+        throws Exception
+    {
+        org.bouncycastle.jcajce.provider.asymmetric.compositesignatures.KeyFactorySpi keyFactorySpi =
+            new org.bouncycastle.jcajce.provider.asymmetric.compositesignatures.KeyFactorySpi();
+
+        // id_MLDSA44_ECDSA_P256_SHA256 expects a 32-byte ML-DSA seed followed by the traditional key;
+        // supply only a 16-byte raw octet body, shorter than the seed.
+        byte[] truncatedBody = new byte[16];
+        PrivateKeyInfo malformed = new PrivateKeyInfo(
+            new AlgorithmIdentifier(IANAObjectIdentifiers.id_MLDSA44_ECDSA_P256_SHA256), new DEROctetString(truncatedBody));
+
+        try
+        {
+            keyFactorySpi.generatePrivate(malformed);
+            fail("expected IOException for truncated composite private key");
+        }
+        catch (java.io.IOException e)
+        {
+            TestCase.assertEquals("malformed composite private key: body shorter than the ML-DSA seed", e.getMessage());
+        }
     }
 
     public void testTestVectors()
@@ -735,6 +896,537 @@ public class CompositeSignaturesTest
         TestCase.assertTrue(signature.verify(signatureValue));
     }
 
+    /**
+     * A spec that is not one of the composite provider's own but carries a context the way the
+     * ML-DSA specs of other providers do, which SpecUtil.getContextFrom picks up reflectively.
+     */
+    public static class ForeignContextSpec
+        implements AlgorithmParameterSpec
+    {
+        private final byte[] context;
+
+        public ForeignContextSpec(byte[] context)
+        {
+            this.context = context;
+        }
+
+        public byte[] getContext()
+        {
+            return context;
+        }
+    }
+
+    /**
+     * The context may be set either side of initSign / initVerify, as it may be for the base
+     * ML-DSA and SLH-DSA services (github #2396). Setting it first used to let a
+     * NullPointerException out of engineSetParameter, which is declared to throw
+     * InvalidAlgorithmParameterException, from dereferencing the key that was not there yet -
+     * with no key the intent is unknowable, so the null key fell into the signing branch and every
+     * one of the composite services failed identically (github #2412).
+     */
+    public void testSetParameterBeforeInit()
+        throws Exception
+    {
+        String[] algorithms = new String[]
+            {
+                "MLDSA44-ECDSA-P256-SHA256",
+                "MLDSA65-Ed25519-SHA512",
+                "MLDSA44-ECDSA-P256-SHA256-PREHASH"
+            };
+
+        // the -PREHASH services are handed the digest of the message rather than the message
+        String[] preHashDigests = new String[]{ null, null, "SHA256" };
+
+        byte[] context = Strings.toByteArray("Hello, world!");
+
+        for (int i = 0; i != algorithms.length; i++)
+        {
+            String algorithm = algorithms[i];
+
+            byte[] msg = Strings.toUTF8ByteArray(messageToBeSigned);
+
+            if (preHashDigests[i] != null)
+            {
+                msg = MessageDigest.getInstance(preHashDigests[i], "BC").digest(msg);
+            }
+
+            // only the plain names carry a KeyPairGenerator; the -PREHASH service takes the same key
+            String keyAlgorithm = algorithm.endsWith("-PREHASH")
+                ? algorithm.substring(0, algorithm.length() - "-PREHASH".length()) : algorithm;
+
+            KeyPair kp = KeyPairGenerator.getInstance(keyAlgorithm, "BC").generateKeyPair();
+
+            Signature before = Signature.getInstance(algorithm, "BC");
+
+            before.setParameter(new ContextParameterSpec(context));
+            before.initSign(kp.getPrivate());
+            before.update(msg);
+
+            byte[] sigBefore = before.sign();
+
+            Signature verifier = Signature.getInstance(algorithm, "BC");
+
+            verifier.setParameter(new ContextParameterSpec(context));
+            verifier.initVerify(kp.getPublic());
+            verifier.update(msg);
+
+            assertTrue(algorithm, verifier.verify(sigBefore));
+
+            // the context has to have reached the signer rather than been dropped on the way
+            Signature noContext = Signature.getInstance(algorithm, "BC");
+
+            noContext.initVerify(kp.getPublic());
+            noContext.update(msg);
+
+            assertFalse(algorithm + ": verified without the context", noContext.verify(sigBefore));
+
+            // and a signature made with the context set afterwards has to verify against it
+            Signature after = Signature.getInstance(algorithm, "BC");
+
+            after.initSign(kp.getPrivate());
+            after.setParameter(new ContextParameterSpec(context));
+            after.update(msg);
+
+            Signature check = Signature.getInstance(algorithm, "BC");
+
+            check.setParameter(new ContextParameterSpec(context));
+            check.initVerify(kp.getPublic());
+            check.update(msg);
+
+            assertTrue(algorithm + ": context set before init differs from after", check.verify(after.sign()));
+        }
+    }
+
+    /**
+     * The generic COMPOSITE service takes its algorithm from the key, so before initialisation it
+     * has neither a key nor a digest - both of the parameter specs it accepts dereferenced one of
+     * them.
+     */
+    public void testSetParameterBeforeInitOnGenericService()
+        throws Exception
+    {
+        byte[] context = Strings.toByteArray("Hello, world!");
+        byte[] msg = Strings.toUTF8ByteArray(messageToBeSigned);
+
+        KeyPair kp = KeyPairGenerator.getInstance("MLDSA65-Ed25519-SHA512", "BC").generateKeyPair();
+
+        Signature signer = Signature.getInstance("COMPOSITE", "BC");
+
+        signer.setParameter(new ContextParameterSpec(context));
+        signer.initSign(kp.getPrivate());
+        signer.update(msg);
+
+        byte[] sig = signer.sign();
+
+        Signature verifier = Signature.getInstance("COMPOSITE", "BC");
+
+        verifier.setParameter(new ContextParameterSpec(context));
+        verifier.initVerify(kp.getPublic());
+        verifier.update(msg);
+
+        assertTrue(verifier.verify(sig));
+
+        // the pre-hash choice likewise has to survive until the key names the algorithm
+        Signature prehashSigner = Signature.getInstance("COMPOSITE", "BC");
+
+        prehashSigner.setParameter(new CompositeSignatureSpec(true, new ContextParameterSpec(context)));
+        prehashSigner.initSign(kp.getPrivate());
+
+        MessageDigest digest = MessageDigest.getInstance("SHA512", "BC");
+
+        prehashSigner.update(digest.digest(msg));
+
+        byte[] prehashSig = prehashSigner.sign();
+
+        Signature prehashVerifier = Signature.getInstance("MLDSA65-Ed25519-SHA512-PREHASH", "BC");
+
+        prehashVerifier.setParameter(new ContextParameterSpec(context));
+        prehashVerifier.initVerify(kp.getPublic());
+        prehashVerifier.update(digest.digest(msg));
+
+        assertTrue(prehashVerifier.verify(prehashSig));
+    }
+
+    /**
+     * getParameters() caches the AlgorithmParameters it builds, so a context set after it has been
+     * asked for once has to clear that cache rather than go on reporting the previous context.
+     */
+    public void testGetParametersNotStaleAfterReset()
+        throws Exception
+    {
+        byte[] first = Strings.toByteArray("first context");
+        byte[] second = Strings.toByteArray("second context");
+
+        KeyPair kp = KeyPairGenerator.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC").generateKeyPair();
+
+        Signature sig = Signature.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC");
+
+        // init first, so this isolates the cache rather than tripping over the set-before-init path
+        sig.initSign(kp.getPrivate());
+        sig.setParameter(new ContextParameterSpec(first));
+
+        assertTrue(Arrays.areEqual(first,
+            sig.getParameters().getParameterSpec(ContextParameterSpec.class).getContext()));
+
+        sig.setParameter(new ContextParameterSpec(second));
+
+        assertTrue("getParameters() still reported the previous context", Arrays.areEqual(second,
+            sig.getParameters().getParameterSpec(ContextParameterSpec.class).getContext()));
+    }
+
+
+    /**
+     * The component signatures are given their parameters - the domain separator as the ML-DSA
+     * context, and the combination's PSSParameterSpec - by baseSigInit(), which used to be reached
+     * only from engineUpdate(). Signing an empty message is legal JCA usage and calls neither
+     * update overload, so it produced a signature made with an empty ML-DSA context and the
+     * provider's default PSS parameters: nothing else would accept it, and BC disagreed with itself
+     * depending on whether the caller wrote update(new byte[0]) or nothing at all.
+     */
+    public void testEmptyMessage()
+        throws Exception
+    {
+        String[] algorithms = new String[]
+        {
+            "MLDSA44-RSA2048-PSS-SHA256",       // the PSSParameterSpec half of the priming
+            "MLDSA44-ECDSA-P256-SHA256",
+            "MLDSA87-Ed448-SHAKE256"
+        };
+
+        for (int a = 0; a != algorithms.length; a++)
+        {
+            String algorithm = algorithms[a];
+
+            KeyPair kp = KeyPairGenerator.getInstance(algorithm, "BC").generateKeyPair();
+
+            Signature noUpdate = Signature.getInstance(algorithm, "BC");
+            noUpdate.initSign(kp.getPrivate());
+            byte[] sigNoUpdate = noUpdate.sign();
+
+            Signature emptyUpdate = Signature.getInstance(algorithm, "BC");
+            emptyUpdate.initSign(kp.getPrivate());
+            emptyUpdate.update(new byte[0]);
+            byte[] sigEmptyUpdate = emptyUpdate.sign();
+
+            // both spellings of "the empty message" have to be accepted by both spellings of the verifier
+            for (int i = 0; i != 2; i++)
+            {
+                byte[] sig = (i == 0) ? sigNoUpdate : sigEmptyUpdate;
+
+                Signature v1 = Signature.getInstance(algorithm, "BC");
+                v1.initVerify(kp.getPublic());
+                assertTrue(algorithm + ": empty message rejected by a verifier that did not call update",
+                    v1.verify(sig));
+
+                Signature v2 = Signature.getInstance(algorithm, "BC");
+                v2.initVerify(kp.getPublic());
+                v2.update(new byte[0]);
+                assertTrue(algorithm + ": empty message rejected by a verifier that called update(new byte[0])",
+                    v2.verify(sig));
+            }
+
+            // and the generic service, which reaches the same code by a different route
+            Signature generic = Signature.getInstance("COMPOSITE", "BC");
+            generic.initVerify(kp.getPublic());
+            assertTrue(algorithm + ": empty message rejected through the generic COMPOSITE service",
+                generic.verify(sigNoUpdate));
+        }
+    }
+
+    /**
+     * len(ctx) travels in M' as a single byte, so a context over 255 bytes would be silently
+     * truncated in the length field - BC signed happily and round-tripped with itself, while no
+     * conforming implementation would produce or check the same bytes. The bound is the one the
+     * base ML-DSA and EdDSA services already enforce; the composite routes around theirs because
+     * the ML-DSA component is initialised with the (always short) domain separator as its context.
+     */
+    public void testContextLengthBound()
+        throws Exception
+    {
+        KeyPair kp = KeyPairGenerator.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC").generateKeyPair();
+
+        // 255 is the largest legal context, and it still has to work
+        Signature signer = Signature.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC");
+        signer.initSign(kp.getPrivate());
+        signer.setParameter(new ContextParameterSpec(new byte[255]));
+        signer.update(Strings.toByteArray(messageToBeSigned));
+
+        byte[] sig = signer.sign();
+
+        Signature verifier = Signature.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC");
+        verifier.initVerify(kp.getPublic());
+        verifier.setParameter(new ContextParameterSpec(new byte[255]));
+        verifier.update(Strings.toByteArray(messageToBeSigned));
+
+        assertTrue(verifier.verify(sig));
+
+        // 256 is not, by any of the three routes into the composite's context
+        AlgorithmParameterSpec[] tooLong = new AlgorithmParameterSpec[]
+        {
+            new ContextParameterSpec(new byte[256]),
+            new CompositeSignatureSpec(false, new ContextParameterSpec(new byte[300])),
+            new ForeignContextSpec(new byte[256])
+        };
+
+        for (int i = 0; i != tooLong.length; i++)
+        {
+            Signature over = Signature.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC");
+            over.initSign(kp.getPrivate());
+
+            try
+            {
+                over.setParameter(tooLong[i]);
+                fail("context over 255 bytes accepted for " + tooLong[i].getClass().getName());
+            }
+            catch (InvalidAlgorithmParameterException e)
+            {
+                assertEquals("context too long", e.getMessage());
+            }
+        }
+    }
+
+    /**
+     * A signature too short to split threw before the accumulated message was cleared, so the bytes
+     * fed before the rejected signature were still there for the next update() to append to and
+     * every subsequent verify on the object failed for no visible reason.
+     */
+    public void testStateResetAfterMalformedSignature()
+        throws Exception
+    {
+        KeyPair kp = KeyPairGenerator.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC").generateKeyPair();
+
+        byte[] second = Strings.toByteArray("second message");
+
+        Signature signer = Signature.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC");
+        signer.initSign(kp.getPrivate());
+        signer.update(second);
+
+        byte[] sig = signer.sign();
+
+        Signature verifier = Signature.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC");
+        verifier.initVerify(kp.getPublic());
+        verifier.update(Strings.toByteArray("first message"));
+
+        try
+        {
+            verifier.verify(new byte[10]);
+            fail("malformed composite signature accepted");
+        }
+        catch (SignatureException e)
+        {
+            assertEquals("malformed composite signature", e.getMessage());
+        }
+
+        verifier.update(second);
+
+        assertTrue("verifier still carried the message from before the rejected signature",
+            verifier.verify(sig));
+    }
+
+    /**
+     * initialize(null, random) is documented as existing only to supply a SecureRandom, but it
+     * forwarded to a component only where CompositeIndex held a non-null spec for it - which was
+     * never the case for ML-DSA, and for MLDSA44-Ed25519-SHA512 was true of neither component, so
+     * the caller's RNG was dropped entirely.
+     */
+    public void testKeyPairGeneratorSecureRandom()
+        throws Exception
+    {
+        // neither component of this combination had a spec, so nothing consumed the random at all
+        CountingSecureRandom counting = new CountingSecureRandom();
+
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("MLDSA44-Ed25519-SHA512", "BC");
+        kpg.initialize(null, counting);
+        kpg.generateKeyPair();
+
+        assertTrue("supplied SecureRandom was never drawn from", counting.calls > 0);
+
+        // and it has to be the only source, or the key pair would not be reproducible from the seed
+        for (Iterator it = CompositeIndex.getSupportedIdentifiers().iterator(); it.hasNext(); )
+        {
+            String algorithm = CompositeIndex.getAlgorithmName((ASN1ObjectIdentifier)it.next());
+
+            if (algorithm.indexOf("RSA") >= 0)
+            {
+                continue;       // an RSA prime search draws an unbounded, seed-dependent amount
+            }
+
+            KeyPairGenerator first = KeyPairGenerator.getInstance(algorithm, "BC");
+            first.initialize(null, new SeededSecureRandom(7));
+
+            KeyPairGenerator second = KeyPairGenerator.getInstance(algorithm, "BC");
+            second.initialize(null, new SeededSecureRandom(7));
+
+            assertTrue(algorithm + ": key pair not determined by the supplied SecureRandom",
+                Arrays.areEqual(first.generateKeyPair().getPublic().getEncoded(),
+                    second.generateKeyPair().getPublic().getEncoded()));
+        }
+    }
+
+    /**
+     * The SPI carried no SecureRandom field and did not override engineInitSign(PrivateKey,
+     * SecureRandom), so the JCA base class parked the caller's random in appRandom where nothing
+     * consulted it and each component signed from its own provider default.
+     */
+    public void testInitSignSecureRandom()
+        throws Exception
+    {
+        KeyPair kp = KeyPairGenerator.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC").generateKeyPair();
+
+        byte[] msg = Strings.toByteArray(messageToBeSigned);
+
+        byte[] a = signWith(kp.getPrivate(), msg, new SeededSecureRandom(1));
+        byte[] b = signWith(kp.getPrivate(), msg, new SeededSecureRandom(1));
+        byte[] c = signWith(kp.getPrivate(), msg, new SeededSecureRandom(2));
+
+        assertTrue("signature not determined by the SecureRandom passed to initSign",
+            Arrays.areEqual(a, b));
+        assertFalse("a different SecureRandom gave the same signature", Arrays.areEqual(a, c));
+
+        Signature verifier = Signature.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC");
+        verifier.initVerify(kp.getPublic());
+        verifier.update(msg);
+
+        assertTrue(verifier.verify(a));
+
+        // initVerify has to forget it again, or a later initSign(key) would inherit it
+        CountingSecureRandom counting = new CountingSecureRandom();
+
+        Signature sig = Signature.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC");
+        sig.initSign(kp.getPrivate(), counting);
+        sig.initVerify(kp.getPublic());
+        sig.update(msg);
+
+        assertTrue(sig.verify(a));
+    }
+
+    private byte[] signWith(PrivateKey privateKey, byte[] msg, SecureRandom random)
+        throws Exception
+    {
+        Signature signer = Signature.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC");
+
+        signer.initSign(privateKey, random);
+        signer.update(msg);
+
+        return signer.sign();
+    }
+
+    /**
+     * The 14 draft-13 HashMLDSA OIDs were never in CompositeIndex.pairings, so nothing ever backed
+     * them with a service, but they remained keys in the other two maps and names in the pkix
+     * signature-algorithm finder - a name that resolved to an AlgorithmIdentifier no provider could
+     * then use.
+     */
+    public void testSupersededNamesGone()
+        throws Exception
+    {
+        ASN1ObjectIdentifier[] superseded = new ASN1ObjectIdentifier[]
+        {
+            MiscObjectIdentifiers.id_HashMLDSA44_RSA2048_PSS_SHA256,
+            MiscObjectIdentifiers.id_HashMLDSA65_ECDSA_P384_SHA512,
+            MiscObjectIdentifiers.id_HashMLDSA87_Ed448_SHA512
+        };
+
+        for (int i = 0; i != superseded.length; i++)
+        {
+            assertFalse(CompositeIndex.isAlgorithmSupported(superseded[i]));
+            assertNull("superseded OID still named by CompositeIndex",
+                CompositeIndex.getAlgorithmName(superseded[i]));
+        }
+
+        // conversely, every name CompositeIndex does hand out has to resolve to a real service
+        for (Iterator it = CompositeIndex.getSupportedIdentifiers().iterator(); it.hasNext(); )
+        {
+            ASN1ObjectIdentifier oid = (ASN1ObjectIdentifier)it.next();
+            String name = CompositeIndex.getAlgorithmName(oid);
+
+            assertNotNull(name);
+            assertNotNull(Signature.getInstance(name, "BC"));
+            assertNotNull(Signature.getInstance(name + "-PREHASH", "BC"));
+            assertNotNull(Signature.getInstance(oid.getId(), "BC"));
+            assertNotNull(KeyPairGenerator.getInstance(name, "BC"));
+        }
+    }
+
+    /**
+     * The SupportedKeyClasses / SupportedKeyFormats maps were built and then never passed to an
+     * addAlgorithm call, so JCA key-class filtering did not work for any composite service.
+     */
+    public void testServiceAttributesPublished()
+        throws Exception
+    {
+        Provider prov = Security.getProvider("BC");
+
+        String[] services = new String[]
+        {
+            "MLDSA44-ECDSA-P256-SHA256",
+            "MLDSA44-ECDSA-P256-SHA256-PREHASH",
+            "COMPOSITE"
+        };
+
+        for (int i = 0; i != services.length; i++)
+        {
+            Provider.Service service = prov.getService("Signature", services[i]);
+
+            assertNotNull(services[i], service);
+            assertEquals(services[i],
+                "org.bouncycastle.jcajce.CompositePublicKey|org.bouncycastle.jcajce.CompositePrivateKey",
+                service.getAttribute("SupportedKeyClasses"));
+            assertEquals(services[i], "PKCS#8|X.509", service.getAttribute("SupportedKeyFormats"));
+        }
+
+        Provider.Service keyFactory = prov.getService("KeyFactory", "COMPOSITE");
+
+        assertNotNull(keyFactory);
+        assertEquals("PKCS#8|X.509", keyFactory.getAttribute("SupportedKeyFormats"));
+    }
+
+    /**
+     * A spec carrying a context that is not one of the provider's own is accepted, as it is by the
+     * base ML-DSA services. It used to be applied and then reported as rejected by the same call,
+     * so a caller that took the exception at its word went on to produce signatures bound to a
+     * context it believed had not been set.
+     */
+    public void testForeignContextSpecAccepted()
+        throws Exception
+    {
+        byte[] context = Strings.toByteArray("Hello, world!");
+        byte[] msg = Strings.toUTF8ByteArray(messageToBeSigned);
+
+        KeyPair kp = KeyPairGenerator.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC").generateKeyPair();
+
+        Signature signer = Signature.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC");
+
+        signer.initSign(kp.getPrivate());
+        signer.setParameter(new ForeignContextSpec(context));
+        signer.update(msg);
+
+        byte[] sig = signer.sign();
+
+        Signature verifier = Signature.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC");
+
+        verifier.initVerify(kp.getPublic());
+        verifier.setParameter(new ContextParameterSpec(context));
+        verifier.update(msg);
+
+        assertTrue(verifier.verify(sig));
+
+        // a spec carrying no context at all is still rejected
+        Signature unknown = Signature.getInstance("MLDSA44-ECDSA-P256-SHA256", "BC");
+
+        unknown.initSign(kp.getPrivate());
+
+        try
+        {
+            unknown.setParameter(new ECGenParameterSpec("P-256"));
+            fail("no exception");
+        }
+        catch (InvalidAlgorithmParameterException e)
+        {
+            assertEquals("unknown parameterSpec passed to composite signature", e.getMessage());
+        }
+    }
+
     public void compositeSignaturesTest(List<Map<String, Object>> testVectors)
         throws Exception
     {
@@ -829,7 +1521,7 @@ public class CompositeSignaturesTest
     }
 
 
-    public List<Map<String, Object>> readTestVectorsFromJson(String homeDire, String fileName)
+    public static List<Map<String, Object>> readTestVectorsFromJson(String homeDire, String fileName)
         throws Exception
     {
         InputStream src = TestResourceFinder.findTestResource(homeDire, fileName);
@@ -983,4 +1675,64 @@ public class CompositeSignaturesTest
             throw new IllegalStateException("getPrivateKey() called");
         }
     }
+
+    static class CountingSecureRandom
+        extends SecureRandom
+    {
+        int calls;
+
+        public void nextBytes(byte[] bytes)
+        {
+            calls++;
+            super.nextBytes(bytes);
+        }
+    }
+
+    /**
+     * A fully deterministic SecureRandom - a SHA-256 counter stream - so that "the key/signature is
+     * a function of the supplied random" can be asserted without depending on any JDK PRNG being
+     * reproducible from a seed. Not for any use outside these tests.
+     */
+    static class SeededSecureRandom
+        extends SecureRandom
+    {
+        private final byte[] seed;
+        private int counter;
+
+        SeededSecureRandom(int seed)
+        {
+            this.seed = new byte[]{(byte)(seed >>> 24), (byte)(seed >>> 16), (byte)(seed >>> 8), (byte)seed};
+        }
+
+        public void nextBytes(byte[] bytes)
+        {
+            SHA256Digest digest = new SHA256Digest();
+            byte[] block = new byte[digest.getDigestSize()];
+
+            for (int off = 0; off < bytes.length; off += block.length)
+            {
+                digest.reset();
+                digest.update(seed, 0, seed.length);
+                digest.update((byte)(counter >>> 24));
+                digest.update((byte)(counter >>> 16));
+                digest.update((byte)(counter >>> 8));
+                digest.update((byte)counter);
+                digest.doFinal(block, 0);
+
+                counter++;
+
+                System.arraycopy(block, 0, bytes, off, Math.min(block.length, bytes.length - off));
+            }
+        }
+
+        public byte[] generateSeed(int numBytes)
+        {
+            byte[] rv = new byte[numBytes];
+
+            nextBytes(rv);
+
+            return rv;
+        }
+    }
+
 }
