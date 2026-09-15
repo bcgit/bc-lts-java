@@ -141,6 +141,7 @@ module org.bouncycastle.lts.prov
     exports org.bouncycastle.pqc.jcajce.provider.util;
     exports org.bouncycastle.pqc.jcajce.spec;
     exports org.bouncycastle.util;
+    exports org.bouncycastle.util.dispose;
     exports org.bouncycastle.util.encoders;
     exports org.bouncycastle.util.io;
     exports org.bouncycastle.util.io.pem;
