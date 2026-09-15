@@ -1,6 +1,6 @@
 5a84a2d591cb6d6178bb5ae9bc8afe91de0d95cab13939218fb0f3cf16ddad84  mail/src/test/java/org/bouncycastle/mail/smime/test/AllTests.java
 55b954483f4596b94e27a253b6afe60f845662d740677b3bd80fef079379ccc7  mail/src/test/java/org/bouncycastle/mail/smime/test/DummyCertPathReviewer.java
-7cd300360b6eb2745155aa70af4c8b32768a74d1695819b070e6e1346b02f225  mail/src/test/java/org/bouncycastle/mail/smime/test/SMIMEToolkitTest.java
+6dd5af4957c0285e8dc65aca27c3dd0df010198195c822ef160d0811757e3b85  mail/src/test/java/org/bouncycastle/mail/smime/test/SMIMEToolkitTest.java
 8898d6c0028a120caea7c2c98be7460d3826d30c0d1ed5a49217806bba14dc7c  mail/src/test/java/org/bouncycastle/mail/smime/test/NewSMIMEEnvelopedTest.java
 a9f498e24bf7188defdb68a158f011d9e4fc733ab0742c9b506dc7c970e1c198  mail/src/test/java/org/bouncycastle/mail/smime/test/SHA1DigestCalculator.java
 32528e63f4922d2ec1ff32d3d450cc56b49321ff0dc4a715b777022b777f9183  mail/src/test/java/org/bouncycastle/mail/smime/test/SMIMETestUtil.java
@@ -8,7 +8,7 @@ a9f498e24bf7188defdb68a158f011d9e4fc733ab0742c9b506dc7c970e1c198  mail/src/test/
 e85d6acc9416cf269cee5e6d2c57c134b655074775d1ff5008dbfcdb6bd31858  mail/src/test/java/org/bouncycastle/mail/smime/test/SMIMECompressedTest.java
 7633374a51f222cbb80ec9e767fb1ab16ee1e57ee8765cc25328fb03088e7264  mail/src/test/java/org/bouncycastle/mail/smime/test/SMIMEMiscTest.java
 7f353c65979d738b7d6cef0dbd43ad97175ef76ee9db98b18ea9499f1836afa1  mail/src/test/java/org/bouncycastle/mail/smime/test/NewSMIMESignedTest.java
-f902e3834b59799e50d2d51870970e88cd1536df8522d46781d23ed662bbf85a  mail/src/test/java/org/bouncycastle/mail/smime/test/JournalingSecureRandomEncryptTest.java
+674a9d2b463beab0dde8f14406bc8c8fcdaf8c50f1b9fff77b8d5c119e58c923  mail/src/test/java/org/bouncycastle/mail/smime/test/JournalingSecureRandomEncryptTest.java
 1da75b453be1665d95b0c451ea4396792ecc5b7830bc528823d84853226d86ac  mail/src/test/java/org/bouncycastle/mail/smime/test/CMSTestUtil.java
 0e9a746e5af9f4616b7e3478f7698e55f7fdefcc0fc7d77c7eaa852cbe5e51b9  mail/src/test/java/org/bouncycastle/mail/smime/test/SMIMETestSetup.java
 5efe81967a42474cf5f1bc3d32f70b824c6c8807409497318e7b9a101535492e  mail/src/main/jdk1.9/module-info.java
