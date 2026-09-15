@@ -1,13 +1,35 @@
 package org.bouncycastle.jce.provider.test;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigInteger;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.Security;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509CRL;
 import java.security.cert.X509CRLEntry;
+import java.security.cert.X509Certificate;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1Encoding;
+import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.DERBitString;
+import org.bouncycastle.asn1.DERNull;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.Extension;
+import org.bouncycastle.asn1.x509.ExtensionsGenerator;
+import org.bouncycastle.asn1.x509.GeneralName;
+import org.bouncycastle.asn1.x509.GeneralNames;
+import org.bouncycastle.asn1.x509.IssuingDistributionPoint;
+import org.bouncycastle.asn1.x509.Time;
+import org.bouncycastle.asn1.x509.V2TBSCertListGenerator;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.test.SimpleTest;
@@ -251,11 +273,118 @@ public class CRL5Test
         }
     }
     
+    /**
+     * An entry's certificateIssuer that does not decode to a directoryName must not escape the
+     * java.security.cert.X509CRL accessors as an unchecked exception, and one that carries a
+     * directoryName after some other GeneralName must still be found - github #2425.
+     */
+    public void malformedCertificateIssuerTest()
+        throws Exception
+    {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", "BC");
+
+        kpg.initialize(2048);
+
+        KeyPair kp = kpg.generateKeyPair();
+        X500Name crlIssuer = new X500Name("CN=Indirect CRL Issuer");
+        X509Certificate cert = TestCertificateGen.createSelfSignedCert(
+            crlIssuer, "SHA256withRSA", kp);
+        BigInteger serial = cert.getSerialNumber();
+        X500Name otherIssuer = new X500Name("CN=Other Issuer");
+
+        // a directoryName, first or after another GeneralName, names the entry's issuer either way
+        checkIndirectCRL("directoryName", new GeneralNames(new GeneralName(otherIssuer)),
+            crlIssuer, cert, serial, otherIssuer, false);
+        checkIndirectCRL("dNSName then directoryName", new GeneralNames(new GeneralName[]
+            {
+                new GeneralName(GeneralName.dNSName, "example.com"),
+                new GeneralName(otherIssuer)
+            }), crlIssuer, cert, serial, otherIssuer, false);
+
+        // no directoryName to be had: the entry has no certificate issuer of its own, so it is the CRL issuer's
+        checkIndirectCRL("empty GeneralNames", new DERSequence(),
+            crlIssuer, cert, serial, null, true);
+        checkIndirectCRL("dNSName only", new GeneralNames(new GeneralName(GeneralName.dNSName, "example.com")),
+            crlIssuer, cert, serial, null, true);
+    }
+
+    private void checkIndirectCRL(String label, ASN1Encodable certificateIssuer, X500Name crlIssuer,
+                                  X509Certificate cert, BigInteger serial,
+                                  X500Name expectedEntryIssuer, boolean expectedRevoked)
+        throws Exception
+    {
+        byte[] enc = createIndirectCRL(crlIssuer, certificateIssuer, serial);
+        CertificateFactory cf = CertificateFactory.getInstance("X.509", "BC");
+        X509CRL crl = (X509CRL)cf.generateCRL(new ByteArrayInputStream(enc));
+
+        Set set = crl.getRevokedCertificates();
+        if (set == null || set.size() != 2)
+        {
+            fail(label + ": expected 2 revoked certificates");
+        }
+
+        X509CRLEntry entry = crl.getRevokedCertificate(serial);
+        if (entry == null)
+        {
+            fail(label + ": entry for the queried serial not found");
+        }
+
+        if (expectedEntryIssuer == null)
+        {
+            if (entry.getCertificateIssuer() != null)
+            {
+                fail(label + ": expected no certificate issuer on the entry");
+            }
+        }
+        else if (!new X500Name(entry.getCertificateIssuer().getName()).equals(expectedEntryIssuer))
+        {
+            fail(label + ": wrong certificate issuer on the entry");
+        }
+
+        isTrue(label + ": wrong revocation status", expectedRevoked == crl.isRevoked(cert));
+    }
+
+    private byte[] createIndirectCRL(X500Name crlIssuer, ASN1Encodable certificateIssuer, BigInteger serial)
+        throws Exception
+    {
+        AlgorithmIdentifier sigAlg = new AlgorithmIdentifier(
+            PKCSObjectIdentifiers.sha256WithRSAEncryption, DERNull.INSTANCE);
+        Date now = new Date();
+
+        V2TBSCertListGenerator gen = new V2TBSCertListGenerator();
+
+        gen.setIssuer(crlIssuer);
+        gen.setSignature(sigAlg);
+        gen.setThisUpdate(new Time(now));
+        gen.setNextUpdate(new Time(new Date(now.getTime() + 86400000L)));
+
+        ExtensionsGenerator crlExts = new ExtensionsGenerator();
+        crlExts.addExtension(Extension.issuingDistributionPoint, true,
+            new IssuingDistributionPoint(null, false, false, null, true, false));
+        gen.setExtensions(crlExts.generate());
+
+        // the entry carrying the certificateIssuer under test - the issuer it names carries
+        // forward to the entry that follows, which is the one the accessors are asked about
+        ExtensionsGenerator entryExts = new ExtensionsGenerator();
+        entryExts.addExtension(Extension.certificateIssuer, true, certificateIssuer);
+        gen.addCRLEntry(new ASN1Integer(BigInteger.ONE), new Time(now), entryExts.generate());
+        gen.addCRLEntry(new ASN1Integer(serial), new Time(now), 0);
+
+        // these accessors do not verify the signature, so its value is immaterial here
+        ASN1EncodableVector v = new ASN1EncodableVector();
+        v.add(gen.generateTBSCertList());
+        v.add(sigAlg);
+        v.add(new DERBitString(new byte[256]));
+
+        return new DERSequence(v).getEncoded(ASN1Encoding.DER);
+    }
+
     public void performTest()
         throws Exception
     {
         indirectCRLTest();
         directCRLTest();
+        malformedCertificateIssuerTest();
     }
 
     public static void main(

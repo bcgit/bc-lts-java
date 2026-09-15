@@ -480,10 +480,10 @@ class RFC3280CertPathUtilities
             }
             catch (CertPathBuilderException e)
             {
-                // Candidate signer's path could not be built - skip and try the next
-                // candidate. The post-loop empty-check will surface a useful error if
-                // no valid signer is found at all.
-                signerLastException = new AnnotatedException("CertPath for CRL signer failed to validate.", e);
+                // Candidate signer's path could not be built - skip and try the next candidate.
+                signerLastException = new AnnotatedException(
+                    "CertPath for CRL signer failed to validate. Per RFC 5280 sec. 6.3.3 (f) the CRL issuer's"
+                        + " certification path must be anchored at the same trust anchor as the certificate being checked.", e);
             }
             catch (CertPathValidatorException e)
             {
@@ -497,11 +497,6 @@ class RFC3280CertPathUtilities
             {
                 crlSignerExit(signingCert);
             }
-        }
-
-        if (validCerts.isEmpty() && signerLastException != null)
-        {
-            throw signerLastException;
         }
 
         Set checkKeys = new HashSet();
@@ -538,13 +533,19 @@ class RFC3280CertPathUtilities
             }
         }
 
-        if (checkKeys.isEmpty() && lastException == null)
+        if (checkKeys.isEmpty())
         {
+            // defaultCRLSignCert always reaches validCerts, so a guard on validCerts being empty
+            // can never report signerLastException (github #2427).
+            if (signerLastException != null)
+            {
+                throw signerLastException;
+            }
+            if (lastException != null)
+            {
+                throw lastException;
+            }
             throw new AnnotatedException("Cannot find a valid issuer certificate.");
-        }
-        if (checkKeys.isEmpty() && lastException != null)
-        {
-            throw lastException;
         }
 
         return checkKeys;
@@ -1782,6 +1783,18 @@ class RFC3280CertPathUtilities
             catch (AnnotatedException e)
             {
                 lastException = e;
+            }
+            catch (RecoverableCertPathValidatorException e)
+            {
+                // The fallback runs without the CRLDP-derived stores, so finding nothing here says
+                // nothing about the distribution point attempts above (github #2427).
+                if (lastException == null)
+                {
+                    throw e;
+                }
+                throw new RecoverableCertPathValidatorException(
+                    e.getMessage() + ". The CRL distribution points of the certificate were tried first and failed: "
+                        + lastException.getMessage(), lastException, e.getCertPath(), e.getIndex());
             }
         }
 
