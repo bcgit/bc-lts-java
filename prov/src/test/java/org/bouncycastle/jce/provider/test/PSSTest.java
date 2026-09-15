@@ -1,8 +1,12 @@
 package org.bouncycastle.jce.provider.test;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
 import java.security.AlgorithmParameters;
+import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.MessageDigest;
 import java.security.PrivateKey;
 import java.security.ProviderException;
@@ -10,18 +14,40 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Security;
 import java.security.Signature;
+import java.security.SignatureException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.security.spec.AlgorithmParameterSpec;
 import java.security.spec.MGF1ParameterSpec;
 import java.security.spec.PSSParameterSpec;
 import java.security.spec.RSAPrivateCrtKeySpec;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.Date;
 
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
+import org.bouncycastle.asn1.DERBitString;
+import org.bouncycastle.asn1.DERNull;
+import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
+import org.bouncycastle.asn1.pkcs.RSASSAPSSparams;
+import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.asn1.x509.TBSCertificate;
+import org.bouncycastle.asn1.x509.Time;
+import org.bouncycastle.asn1.x509.V3TBSCertificateGenerator;
 import org.bouncycastle.asn1.x509.X509ObjectIdentifiers;
+import org.bouncycastle.crypto.digests.RIPEMD160Digest;
+import org.bouncycastle.crypto.digests.SHA1Digest;
+import org.bouncycastle.crypto.engines.RSABlindedEngine;
+import org.bouncycastle.crypto.signers.PSSSigner;
+import org.bouncycastle.crypto.util.PublicKeyFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
 import org.bouncycastle.util.test.TestRandomData;
@@ -294,6 +320,172 @@ public class PSSTest
         testShake256Pss();
         testShake128Sha256Pss();
         testShake256Sha512Pss();
+        testTrailerFieldRejection(priv2048Key, pub2048Key);
+        testTrailerFieldInCertificate(priv2048Key, pub2048Key);
+    }
+
+    /**
+     * RFC 4055 3.1 says of the RSASSA-PSS-params trailerField "The value MUST be 1", and PKCS#1
+     * v2.2 (RFC 8017) A.2.3 defines TrailerField as INTEGER { trailerFieldBC(1) },
+     * so a PSSParameterSpec naming anything else has to be rejected - but through the contract
+     * Signature.setParameter declares, and without any part of the rejected spec being applied.
+     * relates to github #2421.
+     */
+    private void testTrailerFieldRejection(PrivateKey privKey, PublicKey pubKey)
+        throws Exception
+    {
+        byte[] msg = Strings.toByteArray("trailer field");
+        PSSParameterSpec rejected = new PSSParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, 20, 2);
+
+        Signature s = Signature.getInstance("SHA256withRSAandMGF1", "BC");
+
+        s.initSign(privKey);
+
+        try
+        {
+            s.setParameter(rejected);
+            fail("no exception on a trailerField of 2");
+        }
+        catch (InvalidAlgorithmParameterException e)
+        {
+            isEquals("unknown trailer field", e.getMessage());
+        }
+
+        // the rejected spec must leave the engine as it was, on the signer and on getParameters().
+        s.update(msg);
+
+        byte[] sig = s.sign();
+        PSSParameterSpec reported = (PSSParameterSpec)s.getParameters().getParameterSpec(PSSParameterSpec.class);
+
+        isEquals("salt length changed by a rejected spec", 32, reported.getSaltLength());
+        isEquals("trailer field changed by a rejected spec", 1, reported.getTrailerField());
+        isTrue("signature does not match the reported parameters", verifyPss(pubKey, msg, sig, 32));
+        isTrue("signature made with the rejected salt length", !verifyPss(pubKey, msg, sig, 20));
+
+        // rejected before initialisation: initSign must not build a signer from the refused fields.
+        s = Signature.getInstance("SHA256withRSAandMGF1", "BC");
+
+        try
+        {
+            s.setParameter(rejected);
+            fail("no exception on a trailerField of 2");
+        }
+        catch (InvalidAlgorithmParameterException e)
+        {
+            isEquals("unknown trailer field", e.getMessage());
+        }
+
+        s.initSign(privKey);
+        s.update(msg);
+
+        sig = s.sign();
+
+        isTrue("rejected salt length applied at init", verifyPss(pubKey, msg, sig, 32));
+
+        // RSASSA-PSS defaults to SHA-1 / MGF1-SHA-1 / salt 20; only an independent signer sees which digests were used.
+        s = Signature.getInstance("RSASSA-PSS", "BC");
+
+        try
+        {
+            s.setParameter(new PSSParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, 32, 2));
+            fail("no exception on a trailerField of 2");
+        }
+        catch (InvalidAlgorithmParameterException e)
+        {
+            isEquals("unknown trailer field", e.getMessage());
+        }
+
+        s.initSign(privKey);
+        s.update(msg);
+
+        sig = s.sign();
+
+        PSSSigner lw = new PSSSigner(new RSABlindedEngine(), new SHA1Digest(), new SHA1Digest(), 20);
+
+        lw.init(false, PublicKeyFactory.createKey(pubKey.getEncoded()));
+        lw.update(msg, 0, msg.length);
+
+        isTrue("RSASSA-PSS did not sign with its own defaults after a rejected spec", lw.verifySignature(sig));
+    }
+
+    private boolean verifyPss(PublicKey pubKey, byte[] msg, byte[] sig, int saltLength)
+        throws Exception
+    {
+        Signature v = Signature.getInstance("SHA256withRSAandMGF1", "BC");
+
+        v.setParameter(new PSSParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, saltLength, 1));
+        v.initVerify(pubKey);
+        v.update(msg);
+
+        return v.verify(sig);
+    }
+
+    /**
+     * The same rejection is reachable from data: X509SignatureUtil hands a certificate's decoded
+     * RSASSA-PSS-params to setParameter, so a certificate declaring a trailerField of 2 has to come
+     * back through the contract of X509Certificate.verify rather than as an unchecked exception.
+     */
+    private void testTrailerFieldInCertificate(PrivateKey privKey, PublicKey pubKey)
+        throws Exception
+    {
+        CertificateFactory fact = CertificateFactory.getInstance("X.509", "BC");
+
+        X509Certificate cert = (X509Certificate)fact.generateCertificate(
+            new ByteArrayInputStream(certDeclaringTrailer(privKey, pubKey, 1)));
+
+        cert.verify(pubKey, "BC");
+
+        cert = (X509Certificate)fact.generateCertificate(
+            new ByteArrayInputStream(certDeclaringTrailer(privKey, pubKey, 2)));
+
+        try
+        {
+            cert.verify(pubKey, "BC");
+            fail("no exception on a certificate declaring a trailerField of 2");
+        }
+        catch (SignatureException e)
+        {
+            isEquals("Exception extracting parameters: unknown trailer field", e.getMessage());
+        }
+    }
+
+    /**
+     * A self-signed certificate signed with SHA-256 / MGF1-SHA-256 / salt 20 / trailer 1 - the only
+     * encoding PSS defines - whose signature AlgorithmIdentifier declares the given trailerField.
+     */
+    private byte[] certDeclaringTrailer(PrivateKey privKey, PublicKey pubKey, int trailerField)
+        throws Exception
+    {
+        AlgorithmIdentifier sha256 = new AlgorithmIdentifier(NISTObjectIdentifiers.id_sha256, DERNull.INSTANCE);
+        AlgorithmIdentifier mgf1 = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_mgf1, sha256);
+        AlgorithmIdentifier sigAlg = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_RSASSA_PSS,
+            new RSASSAPSSparams(sha256, mgf1, new ASN1Integer(20), new ASN1Integer(trailerField)));
+
+        V3TBSCertificateGenerator gen = new V3TBSCertificateGenerator();
+
+        gen.setSerialNumber(new ASN1Integer(1));
+        gen.setIssuer(new X500Name("CN=Test"));
+        gen.setSubject(new X500Name("CN=Test"));
+        gen.setStartDate(new Time(new Date(System.currentTimeMillis() - 50000)));
+        gen.setEndDate(new Time(new Date(System.currentTimeMillis() + 50000)));
+        gen.setSignature(sigAlg);
+        gen.setSubjectPublicKeyInfo(SubjectPublicKeyInfo.getInstance(pubKey.getEncoded()));
+
+        TBSCertificate tbsCert = gen.generateTBSCertificate();
+
+        Signature s = Signature.getInstance("SHA256withRSAandMGF1", "BC");
+
+        s.setParameter(new PSSParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, 20, 1));
+        s.initSign(privKey);
+        s.update(tbsCert.getEncoded("DER"));
+
+        ASN1EncodableVector v = new ASN1EncodableVector();
+
+        v.add(tbsCert);
+        v.add(sigAlg);
+        v.add(new DERBitString(s.sign()));
+
+        return new DERSequence(v).getEncoded("DER");
     }
 
     /**
@@ -457,6 +649,75 @@ public class PSSTest
         {
             fail("raw mode signature verification failed");
         }
+    
+        ripemdPSSTest();
+    }
+
+    /**
+     * RIPEMD had no PSS registration at all, and org.bouncycastle.jcajce.provider.util.DigestFactory
+     * knew nothing about it either: getDigest returned null for the name, and isSameDigest - an
+     * allow-list of the SHA families and MD5 - reported two identical RIPEMD names as different
+     * digests, so a PSSParameterSpec naming RIPEMD160 for both the hash and MGF1 was rejected with
+     * "digest algorithm for MGF should be the same as for PSS parameters" (github #2381).
+     */
+    private void ripemdPSSTest()
+        throws Exception
+    {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("RSA", "BC");
+        kpg.initialize(2048, new SecureRandom());
+        KeyPair kp = kpg.generateKeyPair();
+
+        byte[] msg = Strings.toByteArray("the quick brown fox jumps over the lazy dog");
+
+        String[] names = new String[]{"RIPEMD128", "RIPEMD160", "RIPEMD256"};
+        int[] saltSizes = new int[]{16, 20, 32};
+
+        for (int i = 0; i != names.length; i++)
+        {
+            // the named algorithm, which did not resolve at all
+            Signature s = Signature.getInstance(names[i] + "WITHRSAANDMGF1", "BC");
+            s.initSign(kp.getPrivate());
+            s.update(msg);
+            byte[] sig = s.sign();
+
+            s = Signature.getInstance(names[i] + "WITHRSAANDMGF1", "BC");
+            s.initVerify(kp.getPublic());
+            s.update(msg);
+            isTrue(names[i] + " PSS verify failed", s.verify(sig));
+
+            byte[] tampered = Arrays.clone(msg);
+            tampered[0] ^= 1;
+            s = Signature.getInstance(names[i] + "WITHRSAANDMGF1", "BC");
+            s.initVerify(kp.getPublic());
+            s.update(tampered);
+            isTrue(names[i] + " PSS accepted a tampered message", !s.verify(sig));
+
+            // and the generic RSASSA-PSS route with an explicit spec, which the isSameDigest
+            // allow-list rejected even though both names are the same string
+            Signature g = Signature.getInstance("RSASSA-PSS", "BC");
+            g.setParameter(new PSSParameterSpec(names[i], "MGF1", new MGF1ParameterSpec(names[i]), saltSizes[i], 1));
+            g.initSign(kp.getPrivate());
+            g.update(msg);
+            byte[] gSig = g.sign();
+
+            g = Signature.getInstance("RSASSA-PSS", "BC");
+            g.setParameter(new PSSParameterSpec(names[i], "MGF1", new MGF1ParameterSpec(names[i]), saltSizes[i], 1));
+            g.initVerify(kp.getPublic());
+            g.update(msg);
+            isTrue(names[i] + " generic PSS verify failed", g.verify(gSig));
+        }
+
+        // a signature from the JCA path must verify under the lightweight signer, so the encoding
+        // is checked against an independent implementation rather than only against itself
+        Signature s = Signature.getInstance("RIPEMD160WITHRSAANDMGF1", "BC");
+        s.initSign(kp.getPrivate());
+        s.update(msg);
+        byte[] sig = s.sign();
+
+        PSSSigner lw = new PSSSigner(new RSABlindedEngine(), new RIPEMD160Digest(), 20);
+        lw.init(false, PublicKeyFactory.createKey(kp.getPublic().getEncoded()));
+        lw.update(msg, 0, msg.length);
+        isTrue("lightweight PSSSigner did not verify the JCA RIPEMD160 signature", lw.verifySignature(sig));
     }
 
     public String getName()

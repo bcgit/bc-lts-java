@@ -61,6 +61,13 @@ public class BouncyCastleProviderTest
                 {
                     // Skip aliases
                 }
+                else if (key.indexOf(' ') >= 0)
+                {
+                    // Skip service attributes ("<type>.<alg> <attribute>"): the value is not a class
+                    // name. SupportedKeyClasses is a '|'-separated list, and for the composite
+                    // services its entries are BC's own key classes, so it would otherwise be taken
+                    // for a class name by the test below.
+                }
                 else
                 {
                     Object rawValue = provider.get(key);
