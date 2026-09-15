@@ -70,9 +70,6 @@ import org.bouncycastle.util.Properties;
 class ProvOcspRevocationChecker
     implements PKIXCertRevocationChecker
 {
-    private static final int DEFAULT_OCSP_TIMEOUT = 15000;
-    private static final int DEFAULT_OCSP_MAX_RESPONSE_SIZE = 32 * 1024;
-
     private static final Map oids = new HashMap();
 
     static
@@ -281,6 +278,13 @@ class ProvOcspRevocationChecker
                                     if (nextUp != null && parameters.getValidDate().after(nextUp.getDate()))
                                     {
                                         throw new CertPathValidatorException("OCSP response expired");
+                                    }
+                                    // "Responses whose thisUpdate time is later than the local
+                                    // system time SHOULD be considered unreliable" - RFC 6960
+                                    // sec. 4.2.2.1, allowing for clock skew
+                                    if (OcspCache.isFromTheFuture(resp.getThisUpdate(), parameters.getValidDate()))
+                                    {
+                                        throw new CertPathValidatorException("OCSP response not yet valid");
                                     }
                                     if (certID == null || !isEqualAlgId(certID.getHashAlgorithm(), resp.getCertID().getHashAlgorithm()))
                                     {

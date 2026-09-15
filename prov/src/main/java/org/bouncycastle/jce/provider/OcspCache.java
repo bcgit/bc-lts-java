@@ -41,12 +41,20 @@ import org.bouncycastle.asn1.x509.Extensions;
 import org.bouncycastle.jcajce.PKIXCertRevocationCheckerParameters;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Properties;
+import org.bouncycastle.util.io.StreamOverflowException;
 import org.bouncycastle.util.io.Streams;
 
 class OcspCache
 {
     private static final int DEFAULT_TIMEOUT = 15000;
-    private static final int DEFAULT_MAX_RESPONSE_SIZE = 32 * 1024;
+    private static final int DEFAULT_MAX_RESPONSE_SIZE = 64 * 1024;
+
+    /**
+     * Tolerance between our clock and the responder's when judging whether a response is dated in
+     * the future. 15 minutes, matching what the JDK's own OCSP client allows.
+     */
+    static final long MAX_CLOCK_SKEW_MS = 15 * 60 * 1000L;
 
     private static Map<URI, WeakReference<Map<CertID, OCSPResponse>>> cache
         = Collections.synchronizedMap(new WeakHashMap<URI, WeakReference<Map<CertID, OCSPResponse>>>());
@@ -73,7 +81,7 @@ class OcspCache
                 BasicOCSPResponse basicResp = BasicOCSPResponse.getInstance(
                     ASN1OctetString.getInstance(response.getResponseBytes().getResponse()).getOctets());
 
-                boolean matchFound = isCertIDFoundAndCurrent(basicResp, parameters.getValidDate(), certID);
+                boolean matchFound = isCertIDFoundAndReusable(basicResp, parameters.getValidDate(), certID);
                 if (matchFound)
                 {
                     return response;
@@ -155,13 +163,9 @@ class OcspCache
             reqOut.flush();
 
             InputStream reqIn = ocspCon.getInputStream();
-            int contentLength = ocspCon.getContentLength();
-            if (contentLength < 0)
-            {
-                // TODO: make configurable
-                contentLength = DEFAULT_MAX_RESPONSE_SIZE;
-            }
-            OCSPResponse response = OCSPResponse.getInstance(Streams.readAllLimited(reqIn, contentLength));
+
+            OCSPResponse response = OCSPResponse.getInstance(
+                readResponse(reqIn, getResponseSizeLimit(ocspCon.getContentLength())));
 
             if (OCSPResponseStatus.SUCCESSFUL == response.getResponseStatus().getIntValue())
             {
@@ -217,7 +221,79 @@ class OcspCache
         }
     }
 
-    private static boolean isCertIDFoundAndCurrent(BasicOCSPResponse basicResp, Date validDate, CertID certID)
+    /**
+     * Read the response, up to responseSizeLimit bytes. Streams.readAllLimited reports an
+     * over-long stream as a bare "Data Overflow", which says nothing about what was being read or
+     * what to change, so it is restated here in terms of the limit and the property that sets it.
+     * The type stays an IOException, so the caller still treats this the way it treats an
+     * unreachable responder - recoverable, falling back to CRL checking.
+     */
+    static byte[] readResponse(InputStream reqIn, int responseSizeLimit)
+        throws IOException
+    {
+        try
+        {
+            return Streams.readAllLimited(reqIn, responseSizeLimit);
+        }
+        catch (StreamOverflowException e)
+        {
+            throw new StreamOverflowException("OCSP response exceeds " + responseSizeLimit
+                + " bytes (see " + Properties.OCSP_MAX_RESPONSE_SIZE + ")");
+        }
+    }
+
+    /**
+     * How many bytes we are prepared to read for an OCSP response: the responder's declared
+     * Content-Length where it has given one and it is no larger than our own ceiling, that ceiling
+     * otherwise. A real response is a few KB and the declared length is the responder's to choose,
+     * so it may narrow the read but never widen it - a responder that declares and streams
+     * hundreds of megabytes is cut off instead of being read into the heap. The ceiling is
+     * {@link Properties#OCSP_MAX_RESPONSE_SIZE}, defaulting to 64K.
+     */
+    static int getResponseSizeLimit(int contentLength)
+    {
+        int maxResponseSize = Properties.asInteger(Properties.OCSP_MAX_RESPONSE_SIZE, DEFAULT_MAX_RESPONSE_SIZE);
+
+        // a configured value that cannot be a size is no reason to read without a limit
+        if (maxResponseSize <= 0)
+        {
+            maxResponseSize = DEFAULT_MAX_RESPONSE_SIZE;
+        }
+
+        if (contentLength < 0 || contentLength > maxResponseSize)
+        {
+            return maxResponseSize;
+        }
+
+        return contentLength;
+    }
+
+    /**
+     * Whether the response answers for certID and is usable at validDate. Applied to a response as
+     * it arrives from the responder, so a missing nextUpdate is no objection - the responder is
+     * entitled not to state one.
+     */
+    static boolean isCertIDFoundAndCurrent(BasicOCSPResponse basicResp, Date validDate, CertID certID)
+    {
+        return findResponse(basicResp, validDate, certID, false);
+    }
+
+    /**
+     * Whether a response already held in the cache may answer for certID at validDate - the same
+     * question, plus the one the cache adds: does it state a validity interval to reuse it over?
+     * <p/>
+     * RFC 6960 sec. 4.2.2.1 reads "if nextUpdate is not set, the responder is indicating that newer
+     * revocation information is available all the time", so a response without one is never
+     * reusable. Nothing is rejected by this: such a response is still used for the check it arrived
+     * for, it just costs another request next time rather than being served from here.
+     */
+    static boolean isCertIDFoundAndReusable(BasicOCSPResponse basicResp, Date validDate, CertID certID)
+    {
+        return findResponse(basicResp, validDate, certID, true);
+    }
+
+    private static boolean findResponse(BasicOCSPResponse basicResp, Date validDate, CertID certID,
+        boolean requireNextUpdate)
     {
         ResponseData responseData = ResponseData.getInstance(basicResp.getTbsResponseData());
         ASN1Sequence s = responseData.getResponses();
@@ -229,9 +305,21 @@ class OcspCache
             if (certID.equals(resp.getCertID()))
             {
                 ASN1GeneralizedTime nextUp = resp.getNextUpdate();
+                if (nextUp == null && requireNextUpdate)
+                {
+                    return false;
+                }
+
                 try
                 {
                     if (nextUp != null && validDate.after(nextUp.getDate()))
+                    {
+                        return false;
+                    }
+
+                    // "Responses whose thisUpdate time is later than the local system time SHOULD
+                    // be considered unreliable" - RFC 6960 sec. 4.2.2.1, allowing for clock skew
+                    if (isFromTheFuture(resp.getThisUpdate(), validDate))
                     {
                         return false;
                     }
@@ -247,5 +335,15 @@ class OcspCache
         }
 
         return false;
+    }
+
+    /**
+     * Whether thisUpdate is later than the time being validated for, by more than the clock skew
+     * allowed between us and the responder.
+     */
+    static boolean isFromTheFuture(ASN1GeneralizedTime thisUpdate, Date validDate)
+        throws ParseException
+    {
+        return thisUpdate != null && thisUpdate.getDate().getTime() > (validDate.getTime() + MAX_CLOCK_SKEW_MS);
     }
 }
