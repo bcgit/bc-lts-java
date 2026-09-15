@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import javax.security.auth.Destroyable;
+
 import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.io.Streams;
 
@@ -16,7 +18,7 @@ import static org.bouncycastle.pqc.crypto.lms.HSS.rangeTestKeys;
 
 public class HSSPrivateKeyParameters
     extends LMSKeyParameters
-    implements LMSContextBasedSigner
+    implements LMSContextBasedSigner, Destroyable
 {
     private final int l;
     private final boolean isShard;
@@ -26,6 +28,8 @@ public class HSSPrivateKeyParameters
     private long index = 0;
 
     private HSSPublicKeyParameters publicKey;
+
+    private volatile boolean destroyed;
 
     public HSSPrivateKeyParameters(LMSPrivateKeyParameters key, long index, long indexLimit)
     {
@@ -332,6 +336,8 @@ public class HSSPrivateKeyParameters
     {
         synchronized (this)
         {
+            checkDestroyed();
+
             if (usageCount < 0)
             {
                 throw new IllegalArgumentException("usageCount cannot be negative");
@@ -549,6 +555,12 @@ public class HSSPrivateKeyParameters
 
         HSSPrivateKeyParameters that = (HSSPrivateKeyParameters)o;
 
+        // a destroyed key no longer exposes its value, so it is only equal to itself.
+        if (this.destroyed || that.destroyed)
+        {
+            return false;
+        }
+
         if (l != that.l)
         {
             return false;
@@ -579,6 +591,8 @@ public class HSSPrivateKeyParameters
         //
         // Private keys are implementation dependent.
         //
+
+        checkDestroyed();
 
         // Version 1: the component keys carry the mandatory tree-cache field their getEncoded
         // appends; a version 0 encoding (any release before the tree cache) carries them without
@@ -626,6 +640,8 @@ public class HSSPrivateKeyParameters
         // bottom key first so an exhausted one leaves each untouched.
         synchronized (this)
         {
+            checkDestroyed();
+
             rangeTestKeys(this);
 
             List<LMSPrivateKeyParameters> keys = this.getKeys();
@@ -664,6 +680,43 @@ public class HSSPrivateKeyParameters
         catch (IOException e)
         {
             throw new IllegalStateException("unable to encode signature: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Destroy this key, zeroizing the master secret of every tree in the hierarchy.
+     * <p>
+     * The chaining signatures, the indexes and the component keys' identifiers and cached tree
+     * nodes are retained - none of them is secret, and the public key stays derivable where the
+     * root tree's root node is already cached. After destruction {@link #isDestroyed()} returns
+     * true and {@link #getEncoded()}, {@link #generateLMSContext()} and
+     * {@link #extractKeyShard(int)} throw {@link IllegalStateException}; a signature attempt
+     * fails before its index is claimed. Shards split off this key before it was destroyed are
+     * independent copies and are unaffected.
+     */
+    public synchronized void destroy()
+    {
+        if (!destroyed)
+        {
+            destroyed = true;
+
+            for (LMSPrivateKeyParameters key : keys)
+            {
+                key.destroy();
+            }
+        }
+    }
+
+    public boolean isDestroyed()
+    {
+        return destroyed;
+    }
+
+    private void checkDestroyed()
+    {
+        if (destroyed)
+        {
+            throw new IllegalStateException("key destroyed");
         }
     }
 }

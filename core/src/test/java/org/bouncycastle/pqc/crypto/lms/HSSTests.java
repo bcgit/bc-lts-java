@@ -417,6 +417,118 @@ public class HSSTests
      *
      * @throws Exception
      */
+    /**
+     * destroy() on an HSS key has to reach the whole hierarchy, not just the top object: every
+     * component tree holds a master secret of its own. As with the LMS case, the refusals must
+     * happen before an index is claimed, and the secrets must actually be cleared.
+     */
+    public void testDestroyHSSPrivateKey()
+        throws Exception
+    {
+        byte[] msg = Hex.decode("54686520656e756d65726174696f6e");
+
+        byte[] fixedSource = new byte[8192];
+        for (int t = 0; t < fixedSource.length; t++)
+        {
+            fixedSource[t] = 1;
+        }
+
+        HSSPrivateKeyParameters key = HSS.generateHSSKeyPair(
+            new HSSKeyGenerationParameters(new LMSParameters[]{
+                new LMSParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
+                new LMSParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w2),
+            }, new FixedSecureRandom(fixedSource)));
+
+        HSSPublicKeyParameters publicKey = key.getPublicKey();
+
+        // baseline: signs and verifies, and no component tree is destroyed yet
+        assertFalse(key.isDestroyed());
+        for (int i = 0; i != key.getKeys().size(); i++)
+        {
+            assertFalse(key.getKeys().get(i).isDestroyed());
+        }
+        assertTrue(HSS.verifySignature(publicKey, HSS.generateSignature(key, msg), msg));
+
+        long indexBeforeDestroy = key.getIndex();
+
+        key.destroy();
+
+        assertTrue(key.isDestroyed());
+
+        // every tree in the hierarchy, not just the top object
+        for (int i = 0; i != key.getKeys().size(); i++)
+        {
+            assertTrue("component key " + i + " not destroyed", key.getKeys().get(i).isDestroyed());
+        }
+
+        try
+        {
+            key.getEncoded();
+            fail("getEncoded on a destroyed key");
+        }
+        catch (IllegalStateException e)
+        {
+            assertEquals("key destroyed", e.getMessage());
+        }
+
+        try
+        {
+            key.generateLMSContext();
+            fail("generateLMSContext on a destroyed key");
+        }
+        catch (IllegalStateException e)
+        {
+            assertEquals("key destroyed", e.getMessage());
+        }
+
+        try
+        {
+            key.extractKeyShard(1);
+            fail("extractKeyShard on a destroyed key");
+        }
+        catch (IllegalStateException e)
+        {
+            assertEquals("key destroyed", e.getMessage());
+        }
+
+        // the refused signature attempt must not have burned an index
+        assertEquals(indexBeforeDestroy, key.getIndex());
+
+        // destroy is idempotent
+        key.destroy();
+        assertTrue(key.isDestroyed());
+    }
+
+    /**
+     * A shard taken before the parent was destroyed is an independent copy and keeps working -
+     * the counterpart of the LMS case, where the shard shares its parent's array and does not.
+     */
+    public void testDestroyDoesNotReachAnEarlierHSSShard()
+        throws Exception
+    {
+        byte[] msg = Hex.decode("54686520656e756d65726174696f6e");
+
+        byte[] fixedSource = new byte[8192];
+        for (int t = 0; t < fixedSource.length; t++)
+        {
+            fixedSource[t] = 1;
+        }
+
+        HSSPrivateKeyParameters key = HSS.generateHSSKeyPair(
+            new HSSKeyGenerationParameters(new LMSParameters[]{
+                new LMSParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
+                new LMSParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w2),
+            }, new FixedSecureRandom(fixedSource)));
+
+        HSSPublicKeyParameters publicKey = key.getPublicKey();
+        HSSPrivateKeyParameters shard = key.extractKeyShard(2);
+
+        key.destroy();
+
+        assertFalse(shard.isDestroyed());
+        assertTrue(HSS.verifySignature(publicKey, HSS.generateSignature(shard, msg), msg));
+    }
+
     public void testVectorsFromReference()
         throws Exception
     {

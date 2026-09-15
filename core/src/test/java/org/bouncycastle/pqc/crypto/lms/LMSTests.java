@@ -136,6 +136,114 @@ public class LMSTests
     }
 
 
+    /**
+     * destroy() must zeroize the master secret, not merely raise a flag: every operation that
+     * reads the secret has to refuse afterwards, the one-time index must not move on a refused
+     * signature attempt, and what the key derives from the secret has to actually change.
+     */
+    public void testDestroyLMSPrivateKey()
+        throws Exception
+    {
+        byte[] msg = Hex.decode("54686520656e756d65726174696f6e");
+        byte[] seed = Hex.decode("a1c4696e2608035a886100d05cd99945eb3370731884a8235e2fb3d4d71f2547");
+        byte[] I = Hex.decode("215f83b7ccb9acbcd08db97b0d04dc2b");
+
+        LMSPrivateKeyParameters key = LMS.generateKeys(
+            LMSigParameters.getParametersForType(5), LMOtsParameters.getParametersForType(4), 1, I, seed);
+        LMSPublicKeyParameters publicKey = key.getPublicKey();
+
+        // baseline: the key works, and the secret is not already zeroes
+        assertFalse(key.isDestroyed());
+        assertFalse(Arrays.areEqual(new byte[seed.length], key.getMasterSecret()));
+        assertTrue(LMS.verifySignature(publicKey, LMS.generateSign(key, msg), msg));
+
+        int indexBeforeDestroy = key.getIndex();
+
+        key.destroy();
+
+        assertTrue(key.isDestroyed());
+
+        // everything that reads the secret refuses
+        try
+        {
+            key.getMasterSecret();
+            fail("getMasterSecret on a destroyed key");
+        }
+        catch (IllegalStateException e)
+        {
+            assertEquals("key destroyed", e.getMessage());
+        }
+
+        try
+        {
+            key.getEncoded();
+            fail("getEncoded on a destroyed key");
+        }
+        catch (IllegalStateException e)
+        {
+            assertEquals("key destroyed", e.getMessage());
+        }
+
+        try
+        {
+            key.generateLMSContext();
+            fail("generateLMSContext on a destroyed key");
+        }
+        catch (IllegalStateException e)
+        {
+            assertEquals("key destroyed", e.getMessage());
+        }
+
+        // the refused signature attempt must not have burned a one-time key
+        assertEquals(indexBeforeDestroy, key.getIndex());
+
+        // a destroyed key no longer exposes its value, so it is only equal to itself
+        LMSPrivateKeyParameters other = LMS.generateKeys(
+            LMSigParameters.getParametersForType(5), LMOtsParameters.getParametersForType(4), 1, I, seed);
+        assertTrue(key.equals(key));
+        assertFalse(key.equals(other));
+        assertFalse(other.equals(key));
+
+        // destroy is idempotent
+        key.destroy();
+        assertTrue(key.isDestroyed());
+
+        // what survives is deliberate: I, the parameters and the index are not secret
+        assertTrue(Arrays.areEqual(I, key.getI()));
+        assertEquals(LMSigParameters.getParametersForType(5), key.getSigParameters());
+        assertEquals(LMOtsParameters.getParametersForType(4), key.getOtsParameters());
+    }
+
+    /**
+     * The flag alone would leave the secret readable through any object still holding the same
+     * array. A shard shares its parent's master secret by design, so destroying the parent has to
+     * be visible through the shard - which is what shows the array was cleared rather than the
+     * parent simply refusing to speak.
+     */
+    public void testDestroyClearsTheSharedMasterSecret()
+        throws Exception
+    {
+        byte[] msg = Hex.decode("54686520656e756d65726174696f6e");
+        byte[] seed = Hex.decode("a1c4696e2608035a886100d05cd99945eb3370731884a8235e2fb3d4d71f2547");
+        byte[] I = Hex.decode("215f83b7ccb9acbcd08db97b0d04dc2b");
+
+        LMSPrivateKeyParameters key = LMS.generateKeys(
+            LMSigParameters.getParametersForType(5), LMOtsParameters.getParametersForType(4), 1, I, seed);
+        LMSPublicKeyParameters publicKey = key.getPublicKey();
+
+        LMSPrivateKeyParameters shard = key.extractKeyShard(2);
+
+        // the shard signs correctly while the secret is intact
+        assertTrue(LMS.verifySignature(publicKey, LMS.generateSign(shard, msg), msg));
+
+        key.destroy();
+
+        // the shard is a separate object and is not itself marked destroyed, but the secret it
+        // signs from has been cleared, so the signature it now produces does not verify
+        assertFalse(shard.isDestroyed());
+        assertFalse(LMS.verifySignature(publicKey, LMS.generateSign(shard, msg), msg));
+    }
+
     public void testContextSingleUse()
         throws Exception
     {

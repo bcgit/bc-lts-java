@@ -7,6 +7,8 @@ import java.io.InputStream;
 import java.util.Map;
 import java.util.WeakHashMap;
 
+import javax.security.auth.Destroyable;
+
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.pqc.crypto.ExhaustedPrivateKeyException;
 import org.bouncycastle.util.Arrays;
@@ -14,7 +16,7 @@ import org.bouncycastle.util.io.Streams;
 
 public class LMSPrivateKeyParameters
     extends LMSKeyParameters
-    implements LMSContextBasedSigner
+    implements LMSContextBasedSigner, Destroyable
 {
     private static CacheKey T1 = new CacheKey(1);
     private static CacheKey[] internedKeys = new CacheKey[64];
@@ -38,6 +40,8 @@ public class LMSPrivateKeyParameters
     private final Digest tDigest;
 
     private int q;
+
+    private volatile boolean destroyed;
 
     //
     // These are not final because they can be generated.
@@ -325,6 +329,8 @@ public class LMSPrivateKeyParameters
     {
         synchronized (this)
         {
+            checkDestroyed();
+
             if (q >= maxQ)
             {
                 throw new ExhaustedPrivateKeyException("ots private keys expired");
@@ -389,6 +395,8 @@ public class LMSPrivateKeyParameters
     {
         synchronized (this)
         {
+            checkDestroyed();
+
             if (q >= maxQ)
             {
                 throw new ExhaustedPrivateKeyException("ots private key exhausted");
@@ -449,7 +457,47 @@ public class LMSPrivateKeyParameters
 
     public byte[] getMasterSecret()
     {
-        return Arrays.clone(masterSecret);
+        byte[] rv = Arrays.clone(masterSecret);
+
+        // clone first, check second: a destroy() that lands in between has set the flag before
+        // it clears the array, so a stale copy is never handed out.
+        checkDestroyed();
+
+        return rv;
+    }
+
+    /**
+     * Destroy this key, zeroizing the master secret it holds.
+     * <p>
+     * The key identifier I, the parameter sets, the index and the cached Merkle tree nodes are
+     * retained - none of them is secret, and the public key stays derivable where the tree's
+     * root is already cached. After destruction {@link #isDestroyed()} returns true and
+     * {@link #getMasterSecret()}, {@link #getEncoded()} and {@link #generateLMSContext()} throw
+     * {@link IllegalStateException}; a signature attempt fails before its one-time index is
+     * claimed. Note: keys repositioned within this tree or split off it with
+     * {@link #extractKeyShard(int)} share its master secret array, so destroying this key
+     * invalidates them too.
+     */
+    public synchronized void destroy()
+    {
+        if (!destroyed)
+        {
+            destroyed = true;
+            Arrays.clear(masterSecret);
+        }
+    }
+
+    public boolean isDestroyed()
+    {
+        return destroyed;
+    }
+
+    private void checkDestroyed()
+    {
+        if (destroyed)
+        {
+            throw new IllegalStateException("key destroyed");
+        }
     }
 
     public int getIndexLimit()
@@ -515,6 +563,10 @@ public class LMSPrivateKeyParameters
 
         if (r >= twoToh)
         {
+            // before the shared digest absorbs anything: a leaf is derived from the master secret,
+            // so on a destroyed key this must fail without leaving tDigest half-fed.
+            checkDestroyed();
+
             LmsUtils.byteArray(this.getI(), tDigest);
             LmsUtils.u32str(r, tDigest);
             LmsUtils.u16str(LMS.D_LEAF, tDigest);
@@ -607,6 +659,12 @@ public class LMSPrivateKeyParameters
 
         LMSPrivateKeyParameters that = (LMSPrivateKeyParameters)o;
 
+        // a destroyed key no longer exposes its value, so it is only equal to itself.
+        if (this.destroyed || that.destroyed)
+        {
+            return false;
+        }
+
         if (q != that.q)
         {
             return false;
@@ -644,6 +702,8 @@ public class LMSPrivateKeyParameters
     public byte[] getEncoded()
         throws IOException
     {
+        checkDestroyed();
+
         //
         // NB there is no formal specification for the encoding of private keys.
         // It is implementation dependent.
