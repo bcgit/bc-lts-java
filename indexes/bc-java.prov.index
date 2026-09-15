@@ -91,7 +91,7 @@ cc5212f620ea4d03cf37a22f33ea58f432d0f5bc7d60a55653bee9b63c4b700d  prov/src/test/
 3a9b4bd2cd77fddec715d8414b9bdacd5548492fbdbf641e14cac90596054add  prov/src/test/java/org/bouncycastle/jce/provider/test/nist/AllTests.java
 d6ae78e6bc780ddbf253f9135cecad572e05a85052d510b27195b3d3a808fa18  prov/src/test/java/org/bouncycastle/jce/provider/test/nist/NistCertPathTest.java
 efb4721cd890d3cbc2108b7e2550397b823d196cd4369dc36ac624a7ee77c6ca  prov/src/test/java/org/bouncycastle/jce/provider/test/nist/PKITSTest.java
-46bb3378bf1b1fc5e2136fd9b57ad381b26d776b995c4297914d644de4ae09ad  prov/src/test/java/org/bouncycastle/jce/provider/test/nist/NistCertPathTest2.java
+6018591d8b3bd71ab371504bace84a3caef4aa31c90e60ad626e93de5130e4e5  prov/src/test/java/org/bouncycastle/jce/provider/test/nist/NistCertPathTest2.java
 4fc4110205535290c3d4387fc9d3b0389714d0bdcf798593e4242cbfd7ffc4da  prov/src/test/java/org/bouncycastle/jce/provider/test/SigTest.java
 70f7bedf16c57c7346dac2c1a3c1b90dc3d8ef62ab3b530d536178303fa25277  prov/src/test/java/org/bouncycastle/jce/provider/test/CertTest.java
 a8fe4e90c3e30ad7798fb2eaad973e6b755abd21287e324b49c9dcba5b9f4cda  prov/src/test/java/org/bouncycastle/jce/provider/test/WrapTest.java
@@ -212,7 +212,7 @@ e93a1c18146f62644dd26ff32947087ef61b0086822fb2cc6dd7b8d969dd1913  prov/src/main/
 d9ec9a173f7d7c5af9fc1016ffeb5138484ea897b436e8e2a7065f9ad0b2b25f  prov/src/main/java/org/bouncycastle/jce/spec/GOST3410PrivateKeySpec.java
 182df9b773d8880669d1d63f430311b4aee39ea1ca34e7d90b9110e8d08df96b  prov/src/main/java/org/bouncycastle/jce/spec/ElGamalPrivateKeySpec.java
 0d8e47f22583db473d57d5837456f02c2cfaeef2e4fa622b07d89a49160c28f3  prov/src/main/java/org/bouncycastle/jce/ECKeyUtil.java
-5df2061ce8af884fdd888ec81626644ee9b8496e67af9be14c7b8f0dec0ebb2d  prov/src/main/java/org/bouncycastle/jce/PKCS12Util.java
+3cbfebc0a49b775a3385ac12fa6a63a8d67fa76c1201bde2e29d7f766a6fdc33  prov/src/main/java/org/bouncycastle/jce/PKCS12Util.java
 5298edc7b650a7356cc0abf633383b9e56a46fe8cd85a049310d0aa5abc92f86  prov/src/main/java/org/bouncycastle/jce/netscape/NetscapeCertRequest.java
 a01f85f23106ff456cbeffb8317835d458bfa619b0201b87323c340cdb4c4ae8  prov/src/main/java/org/bouncycastle/jcajce/PKCS12KeyWithParameters.java
 a6aae448f29a4eb8d865b4cad3e20efcd74768e5338d21f0757ab7dd019bfbaf  prov/src/main/java/org/bouncycastle/jcajce/PKIXCertRevocationChecker.java
@@ -494,7 +494,7 @@ fee07111b22872452fca7446b0e74ffd1319e953ea08af822381b5958330f724  prov/src/main/
 8f599351982974ca815fc0fd07d203260672b4a23f0fc7877d7e8c022e5d05a6  prov/src/main/java/org/bouncycastle/jcajce/spec/AEADParameterSpec.java
 31bbcc5eeb02769db770584cfff1d0b8ee05a7ed9cde08c2fa1863c011f69fd9  prov/src/main/java/org/bouncycastle/jcajce/spec/SkeinParameterSpec.java
 51fda1d46ba02e65cd3c9c59772de83226e06d205b205b7366e67e0ef350b814  prov/src/main/java/org/bouncycastle/jcajce/spec/DHUParameterSpec.java
-bf97604b6d9829d4aa7558c525c3c2fe6bb678150f5503795cc743baf94d179d  prov/src/main/java/org/bouncycastle/jcajce/spec/CompositeAlgorithmSpec.java
+8918c873d23892d106f3209c9be70694eb9cfd66922f3cedd82815fb4410e99e  prov/src/main/java/org/bouncycastle/jcajce/spec/CompositeAlgorithmSpec.java
 7732d542589dc9d6e4aa6f32fe45d971f49e9262eda9a00a28e0418d3ce3d94c  prov/src/main/java/org/bouncycastle/jcajce/spec/PBKDF2KeySpec.java
 40eadd7e93ecbe12508f67899e3e907e525c22c11d31e126d7944d6d76ef487a  prov/src/main/java/org/bouncycastle/jcajce/spec/DSTU4145ParameterSpec.java
 385d6d63a6507f0252f2c0ac3ee440b266c8102750f0e5fc47aee6c745a043c5  prov/src/main/java/org/bouncycastle/jcajce/spec/UserKeyingMaterialSpec.java
@@ -535,7 +535,7 @@ efd9faaf1e47f61d0817932651904699e2ef79fc9ceabcad3bf7f55f77f3c4e5  prov/src/main/
 6d0754fdba022b21e2259f90a09e6b39c313f6c970a00cba97ae16fbc2144247  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mldsa/HashSignatureSpi.java
 060e2756124221d001283d8593b30c0924135d5e00c4acef0346f99f2488eba8  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mldsa/MLDSAKeyFactorySpi.java
 6cd7a70d478401b7eb7a806cfc9f58fda624c40868726136037fa13f0df8f784  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mldsa/MLDSAKeyPairGeneratorSpi.java
-7c3bb76b7a29e123f3cc82d51aade140d677b13816053b2519470d30dea3e553  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mldsa/SignatureSpi.java
+95d8daed3dc45be0ecfdca79c4742de23b617dcd5b16814bdb5f5a0e977db966  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mldsa/SignatureSpi.java
 038ea96f239be40a143ca55190abd5200dda10daf52df43ea60e4bed450ed4f2  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mlkem/BCMLKEMPrivateKey.java
 26d77ddcdc3840726344b61247d57522264584388cc21f0d3c23295a0c7225f7  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mlkem/BCMLKEMPublicKey.java
 15eca45858ba271af7abc4be1aa0daa131164bddf69c949c4b2e5a34612a48ec  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/mlkem/MLKEMCipherSpi.java
@@ -584,7 +584,7 @@ fe99507bbb511b477a872d1ba7069eb2ad4896a7adf24d5c58b29924119f7acd  prov/src/main/
 920e795b24106ba7c14d8451eba8149a3b72350822d19d0464f8cc5df385965e  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/util/BaseDeterministicOrRandomSignature.java
 efbf10272cbd97212eeff99c0f1b4e42bd1df02c7d0b11b49c4baad945e12cbd  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/util/BasePQCKeyFactorySpi.java
 1606fb9b6f1eb9248f1b68ad03fbfad59a04d80dd9a17e99ba9fb119826d4531  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/util/KdfUtil.java
-0a513aa506e040578f513a199f2b584014bdcb231e6669b15ab8e1449bd3f125  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/util/WrapUtil.java
+d27dc8a4d1b04f85cce9dad76088bab734c9f8a16e4089adc73985cbe340e015  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/util/WrapUtil.java
 2484fa917e504174b9ade3aca89ddc3f683d29a2f40d394febbdb69ba670ed33  prov/src/main/java/org/bouncycastle/jcajce/provider/drbg/EntropyDaemon.java
 f3c86b8d0c1b84e797068ad3a5cd4f19f16fb3703ce717da283b1ccaf939b0c8  prov/src/main/java/org/bouncycastle/jcajce/provider/drbg/EntropyGatherer.java
 c80f23fc85e2156257d327ef4b38ad2d8e8dbce4d3ed8b9be7d1e76b5bd3a135  prov/src/main/java/org/bouncycastle/jcajce/provider/drbg/IncrementalEntropySource.java
@@ -638,4 +638,4 @@ ea17f76bbba3c54986ff35e1afbb5913a00ba50e93b1997ce8cf16803b74517f  prov/src/main/
 d520ee74257cef1425d308d07fdfe2c9f9d618a08d1d7b2b609919499c20086e  prov/src/test/java/org/bouncycastle/jce/provider/test/CrlReasonsMaskTest.java
 b89e538b44f3171a8b8b54a2c9449cb060cf50a2985f33f1e907e98aa82e5619  prov/src/test/java/org/bouncycastle/jcajce/provider/test/PQCKeyDestructionTest.java
 256c5efbad8a30edd34d7f7db0e4e38bfac4da3ba35c682e672e0877634a6813  prov/src/test/java/org/bouncycastle/jce/provider/ReasonsMaskTest.java
-3788c92d2df700f3eac0b198b75773da4b22823af31c13bcb2671594449bb03f  prov/src/main/java/org/bouncycastle/jce/exception/package-info.java
+9b594bd5457bb4942b25f95ad9296c5f6b5b577498477a22e9245e3fcdf79166  prov/src/main/java/org/bouncycastle/jce/exception/package-info.java
