@@ -163,22 +163,17 @@ public class LMSTest
             assertEquals("key destroyed", e.getMessage());
         }
 
-        // and it can no longer produce a signature
+        // and it can no longer produce a signature - refused at initSign, as the JCA contract
+        // for an unusable key requires, rather than partway through signing
         try
         {
             Signature failed = Signature.getInstance("LMS", "BC");
             failed.initSign(privKey);
-            failed.update(msg);
-            failed.sign();
-            fail("signing with a destroyed key");
+            fail("initSign with a destroyed key");
         }
-        catch (IllegalStateException e)
+        catch (InvalidKeyException e)
         {
             assertEquals("key destroyed", e.getMessage());
-        }
-        catch (SignatureException e)
-        {
-            // also acceptable: the failure is reported through the JCA signature contract
         }
 
         // the non-secret parts survive, deliberately

@@ -64,6 +64,11 @@ public class LMSSignatureSpi
     {
         if (privateKey instanceof BCLMSPrivateKey)
         {
+            if (((BCLMSPrivateKey)privateKey).isDestroyed())
+            {
+                throw new InvalidKeyException("key destroyed");
+            }
+
             lmOtsSigner = (LMSContextBasedSigner)((BCLMSPrivateKey)privateKey).getKeyParams();
             if (lmOtsSigner.getUsagesRemaining() == 0)
             {
