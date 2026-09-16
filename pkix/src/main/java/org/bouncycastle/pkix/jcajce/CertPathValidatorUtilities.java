@@ -239,12 +239,15 @@ class CertPathValidatorUtilities
         List[] policyNodes,
         PKIXPolicyNode _node)
     {
-        PKIXPolicyNode _parent = (PKIXPolicyNode)_node.getParent();
-
         if (validPolicyTree == null)
         {
             return null;
         }
+
+        // after the null check above, not before it: with no tree there is nothing to remove from
+        // and _node need not be a usable node, so dereferencing it first turns that case into an
+        // NPE. The copy in prov's CertPathValidatorUtilities orders it this way.
+        PKIXPolicyNode _parent = (PKIXPolicyNode)_node.getParent();
 
         if (_parent == null)
         {

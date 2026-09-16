@@ -26,6 +26,7 @@ public class AllTests
 
         suite.addTestSuite(CrlCacheTest.class);
         suite.addTestSuite(PKIXCertPathReviewerProtocolTest.class);
+        suite.addTestSuite(PolicyNodeRemovalTest.class);
         suite.addTestSuite(ReasonsMaskTest.class);
         suite.addTestSuite(RevocationUtilitiesTest.class);
 
