@@ -98,7 +98,7 @@ public class KeyFactorySpi
         pairings.put(IANAObjectIdentifiers.id_MLDSA87_RSA4096_PSS_SHA512, new AlgorithmIdentifier[]{mlDsa87, rsa});
         pairings.put(IANAObjectIdentifiers.id_MLDSA87_ECDSA_P521_SHA512, new AlgorithmIdentifier[]{mlDsa87, ecDsaP521});
         pairings.put(IANAObjectIdentifiers.id_MLDSA87_RSA3072_PSS_SHA512, new AlgorithmIdentifier[]{mlDsa87, rsa});
-        
+
         mldsaKeySizes.put(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PSS_SHA256, Integers.valueOf(1312));
         mldsaKeySizes.put(IANAObjectIdentifiers.id_MLDSA44_RSA2048_PKCS15_SHA256, Integers.valueOf(1312));
         mldsaKeySizes.put(IANAObjectIdentifiers.id_MLDSA44_Ed25519_SHA512, Integers.valueOf(1312));
