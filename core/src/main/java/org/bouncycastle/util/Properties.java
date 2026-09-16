@@ -311,6 +311,29 @@ public class Properties
     public static final String BCFKS_STORE_IT_COUNT = "org.bouncycastle.bcfks.store_it_count";
 
     /**
+     * Write BCFKS scrypt parameters with the parallelization parameter p set equal to the block
+     * size r, whatever p the caller's {@code ScryptConfig} asked for. Default true.
+     * <p>
+     * Releases up to 1.86 derived a BCFKS scrypt key with r in place of p while encoding the
+     * configured p, so a store whose p differed from its r encoded parameters that did not derive
+     * its own keys: a conformant RFC 7914 reader failed it, and BC failed a conformant writer's.
+     * Derivation now follows RFC 7914, and with this property set the written p is made to agree
+     * with what those releases derive, so a store written here is both RFC 7914 correct and
+     * readable by 1.86 and earlier. Clearing it honours the configured p instead, at the cost of
+     * a store that those releases cannot read unless p already equals r.
+     * <p>
+     * Reading is unaffected either way - a store written by an earlier release is recognised and
+     * read on its own terms, and the encoded parallelization parameter is what a store written
+     * here is derived with whichever way this is set.
+     * <p>
+     * This is transitional: the default is intended to become false once enough of the installed
+     * base is writing parameters that describe themselves, at which point a configured p is
+     * honoured as written. Callers who need that now, and who do not need 1.86 and earlier to read
+     * what they write, can clear it already. Read via {@link #isOverrideSet(String, boolean)}.
+     */
+    public static final String BCFKS_SCRYPT_P_EQ_R = "org.bouncycastle.bcfks.scrypt_p_eq_r";
+
+    /**
      * Upper bound on the PBKDF2 iteration count honoured when BC takes that count from an
      * untrusted encoding: decrypting a PBES2-protected PKCS#8 / PEM private key or PKCS#12
      * bag, verifying an RFC 9579 PBMAC1, unwrapping a CMS password recipient, and the raw JCA

@@ -407,7 +407,7 @@ class BcFKSKeyStoreSpi
                 byte[] encodedKey = key.getEncoded();
 
                 KeyDerivationFunc pbkdAlgId = generatePkbdAlgorithmIdentifier(PKCSObjectIdentifiers.id_PBKDF2, 256 / 8);
-                byte[] keyBytes = generateKey(pbkdAlgId, "PRIVATE_KEY_ENCRYPTION", ((password != null) ? password : new char[0]), 32);
+                byte[] keyBytes = generateKey(pbkdAlgId, "PRIVATE_KEY_ENCRYPTION", ((password != null) ? password : new char[0]), 32, false);
 
                 EncryptedPrivateKeyInfo keyInfo;
                 if (storeEncryptionAlgorithm.equals(NISTObjectIdentifiers.id_aes256_CCM))
@@ -460,7 +460,7 @@ class BcFKSKeyStoreSpi
                     pbeKey.getEncoded());
 
                 KeyDerivationFunc pbkdAlgId = generatePkbdAlgorithmIdentifier(PKCSObjectIdentifiers.id_PBKDF2, 256 / 8);
-                byte[] keyBytes = generateKey(pbkdAlgId, "SECRET_KEY_ENCRYPTION", ((password != null) ? password : new char[0]), 32);
+                byte[] keyBytes = generateKey(pbkdAlgId, "SECRET_KEY_ENCRYPTION", ((password != null) ? password : new char[0]), 32, false);
 
                 EncryptedSecretKeyData keyData;
                 if (storeEncryptionAlgorithm.equals(NISTObjectIdentifiers.id_aes256_CCM))
@@ -504,7 +504,7 @@ class BcFKSKeyStoreSpi
                 byte[] encodedKey = key.getEncoded();
 
                 KeyDerivationFunc pbkdAlgId = generatePkbdAlgorithmIdentifier(PKCSObjectIdentifiers.id_PBKDF2, 256 / 8);
-                byte[] keyBytes = generateKey(pbkdAlgId, "SECRET_KEY_ENCRYPTION", ((password != null) ? password : new char[0]), 32);
+                byte[] keyBytes = generateKey(pbkdAlgId, "SECRET_KEY_ENCRYPTION", ((password != null) ? password : new char[0]), 32, false);
 
                 String keyAlg = Strings.toUpperCase(key.getAlgorithm());
                 SecretKeyData secKeyData;
@@ -844,7 +844,7 @@ class BcFKSKeyStoreSpi
         return null;
     }
 
-    private byte[] generateKey(KeyDerivationFunc pbkdAlgorithm, String purpose, char[] password, int defKeySize)
+    private byte[] generateKey(KeyDerivationFunc pbkdAlgorithm, String purpose, char[] password, int defKeySize, boolean legacyScryptParallelization)
         throws IOException
     {
         byte[] encPassword = PBEParametersGenerator.PKCS12PasswordToBytes(password);
@@ -856,9 +856,12 @@ class BcFKSKeyStoreSpi
         {
             ScryptParams params = ScryptParams.getInstance(pbkdAlgorithm.getParameters());
 
+            // releases up to 1.86 passed the block size where RFC 7914 has the parallelization parameter.
+            BigInteger p = legacyScryptParallelization ? params.getBlockSize() : params.getParallelizationParameter();
+
             // The KDF cost parameters arrive in the not-yet-integrity-checked keystore, so bound
             // them before the (memory/CPU intensive) derivation to avoid a pre-verification DoS.
-            validateScryptParams(params);
+            validateScryptParams(params, p);
 
             if (params.getKeyLength() != null)
             {
@@ -870,7 +873,7 @@ class BcFKSKeyStoreSpi
             }
             return SCrypt.generate(Arrays.concatenate(encPassword, differentiator), params.getSalt(),
                 params.getCostParameter().intValue(), params.getBlockSize().intValue(),
-                params.getBlockSize().intValue(), keySizeInBytes);
+                p.intValue(), keySizeInBytes);
         }
         else if (pbkdAlgorithm.getAlgorithm().equals(PKCSObjectIdentifiers.id_PBKDF2))
         {
@@ -915,20 +918,20 @@ class BcFKSKeyStoreSpi
         }
     }
 
-    // Hard sanity bound on the scrypt block size r. r is also passed as the parallelization
-    // parameter p here, so an oversized r is a CPU-exhaustion vector independent of total memory.
-    // The standard value is 8; anything beyond this is rejected as abusive.
+    // Hard sanity bound on the scrypt block size r. The standard value is 8; anything beyond this
+    // is rejected as abusive.
     private static final int MAX_SCRYPT_BLOCK_SIZE = 1024;
 
-    private static void validateScryptParams(ScryptParams params)
+    // p is the parallelization parameter actually derived with - the block size, pre-1.87. See generateKey().
+    private static void validateScryptParams(ScryptParams params, BigInteger p)
         throws IOException
     {
         BigInteger n = params.getCostParameter();
         BigInteger r = params.getBlockSize();
 
-        if (n == null || r == null
-            || n.signum() <= 0 || r.signum() <= 0
-            || n.bitLength() > 31 || r.bitLength() > 31)
+        if (n == null || r == null || p == null
+            || n.signum() <= 0 || r.signum() <= 0 || p.signum() <= 0
+            || n.bitLength() > 31 || r.bitLength() > 31 || p.bitLength() > 31)
         {
             throw new IOException("BCFKS KeyStore: invalid scrypt parameters");
         }
@@ -940,10 +943,9 @@ class BcFKSKeyStoreSpi
         }
 
         long maxMemory = Properties.asInteger(Properties.BCFKS_MAX_SCRYPT_MEMORY, 1 << 30);
-        long cost = n.longValue();
-        // Reject if the working memory ~128 * N * r would exceed the bound, computed so as not to
-        // overflow (128 * blockSize is small because blockSize is capped above).
-        if (cost > maxMemory / (128L * blockSize))
+        // scrypt allocates ~128 * N * r bytes and ~128 * r * p bytes, RFC 7914: bound N and p separately so the original N-only limit is unchanged.
+        long maxCost = maxMemory / (128L * blockSize);
+        if (n.longValue() > maxCost || p.longValue() > maxCost)
         {
             throw new IOException("BCFKS KeyStore: scrypt cost parameters require more than " + maxMemory + " bytes");
         }
@@ -1005,18 +1007,46 @@ class BcFKSKeyStoreSpi
         }
     }
 
-    private void verifyMac(byte[] content, PbkdMacIntegrityCheck integrityCheck, char[] password)
+    // returns true if the store only verified under the pre-1.87 scrypt parallelization convention.
+    private boolean verifyMac(byte[] content, PbkdMacIntegrityCheck integrityCheck, char[] password)
         throws NoSuchAlgorithmException, IOException, NoSuchProviderException
     {
-        byte[] check = calculateMac(content, integrityCheck.getMacAlgorithm(), integrityCheck.getPbkdAlgorithm(), password);
+        KeyDerivationFunc pbkdAlgorithm = integrityCheck.getPbkdAlgorithm();
 
-        if (!Arrays.constantTimeAreEqual(check, integrityCheck.getMac()))
+        byte[] check = calculateMac(content, integrityCheck.getMacAlgorithm(), pbkdAlgorithm, password, false);
+
+        if (Arrays.constantTimeAreEqual(check, integrityCheck.getMac()))
         {
-            throw new IOException("BCFKS KeyStore corrupted: MAC calculation failed");
+            return false;
         }
+
+        if (hasLegacyScryptAlternative(pbkdAlgorithm))
+        {
+            check = calculateMac(content, integrityCheck.getMacAlgorithm(), pbkdAlgorithm, password, true);
+
+            if (Arrays.constantTimeAreEqual(check, integrityCheck.getMac()))
+            {
+                return true;
+            }
+        }
+
+        throw new IOException("BCFKS KeyStore corrupted: MAC calculation failed");
     }
 
-    private byte[] calculateMac(byte[] content, AlgorithmIdentifier algorithm, KeyDerivationFunc pbkdAlgorithm, char[] password)
+    // true if the block size and the encoded parallelization parameter would give different keys, so a pre-1.87 store is worth a retry.
+    private static boolean hasLegacyScryptAlternative(KeyDerivationFunc pbkdAlgorithm)
+    {
+        if (!MiscObjectIdentifiers.id_scrypt.equals(pbkdAlgorithm.getAlgorithm()))
+        {
+            return false;
+        }
+
+        ScryptParams params = ScryptParams.getInstance(pbkdAlgorithm.getParameters());
+
+        return !params.getBlockSize().equals(params.getParallelizationParameter());
+    }
+
+    private byte[] calculateMac(byte[] content, AlgorithmIdentifier algorithm, KeyDerivationFunc pbkdAlgorithm, char[] password, boolean legacyScryptParallelization)
         throws NoSuchAlgorithmException, IOException, NoSuchProviderException
     {
         String algorithmId = algorithm.getAlgorithm().getId();
@@ -1026,7 +1056,7 @@ class BcFKSKeyStoreSpi
         try
         {
             // no default key size for MAC.
-            mac.init(new SecretKeySpec(generateKey(pbkdAlgorithm, "INTEGRITY_CHECK", ((password != null) ? password : new char[0]), -1), algorithmId));
+            mac.init(new SecretKeySpec(generateKey(pbkdAlgorithm, "INTEGRITY_CHECK", ((password != null) ? password : new char[0]), -1, legacyScryptParallelization), algorithmId));
         }
         catch (InvalidKeyException e)
         {
@@ -1178,7 +1208,7 @@ class BcFKSKeyStoreSpi
         byte[] mac;
         try
         {
-            mac = calculateMac(encStoreData.getEncoded(), hmacAlgorithm, hmacPkbdAlgorithm, password);
+            mac = calculateMac(encStoreData.getEncoded(), hmacAlgorithm, hmacPkbdAlgorithm, password, false);
         }
         catch (NoSuchProviderException e)
         {
@@ -1198,7 +1228,7 @@ class BcFKSKeyStoreSpi
         ObjectData[] dataArray = (ObjectData[])entries.values().toArray(new ObjectData[entries.size()]);
 
         KeyDerivationFunc pbkdAlgId = generatePkbdAlgorithmIdentifier(hmacPkbdAlgorithm, 256 / 8);
-        byte[] keyBytes = generateKey(pbkdAlgId, "STORE_ENCRYPTION", ((password != null) ? password : new char[0]), 256 / 8);
+        byte[] keyBytes = generateKey(pbkdAlgId, "STORE_ENCRYPTION", ((password != null) ? password : new char[0]), 256 / 8, false);
 
         ObjectStoreData storeData = new ObjectStoreData(integrityAlgorithm, creationDate, lastModifiedDate, new ObjectDataSequence(dataArray), null);
         EncryptedObjectStoreData encStoreData;
@@ -1334,10 +1364,14 @@ class BcFKSKeyStoreSpi
             ScryptConfig scryptConfig = (ScryptConfig)storePBKDFConfig;
             ScryptParams sParams = ScryptParams.getInstance(hmacPkbdAlgorithm.getParameters());
 
+            int parallelization = sParams.getParallelizationParameter().intValue();
+
             if (scryptConfig.getSaltLength() != sParams.getSalt().length
                 || scryptConfig.getBlockSize() != sParams.getBlockSize().intValue()
                 || scryptConfig.getCostParameter() != sParams.getCostParameter().intValue()
-                || scryptConfig.getParallelizationParameter() != sParams.getParallelizationParameter().intValue())
+                // a store written with p equal to r carries the block size whatever p was configured - see Properties.BCFKS_SCRYPT_P_EQ_R.
+                || (parallelization != scryptConfig.getParallelizationParameter()
+                    && parallelization != sParams.getBlockSize().intValue()))
             {
                 return false;
             }
@@ -1401,6 +1435,7 @@ class BcFKSKeyStoreSpi
 
         ObjectStoreIntegrityCheck integrityCheck = store.getIntegrityCheck();
         AlgorithmIdentifier integrityAlg;
+        boolean legacyScryptParallelization = false;
 
         if (integrityCheck.getType() == ObjectStoreIntegrityCheck.PBKD_MAC_CHECK)
         {
@@ -1413,7 +1448,7 @@ class BcFKSKeyStoreSpi
 
             try
             {
-                verifyMac(store.getStoreData().toASN1Primitive().getEncoded(), pbkdMacIntegrityCheck, password);
+                legacyScryptParallelization = verifyMac(store.getStoreData().toASN1Primitive().getEncoded(), pbkdMacIntegrityCheck, password);
             }
             catch (NoSuchProviderException e)
             {
@@ -1476,7 +1511,7 @@ class BcFKSKeyStoreSpi
             EncryptedObjectStoreData encryptedStoreData = (EncryptedObjectStoreData)sData;
             AlgorithmIdentifier protectAlgId = encryptedStoreData.getEncryptionAlgorithm();
 
-            storeData = ObjectStoreData.getInstance(decryptData("STORE_ENCRYPTION", protectAlgId, password, encryptedStoreData.getEncryptedContent().getOctets()));
+            storeData = ObjectStoreData.getInstance(decryptData("STORE_ENCRYPTION", protectAlgId, password, encryptedStoreData.getEncryptedContent().getOctets(), legacyScryptParallelization));
         }
         else
         {
@@ -1509,12 +1544,45 @@ class BcFKSKeyStoreSpi
     private byte[] decryptData(String purpose, AlgorithmIdentifier protectAlgId, char[] password, byte[] encryptedData)
         throws IOException
     {
+        return decryptData(purpose, protectAlgId, password, encryptedData, false);
+    }
+
+    private byte[] decryptData(String purpose, AlgorithmIdentifier protectAlgId, char[] password, byte[] encryptedData, boolean legacyScryptParallelization)
+        throws IOException
+    {
         if (!protectAlgId.getAlgorithm().equals(PKCSObjectIdentifiers.id_PBES2))
         {
             throw new IOException("BCFKS KeyStore cannot recognize protection algorithm.");
         }
 
         PBES2Parameters pbes2Parameters = PBES2Parameters.getInstance(protectAlgId.getParameters());
+
+        try
+        {
+            return decryptData(purpose, pbes2Parameters, password, encryptedData, legacyScryptParallelization);
+        }
+        catch (IOException e)
+        {
+            // a signature-checked store has no MAC to settle the convention, so retry here, reporting the encoded parameters' failure.
+            if (legacyScryptParallelization || !hasLegacyScryptAlternative(pbes2Parameters.getKeyDerivationFunc()))
+            {
+                throw e;
+            }
+
+            try
+            {
+                return decryptData(purpose, pbes2Parameters, password, encryptedData, true);
+            }
+            catch (IOException retryFailure)
+            {
+                throw e;
+            }
+        }
+    }
+
+    private byte[] decryptData(String purpose, PBES2Parameters pbes2Parameters, char[] password, byte[] encryptedData, boolean legacyScryptParallelization)
+        throws IOException
+    {
         EncryptionScheme algId = pbes2Parameters.getEncryptionScheme();
 
         try
@@ -1540,7 +1608,7 @@ class BcFKSKeyStoreSpi
                 throw new IOException("BCFKS KeyStore cannot recognize protection encryption algorithm.");
             }
 
-            byte[] keyBytes = generateKey(pbes2Parameters.getKeyDerivationFunc(), purpose, ((password != null) ? password : new char[0]), 32);
+            byte[] keyBytes = generateKey(pbes2Parameters.getKeyDerivationFunc(), purpose, ((password != null) ? password : new char[0]), 32, legacyScryptParallelization);
 
             c.init(Cipher.DECRYPT_MODE, new SecretKeySpec(keyBytes, "AES"), algParams);
 
@@ -1601,6 +1669,17 @@ class BcFKSKeyStoreSpi
         throw new IOException("unknown signature algorithm");
     }
 
+    // the parallelization parameter to write: the block size unless the property is cleared. See Properties.BCFKS_SCRYPT_P_EQ_R.
+    private static int scryptParallelization(int blockSize, int parallelizationParameter)
+    {
+        return Properties.isOverrideSet(Properties.BCFKS_SCRYPT_P_EQ_R, true) ? blockSize : parallelizationParameter;
+    }
+
+    private static BigInteger scryptParallelization(BigInteger blockSize, BigInteger parallelizationParameter)
+    {
+        return Properties.isOverrideSet(Properties.BCFKS_SCRYPT_P_EQ_R, true) ? blockSize : parallelizationParameter;
+    }
+
     private KeyDerivationFunc generatePkbdAlgorithmIdentifier(PBKDFConfig pbkdfConfig, int keySizeInBytes)
     {
         if (MiscObjectIdentifiers.id_scrypt.equals(pbkdfConfig.getAlgorithm()))
@@ -1612,7 +1691,8 @@ class BcFKSKeyStoreSpi
 
             ScryptParams params = new ScryptParams(
                 pbkdSalt,
-                scryptConfig.getCostParameter(), scryptConfig.getBlockSize(), scryptConfig.getParallelizationParameter(), keySizeInBytes);
+                scryptConfig.getCostParameter(), scryptConfig.getBlockSize(),
+                scryptParallelization(scryptConfig.getBlockSize(), scryptConfig.getParallelizationParameter()), keySizeInBytes);
 
             return new KeyDerivationFunc(MiscObjectIdentifiers.id_scrypt, params);
         }
@@ -1638,7 +1718,8 @@ class BcFKSKeyStoreSpi
 
             ScryptParams params = new ScryptParams(
                 pbkdSalt,
-                oldParams.getCostParameter(), oldParams.getBlockSize(), oldParams.getParallelizationParameter(), BigInteger.valueOf(keySizeInBytes));
+                oldParams.getCostParameter(), oldParams.getBlockSize(),
+                scryptParallelization(oldParams.getBlockSize(), oldParams.getParallelizationParameter()), BigInteger.valueOf(keySizeInBytes));
 
             return new KeyDerivationFunc(MiscObjectIdentifiers.id_scrypt, params);
         }

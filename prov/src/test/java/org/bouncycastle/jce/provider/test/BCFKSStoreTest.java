@@ -13,6 +13,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
@@ -22,10 +23,12 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.RSAPrivateCrtKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.crypto.Mac;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -46,6 +49,8 @@ import org.bouncycastle.asn1.pkcs.KeyDerivationFunc;
 import org.bouncycastle.asn1.x509.BasicConstraints;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.ExtensionsGenerator;
+import org.bouncycastle.crypto.PBEParametersGenerator;
+import org.bouncycastle.crypto.generators.SCrypt;
 import org.bouncycastle.crypto.util.PBKDF2Config;
 import org.bouncycastle.crypto.util.PBKDFConfig;
 import org.bouncycastle.crypto.util.ScryptConfig;
@@ -76,6 +81,31 @@ public class BCFKSStoreTest
             "hvcNAQkBFhhzdWJqZWN0QGJvdW5jeWNhc3RsZS5vcmcwWjANBgkqhkiG9w0BAQEFAANJADBGAkEAtKfkYXBXTxapcIKyK+WLaipil5" +
             "hBm+EocqS9umJs+umQD3ar+xITnc5d5WVk+rK2VDFloEDGBoh0IOM9ke1+1wIBETANBgkqhkiG9w0BAQQFAANBAJ/ZhfF21NykhbEY" +
             "RQrAo/yRr9XfpmBTVUSlLJXYoNVVRT5u9SGQqmPNfHElrTvNMZQPC0ridDZtBWb6S2tg9/E=");
+
+    private static final byte[] legacyScryptKeyStore = Base64.decode(
+        "MIICJjCCAZ0wXwYJKoZIhvcNAQUNMFIwMAYJKwYBBAHaRwQLMCMEFNNP1KhyD/fiwwQ45qBnNtX/ZSxWAgIEAAIBCAIBAQIBIDAeBglghkgBZQ" +
+            "MEAS8wEQQMYZ+qgQjkDkV6JIGWAgEIBIIBOIX2t8xGZ3QGc5RnRPITEAbmWBNdiPmM7YD6PzljGmwrs4/IdajHZtELUr4LI3Rps+oHVxo3V4" +
+            "+YwjLIw0iBKz3wiXO69iMoNuVAGLTFOYyr1s0lpY8R9pAcOLsKyeQgCtxg9CDr1mgNVynmR/MSOlJycsc3xSAAFhl5F8jc67oCLMmst4xx09" +
+            "4THIpk5F0PO+6/OVVI5X48E7Yv5oz8VkwwggDGO/KQrC1TQDReBbxdLyAcnZceGO71pNlAvRg5J7lKi4qO5FkTg4PJy32autRqZKJn+U5oYT" +
+            "wDj7zFPMHbKEVtvGzr5Zbh+e5X7OkOkcANyEygbyAvN1u/DQ8pwFhfqGajIWy2mZpSk3SJho5Uh/5WjVQ604dskyaEz7UCII5UNv06f3D5Ou" +
+            "jw5IJhGDfpO6Mu3ox0AjCBgjAMBggqhkiG9w0CCwUAMDAGCSsGAQQB2kcECzAjBBRT/v5SZ1Zk7uXdnBaiY0f4kdWWXAICBAACAQgCAQECAU" +
+            "AEQCIaST6IdxaX6n7Q5vciPd/huBfVuRyG8nLzDkPT2j412HR+AzuR46i/UjCVGSSHx7TyokAnMW8aZ84BgPi1FC0=");
+
+    private static final byte[] legacyScryptSignedKeyStore = Base64.decode(
+        "MIIDITCCAZswXwYJKoZIhvcNAQUNMFIwMAYJKwYBBAHaRwQLMCMEFF2Y5CpDqmcfBqTWCT7ipFo1BZemAgIEAAIBCAIBAQIBIDAeBglghkgBZQ" +
+            "MEAS8wEQQMFskoc+K4ETOddKRRAgEIBIIBNlLkf9fdsCGqpEw+nuwohy0W3iE9U2YyPTEud4uU/ZvIVbwoDQE3OZjA0Usdeo0rCcS0nHM4ud" +
+            "kq82qaYHfi9KLRMM4zkmX4yFs79QNeY10TxZETbawqu7u9/eThkB4Cg+Kl45E3JxiHVOM6qNy4blQcIVtlLKkLUrkcDzz3RmYR+1ZgA/0hZw" +
+            "SBE5QG9HBdhGT6T/qdkzNPfigpQb+oICl4XFFrTwEFAgRqbZrwXyRJS4D90g1j+3J7FR5CmOTnetIJ6Tp/PZWc0uwKa97vcXa7rxWnMTwwbX" +
+            "l2EmXd7UAM9pHSHz4na08cyj7F47Ywvj4mMFufq4GmWocsilGDPWdUDPoyamg6i7GED8A8ah2TEAYQ4SCe3QW8PeIeqLsCq2MqO/GgCeGFq3" +
+            "ivH8zesnMtRf69/xmgggF+MIIBejAKBggqhkjOPQQDBKCCASEwggEdMIIBGTCBv6ADAgECAgEBMAoGCCqGSM49BAMCMBUxEzARBgNVBAMMCk" +
+            "JDRktTIFRlc3QwIBcNMjAwOTEzMTIyNjQwWhgPMjA5OTEyMDMxNjUzMjBaMBUxEzARBgNVBAMMCkJDRktTIFRlc3QwWTATBgcqhkjOPQIBBg" +
+            "gqhkjOPQMBBwNCAAR9SCWqNcCFdFKDpZXRCHdRFNdN54fILw6wkQifg/XrgcJNTblD8k0itEmw/MZJwMa07w8dSyrsJkfI5ace92reMAoGCC" +
+            "qGSM49BAMCA0kAMEYCIQCH7YuUatuft9l24frXikqXJLB3Feoy23qgBx3gV0ZUCgIhAMzuUzGZJZoQzs4HPlUlS+oNSXsupvKvSRKyQbOe6d" +
+            "1HA0cAMEQCIFF/bAD27bd+S0jY9vagS8sqiy9zBHmsIPdsRI+Nsl5BAiBVyGGiWxZWZ5dKpDP80iuNtT6ISuxrI47iNN6hrnkv1w==");
+
+    private static final byte[] legacyScryptSignedKeyStorePub = Base64.decode(
+        "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEfUglqjXAhXRSg6WV0Qh3URTXTeeHyC8OsJEIn4P164HCTU25Q/JNIrRJsPzGScDGtO8PHUsq7C" +
+            "ZHyOWnHvdq3g==");
 
     static char[] testPassword = {'h', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd'};
     static char[] invalidTestPassword = {'Y', 'e', 'l', 'l', 'o', ' ', 'w', 'o', 'r', 'l', 'd'};
@@ -1400,6 +1430,152 @@ public class BCFKSStoreTest
         }
     }
 
+    private void shouldParseLegacyScryptStores()
+        throws Exception
+    {
+        // written by 1.86 with N=1024, r=8, p=1: up to that release the block size was passed where
+        // RFC 7914 has the parallelization parameter, so these only open under that convention.
+        KeyStore store = KeyStore.getInstance("BCFKS", "BC");
+
+        store.load(new ByteArrayInputStream(legacyScryptKeyStore), testPassword);
+
+        checkScryptStoreEntry(store);
+
+        PublicKey sigKey = KeyFactory.getInstance("EC", "BC").generatePublic(
+            new X509EncodedKeySpec(legacyScryptSignedKeyStorePub));
+
+        // a signature-checked store has no MAC to settle the convention, so the store decryption
+        // carries the retry instead.
+        store.load(new BCFKSLoadStoreParameter.Builder(
+            new ByteArrayInputStream(legacyScryptSignedKeyStore), sigKey).build());
+
+        checkScryptStoreEntry(store);
+    }
+
+    private void checkScryptStoreEntry(KeyStore store)
+        throws Exception
+    {
+        Key key = store.getKey("seckey", testPassword);
+
+        isTrue("scrypt store key wrong",
+            Arrays.areEqual(Hex.decode("000102030405060708090a0b0c0d0e0f"), key.getEncoded()));
+    }
+
+    private void shouldWriteConformantScryptParallelization()
+        throws Exception
+    {
+        String old = System.getProperty(Properties.BCFKS_SCRYPT_P_EQ_R);
+
+        try
+        {
+            // the default writes p equal to r, which both a conformant reader and the pre-1.87
+            // releases derive with, so the two conventions coincide.
+            System.clearProperty(Properties.BCFKS_SCRYPT_P_EQ_R);
+
+            checkScryptParallelization(8);
+
+            System.setProperty(Properties.BCFKS_SCRYPT_P_EQ_R, "true");
+
+            checkScryptParallelization(8);
+
+            // cleared, the configured p is written and derived with, and the pre-1.87 convention
+            // no longer opens the store.
+            System.setProperty(Properties.BCFKS_SCRYPT_P_EQ_R, "false");
+
+            checkScryptParallelization(1);
+        }
+        finally
+        {
+            restoreProperty(Properties.BCFKS_SCRYPT_P_EQ_R, old);
+        }
+    }
+
+    private void checkScryptParallelization(int expectedP)
+        throws Exception
+    {
+        ScryptConfig config = new ScryptConfig.Builder(1024, 8, 1).withSaltLength(20).build();
+
+        KeyStore store1 = KeyStore.getInstance("BCFKS", "BC");
+
+        store1.load(null, null);
+        store1.setKeyEntry("seckey", new SecretKeySpec(Hex.decode("000102030405060708090a0b0c0d0e0f"), "AES"), testPassword, null);
+
+        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+
+        store1.store(new BCFKSLoadStoreParameter.Builder(bOut, testPassword)
+            .withStorePBKDFConfig(config).build());
+
+        byte[] enc = bOut.toByteArray();
+
+        ObjectStore store = ObjectStore.getInstance(enc);
+        PbkdMacIntegrityCheck integrityCheck = PbkdMacIntegrityCheck.getInstance(
+            store.getIntegrityCheck().getIntegrityCheck());
+        ScryptParams params = ScryptParams.getInstance(integrityCheck.getPbkdAlgorithm().getParameters());
+
+        isEquals("wrong parallelization parameter written", expectedP, params.getParallelizationParameter().intValue());
+
+        byte[] mac = integrityCheck.getMac();
+        byte[] content = store.getStoreData().toASN1Primitive().getEncoded();
+
+        // whatever is written, the store has to MAC under the parallelization parameter it encodes.
+        isTrue("store not derived with the encoded parallelization parameter",
+            Arrays.areEqual(mac, recalculateMac(integrityCheck, content, params,
+                params.getParallelizationParameter().intValue())));
+
+        boolean legacyOpens = Arrays.areEqual(mac, recalculateMac(integrityCheck, content, params,
+            params.getBlockSize().intValue()));
+
+        isTrue("pre-1.87 convention does not agree with a p equal to r",
+            legacyOpens == (expectedP == params.getBlockSize().intValue()));
+
+        KeyStore store2 = KeyStore.getInstance("BCFKS", "BC");
+
+        store2.load(new ByteArrayInputStream(enc), testPassword);
+
+        checkScryptStoreEntry(store2);
+
+        // the store has to come back under the configuration that wrote it, whatever p was encoded.
+        KeyStore store3 = KeyStore.getInstance("BCFKS", "BC");
+
+        store3.load(new BCFKSLoadStoreParameter.Builder(new ByteArrayInputStream(enc), testPassword)
+            .withStorePBKDFConfig(config).build());
+
+        checkScryptStoreEntry(store3);
+
+        // a configuration that differs other than in p is still refused.
+        try
+        {
+            KeyStore store4 = KeyStore.getInstance("BCFKS", "BC");
+
+            store4.load(new BCFKSLoadStoreParameter.Builder(new ByteArrayInputStream(enc), testPassword)
+                .withStorePBKDFConfig(new ScryptConfig.Builder(2048, 8, 1).withSaltLength(20).build()).build());
+
+            fail("mismatched scrypt configuration accepted");
+        }
+        catch (IOException e)
+        {
+            isEquals("configuration parameters do not match existing store", e.getMessage());
+        }
+    }
+
+    private byte[] recalculateMac(PbkdMacIntegrityCheck integrityCheck, byte[] content, ScryptParams params, int p)
+        throws Exception
+    {
+        byte[] pin = Arrays.concatenate(
+            PBEParametersGenerator.PKCS12PasswordToBytes(testPassword),
+            PBEParametersGenerator.PKCS12PasswordToBytes("INTEGRITY_CHECK".toCharArray()));
+
+        byte[] key = SCrypt.generate(pin, params.getSalt(), params.getCostParameter().intValue(),
+            params.getBlockSize().intValue(), p, params.getKeyLength().intValue());
+
+        String algorithmId = integrityCheck.getMacAlgorithm().getAlgorithm().getId();
+        Mac mac = Mac.getInstance(algorithmId, "BC");
+
+        mac.init(new SecretKeySpec(key, algorithmId));
+
+        return mac.doFinal(content);
+    }
+
     private void shouldParseOldStores()
         throws Exception
     {
@@ -1481,7 +1657,8 @@ public class BCFKSStoreTest
         isEquals(20, sParams.getSalt().length);
         isEquals(1024, sParams.getCostParameter().intValue());
         isEquals(8, sParams.getBlockSize().intValue());
-        isEquals(1, sParams.getParallelizationParameter().intValue());
+        // the configured p of 1 is written as the block size by default - see Properties.BCFKS_SCRYPT_P_EQ_R.
+        isEquals(8, sParams.getParallelizationParameter().intValue());
 
         EncryptedObjectStoreData objStore = EncryptedObjectStoreData.getInstance(store.getStoreData());
 
@@ -1497,7 +1674,8 @@ public class BCFKSStoreTest
         isEquals(20, sParams.getSalt().length);
         isEquals(1024, sParams.getCostParameter().intValue());
         isEquals(8, sParams.getBlockSize().intValue());
-        isEquals(1, sParams.getParallelizationParameter().intValue());
+        // the configured p of 1 is written as the block size by default - see Properties.BCFKS_SCRYPT_P_EQ_R.
+        isEquals(8, sParams.getParallelizationParameter().intValue());
     }
 
     private void shouldStoreUsingKWP()
@@ -1911,6 +2089,8 @@ public class BCFKSStoreTest
         shouldParseKWPKeyStore();
         shouldFailOnRemovesOrOverwrite();
         shouldParseOldStores();
+        shouldParseLegacyScryptStores();
+        shouldWriteConformantScryptParallelization();
         shouldStoreUsingKWP();
         //shouldRejectInconsistentKeys();
         shouldStoreOnePrivateKeyWithChainEdDSA();
