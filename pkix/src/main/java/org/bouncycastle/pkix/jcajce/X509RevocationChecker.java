@@ -64,7 +64,8 @@ import org.bouncycastle.util.Store;
  * Where the CRLs supplied to the builder cannot answer for a certificate, the checker will fetch
  * from the certificate's CRL Distribution Points extension, but only if the
  * {@link Properties#X509_ENABLE_CRLDP} property is set - the same opt-in the provider's CertPath
- * validator applies, and the one that property's javadoc has always described.
+ * validator applies, and the one that property's javadoc has always described. The protocols a
+ * distribution point may name can be narrowed further with {@link Properties#X509_CRLDP_PROTOCOLS}.
  */
 public class X509RevocationChecker
     extends PKIXCertPathChecker

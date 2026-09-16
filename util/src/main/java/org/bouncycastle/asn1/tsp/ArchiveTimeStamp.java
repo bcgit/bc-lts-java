@@ -117,7 +117,7 @@ public class ArchiveTimeStamp
             if (tag0 != null)
             {
                 pos++;
-                digestAlgorithm = AlgorithmIdentifier.getInstance(tag0, false);
+                digestAlgorithm = AlgorithmIdentifier.getTagged(tag0, false);
             }
         }
         this.digestAlgorithm = digestAlgorithm;
