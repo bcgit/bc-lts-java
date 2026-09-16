@@ -12,6 +12,7 @@ import java.security.Signature;
 import java.security.SignatureException;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutputStream;
+import java.security.InvalidParameterException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
@@ -192,6 +193,144 @@ public class LMSTest
         // destroy is idempotent
         ((Destroyable)privKey).destroy();
         assertTrue(((Destroyable)privKey).isDestroyed());
+    }
+
+    /**
+     * fromNames listed all twenty LM signature parameter sets but only four of the sixteen LM-OTS
+     * ones, so every sha256-n24 and shake256 name was refused even though the constant existed and
+     * the signature side accepted its counterpart. Every name in the table has to resolve to the
+     * constant it is named for, and an unknown name still has to be refused.
+     */
+    public void testKeyGenParameterSpecFromNames()
+        throws Exception
+    {
+        String[] sigNames = new String[]{ "sha256-n32", "sha256-n24", "shake256-n32", "shake256-n24" };
+        String[] heights = new String[]{ "h5", "h10", "h15", "h20", "h25" };
+        String[] widths = new String[]{ "w1", "w2", "w4", "w8" };
+
+        for (int i = 0; i != sigNames.length; i++)
+        {
+            for (int h = 0; h != heights.length; h++)
+            {
+                for (int w = 0; w != widths.length; w++)
+                {
+                    String sigName = "lms-" + sigNames[i] + "-" + heights[h];
+                    String otsName = sigNames[i] + "-" + widths[w];
+
+                    LMSKeyGenParameterSpec spec = LMSKeyGenParameterSpec.fromNames(sigName, otsName);
+
+                    // the names have to resolve to the parameter sets they name, not merely to
+                    // something - a table typo would otherwise pass unnoticed
+                    assertEquals(sigName, "lms_" + sigNames[i].replace('-', '_') + "_" + heights[h],
+                        lmsigParametersName(spec.getSigParams()));
+                    assertEquals(otsName, sigNames[i].replace('-', '_') + "_" + widths[w],
+                        lmOtsParametersName(spec.getOtsParams()));
+                }
+            }
+        }
+
+        // and the negative path: an unknown name on either side is still refused
+        try
+        {
+            LMSKeyGenParameterSpec.fromNames("lms-sha256-n32-h7", "sha256-n32-w4");
+            fail("unrecognized LM signature parameter name accepted");
+        }
+        catch (IllegalArgumentException e)
+        {
+            assertEquals("LM signature parameter name lms-sha256-n32-h7 not recognized", e.getMessage());
+        }
+
+        try
+        {
+            LMSKeyGenParameterSpec.fromNames("lms-sha256-n32-h5", "sha256-n32-w3");
+            fail("unrecognized LM OTS parameter name accepted");
+        }
+        catch (IllegalArgumentException e)
+        {
+            assertEquals("LM OTS parameter name sha256-n32-w3 not recognized", e.getMessage());
+        }
+    }
+
+    private static String lmsigParametersName(LMSigParameters params)
+    {
+        LMSigParameters[] all = new LMSigParameters[]{
+            LMSigParameters.lms_sha256_n32_h5, LMSigParameters.lms_sha256_n32_h10, LMSigParameters.lms_sha256_n32_h15,
+            LMSigParameters.lms_sha256_n32_h20, LMSigParameters.lms_sha256_n32_h25,
+            LMSigParameters.lms_sha256_n24_h5, LMSigParameters.lms_sha256_n24_h10, LMSigParameters.lms_sha256_n24_h15,
+            LMSigParameters.lms_sha256_n24_h20, LMSigParameters.lms_sha256_n24_h25,
+            LMSigParameters.lms_shake256_n32_h5, LMSigParameters.lms_shake256_n32_h10, LMSigParameters.lms_shake256_n32_h15,
+            LMSigParameters.lms_shake256_n32_h20, LMSigParameters.lms_shake256_n32_h25,
+            LMSigParameters.lms_shake256_n24_h5, LMSigParameters.lms_shake256_n24_h10, LMSigParameters.lms_shake256_n24_h15,
+            LMSigParameters.lms_shake256_n24_h20, LMSigParameters.lms_shake256_n24_h25 };
+        String[] names = new String[]{
+            "lms_sha256_n32_h5", "lms_sha256_n32_h10", "lms_sha256_n32_h15", "lms_sha256_n32_h20", "lms_sha256_n32_h25",
+            "lms_sha256_n24_h5", "lms_sha256_n24_h10", "lms_sha256_n24_h15", "lms_sha256_n24_h20", "lms_sha256_n24_h25",
+            "lms_shake256_n32_h5", "lms_shake256_n32_h10", "lms_shake256_n32_h15", "lms_shake256_n32_h20", "lms_shake256_n32_h25",
+            "lms_shake256_n24_h5", "lms_shake256_n24_h10", "lms_shake256_n24_h15", "lms_shake256_n24_h20", "lms_shake256_n24_h25" };
+
+        for (int i = 0; i != all.length; i++)
+        {
+            if (all[i] == params)
+            {
+                return names[i];
+            }
+        }
+        return "unknown";
+    }
+
+    private static String lmOtsParametersName(LMOtsParameters params)
+    {
+        LMOtsParameters[] all = new LMOtsParameters[]{
+            LMOtsParameters.sha256_n32_w1, LMOtsParameters.sha256_n32_w2, LMOtsParameters.sha256_n32_w4, LMOtsParameters.sha256_n32_w8,
+            LMOtsParameters.sha256_n24_w1, LMOtsParameters.sha256_n24_w2, LMOtsParameters.sha256_n24_w4, LMOtsParameters.sha256_n24_w8,
+            LMOtsParameters.shake256_n32_w1, LMOtsParameters.shake256_n32_w2, LMOtsParameters.shake256_n32_w4, LMOtsParameters.shake256_n32_w8,
+            LMOtsParameters.shake256_n24_w1, LMOtsParameters.shake256_n24_w2, LMOtsParameters.shake256_n24_w4, LMOtsParameters.shake256_n24_w8 };
+        String[] names = new String[]{
+            "sha256_n32_w1", "sha256_n32_w2", "sha256_n32_w4", "sha256_n32_w8",
+            "sha256_n24_w1", "sha256_n24_w2", "sha256_n24_w4", "sha256_n24_w8",
+            "shake256_n32_w1", "shake256_n32_w2", "shake256_n32_w4", "shake256_n32_w8",
+            "shake256_n24_w1", "shake256_n24_w2", "shake256_n24_w4", "shake256_n24_w8" };
+
+        for (int i = 0; i != all.length; i++)
+        {
+            if (all[i] == params)
+            {
+                return names[i];
+            }
+        }
+        return "unknown";
+    }
+
+    /**
+     * KeyPairGenerator.initialize(int, SecureRandom) is specified to throw InvalidParameterException
+     * where the strength makes no sense, which LMS cannot use at all. It extends
+     * IllegalArgumentException, so code catching the old type still matches.
+     */
+    public void testKeyPairGeneratorStrengthRejected()
+        throws Exception
+    {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("LMS", "BC");
+
+        try
+        {
+            kpg.initialize(2048, new SecureRandom());
+            fail("initialize(int, SecureRandom) accepted");
+        }
+        catch (InvalidParameterException e)
+        {
+            assertEquals("use AlgorithmParameterSpec", e.getMessage());
+        }
+
+        // the pre-existing contract still holds for a caller catching the supertype
+        try
+        {
+            kpg.initialize(2048, new SecureRandom());
+            fail("initialize(int, SecureRandom) accepted");
+        }
+        catch (IllegalArgumentException e)
+        {
+            assertEquals("use AlgorithmParameterSpec", e.getMessage());
+        }
     }
 
     public void testKeyFactoryLMSKey()
