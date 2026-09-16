@@ -10,8 +10,12 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+
+import javax.security.auth.Destroyable;
 
 import junit.framework.TestCase;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
@@ -80,6 +84,114 @@ public class LMSTest
         signer.update(msg);
 
         assertTrue(signer.verify(sig));
+    }
+
+    /**
+     * A destroyed LMS private key must stop handing out its secret at the JCA boundary, and the
+     * refusal has to be more than a flag: the key can no longer be encoded, sharded or serialized,
+     * and signing fails. The non-secret parts stay readable, which is what makes destroy() usable
+     * on a key whose index a caller still needs to record.
+     */
+    public void testDestroyPrivateKey()
+        throws Exception
+    {
+        KeyPairGenerator kpg = KeyPairGenerator.getInstance("LMS", "BC");
+
+        kpg.initialize(new LMSKeyGenParameterSpec(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4),
+            new SecureRandom());
+
+        KeyPair kp = kpg.generateKeyPair();
+
+        LMSPrivateKey privKey = (LMSPrivateKey)kp.getPrivate();
+
+        // baseline: signs, encodes, and reports itself intact
+        byte[] msg = Strings.toByteArray("Hello, world!");
+
+        Signature signer = Signature.getInstance("LMS", "BC");
+        signer.initSign(privKey);
+        signer.update(msg);
+        byte[] sig = signer.sign();
+
+        Signature verifier = Signature.getInstance("LMS", "BC");
+        verifier.initVerify(kp.getPublic());
+        verifier.update(msg);
+        assertTrue(verifier.verify(sig));
+
+        assertNotNull(privKey.getEncoded());
+        assertFalse(((Destroyable)privKey).isDestroyed());
+
+        long levels = privKey.getLevels();
+        long usagesRemaining = privKey.getUsagesRemaining();
+        long index = privKey.getIndex();
+
+        ((Destroyable)privKey).destroy();
+
+        assertTrue(((Destroyable)privKey).isDestroyed());
+
+        try
+        {
+            privKey.getEncoded();
+            fail("getEncoded on a destroyed key");
+        }
+        catch (IllegalStateException e)
+        {
+            assertEquals("key destroyed", e.getMessage());
+        }
+
+        try
+        {
+            privKey.extractKeyShard(1);
+            fail("extractKeyShard on a destroyed key");
+        }
+        catch (IllegalStateException e)
+        {
+            assertEquals("key destroyed", e.getMessage());
+        }
+
+        // serialization goes through getEncoded, and must surface as an IOException rather than
+        // writing a key with no secret in it
+        try
+        {
+            ObjectOutputStream oOut = new ObjectOutputStream(new ByteArrayOutputStream());
+            oOut.writeObject(privKey);
+            oOut.close();
+            fail("serialization of a destroyed key");
+        }
+        catch (java.io.IOException e)
+        {
+            assertEquals("key destroyed", e.getMessage());
+        }
+
+        // and it can no longer produce a signature
+        try
+        {
+            Signature failed = Signature.getInstance("LMS", "BC");
+            failed.initSign(privKey);
+            failed.update(msg);
+            failed.sign();
+            fail("signing with a destroyed key");
+        }
+        catch (IllegalStateException e)
+        {
+            assertEquals("key destroyed", e.getMessage());
+        }
+        catch (SignatureException e)
+        {
+            // also acceptable: the failure is reported through the JCA signature contract
+        }
+
+        // the non-secret parts survive, deliberately
+        assertEquals(levels, privKey.getLevels());
+        assertEquals(usagesRemaining, privKey.getUsagesRemaining());
+        assertEquals(index, privKey.getIndex());
+
+        // a destroyed key is only equal to itself
+        assertTrue(privKey.equals(privKey));
+        assertFalse(privKey.equals(kpg.generateKeyPair().getPrivate()));
+
+        // destroy is idempotent
+        ((Destroyable)privKey).destroy();
+        assertTrue(((Destroyable)privKey).isDestroyed());
     }
 
     public void testKeyFactoryLMSKey()
