@@ -1,13 +1,21 @@
 package org.bouncycastle.jce.provider.test;
 
+import java.io.IOException;
+import java.math.BigInteger;
+import java.security.AlgorithmParameters;
 import java.security.MessageDigest;
 import java.security.Security;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
+import org.bouncycastle.jcajce.spec.KMACParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
 
@@ -88,12 +96,115 @@ public class XOFTest
         isTrue("oops", Arrays.areEqual(Hex.decode("75358CF39E41494E949707927CEE0AF20A3FF553904C86B08F21CC414BCFD691589D27CF5E15369CBBFF8B9A4C2EB17800855D0235FF635DA82533EC6B759B69"), kMac.doFinal()));
     }
 
+    // A KMACwithSHAKEnnn-params (RFC 8702 sec.3.4) decoded from the wire is untrusted: the
+    // kMACOutputLength INTEGER can be out of int range, which ASN1Integer.intValueExact rejects
+    // with an ArithmeticException. AlgorithmParameters.init(byte[]) is a decode path declared
+    // throws IOException, so that RuntimeException must not be allowed to escape it (reachable
+    // from CMS AuthenticatedData parsing via EnvelopedDataHelper.createContentMac).
+    private void kmacParamsDecodeRobustnessTest()
+        throws Exception
+    {
+        checkRejectsMalformedParams(NISTObjectIdentifiers.id_KmacWithSHAKE128);
+        checkRejectsMalformedParams(NISTObjectIdentifiers.id_KmacWithSHAKE256);
+    }
+
+    private void checkRejectsMalformedParams(org.bouncycastle.asn1.ASN1ObjectIdentifier kmacOid)
+        throws Exception
+    {
+        AlgorithmParameters algParams = AlgorithmParameters.getInstance(kmacOid.getId(), "BC");
+
+        // kMACOutputLength = 2^100 - well out of int range.
+        byte[] outOfRange = new DERSequence(new ASN1Integer(BigInteger.ONE.shiftLeft(100))).getEncoded();
+
+        try
+        {
+            algParams.init(outOfRange);
+            fail("out-of-int-range kMACOutputLength not rejected for " + kmacOid);
+        }
+        catch (IOException e)
+        {
+            // expected - decode contract honoured, RuntimeException did not escape.
+        }
+
+        // structurally malformed: an INTEGER where a SEQUENCE is expected.
+        byte[] notASequence = new ASN1Integer(42).getEncoded();
+
+        try
+        {
+            algParams.init(notASequence);
+            fail("non-SEQUENCE KMAC parameters not rejected for " + kmacOid);
+        }
+        catch (IOException e)
+        {
+            // expected.
+        }
+    }
+
+    // The decode side above is upstream's; the encode side is new code with no coverage, so
+    // check a spec survives encode/decode and that the RFC 8702 defaults really are omitted -
+    // an encoder that always wrote both fields would round-trip just as cleanly.
+    private void kmacParamsRoundTripTest()
+        throws Exception
+    {
+        checkParamsRoundTrip(NISTObjectIdentifiers.id_KmacWithSHAKE128, 256);
+        checkParamsRoundTrip(NISTObjectIdentifiers.id_KmacWithSHAKE256, 512);
+    }
+
+    private void checkParamsRoundTrip(org.bouncycastle.asn1.ASN1ObjectIdentifier kmacOid, int defaultOutputBits)
+        throws Exception
+    {
+        byte[] custom = Strings.toByteArray("My Tagged Application");
+
+        AlgorithmParameters algParams = AlgorithmParameters.getInstance(kmacOid.getId(), "BC");
+        algParams.init(new KMACParameterSpec(384, custom));
+
+        byte[] encoded = algParams.getEncoded();
+
+        AlgorithmParameters decoded = AlgorithmParameters.getInstance(kmacOid.getId(), "BC");
+        decoded.init(encoded);
+
+        KMACParameterSpec spec = decoded.getParameterSpec(KMACParameterSpec.class);
+
+        isTrue("mac size lost", 384 == spec.getMacSizeInBits());
+        isTrue("customization string lost", Arrays.areEqual(custom, spec.getCustomizationString()));
+
+        // the defaults are DEFAULT-tagged in the ASN.1, so an all-defaults spec encodes as an
+        // empty SEQUENCE - two bytes - and still decodes back to those defaults
+        AlgorithmParameters defaults = AlgorithmParameters.getInstance(kmacOid.getId(), "BC");
+        defaults.init(new KMACParameterSpec(defaultOutputBits, new byte[0]));
+
+        byte[] defaultsEnc = defaults.getEncoded();
+
+        isTrue("defaults not omitted, got " + defaultsEnc.length + " bytes", defaultsEnc.length == 2);
+
+        AlgorithmParameters reread = AlgorithmParameters.getInstance(kmacOid.getId(), "BC");
+        reread.init(defaultsEnc);
+
+        KMACParameterSpec defaultSpec = reread.getParameterSpec(KMACParameterSpec.class);
+
+        isTrue("default mac size wrong", defaultOutputBits == defaultSpec.getMacSizeInBits());
+        isTrue("default customization string wrong", 0 == defaultSpec.getCustomizationString().length);
+
+        // and a spec is rejected at construction where the length is not whole octets
+        try
+        {
+            new KMACParameterSpec(383);
+            fail("non-multiple-of-8 mac size accepted");
+        }
+        catch (IllegalArgumentException e)
+        {
+            isTrue("wrong message: " + e.getMessage(), "macSizeInBits must be a multiple of 8".equals(e.getMessage()));
+        }
+    }
+
     public void performTest()
         throws Exception
     {
         tupleHashTest();
         parallelHashTest();
         KMACTest();
+        kmacParamsDecodeRobustnessTest();
+        kmacParamsRoundTripTest();
     }
 
     public static void main(String[] args)

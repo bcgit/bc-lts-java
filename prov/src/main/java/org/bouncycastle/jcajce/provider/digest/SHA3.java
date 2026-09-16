@@ -313,6 +313,10 @@ public class SHA3
         }
     }
 
+    /**
+     * @deprecated retained for binary compatibility; the provider now registers
+     * {@link KMacSpi.KMac128}, which supports the RFC 8702 parameters.
+     */
     public static class KMac128
         extends BaseMac
     {
@@ -322,6 +326,10 @@ public class SHA3
         }
     }
 
+    /**
+     * @deprecated retained for binary compatibility; the provider now registers
+     * {@link KMacSpi.KMac256}, which supports the RFC 8702 parameters.
+     */
     public static class KMac256
         extends BaseMac
     {
@@ -413,13 +421,29 @@ public class SHA3
             provider.addAlgorithm("SecretKeyFactory.HMACSHA3-512", PREFIX + "$KeyFactory512");
             provider.addAlgorithm("Alg.Alias.SecretKeyFactory." + NISTObjectIdentifiers.id_hmacWithSHA3_512, "HMACSHA3-512");
 
-            addKMACAlgorithm(provider, "128", PREFIX + "$KMac128",  PREFIX + "$KeyGenerator256");
+            String KMAC_SPI = KMacSpi.class.getName();
+
+            addKMACAlgorithm(provider, "128", KMAC_SPI + "$KMac128",  PREFIX + "$KeyGenerator256");
+            addKMACAlias(provider, "128", NISTObjectIdentifiers.id_KmacWithSHAKE128);
+            addKMACAlias(provider, "128", NISTObjectIdentifiers.id_Kmac128);
             provider.addAlgorithm("SecretKeyFactory.KMAC128", PREFIX + "$KeyFactoryKMAC128");
             provider.addAlgorithm("Alg.Alias.SecretKeyFactory." + NISTObjectIdentifiers.id_Kmac128, "KMAC128");
+            provider.addAlgorithm("Alg.Alias.SecretKeyFactory." + NISTObjectIdentifiers.id_KmacWithSHAKE128, "KMAC128");
+            provider.addAlgorithm("AlgorithmParameters." + NISTObjectIdentifiers.id_KmacWithSHAKE128,
+                KMACAlgorithmParameters.class.getName() + "$KMac128");
+            provider.addAlgorithm("AlgorithmParameters." + NISTObjectIdentifiers.id_Kmac128,
+                KMACAlgorithmParameters.class.getName() + "$KMac128");
 
-            addKMACAlgorithm(provider, "256", PREFIX + "$KMac256",  PREFIX + "$KeyGenerator512");
+            addKMACAlgorithm(provider, "256", KMAC_SPI + "$KMac256",  PREFIX + "$KeyGenerator512");
+            addKMACAlias(provider, "256", NISTObjectIdentifiers.id_KmacWithSHAKE256);
+            addKMACAlias(provider, "256", NISTObjectIdentifiers.id_Kmac256);
             provider.addAlgorithm("SecretKeyFactory.KMAC256", PREFIX + "$KeyFactoryKMAC256");
             provider.addAlgorithm("Alg.Alias.SecretKeyFactory." + NISTObjectIdentifiers.id_Kmac256, "KMAC256");
+            provider.addAlgorithm("Alg.Alias.SecretKeyFactory." + NISTObjectIdentifiers.id_KmacWithSHAKE256, "KMAC256");
+            provider.addAlgorithm("AlgorithmParameters." + NISTObjectIdentifiers.id_KmacWithSHAKE256,
+                KMACAlgorithmParameters.class.getName() + "$KMac256");
+            provider.addAlgorithm("AlgorithmParameters." + NISTObjectIdentifiers.id_Kmac256,
+                KMACAlgorithmParameters.class.getName() + "$KMac256");
 
             provider.addAlgorithm("MessageDigest.TUPLEHASH256-512", PREFIX + "$DigestTupleHash256_512");
             provider.addAlgorithm("MessageDigest.TUPLEHASH128-256", PREFIX + "$DigestTupleHash128_256");

@@ -639,3 +639,6 @@ d520ee74257cef1425d308d07fdfe2c9f9d618a08d1d7b2b609919499c20086e  prov/src/test/
 b89e538b44f3171a8b8b54a2c9449cb060cf50a2985f33f1e907e98aa82e5619  prov/src/test/java/org/bouncycastle/jcajce/provider/test/PQCKeyDestructionTest.java
 256c5efbad8a30edd34d7f7db0e4e38bfac4da3ba35c682e672e0877634a6813  prov/src/test/java/org/bouncycastle/jce/provider/ReasonsMaskTest.java
 9b594bd5457bb4942b25f95ad9296c5f6b5b577498477a22e9245e3fcdf79166  prov/src/main/java/org/bouncycastle/jce/exception/package-info.java
+ab9d59a89e03f6ec479268787d05a824ab3464b4d3f216b0e04800893513cd15  prov/src/main/java/org/bouncycastle/jcajce/spec/KMACParameterSpec.java
+24f73d7378d8b272fb3d9f05bba8ec3d35da17448681a9dba225a8125cb8cec1  prov/src/main/java/org/bouncycastle/jcajce/provider/digest/KMacSpi.java
+23688be929af9a87209dc525bb4b59cffd31482729e3608739d1d41e1720f39d  prov/src/main/java/org/bouncycastle/jcajce/provider/digest/KMACAlgorithmParameters.java
