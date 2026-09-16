@@ -22,6 +22,7 @@ public class AllTests
     {
         TestSuite suite = new TestSuite("JCAJCE Provider Tests");
 
+        suite.addTestSuite(ECAgreementRawEquivalenceTest.class);
         suite.addTestSuite(ECAlgorithmParametersTest.class);
         suite.addTestSuite(GeneralKeyTest.class);
 //        suite.addTestSuite(LEATest.class);
