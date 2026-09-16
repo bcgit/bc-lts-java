@@ -15,12 +15,18 @@
 #define RAND_MOD 8
 
 //
-// Bounded retry counts for the hardware entropy sources.
-// Per Intel SDM and Intel's "Digital Random Number Generator" software guide.
-// They have doubled for safety.
+// The retry budget for the hardware entropy sources comes from the java layer.
+// See CryptoServicesRegistrar.getMaxRNGRetries() and the property
+// org.bouncycastle.native.rand.max_retries. A max_retries of 0 means retry
+// without limit.
 //
-#define MAX_RDRAND_RETRIES 20   // Intel-recommended baseline: 10
-#define MAX_RDSEED_RETRIES 200  // Intel-recommended baseline: 100
+// Intel's "Digital Random Number Generator" software guide recommends a
+// baseline of 10 retries for RDRAND and 100 for RDSEED. That is the rationale
+// for the java default of 200, which covers the slower RDSEED case with margin.
+//
+// An unbounded retry spins forever on a genuine hardware failure, which is what
+// the bounded default prevents.
+//
 
 //
 // Cached CPU support for the two hardware entropy instructions.
@@ -65,6 +71,32 @@ static int hardwareSupports(int useSeed) {
     return cached == RAND_SUPPORT_YES;
 }
 
+//
+// Fill one 64-bit word from the hardware RNG: one initial attempt, then up to
+// max_retries more. Returns 1 on success, 0 if the source did not produce a
+// value inside the budget.
+//
+static int rand_step_64(unsigned long long *val, int use_seed, int32_t max_retries) {
+    // The caller rejects a negative max_retries before this point, so the cast
+    // cannot turn into a huge budget.
+    const uint64_t budget = (uint64_t) max_retries;
+    uint64_t retries = 0;
+
+    for (;;) {
+        int flag = use_seed ? _rdseed64_step(val) : _rdrand64_step(val);
+        if (flag != 0) {
+            return 1;
+        }
+
+        // max_retries of 0 means retry without limit.
+        if (max_retries != 0 && ++retries > budget) {
+            return 0;
+        }
+
+        _mm_pause();
+    }
+}
+
 /*
  * Class:     org_bouncycastle_crypto_NativeEntropySource
  * Method:    isPredictionResistant
@@ -88,12 +120,14 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_modulus
 /*
  * Class:     org_bouncycastle_crypto_NativeEntropySource
  * Method:    seedBuffer
- * Signature: ([BZ)V
+ * Signature: ([BZI)V
  */
 JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_seedBuffer
-        (JNIEnv *env, jobject jo, jbyteArray buf_, jboolean useSeed) {
+        (JNIEnv *env, jobject jo, jbyteArray buf_, jboolean useSeed, jint maxRetries) {
 
     java_bytearray_ctx buf;
+    const int use_seed = (useSeed == JNI_TRUE);
+
     init_bytearray_ctx(&buf);
 
     if (!load_bytearray_ctx(&buf, env, buf_)) {
@@ -112,11 +146,25 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_seedBuff
     }
 
     //
+    // The sign check sits before the cast to uint64_t in rand_step_64: a negative
+    // jint cast to an unsigned type becomes huge-but-positive, and Integer.MIN_VALUE
+    // would turn into a budget of about 1.8e19 rather than a rejection.
+    //
+    // It also sits before the hardwareSupports gate and before the memzero, so a
+    // rejected call reports the same on every CPU and leaves the caller's buffer
+    // untouched.
+    //
+    if (maxRetries < 0) {
+        throw_java_illegal_argument(env, "maxRetries cannot be negative");
+        goto exit;
+    }
+
+    //
     // Re-check the instruction this call is about to issue. Reject before the
     // caller's buffer is touched, so a rejected call leaves it unchanged.
     //
-    if (!hardwareSupports(useSeed == JNI_TRUE)) {
-        throw_java_invalid_state(env, useSeed == JNI_TRUE
+    if (!hardwareSupports(use_seed)) {
+        throw_java_invalid_state(env, use_seed
                 ? "RDSEED is not supported by this CPU"
                 : "RDRAND is not supported by this CPU");
         goto exit;
@@ -129,45 +177,23 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_seedBuff
 
     unsigned long long val = 0;
 
-    if (useSeed) {
-        // Use RDSEED
-        for (size_t i = 0; i < count; i++) {
-            int flag = _rdseed64_step(&val);
-            int tries = 0;
-            while (flag == 0) {
-                if (++tries > MAX_RDSEED_RETRIES) {
-                    // Drop any partial entropy already written so the caller
-                    // does not observe a partly-filled buffer alongside the
-                    // exception. Use memzero (un-elidable) rather than memset.
-                    memzero(buf.bytearray, buf.size);
-                    throw_java_invalid_state(env,
-                        "RDSEED persistently failed to produce entropy");
-                    goto exit;
-                }
-                _mm_pause();
-                flag = _rdseed64_step(&val);
-            }
-            memcpy(buf.bytearray + i * sizeof(val), &val, sizeof(val));
+    for (size_t i = 0; i < count; i++) {
+        if (!rand_step_64(&val, use_seed, maxRetries)) {
+            // The hardware RNG exhausted its budget. Drop any partial entropy
+            // already written so the caller does not observe a partly-filled
+            // buffer alongside the exception. Use memzero (un-elidable) rather
+            // than memset.
+            memzero(buf.bytearray, buf.size);
+            val = 0;
+            throw_java_invalid_state(env, use_seed
+                    ? "RDSEED persistently failed to produce entropy"
+                    : "RDRAND persistently failed to produce entropy");
+            goto exit;
         }
-    } else {
-        // Use RDRAND
-        for (size_t i = 0; i < count; i++) {
-            int flag = _rdrand64_step(&val);
-            int tries = 0;
-            while (flag == 0) {
-                if (++tries > MAX_RDRAND_RETRIES) {
-                    memzero(buf.bytearray, buf.size);
-                    throw_java_invalid_state(env,
-                        "RDRAND persistently failed to produce entropy");
-                    goto exit;
-                }
-                _mm_pause();
-                flag = _rdrand64_step(&val);
-            }
-            memcpy(buf.bytearray + i * sizeof(val), &val, sizeof(val));
-        }
+        memcpy(buf.bytearray + i * sizeof(val), &val, sizeof(val));
     }
 
+    val = 0;
 
     exit:
     release_bytearray_ctx(&buf);

@@ -46,7 +46,7 @@ class NativeEntropySource
     public byte[] getEntropy()
     {
         byte[] buf = new byte[effectiveSize];
-        seedBuffer(buf, useSeedSource);
+        seedBuffer(buf, useSeedSource, CryptoServicesRegistrar.getMaxRNGRetries());
 
 
 
@@ -58,7 +58,12 @@ class NativeEntropySource
         return buf;
     }
 
-    native void seedBuffer(byte[] buf, boolean useSeedSource);
+    /**
+     * @param maxRetries how many times the hardware instruction is retried per word before the
+     *                   call fails, 0 for indefinite retry. See
+     *                   {@link CryptoServicesRegistrar#getMaxRNGRetries()}.
+     */
+    native void seedBuffer(byte[] buf, boolean useSeedSource, int maxRetries);
 
     @Override
     public int entropySize()
