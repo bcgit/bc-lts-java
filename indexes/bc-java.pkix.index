@@ -859,3 +859,5 @@ c05768935e41e65f206d0af1328ab189d63fc5b3add84f9b5c12266c134aa704  pkix/src/test/
 d4e13fe7c7f7876b30aae617a28723f647796444caaa6d636abe31e5867c7015  pkix/src/test/java/org/bouncycastle/pkix/jcajce/AllTests.java
 2fb60a3a689de3d9f5da421e0e3c3004a4bce8f49eb39abacd9552d17589ac14  pkix/src/test/java/org/bouncycastle/pkix/jcajce/RevocationUtilitiesTest.java
 2796db7887c6342ffd2551e7710e70b9112e58ba30084b5ad3c4b7d86faa4928  pkix/src/test/java/org/bouncycastle/pkix/test/PKIXCertPathReviewerCrlReasonTest.java
+5f6195f13ee53067efa8ef1c78d4f0f0a219361f2b8d103fb1666a8613386b05  pkix/src/test/java/org/bouncycastle/pkix/jcajce/CrlCacheTest.java
+bd5a769ec588b0838de8b4330be1fd2006504a1c54b951864d92755e607f6ae2  pkix/src/test/java/org/bouncycastle/pkix/jcajce/PKIXCertPathReviewerProtocolTest.java
