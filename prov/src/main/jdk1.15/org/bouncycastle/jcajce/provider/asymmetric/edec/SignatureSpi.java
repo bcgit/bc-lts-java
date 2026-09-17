@@ -194,6 +194,15 @@ public class SignatureSpi
             throw new InvalidKeyException("cannot use EdEC private key with unknown algorithm");
         }
 
+        // anything else goes through the same encoding based fallback the base class uses, so a
+        // key from another provider - which is neither a BC key nor a JDK EdECKey, and offers only
+        // its PKCS#8 encoding - is still accepted here. Without this the overlay rejects keys the
+        // base accepts, on every JDK 15+ runtime.
+        if (key instanceof PrivateKey)
+        {
+            return EdECUtil.generatePrivateKeyParameter((PrivateKey)key);
+        }
+
         throw new InvalidKeyException("cannot identify EdDSA private key");
     }
 
@@ -245,6 +254,12 @@ public class SignatureSpi
             }
 
             throw new InvalidKeyException("cannot use EdEC public key with unknown algorithm");
+        }
+
+        // as getLwEdDSAKeyPrivate: fall back to the base class's encoding based path.
+        if (key instanceof PublicKey)
+        {
+            return EdECUtil.generatePublicKeyParameter((PublicKey)key);
         }
 
         throw new InvalidKeyException("cannot identify EdDSA public key");
