@@ -23,7 +23,6 @@ plugins {
 //    }
 //})
 
-
 if (JavaVersion.current().isJava8Compatible()) {
     allprojects {
         tasks.withType(Javadoc) {
@@ -44,7 +43,6 @@ def String deriveOSGIVersion(String prjVersion) {
     return prjVersion
 }
 
-
 String resolveProp(String name, String alt) {
     return (System.getenv(name) ?: findProperty(name) ?: alt).toString();
 }
@@ -57,12 +55,30 @@ ext {
 
 }
 
-
-
-
 // this needs to go here, otherwise it can't find config
 apply plugin: 'io.spring.nohttp'
 
+/*
+ * nohttp scans the project tree for non-HTTPS URLs. Left unconfigured it walks everything,
+ * including build outputs, Gradle's own state and the native build tree - tens of thousands of
+ * files, among them binaries like executionHistory.bin, .so objects and jars. Checkstyle reads
+ * each as text, which on this tree exhausted the heap and failed the build outright (it was still
+ * running out at -Xmx6g). None of that is source anyone can fix a URL in, so it is excluded.
+ */
+nohttp {
+    source.exclude "**/build/**"
+    source.exclude "**/.gradle/**"
+    source.exclude "**/.claude/**"
+    source.exclude "**/native_c/target/**"
+    source.exclude "**/native_c/CMakeFiles/**"
+    source.exclude "**/compat_reports/**"
+    source.exclude "**/jars/**"
+    source.exclude "**/out/**"
+    // NIST ACVP test-vector responses: single lines of several hundred thousand characters that
+    // the URL scan backtracks over pathologically. Data, not source.
+    source.exclude "**/*.json"
+    source.exclude "**/*.jar", "**/*.so", "**/*.o", "**/*.class", "**/*.exec", "**/*.bin", "**/*.zip"
+}
 
 configure(allprojects.findAll {it.name != 'bom'}) {
     apply plugin: 'java'
@@ -95,7 +111,6 @@ ext {
 
     debugBuild = Boolean.parseBoolean(resolveProp("debug_build", "false"));
     debugSuffix = Boolean.parseBoolean(resolveProp("debug_build", "false")) ? "-debug-" : "-"
-
 
     vm_range = '8on'
 
@@ -152,7 +167,6 @@ task allTestJar(type: Jar) {
 
 allTestJar.dependsOn(compileTestJava);
 
-
 /*
 * Use for running all tests on signed jars.
 */
@@ -172,10 +186,6 @@ task allTestUnsignedJar(type: Jar) {
 
 allTestUnsignedJar.dependsOn(compileTestJava);
 
-
-
-
-
 configure(subprojects.findAll {it.name != 'bom'}) {
 
     dependencies {
@@ -183,13 +193,11 @@ configure(subprojects.findAll {it.name != 'bom'}) {
         checkstyle 'com.puppycrawl.tools:checkstyle:9.0'
     }
 
-
     checkstyle {
         configFile file("$rootDir/config/checkstyle/checkstyle.xml");
         toolVersion '9.0'; // your choice here
         sourceSets = [project.sourceSets.main]
     }
-
 
     jacocoTestReport {
         dependsOn test // tests are required to run before generating the report
@@ -213,7 +221,6 @@ configure(subprojects.findAll {it.name != 'bom'}) {
     }
 } // end of subprojects
 
-
 tasks.register("copyAndScanJars", DuplicateClassFinder) {
     jarDir = "../bc-lts-java-jars/"
     ignore.add("bccore-lts8on:bcprov-lts8on")
@@ -232,11 +239,13 @@ tasks.named("copyAndScanJars").configure {
     dependsOn(prj)
 }
 
-
 test.dependsOn([':core:test', ':prov:test', ':pkix:test', ':mail:test', 'pg:test', ':tls:test'])
-
 
 apply from: "gradle/cbom.gradle"
 apply from: "gradle/sbom.gradle"
 
+tasks.named("checkstyleNohttp") {
+    // the scan runs in a worker; without this it shares org.gradle.jvmargs (-Xmx2g) with the daemon
+    maxHeapSize = "3g"
+}
 
