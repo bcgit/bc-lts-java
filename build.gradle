@@ -211,6 +211,18 @@ configure(subprojects.findAll {it.name != 'bom'}) {
         options.debug = true;
     }
 
+    //
+    // Keystore write-side PBE cost, for tests only. The shipped defaults are
+    // PKCS#12 600,000 and BCFKS 51,200 iterations, and the keystore tests store
+    // repeatedly, so those counts dominate the multi-JVM run. GitLab's test-multi
+    // target times out at 12 hours. Both properties fall back to their default if
+    // the value is outside 1 .. the cap, so keep this a plain integer.
+    //
+    tasks.withType(Test).configureEach {
+        systemProperty 'org.bouncycastle.pkcs12.store_it_count', '1024'
+        systemProperty 'org.bouncycastle.bcfks.store_it_count', '1024'
+    }
+
     task('fopyJars', type: Copy) {
         from new File(projectDir, "build/libs")
         into new File(rootDir, "../bc-lts-java-jars/${project.version}/")

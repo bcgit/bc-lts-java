@@ -228,6 +228,11 @@ publishing {
 //
 // Unit tests run in parallel
 //
+//
+// How many test classes share one JVM. Several test classes call System.setProperty, and the
+// loaded native variant is process-global, so the isolation matters.
+ext.forkEveryClasses = Math.min(1, Runtime.getRuntime().availableProcessors() - 1)
+
 def registerUnitTestTask(TaskContainer taskContainer, String taskName, String expectEnvVar, int jvmVersion, String expectedJvm, String variant, String interfaceType = "any", String ignore = "", boolean withPS = false) {
 
     taskContainer.register("${taskName}Unit", Test) {
@@ -250,7 +255,7 @@ def registerUnitTestTask(TaskContainer taskContainer, String taskName, String ex
         maxHeapSize = "8192m"
 
         maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
-        forkEvery = 8
+        forkEvery = forkEveryClasses
 
         filter {
 //            excludeTestsMatching "*LimitTest*"
@@ -307,7 +312,7 @@ def registerIntegrationTestTask(TaskContainer taskContainer, String taskName, St
         maxHeapSize = "8192m"
 
         maxParallelForks = 1;
-        forkEvery = 1;
+        forkEvery = forkEveryClasses;
 
         classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
         testClassesDirs = project.sourceSets.test.output.classesDirs
@@ -357,7 +362,7 @@ test {
     maxHeapSize = "8192m"
 
     maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
-    forkEvery = 1
+    forkEvery = forkEveryClasses
 
     filter {
         includeTestsMatching "*AllTest*"
@@ -392,7 +397,7 @@ tasks.register("testIntegration",Test) {
     maxHeapSize = "8192m"
 
     maxParallelForks = 1
-    forkEvery = 1
+    forkEvery = forkEveryClasses
 
     filter {
         excludeTestsMatching "*AllTest*"
@@ -416,9 +421,9 @@ tasks.register("testIntegration",Test) {
 
 tasks.register("testMultiJVM") {
     dependsOn("test8Unit")
-    dependsOn("test17Unit")
+    dependsOn("test21Unit")
     dependsOn("test8Integration")
-    dependsOn("test17Integration")
+    dependsOn("test21Integration")
     dependsOn("testNative")
 }
 
@@ -428,10 +433,10 @@ tasks.register("testMultiJVM") {
 //
 
 registerUnitTestTask(tasks, "test8", "LTS_JDK8", 8, "1.8", "java", "auto", ignoreJava)
-registerUnitTestTask(tasks, "test17", "LTS_JDK21", 17, "17", "java", "auto", ignoreJava)
+registerUnitTestTask(tasks, "test21", "LTS_JDK21", 21, "21", "java", "auto", ignoreJava)
 
 registerIntegrationTestTask(tasks, "test8", "LTS_JDK8", 8, "1.8", "java", "auto", ignoreJava)
-registerIntegrationTestTask(tasks, "test17", "LTS_JDK21", 17, "17", "java", "auto", ignoreJava)
+registerIntegrationTestTask(tasks, "test21", "LTS_JDK21", 21, "21", "java", "auto", ignoreJava)
 
 
 
@@ -501,47 +506,38 @@ if (arch_.contains("aarch64") || (arch_.contains("arm64"))) {
     // INTEL AMD
     //
 
-    registerUnitTestTask(tasks, "testAVX8NoPS", "LTS_JDK8", 8, "1.8", "avx", "auto", ignoreIntel)
-    registerUnitTestTask(tasks, "testAVX21NoPS", "LTS_JDK21", 21, "21", "avx", "auto", ignoreIntel)
+    //
+    // The NoPS slots are gone. They set org.bouncycastle.packet_cipher_enabled, which no java
+    // source reads any more (CryptoServicesRegistrar.setPacketCipherEnabled is an empty
+    // @Deprecated method), and org.bouncycastle.test.skip_pc, which only core's test
+    // TestUtil.skipPS() reads. prov runs none of core's test classes, so the NoPS slots were
+    // exact duplicates of the slots below.
+    //
+    // Variant cover follows the C code. Only two #ifdef splits exist in native_c/intel:
+    // BC_VAESF changes the GCM buffer block length, and BC_AVX changes the CBC/CTR multi-block
+    // size and the SHA-224 tail store. The pair {avx, vaesf} hits both classes of both splits.
+    //
+    // Unit tier: prov has no native-specific unit test, but the suite drives the JCE layer over
+    // native, which is where a short-read shows up. One slot for each buffer shape and each JDK
+    // lifetime path is enough: avx on 8, vaesf on 21.
+    //
+    registerUnitTestTask(tasks, "testAVX8", "LTS_JDK8", 8, "1.8", "avx", "auto", ignoreIntel, true)
+    registerUnitTestTask(tasks, "testVAESF21", "LTS_JDK21", 21, "21", "vaesf", "auto", ignoreIntel, true)
 
-    registerUnitTestTask(tasks, "testVAES8NoPS", "LTS_JDK8", 8, "1.8", "vaes", "auto", ignoreIntel)
-    registerUnitTestTask(tasks, "testVAES21NoPS", "LTS_JDK21", 21, "21", "vaes", "auto", ignoreIntel)
+    //
+    // Integration tier: this is where the two native tests live,
+    // jce/provider/test/agreement/{JavaNativeAgreementTest,JavaNativeLargeMessageTest}. They
+    // skip on the java variant, so a native slot is the only place they do work. The tier is
+    // two classes, so all three variants stay, on both JDKs.
+    //
+    registerIntegrationTestTask(tasks, "testAVX8", "LTS_JDK8", 8, "1.8", "avx", "auto", ignoreIntel, true)
+    registerIntegrationTestTask(tasks, "testAVX21", "LTS_JDK21", 21, "21", "avx", "auto", ignoreIntel, true)
 
-    registerUnitTestTask(tasks, "testVAESF8NoPS", "LTS_JDK8", 8, "1.8", "vaesf", "auto", ignoreIntel)
-    registerUnitTestTask(tasks, "testVAESF21NoPS", "LTS_JDK21", 21, "21", "vaesf", "auto", ignoreIntel)
+    registerIntegrationTestTask(tasks, "testVAES8", "LTS_JDK8", 8, "1.8", "vaes", "auto", ignoreIntel, true)
+    registerIntegrationTestTask(tasks, "testVAES21", "LTS_JDK21", 21, "21", "vaes", "auto", ignoreIntel, true)
 
-
-    registerUnitTestTask(tasks, "testAVX8", "LTS_JDK8", 8, "1.8", "avx", "auto", ignoreIntel,true)
-    registerUnitTestTask(tasks, "testAVX21", "LTS_JDK21", 21, "21", "avx", "auto", ignoreIntel,true)
-
-    registerUnitTestTask(tasks, "testVAES8", "LTS_JDK8", 8, "1.8", "vaes", "auto", ignoreIntel,true)
-    registerUnitTestTask(tasks, "testVAES21", "LTS_JDK21", 21, "21", "vaes", "auto", ignoreIntel,true)
-
-    registerUnitTestTask(tasks, "testVAESF8", "LTS_JDK8", 8, "1.8", "vaesf", "auto", ignoreIntel,true)
-    registerUnitTestTask(tasks, "testVAESF21", "LTS_JDK21", 21, "21", "vaesf", "auto", ignoreIntel,true)
-
-
-
-    // integration
-
-    registerIntegrationTestTask(tasks, "testAVX8NoPS", "LTS_JDK8", 8, "1.8", "avx", "auto", ignoreIntel)
-    registerIntegrationTestTask(tasks, "testAVX21NoPS", "LTS_JDK21", 21, "21", "avx", "auto", ignoreIntel)
-
-    registerIntegrationTestTask(tasks, "testVAES8NoPS", "LTS_JDK8", 8, "1.8", "vaes", "auto", ignoreIntel)
-    registerIntegrationTestTask(tasks, "testVAES21NoPS", "LTS_JDK21", 21, "21", "vaes", "auto", ignoreIntel)
-
-    registerIntegrationTestTask(tasks, "testVAESF8NoPS", "LTS_JDK8", 8, "1.8", "vaesf", "auto", ignoreIntel)
-    registerIntegrationTestTask(tasks, "testVAESF21NoPS", "LTS_JDK21", 21, "21", "vaesf", "auto", ignoreIntel)
-
-
-    registerIntegrationTestTask(tasks, "testAVX8", "LTS_JDK8", 8, "1.8", "avx", "auto", ignoreIntel,true)
-    registerIntegrationTestTask(tasks, "testAVX21", "LTS_JDK21", 21, "21", "avx", "auto", ignoreIntel,true)
-
-    registerIntegrationTestTask(tasks, "testVAES8", "LTS_JDK8", 8, "1.8", "vaes", "auto", ignoreIntel,true)
-    registerIntegrationTestTask(tasks, "testVAES21", "LTS_JDK21", 21, "21", "vaes", "auto", ignoreIntel,true)
-
-    registerIntegrationTestTask(tasks, "testVAESF8", "LTS_JDK8", 8, "1.8", "vaesf", "auto", ignoreIntel,true)
-    registerIntegrationTestTask(tasks, "testVAESF21", "LTS_JDK21", 21, "21", "vaesf", "auto", ignoreIntel,true)
+    registerIntegrationTestTask(tasks, "testVAESF8", "LTS_JDK8", 8, "1.8", "vaesf", "auto", ignoreIntel, true)
+    registerIntegrationTestTask(tasks, "testVAESF21", "LTS_JDK21", 21, "21", "vaesf", "auto", ignoreIntel, true)
 
 
 
