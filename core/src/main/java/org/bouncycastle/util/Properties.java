@@ -496,6 +496,18 @@ public class Properties
      */
     public static final String MIME_MAX_DEPTH = "org.bouncycastle.mime.max_depth";
 
+    /**
+     * Maximum number of retries for the hardware RNG instructions (RDSEED/RDRAND) used by the
+     * native entropy source, before a failure is declared.
+     */
+    public static final String NATIVE_RAND_MAX_RETRIES = "org.bouncycastle.native.rand.max_retries";
+
+    /**
+     * Selects the hardware entropy instruction (RDRAND, RDSEED, AUTO, or NONE) used by the native
+     * entropy source.
+     */
+    public static final String NATIVE_RAND_SOURCE = "org.bouncycastle.native.rand";
+
     private Properties()
     {
     }

@@ -21,7 +21,7 @@ import org.junit.Test;
  * <p>
  * maxRetries bounds the hardware instruction: one attempt then up to maxRetries more, per 64-bit
  * word, with 0 meaning retry without limit. It arrives from
- * CryptoServicesRegistrar.getMaxRNGRetries().
+ * DefaultNativeServices.maxRNGRetries().
  * </p>
  * <p>
  * UNTESTABLE from a java test, recorded here so a reader does not read the absent coverage as an
@@ -133,7 +133,7 @@ public class NativeEntropyLimitTest
         NativeEntropySource es = new NativeEntropySource(128);
         try
         {
-            es.seedBuffer(null, true, CryptoServicesRegistrar.DEFAULT_MAX_RNG_RETRIES);
+            es.seedBuffer(null, true, DefaultNativeServices.DEFAULT_MAX_RNG_RETRIES);
             fail("not accept null");
         } catch (Exception ex) {
             TestCase.assertTrue(ex.getMessage().contains("array cannot be null"));
@@ -141,7 +141,7 @@ public class NativeEntropyLimitTest
 
         try
         {
-            es.seedBuffer(new byte[1], true, CryptoServicesRegistrar.DEFAULT_MAX_RNG_RETRIES);
+            es.seedBuffer(new byte[1], true, DefaultNativeServices.DEFAULT_MAX_RNG_RETRIES);
             fail("not accept null");
         } catch (Exception ex) {
             TestCase.assertTrue(ex.getMessage().contains("array must be multiple of modulus"));
@@ -173,12 +173,13 @@ public class NativeEntropyLimitTest
     }
 
     /**
-     * Return the seed source flag that matches this machine. The seed source (RDSEED) is only
-     * used where NRBG is available, otherwise the DRBG instruction (RDRAND) is used.
+     * Return the seed source flag that matches this machine and the org.bouncycastle.native.rand
+     * selection, which is the same flag the entropy source itself passes to seedBuffer. The
+     * resolution table it delegates to is covered exhaustively by NativeRandSourceTest.
      */
     private boolean useSeedSource()
     {
-        return CryptoServicesRegistrar.hasEnabledService(NativeServices.NRBG);
+        return NativeEntropySource.resolveUseSeedSource();
     }
 
     private static boolean allZero(byte[] buf)
@@ -279,10 +280,9 @@ public class NativeEntropyLimitTest
     }
 
     /**
-     * ACCEPT side of the same bound. 0 is at the bound and selects retry without limit, 1 is
-     * just inside, and DEFAULT_MAX_RNG_RETRIES is the shipped value. Each must fill the buffer.
-     * 64 bytes drives the fill loop over 8 words, so a budget that is consumed once and never
-     * reset shows up here.
+     * ACCEPT side of the same bound: a budget of 0 (retry without limit) and the shipped default
+     * are both in range and must fill the buffer. 64 bytes drives the fill loop over 8 words, so
+     * a budget that is consumed once and never reset shows up here.
      */
     @Test
     public void testMaxRetriesAcceptSide()
@@ -297,13 +297,58 @@ public class NativeEntropyLimitTest
 
         NativeEntropySource es = new NativeEntropySource(512);
 
-        int[] goodRetries = new int[]{0, 1, CryptoServicesRegistrar.DEFAULT_MAX_RNG_RETRIES};
+        int[] goodRetries = new int[]{0, DefaultNativeServices.DEFAULT_MAX_RNG_RETRIES};
 
         for (int i = 0; i != goodRetries.length; i++)
         {
             byte[] buf = new byte[64];
             es.seedBuffer(buf, useSeedSource(), goodRetries[i]);
             TestCase.assertFalse("buffer not filled with maxRetries=" + goodRetries[i], allZero(buf));
+        }
+    }
+
+    /**
+     * A budget of 1 is the smallest bounded one, and it must be ACCEPTED - the check the native
+     * side makes is maxRetries &lt; 0, so 1 has to travel the fill loop rather than be rejected
+     * out of range.
+     * <p>
+     * It must not be asserted to SUCCEED. One retry over a 64-byte buffer is 8 words at two
+     * attempts each, and RDSEED declines far more often than that: Intel's DRNG guide recommends
+     * a baseline of 100 retries for RDSEED against 10 for RDRAND, which is why the shipped
+     * default is 1000. A run that exhausts the budget is the source behaving as specified, so
+     * both outcomes are correct here and only a third one - a rejection, or any other exception -
+     * is a defect. The success path of the fill loop is covered by the two in-range budgets above
+     * and by testZeroMaxRetriesSpinsUntilSuccess.
+     * </p>
+     */
+    @Test
+    public void testMinimumBoundedBudgetIsAccepted()
+            throws Exception
+    {
+        NativeLoader.loadDriver();
+
+        if (skipGuard("testMinimumBoundedBudgetIsAccepted"))
+        {
+            return;
+        }
+
+        NativeEntropySource es = new NativeEntropySource(512);
+
+        byte[] buf = new byte[64];
+
+        try
+        {
+            es.seedBuffer(buf, useSeedSource(), 1);
+
+            TestCase.assertFalse("buffer not filled although seedBuffer returned", allZero(buf));
+        }
+        catch (IllegalStateException ex)
+        {
+            TestCase.assertTrue("unexpected message: " + ex.getMessage(),
+                    ex.getMessage().contains("persistently failed to produce entropy"));
+
+            // the budget was exhausted, and the contract is that nothing partial is handed back
+            TestCase.assertTrue("buffer left partly filled after the budget was exhausted", allZero(buf));
         }
     }
 
@@ -362,20 +407,20 @@ public class NativeEntropyLimitTest
 
         try
         {
-            CryptoServicesRegistrar.setMaxRNGRetries(1000);
+            DefaultNativeServices.setMaxRNGRetries(1000);
 
             byte[] entropy = es.getEntropy();
             TestCase.assertFalse(allZero(entropy));
 
             // retry without limit must still produce entropy
-            CryptoServicesRegistrar.setMaxRNGRetries(0);
+            DefaultNativeServices.setMaxRNGRetries(0);
 
             entropy = es.getEntropy();
             TestCase.assertFalse(allZero(entropy));
         }
         finally
         {
-            CryptoServicesRegistrar.setMaxRNGRetries(CryptoServicesRegistrar.DEFAULT_MAX_RNG_RETRIES);
+            DefaultNativeServices.setMaxRNGRetries(DefaultNativeServices.DEFAULT_MAX_RNG_RETRIES);
         }
     }
 

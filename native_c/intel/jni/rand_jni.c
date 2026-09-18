@@ -16,13 +16,15 @@
 
 //
 // The retry budget for the hardware entropy sources comes from the java layer.
-// See CryptoServicesRegistrar.getMaxRNGRetries() and the property
+// See NativeServices.getMaxRNGRetries() and the property
 // org.bouncycastle.native.rand.max_retries. A max_retries of 0 means retry
 // without limit.
 //
 // Intel's "Digital Random Number Generator" software guide recommends a
-// baseline of 10 retries for RDRAND and 100 for RDSEED. That is the rationale
-// for the java default of 200, which covers the slower RDSEED case with margin.
+// baseline of 10 retries for RDRAND and 100 for RDSEED. The java default of
+// 1000 covers the slower RDSEED case with a wide margin. The margin is over
+// the recommendation rather than over any measured failure: RDSEED declines
+// routinely, and the cost of a retry is a pause instruction.
 //
 // An unbounded retry spins forever on a genuine hardware failure, which is what
 // the bounded default prevents.

@@ -4,6 +4,8 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.bouncycastle.crypto.NativeRNGRetriesTest;
+import org.bouncycastle.crypto.NativeRandSourceTest;
 import org.bouncycastle.test.PrintTestResult;
 
 public class AllTests
@@ -22,7 +24,8 @@ public class AllTests
         suite.addTestSuite(GCMReorderTest.class);
         suite.addTestSuite(HPKETestVectors.class);
         suite.addTestSuite(BigSkippingCipherTest.class);
-        suite.addTestSuite(CryptoServicesRegistrarRNGRetriesTest.class);
+        suite.addTestSuite(NativeRNGRetriesTest.class);
+        suite.addTestSuite(NativeRandSourceTest.class);
         return new BCTestSetup(suite);
     }
     
