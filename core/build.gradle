@@ -272,6 +272,7 @@ def registerIntegrationTestTask(TaskContainer taskContainer, String taskName, St
 test {
 
     dependsOn("testIntegration")
+    dependsOn("testEntropy")
 
     testLogging.showStandardStreams = true
     testLogging.showCauses = true
@@ -341,6 +342,57 @@ tasks.register("testIntegration",Test) {
     jvmArgs args
 
 }
+
+
+//
+// NativeEntropyLimitTest gets a task to itself, run with no other test in the JVM and no other
+// fork alongside it.
+//
+// RDSEED and RDRAND are one hardware source shared by every core on the machine, and this is the
+// only suite that draws on it hard and deliberately near the edge of the retry budget. Running it
+// alone keeps the other forks' entropy demand out of its results, so a failure here is about the
+// bound under test rather than about what else the build happened to be doing. It also keeps this
+// test's own demand off the 30-odd native suites in AllIntegrationTests.
+//
+tasks.register("testEntropy", Test) {
+
+    testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
+
+    failOnNoDiscoveredTests = true
+    useJUnitPlatform()
+
+    // one class runs here, so one JVM: forkEvery = 1 would have gradle stand up a fresh JVM for
+    // every candidate class in core before the filter drops it, which costs minutes and buys no
+    // isolation the single class does not already have.
+    maxParallelForks = 1
+    forkEvery = 0
+
+    minHeapSize = "512m"
+    maxHeapSize = "2048m"
+
+    // the JUnit3 suite classes carry their own runner, which Gradle cannot filter inside ("was
+    // not able to satisfy all filter requests") - without excluding them by name an include
+    // pattern fails open and they run here in full.
+    filter {
+        excludeTestsMatching "*AllTest*"
+        excludeTestsMatching "*AllIntegrationTests*"
+        includeTestsMatching "*NativeEntropyLimitTest*"
+    }
+
+    def args = new ArrayList<String>()
+    args.add("-Dtest.bclts.expected_jvm=any")
+    args.add("-Dtest.bclts.ignore.native=${testIgnore}") // testIgnore is determined by platform architecture
+
+    classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
+    testClassesDirs = project.sourceSets.test.output.classesDirs
+
+    jvmArgs args
+
+}
+
 
 
 compileTestJava {

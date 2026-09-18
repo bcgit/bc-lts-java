@@ -17,6 +17,8 @@ public class DumpInfo
         //-DM System.out.println
         //-DM System.out.println
         //-DM System.out.println
+        //-DM System.out.println
+        //-DM System.out.println
         System.out.println(CryptoServicesRegistrar.getInfo());
 
         if (CryptoServicesRegistrar.isNativeEnabled())
@@ -27,6 +29,8 @@ public class DumpInfo
             System.out.println("Native Status: " + nativeServices.getStatusMessage());
             System.out.println("Native Variant: " + nativeServices.getVariant());
             System.out.println("Native Features: " + String.join(" ", nativeServices.getFeatureSet()));
+            System.out.println("Native Rand Source: " + getNativeRandSourceString(nativeServices));
+            System.out.println("Native Rand Max Retries: " + nativeServices.getMaxRNGRetries());
             System.out.println("");
 
 
@@ -78,6 +82,31 @@ public class DumpInfo
         }
 
 
+    }
+
+    /**
+     * Report the selected hardware entropy instruction and the entropy source those settings
+     * actually select, which is the pair a support case needs.
+     */
+    private static String getNativeRandSourceString(NativeServices nativeServices)
+    {
+        StringBuilder sBld = new StringBuilder();
+
+        sBld.append(nativeServices.getNativeRandSource());
+        sBld.append(" (");
+
+        try
+        {
+            sBld.append(CryptoServicesRegistrar.getDefaultEntropySourceProvider().get(256).getClass().getName());
+        }
+        catch (Exception e)
+        {
+            sBld.append("unavailable: ").append(e.getMessage());
+        }
+
+        sBld.append(")");
+
+        return sBld.toString();
     }
 
     private static String pad(String left, int len)

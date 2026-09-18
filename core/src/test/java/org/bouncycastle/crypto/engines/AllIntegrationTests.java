@@ -4,7 +4,6 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
-import org.bouncycastle.crypto.NativeEntropyLimitTest;
 import org.bouncycastle.crypto.NativeFailsafeTest;
 import org.bouncycastle.crypto.digests.*;
 import org.bouncycastle.test.PrintTestResult;
@@ -56,7 +55,9 @@ public class AllIntegrationTests
         suite.addTestSuite(SHA3NativeDigestTests.class);
         suite.addTestSuite(SHAKENativeDigestTests.class);
 
-        suite.addTestSuite(NativeEntropyLimitTest.class);
+        // NativeEntropyLimitTest is deliberately absent: it draws hard on RDSEED/RDRAND, which is
+        // one shared hardware source for the whole machine, so it runs alone under the
+        // :core:testEntropy task rather than alongside the rest of this suite.
         suite.addTestSuite(NativeFailsafeTest.class);
         suite.addTestSuite(GCMBlocksRemainingFailureTest.class);
 

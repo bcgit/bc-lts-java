@@ -40,6 +40,75 @@ public interface NativeServices
 
     String NONE = "NONE";
 
+    /**
+     * The hardware entropy instruction used by the native entropy source.
+     */
+    enum RandSource
+    {
+        /**
+         * Use RDRAND, on a CPU with RDSEED as well.
+         */
+        RDRAND,
+        /**
+         * Use RDSEED.
+         */
+        RDSEED,
+        /**
+         * Use RDSEED where the CPU has it, otherwise RDRAND, otherwise the SecureRandom fallback.
+         */
+        AUTO,
+        /**
+         * Do not use the native entropy source, use the SecureRandom fallback.
+         */
+        NONE
+    }
+
+    /**
+     * Return the hardware entropy instruction selected for the native entropy source.
+     * <p>
+     * The value comes from the system/security property org.bouncycastle.native.rand. Where that
+     * property is not set at all the value is {@link RandSource#AUTO}, which uses RDSEED where the
+     * CPU has it, otherwise RDRAND, otherwise the SecureRandom fallback. Where it is set it must
+     * hold one of RDRAND, RDSEED, AUTO or NONE, any other value is rejected on first use.
+     * </p>
+     * <p>
+     * RDRAND and RDSEED force the instruction: on a CPU that does not have the forced one, and
+     * with the native layer otherwise on, the entropy source throws rather than quietly using the
+     * other instruction. NONE turns the native entropy source off and selects the SecureRandom
+     * fallback.
+     * </p>
+     * <p>
+     * A default method, not an abstract one: the settings it reports are per-JVM rather than per
+     * implementation, and an abstract addition would break anything downstream implementing this
+     * interface.
+     * </p>
+     *
+     * @return the selected source.
+     */
+    default RandSource getNativeRandSource()
+    {
+        return DefaultNativeServices.nativeRandSource();
+    }
+
+    /**
+     * Return the maximum number of times a hardware RNG instruction (RDSEED/RDRAND) is retried
+     * before a failure is declared. A return of 0 means the instruction is retried indefinitely.
+     * <p>
+     * The value comes from the system/security property org.bouncycastle.native.rand.max_retries.
+     * Where that property is not set at all the value is the shipped default. Where it is set it
+     * must hold an integer of 0 or greater, any other value is rejected on first use.
+     * </p>
+     * <p>
+     * A default method, for the same reason as {@link #getNativeRandSource()}.
+     * </p>
+     *
+     * @return the current RNG retry limit.
+     */
+    default int getMaxRNGRetries()
+    {
+        return DefaultNativeServices.maxRNGRetries();
+    }
+
     String getStatusMessage();
 
     Set<String> getFeatureSet();
