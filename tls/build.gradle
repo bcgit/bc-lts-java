@@ -148,6 +148,11 @@ compileTestJava {
 }
 
 
+//
+// How many test classes share one JVM. Several test classes call System.setProperty, and the
+// loaded native variant is process-global, so the isolation matters.
+ext.forkEveryClasses = Math.min(1, Runtime.getRuntime().availableProcessors() - 1)
+
 def registerTestTask(TaskContainer taskContainer, String taskName, String expectEnvVar, int jvmVersion, String security = null) {
 
     taskContainer.register("${taskName}Integration", Test) {
@@ -167,7 +172,7 @@ def registerTestTask(TaskContainer taskContainer, String taskName, String expect
         maxHeapSize = "8192m"
 
         maxParallelForks = 1;
-        forkEvery = 1
+        forkEvery = forkEveryClasses
 
         filter {
             includeTestsMatching "*AllTest*"
@@ -205,7 +210,7 @@ test {
 
 
     maxParallelForks = 1;
-    forkEvery = 1
+    forkEvery = forkEveryClasses
 
     minHeapSize = "4096m"
     maxHeapSize = "8192m"

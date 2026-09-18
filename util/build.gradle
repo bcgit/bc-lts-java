@@ -138,6 +138,11 @@ compileTestJava {
 //
 // Unit tests run in parallel
 //
+//
+// How many test classes share one JVM. Several test classes call System.setProperty, and the
+// loaded native variant is process-global, so the isolation matters.
+ext.forkEveryClasses = Math.min(1, Runtime.getRuntime().availableProcessors() - 1)
+
 def registerUnitTestTask(TaskContainer taskContainer, String taskName, String expectEnvVar, int jvmVersion) {
 
     taskContainer.register("${taskName}Unit", Test) {
@@ -157,7 +162,7 @@ def registerUnitTestTask(TaskContainer taskContainer, String taskName, String ex
         maxHeapSize = "8192m"
 
         maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
-        forkEvery = 1
+        forkEvery = forkEveryClasses
 
         filter {
             includeTestsMatching "*AllTest*"
@@ -195,7 +200,7 @@ test {
     testClassesDirs = project.sourceSets.test.output.classesDirs
 
     maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
-    forkEvery = 1
+    forkEvery = forkEveryClasses
 
     filter {
         includeTestsMatching "*AllTest*"

@@ -14,6 +14,7 @@ import org.bouncycastle.crypto.modes.SICBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
 
@@ -168,6 +169,20 @@ public class BigSkippingCipherTest
         }
     }
 
+    /**
+     * Iterations of the seek-and-compare loop in {@link #testCipher}. The full count walks 4 GB
+     * for each cipher, which is over an hour on the java variant and the largest single item in
+     * the multi-JVM run. The short count still crosses the same counter boundaries, so the normal
+     * run keeps the behaviour under test; -Dtest.full=true restores the long walk.
+     * <p>
+     * The fixed 2^38 seek vectors and {@link #testSkipFromNonZeroCounterCarry} run either way.
+     * </p>
+     */
+    private static long seekLoopCount()
+    {
+        return Properties.isOverrideSet("test.full") ? 1L << 20 : 1L << 12;
+    }
+
     public void testCipher(Random random, SkippingStreamCipher linearEngine, SkippingStreamCipher skippingEngine)
         throws Exception
     {
@@ -183,7 +198,7 @@ public class BigSkippingCipherTest
         byte[] linearOutBuf = new byte[1 << 12];
         byte[] seekOutBuf = new byte[1 << 12];
 
-        for (long i = 0; i != 1L << 20; i++)
+        for (long i = 0, end = seekLoopCount(); i != end; i++)
         {
             random.nextBytes(incBuf);
 

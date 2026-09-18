@@ -188,6 +188,10 @@ task withNative() {
 //
 // Unit tests run in parallel
 //
+// How many test classes share one JVM. Several test classes call System.setProperty, and the
+// loaded native variant is process-global, so the isolation matters.
+ext.forkEveryClasses = Math.min(1, Runtime.getRuntime().availableProcessors() - 1)
+
 def registerUnitTestTask(TaskContainer taskContainer, String taskName, String expectEnvVar, int jvmVersion, String expectedJvm, String variant, String interfaceType = "any", String ignore = "") {
 
     taskContainer.register("${taskName}Unit", Test) {
@@ -209,7 +213,7 @@ def registerUnitTestTask(TaskContainer taskContainer, String taskName, String ex
         maxHeapSize = "8192m"
 
         maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
-        forkEvery = 1
+        forkEvery = forkEveryClasses
 
         filter {
             excludeTestsMatching "*AllIntegrationTest*"
@@ -248,7 +252,7 @@ def registerIntegrationTestTask(TaskContainer taskContainer, String taskName, St
         maxHeapSize = "8192m"
 
         maxParallelForks = 1;
-        forkEvery = 1;
+        forkEvery = forkEveryClasses;
 
         classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
         testClassesDirs = project.sourceSets.test.output.classesDirs
@@ -278,7 +282,7 @@ test {
     useJUnitPlatform()
 
     maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
-    forkEvery = 1
+    forkEvery = forkEveryClasses
 
     minHeapSize = "4096m"
     maxHeapSize = "8192m"
@@ -314,7 +318,7 @@ tasks.register("testIntegration",Test) {
     useJUnitPlatform()
 
     maxParallelForks = 1;
-    forkEvery = 1
+    forkEvery = forkEveryClasses
 
     minHeapSize = "4096m"
     maxHeapSize = "8192m"
