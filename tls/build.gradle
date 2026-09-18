@@ -17,6 +17,15 @@ sourceSets {
             srcDirs = ['src/main/jdk1.9']
         }
     }
+
+    // src/test/jdk25 previously belonged to no source set, so nothing in it was compiled or run.
+    test25 {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += test.output
+            srcDir(files("src/test/jdk25"))
+        }
+    }
 }
 
 dependencies {
@@ -42,6 +51,24 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testRuntimeOnly(files(jar.archiveFile))
 
+    // deliberately NOT the tls project itself: the jar supplies its classes, so the
+    // META-INF/versions overlays are the ones loaded. See the testMR task.
+    test25Implementation project(':prov')
+    test25Implementation project(':util')
+    test25Implementation project(':core')
+    test25Implementation project(':pkix')
+    test25Implementation 'junit:junit:4.13.2'
+    test25Implementation 'org.junit.jupiter:junit-jupiter-api:5.14.3'
+    test25RuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.14.3'
+    test25Implementation("org.junit.vintage:junit-vintage-engine:5.14.3")
+    test25RuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+compileTest25Java {
+    // release 21, not 25: nothing under src/test/jdk25 uses a JDK 25 API - the JDK-25 part is the
+    // runtime - and compiling at 21 lets these classes build and run wherever the toolchain is 21+.
+    options.release = 21
+    options.sourcepath = files(['src/test/java', 'src/test/jdk25'])
 }
 
 compileJava {
@@ -236,6 +263,74 @@ test {
 tasks.register("testMultiJVM") {
     dependsOn("test8Integration")
     dependsOn("test21Integration")
+}
+
+/**
+ * The multi-release pairing test. Its classpath deliberately carries the bctls JAR and NOT this
+ * project's main classes directories, so the root ProvSSLContextSpi is paired with the
+ * META-INF/versions/9 SSLEngineUtil exactly as it is in a deployment. Run from the classes
+ * directories the overlay is never consulted and the defect this guards (github #2448, a
+ * NoSuchMethodError out of SSLContext.createSSLEngine) is invisible - which is why it needs a task
+ * of its own rather than a place in the ordinary test suite.
+ *
+ * Version agnostic: it needs JDK 9+, not JDK 25, so it runs on the default toolchain.
+ */
+tasks.register("testMR", Test) {
+    dependsOn jar
+
+    useJUnitPlatform()
+    failOnNoDiscoveredTests = true
+
+    testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
+
+    maxParallelForks = 1
+    forkEvery = 1
+
+    testClassesDirs = project.sourceSets.test25.output.classesDirs
+    classpath = project.sourceSets.test25.runtimeClasspath + files(jar.archiveFile)
+
+    filter {
+        includeTestsMatching "org.bouncycastle.jsse.provider.test.AllTests25"
+    }
+}
+
+// so an ordinary build runs it
+check.dependsOn("testMR")
+
+/**
+ * The JDK 25 interop tests under src/test/jdk25 - the JDK's own TLS stack is what makes them
+ * interesting, so they need a 25 toolchain. Skipped when LTS_JDK25 is not set.
+ */
+tasks.register("test25", Test) {
+    onlyIf { System.getenv("LTS_JDK25") != null }
+    dependsOn jar
+
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+
+    useJUnitPlatform()
+    failOnNoDiscoveredTests = true
+
+    testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
+
+    maxParallelForks = 1
+    forkEvery = 1
+
+    testClassesDirs = project.sourceSets.test25.output.classesDirs
+    classpath = project.sourceSets.test25.runtimeClasspath + files(jar.archiveFile)
+
+    filter {
+        includeTestsMatching "*AllTest*"
+    }
+
+    jvmArgs "-Djava.security.properties=${projectDir}/jdk25.java.security"
 }
 
 registerTestTask(tasks, "test8", "LTS_JDK8", 8, "jdk8.java.security")

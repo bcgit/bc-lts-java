@@ -625,3 +625,5 @@ fac29ea86ef51ce7d82933eaa6adf742ba3d700ffc4835e6e149ceb48f7b15c0  tls/src/test/j
 9cf0295341f407d5bf98775b1e095f3c1ce9d670f4ef1605687aaf2e298c8c18  tls/src/test/java/org/bouncycastle/jsse/provider/test/RequestedServerNamesTest.java
 e2600c93ebde42718d746919308638516d218c45a7161a14b4f08b6416766dfc  tls/src/test/java/org/bouncycastle/jsse/provider/test/SM2CredentialsTest.java
 283680c16027d97ced9ba26a530e3ae78b3555168433c48ef80d4bba5ce963c4  tls/src/test/java/org/bouncycastle/jsse/provider/test/TlsFipsTest.java
+aa5f23bd6f52ef95b32943105e8de19fee25595f190d1a479475ff3e6bc125bd  tls/src/test/jdk25/org/bouncycastle/jsse/provider/test/SSLEngineMRTest.java
+08f999a1d9a3a8779e6c3c7ee1d7562fd91390069147ca775218674416a895a3  tls/src/test/jdk25/org/bouncycastle/jsse/provider/test/AllTests25.java
