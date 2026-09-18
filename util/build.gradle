@@ -158,10 +158,10 @@ def registerUnitTestTask(TaskContainer taskContainer, String taskName, String ex
         testLogging.showExceptions = true
         testLogging.showStackTraces = true
 
-        minHeapSize = "4096m"
-        maxHeapSize = "8192m"
+        minHeapSize = "512m"
+        maxHeapSize = "2048m"
 
-        maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
+        maxParallelForks = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
         forkEvery = forkEveryClasses
 
         filter {
@@ -193,13 +193,13 @@ test {
     failOnNoDiscoveredTests = true
     useJUnitPlatform()
 
-    minHeapSize = "4096m"
-    maxHeapSize = "8192m"
+    minHeapSize = "512m"
+    maxHeapSize = "2048m"
 
     classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
     testClassesDirs = project.sourceSets.test.output.classesDirs
 
-    maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
+    maxParallelForks = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
     forkEvery = forkEveryClasses
 
     filter {

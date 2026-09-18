@@ -209,10 +209,10 @@ def registerUnitTestTask(TaskContainer taskContainer, String taskName, String ex
         testLogging.showExceptions = true
         testLogging.showStackTraces = true
 
-        minHeapSize = "4096m"
-        maxHeapSize = "8192m"
+        minHeapSize = "512m"
+        maxHeapSize = "2048m"
 
-        maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
+        maxParallelForks = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
         forkEvery = forkEveryClasses
 
         filter {
@@ -248,8 +248,8 @@ def registerIntegrationTestTask(TaskContainer taskContainer, String taskName, St
         testLogging.showExceptions = true
         testLogging.showStackTraces = true
 
-        minHeapSize = "4096m"
-        maxHeapSize = "8192m"
+        minHeapSize = "512m"
+        maxHeapSize = "2048m"
 
         maxParallelForks = 1;
         forkEvery = forkEveryClasses;
@@ -281,11 +281,11 @@ test {
     failOnNoDiscoveredTests = true
     useJUnitPlatform()
 
-    maxParallelForks = Math.min(1, Runtime.getRuntime().availableProcessors() - 1);
+    maxParallelForks = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
     forkEvery = forkEveryClasses
 
-    minHeapSize = "4096m"
-    maxHeapSize = "8192m"
+    minHeapSize = "512m"
+    maxHeapSize = "2048m"
 
     filter {
         includeTestsMatching "*AllTest*"
@@ -320,8 +320,8 @@ tasks.register("testIntegration",Test) {
     maxParallelForks = 1;
     forkEvery = forkEveryClasses
 
-    minHeapSize = "4096m"
-    maxHeapSize = "8192m"
+    minHeapSize = "512m"
+    maxHeapSize = "2048m"
 
     filter {
         excludeTestsMatching "*AllTest*"
