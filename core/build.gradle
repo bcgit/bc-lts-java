@@ -210,7 +210,7 @@ def registerUnitTestTask(TaskContainer taskContainer, String taskName, String ex
         testLogging.showStackTraces = true
 
         minHeapSize = "512m"
-        maxHeapSize = "2048m"
+        maxHeapSize = "4096m"
 
         maxParallelForks = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
         forkEvery = forkEveryClasses
@@ -249,7 +249,7 @@ def registerIntegrationTestTask(TaskContainer taskContainer, String taskName, St
         testLogging.showStackTraces = true
 
         minHeapSize = "512m"
-        maxHeapSize = "2048m"
+        maxHeapSize = "4096m"
 
         maxParallelForks = 1;
         forkEvery = forkEveryClasses;
@@ -286,7 +286,7 @@ test {
     forkEvery = forkEveryClasses
 
     minHeapSize = "512m"
-    maxHeapSize = "2048m"
+    maxHeapSize = "4096m"
 
     filter {
         includeTestsMatching "*AllTest*"
@@ -322,7 +322,7 @@ tasks.register("testIntegration",Test) {
     forkEvery = forkEveryClasses
 
     minHeapSize = "512m"
-    maxHeapSize = "2048m"
+    maxHeapSize = "4096m"
 
     filter {
         excludeTestsMatching "*AllTest*"
@@ -371,7 +371,7 @@ tasks.register("testEntropy", Test) {
     forkEvery = 0
 
     minHeapSize = "512m"
-    maxHeapSize = "2048m"
+    maxHeapSize = "4096m"
 
     // the JUnit3 suite classes carry their own runner, which Gradle cannot filter inside ("was
     // not able to satisfy all filter requests") - without excluding them by name an include
