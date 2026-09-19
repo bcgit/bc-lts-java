@@ -55,6 +55,16 @@ sourceSets {
             srcDirs = ['src/main/jdk17']
         }
     }
+
+    // src/test/jdk17 belonged to no source set, so nothing in it was compiled or run - which is
+    // how the javax.crypto.KEM overlay under src/main/jdk17 came to ship with no coverage at all.
+    test17 {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += test.output
+            srcDir(files("src/test/jdk17"))
+        }
+    }
 }
 
 dependencies {
@@ -82,6 +92,15 @@ dependencies {
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
     testRuntimeOnly(files(jar.archiveFile))
 
+    test17Implementation 'junit:junit:4.13.2'
+    test17Implementation 'org.junit.jupiter:junit-jupiter-api:5.14.3'
+    test17RuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.14.3'
+    test17Implementation("org.junit.vintage:junit-vintage-engine:5.14.3")
+    test17RuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+    // the jar, not the project: the KEM SPIs live under META-INF/versions/17, so only the
+    // multi-release jar puts the classes under test on the classpath.
+    test17RuntimeOnly(files(jar.archiveFile))
 }
 
 compileJava {
@@ -105,6 +124,49 @@ compileJava15Java {
     options.release = 15
     options.debug = rootProject.ext.debugBuild
 }
+
+compileTest17Java {
+    // -source/-target 17 rather than --release 17, for the same reason as compileJava17Java
+    // below: javax.crypto.KEM is hidden by the JDK 17 symbol set, and these tests exist to
+    // exercise it.
+    sourceCompatibility = 17
+    targetCompatibility = 17
+    options.sourcepath = files(['src/test/java', 'src/test/jdk17'])
+}
+
+/**
+ * The JDK 17+ tests. Separate from `test` because that source set compiles at release 8, and
+ * separate from the multi-JDK tasks because it runs against the multi-release jar rather than
+ * the classes dirs - the SPIs under test are only reachable through META-INF/versions/17.
+ */
+tasks.register("test17", Test) {
+    dependsOn("jar")
+
+    failOnNoDiscoveredTests = true
+    useJUnitPlatform()
+
+    testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
+
+    maxParallelForks = 1
+    forkEvery = 0
+
+    minHeapSize = "512m"
+    maxHeapSize = "4096m"
+
+    testClassesDirs = sourceSets.test17.output.classesDirs
+    classpath = sourceSets.test17.output + configurations.test17RuntimeClasspath + files(jar.archiveFile)
+
+    filter {
+        includeTestsMatching "*AllTests17*"
+    }
+
+    systemProperty 'bc.test.data.home', "${rootDir}/core/src/test/data"
+}
+
+check.dependsOn("test17")
 
 compileJava17Java {
     // Use -source/-target 17 rather than --release 17 so the JDK 17 multi-release

@@ -3,7 +3,7 @@ package org.bouncycastle.jcajce.provider.asymmetric.mlkem;
 import org.bouncycastle.crypto.SecretWithEncapsulation;
 import org.bouncycastle.jcajce.provider.asymmetric.mlkem.BCMLKEMPublicKey;
 import org.bouncycastle.jcajce.spec.KTSParameterSpec;
-import org.bouncycastle.pqc.crypto.mlkem.MLKEMGenerator;
+import org.bouncycastle.crypto.kems.MLKEMGenerator;
 import org.bouncycastle.pqc.jcajce.provider.util.KdfUtil;
 
 import javax.crypto.KEM;
