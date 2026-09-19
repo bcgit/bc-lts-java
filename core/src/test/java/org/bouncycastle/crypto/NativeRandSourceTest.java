@@ -1,6 +1,8 @@
 package org.bouncycastle.crypto;
 
 import junit.framework.TestCase;
+import org.bouncycastle.crypto.prng.EntropySource;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Properties;
 import org.junit.Test;
 
@@ -205,6 +207,52 @@ public class NativeRandSourceTest
         {
             return "IllegalStateException: " + ex.getMessage();
         }
+    }
+
+    /**
+     * The provider the rest of the library actually uses has to hand back a working entropy
+     * source, on this machine, with whatever org.bouncycastle.native.rand selects.
+     * <p>
+     * This is the end-to-end check the table tests above do not make. getDefaultEntropySourceProvider
+     * wraps its base provider in OneShotHybridEntropySource (or HybridEntropySource), and that
+     * wrapper used to cast the base source to the package-private IncrementalEntropySource - which
+     * the native source does not implement. Every call threw ClassCastException on any machine with
+     * native DRBG/NRBG, and nothing in the suite noticed, because nothing else calls get() on the
+     * default provider. DumpInfo is what surfaced it.
+     * </p>
+     */
+    @Test
+    public void testDefaultProviderYieldsUsableEntropy()
+            throws Exception
+    {
+        NativeLoader.loadDriver();
+
+        EntropySource es = CryptoServicesRegistrar.getDefaultEntropySourceProvider().get(256);
+
+        TestCase.assertEquals(256, es.entropySize());
+
+        byte[] first = es.getEntropy();
+
+        TestCase.assertEquals(32, first.length);
+        TestCase.assertFalse("entropy source returned all zeroes", allZero(first));
+
+        // a second draw must not repeat the first - a source that cached or returned a constant
+        // would pass the length and non-zero checks above
+        byte[] second = es.getEntropy();
+
+        TestCase.assertEquals(32, second.length);
+        TestCase.assertFalse("entropy source returned all zeroes", allZero(second));
+        TestCase.assertFalse("entropy source repeated its output", Arrays.areEqual(first, second));
+    }
+
+    private static boolean allZero(byte[] buf)
+    {
+        int bits = 0;
+        for (int i = 0; i != buf.length; i++)
+        {
+            bits |= buf[i];
+        }
+        return bits == 0;
     }
 
     /**

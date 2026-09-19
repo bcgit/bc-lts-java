@@ -1096,7 +1096,12 @@ public final class CryptoServicesRegistrar
                 implements IncrementalEntropySource
         {
             private final AtomicBoolean seedAvailable;
-            private final IncrementalEntropySource entropySource;
+            // Plain EntropySource, not IncrementalEntropySource: the native entropy source is not
+            // incremental, and since getDefaultEntropySourceProvider started routing it through
+            // here a hard cast made every call fail with ClassCastException. The sibling
+            // SignallingEntropySource in HybridEntropySource, and EntropyGatherer, both already
+            // take the plain type and use the incremental path only when it is there.
+            private final EntropySource entropySource;
             private final int byteLength;
             private final AtomicReference entropy = new AtomicReference();
             private final AtomicBoolean scheduled = new AtomicBoolean(false);
@@ -1104,7 +1109,7 @@ public final class CryptoServicesRegistrar
             SignallingEntropySource(AtomicBoolean seedAvailable, EntropySourceProvider baseRandom, int bitsRequired)
             {
                 this.seedAvailable = seedAvailable;
-                this.entropySource = (IncrementalEntropySource) baseRandom.get(bitsRequired);
+                this.entropySource = baseRandom.get(bitsRequired);
                 this.byteLength = (bitsRequired + 7) / 8;
             }
 
@@ -1133,7 +1138,11 @@ public final class CryptoServicesRegistrar
 
                 if (seed == null || seed.length != byteLength)
                 {
-                    seed = entropySource.getEntropy(pause);
+                    // pause only means anything to a source that fetches in steps; a one-shot
+                    // source such as the native one has nothing to space out.
+                    seed = (entropySource instanceof IncrementalEntropySource)
+                        ? ((IncrementalEntropySource)entropySource).getEntropy(pause)
+                        : entropySource.getEntropy();
                 }
                 else
                 {
