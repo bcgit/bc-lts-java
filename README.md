@@ -5,6 +5,20 @@
 JAVA_HOME needs to point to a Java 21 installation, this is required for the build tools.
 The java code will be complied to be compatible with Java 8 (Version 52) and above.
 
+LTS_JDK25 needs to point to a Java 25 installation. This one is required to build, not just to
+test: the JSSE provider has a multi-release overlay under tls/src/main/jdk25 carrying the RFC 5705
+exportKeyingMaterial* methods, which are Java 25 platform API, and it is packaged into the jar as
+META-INF/versions/25. JAVA_HOME stays on 21 - only the toolchain for that one source set is 25.
+
+Without it the build stops at :tls:compileJava25Java with "Cannot find a Java installation on your
+machine ... matching: {languageVersion=25...}". The alternative, skipping that source set when no
+JDK 25 is present, was rejected deliberately: it produces a jar that is silently missing
+META-INF/versions/25 depending on which machine built it, which is the defect this requirement
+exists to prevent.
+
+The per-JDK test tasks additionally use LTS_JDK8, LTS_JDK11, LTS_JDK17 and LTS_JDK21. Those are
+optional - the tasks that need them skip when they are unset.
+
 # Native support
 
 ## Create jar with native libraries

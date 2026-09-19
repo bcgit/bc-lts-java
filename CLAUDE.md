@@ -11,7 +11,29 @@ Per the README, the build targets Java 8-compatible bytecode (the build script o
 ## Required environment
 
 - `JAVA_HOME` → JDK 21 (build tools require it).
+- **`LTS_JDK25` → a JDK 25 install dir. Required to BUILD, not just to test.** `tls`'s `java25` source set (`tls/src/main/jdk25`) compiles with a JDK 25 toolchain and is packaged as `META-INF/versions/25`; it carries the RFC 5705 `exportKeyingMaterial*` overrides, which are JDK 25 platform API. `JAVA_HOME` stays on 21 — only that one source set uses the 25 toolchain. Without it the build fails at `:tls:compileJava25Java` with `Cannot find a Java installation ... matching: {languageVersion=25...}`. It is deliberately **not** gated with `onlyIf`: gating would silently produce a jar missing `META-INF/versions/25` depending on the build host, which is exactly the defect that shipped when `src/main/jdk25` belonged to no source set at all.
 - For multi-JDK test tasks (`test8`, `test11`, `test17`, `test21`), set `LTS_JDK8`, `LTS_JDK11`, `LTS_JDK17`, `LTS_JDK21` to JDK install dirs. These env vars are wired in `gradle.properties` (`org.gradle.java.installations.fromEnv`) and gate the per-JDK test tasks via `onlyIf { System.getenv(...) != null }`. Without them, `./gradlew test` only runs the default tests.
+
+### Source dirs must belong to a source set
+
+A directory under `<module>/src/` that no `build.gradle` names is compiled nowhere and ships
+nowhere, and nothing reports it — not the build, not checkstyle, not the indexes. Three were found
+orphaned this way: `tls/src/main/jdk25` (three JSSE classes, so the jar shipped no
+`META-INF/versions/25`), `tls/src/test/jdk25` (fixed earlier), and `prov/src/test/jdk17` (whose
+package was misspelled `org.bouncycastle.jcacje` — a typo that survived precisely because nothing
+ever compiled it). The prov one mattered: the `javax.crypto.KEM` SPIs under `prov/src/main/jdk17`
+had no coverage, and shipped an encapsulator that threw `ClassCastException` on every call.
+
+Audit with:
+```
+for m in core prov util pkix pg mail jmail tls; do
+  for d in $(find $m/src -maxdepth 2 -type d -name 'jdk*'); do
+    grep -q "${d#$m/}" $m/build.gradle || echo "NOT WIRED: $d"
+  done
+done
+```
+`tls/src/test/jdk1.4` is a known, deliberate exception — dead JDK 1.4 overlays for a build that
+targets 8+.
 
 ## Common commands
 
