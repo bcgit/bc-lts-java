@@ -47,9 +47,26 @@ class MockPSKDTLSClient
         this.session = session;
     }
 
+    /**
+     * The handshake budget. 30 seconds rather than the library's 0 (wait indefinitely), so a
+     * handshake that genuinely wedges fails the run instead of hanging it.
+     * <p>
+     * It is deliberately not tight. The budget is wall-clock, so a tight one asserts that the
+     * machine was fast enough rather than that the protocol completed - at one second this test
+     * failed whenever the build had other test JVMs competing for the CPU. The tests that are
+     * about timing out set their own short value through setHandshakeTimeoutMillis.
+     * </p>
+     */
+    private int handshakeTimeoutMillis = 30000;
+
     public int getHandshakeTimeoutMillis()
     {
-        return 1000;
+        return handshakeTimeoutMillis;
+    }
+
+    public void setHandshakeTimeoutMillis(int millis)
+    {
+        this.handshakeTimeoutMillis = millis;
     }
 
     public int getHandshakeResendTimeMillis()

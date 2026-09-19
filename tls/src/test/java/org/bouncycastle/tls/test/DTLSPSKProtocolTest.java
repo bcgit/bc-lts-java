@@ -15,10 +15,21 @@ import junit.framework.TestCase;
 public class DTLSPSKProtocolTest
     extends TestCase
 {
+    /**
+     * The budget these two tests hand the peers. Short, because the handshake under test is one
+     * that cannot complete and the test is waiting for it to give up - the peers' own default is
+     * long, so that the tests which expect a handshake to SUCCEED are not asserting that the
+     * machine was fast enough.
+     */
+    private static final int TIMEOUT_MILLIS = 1000;
+
     public void testBadClientKeyTimeout() throws Exception
     {
         MockPSKDTLSClient client = new MockPSKDTLSClient(null, true);
         MockPSKDTLSServer server = new MockPSKDTLSServer();
+
+        client.setHandshakeTimeoutMillis(TIMEOUT_MILLIS);
+        server.setHandshakeTimeoutMillis(TIMEOUT_MILLIS);
 
         implTestKeyMismatch(client, server);
     }
@@ -27,6 +38,9 @@ public class DTLSPSKProtocolTest
     {
         MockPSKDTLSClient client = new MockPSKDTLSClient(null);
         MockPSKDTLSServer server = new MockPSKDTLSServer(true);
+
+        client.setHandshakeTimeoutMillis(TIMEOUT_MILLIS);
+        server.setHandshakeTimeoutMillis(TIMEOUT_MILLIS);
 
         implTestKeyMismatch(client, server);
     }
