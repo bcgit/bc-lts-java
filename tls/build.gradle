@@ -236,17 +236,28 @@ test {
     useJUnitPlatform()
 
 
-    maxParallelForks = 1;
+    maxParallelForks = Math.max(1, Runtime.getRuntime().availableProcessors() - 1);
     forkEvery = forkEveryClasses
 
-    minHeapSize = "4096m"
-    maxHeapSize = "8192m"
+    minHeapSize = "512m"
+    maxHeapSize = "4096m"
 
     classpath = project.sourceSets.test.output + configurations.testRuntimeClasspath + files(jar.archiveFile)
     testClassesDirs = project.sourceSets.test.output.classesDirs
 
+    // Schedule the individual test classes, not the two AllTests aggregates.
+    //
+    // maxParallelForks spreads the classes gradle SCHEDULES. Selecting "*AllTest*" schedules two
+    // units here, each of which then runs its ~25 contained classes in-process and serially, so
+    // the fork count had nothing to spread and raising it changed nothing (measured: 6m52s at one
+    // fork, 6m56s at nineteen). Excluding the aggregates puts every class on the queue instead.
+    //
+    // Safe in this module because both tls AllTests wrappers have an empty setUp/tearDown, so a
+    // class run on its own gets what it got inside the suite. That is NOT true of prov, pkix, pg
+    // or mail, whose suites register providers in setUp - do not copy this filter there without
+    // dealing with that first.
     filter {
-        includeTestsMatching "*AllTest*"
+        excludeTestsMatching "*AllTest*"
     }
 
     def args = new ArrayList<String>();
