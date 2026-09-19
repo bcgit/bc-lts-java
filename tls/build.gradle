@@ -18,6 +18,15 @@ sourceSets {
         }
     }
 
+    // src/main/jdk25 belonged to no source set, so its three classes were compiled nowhere and
+    // the jar shipped no META-INF/versions/25 at all - on JDK 25 the versions/9 SSLSession
+    // classes were used, which do not implement the RFC 5705 exportKeyingMaterial* methods.
+    java25 {
+        java {
+            srcDirs = ['src/main/jdk25']
+        }
+    }
+
     // src/test/jdk25 previously belonged to no source set, so nothing in it was compiled or run.
     test25 {
         java {
@@ -42,6 +51,10 @@ dependencies {
     java9Implementation files("$lts_util")
     java9Implementation files(sourceSets.main.output.classesDirs) {
         builtBy compileJava
+    }
+
+    java25Implementation files([sourceSets.main.output.classesDirs, sourceSets.java9.output.classesDirs]) {
+        builtBy compileJava9Java
     }
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.14.3'
@@ -77,6 +90,17 @@ compileJava {
     dependsOn(':util:jar')
 }
 
+compileJava25Java {
+    // Needs a real JDK 25: exportKeyingMaterialData/Key are JDK 25 platform API, so the JDK 21
+    // symbol set cannot see them. Resolved through org.gradle.java.installations.fromEnv, so
+    // JAVA_HOME stays on 21 and only LTS_JDK25 has to point at a 25.
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+    options.release = 25
+    options.sourcepath = files(['src/main/java', 'src/main/jdk25'])
+}
+
 compileJava9Java {
     options.release = 9
 
@@ -94,6 +118,9 @@ jar {
     from sourceSets.main.output
     into('META-INF/versions/9') {
         from sourceSets.java9.output
+    }
+    into('META-INF/versions/25') {
+        from sourceSets.java25.output
     }
     String v = "${rootProject.extensions.ext.bundle_version}"
     manifest.attributes('Multi-Release': 'true')
@@ -116,6 +143,9 @@ task sourcesJar(type: Jar) {
     from sourceSets.main.allSource
     into('META-INF/versions/9') {
         from sourceSets.java9.allSource
+    }
+    into('META-INF/versions/25') {
+        from sourceSets.java25.allSource
     }
     dependsOn(':prov:jar')
     dependsOn(':util:jar')
