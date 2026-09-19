@@ -75,6 +75,52 @@ compileJava {
 }
 
 
+//
+// CryptoServicesRegistrar.infoString is what DumpInfo and getInfo() report, and it is a hand
+// written literal - nothing generates it from gradle.properties. Bump `version` without editing
+// it and the jar, the OSGi Bundle-Version and copyJars all move while the library keeps telling
+// users the old number, with no build failure to notice. A support case comparing a reported
+// version against a shipped jar is a bad place to discover that.
+//
+// It is also `private static final String` with a constant initialiser, so javac inlines it into
+// every call site - a partial rebuild can leave the old value baked into classes that were not
+// recompiled, which makes the drift harder to see rather than easier.
+//
+tasks.register("checkInfoStringVersion") {
+    description = "Fail if CryptoServicesRegistrar.infoString disagrees with gradle.properties."
+    group = "verification"
+
+    def registrarSrc = file("src/main/java/org/bouncycastle/crypto/CryptoServicesRegistrar.java")
+    def expected = project.version.toString()
+
+    inputs.file(registrarSrc)
+    inputs.property("version", expected)
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def matcher = (registrarSrc.text =~ /infoString\s*=\s*"([^"]*)"/)
+
+        if (!matcher) {
+            throw new GradleException(
+                "could not find the infoString literal in ${registrarSrc} - has it been renamed? " +
+                "If it is now generated, drop this task.")
+        }
+
+        String declared = matcher[0][1]
+
+        if (!declared.endsWith("v" + expected)) {
+            throw new GradleException(
+                "version drift: gradle.properties has version=${expected}, but " +
+                "CryptoServicesRegistrar.infoString is \"${declared}\".\n" +
+                "Update the literal to end with \"v${expected}\" - it is what getInfo() and " +
+                "DumpInfo report to users.")
+        }
+    }
+}
+
+check.dependsOn("checkInfoStringVersion")
+
+
 task sourcesJar(type: Jar) {
     archiveBaseName = jar.archiveBaseName
     archiveClassifier = 'sources'

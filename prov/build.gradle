@@ -125,6 +125,68 @@ compileJava15Java {
     options.debug = rootProject.ext.debugBuild
 }
 
+//
+// BouncyCastleProvider passes a NUMERIC version to java.security.Provider, separately from the
+// info string. getVersionStr() returns that number, so it is what JCA callers and
+// Security.getProviders() see - and it is the one that went stale: after the 2.73.13 bump the
+// provider reported version=2.731202 alongside info="...v2.73.13", two different versions of
+// itself from the same object.
+//
+// The packing is major.minor followed by every later component zero padded to two digits:
+// 2.73.9 -> 2.7309, 2.73.12 -> 2.7312, 2.73.12.1 -> 2.731201, 2.73.13 -> 2.7313.
+//
+// The companion guard on CryptoServicesRegistrar.infoString lives in core/build.gradle. It did
+// not catch this one, which is the point of having both: a version written in more than one
+// place needs a check per place.
+//
+tasks.register("checkProviderVersion") {
+    description = "Fail if BouncyCastleProvider's numeric version disagrees with gradle.properties."
+    group = "verification"
+
+    def providerSrc = file("src/main/java/org/bouncycastle/jce/provider/BouncyCastleProvider.java")
+    def projectVersion = project.version.toString()
+
+    inputs.file(providerSrc)
+    inputs.property("version", projectVersion)
+    outputs.upToDateWhen { false }
+
+    doLast {
+        String[] parts = projectVersion.replace("-SNAPSHOT", "").split("\\.")
+
+        if (parts.length < 2)
+        {
+            throw new GradleException("cannot read a major.minor out of version=${projectVersion}")
+        }
+
+        StringBuilder expected = new StringBuilder(parts[0]).append('.').append(parts[1])
+        for (int i = 2; i != parts.length; i++)
+        {
+            expected.append(String.format("%02d", parts[i] as int))
+        }
+
+        def matcher = (providerSrc.text =~ /super\(PROVIDER_NAME,\s*([0-9.]+)\s*,/)
+
+        if (!matcher)
+        {
+            throw new GradleException(
+                "could not find the numeric version in ${providerSrc} - has the super() call " +
+                "changed shape? If the version is now derived, drop this task.")
+        }
+
+        String declared = matcher[0][1]
+
+        if (declared != expected.toString())
+        {
+            throw new GradleException(
+                "version drift: gradle.properties has version=${projectVersion}, so " +
+                "BouncyCastleProvider's numeric version should be ${expected}, but it is " +
+                "${declared}.\nThat number is what Provider.getVersionStr() reports to JCA callers.")
+        }
+    }
+}
+
+check.dependsOn("checkProviderVersion")
+
 compileTest17Java {
     // -source/-target 17 rather than --release 17, for the same reason as compileJava17Java
     // below: javax.crypto.KEM is hidden by the JDK 17 symbol set, and these tests exist to
