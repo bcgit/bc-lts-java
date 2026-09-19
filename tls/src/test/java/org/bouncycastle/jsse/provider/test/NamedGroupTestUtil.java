@@ -6,7 +6,6 @@ import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -26,7 +25,6 @@ import org.bouncycastle.jsse.BCSSLSocket;
 class NamedGroupTestUtil
 {
     private static final String HOST = "localhost";
-    private static final AtomicInteger PORT_NO = new AtomicInteger(19700);
 
     static final char[] KEY_PASSWORD = "keyPassword".toCharArray();
 
@@ -86,10 +84,9 @@ class NamedGroupTestUtil
     static void runNamedGroupTest(String namedGroup, SSLContext clientContext, SSLContext serverContext)
         throws Exception
     {
-        int port = PORT_NO.incrementAndGet();
+        NamedGroupServer server = new NamedGroupServer(serverContext, namedGroup);
 
-        TestProtocolUtil.runClientAndServer(new NamedGroupServer(serverContext, port, namedGroup),
-            new NamedGroupClient(clientContext, port, namedGroup));
+        TestProtocolUtil.runClientAndServer(server, new NamedGroupClient(clientContext, server, namedGroup));
     }
 
     /**
@@ -100,10 +97,8 @@ class NamedGroupTestUtil
     static boolean defaultServerAccepts(String namedGroup, SSLContext clientContext, SSLContext serverContext)
         throws Exception
     {
-        int port = PORT_NO.incrementAndGet();
-
-        NamedGroupClient client = new NamedGroupClient(clientContext, port, namedGroup);
-        NamedGroupServer server = new NamedGroupServer(serverContext, port, null);
+        NamedGroupServer server = new NamedGroupServer(serverContext, null);
+        NamedGroupClient client = new NamedGroupClient(clientContext, server, namedGroup);
 
         TestProtocolUtil.Task serverTask = new TestProtocolUtil.Task(server);
         Thread serverThread = new Thread(serverTask);
@@ -140,14 +135,19 @@ class NamedGroupTestUtil
         implements TestProtocolUtil.BlockingCallable
     {
         private final SSLContext clientContext;
-        private final int port;
+        private final NamedGroupServer server;
         private final String namedGroup;
         private final CountDownLatch latch = new CountDownLatch(1);
 
-        NamedGroupClient(SSLContext clientContext, int port, String namedGroup)
+        /**
+         * Takes the server rather than a port because the port is not known until the server has
+         * bound. Both call sites start the client only after the server's await() has returned, so
+         * getBoundPort() is answerable by the time call() runs.
+         */
+        NamedGroupClient(SSLContext clientContext, NamedGroupServer server, String namedGroup)
         {
             this.clientContext = clientContext;
-            this.port = port;
+            this.server = server;
             this.namedGroup = namedGroup;
         }
 
@@ -156,7 +156,7 @@ class NamedGroupTestUtil
             try
             {
                 SSLSocketFactory fact = clientContext.getSocketFactory();
-                SSLSocket cSock = (SSLSocket)fact.createSocket(HOST, port);
+                SSLSocket cSock = (SSLSocket)fact.createSocket(HOST, server.getBoundPort());
 
                 restrictToNamedGroup(cSock, namedGroup);
 
@@ -185,15 +185,33 @@ class NamedGroupTestUtil
         implements TestProtocolUtil.BlockingCallable
     {
         private final SSLContext serverContext;
-        private final int port;
         private final String namedGroup;
         private final CountDownLatch latch = new CountDownLatch(1);
 
-        NamedGroupServer(SSLContext serverContext, int port, String namedGroup)
+        private volatile int boundPort = -1;
+
+        NamedGroupServer(SSLContext serverContext, String namedGroup)
         {
             this.serverContext = serverContext;
-            this.port = port;
             this.namedGroup = namedGroup;
+        }
+
+        /**
+         * The port the kernel handed out, readable once await() has returned.
+         *
+         * @throws IllegalStateException where the server never got as far as binding, so that a
+         * caller connecting too early fails here rather than against some unrelated port.
+         */
+        int getBoundPort()
+        {
+            int port = boundPort;
+
+            if (port < 0)
+            {
+                throw new IllegalStateException("server has not bound a port");
+            }
+
+            return port;
         }
 
         public Exception call() throws Exception
@@ -201,9 +219,16 @@ class NamedGroupTestUtil
             try
             {
                 SSLServerSocketFactory fact = serverContext.getServerSocketFactory();
-                SSLServerSocket sSock = (SSLServerSocket)fact.createServerSocket(port);
+
+                // port 0: the kernel picks a free one. A fixed port, or one from a counter seeded
+                // the same way in every JVM, collides as soon as two test JVMs run at once - and
+                // forkEvery = 1 means each test class already gets its own JVM.
+                SSLServerSocket sSock = (SSLServerSocket)fact.createServerSocket(0);
 
                 sSock.setEnabledProtocols(new String[]{ "TLSv1.3" });
+
+                // published before the latch fires, so the client sees it the moment await() returns
+                boundPort = sSock.getLocalPort();
 
                 latch.countDown();
 
