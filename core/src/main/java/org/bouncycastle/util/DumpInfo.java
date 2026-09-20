@@ -29,8 +29,15 @@ public class DumpInfo
             System.out.println("Native Status: " + nativeServices.getStatusMessage());
             System.out.println("Native Variant: " + nativeServices.getVariant());
             System.out.println("Native Features: " + String.join(" ", nativeServices.getFeatureSet()));
-            System.out.println("Native Rand Source: " + nativeServices.getNativeRandSource());
-            System.out.println("Native Rand Max Retries: " + nativeServices.getMaxRNGRetries());
+
+            // The rand lines only mean something where the loaded library has a hardware RNG at
+            // all. On a library without one (for example neon-le) the selection cannot take effect,
+            // so printing it would suggest a hardware source that is not there.
+            if (nativeServices.hasService(NativeServices.NRBG) || nativeServices.hasService(NativeServices.DRBG))
+            {
+                System.out.println("Native Rand Source: " + nativeServices.getNativeRandSource());
+                System.out.println("Native Rand Max Retries: " + nativeServices.getMaxRNGRetries());
+            }
             System.out.println("");
 
 
