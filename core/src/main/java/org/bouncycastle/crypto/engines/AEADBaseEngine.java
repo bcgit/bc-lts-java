@@ -614,6 +614,7 @@ abstract class AEADBaseEngine
             boolean forEncryption = checkData(false);
             if (forEncryption)
             {
+                ensureSufficientOutputBuffer(output, outOff, 1);
                 this.len = 1;
                 processBufferEncrypt(new byte[]{input}, 0, output, outOff);
                 return 1;
@@ -622,6 +623,7 @@ abstract class AEADBaseEngine
             {
                 if (m_bufPos == MAC_SIZE)
                 {
+                    ensureSufficientOutputBuffer(output, outOff, 1);
                     this.len = 1;
                     processBufferDecrypt(m_buf, 0, output, outOff);
                     System.arraycopy(m_buf, 1, m_buf, 0, m_bufPos - 1);
@@ -648,6 +650,10 @@ abstract class AEADBaseEngine
             boolean forEncryption = checkData(false);
             if (forEncryption)
             {
+                if (len > 0)
+                {
+                    ensureSufficientOutputBuffer(output, outOff, len);
+                }
                 this.len = len;
                 processBufferEncrypt(input, inOff, output, outOff);
                 return len;
@@ -656,6 +662,11 @@ abstract class AEADBaseEngine
             {
                 // keep last mac size bytes
                 int available = Math.max(m_bufPos + len - MAC_SIZE, 0);
+                // checked before anything is written or buffered, and only when there is output
+                if (available > 0)
+                {
+                    ensureSufficientOutputBuffer(output, outOff, available);
+                }
                 int rlt = 0;
                 if (m_bufPos > 0)
                 {
@@ -669,7 +680,7 @@ abstract class AEADBaseEngine
                 if (available > 0)
                 {
                     this.len = available;
-                    processBufferDecrypt(input, inOff, output, outOff);
+                    processBufferDecrypt(input, inOff, output, outOff + rlt);
                     rlt += available;
                     len -= available;
                     inOff += available;

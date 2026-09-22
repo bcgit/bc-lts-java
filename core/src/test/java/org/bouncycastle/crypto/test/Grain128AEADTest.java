@@ -3,6 +3,7 @@ package org.bouncycastle.crypto.test;
 import java.security.SecureRandom;
 
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.engines.Grain128AEADEngine;
 import org.bouncycastle.crypto.modes.AEADCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -36,13 +37,16 @@ public class Grain128AEADTest
             }
         });
         CipherTest.checkAEADCipherMultipleBlocks(this, 1024, 7, 100, 128, 12, new Grain128AEADEngine());
-
+        // PARTLEN has to exceed the 8 byte tag length for a single processBytes() call to release
+        // both buffered tag bytes and bytes taken straight from the input.
+        CipherTest.checkAEADCipherMultipleBlocks(this, 1024, 19, 100, 128, 12, new Grain128AEADEngine());
 
         CipherTest.checkAEADParemeter(this, 16, 12, 8, 20, new Grain128AEADEngine());
 
         testSplitUpdate();
         testExceptions();
         testLongAEAD();
+        testStreamedDecryption();
     }
 
 
@@ -141,6 +145,57 @@ public class Grain128AEADTest
         }
     }
 
+    private void testStreamedDecryption()
+        throws InvalidCipherTextException
+    {
+        byte[] key = Hex.decode("000102030405060708090A0B0C0D0E0F");
+        byte[] nonce = Hex.decode("000102030405060708090A0B");
+        byte[] ad = Hex.decode("000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E");
+        byte[] pt = new byte[64];
+        for (int i = 0; i != pt.length; i++)
+        {
+            pt[i] = (byte)i;
+        }
+
+        ParametersWithIV params = new ParametersWithIV(new KeyParameter(key), nonce);
+        Grain128AEADEngine grain = new Grain128AEADEngine();
+
+        grain.init(true, params);
+        grain.processAADBytes(ad, 0, ad.length);
+        byte[] ct = new byte[grain.getOutputSize(pt.length)];
+        int ctLen = grain.processBytes(pt, 0, pt.length, ct, 0);
+        ctLen += grain.doFinal(ct, ctLen);
+        isEquals("cipher text length", ct.length, ctLen);
+
+        grain.init(false, params);
+        grain.processAADBytes(ad, 0, ad.length);
+        byte[] oneShot = new byte[grain.getOutputSize(ctLen)];
+        int oneShotLen = grain.processBytes(ct, 0, ctLen, oneShot, 0);
+        oneShotLen += grain.doFinal(oneShot, oneShotLen);
+        isEquals("one shot plain text length", pt.length, oneShotLen);
+        isTrue("one shot decryption", Arrays.areEqual(pt, oneShot));
+
+        // A processBytes() call that releases buffered tag bytes and bytes taken straight from the
+        // input writes its output in two segments. Split the cipher text at every point so that the
+        // second chunk exceeds the 8 byte tag length and both segments are written by one call.
+        // doFinal() throws when the tag does not verify, so reaching the comparisons means the tag
+        // was accepted and only the plain text placement is under test.
+        for (int split = 1; split != ctLen; split++)
+        {
+            grain.init(false, params);
+            grain.processAADBytes(ad, 0, ad.length);
+
+            byte[] streamed = new byte[grain.getOutputSize(ctLen)];
+            int len = grain.processBytes(ct, 0, split, streamed, 0);
+            len += grain.processBytes(ct, split, ctLen - split, streamed, len);
+            len += grain.doFinal(streamed, len);
+
+            isEquals("streamed plain text length, split " + split, pt.length, len);
+            isTrue("streamed decryption does not match one shot, split " + split, Arrays.areEqual(oneShot, streamed));
+            isTrue("streamed decryption does not match plain text, split " + split, Arrays.areEqual(pt, streamed));
+        }
+    }
+
     private void testExceptions()
         throws InvalidCipherTextException
     {
@@ -179,6 +234,56 @@ public class Grain128AEADTest
         {
             isEquals("Grain-128 AEAD key must be 16 bytes long", e.getMessage());
         }
+
+        ParametersWithIV params = new ParametersWithIV(new KeyParameter(new byte[16]), new byte[12]);
+        byte[] pt = new byte[64];
+
+        Grain128AEADEngine grain = new Grain128AEADEngine();
+
+        grain.init(true, params);
+
+        byte[] ct = new byte[grain.getOutputSize(pt.length)];
+        int ctLen = grain.processBytes(pt, 0, pt.length, ct, 0);
+        ctLen += grain.doFinal(ct, ctLen);
+
+        // an output buffer too short for what the call would write is reported the way the other
+        // AEAD engines report it, rather than as an ArrayIndexOutOfBoundsException
+        try
+        {
+            grain.init(true, params);
+            grain.processBytes(pt, 0, pt.length, new byte[pt.length - 1], 0);
+            fail("no exception");
+        }
+        catch (OutputLengthException e)
+        {
+            isEquals("output buffer too short", e.getMessage());
+        }
+
+        try
+        {
+            grain.init(false, params);
+            grain.processBytes(ct, 0, ctLen, new byte[pt.length - 1], 0);
+            fail("no exception");
+        }
+        catch (OutputLengthException e)
+        {
+            isEquals("output buffer too short", e.getMessage());
+        }
+
+        try
+        {
+            grain.init(true, params);
+            grain.processByte((byte)1, new byte[0], 0);
+            fail("no exception");
+        }
+        catch (OutputLengthException e)
+        {
+            isEquals("output buffer too short", e.getMessage());
+        }
+
+        // nothing is released while the tag is still buffered, so the output is not touched
+        grain.init(false, params);
+        isEquals("buffered decryption releases nothing", 0, grain.processBytes(ct, 0, 8, new byte[0], 0));
     }
 
     static void checkAEADCipherOutputSize(SimpleTest parent, int keySize, int ivSize, int tagSize, AEADCipher cipher)
