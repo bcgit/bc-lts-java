@@ -2,6 +2,7 @@ package org.bouncycastle.jcajce.provider.keystore.pkcs12;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +17,8 @@ import org.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.ContentInfo;
 import org.bouncycastle.asn1.pkcs.EncryptedData;
+import org.bouncycastle.asn1.pkcs.PBKDF2Params;
+import org.bouncycastle.asn1.pkcs.PBMAC1Params;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.internal.asn1.kisa.KISAObjectIdentifiers;
@@ -331,6 +334,10 @@ class PKCS12Util
     // The RFC 9579 sec. 9 floor for a PBMAC1 MAC key; see validateMacKeyLength, which is the only
     // thing that applies it - a PBES2 content-encryption keyLength legitimately goes below it.
     private static final BigInteger MIN_MAC_KEY_LENGTH = BigInteger.valueOf(20);
+    // the PBKDF2 count a PBMAC1 MAC is written with by default, and the floor for one it inherits
+    private static final int DEFAULT_MAC_KDF_IT_COUNT = 1 << 16;
+    // the shortest MAC salt written, whatever a loaded file declared - PKCS#12's traditional size
+    private static final int MIN_MAC_SALT_LENGTH = 8;
     // Any keyLength beyond this is rejected as abusive, whatever it is sizing.
     private static final BigInteger MAX_KEY_LENGTH = BigInteger.valueOf(1024);
 
@@ -371,6 +378,114 @@ class PKCS12Util
      * @throws IllegalStateException if the keyLength is absent, not positive, below 20 octets, or
      *         larger than the maximum supported.
      */
+    /**
+     * Return the PBKDF2 iteration count to write a PBMAC1 MAC with, given the count a loaded file
+     * carried. A file keeps its own count where that is at least the count this release would
+     * choose for itself, and is raised to that otherwise: the count is the work factor protecting
+     * the file being written, and the file being re-stored is no longer the one the count was
+     * chosen for. Reading is unaffected - a file's MAC can only be verified with the count it was
+     * made with, whatever that is.
+     *
+     * @param iterationCount the iteration count the loaded file's PBKDF2 parameters carried.
+     * @return the count to write with.
+     */
+    /**
+     * Return the MAC AlgorithmIdentifier to write a file with, given the one the store holds -
+     * which after a load is the one the loaded file carried.
+     * <p>
+     * For PBMAC1 the PBKDF2 salt is generated afresh here for every write: a salt is
+     * per-derivation, so neither a salt a loaded file carried nor one an earlier write of the same
+     * store used may be written again. The rest of the shape - the PRF, the key length, the
+     * authentication scheme and the iteration count - is kept, so a file keeps the form it arrived
+     * in, with the count raised by {@link #getMacKdfIterationCount(BigInteger)} if the file asked
+     * for less than this release writes itself. Any other MAC algorithm is returned unchanged: its
+     * salt lives in the MacData, which both stores generate per write.
+     *
+     * @param macAlgorithm the MAC AlgorithmIdentifier the store holds.
+     * @param random source of randomness for a new salt.
+     * @return the AlgorithmIdentifier to MAC the file with.
+     */
+    static AlgorithmIdentifier getWriteMacAlgorithm(AlgorithmIdentifier macAlgorithm, SecureRandom random)
+    {
+        if (!PKCSObjectIdentifiers.id_PBMAC1.equals(macAlgorithm.getAlgorithm()))
+        {
+            return macAlgorithm;
+        }
+
+        int itCount = getPbkdf2IterationCount();
+        // RFC 9579 sec. 5: the derived key SHOULD be the size of the HMAC output, which is 64 for
+        // the HMAC-SHA-512 auth scheme below. Releases up to 1.86 asked for 256 here; those files
+        // still verify, since the length is read back from the file.
+        int keyLength = 64;
+        AlgorithmIdentifier prf = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA256);
+        AlgorithmIdentifier authScheme = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA512);
+
+        if (macAlgorithm.getParameters() != null)
+        {
+            PBMAC1Params loaded = PBMAC1Params.getInstance(macAlgorithm.getParameters());
+
+            if (PKCSObjectIdentifiers.id_PBKDF2.equals(loaded.getKeyDerivationFunc().getAlgorithm()))
+            {
+                PBKDF2Params loadedKdf = PBKDF2Params.getInstance(loaded.getKeyDerivationFunc().getParameters());
+
+                itCount = getMacKdfIterationCount(loadedKdf.getIterationCount());
+                if (loadedKdf.getKeyLength() != null)
+                {
+                    keyLength = validateMacKeyLength(loadedKdf.getKeyLength());
+                }
+                prf = loadedKdf.getPrf();
+                authScheme = loaded.getMessageAuthScheme();
+            }
+        }
+
+        byte[] pbSalt = new byte[32];
+
+        random.nextBytes(pbSalt);
+
+        AlgorithmIdentifier keyDevFunc = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBKDF2,
+            new PBKDF2Params(pbSalt, itCount, keyLength, prf));
+
+        return new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBMAC1, new PBMAC1Params(keyDevFunc, authScheme));
+    }
+
+    static int getMacKdfIterationCount(BigInteger iterationCount)
+    {
+        return Math.max(validateIterationCount(iterationCount), getPbkdf2IterationCount());
+    }
+
+    /**
+     * Return the PBKDF2 iteration count to write a PBMAC1 MAC with, from
+     * {@link Properties#PKCS12_PBKDF2_IT_COUNT}, which also floors a count taken from a loaded
+     * file. A value outside the range {@link #getStoreIterationCount()} accepts is ignored.
+     *
+     * @return the configured count, or 65,536.
+     */
+    static int getPbkdf2IterationCount()
+    {
+        int itCount = Properties.asInteger(Properties.PKCS12_PBKDF2_IT_COUNT, DEFAULT_MAC_KDF_IT_COUNT);
+
+        if (itCount < 1 || itCount > MAX_STORE_IT_COUNT)
+        {
+            return DEFAULT_MAC_KDF_IT_COUNT;
+        }
+
+        return itCount;
+    }
+
+    /**
+     * Return the length of the MacData salt to write, given the length a loaded file declared.
+     * A file keeps its own length where that is at least {@link #MIN_MAC_SALT_LENGTH}, so a file
+     * from another implementation round trips, but a file declaring no salt at all - or one too
+     * short to be one - does not hand that on to a file written here.
+     *
+     * @param saltLength the MAC salt length the loaded file declared.
+     * @return the length to write.
+     */
+    static int getMacSaltLength(int saltLength)
+    {
+        return Math.max(saltLength, MIN_MAC_SALT_LENGTH);
+    }
+
     static int validateMacKeyLength(BigInteger keyLength)
     {
         int length = validateKeyLength(keyLength);

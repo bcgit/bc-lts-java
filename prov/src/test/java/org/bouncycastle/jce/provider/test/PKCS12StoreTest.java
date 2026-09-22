@@ -32,10 +32,15 @@ import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DERSet;
 import org.bouncycastle.asn1.DLSequenceParser;
 import org.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
+import javax.crypto.Mac;
+import javax.crypto.spec.PBEParameterSpec;
+import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.pkcs.ContentInfo;
 import org.bouncycastle.asn1.pkcs.EncryptedData;
 import org.bouncycastle.asn1.pkcs.EncryptedPrivateKeyInfo;
 import org.bouncycastle.asn1.pkcs.MacData;
+import org.bouncycastle.asn1.pkcs.PBKDF2Params;
+import org.bouncycastle.asn1.pkcs.PBMAC1Params;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.Pfx;
 import org.bouncycastle.asn1.pkcs.SafeBag;
@@ -43,6 +48,8 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.DigestInfo;
+import org.bouncycastle.jcajce.PKCS12Key;
 import org.bouncycastle.asn1.x509.KeyPurposeId;
 import org.bouncycastle.internal.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.jcajce.PKCS12StoreParameter;
@@ -52,6 +59,8 @@ import org.bouncycastle.jce.interfaces.PKCS12BagAttributeCarrier;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.provider.X509CertificateObject;
 
+import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
 import org.bouncycastle.util.test.SimpleTest;
@@ -2605,12 +2614,245 @@ public class PKCS12StoreTest
         testStoreType("PKCS12-AES256-AES128-GCM", false);
     }
 
+    // Tests for issue #2450 - the MAC KDF parameters of a loaded file must not be written out again.
+
+    private void testMacKdfParametersNotInherited()
+        throws Exception
+    {
+        char[] vectorPassword = "1234".toCharArray();
+        char[] otherPassword = "a different password".toCharArray();
+
+        KeyStore src = KeyStore.getInstance("PKCS12-PBMAC1", BC);
+
+        src.load(new ByteArrayInputStream(pkcs12WithPBMac1PBKdf2_a1), vectorPassword);
+
+        Certificate cert = src.getCertificate((String)src.aliases().nextElement());
+
+        // a store that never loaded a file mints a salt per write, not one per object
+        KeyStore fresh = KeyStore.getInstance("PKCS12-PBMAC1", BC);
+
+        fresh.load(null, null);
+        fresh.setCertificateEntry("cert", cert);
+
+        byte[] first = storeToBytes(fresh, passwd);
+        byte[] second = storeToBytes(fresh, passwd);
+
+        isEquals("first write did not use the default count", 65536, pbkdf2ParamsOf(first).getIterationCount().intValue());
+        isTrue("two writes of one store share a PBKDF2 salt",
+            !Arrays.areEqual(pbkdf2ParamsOf(first).getSalt(), pbkdf2ParamsOf(second).getSalt()));
+
+        // a loaded file's salt is not written out again, and a count below the one we write
+        // ourselves is raised, the rest of the shape being kept - RFC 9579's vectors ask for 2048.
+        // Both stores read RFC 9579 files, so both can end up holding a PBMAC1 algorithm.
+        byte[][] vectors = new byte[][]{pkcs12WithPBMac1PBKdf2_a1, pkcs12WithPBMac1PBKdf2_a2, pkcs12WithPBMac1PBKdf2_a3};
+
+        for (int i = 0; i != vectors.length; i++)
+        {
+            for (int t = 0; t != 2; t++)
+            {
+                String type = (t == 0) ? "PKCS12-PBMAC1" : "PKCS12";
+                String label = type + ", vector " + (i + 1) + ": ";
+
+                PBMAC1Params filePbmac1 = pbmac1ParamsOf(vectors[i]);
+                PBKDF2Params fileKdf = pbkdf2ParamsOf(vectors[i]);
+
+                KeyStore loaded = KeyStore.getInstance(type, BC);
+
+                loaded.load(new ByteArrayInputStream(vectors[i]), vectorPassword);
+
+                byte[] written = storeToBytes(loaded, otherPassword);
+
+                PBKDF2Params outKdf = pbkdf2ParamsOf(written);
+
+                isTrue(label + "the file's PBKDF2 salt was written out again",
+                    !Arrays.areEqual(fileKdf.getSalt(), outKdf.getSalt()));
+                isEquals(label + "salt length", 32, outKdf.getSalt().length);
+                isTrue(label + "count below the one we write ourselves: " + outKdf.getIterationCount(),
+                    outKdf.getIterationCount().intValue() >= 65536);
+                isEquals(label + "key length not kept", fileKdf.getKeyLength(), outKdf.getKeyLength());
+                isEquals(label + "PRF not kept", fileKdf.getPrf(), outKdf.getPrf());
+                isEquals(label + "auth scheme not kept", filePbmac1.getMessageAuthScheme(),
+                    pbmac1ParamsOf(written).getMessageAuthScheme());
+
+                // the file written opens under the password it was written with
+                KeyStore reloaded = KeyStore.getInstance(type, BC);
+
+                reloaded.load(new ByteArrayInputStream(written), otherPassword);
+
+                isTrue(label + "the written file does not re-load", reloaded.aliases().hasMoreElements());
+
+                // and a second write of the same store does not repeat the first one's salt
+                isTrue(label + "two writes of a loaded store share a PBKDF2 salt",
+                    !Arrays.areEqual(outKdf.getSalt(), pbkdf2ParamsOf(storeToBytes(loaded, otherPassword)).getSalt()));
+            }
+        }
+
+        // a load that failed leaves nothing for the caller's own file to inherit
+        KeyStore failed = KeyStore.getInstance("PKCS12-PBMAC1", BC);
+
+        try
+        {
+            failed.load(new ByteArrayInputStream(pkcs12WithPBMac1PBKdf2_a1), "the wrong password".toCharArray());
+            fail("no exception on a bad password");
+        }
+        catch (IOException e)
+        {
+            // expected
+        }
+
+        failed.load(null, null);
+        failed.setCertificateEntry("cert", cert);
+
+        PBKDF2Params afterFailure = pbkdf2ParamsOf(storeToBytes(failed, passwd));
+
+        isTrue("the failed load's PBKDF2 salt was written",
+            !Arrays.areEqual(pbkdf2ParamsOf(pkcs12WithPBMac1PBKdf2_a1).getSalt(), afterFailure.getSalt()));
+        isEquals("the failed load's count was written", 65536, afterFailure.getIterationCount().intValue());
+
+        // the classic store writes its MAC salt at the default length, whatever the file declared
+        KeyStore classic = KeyStore.getInstance("PKCS12", BC);
+
+        classic.load(null, null);
+        classic.setCertificateEntry("cert", cert);
+
+        byte[] zeroSaltFile = withZeroLengthMacSalt(storeToBytes(classic, passwd), passwd);
+
+        isEquals("crafted file's MAC salt length", 0, Pfx.getInstance(zeroSaltFile).getMacData().getSalt().length);
+
+        KeyStore zeroSalt = KeyStore.getInstance("PKCS12", BC);
+
+        zeroSalt.load(new ByteArrayInputStream(zeroSaltFile), passwd);
+
+        isEquals("a zero length MAC salt was written out again", 8,
+            Pfx.getInstance(storeToBytes(zeroSalt, otherPassword)).getMacData().getSalt().length);
+
+        // an AlgorithmIdentifier the caller supplied is written as it was given
+        byte[] callerSalt = Hex.decode("0102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f20");
+        AlgorithmIdentifier callerMac = new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBMAC1,
+            new PBMAC1Params(new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBKDF2,
+                new PBKDF2Params(callerSalt, 4096, 32,
+                    new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA256))),
+                new AlgorithmIdentifier(PKCSObjectIdentifiers.id_hmacWithSHA256)));
+
+        KeyStore caller = KeyStore.getInstance("PKCS12-PBMAC1", BC);
+
+        caller.load(null, null);
+        caller.setCertificateEntry("cert", cert);
+
+        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+
+        caller.store(PKCS12StoreParameter.builder(bOut, passwd).setMacAlgorithm(callerMac).build());
+
+        PBKDF2Params callerOut = pbkdf2ParamsOf(bOut.toByteArray());
+
+        isTrue("a caller supplied PBKDF2 salt was not used", Arrays.areEqual(callerSalt, callerOut.getSalt()));
+        isEquals("a caller supplied iteration count was not used", 4096, callerOut.getIterationCount().intValue());
+    }
+
+    private void testPbkdf2IterationCount()
+        throws Exception
+    {
+        // as with PKCS12_STORE_IT_COUNT, put back whatever the harness had rather than assuming
+        // the property was unset
+        String ambient = System.getProperty(Properties.PKCS12_PBKDF2_IT_COUNT);
+
+        KeyStore src = KeyStore.getInstance("PKCS12-PBMAC1", BC);
+
+        src.load(new ByteArrayInputStream(pkcs12WithPBMac1PBKdf2_a1), "1234".toCharArray());
+
+        Certificate cert = src.getCertificate((String)src.aliases().nextElement());
+
+        try
+        {
+            System.setProperty(Properties.PKCS12_PBKDF2_IT_COUNT, "4096");
+
+            KeyStore store = KeyStore.getInstance("PKCS12-PBMAC1", BC);
+
+            store.load(null, null);
+            store.setCertificateEntry("cert", cert);
+
+            isEquals("configured PBKDF2 count not used", 4096,
+                pbkdf2ParamsOf(storeToBytes(store, passwd)).getIterationCount().intValue());
+
+            // and it floors a count taken from a loaded file: the vectors ask for 2048
+            KeyStore loaded = KeyStore.getInstance("PKCS12-PBMAC1", BC);
+
+            loaded.load(new ByteArrayInputStream(pkcs12WithPBMac1PBKdf2_a1), "1234".toCharArray());
+
+            isEquals("configured PBKDF2 count did not floor the file's", 4096,
+                pbkdf2ParamsOf(storeToBytes(loaded, passwd)).getIterationCount().intValue());
+
+            // a file asking for more than the configured count keeps its own
+            System.setProperty(Properties.PKCS12_PBKDF2_IT_COUNT, "1024");
+
+            isEquals("a file's higher count was lowered", 2048,
+                pbkdf2ParamsOf(storeToBytes(loaded, passwd)).getIterationCount().intValue());
+
+            // a value out of range falls back to the default rather than to no work at all
+            System.setProperty(Properties.PKCS12_PBKDF2_IT_COUNT, "0");
+
+            isEquals("out of range PBKDF2 count honoured", 65536,
+                pbkdf2ParamsOf(storeToBytes(store, passwd)).getIterationCount().intValue());
+        }
+        finally
+        {
+            if (ambient == null)
+            {
+                System.getProperties().remove(Properties.PKCS12_PBKDF2_IT_COUNT);
+            }
+            else
+            {
+                System.setProperty(Properties.PKCS12_PBKDF2_IT_COUNT, ambient);
+            }
+        }
+    }
+
+    private static byte[] storeToBytes(KeyStore store, char[] password)
+        throws Exception
+    {
+        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+
+        store.store(bOut, password);
+
+        return bOut.toByteArray();
+    }
+
+    private static PBMAC1Params pbmac1ParamsOf(byte[] pfx)
+    {
+        return PBMAC1Params.getInstance(
+            Pfx.getInstance(pfx).getMacData().getMac().getAlgorithmId().getParameters());
+    }
+
+    private static PBKDF2Params pbkdf2ParamsOf(byte[] pfx)
+    {
+        return PBKDF2Params.getInstance(pbmac1ParamsOf(pfx).getKeyDerivationFunc().getParameters());
+    }
+
+    // the same content with a zero length MAC salt at one iteration, MAC recomputed so it verifies
+    private static byte[] withZeroLengthMacSalt(byte[] pfx, char[] password)
+        throws Exception
+    {
+        Pfx file = Pfx.getInstance(pfx);
+        ContentInfo authSafe = file.getAuthSafe();
+        AlgorithmIdentifier macAlgorithm = file.getMacData().getMac().getAlgorithmId();
+
+        Mac mac = Mac.getInstance(macAlgorithm.getAlgorithm().getId(), BC);
+
+        mac.init(new PKCS12Key(password, false), new PBEParameterSpec(new byte[0], 1));
+        mac.update(ASN1OctetString.getInstance(authSafe.getContent()).getOctets());
+
+        return new Pfx(authSafe,
+            new MacData(new DigestInfo(macAlgorithm, mac.doFinal()), new byte[0], 1)).getEncoded(ASN1Encoding.DER);
+    }
+
     public void performTest()
         throws Exception
     {
         testPKCS12StoreFriendlyName();
         testIterationCount();
         testPBMac1PBKdf2();
+        testMacKdfParametersNotInherited();
+        testPbkdf2IterationCount();
         testPKCS12Store();
         testGOSTStore();
         testChainCycle();

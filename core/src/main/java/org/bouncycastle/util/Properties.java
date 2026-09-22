@@ -56,6 +56,22 @@ public class Properties
     public static final String PKCS12_STORE_IT_COUNT = "org.bouncycastle.pkcs12.store_it_count";
 
     /**
+     * The PBKDF2 iteration count the PKCS12 keystore uses for an RFC 9579 PBMAC1 integrity MAC when
+     * <b>writing</b> a file. Default 65,536.
+     * <p>
+     * This is the count that sets the work factor of a PBMAC1 MAC - the MacData count beside it is
+     * unused ballast under RFC 9579 sec. 6 - and it is also the floor for a count taken from a file
+     * that has been loaded: a file keeps its own count where that is at least this, and is raised to
+     * it otherwise, since the file being re-stored is no longer the one its count was chosen for.
+     * Reading is unaffected: a file's MAC can only be verified with the count it was made with.
+     * <p>
+     * A value outside 1 .. 2,500,000 is ignored and the default used, so a mistyped property fails
+     * towards the default rather than towards a file with no work in its MAC. Read via
+     * {@link #asInteger(String, int)}.
+     */
+    public static final String PKCS12_PBKDF2_IT_COUNT = "org.bouncycastle.pkcs12.pbkdf2_it_count";
+
+    /**
      * Maximum time, in seconds, that a downloaded CRL is cached by the internal CrlCache used
      * by the CertPath validator and X509RevocationChecker. When set to a positive value, cached
      * entries are evicted whichever expires sooner: the configured TTL or the CRL's own

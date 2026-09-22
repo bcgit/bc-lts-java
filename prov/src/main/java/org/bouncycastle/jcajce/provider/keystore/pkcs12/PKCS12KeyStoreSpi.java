@@ -1029,14 +1029,13 @@ public class PKCS12KeyStoreSpi
                 // declared IOException by parsing them under the same guard as the MAC itself.
                 MacData mData = bag.getMacData();
                 DigestInfo dInfo = mData.getMac();
-                macAlgorithm = dInfo.getAlgorithmId();
+                AlgorithmIdentifier fileMacAlgorithm = dInfo.getAlgorithmId();
                 byte[] salt = mData.getSalt();
-                itCount = PKCS12Util.validateIterationCount(mData.getIterationCount());
-                saltLength = salt.length;
+                int fileItCount = PKCS12Util.validateIterationCount(mData.getIterationCount());
 
                 byte[] data = PKCS12Util.getContentOctets(info);
 
-                byte[] res = calculatePbeMac(helper, macAlgorithm, salt, itCount, password, false, data);
+                byte[] res = calculatePbeMac(helper, fileMacAlgorithm, salt, fileItCount, password, false, data);
                 byte[] dig = dInfo.getDigest();
 
                 if (!Arrays.constantTimeAreEqual(res, dig))
@@ -1048,7 +1047,7 @@ public class PKCS12KeyStoreSpi
                     }
 
                     // Try with incorrect zero length password
-                    res = calculatePbeMac(helper, macAlgorithm, salt, itCount, password, true, data);
+                    res = calculatePbeMac(helper, fileMacAlgorithm, salt, fileItCount, password, true, data);
 
                     if (!Arrays.constantTimeAreEqual(res, dig))
                     {
@@ -1057,6 +1056,13 @@ public class PKCS12KeyStoreSpi
 
                     wrongPKCS12Zero = true;
                 }
+
+                // the file has verified: a write may now keep the MAC algorithm, count and salt
+                // length it arrived with. The salt bytes are not inherited - they are generated per
+                // write - and nothing is latched from a file that failed the check above.
+                macAlgorithm = fileMacAlgorithm;
+                itCount = fileItCount;
+                saltLength = PKCS12Util.getMacSaltLength(salt.length);
             }
             catch (IOException e)
             {
@@ -2126,9 +2132,13 @@ public class PKCS12KeyStoreSpi
         {
             try
             {
-                byte[] res = calculatePbeMac(helper, macAlgorithm, mSalt, macItCount, password, false, data);
+                // a PBMAC1 algorithm here came from a file this store loaded - RFC 9579 sec. 7
+                // files are read by this store too - and carries that file's PBKDF2 salt with it
+                AlgorithmIdentifier writeMacAlgorithm = PKCS12Util.getWriteMacAlgorithm(macAlgorithm, random);
 
-                DigestInfo dInfo = new DigestInfo(macAlgorithm, res);
+                byte[] res = calculatePbeMac(helper, writeMacAlgorithm, mSalt, macItCount, password, false, data);
+
+                DigestInfo dInfo = new DigestInfo(writeMacAlgorithm, res);
 
                 mData = new MacData(dInfo, mSalt, macItCount);
             }
