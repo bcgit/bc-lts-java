@@ -63,4 +63,29 @@ public abstract class AbstractRecipient
             }
         }
     }
+
+    /**
+     * Apply both of the recipient's restrictions to the content-encryption algorithm the message
+     * names, resolving an RFC 9709 key-derivation wrapper to the content-encryption algorithm it
+     * carries first, so that the restrictions are applied to the algorithm the content is actually
+     * encrypted under.
+     *
+     * @param contentAlgorithm the content-encryption AlgorithmIdentifier taken from the message.
+     * @throws CMSAlgorithmNotAllowedException if the content algorithm is not in the allowed set.
+     * @throws CMSTagLengthException if the tag size is below the configured minimum.
+     */
+    protected final void checkContentAlgorithm(AlgorithmIdentifier contentAlgorithm)
+        throws CMSException
+    {
+        // an RFC 9709 key derivation wraps the real content-encryption algorithm in its parameters,
+        // and it is that one these checks apply to
+        AlgorithmIdentifier encAlgId = CMSUtils.getContentEncryptionAlgorithm(contentAlgorithm);
+
+        if (!isContentAlgorithmAllowed(encAlgId.getAlgorithm()))
+        {
+            throw new CMSAlgorithmNotAllowedException("content-encryption algorithm not in recipient's allowed set: " + encAlgId.getAlgorithm());
+        }
+
+        checkTagSize(encAlgId);
+    }
 }

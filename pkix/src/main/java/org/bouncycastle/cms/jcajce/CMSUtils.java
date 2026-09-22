@@ -20,6 +20,7 @@ import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.cms.CMSObjectIdentifiers;
 import org.bouncycastle.asn1.cms.IssuerAndSerialNumber;
 import org.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
 import org.bouncycastle.asn1.iso.ISOIECObjectIdentifiers;
@@ -38,6 +39,42 @@ import org.bouncycastle.operator.OperatorCreationException;
 
 class CMSUtils
 {
+    /**
+     * Return the content-encryption algorithm an EncryptedContentInfo actually names, resolving the
+     * RFC 9709 id-alg-cek-hkdf-sha256 wrapper to the AlgorithmIdentifier carried in its parameters.
+     * <p>
+     * org.bouncycastle.cms.CMSUtils carries the same method for the lightweight side of the package,
+     * which cannot see this one - keep the two in step.
+     *
+     * @param contentAlgorithm the content-encryption AlgorithmIdentifier taken from the message.
+     * @return the algorithm the content is encrypted under.
+     * @throws CMSException if the key derivation carries no readable content-encryption algorithm.
+     */
+    static AlgorithmIdentifier getContentEncryptionAlgorithm(AlgorithmIdentifier contentAlgorithm)
+        throws CMSException
+    {
+        if (!CMSObjectIdentifiers.id_alg_cek_hkdf_sha256.equals(contentAlgorithm.getAlgorithm()))
+        {
+            return contentAlgorithm;
+        }
+
+        ASN1Encodable params = contentAlgorithm.getParameters();
+
+        if (params == null)
+        {
+            throw new CMSException("RFC 9709 key derivation names no content-encryption algorithm");
+        }
+
+        try
+        {
+            return AlgorithmIdentifier.getInstance(params);
+        }
+        catch (IllegalArgumentException e)
+        {
+            throw new CMSException("unable to read RFC 9709 content-encryption algorithm: " + e.getMessage(), e);
+        }
+    }
+
     private static final Map asymmetricWrapperAlgNames = new HashMap();
 
     private static Map<ASN1ObjectIdentifier,String> wrapAlgNames = new HashMap();

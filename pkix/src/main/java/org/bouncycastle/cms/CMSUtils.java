@@ -561,6 +561,42 @@ class CMSUtils
      * Return the AEAD tag length carried in AuthEnvelopedData's mac field, or
      * -1 when the algorithm is not recognised.
      */
+    /**
+     * Return the content-encryption algorithm an EncryptedContentInfo actually names, resolving the
+     * RFC 9709 id-alg-cek-hkdf-sha256 wrapper to the AlgorithmIdentifier carried in its parameters.
+     * <p>
+     * org.bouncycastle.cms.jcajce.CMSUtils carries the same method for the JCE side of the package,
+     * which cannot see this one - keep the two in step.
+     *
+     * @param contentAlgorithm the content-encryption AlgorithmIdentifier taken from the message.
+     * @return the algorithm the content is encrypted under.
+     * @throws CMSException if the key derivation carries no readable content-encryption algorithm.
+     */
+    static AlgorithmIdentifier getContentEncryptionAlgorithm(AlgorithmIdentifier contentAlgorithm)
+        throws CMSException
+    {
+        if (!CMSObjectIdentifiers.id_alg_cek_hkdf_sha256.equals(contentAlgorithm.getAlgorithm()))
+        {
+            return contentAlgorithm;
+        }
+
+        ASN1Encodable params = contentAlgorithm.getParameters();
+
+        if (params == null)
+        {
+            throw new CMSException("RFC 9709 key derivation names no content-encryption algorithm");
+        }
+
+        try
+        {
+            return AlgorithmIdentifier.getInstance(params);
+        }
+        catch (IllegalArgumentException e)
+        {
+            throw new CMSException("unable to read RFC 9709 content-encryption algorithm: " + e.getMessage(), e);
+        }
+    }
+
     static int getAEADMacLength(AlgorithmIdentifier encAlgId)
     {
         ASN1ObjectIdentifier algorithm = encAlgId.getAlgorithm();
