@@ -66,29 +66,11 @@ public class ERSDataGroup
     }
 
     /**
-     * Return the calculated hash for the Data
-     *
-     * @param digestCalculator  digest calculator to use.
-     * @param previousChainHash hash from an earlier chain if it needs to be included.
-     * @return calculated hash.
-     */
-    public byte[] getHash(DigestCalculator digestCalculator, byte[] previousChainHash)
-    {
-        List<byte[]> hashes = getHashes(digestCalculator, previousChainHash);
-        if (hashes.size() > 1)
-        {
-            return ERSUtil.calculateDigest(digestCalculator, hashes.iterator());
-        }
-        else
-        {
-            return (byte[])hashes.get(0);
-        }
-    }
-
-    /**
-     * Generates a hash for the whole DataGroup.
+     * Generates a hash for the whole DataGroup. Called through
+     * {@link ERSCachingData#getHash(DigestCalculator, byte[])}, which caches the result.
      *
      * @param digestCalculator the {@link DigestCalculator} to use for computing the hash
+     * @param previousChainHash hash from an earlier chain if it needs to be included.
      * @return a hash that is representative of the whole DataGroup
      */
     protected byte[] calculateHash(DigestCalculator digestCalculator, byte[] previousChainHash)
@@ -97,12 +79,7 @@ public class ERSDataGroup
 
         if (hashes.size() > 1)
         {
-            List<byte[]> dHashes = new ArrayList<byte[]>(hashes.size());
-            for (int i = 0; i != dHashes.size(); i++)
-            {
-                dHashes.add(hashes.get(i));
-            }
-            return ERSUtil.calculateDigest(digestCalculator, dHashes.iterator());
+            return ERSUtil.calculateDigest(digestCalculator, hashes.iterator());
         }
         else
         {

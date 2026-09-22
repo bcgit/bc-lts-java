@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.cms.ContentInfo;
@@ -36,6 +34,7 @@ public class ERSArchiveTimeStampGenerator
 
     private ERSRootNodeCalculator rootNodeCalculator = new BinaryTreeRootCalculator();
     private byte[] previousChainHash;
+    private IndexedPartialHashtree[] partialHashtrees;
 
     public ERSArchiveTimeStampGenerator(DigestCalculator digCalc)
     {
@@ -50,6 +49,7 @@ public class ERSArchiveTimeStampGenerator
     public void addData(ERSData dataObject)
     {
         dataObjects.add(dataObject);
+        partialHashtrees = null;
     }
 
     /**
@@ -60,6 +60,7 @@ public class ERSArchiveTimeStampGenerator
     public void addAllData(List<ERSData> dataObjects)
     {
         this.dataObjects.addAll(dataObjects);
+        partialHashtrees = null;
     }
 
     void addPreviousChains(ArchiveTimeStampSequence archiveTimeStampSequence)
@@ -71,6 +72,7 @@ public class ERSArchiveTimeStampGenerator
         digOut.close();
 
         this.previousChainHash = digCalc.getDigest();
+        this.partialHashtrees = null;
     }
 
     /**
@@ -232,19 +234,17 @@ public class ERSArchiveTimeStampGenerator
         return atss;
     }
 
+    // the leaves depend only on the data added and the previous chain hash, so they are built
+    // once and dropped by the methods that change either.
     private IndexedPartialHashtree[] getPartialHashtrees()
     {
+        if (partialHashtrees != null)
+        {
+            return partialHashtrees;
+        }
+
         List<IndexedHash> hashes = ERSUtil.buildIndexedHashList(digCalc, dataObjects, previousChainHash);
         IndexedPartialHashtree[] trees = new IndexedPartialHashtree[hashes.size()];
-
-        Set<ERSDataGroup> dataGroupSet = new HashSet<ERSDataGroup>();
-        for (int i = 0; i != dataObjects.size(); i++)
-        {
-            if (dataObjects.get(i) instanceof ERSDataGroup)
-            {
-                dataGroupSet.add((ERSDataGroup)dataObjects.get(i));
-            }
-        }
 
         // replace groups
         for (int i = 0; i != hashes.size(); i++)
@@ -264,6 +264,8 @@ public class ERSArchiveTimeStampGenerator
                 trees[i] = new IndexedPartialHashtree(((IndexedHash)hashes.get(i)).order, hash);
             }
         }
+
+        partialHashtrees = trees;
 
         return trees;
     }

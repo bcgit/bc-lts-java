@@ -19,7 +19,10 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Random;
 
 import junit.framework.TestCase;
 import org.bouncycastle.asn1.ASN1EncodableVector;
@@ -68,6 +71,7 @@ import org.bouncycastle.tsp.ers.ERSEvidenceRecordStore;
 import org.bouncycastle.tsp.ers.ERSException;
 import org.bouncycastle.tsp.ers.ERSFileData;
 import org.bouncycastle.tsp.ers.ERSInputStreamData;
+import org.bouncycastle.tsp.ers.SortedHashList;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Store;
 import org.bouncycastle.util.Strings;
@@ -1353,6 +1357,311 @@ public class ERSTest
     private int compare(byte[] a, byte[] b)
     {
         return new BigInteger(1, a).compareTo(new BigInteger(1, b));
+    }
+
+    /**
+     * SortedHashList used to find each hash's insertion point by walking a LinkedList with
+     * get(index). The order it produced is the one recorded in every existing evidence record,
+     * so it is reproduced here from the original algorithm and compared against the list's
+     * output, over pseudo-random input including duplicates and arrays of differing lengths.
+     */
+    public void testSortedHashListOrder()
+    {
+        Random random = new Random(0x5eed);
+        List<byte[]> input = new ArrayList<byte[]>();
+
+        for (int i = 0; i != 1000; i++)
+        {
+            byte[] value = new byte[random.nextInt(33)];
+            random.nextBytes(value);
+            input.add(value);
+        }
+        // duplicates, and values sharing a prefix with a longer one
+        for (int i = 0; i != 100; i++)
+        {
+            input.add((byte[])input.get(i));
+            input.add(Arrays.copyOfRange((byte[])input.get(i + 100), 0, ((byte[])input.get(i + 100)).length / 2));
+        }
+
+        SortedHashList list = new SortedHashList();
+        for (int i = 0; i != input.size(); i++)
+        {
+            list.add((byte[])input.get(i));
+        }
+
+        List<byte[]> expected = insertionSorted(input);
+        List<byte[]> actual = list.toList();
+
+        assertEquals(input.size(), list.size());
+        assertEquals(expected.size(), actual.size());
+        for (int i = 0; i != expected.size(); i++)
+        {
+            assertTrue("differs at " + i, Arrays.areEqual((byte[])expected.get(i), (byte[])actual.get(i)));
+        }
+        assertTrue(Arrays.areEqual((byte[])expected.get(0), list.getFirst()));
+    }
+
+    /**
+     * The order SortedHashList produced before sorting was deferred to the accessors.
+     */
+    private List<byte[]> insertionSorted(List<byte[]> hashes)
+    {
+        LinkedList<byte[]> baseList = new LinkedList<byte[]>();
+
+        for (int h = 0; h != hashes.size(); h++)
+        {
+            byte[] hash = (byte[])hashes.get(h);
+
+            if (baseList.size() == 0)
+            {
+                baseList.addFirst(hash);
+            }
+            else if (compareUnsigned(hash, (byte[])baseList.get(0)) < 0)
+            {
+                baseList.addFirst(hash);
+            }
+            else
+            {
+                int index = 1;
+                while (index < baseList.size() && compareUnsigned((byte[])baseList.get(index), hash) <= 0)
+                {
+                    index++;
+                }
+
+                if (index == baseList.size())
+                {
+                    baseList.add(hash);
+                }
+                else
+                {
+                    baseList.add(index, hash);
+                }
+            }
+        }
+
+        return baseList;
+    }
+
+    private int compareUnsigned(byte[] left, byte[] right)
+    {
+        for (int i = 0; i < left.length && i < right.length; i++)
+        {
+            int a = (left[i] & 0xff);
+            int b = (right[i] & 0xff);
+
+            if (a != b)
+            {
+                return a - b;
+            }
+        }
+        return left.length - right.length;
+    }
+
+    /**
+     * toList() sorts a copy, so the list handed back belongs to the caller and the accessors can
+     * be interleaved with add() in any order. getFirst() answers without sorting at all.
+     */
+    public void testSortedHashListAccessors()
+    {
+        SortedHashList list = new SortedHashList();
+
+        assertEquals(0, list.size());
+        assertTrue(list.toList().isEmpty());
+
+        try
+        {
+            list.getFirst();
+            fail("no exception on empty list");
+        }
+        catch (NoSuchElementException e)
+        {
+            // expected - as LinkedList.getFirst() did
+        }
+
+        byte[] three = Hex.decode("03");
+        byte[] oneA = Hex.decode("01");
+        byte[] two = Hex.decode("02");
+        byte[] oneB = Hex.decode("01");
+
+        byte[][] values = new byte[][]{three, oneA, two, oneB};
+        for (int i = 0; i != values.length; i++)
+        {
+            list.add(values[i]);
+        }
+
+        List<byte[]> first = list.toList();
+
+        assertEquals(4, first.size());
+        // equal hashes come back in the order they were added in
+        assertTrue(oneA == first.get(0));
+        assertTrue(oneB == first.get(1));
+        assertTrue(two == first.get(2));
+        assertTrue(three == first.get(3));
+        assertTrue(oneA == list.getFirst());
+
+        // the caller owns the list returned, and the one before it
+        first.clear();
+
+        List<byte[]> second = list.toList();
+
+        assertEquals(4, list.size());
+        assertEquals(4, second.size());
+        assertTrue(oneA == second.get(0));
+
+        byte[] zero = Hex.decode("00");
+
+        list.add(zero);
+
+        assertEquals(5, list.size());
+        assertTrue(zero == list.getFirst());
+        assertTrue(zero == list.toList().get(0));
+    }
+
+    /**
+     * A reduced hash tree over a large number of data objects, reaching both sorted lists -
+     * SortedIndexedHashList from ERSArchiveTimeStampGenerator.getPartialHashtrees(), and
+     * SortedHashList from BinaryTreeRootCalculator.computeRootHash(). Finding each insertion
+     * point by walking a LinkedList made this cubic in the number of data objects; the root is
+     * also checked to be independent of the order the objects were added in, which is what the
+     * sorting is there for.
+     */
+    public void testLargeDataObjectSet()
+        throws Exception
+    {
+        DigestCalculatorProvider digestCalculatorProvider = new JcaDigestCalculatorProviderBuilder().build();
+
+        List<ERSData> dataObjects = new ArrayList<ERSData>();
+        for (int i = 0; i != 2000; i++)
+        {
+            dataObjects.add(new ERSByteData(Strings.toByteArray("document " + i)));
+        }
+
+        byte[] ascending = rootOf(dataObjects, digestCalculatorProvider);
+
+        List<ERSData> reversed = new ArrayList<ERSData>(dataObjects);
+        Collections.reverse(reversed);
+
+        assertTrue(Arrays.areEqual(ascending, rootOf(reversed, digestCalculatorProvider)));
+    }
+
+    private byte[] rootOf(List<ERSData> dataObjects, DigestCalculatorProvider digestCalculatorProvider)
+        throws Exception
+    {
+        ERSArchiveTimeStampGenerator ersGen = new ERSArchiveTimeStampGenerator(
+            digestCalculatorProvider.get(new AlgorithmIdentifier(NISTObjectIdentifiers.id_sha256)));
+
+        for (int i = 0; i != dataObjects.size(); i++)
+        {
+            ersGen.addData((ERSData)dataObjects.get(i));
+        }
+
+        TimeStampRequestGenerator tspReqGen = new TimeStampRequestGenerator();
+
+        tspReqGen.setCertReq(true);
+
+        return ersGen.generateTimeStampRequest(tspReqGen).getMessageImprintDigest();
+    }
+
+    /**
+     * The leaves are built once and kept, so adding data after a request has been generated has
+     * to discard them - the generator is otherwise still describing the data it was asked about
+     * the first time.
+     */
+    public void testDataAddedAfterRequest()
+        throws Exception
+    {
+        DigestCalculatorProvider digestCalculatorProvider = new JcaDigestCalculatorProviderBuilder().build();
+
+        ERSData doc1 = new ERSByteData(Strings.toByteArray("document 1"));
+        ERSData doc2 = new ERSByteData(Strings.toByteArray("document 2"));
+        ERSData doc3 = new ERSByteData(Strings.toByteArray("document 3"));
+
+        List<ERSData> two = new ArrayList<ERSData>();
+        two.add(doc1);
+        two.add(doc2);
+
+        List<ERSData> three = new ArrayList<ERSData>(two);
+        three.add(doc3);
+
+        ERSArchiveTimeStampGenerator ersGen = new ERSArchiveTimeStampGenerator(
+            digestCalculatorProvider.get(new AlgorithmIdentifier(NISTObjectIdentifiers.id_sha256)));
+
+        ersGen.addData(doc1);
+        ersGen.addData(doc2);
+
+        TimeStampRequestGenerator tspReqGen = new TimeStampRequestGenerator();
+
+        tspReqGen.setCertReq(true);
+
+        byte[] twoRoot = ersGen.generateTimeStampRequest(tspReqGen).getMessageImprintDigest();
+
+        assertTrue(Arrays.areEqual(rootOf(two, digestCalculatorProvider), twoRoot));
+
+        // a repeat request over unchanged data gives the same root
+        assertTrue(Arrays.areEqual(twoRoot, ersGen.generateTimeStampRequest(tspReqGen).getMessageImprintDigest()));
+
+        ersGen.addData(doc3);
+
+        byte[] threeRoot = ersGen.generateTimeStampRequest(tspReqGen).getMessageImprintDigest();
+
+        assertFalse(Arrays.areEqual(twoRoot, threeRoot));
+        assertTrue(Arrays.areEqual(rootOf(three, digestCalculatorProvider), threeRoot));
+
+        // and the same by way of addAllData()
+        ERSArchiveTimeStampGenerator allGen = new ERSArchiveTimeStampGenerator(
+            digestCalculatorProvider.get(new AlgorithmIdentifier(NISTObjectIdentifiers.id_sha256)));
+
+        allGen.addData(doc1);
+
+        assertTrue(Arrays.areEqual(rootOf(Collections.singletonList(doc1), digestCalculatorProvider),
+            allGen.generateTimeStampRequest(tspReqGen).getMessageImprintDigest()));
+
+        List<ERSData> rest = new ArrayList<ERSData>();
+        rest.add(doc2);
+        rest.add(doc3);
+
+        allGen.addAllData(rest);
+
+        assertTrue(Arrays.areEqual(threeRoot, allGen.generateTimeStampRequest(tspReqGen).getMessageImprintDigest()));
+    }
+
+    /**
+     * A data group's hash is the digest of its members' hashes in ascending order, and it comes
+     * from the cache ERSCachingData provides, as every other ERSData's does.
+     */
+    public void testDataGroupHash()
+        throws Exception
+    {
+        DigestCalculatorProvider digestCalculatorProvider = new JcaDigestCalculatorProviderBuilder().build();
+        DigestCalculator digestCalculator = digestCalculatorProvider.get(
+            new AlgorithmIdentifier(NISTObjectIdentifiers.id_sha256));
+
+        ERSData doc1 = new ERSByteData(Strings.toByteArray("document 1"));
+        ERSData doc2 = new ERSByteData(Strings.toByteArray("document 2"));
+        ERSData doc3 = new ERSByteData(Strings.toByteArray("document 3"));
+
+        ERSDataGroup group = new ERSDataGroup(new ERSData[]{doc1, doc2, doc3});
+
+        List<byte[]> hashes = group.getHashes(digestCalculator, null);
+
+        assertEquals(3, hashes.size());
+
+        MessageDigest digest = MessageDigest.getInstance("SHA-256", "BC");
+
+        for (int i = 0; i != hashes.size(); i++)
+        {
+            digest.update((byte[])hashes.get(i));
+        }
+
+        assertTrue(Arrays.areEqual(digest.digest(), group.getHash(digestCalculator, null)));
+
+        // the group hash is cached, so the same value comes back rather than being recomputed
+        assertTrue(group.getHash(digestCalculator, null) == group.getHash(digestCalculator, null));
+
+        // a group of one is the hash of its member
+        ERSDataGroup single = new ERSDataGroup(doc1);
+
+        assertTrue(Arrays.areEqual(doc1.getHash(digestCalculator, null), single.getHash(digestCalculator, null)));
     }
 
     public void testReducedHashTrees()
