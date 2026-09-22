@@ -70,6 +70,7 @@ class CMSUtils
     private static final Set desAlgs = new HashSet();
     private static final Set mqvAlgs = new HashSet();
     private static final Set ecAlgs = new HashSet();
+    private static final Set hkdfAlgs = new HashSet();
     private static final Set gostAlgs = new HashSet();
 
     static
@@ -100,6 +101,10 @@ class CMSUtils
         ecAlgs.add(PKCSObjectIdentifiers.dhSinglePass_stdDH_hkdf_sha384_scheme);
         ecAlgs.add(PKCSObjectIdentifiers.dhSinglePass_stdDH_hkdf_sha512_scheme);
 
+        hkdfAlgs.add(PKCSObjectIdentifiers.dhSinglePass_stdDH_hkdf_sha256_scheme);
+        hkdfAlgs.add(PKCSObjectIdentifiers.dhSinglePass_stdDH_hkdf_sha384_scheme);
+        hkdfAlgs.add(PKCSObjectIdentifiers.dhSinglePass_stdDH_hkdf_sha512_scheme);
+
         // BSI TR-03111 ECKA-EG with X9.63 KDF. Structurally identical to
         // dhSinglePass_stdDH_*kdf_scheme (ECDH + X9.63 KDF + RFC 5753
         // ECC-CMS-SharedInfo per BSI TR-03109-3 / ICAO 9303-11); dispatch
@@ -128,6 +133,11 @@ class CMSUtils
     static boolean isEC(ASN1ObjectIdentifier algorithm)
     {
         return ecAlgs.contains(algorithm);
+    }
+
+    static boolean isHKDF(ASN1ObjectIdentifier algorithm)
+    {
+        return hkdfAlgs.contains(algorithm);
     }
 
     static boolean isGOST(ASN1ObjectIdentifier algorithm)

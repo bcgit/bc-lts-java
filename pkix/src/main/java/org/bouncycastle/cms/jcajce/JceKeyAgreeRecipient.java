@@ -242,7 +242,16 @@ public abstract class JceKeyAgreeRecipient
                 {
                     ukmKeyingMaterial = kmGen.generateKDFMaterial(wrapAlg, keySizeProvider.getKeySize(wrapAlg), null);
                 }
-                userKeyingMaterialSpec = new UserKeyingMaterialSpec(ukmKeyingMaterial);
+                // RFC 8418 sec. 2.2: for the HKDF schemes a ukm is both the entityUInfo of the
+                // ECC-CMS-SharedInfo and the HKDF salt
+                if (userKeyingMaterial != null && isHKDF(keyEncAlg.getAlgorithm()))
+                {
+                    userKeyingMaterialSpec = new UserKeyingMaterialSpec(ukmKeyingMaterial, userKeyingMaterial.getOctets());
+                }
+                else
+                {
+                    userKeyingMaterialSpec = new UserKeyingMaterialSpec(ukmKeyingMaterial);
+                }
             }
             else if (isRFC2631(keyEncAlg.getAlgorithm()))
             {

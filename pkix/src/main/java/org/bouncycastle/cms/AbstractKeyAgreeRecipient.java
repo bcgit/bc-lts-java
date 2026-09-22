@@ -11,6 +11,11 @@ public abstract class AbstractKeyAgreeRecipient
         return CMSUtils.isEC(algorithmOID);
     }
 
+    protected boolean isHKDF(ASN1ObjectIdentifier algorithmOID)
+    {
+        return CMSUtils.isHKDF(algorithmOID);
+    }
+
     protected boolean isMQV(ASN1ObjectIdentifier algorithmOID)
     {
         return CMSUtils.isMQV(algorithmOID);

@@ -12,6 +12,8 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PublicKey;
+import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.SecureRandom;
 import java.security.Security;
@@ -31,6 +33,8 @@ import java.util.Iterator;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.PSource;
+import javax.crypto.Cipher;
+import javax.crypto.KeyAgreement;
 import javax.crypto.spec.SecretKeySpec;
 
 import junit.framework.Assert;
@@ -61,6 +65,8 @@ import org.bouncycastle.asn1.cms.EncryptedContentInfo;
 import org.bouncycastle.asn1.cms.EnvelopedData;
 import org.bouncycastle.asn1.cms.GCMParameters;
 import org.bouncycastle.asn1.cms.OtherRecipientInfo;
+import org.bouncycastle.asn1.cms.KeyAgreeRecipientInfo;
+import org.bouncycastle.asn1.cms.RecipientEncryptedKey;
 import org.bouncycastle.asn1.cms.RecipientInfo;
 import org.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
 import org.bouncycastle.asn1.gm.GMObjectIdentifiers;
@@ -72,6 +78,7 @@ import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.RC2CBCParameter;
 import org.bouncycastle.asn1.rosstandart.RosstandartObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
+import org.bouncycastle.asn1.cms.ecc.ECCCMSSharedInfo;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.Extension;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
@@ -128,6 +135,13 @@ import org.bouncycastle.openssl.PEMParser;
 import org.bouncycastle.operator.DefaultKemEncapsulationLengthProvider;
 import org.bouncycastle.operator.OutputEncryptor;
 import org.bouncycastle.operator.jcajce.JcaAlgorithmParametersConverter;
+import org.bouncycastle.crypto.Digest;
+import org.bouncycastle.crypto.digests.SHA256Digest;
+import org.bouncycastle.crypto.digests.SHA384Digest;
+import org.bouncycastle.crypto.digests.SHA512Digest;
+import org.bouncycastle.crypto.generators.HKDFBytesGenerator;
+import org.bouncycastle.crypto.params.HKDFParameters;
+import org.bouncycastle.util.Pack;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
@@ -3869,15 +3883,26 @@ public class NewEnvelopedDataTest
     public void testRFC8418X25519AndX448()
         throws Exception
     {
-        doRFC8418Round("X25519", CMSAlgorithm.ECDH_HKDF_SHA256);
-        doRFC8418Round("X25519", CMSAlgorithm.ECDH_HKDF_SHA384);
-        doRFC8418Round("X25519", CMSAlgorithm.ECDH_HKDF_SHA512);
-        doRFC8418Round("X448",   CMSAlgorithm.ECDH_HKDF_SHA256);
-        doRFC8418Round("X448",   CMSAlgorithm.ECDH_HKDF_SHA384);
-        doRFC8418Round("X448",   CMSAlgorithm.ECDH_HKDF_SHA512);
+        doRFC8418Round("X25519", CMSAlgorithm.ECDH_HKDF_SHA256, null);
+        doRFC8418Round("X25519", CMSAlgorithm.ECDH_HKDF_SHA384, null);
+        doRFC8418Round("X25519", CMSAlgorithm.ECDH_HKDF_SHA512, null);
+        doRFC8418Round("X448",   CMSAlgorithm.ECDH_HKDF_SHA256, null);
+        doRFC8418Round("X448",   CMSAlgorithm.ECDH_HKDF_SHA384, null);
+        doRFC8418Round("X448",   CMSAlgorithm.ECDH_HKDF_SHA512, null);
+
+        // with a ukm the KEK derivation is also checked against the RFC's own recipe: a round trip
+        // against ourselves cannot tell whether the ukm reached the HKDF salt
+        byte[] ukm = Hex.decode("cafed1ea0529");
+
+        doRFC8418Round("X25519", CMSAlgorithm.ECDH_HKDF_SHA256, ukm);
+        doRFC8418Round("X25519", CMSAlgorithm.ECDH_HKDF_SHA384, ukm);
+        doRFC8418Round("X25519", CMSAlgorithm.ECDH_HKDF_SHA512, ukm);
+        doRFC8418Round("X448",   CMSAlgorithm.ECDH_HKDF_SHA256, ukm);
+        doRFC8418Round("X448",   CMSAlgorithm.ECDH_HKDF_SHA384, ukm);
+        doRFC8418Round("X448",   CMSAlgorithm.ECDH_HKDF_SHA512, ukm);
     }
 
-    private void doRFC8418Round(String curve, ASN1ObjectIdentifier kaOid)
+    private void doRFC8418Round(String curve, ASN1ObjectIdentifier kaOid, byte[] ukm)
         throws Exception
     {
         byte[] data = Hex.decode("504b492d4320434d5320456e76656c6f706564446174612053616d706c65");
@@ -3888,11 +3913,19 @@ public class NewEnvelopedDataTest
 
         byte[] reciKeyId = new byte[]{1, 2, 3, 4, 5};
 
+        JceKeyAgreeRecipientInfoGenerator recGen =
+            new JceKeyAgreeRecipientInfoGenerator(kaOid, origKP.getPrivate(), origKP.getPublic(), CMSAlgorithm.AES128_WRAP);
+
+        recGen.addRecipient(reciKeyId, reciKP.getPublic());
+        recGen.setProvider(BC);
+
+        if (ukm != null)
+        {
+            recGen.setUserKeyingMaterial(ukm);
+        }
+
         CMSEnvelopedDataGenerator edGen = new CMSEnvelopedDataGenerator();
-        edGen.addRecipientInfoGenerator(
-            new JceKeyAgreeRecipientInfoGenerator(kaOid, origKP.getPrivate(), origKP.getPublic(), CMSAlgorithm.AES128_WRAP)
-                .addRecipient(reciKeyId, reciKP.getPublic())
-                .setProvider(BC));
+        edGen.addRecipientInfoGenerator(recGen);
 
         CMSEnvelopedData ed = edGen.generate(
             new CMSProcessableByteArray(data),
@@ -3908,6 +3941,101 @@ public class NewEnvelopedDataTest
         byte[] recData = recipient.getContent(
             new JceKeyAgreeEnvelopedRecipient(reciKP.getPrivate()).setProvider(BC));
         assertTrue(curve + "/" + kaOid + " mismatch", Arrays.equals(data, recData));
+
+        if (ukm != null)
+        {
+            checkRFC8418Kek(ed, curve, kaOid, reciKP.getPrivate(), origKP.getPublic(), ukm);
+        }
+    }
+
+    /**
+     * RFC 8418 sec. 2.2 fixes the KEK as
+     * <pre>
+     *     if ukm is provided, then salt = ukm, else salt is not provided
+     *     PRK = HKDF-Extract(salt, K)
+     *     KEK = HKDF-Expand(PRK, DER(ECC-CMS-SharedInfo), SizeInOctets(KEK))
+     * </pre>
+     * so a ukm is both the entityUInfo of the ECC-CMS-SharedInfo and the HKDF salt. This derives
+     * the KEK independently of the CMS code and unwraps the message's encryptedKey with it, and
+     * checks that the derivation leaving the salt out - which is what 1.86 produced - no longer
+     * agrees with the message.
+     */
+    private void checkRFC8418Kek(CMSEnvelopedData ed, String curve, ASN1ObjectIdentifier kaOid,
+        PrivateKey reciPrivKey, PublicKey origPubKey, byte[] ukm)
+        throws Exception
+    {
+        EnvelopedData env = EnvelopedData.getInstance(ContentInfo.getInstance(ed.getEncoded()).getContent());
+        KeyAgreeRecipientInfo kari = KeyAgreeRecipientInfo.getInstance(
+            RecipientInfo.getInstance(env.getRecipientInfos().getObjectAt(0)).getInfo());
+
+        assertTrue("ukm not carried in the message", Arrays.equals(ukm, kari.getUserKeyingMaterial().getOctets()));
+
+        AlgorithmIdentifier wrapAlg = AlgorithmIdentifier.getInstance(kari.getKeyEncryptionAlgorithm().getParameters());
+        byte[] encryptedKey = RecipientEncryptedKey.getInstance(
+            kari.getRecipientEncryptedKeys().getObjectAt(0)).getEncryptedKey().getOctets();
+
+        // K, the raw shared secret
+        KeyAgreement agreement = KeyAgreement.getInstance(curve, BC);
+
+        agreement.init(reciPrivKey);
+        agreement.doPhase(origPubKey, true);
+
+        byte[] k = agreement.generateSecret();
+
+        // info, DER(ECC-CMS-SharedInfo) with the ukm as entityUInfo and the KEK size as suppPubInfo
+        byte[] sharedInfo = new ECCCMSSharedInfo(wrapAlg, ukm, Pack.intToBigEndian(128)).getEncoded(ASN1Encoding.DER);
+
+        String label = curve + "/" + kaOid;
+
+        assertTrue(label + ": the KEK derived with salt = ukm does not open the message",
+            unwrapsWith(deriveRFC8418Kek(kaOid, k, ukm, sharedInfo), encryptedKey));
+        assertFalse(label + ": the KEK derived with no salt still opens the message",
+            unwrapsWith(deriveRFC8418Kek(kaOid, k, null, sharedInfo), encryptedKey));
+    }
+
+    private byte[] deriveRFC8418Kek(ASN1ObjectIdentifier kaOid, byte[] secret, byte[] salt, byte[] sharedInfo)
+    {
+        Digest digest;
+
+        if (kaOid.equals(CMSAlgorithm.ECDH_HKDF_SHA256))
+        {
+            digest = new SHA256Digest();
+        }
+        else if (kaOid.equals(CMSAlgorithm.ECDH_HKDF_SHA384))
+        {
+            digest = new SHA384Digest();
+        }
+        else
+        {
+            digest = new SHA512Digest();
+        }
+
+        HKDFBytesGenerator kdf = new HKDFBytesGenerator(digest);
+
+        kdf.init(new HKDFParameters(secret, salt, sharedInfo));
+
+        byte[] kek = new byte[16];
+
+        kdf.generateBytes(kek, 0, kek.length);
+
+        return kek;
+    }
+
+    private boolean unwrapsWith(byte[] kek, byte[] encryptedKey)
+        throws Exception
+    {
+        Cipher cipher = Cipher.getInstance("AESWrap", BC);
+
+        cipher.init(Cipher.UNWRAP_MODE, new SecretKeySpec(kek, "AES"));
+
+        try
+        {
+            return cipher.unwrap(encryptedKey, "AES", Cipher.SECRET_KEY) != null;
+        }
+        catch (InvalidKeyException e)
+        {
+            return false;
+        }
     }
 
     private void verifyECKeyAgreeVectors(PrivateKey privKey, String wrapAlg, byte[] message)

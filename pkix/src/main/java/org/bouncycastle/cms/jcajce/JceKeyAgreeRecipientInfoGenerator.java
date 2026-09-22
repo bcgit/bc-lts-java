@@ -180,7 +180,16 @@ public class JceKeyAgreeRecipientInfoGenerator
                     byte[] ukmKeyingMaterial = ecc_cms_Generator.generateKDFMaterial(keyEncryptionAlgorithm,
                         keySizeProvider.getKeySize(keyEncryptionOID), userKeyingMaterial);
 
-                    agreementParamSpec = new UserKeyingMaterialSpec(ukmKeyingMaterial);
+                    // RFC 8418 sec. 2.2: for the HKDF schemes a ukm is both the entityUInfo of the
+                    // ECC-CMS-SharedInfo and the HKDF salt
+                    if (userKeyingMaterial != null && isHKDF(keyAgreementOID))
+                    {
+                        agreementParamSpec = new UserKeyingMaterialSpec(ukmKeyingMaterial, userKeyingMaterial);
+                    }
+                    else
+                    {
+                        agreementParamSpec = new UserKeyingMaterialSpec(ukmKeyingMaterial);
+                    }
                 }
                 else if (isRFC2631(keyAgreementOID))
                 {
