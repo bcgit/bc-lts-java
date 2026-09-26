@@ -13,14 +13,117 @@ distributions.
 
 ## 2.0 Release History
 
-<a id="r2rv73dot13"></a>
+<a id="r2rv73dot14"></a>
 
 ### 2.1.1 Version
+
+Release: 2.73.14\
+Date: 2026, TBD.
+
+### 2.1.2 Defects Fixed
+
+**Lightweight API - malformed input, bounds and state.**
+
+- Grain-128AEAD returned corrupted plaintext from a decryption driven in chunks. The AEAD stream
+  cipher data operator splits a `processBytes()` call that spans the buffered authentication tag
+  into two output segments, and wrote the second at the caller's output offset instead of after the
+  first, so it overwrote the head of the first and the tail of the reported output was never
+  written. The call still returned the full byte count and the tag still verified. The second
+  segment is now written after the first.
+- The same operator wrote its output without first checking that the caller's buffer was long
+  enough, so a short output buffer surfaced as an `ArrayIndexOutOfBoundsException` from inside the
+  engine rather than the `OutputLengthException` every other AEAD engine reports. Both directions
+  of `processBytes()`, and `processByte()`, now check before anything is written or buffered.
+
+**Provider (prov).**
+
+- The raw JCA provider bounded the PBKDF2 iteration count taken from an encoding
+  (`org.bouncycastle.pbe.max_iteration_count`, default 10,000,000) but not the counts of the legacy
+  PBES1 (PKCS#5 scheme 1) and PKCS#12 PBE families beside it. Their `AlgorithmParameters`
+  (`PKCS12PBE` and its OID aliases, `PBKDF1`) accepted any count, narrowing one beyond the `int`
+  range with `intValue()` so that 2^32 arrived as 0, and every `Cipher`, `Mac` and
+  `SecretKeyFactory` derivation ran with whatever count it was given - including a count decoded by
+  another provider's `AlgorithmParameters`, as when `javax.crypto.EncryptedPrivateKeyInfo.getKeySpec()`
+  decrypts a PKCS#12 PBE-protected key with BC. As these schemes carry the count in unauthenticated
+  parameters and derive before anything can be checked, a supplied blob could hold a derivation for
+  tens of minutes. The parameter parse now rejects a negative, beyond-int or over-limit count, and
+  the derivations reject a negative or over-limit count, under the same property as PBKDF2. The
+  PKCS#12 key store derives through the same code, so an `org.bouncycastle.pkcs12.max_it_count`
+  raised above 10,000,000 now needs `org.bouncycastle.pbe.max_iteration_count` raised with it.
+- The PKCS#12 key stores wrote the MAC key-derivation parameters of a file they had loaded into
+  every file they wrote afterwards, under whatever password the caller stored with. For
+  PKCS12-PBMAC1 that carried the loaded file's PBKDF2 salt, iteration count, key length and PRF, and
+  one store reused a single PBKDF2 salt across every write, including writes under different
+  passwords, with no file loaded at all; the classic store inherited the MAC salt length and digest
+  algorithm the same way. The values were also latched before the MAC was verified. The PBKDF2 salt
+  and the MAC salt are now generated for every write, the MAC salt at no fewer than 8 octets, and
+  nothing is latched until the file has verified. A loaded file's PBKDF2 count is kept only where
+  it is at least the count being written with, and raised to it otherwise; that count is the new
+  `org.bouncycastle.pkcs12.pbkdf2_it_count`, default 65,536. Reading is unaffected.
+
+**CMS, PKIX and EST (pkix).**
+
+- The RFC 9709 content-encryption `AlgorithmIdentifier`, which carries the real algorithm inside
+  the parameters of an outer id-alg-cek-hkdf-sha256, was unwrapped at only some of the points where
+  a CMS recipient makes a decision about it. Key-size validation in the KEK, RSA-KTS and KEM
+  recipients, and in the key-transport recipient's ORI-KEM branch, compared the recovered key
+  against the outer identifier, which registers no key size, so `setKeySizeValidation(true)`
+  silently checked nothing there; the `setAllowedContentAlgorithms` allow-list and the
+  `setMinimumTagSize` floor were applied to the outer identifier on every recipient. The inner
+  algorithm is now resolved first at each of these points.
+- A CMS message naming the RFC 9709 key derivation but carrying no readable inner
+  content-encryption `AlgorithmIdentifier` was reported as a `NullPointerException`, or as an
+  `IllegalArgumentException` from the ASN.1 decoder, out of methods declared to throw
+  `CMSException`. The places that resolve the wrapper now share one resolver, which reports an
+  absent or unreadable inner algorithm as a `CMSException`.
+- The CMS RFC 8418 key agreement schemes (dhSinglePass-stdDH-hkdf-sha256/384/512, used with X25519
+  and X448) put the user keying material in the entityUInfo of the ECC-CMS-SharedInfo but never used
+  it as the HKDF salt, which RFC 8418 sec. 2.2 also requires, so a message carrying a ukm did not
+  interoperate with a conforming implementation in either direction. The ukm is now passed as the
+  salt as well, on both the generating and the receiving side. A message with a ukm written by
+  2.73.11 to 2.73.13 is not readable by this release and vice versa; messages without a ukm, and the
+  X9.63-KDF key agreement schemes, are unaffected.
+- Building an evidence record was cubic in the number of data objects: `SortedHashList` and
+  `SortedIndexedHashList` found each insertion point by walking a `LinkedList`. Each now sorts its
+  hashes once, stably, so the order of the leaves and every root hash are unchanged; generating a
+  time-stamp request over 8,000 data objects goes from about 210 seconds to under a tenth of a
+  second. An `ERSDataGroup` now takes its hash from the `ERSCachingData` cache rather than
+  recomputing it on every request, and `ERSArchiveTimeStampGenerator` builds its reduced hash tree
+  once rather than on every call.
+
+**OpenPGP (pg).**
+
+- Decrypting an OpenPGP message in two steps - recovering the session key from a SKESK packet and
+  then decrypting the SEIPD v1 body through `PGPEncryptedDataList.extractSessionKeyEncryptedData()` -
+  stopped detecting a wrong passphrase once 2.73.12 suppressed the legacy CFB quick check for every
+  session-key decryption. For a password-derived session key the check is what identifies a wrong
+  passphrase, and a SKESK v4 packet deriving the session key from the S2K output directly yields a
+  well-formed session key for any passphrase, so a wrong one surfaced as a parse or integrity
+  failure further down the stream. The new `extractSessionKeyEncryptedData(boolean)` states whether
+  the session key came from a password: true restores the check and the
+  `PGPDataValidationException` on a wrong passphrase, while the no-argument method goes on
+  suppressing it, so a session key recovered from a public key operation is still never quick
+  checked.
+
+**Native code.**
+
+- `DumpInfo` no longer prints the native random source information when native support is not
+  available.
+
+### 2.1.3 Additional Features and Functionality
+
+- `PGPEncryptedDataList.extractSessionKeyEncryptedData(boolean)` has been added; see above.
+- The `org.bouncycastle.pkcs12.pbkdf2_it_count` property (`Properties.PKCS12_PBKDF2_IT_COUNT`)
+  sets the PBKDF2 iteration count for a PBMAC1-protected PKCS#12 file's MAC, default 65,536.
+
+<a id="r2rv73dot13"></a>
+
+### 2.2.1 Version
 
 Release: 2.73.13\
 Date: 2026, 22nd September.
 
-### 2.1.2 Defects Fixed
+### 2.2.2 Defects Fixed
 
 **Lightweight API - secret-dependent operations.**
 
@@ -227,7 +330,7 @@ Date: 2026, 22nd September.
   to `IncrementalEntropySource`; and `DumpInfo` reports the RNG source selection without seeding a
   DRBG to do it.
 
-### 2.1.3 Additional Features and Functionality
+### 2.2.3 Additional Features and Functionality
 
 - CBOM and SBOM generation has been added to the build.
 - The JCE KEM recipient family for CMS (RFC 9629) has been added, together with definite-length CMS
@@ -243,7 +346,7 @@ Date: 2026, 22nd September.
 - The native RNG settings moved onto the native services, with a new `native.rand` selector.
 - The build now requires `LTS_JDK25`; see README.md for why this is not optional.
 
-### 2.1.4 Additional Notes
+### 2.2.4 Additional Notes
 
 - The following CVEs addressed in the regular Java release 1.86 do not apply to this distribution,
   as the affected components are not shipped in the LTS edition: CVE-2026-17507, CVE-2026-71885 and
@@ -256,7 +359,7 @@ Date: 2026, 22nd September.
   return short reads. Always check returned lengths, and use `Streams.readFully(...)` or
   `DataInputStream.readFully(...)` where a full read is required. See README.md.
 
-### 2.1.5 Security Advisories.
+### 2.2.5 Security Advisories.
 
 Release 2.73.13 deals with the following CVEs:
 
@@ -270,12 +373,12 @@ Release 2.73.13 deals with the following CVEs:
 
 <a id="r2rv73dot12"></a>
 
-### 2.2.1 Version
+### 2.3.1 Version
 
 Release: 2.73.12, 2.73.12.1\
 Date: 2026, 16th July.
 
-### 2.2.2 Defects Fixed
+### 2.3.2 Defects Fixed
 
 **Lightweight API and ASN.1.**
 
@@ -359,7 +462,7 @@ Date: 2026, 16th July.
 - A missing CCM decrypt MAC-size check caused a heap overflow on the ARM path.
 - Three low-severity Intel JNI defects were fixed, and ARM variant selection was improved.
 
-### 2.2.3 Additional Features and Functionality
+### 2.3.3 Additional Features and Functionality
 
 - The index reconciliation workflow against the upstream bc-java tree, and the hidden stale-source
   residual scan, are documented in CLAUDE.md, with a `reconcile-residuals` skill to drive them.
@@ -367,7 +470,7 @@ Date: 2026, 16th July.
 - SM2 PKCS#7 content-type OIDs were added to `GMObjectIdentifiers`, and ML-KEM private-key parsing
   was enabled in the PQC `PrivateKeyFactory`.
 
-### 2.2.4 Security Advisories.
+### 2.3.4 Security Advisories.
 
 Release 2.73.12 deals with the following CVEs:
 
