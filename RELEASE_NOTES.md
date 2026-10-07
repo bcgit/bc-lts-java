@@ -124,6 +124,14 @@ Date: 2026, TBD.
 - `PGPEncryptedDataList.extractSessionKeyEncryptedData(boolean)` has been added; see above.
 - The `org.bouncycastle.pkcs12.pbkdf2_it_count` property (`Properties.PKCS12_PBKDF2_IT_COUNT`)
   sets the PBKDF2 iteration count for a PBMAC1-protected PKCS#12 file's MAC, default 65,536.
+- `org.bouncycastle.util.Pack.longToBigEndian()` now writes the eight bytes of the long directly
+  rather than through two `intToBigEndian()` calls, which the JIT of JDK 25 compiles to a single
+  byte-swapped store. On JDK 23 and later `longToLittleEndian()` does the same, from a copy of
+  `Pack` the bcprov and bccore multi-release jars carry under `META-INF/versions/23`, since JDK 23
+  is the first whose JIT merges those stores and the form is slower than the existing one on
+  earlier JDKs. Packing longs big-endian measured about 5 times as fast on JDK 25 and about 10%
+  faster on JDK 8 to 23, and little-endian about 2.2 to 2.7 times as fast on JDK 23 and 25, with
+  SHAKE squeezing about 6% and SHA-512 about 4% faster on JDK 25 (github #2474).
 
 <a id="r2rv73dot13"></a>
 

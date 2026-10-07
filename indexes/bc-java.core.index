@@ -925,7 +925,7 @@ e48ec5a2116034bd08e29a46f665434c426805167cbc72b5d89640471c48b2f9  core/src/main/
 6420ee1715f0d227ca0aef6d56d04e3068e0dbf627dcdd84ff164d029ca8e59f  core/src/main/java/org/bouncycastle/util/encoders/Base64.java
 d3af921da427a2b555120e89f95a79fbc6cb5acde386f89b01a033fa07503549  core/src/main/java/org/bouncycastle/util/Doubles.java
 a283d3131924d6154af5a6a74094baf0626961d7517940d73a40d3f773c64a99  core/src/main/java/org/bouncycastle/util/Strings.java
-60e9b5a533ff3c4bbc5f0f86060c289153332d19544f3d312e847b8495d60cf4  core/src/main/java/org/bouncycastle/util/Pack.java
+fe0258aeec86ef514d63dadb1166fce348e5f20db59e511529df474cd835c80e  core/src/main/java/org/bouncycastle/util/Pack.java
 ca10613db02c2640c5de4c7f8132c25d889bb31bb41ac0cd10a084c2b6d320a6  core/src/main/java/org/bouncycastle/util/Integers.java
 6d355cceb0bcfe01781c6364513f614bc8f31c5040c4c412e4fa1e7673a2a579  core/src/main/java/org/bouncycastle/util/Times.java
 f1f644c660c06a6a2bc2437823689e073a66f167bac33fb9d91104bd489b2445  core/src/main/java/org/bouncycastle/util/Selector.java
@@ -1771,3 +1771,5 @@ cf1e1466752595f6ff58b380942ef237e14a5bb95e102156c8a909632fe9c6c0  core/src/main/
 f2562c2c5a50cfaf9188b6d84fd4e24ea8db74d624523c6cc9ad5804486e3a9e  core/src/main/java/org/bouncycastle/crypto/agreement/ECMQVRawAgreement.java
 6e4049d00a26bb793694f573e23faf5937684152a65b868e6b2956487b73c097  core/src/test/java/org/bouncycastle/crypto/kems/mlkem/SampleNttTest.java
 47c7f1e09d36bbba65bd7360e9345778b8045ac5e32347a9626ea73be7184ec2  core/src/test/java/org/bouncycastle/crypto/kems/mlkem/AllTests.java
+94c94f839999295d3ab3df29a51408d07de2ee78ec95942714127518eb3085fd  core/src/main/jdk23/org/bouncycastle/util/Pack.java
+3e8694d489f1c61eeeabc54c152cb874db7675b4a16b084e4b87ba040d22d62a  core/src/test/java/org/bouncycastle/util/utiltest/PackTest.java

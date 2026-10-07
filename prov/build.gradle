@@ -55,6 +55,12 @@ sourceSets {
             srcDirs = ['src/main/jdk17']
         }
     }
+    java23 {
+        java {
+            // core's jdk23 overlay (Pack), bundled into bcprov as core's other sources are
+            srcDirs = ['../core/src/main/jdk23']
+        }
+    }
 
     // src/test/jdk17 belonged to no source set, so nothing in it was compiled or run - which is
     // how the javax.crypto.KEM overlay under src/main/jdk17 came to ship with no coverage at all.
@@ -63,6 +69,16 @@ sourceSets {
             compileClasspath += main.output + test.output
             runtimeClasspath += test.output
             srcDir(files("src/test/jdk17"))
+        }
+    }
+
+    // tests that must run on JDK 23+ against the multi-release jar - the versions/23 Pack overlay
+    // is invisible from the classes directories and to any older JVM.
+    test25 {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += test.output
+            srcDir(files("src/test/jdk25"))
         }
     }
 }
@@ -84,6 +100,9 @@ dependencies {
     java17Implementation files([sourceSets.main.output.classesDirs, sourceSets.java9.output.classesDirs, sourceSets.java11.output.classesDirs, sourceSets.java15.output.classesDirs]) {
         builtBy compileJava15Java
     }
+    java23Implementation files([sourceSets.main.output.classesDirs, sourceSets.java9.output.classesDirs, sourceSets.java11.output.classesDirs, sourceSets.java15.output.classesDirs, sourceSets.java17.output.classesDirs]) {
+        builtBy compileJava17Java
+    }
 
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.14.3'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.14.3'
@@ -101,6 +120,13 @@ dependencies {
     // the jar, not the project: the KEM SPIs live under META-INF/versions/17, so only the
     // multi-release jar puts the classes under test on the classpath.
     test17RuntimeOnly(files(jar.archiveFile))
+
+    test25Implementation 'junit:junit:4.13.2'
+    test25Implementation 'org.junit.jupiter:junit-jupiter-api:5.14.3'
+    test25RuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.14.3'
+    test25Implementation("org.junit.vintage:junit-vintage-engine:5.14.3")
+    test25RuntimeOnly("org.junit.platform:junit-platform-launcher")
+    test25RuntimeOnly(files(jar.archiveFile))
 }
 
 compileJava {
@@ -230,6 +256,48 @@ tasks.register("test17", Test) {
 
 check.dependsOn("test17")
 
+compileTest25Java {
+    // release 21, as tls's compileTest25Java: nothing here uses a JDK 25 API - the JDK 25 part is
+    // the runtime, which is what selects META-INF/versions/23.
+    options.release = 21
+    options.sourcepath = files(['src/test/java', 'src/test/jdk25'])
+}
+
+/**
+ * The JDK 25 tests, run on a JDK 25 against the multi-release jar so that the versions/23 overlay
+ * (core's Pack) is the class under test. Skipped when LTS_JDK25 is not set.
+ */
+tasks.register("test25", Test) {
+    onlyIf { System.getenv("LTS_JDK25") != null }
+    dependsOn("jar")
+
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+
+    failOnNoDiscoveredTests = true
+    useJUnitPlatform()
+
+    testLogging.showStandardStreams = true
+    testLogging.showCauses = true
+    testLogging.showExceptions = true
+    testLogging.showStackTraces = true
+
+    maxParallelForks = 1
+    forkEvery = 0
+
+    testClassesDirs = sourceSets.test25.output.classesDirs
+    classpath = sourceSets.test25.output + configurations.test25RuntimeClasspath + files(jar.archiveFile)
+
+    filter {
+        includeTestsMatching "*AllTests25*"
+    }
+
+    systemProperty 'bc.test.data.home', "${rootDir}/core/src/test/data"
+}
+
+check.dependsOn("test25")
+
 compileJava17Java {
     // Use -source/-target 17 rather than --release 17 so the JDK 17 multi-release
     // sources compile against the full running-JDK (21) platform API. This exposes
@@ -239,6 +307,17 @@ compileJava17Java {
     sourceCompatibility = 17
     targetCompatibility = 17
     options.debug = rootProject.ext.debugBuild
+}
+
+compileJava23Java {
+    // the JDK 25 toolchain (LTS_JDK25), as for core's compileJava23Java - JAVA_HOME is 21.
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+    options.release = 23
+    options.debug = rootProject.ext.debugBuild
+    options.sourcepath = files(['../core/src/main/java', '../core/src/main/jdk23'])
+    options.compilerArgs << '-implicit:none'
 }
 
 compileTestJava {
@@ -260,6 +339,9 @@ jar {
     }
     into('META-INF/versions/17') {
         from sourceSets.java17.output
+    }
+    into('META-INF/versions/23') {
+        from sourceSets.java23.output
     }
 
     String v = "${rootProject.extensions.ext.bundle_version}"
@@ -290,6 +372,9 @@ task sourcesJar(type: Jar) {
     }
     into('META-INF/versions/15') {
         from sourceSets.java15.allSource
+    }
+    into('META-INF/versions/23') {
+        from sourceSets.java23.allSource
     }
     into('native/intel') {
         from '../native_c/intel'

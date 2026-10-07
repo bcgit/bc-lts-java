@@ -22,6 +22,7 @@ public class AllTests
         suite.addTestSuite(StringsTest.class);
         suite.addTestSuite(StreamsTest.class);
         suite.addTestSuite(AggregateRuntimeExceptionTest.class);
+        suite.addTestSuite(PackTest.class);
         // These two are in this package but were not listed here, so they never ran. The build
         // only collects classes matching AllTest*, so a test runs only if a suite names it.
         suite.addTestSuite(IntegersTest.class);

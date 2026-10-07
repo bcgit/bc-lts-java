@@ -643,3 +643,5 @@ ab9d59a89e03f6ec479268787d05a824ab3464b4d3f216b0e04800893513cd15  prov/src/main/
 24f73d7378d8b272fb3d9f05bba8ec3d35da17448681a9dba225a8125cb8cec1  prov/src/main/java/org/bouncycastle/jcajce/provider/digest/KMacSpi.java
 23688be929af9a87209dc525bb4b59cffd31482729e3608739d1d41e1720f39d  prov/src/main/java/org/bouncycastle/jcajce/provider/digest/KMACAlgorithmParameters.java
 b9e3aacf7c8d76fb72f25cce63e5b28672ef34aa6304399d96141c9400a2e638  prov/src/test/java/org/bouncycastle/jce/provider/test/PBEIterationCountTest.java
+222126b64a09e68bab90f57d6b11da1db5b517c1283fcfc97ba461e91caf4db1  prov/src/test/jdk25/org/bouncycastle/util/utiltest/PackMRTest.java
+b79c486f5fb70cbeb2686df0ab932c844779cefef1d896baebb86e75be641b51  prov/src/test/jdk25/org/bouncycastle/util/utiltest/AllTests25.java
