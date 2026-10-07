@@ -1632,7 +1632,7 @@ a00071d470ec9793a147a9f250cde7f5605e63d0eb50a0f0aee3d74bfa2a29b4  core/src/main/
 cd19236fa03dff0732c2478da4a88d5628b08b96b500e2f41efc058bf8766c61  core/src/main/java/org/bouncycastle/crypto/kems/MLKEMExtractor.java
 66c8f031e148bef9415de03d514314926ca4d0f292b7674ee5262c254acefbbd  core/src/main/java/org/bouncycastle/crypto/kems/MLKEMGenerator.java
 e6847c76f626b9823c43f564d307abee82d20e02b81b2e63ace5c0fa033b85f0  core/src/main/java/org/bouncycastle/crypto/kems/mlkem/MLKEMEngine.java
-847f06733d3b6e543f4cf7526ced4b0df84e1f9eeed690d489d1e3909b4044e3  core/src/main/java/org/bouncycastle/crypto/kems/mlkem/MLKEMIndCpa.java
+b3fb4a1a32a7ead477ee4dccea695f22958ab379c28a1579b9b1c4d54dbe7c31  core/src/main/java/org/bouncycastle/crypto/kems/mlkem/MLKEMIndCpa.java
 645153ecc16fee515ce8effeefb135794c6f79d2e6cf3bbd4f0565d0677ed172  core/src/main/java/org/bouncycastle/crypto/kems/mlkem/Ntt.java
 9b81dc32eae5e75552a32ccf5d34d862123fbb630a1476a99f78dcf8540a107e  core/src/main/java/org/bouncycastle/crypto/kems/mlkem/Poly.java
 c7647159bc82d97263bced1530b2f5cc801338f2047d834e4370b07c99d8fee5  core/src/main/java/org/bouncycastle/crypto/kems/mlkem/PolyVec.java
@@ -1769,3 +1769,5 @@ d0c0931bc981929f3da0a55ca1408f3770d5021ec5b3b4d984da416c5fcc3e06  core/src/main/
 aff58ae23de002a6d0ed941a3d36ffc41b70928756fe3499d569318336785e18  core/src/main/java/org/bouncycastle/crypto/ExhaustedPrivateKeyException.java
 cf1e1466752595f6ff58b380942ef237e14a5bb95e102156c8a909632fe9c6c0  core/src/main/java/org/bouncycastle/crypto/agreement/ECDHRawAgreement.java
 f2562c2c5a50cfaf9188b6d84fd4e24ea8db74d624523c6cc9ad5804486e3a9e  core/src/main/java/org/bouncycastle/crypto/agreement/ECMQVRawAgreement.java
+6e4049d00a26bb793694f573e23faf5937684152a65b868e6b2956487b73c097  core/src/test/java/org/bouncycastle/crypto/kems/mlkem/SampleNttTest.java
+47c7f1e09d36bbba65bd7360e9345778b8045ac5e32347a9626ea73be7184ec2  core/src/test/java/org/bouncycastle/crypto/kems/mlkem/AllTests.java

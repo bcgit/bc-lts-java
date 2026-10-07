@@ -1,5 +1,6 @@
 package org.bouncycastle.pqc.crypto.mlkem;
 
+import org.bouncycastle.crypto.Xof;
 import org.bouncycastle.crypto.digests.SHAKEDigest;
 import org.bouncycastle.util.Arrays;
 
@@ -265,25 +266,33 @@ class MLKEMIndCpa
                     xof.update((byte)i);
                 }
 
-                int buflen = NUM_MATRIX_BLOCKS * SHAKE128_RATE;
-                xof.doOutput(buf, 0, buflen);
-
-                int ctr = rejectionSampling(aMatrix[i].getVectorIndex(j), 0, MLKEMEngine.KyberN, buf, buflen);
-                while (ctr < MLKEMEngine.KyberN)
-                {
-                    int off = buflen % 3;
-                    for (int k = 0; k < off; k++)
-                    {
-                        buf[k] = buf[buflen - off + k];
-                    }
-
-                    xof.doOutput(buf, off, SHAKE128_RATE * 2);
-
-                    buflen = off + SHAKE128_RATE;
-                    // Error in code Section Unsure
-                    ctr += rejectionSampling(aMatrix[i].getVectorIndex(j), ctr, MLKEMEngine.KyberN - ctr, buf, buflen);
-                }
+                sampleNtt(xof, aMatrix[i].getVectorIndex(j), buf);
             }
+        }
+    }
+
+    /**
+     * FIPS 203 Algorithm 7 (SampleNTT): fill a with coefficients rejection sampled from the XOF output, read as one
+     * continuous stream. buf must hold at least NUM_MATRIX_BLOCKS * SHAKE128_RATE + 2 bytes.
+     */
+    static void sampleNtt(Xof xof, Poly a, byte[] buf)
+    {
+        int buflen = NUM_MATRIX_BLOCKS * SHAKE128_RATE;
+        xof.doOutput(buf, 0, buflen);
+
+        int ctr = rejectionSampling(a, 0, MLKEMEngine.KyberN, buf, buflen);
+        while (ctr < MLKEMEngine.KyberN)
+        {
+            int off = buflen % 3;
+            for (int k = 0; k < off; k++)
+            {
+                buf[k] = buf[buflen - off + k];
+            }
+
+            xof.doOutput(buf, off, SHAKE128_RATE);
+
+            buflen = off + SHAKE128_RATE;
+            ctr += rejectionSampling(a, ctr, MLKEMEngine.KyberN - ctr, buf, buflen);
         }
     }
 

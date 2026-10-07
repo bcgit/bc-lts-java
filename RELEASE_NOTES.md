@@ -22,6 +22,15 @@ Date: 2026, TBD.
 
 ### 2.1.2 Defects Fixed
 
+**Lightweight API - conformance.**
+
+- ML-KEM matrix generation (FIPS 203 Algorithm 7, SampleNTT) squeezed two SHAKE128 blocks for each
+  additional block it needed after the first three, but sampled from only the first of them, so a
+  matrix entry needing more than one additional block was sampled from the wrong part of the XOF
+  stream and differed from the one FIPS 203 specifies. The chance of an entry needing that is about
+  10^-32, so no key, ciphertext or test vector is known to be affected; each additional block is
+  now squeezed singly, as the standard and the reference implementation do.
+
 **Lightweight API - malformed input, bounds and state.**
 
 - Grain-128AEAD returned corrupted plaintext from a decryption driven in chunks. The AEAD stream
