@@ -132,6 +132,10 @@ Date: 2026, TBD.
   earlier JDKs. Packing longs big-endian measured about 5 times as fast on JDK 25 and about 10%
   faster on JDK 8 to 23, and little-endian about 2.2 to 2.7 times as fast on JDK 23 and 25, with
   SHAKE squeezing about 6% and SHA-512 about 4% faster on JDK 25 (github #2474).
+- `ChaCha20Poly1305` - and with it the provider's ChaCha20-Poly1305 cipher - now hands runs of
+  whole 64-byte blocks to ChaCha and to Poly1305 in one call each, where it used to alternate
+  between them one block at a time and, when decrypting, copied every byte through its buffer
+  individually. The output is unchanged (github #2481).
 
 <a id="r2rv73dot13"></a>
 

@@ -139,7 +139,7 @@ a772ea2bdeba1692b05e85d24b5dc15f416a780e3f87b6f7feac9cb3c93aab3c  core/src/test/
 e908db3ad66a0768a2e00dfd395be6bea93ffab20a471291eb4678ced4c1c0fb  core/src/test/java/org/bouncycastle/crypto/test/SHA384HMacTest.java
 e0db85a6a240e5f6331b19f2fbda70e22e4a967c3a0d54283e79aed3b45d410e  core/src/test/java/org/bouncycastle/crypto/test/GOST28147MacTest.java
 091885e20614a8d4267b9909303504fdbaaf03d1f06c2ebbaa78a708aadd6be6  core/src/test/java/org/bouncycastle/crypto/test/HPKETestVectors.java
-740855a5b4ff8ecf2496521411063763c0eae1fa9947a1468da99bc6fd691a97  core/src/test/java/org/bouncycastle/crypto/test/ChaCha20Poly1305Test.java
+6d4bff1de075a3ca473d68a2a15cdbb3ad0366c9c4f243d2f2ee673a32a924bb  core/src/test/java/org/bouncycastle/crypto/test/ChaCha20Poly1305Test.java
 f7e4ec775de305d642bd0d1046be8d023046ed415a3819bacfa06d642205a267  core/src/test/java/org/bouncycastle/crypto/test/RNGUtils.java
 bfb3de94ff96dd8ed0c5e5f2f3797012d5dc11f2326dfff5c973873e5956499f  core/src/test/java/org/bouncycastle/crypto/test/BlockCipherVectorTest.java
 9258b5828f224f860512cd6178684487ed6f9b56164a169d7209a73d9fcd00e4  core/src/test/java/org/bouncycastle/crypto/test/PSSTest.java
@@ -365,7 +365,7 @@ f2c357f5ea97d25e5c38f59d96b6e63ecd49b8b0cd2e1810b2e70bf0e1c797e9  core/src/main/
 71073946b488792b87e82ddd1f272cd02b0153833afcde80d1a246d9bc2230f7  core/src/main/java/org/bouncycastle/crypto/modes/AEADCipher.java
 6c459a7d6f70bda8636f3dc37bd9484086feb3be3ab57e2c8fd5db4b012b1724  core/src/main/java/org/bouncycastle/crypto/modes/PGPCFBBlockCipher.java
 4b5640ea46355c8072bd1c19115bc8d07f9c8e733eb9dfdd62e2938c1bfa3741  core/src/main/java/org/bouncycastle/crypto/modes/G3413CBCBlockCipher.java
-8ef4bc1a1a865d81adff15f2c4852c542b900a9c0c3b22e2350cf390847b2a23  core/src/main/java/org/bouncycastle/crypto/modes/ChaCha20Poly1305.java
+43aa6e62b6602b3a8983ac93cc04f28f201a9043b67e390bff56ee084cd58a94  core/src/main/java/org/bouncycastle/crypto/modes/ChaCha20Poly1305.java
 365012d7c72b4d4796b25d97ff34f3e770864e4e0d3a95c872b0d3907952233e  core/src/main/java/org/bouncycastle/crypto/modes/CCMBlockCipher.java
 11d77b64df4aacb58938421d93f628c19c04150cc9657158fbfd9ae99322446d  core/src/main/java/org/bouncycastle/crypto/modes/OldCTSBlockCipher.java
 34c1fa4ef985784f44e1f5e185aae26951eccee7a27c1eddd7b8e52cf27e29ac  core/src/main/java/org/bouncycastle/crypto/modes/OpenPGPCFBBlockCipher.java
