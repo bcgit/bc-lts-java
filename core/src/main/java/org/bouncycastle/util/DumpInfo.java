@@ -48,14 +48,14 @@ public class DumpInfo
                 sBld.append(newLine);
                 sBld.append("CPU Features and Variant availability.");
                 sBld.append(newLine);
-                sBld.append("--------------------------------------------------------------------------------");
+                sBld.append("------------------------------------------------------------------------------------------");
                 sBld.append(newLine);
                 sBld.append(pad("Variant", 10));
-                sBld.append(pad("CPU features + or -:", 50));
+                sBld.append(pad("CPU features + or -:", 60));
                 sBld.append(pad("Supported", 20));
 
                 sBld.append(newLine);
-                sBld.append("--------------------------------------------------------------------------------");
+                sBld.append("------------------------------------------------------------------------------------------");
                 sBld.append(newLine);
                 for (String[] parts : result)
                 {
@@ -67,7 +67,7 @@ public class DumpInfo
                         cpuFeatures += parts[t];
                         cpuFeatures += " ";
                     }
-                    cpuFeatures = pad(cpuFeatures.trim(), 50);
+                    cpuFeatures = pad(cpuFeatures.trim(), 60);
 
                     String status = parts[parts.length - 1];
 
@@ -85,6 +85,8 @@ public class DumpInfo
         else
         {
             //-DM System.out.println
+            //-DM System.out.println
+            System.out.println("Native Status: " + CryptoServicesRegistrar.getNativeServices().getStatusMessage());
             System.out.println("Native Features: None");
         }
 

@@ -4,6 +4,7 @@ import junit.extensions.TestSetup;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
+import org.bouncycastle.crypto.NativeLoaderFailureTest;
 import org.bouncycastle.crypto.NativeRNGRetriesTest;
 import org.bouncycastle.crypto.NativeRandSourceTest;
 import org.bouncycastle.test.PrintTestResult;
@@ -26,6 +27,7 @@ public class AllTests
         suite.addTestSuite(BigSkippingCipherTest.class);
         suite.addTestSuite(NativeRNGRetriesTest.class);
         suite.addTestSuite(NativeRandSourceTest.class);
+        suite.addTestSuite(NativeLoaderFailureTest.class);
         return new BCTestSetup(suite);
     }
     

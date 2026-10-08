@@ -31,15 +31,7 @@ public class DisposalDaemon
     static
     {
 
-        String cleanupDelayProp = Properties.getPropertyValue(CLEANUP_DELAY_PROP, "0").trim();
-        if (cleanupDelayProp.endsWith("ms"))
-        {
-            cleanupDelay = Math.max(Long.parseLong(cleanupDelayProp.replace("ms", "")), 0);
-        }
-        else
-        {
-            cleanupDelay = Math.max(Long.parseLong(cleanupDelayProp) * 1000L, 0);
-        }
+        cleanupDelay = readCleanupDelay();
 
 
         //
@@ -73,6 +65,37 @@ public class DisposalDaemon
         disposalThread.start();
 
         addShutdownHook();
+    }
+
+    /**
+     * Read the cleanup delay, in milliseconds, from CLEANUP_DELAY_PROP: a number of seconds, or of
+     * milliseconds with an "ms" suffix. A value that cannot be read is replaced with the default of
+     * no delay, and a warning naming the property is logged. Failing instead would fail the
+     * initialisation of this class, after which no native object could be created.
+     */
+    private static long readCleanupDelay()
+    {
+        String cleanupDelayProp = Properties.getPropertyValue(CLEANUP_DELAY_PROP, "0").trim();
+        try
+        {
+            if (cleanupDelayProp.endsWith("ms"))
+            {
+                return Math.max(Long.parseLong(cleanupDelayProp.substring(0, cleanupDelayProp.length() - 2).trim()), 0);
+            }
+
+            long seconds = Long.parseLong(cleanupDelayProp);
+            if (seconds > Long.MAX_VALUE / 1000L)
+            {
+                throw new NumberFormatException("too large: " + cleanupDelayProp);
+            }
+            return Math.max(seconds * 1000L, 0);
+        }
+        catch (NumberFormatException e)
+        {
+            LOG.warning(CLEANUP_DELAY_PROP + " must be a whole number of seconds, or of milliseconds followed by ms, "
+                + "using 0: " + cleanupDelayProp);
+            return 0;
+        }
     }
 
     private static void addShutdownHook()

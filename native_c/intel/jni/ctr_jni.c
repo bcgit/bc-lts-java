@@ -140,7 +140,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCTR_init
 
     exit:
     release_bytearray_ctx(&iv);
-    release_bytearray_ctx(&key);
+    release_bytearray_ctx_secret(&key);
 }
 
 /*

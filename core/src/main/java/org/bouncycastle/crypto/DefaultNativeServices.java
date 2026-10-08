@@ -3,6 +3,7 @@ package org.bouncycastle.crypto;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.logging.Logger;
 
 import org.bouncycastle.util.Properties;
 
@@ -13,6 +14,7 @@ import org.bouncycastle.util.Properties;
 class DefaultNativeServices
         implements NativeServices
 {
+    private static final Logger LOG = Logger.getLogger(DefaultNativeServices.class.getName());
 
     /**
      * Default maximum number of retries for the hardware RNG instructions (RDSEED/RDRAND).
@@ -32,9 +34,11 @@ class DefaultNativeServices
     /**
      * Read the hardware entropy instruction from Properties.NATIVE_RAND_SOURCE. Where the
      * property is not set at all NativeServices.RandSource.AUTO is returned. Where it is set it
-     * must hold one of RDRAND, RDSEED, AUTO or NONE, anything else is rejected rather than
-     * silently replaced with the default. The match is exact, in the same way that the retry
-     * property does not trim its value.
+     * should hold one of RDRAND, RDSEED, AUTO or NONE. The match is exact, in the same way that
+     * the retry property does not trim its value. Any other value is replaced with AUTO and a
+     * warning naming the property is logged: this is read during class initialisation, and a
+     * failure there would leave CryptoServicesRegistrar, and so the whole library, unusable for
+     * the life of the JVM.
      */
     private static NativeServices.RandSource readNativeRandSource()
     {
@@ -51,8 +55,9 @@ class DefaultNativeServices
         }
         catch (IllegalArgumentException e)
         {
-            throw new IllegalArgumentException(
-                    Properties.NATIVE_RAND_SOURCE + " must be one of RDRAND, RDSEED, AUTO or NONE: " + value);
+            LOG.warning(Properties.NATIVE_RAND_SOURCE + " must be one of RDRAND, RDSEED, AUTO or NONE, using AUTO: "
+                + value);
+            return NativeServices.RandSource.AUTO;
         }
     }
 
@@ -62,8 +67,8 @@ class DefaultNativeServices
      * The value comes from the system/security property org.bouncycastle.native.rand. Where that
      * property is not set at all the value is {@link NativeServices.RandSource#AUTO}, which uses
      * RDSEED where the CPU has it, otherwise RDRAND, otherwise the SecureRandom fallback. Where
-     * it is set it must hold one of RDRAND, RDSEED, AUTO or NONE, any other value is rejected on
-     * first use.
+     * it should hold one of RDRAND, RDSEED, AUTO or NONE; any other value is replaced with AUTO,
+     * and a warning naming the property is logged.
      * </p>
      * <p>
      * RDRAND and RDSEED force the instruction: on a CPU that does not have the forced one, and
@@ -81,9 +86,9 @@ class DefaultNativeServices
 
     /**
      * Read the RNG retry limit from Properties.NATIVE_RAND_MAX_RETRIES. Where the property is
-     * not set at all DEFAULT_MAX_RNG_RETRIES is returned. Where it is set it must hold an
-     * integer of 0 or greater, anything else is rejected rather than silently replaced with the
-     * default.
+     * not set at all DEFAULT_MAX_RNG_RETRIES is returned. Where it is set it should hold an
+     * integer of 0 or greater. Any other value is replaced with DEFAULT_MAX_RNG_RETRIES and a
+     * warning naming the property is logged, for the reason given for readNativeRandSource().
      */
     private static int readMaxRNGRetries()
     {
@@ -95,14 +100,16 @@ class DefaultNativeServices
         }
         catch (NumberFormatException e)
         {
-            throw new IllegalArgumentException(
-                    Properties.NATIVE_RAND_MAX_RETRIES + " must be an integer of 0 or greater: " + e.getMessage(), e);
+            LOG.warning(Properties.NATIVE_RAND_MAX_RETRIES + " must be an integer of 0 or greater, using "
+                + DEFAULT_MAX_RNG_RETRIES + ": " + e.getMessage());
+            return DEFAULT_MAX_RNG_RETRIES;
         }
 
         if (maxRetries < 0)
         {
-            throw new IllegalArgumentException(
-                    Properties.NATIVE_RAND_MAX_RETRIES + " must be an integer of 0 or greater: " + maxRetries);
+            LOG.warning(Properties.NATIVE_RAND_MAX_RETRIES + " must be an integer of 0 or greater, using "
+                + DEFAULT_MAX_RNG_RETRIES + ": " + maxRetries);
+            return DEFAULT_MAX_RNG_RETRIES;
         }
 
         return maxRetries;
@@ -117,10 +124,10 @@ class DefaultNativeServices
      * is DEFAULT_MAX_RNG_RETRIES. Where it is set it must hold an integer of 0 or greater.
      * </p>
      * <p>
-     * <b>Note</b>: the property is read in the static initialiser of this class, so a value that
-     * is not an integer of 0 or greater makes class initialisation fail with
-     * IllegalArgumentException. That is deliberate. A retry limit the caller asked for and that
-     * cannot be read must not fall back to the default without a word.
+     * <b>Note</b>: the property is read in the static initialiser of this class. A value that is
+     * not an integer of 0 or greater is replaced with DEFAULT_MAX_RNG_RETRIES, and a warning naming
+     * the property is logged, rather than failing class initialisation, which would leave the
+     * whole library unusable.
      * </p>
      *
      * @return the current RNG retry limit.
@@ -149,16 +156,15 @@ class DefaultNativeServices
     @Override
     public String getStatusMessage()
     {
-        if (NativeLoader.isNativeLibsAvailableForSystem())
+        if (NativeLoader.isNativeLibsAvailableForSystem() && NativeLoader.isNativeInstalled())
         {
-            if (NativeLoader.isNativeInstalled())
-            {
-                return "READY";
-            }
-            else
-            {
-                return NativeLoader.getNativeStatusMessage();
-            }
+            return "READY";
+        }
+
+        // The platform is supported but the load failed: say why.
+        if (NativeLoader.isLoadFailure())
+        {
+            return NativeLoader.getNativeStatusMessage();
         }
 
         // No support for platform / architecture

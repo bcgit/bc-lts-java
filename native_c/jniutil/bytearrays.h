@@ -12,6 +12,7 @@ typedef struct {
     size_t size;
     JNIEnv *env;
     jbyteArray array;
+    jboolean is_copy;
 } java_bytearray_ctx;
 
 
@@ -46,5 +47,23 @@ void release_bytearray_ctx(java_bytearray_ctx *ctx);
  * @param ctx
  */
 void release_bytearray_ctx_unchanged(java_bytearray_ctx *ctx);
+
+
+/**
+ * release_bytearray_ctx_secret releases a java byte ctx holding a secret the native code did not
+ * change, such as a key. Where the JVM handed out a copy, the copy is cleared before it is freed,
+ * and nothing is copied back, so the caller's array is untouched.
+ * @param ctx
+ */
+void release_bytearray_ctx_secret(java_bytearray_ctx *ctx);
+
+
+/**
+ * release_bytearray_ctx_secret_output releases a java byte ctx that the native code filled with a
+ * secret, such as seed material. The contents are copied back to the java array, then any copy the
+ * JVM handed out is cleared before it is freed.
+ * @param ctx
+ */
+void release_bytearray_ctx_secret_output(java_bytearray_ctx *ctx);
 
 #endif //BC_FIPS_BYTEARRAYS_H

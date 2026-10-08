@@ -13,11 +13,9 @@ import org.junit.Test;
  * The instruction selection that sits alongside the budget is covered by NativeRandSourceTest.
  * </p>
  * <p>
- * UNTESTED here, deliberately: a value of org.bouncycastle.native.rand.max_retries that is not
- * an integer of 0 or greater makes class initialisation of DefaultNativeServices fail. The class
- * is initialised once for each JVM and it is already initialised by the time a test runs, so the
- * case needs a fresh class loader to reach. That harness costs more than the behaviour is worth.
- * The intent is recorded in the javadoc of getMaxRNGRetries() instead.
+ * Not here: a value of org.bouncycastle.native.rand.max_retries that is not an integer of 0 or
+ * greater is replaced with the default, with a warning. The property is read once for each JVM,
+ * during class initialisation, so NativeLoaderFailureTest covers that case in a child JVM.
  * </p>
  */
 public class NativeRNGRetriesTest

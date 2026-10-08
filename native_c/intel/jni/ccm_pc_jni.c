@@ -184,7 +184,7 @@ JNIEXPORT jint JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCMPacketCi
     exit:
     release_critical_ctx(&input);
     release_critical_ctx(&output);
-    release_bytearray_ctx_unchanged(&key);
+    release_bytearray_ctx_secret(&key);
     release_bytearray_ctx_unchanged(&iv);
     release_bytearray_ctx_unchanged(&ad);
     handle_ccm_pc_result(env, err);

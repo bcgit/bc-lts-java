@@ -68,8 +68,9 @@ public interface NativeServices
      * <p>
      * The value comes from the system/security property org.bouncycastle.native.rand. Where that
      * property is not set at all the value is {@link RandSource#AUTO}, which uses RDSEED where the
-     * CPU has it, otherwise RDRAND, otherwise the SecureRandom fallback. Where it is set it must
-     * hold one of RDRAND, RDSEED, AUTO or NONE, any other value is rejected on first use.
+     * CPU has it, otherwise RDRAND, otherwise the SecureRandom fallback. Where it is set it should
+     * hold one of RDRAND, RDSEED, AUTO or NONE; any other value is replaced with AUTO, and a
+     * warning naming the property is logged.
      * </p>
      * <p>
      * RDRAND and RDSEED force the instruction: on a CPU that does not have the forced one, and
@@ -96,7 +97,8 @@ public interface NativeServices
      * <p>
      * The value comes from the system/security property org.bouncycastle.native.rand.max_retries.
      * Where that property is not set at all the value is the shipped default. Where it is set it
-     * must hold an integer of 0 or greater, any other value is rejected on first use.
+     * should hold an integer of 0 or greater; any other value is replaced with the shipped
+     * default, and a warning naming the property is logged.
      * </p>
      * <p>
      * A default method, for the same reason as {@link #getNativeRandSource()}.

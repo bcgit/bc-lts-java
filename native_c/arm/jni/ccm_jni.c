@@ -132,7 +132,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeCCM_initNat
             (uint32_t) macSizeInBits / 8);
 
     exit:
-    release_bytearray_ctx(&key);
+    release_bytearray_ctx_secret(&key);
     release_bytearray_ctx(&iv);
     release_bytearray_ctx(&ad);
     handle_ccm_result(env, err);

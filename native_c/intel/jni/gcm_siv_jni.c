@@ -137,7 +137,7 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_engines_AESNativeGCMSIV_init
             ad.size);
 
     exit:
-    release_bytearray_ctx(&key);
+    release_bytearray_ctx_secret(&key);
     release_bytearray_ctx(&iv);
     release_bytearray_ctx(&ad);
 

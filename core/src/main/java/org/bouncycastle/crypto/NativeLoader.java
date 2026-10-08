@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
@@ -38,6 +41,15 @@ class NativeLoader
     private static boolean nativeInstalled = false;
     private static boolean nativeEnabled = true;
     private static String nativeStatusMessage = "Driver load not attempted";
+
+    // true once the loader finds the platform in scope, so that a later failure is a failure to
+    // load, reported in detail, rather than a platform the native layer does not support.
+    private static boolean platformInScope = false;
+
+    // the variants a forced variant may name, weakest first: a host that supports one supports
+    // every variant before it.
+    private static final String[] X86_64_VARIANTS = {"avx", "vaes", "vaesf"};
+    private static final String[] ARM64_VARIANTS = {"neon-le"};
 
     private static String selectedVariant = null;
 
@@ -90,6 +102,15 @@ class NativeLoader
     static synchronized String getNativeStatusMessage()
     {
         return nativeStatusMessage;
+    }
+
+    /**
+     * Return true if the platform is one the native layer supports, but loading the native
+     * libraries failed.
+     */
+    static synchronized boolean isLoadFailure()
+    {
+        return platformInScope && !nativeInstalled;
     }
 
     static synchronized String getSelectedVariant()
@@ -182,6 +203,110 @@ class NativeLoader
             LOG.log(Level.FINE, "native loader already attempted load");
             return;
         }
+
+        //
+        // This runs from class initialisation, so anything escaping it would leave the class, and
+        // CryptoServicesRegistrar with it, unusable for the life of the JVM. A failure here means
+        // only that the native layer is not used.
+        //
+        try
+        {
+            installAndLoad();
+        }
+        catch (LinkageError e)
+        {
+            loadFailed(e);
+        }
+        catch (RuntimeException e)
+        {
+            loadFailed(e);
+        }
+    }
+
+    private static void loadFailed(Throwable e)
+    {
+        nativeLibsAvailableForSystem = false;
+        nativeInstalled = false;
+        javaSupportOnly = true;
+        nativeStatusMessage = "native libraries failed to load, using java support only: " + e;
+        LOG.warning(nativeStatusMessage);
+    }
+
+    /**
+     * Return the variants a forced variant may name on the platform.
+     */
+    private static String[] knownVariants(boolean isARM)
+    {
+        return isARM ? ARM64_VARIANTS : X86_64_VARIANTS;
+    }
+
+    private static String join(String[] values)
+    {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i != values.length; i++)
+        {
+            if (i != 0)
+            {
+                sb.append(", ");
+            }
+            sb.append(values[i]);
+        }
+        return sb.toString();
+    }
+
+    private static int variantRank(String[] variants, String variant)
+    {
+        for (int i = 0; i != variants.length; i++)
+        {
+            if (variants[i].equals(variant))
+            {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Create the directory with access for its owner only, where the file system allows that.
+     *
+     * @return true if the directory was created, false if it already exists.
+     */
+    private static boolean makePrivateDir(File dir)
+        throws IOException
+    {
+        try
+        {
+            Files.createDirectory(dir.toPath(),
+                PosixFilePermissions.asFileAttribute(PosixFilePermissions.fromString("rwx------")));
+            return true;
+        }
+        catch (FileAlreadyExistsException e)
+        {
+            return false;
+        }
+        catch (UnsupportedOperationException e)
+        {
+            // not a POSIX file system.
+            if (!dir.mkdir())
+            {
+                if (dir.exists())
+                {
+                    return false;
+                }
+                throw new IOException("unable to create " + dir);
+            }
+            dir.setReadable(false, false);
+            dir.setReadable(true, true);
+            dir.setWritable(false, false);
+            dir.setWritable(true, true);
+            dir.setExecutable(false, false);
+            dir.setExecutable(true, true);
+            return true;
+        }
+    }
+
+    private static void installAndLoad()
+    {
 
         String forcedVariant = Properties.getPropertyValue(BCLTS_LIB_CPU_VARIANT);
 
@@ -289,17 +414,21 @@ class NativeLoader
                     // Create a temporary file, we cannot use the inbuilt method as it will attempt to start
                     // an entropy source and the provider is not in a ready state.
                     //
+                    //
+                    // The directory is private to its owner, so nobody else can replace a library
+                    // between its installation and its loading. Names that already exist are
+                    // skipped; any other failure ends the attempt.
+                    //
                     File dir = null;
                     long time = System.nanoTime();
                     for (int t = 0; t < 1000; t++)
                     {
                         dir = new File(ioTmpDir, "bc-lts-jni" + Long.toString(time + t, 32) + "-libs");
-                        if (dir.mkdirs())
+                        if (makePrivateDir(dir))
                         {
                             break;
                         }
                         dir = null;
-                        Thread.sleep(time % 97);
                     }
 
                     if (dir == null)
@@ -342,9 +471,10 @@ class NativeLoader
                                 return;
                             }
                             boolean isDeleted = true;
-                            if (tmpDir.isDirectory())
+                            File[] files = tmpDir.isDirectory() ? tmpDir.listFiles() : null;
+                            if (files != null)
                             {
-                                for (File f : tmpDir.listFiles())
+                                for (File f : files)
                                 {
                                     isDeleted &= f.delete();
                                 }
@@ -396,7 +526,16 @@ class NativeLoader
         //
         Set<File> filesInInstallLocation = new HashSet<File>();
 
-        for (File f : bcLtsLibPath.listFiles())
+        File[] existingFiles = bcLtsLibPath.listFiles();
+        if (existingFiles == null)
+        {
+            nativeStatusMessage = "unable to list the native library install location " + bcLtsLibPath;
+            nativeInstalled = false;
+            LOG.fine("exited with " + nativeStatusMessage);
+            return;
+        }
+
+        for (File f : existingFiles)
         {
             filesInInstallLocation.add(f);
         }
@@ -476,6 +615,8 @@ class NativeLoader
         {
         }
 
+        platformInScope = true;
+
         //
         // Endeavour ot install the probe library, if this does not install then
         // forced variants will be usable.
@@ -500,8 +641,9 @@ class NativeLoader
 
 
         }
-        catch (Exception ex)
+        catch (Throwable ex)
         {
+            // Throwable, as System.load reports its failures with UnsatisfiedLinkError.
             nativeStatusMessage = "probe lib failed to load " + ex.getMessage();
             nativeInstalled = false;
             LOG.fine("exited with " + nativeStatusMessage);
@@ -522,6 +664,7 @@ class NativeLoader
 
         if ("none".equals(selectedVariant))
         {
+            platformInScope = false;
             javaSupportOnly = true;
             nativeInstalled = false;
             nativeStatusMessage = "probe returned no suitable CPU features, java support only";
@@ -531,6 +674,30 @@ class NativeLoader
 
         if (forcedVariant != null)
         {
+            //
+            // A forced variant must be one this host can run: loading one that needs CPU features
+            // the host does not have ends the JVM at the first instruction it cannot execute.
+            //
+            String[] variants = knownVariants(isARM);
+            int forcedRank = variantRank(variants, forcedVariant);
+            if (forcedRank < 0)
+            {
+                nativeStatusMessage = String.format("%s names an unknown native variant '%s', expected one of %s " +
+                    "or java", BCLTS_LIB_CPU_VARIANT, forcedVariant, join(variants));
+                nativeInstalled = false;
+                LOG.warning(nativeStatusMessage);
+                return;
+            }
+            if (forcedRank > variantRank(variants, selectedVariant))
+            {
+                nativeStatusMessage = String.format("%s forces native variant '%s', which needs CPU features this " +
+                    "host does not have; the best variant it supports is '%s'", BCLTS_LIB_CPU_VARIANT, forcedVariant,
+                    selectedVariant);
+                nativeInstalled = false;
+                LOG.warning(nativeStatusMessage);
+                return;
+            }
+
             selectedVariant = forcedVariant;
         }
 
@@ -583,8 +750,9 @@ class NativeLoader
             );
 
         }
-        catch (Exception ex)
+        catch (Throwable ex)
         {
+            // Throwable, as System.load reports its failures with UnsatisfiedLinkError.
             nativeStatusMessage = "native capabilities lib failed to load " + ex.getMessage();
             nativeInstalled = false;
             LOG.fine("exited with " + nativeStatusMessage);

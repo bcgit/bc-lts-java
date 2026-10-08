@@ -198,6 +198,6 @@ JNIEXPORT void JNICALL Java_org_bouncycastle_crypto_NativeEntropySource_seedBuff
     val = 0;
 
     exit:
-    release_bytearray_ctx(&buf);
+    release_bytearray_ctx_secret_output(&buf);
 
 }
