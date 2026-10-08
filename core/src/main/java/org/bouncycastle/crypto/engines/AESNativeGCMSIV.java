@@ -101,21 +101,17 @@ public class AESNativeGCMSIV
                     throw new IllegalStateException(ExceptionMessages.AES_KEY_LENGTH);
             }
 
-            initRef();
-
-
+            // a failed init leaves the engine uninitialised, never holding a context that has no
+            // key schedule in it.
+            refWrapper = null;
+            GCMSIVRefWrapper ref = new GCMSIVRefWrapper(makeInstance());
             initNative(
-                    refWrapper.getReference(),
+                    ref.getReference(),
                     forEncryption, lastKey,
                     theNonce, theInitialAEAD);
+            refWrapper = ref;
         }
     }
-
-    private void initRef()
-    {
-        refWrapper = new GCMSIVRefWrapper(makeInstance());
-    }
-
     @Override
     public String getAlgorithmName()
     {

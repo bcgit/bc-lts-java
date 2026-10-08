@@ -88,7 +88,6 @@ public class AESNativeCTR
 
             return processBytes(referenceWrapper.getReference(), in, inOff, extent, out, outOff);
         }
-
     }
 
     @Override
@@ -157,9 +156,16 @@ public class AESNativeCTR
                 {
                     if (referenceWrapper == null)
                     {
-                        referenceWrapper = new CTRRefWrapper(makeCTRInstance(), null);
+                        // there is no key to reuse, which the native init refuses, so the engine stays
+                        // uninitialised rather than holding a context with no key schedule.
+                        CTRRefWrapper ref = new CTRRefWrapper(makeCTRInstance(), null);
+                        init(ref.getReference(), null, iv);
+                        referenceWrapper = ref;
                     }
-                    init(referenceWrapper.getReference(), referenceWrapper.getKey(), iv);
+                    else
+                    {
+                        init(referenceWrapper.getReference(), referenceWrapper.getKey(), iv);
+                    }
                 }
                 else
                 {
@@ -178,8 +184,12 @@ public class AESNativeCTR
 
                     keyLen = key.length * 8;
 
-                    referenceWrapper = new CTRRefWrapper(makeCTRInstance(), key);
-                    init(referenceWrapper.getReference(), referenceWrapper.getKey(), iv);
+                    // a failed init leaves the engine uninitialised, never holding a context that has no
+                    // key schedule in it.
+                    referenceWrapper = null;
+                    CTRRefWrapper ref = new CTRRefWrapper(makeCTRInstance(), Arrays.clone(key));
+                    init(ref.getReference(), ref.getKey(), iv);
+                    referenceWrapper = ref;
 
                 }
 
@@ -270,7 +280,7 @@ public class AESNativeCTR
 
         public CTRRefWrapper(long reference, byte[] key)
         {
-            super(reference, "CTR");
+            super(reference, "CTR", new Disposer(reference, key));
             this.key = key;
         }
 
@@ -278,14 +288,6 @@ public class AESNativeCTR
         {
             return key;
         }
-
-        @Override
-        public Runnable createAction()
-        {
-            return new Disposer(reference, key);
-        }
-
-
     }
 
 

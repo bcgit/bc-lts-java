@@ -60,12 +60,15 @@ class AESNativeEngine
                     case 16:
                     case 24:
                     case 32:
-                        wrapper = new ECBNativeRef(makeInstance(key.length, forEncryption));
                         break;
 
                     default:
                         throw new IllegalArgumentException("key must be 16, 24 or 32 bytes");
                 }
+
+                // a failed init leaves the engine uninitialised, never holding a context that
+                // has no key schedule in it.
+                wrapper = null;
 
                 CryptoServicesRegistrar.checkConstraints(
                         new DefaultServiceProperties(
@@ -75,8 +78,9 @@ class AESNativeEngine
                                 forEncryption ? CryptoServicePurpose.ENCRYPTION : CryptoServicePurpose.DECRYPTION
                         ));
 
-
-                init(wrapper.getReference(), key);
+                NativeReference ref = new ECBNativeRef(makeInstance(key.length, forEncryption));
+                init(ref.getReference(), key);
+                wrapper = ref;
 
                 keyLen = key.length * 8;
 

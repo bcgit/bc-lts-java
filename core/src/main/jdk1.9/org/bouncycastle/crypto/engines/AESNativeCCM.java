@@ -104,6 +104,9 @@ class AESNativeCCM
                 keyParam = (KeyParameter) cipherParameters;
             }
 
+            // a failed native init leaves the engine uninitialised.
+            initialised = false;
+
             if (keyParam != null)
             {
                 byte[] key = keyParam.getKey();
@@ -416,15 +419,10 @@ class AESNativeCCM
 
         public CCMRefWrapper(long reference, byte[] key)
         {
-            super(reference, "CCM");
+            super(reference, "CCM", new Disposer(reference, key));
             this.key = key;
         }
 
-        @Override
-        public Runnable createAction()
-        {
-            return new Disposer(reference, key);
-        }
 
 
         public byte[] getKey()

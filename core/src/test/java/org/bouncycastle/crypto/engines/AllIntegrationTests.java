@@ -42,6 +42,8 @@ public class AllIntegrationTests
         suite.addTestSuite(GCMNativeLimitTest.class);
         suite.addTestSuite(GCMSIVNativeLimitTest.class);
         suite.addTestSuite(CCMNativeLimitTest.class);
+        suite.addTestSuite(NativeKeyDisposalTest.class);
+        suite.addTestSuite(NativeInitFailureTest.class);
         suite.addTestSuite(NativeCBCPacketCipherLimitTest.class);
         suite.addTestSuite(NativeCCMPacketCipherLimitTest.class);
         suite.addTestSuite(NativeCFBPacketCipherLimitTest.class);

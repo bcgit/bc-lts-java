@@ -105,13 +105,15 @@ public class AESNativeGCMSIV
                     throw new IllegalStateException(ExceptionMessages.AES_KEY_LENGTH);
             }
 
-            initRef(keyBytes);
-
-
+            // a failed init leaves the engine uninitialised, never holding a context that has no
+            // key schedule in it.
+            refWrapper = null;
+            GCMSIVRefWrapper ref = newRef(keyBytes);
             initNative(
-                    refWrapper.getReference(),
-                    forEncryption, refWrapper.key,
+                    ref.getReference(),
+                    forEncryption, ref.key,
                     theNonce, theInitialAEAD);
+            refWrapper = ref;
         }
         finally
         {
@@ -119,9 +121,9 @@ public class AESNativeGCMSIV
         }
     }
 
-    private void initRef(byte[] key)
+    private GCMSIVRefWrapper newRef(byte[] key)
     {
-        refWrapper = new GCMSIVRefWrapper(makeInstance(), key);
+        return new GCMSIVRefWrapper(makeInstance(), Arrays.clone(key));
     }
 
     @Override
@@ -324,16 +326,9 @@ public class AESNativeGCMSIV
 
         public GCMSIVRefWrapper(long reference, byte[] key)
         {
-            super(reference, "GCM-SIV");
+            super(reference, "GCM-SIV", new Disposer(reference, key));
             this.key = key;
         }
-
-        @Override
-        public Runnable createAction()
-        {
-            return new Disposer(reference, key);
-        }
-
     }
 
     private static class Disposer

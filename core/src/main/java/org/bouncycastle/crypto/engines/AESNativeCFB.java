@@ -41,17 +41,19 @@ class AESNativeCFB
     {
         synchronized (this)
         {
-            boolean oldEncrypting = this.encrypting;
-
             this.encrypting = forEncryption;
 
+            //
+            // This follows CFBBlockCipher: an IV-only or null init reuses the key, a key-only or
+            // null init reuses the IV, an IV not yet set is zero, and the direction may change
+            // without a new key.
+            //
             byte[] key = null;
-            byte[] iv = null;
 
             if (params instanceof ParametersWithIV)
             {
                 ParametersWithIV ivParam = (ParametersWithIV) params;
-                iv = ivParam.getIV();
+                byte[] iv = ivParam.getIV();
 
                 if (iv.length > getBlockSize() || iv.length < 1)
                 {
@@ -67,49 +69,43 @@ class AESNativeCFB
 
                 oldIv = Arrays.clone(iv);
 
-                if (ivParam.getParameters() != null)
-                {
-                    key = Arrays.clone(((KeyParameter) ivParam.getParameters()).getKey());
-                }
+                params = ivParam.getParameters();
+            }
 
-                if (key != null)
+            if (params instanceof KeyParameter)
+            {
+                key = Arrays.clone(((KeyParameter) params).getKey());
+                if (key == null)
                 {
-                    oldEncrypting = encrypting; // Can change because key is supplied.
-                    key = Arrays.clone(key);
+                    throw new IllegalArgumentException("key was null");
                 }
-                else
-                {
-                    // Use old key, it may be null but that is tested later.
-                    key = referenceWrapper != null ? referenceWrapper.getKey() : null;
-                }
+            }
+            else if (params != null)
+            {
+                throw new IllegalArgumentException("invalid parameter passed to AES init - " + params.getClass().getName());
+            }
+            else if (referenceWrapper != null)
+            {
+                key = Arrays.clone(referenceWrapper.getKey());
             }
             else
             {
-                //
-                // Change of key.
-                //
-
-                if (params instanceof KeyParameter)
-                {
-                    key = Arrays.clone(((KeyParameter) params).getKey());
-                    iv = oldIv;
-                }
-
+                // no key yet: as with CFBBlockCipher the engine stays uninitialised until one is
+                // supplied, and refuses to process data until then.
+                return;
             }
 
-            if (key == null && oldEncrypting != encrypting)
+            if (oldIv == null)
             {
-                throw new IllegalArgumentException("cannot change encrypting state without providing key.");
+                oldIv = new byte[getBlockSize()];
             }
 
-            if (iv == null)
-            {
-                throw new IllegalArgumentException("iv is null");
-            }
-
-
-            referenceWrapper = new CFBRefWrapper(makeNative(encrypting, key.length), key);
-            init(referenceWrapper.getReference(), key, iv);
+            // a failed init leaves the engine uninitialised, never holding a context that has no
+            // key schedule in it.
+            referenceWrapper = null;
+            CFBRefWrapper ref = new CFBRefWrapper(makeNative(encrypting, key.length), key);
+            init(ref.getReference(), ref.getKey(), oldIv);
+            referenceWrapper = ref;
         }
     }
 
@@ -181,7 +177,6 @@ class AESNativeCFB
 
             reset(referenceWrapper.getReference());
         }
-
     }
 
 
@@ -251,19 +246,13 @@ class AESNativeCFB
 
         public CFBRefWrapper(long reference, byte[] key)
         {
-            super(reference, "CFB");
+            super(reference, "CFB", new Disposer(reference, key));
             this.key = key;
         }
 
         public byte[] getKey()
         {
             return key;
-        }
-
-        @Override
-        public Runnable createAction()
-        {
-            return new Disposer(reference, key);
         }
     }
 

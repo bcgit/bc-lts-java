@@ -1,11 +1,18 @@
 package org.bouncycastle.crypto.engines;
 
+import java.security.SecureRandom;
+
 import junit.framework.TestCase;
+import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
+import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.NativeServices;
+import org.bouncycastle.crypto.modes.GCMBlockCipher;
+import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
+import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
 import org.junit.Before;
 import org.junit.Test;
@@ -1346,7 +1353,7 @@ public class GCMNativeLimitTest extends TestCase
                 }
                 catch (Exception ex)
                 {
-                    ex.getMessage().contains("needs to be initialised");
+                    assertTrue(ex.getMessage().contains("needs to be initialised"));
                 }
             }
         };
@@ -1844,4 +1851,205 @@ public class GCMNativeLimitTest extends TestCase
 
     }
 
+
+    /**
+     * Every method on a never-initialised native GCM must behave as GCMBlockCipher does,
+     * not throw a NullPointerException off the missing native reference.
+     */
+    @Test
+    public void testGCMBeforeInit()
+        throws Exception
+    {
+        if (skipIfNotSupported())
+        {
+            return;
+        }
+
+        int[] lens = { 0, 1, 15, 16, 17, 31, 32, 33, 1024, -1, -16, Integer.MIN_VALUE, Integer.MAX_VALUE };
+        for (int i = 0; i != lens.length; i++)
+        {
+            GCMModeCipher java = new GCMBlockCipher(new AESEngine());
+            AESNativeGCM nat = new AESNativeGCM();
+
+            assertEquals("getOutputSize(" + lens[i] + ")", java.getOutputSize(lens[i]), nat.getOutputSize(lens[i]));
+            assertEquals("getUpdateOutputSize(" + lens[i] + ")", java.getUpdateOutputSize(lens[i]), nat.getUpdateOutputSize(lens[i]));
+        }
+
+        AESNativeGCM nat = new AESNativeGCM();
+        assertTrue(Arrays.areEqual(new GCMBlockCipher(new AESEngine()).getMac(), nat.getMac()));
+        assertEquals(0, nat.getMac().length);
+
+        try
+        {
+            nat.processAADByte((byte)0);
+            fail("processAADByte before init");
+        }
+        catch (IllegalStateException e)
+        {
+            assertEquals("GCM is uninitialized", e.getMessage());
+        }
+
+        try
+        {
+            nat.doFinal(new byte[16], 0);
+            fail("doFinal before init");
+        }
+        catch (IllegalStateException e)
+        {
+            assertEquals("GCM cipher needs to be initialised", e.getMessage());
+        }
+
+        // the guards must not stick once the cipher has been initialised.
+        nat.init(true, new AEADParameters(new KeyParameter(new byte[16]), 96, new byte[12]));
+        assertEquals(17 + 12, nat.getOutputSize(17));
+        // native may buffer more than GCMBlockCipher (see README), but never reports more than it could write.
+        int updateSize = nat.getUpdateOutputSize(17);
+        assertTrue(updateSize >= 0 && updateSize <= 16 && updateSize % 16 == 0);
+        nat.processAADByte((byte)1);
+        byte[] out = new byte[12];
+        assertEquals(12, nat.doFinal(out, 0));
+        assertTrue(Arrays.areEqual(out, nat.getMac()));
+        assertFalse(Arrays.areEqual(new byte[12], nat.getMac()));
+    }
+
+    /**
+     * A null key in the parameters reuses the key from the previous init, as GCMBlockCipher does.
+     */
+    @Test
+    public void testGCMKeyReuse()
+        throws Exception
+    {
+        if (skipIfNotSupported())
+        {
+            return;
+        }
+
+        // no previous key - rejected as for GCMBlockCipher.
+        for (int forEnc = 0; forEnc != 2; forEnc++)
+        {
+            CipherParameters[] cases = {
+                new ParametersWithIV(null, new byte[12]),
+                new AEADParameters(null, 128, new byte[12]) };
+            for (int i = 0; i != cases.length; i++)
+            {
+                try
+                {
+                    new GCMBlockCipher(new AESEngine()).init(forEnc == 1, cases[i]);
+                    fail("java: no key");
+                }
+                catch (IllegalArgumentException e)
+                {
+                    assertEquals("Key must be specified in initial init", e.getMessage());
+                }
+
+                try
+                {
+                    new AESNativeGCM().init(forEnc == 1, cases[i]);
+                    fail("native: no key");
+                }
+                catch (IllegalArgumentException e)
+                {
+                    assertEquals("Key must be specified in initial init", e.getMessage());
+                }
+            }
+        }
+
+        // inner parameters that aren't a key - rejected as for GCMBlockCipher.
+        CipherParameters notAKey = new ParametersWithIV(new ParametersWithIV(null, new byte[12]), new byte[12]);
+        try
+        {
+            new GCMBlockCipher(new AESEngine()).init(true, notAKey);
+            fail("java: not a key");
+        }
+        catch (IllegalArgumentException e)
+        {
+            assertEquals("invalid parameters passed to GCM", e.getMessage());
+        }
+        try
+        {
+            new AESNativeGCM().init(true, notAKey);
+            fail("native: not a key");
+        }
+        catch (IllegalArgumentException e)
+        {
+            assertEquals("invalid parameters passed to GCM", e.getMessage());
+        }
+
+        long seed = new SecureRandom().nextLong();
+        SecureRandom rand = new SecureRandom();
+        rand.setSeed(seed);
+
+        int[] keySizes = { 16, 24, 32 };
+        for (int t = 0; t != 30; t++)
+        {
+            String msg = "seed " + seed + " iteration " + t;
+
+            byte[] key = new byte[keySizes[t % 3]];
+            byte[] otherKey = new byte[key.length];
+            byte[] iv1 = new byte[12 + rand.nextInt(5)];
+            byte[] iv2 = new byte[12 + rand.nextInt(5)];
+            byte[] aad = new byte[rand.nextInt(40)];
+            byte[] pt = new byte[rand.nextInt(100)];
+            rand.nextBytes(key);
+            rand.nextBytes(otherKey);
+            rand.nextBytes(iv1);
+            rand.nextBytes(iv2);
+            iv2[0] = (byte)(iv1[0] ^ 1);
+            rand.nextBytes(aad);
+            rand.nextBytes(pt);
+            otherKey[0] = (byte)(key[0] ^ 1);
+
+            byte[] expected = gcm(new GCMBlockCipher(new AESEngine()), true,
+                new AEADParameters(new KeyParameter(key), 128, iv2, aad), pt);
+
+            // native: first init with the key, then reuse it with a new nonce.
+            AESNativeGCM enc = new AESNativeGCM();
+            byte[] ct1 = gcm(enc, true, new AEADParameters(new KeyParameter(key), 128, iv1, aad), pt);
+            byte[] ct = gcm(enc, true, new AEADParameters(null, 128, iv2, aad), pt);
+            assertTrue(msg, Arrays.areEqual(expected, ct));
+
+            // the reused key really is the previous one, not some default.
+            byte[] otherCt = gcm(new AESNativeGCM(), true,
+                new AEADParameters(new KeyParameter(otherKey), 128, iv2, aad), pt);
+            assertFalse(msg, Arrays.areEqual(ct, otherCt));
+
+            // nonce reuse is still caught when the key is reused.
+            try
+            {
+                enc.init(true, new AEADParameters(null, 128, iv2, aad));
+                fail(msg + ": nonce reuse");
+            }
+            catch (IllegalArgumentException e)
+            {
+                assertEquals("cannot reuse nonce for GCM encryption", e.getMessage());
+            }
+
+            // decryption: first init with a different nonce, then reuse the key.
+            AESNativeGCM dec = new AESNativeGCM();
+            assertTrue(msg, Arrays.areEqual(pt, gcm(dec, false, new AEADParameters(new KeyParameter(key), 128, iv1, aad), ct1)));
+            assertTrue(msg, Arrays.areEqual(pt, gcm(dec, false, new AEADParameters(null, 128, iv2, aad), ct)));
+
+            byte[] bad = Arrays.clone(ct);
+            bad[rand.nextInt(bad.length)] ^= (byte)(1 << rand.nextInt(8));
+            try
+            {
+                gcm(dec, false, new AEADParameters(null, 128, iv2, aad), bad);
+                fail(msg + ": tampered ciphertext accepted");
+            }
+            catch (InvalidCipherTextException e)
+            {
+                // expected
+            }
+        }
+    }
+
+    private static byte[] gcm(GCMModeCipher cipher, boolean forEncryption, AEADParameters params, byte[] in)
+        throws InvalidCipherTextException
+    {
+        cipher.init(forEncryption, params);
+        byte[] out = new byte[cipher.getOutputSize(in.length)];
+        int len = cipher.processBytes(in, 0, in.length, out, 0);
+        len += cipher.doFinal(out, len);
+        return Arrays.copyOfRange(out, 0, len);
+    }
 }

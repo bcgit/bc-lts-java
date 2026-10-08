@@ -167,17 +167,9 @@ public class CFBNativeLimitTest extends TestCase
 
 
                 //
-                // Passing null iv causes some failure.
+                // A key-only init on a fresh engine uses a zero IV, as CFBBlockCipher does.
                 //
-                try
-                {
-                    init(false, new KeyParameter(new byte[16]));
-                    fail("accepted null iv");
-                }
-                catch (Exception ex)
-                {
-                    assertTrue(ex.getMessage().contains("iv is null"));
-                }
+                init(false, new KeyParameter(new byte[16]));
             }
         };
 
@@ -231,7 +223,7 @@ public class CFBNativeLimitTest extends TestCase
                 }
                 catch (Exception ex)
                 {
-                    assertTrue(ex.getMessage().contains("cannot change encrypting state without providing key"));
+                    assertTrue(ex.getMessage().contains("key was null"));
                 }
 
             }
@@ -317,15 +309,8 @@ public class CFBNativeLimitTest extends TestCase
                 init(false, new KeyParameter(new byte[16]));
 
 
-                try
-                {
-                    init(true, null);
-                    fail("change state without key");
-                }
-                catch (Exception ex)
-                {
-                    assertTrue(ex.getMessage().contains("cannot change encrypting state"));
-                }
+                // as with CFBBlockCipher, the direction can change without a new key.
+                init(true, null);
 
 
             }

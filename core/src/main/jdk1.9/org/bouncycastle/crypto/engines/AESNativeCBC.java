@@ -76,6 +76,9 @@ class AESNativeCBC
             }
             else
             {
+                // as CBCBlockCipher does, an init without an IV resets the IV to zero.
+                Arrays.fill(IV, (byte)0);
+
                 reset();
 
                 // if it's null, key is to be reused.
@@ -128,14 +131,18 @@ class AESNativeCBC
                     throw new IllegalArgumentException("key must be only 16,24,or 32 bytes long.");
             }
 
-            referenceWrapper = new CBCRefWrapper(makeNative(key.length, encrypting), Arrays.clone(key));
+            // a failed init leaves the engine uninitialised, never holding a context that has no
+            // key schedule in it.
+            referenceWrapper = null;
+            CBCRefWrapper ref = new CBCRefWrapper(makeNative(key.length, encrypting), Arrays.clone(key));
 
-            if (referenceWrapper.getReference() == 0)
+            if (ref.getReference() == 0)
             {
                 throw new IllegalStateException("Native CBC native instance returned a null pointer.");
             }
 
-            init(referenceWrapper.getReference(), key, IV);
+            init(ref.getReference(), key, IV);
+            referenceWrapper = ref;
             keySize = key.length * 8;
         }
         finally
@@ -286,14 +293,8 @@ class AESNativeCBC
 
         public CBCRefWrapper(long reference, byte[] oldKey)
         {
-            super(reference, "CBC");
+            super(reference, "CBC", new Disposer(reference, oldKey));
             this.oldKey = oldKey;
-        }
-
-        @Override
-        public Runnable createAction()
-        {
-            return new Disposer(reference, this.oldKey);
         }
     }
 

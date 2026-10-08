@@ -78,7 +78,12 @@ class AESNativeGCM
                 newNonce = param.getIV();
                 initialAssociatedText = null;
                 macSize = 128;
-                keyParam = (KeyParameter) param.getParameters();
+                CipherParameters innerParameters = param.getParameters();
+                if (innerParameters != null && !(innerParameters instanceof KeyParameter))
+                {
+                    throw new IllegalArgumentException("invalid parameters passed to GCM");
+                }
+                keyParam = (KeyParameter) innerParameters;
             }
             else
             {
@@ -129,12 +134,23 @@ class AESNativeGCM
                         throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
                 }
             }
+            else if (refWrapper != null && refWrapper.key != null)
+            {
+                // if keyParam is null we're reusing the last key.
+                key = refWrapper.key;
+            }
+            else
+            {
+                throw new IllegalArgumentException("Key must be specified in initial init");
+            }
 
+            // a failed native init leaves the engine uninitialised.
+            initialised = false;
             initRef(key);
 
             initNative(
                     refWrapper.getReference(),
-                    forEncryption, key,
+                    forEncryption, refWrapper.key,
                     oldNonce, initialAssociatedText, macSize);
 
 
@@ -151,7 +167,7 @@ class AESNativeGCM
     {
         try
         {
-            refWrapper = new GCMRefWrapper(makeInstance(key.length, forEncryption), key);
+            refWrapper = new GCMRefWrapper(makeInstance(key.length, forEncryption), Arrays.clone(key));
         }
         finally
         {
@@ -171,6 +187,11 @@ class AESNativeGCM
     {
         try
         {
+            if (refWrapper == null)
+            {
+                throw new IllegalStateException("GCM is uninitialized");
+            }
+
             processAADByte(refWrapper.getReference(), in);
         }
         finally
@@ -276,6 +297,11 @@ class AESNativeGCM
             {
                 return Arrays.clone(keptMac);
             }
+            if (refWrapper == null)
+            {
+                // as for GCMBlockCipher, no MAC before init.
+                return new byte[0];
+            }
             return getMac(refWrapper.getReference());
         }
         finally
@@ -290,6 +316,11 @@ class AESNativeGCM
     {
         try
         {
+            if (refWrapper == null)
+            {
+                // as for GCMBlockCipher before init: decryption, zero length MAC.
+                return len < 0 ? 0 : len - len % 16;
+            }
             return getUpdateOutputSize(refWrapper.getReference(), len);
         }
         finally
@@ -304,6 +335,11 @@ class AESNativeGCM
     {
         try
         {
+            if (refWrapper == null)
+            {
+                // as for GCMBlockCipher before init: decryption, zero length MAC.
+                return len < 0 ? 0 : len;
+            }
             return getOutputSize(refWrapper.getReference(), len);
         }
         finally
@@ -432,16 +468,9 @@ class AESNativeGCM
 
         public GCMRefWrapper(long reference, byte[] key)
         {
-            super(reference, "GCM");
+            super(reference, "GCM", new Disposer(reference, key));
             this.key = key;
         }
-
-        @Override
-        public Runnable createAction()
-        {
-            return new Disposer(reference, key);
-        }
-
     }
 
 
