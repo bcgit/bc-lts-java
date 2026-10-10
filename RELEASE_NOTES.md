@@ -100,6 +100,21 @@ Date: 2026, TBD.
   recomputing it on every request, and `ERSArchiveTimeStampGenerator` builds its reduced hash tree
   once rather than on every call.
 
+- The DANE SMIMEA support in `org.bouncycastle.cert.dane` had three defects. `JndiDANEFetcherFactory`,
+  when asked for every entry under a bare domain name, removed the first and last characters of the
+  owner name the JNDI DNS provider reports for each listed record, assuming a quoted name; the
+  provider returns the name unquoted with a trailing root dot, so the first hex digit of the hash
+  label was lost and the lookup that followed could never find the record. It now removes only the
+  root dot. `DANEEntryStore` kept one entry per owner name, so an address with more than one SMIMEA
+  record (a signing and an encryption certificate, say) only ever showed its last; every entry is
+  now kept. `DANEEntrySelectorFactory` split an address at its first '@', mis-handling a quoted
+  local-part containing one, and threw `StringIndexOutOfBoundsException` rather than `DANEException`
+  for an address with none; it now splits at the last '@', removes enclosing quotes and backslash
+  quoting from the local-part before hashing as RFC 8162 sec. 3 describes, and rejects an address
+  with no '@'. The `DANEEntry(String, byte[])` constructor also now rejects, with an `IOException`,
+  a record whose flags do not describe a full certificate entry rather than parsing whatever follows
+  the flags as a certificate.
+
 **OpenPGP (pg).**
 
 - Decrypting an OpenPGP message in two steps - recovering the session key from a SKESK packet and
