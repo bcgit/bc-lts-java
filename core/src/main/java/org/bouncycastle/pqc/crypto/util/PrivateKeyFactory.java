@@ -226,8 +226,8 @@ public class PrivateKeyFactory
             algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_768) ||
             algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_1024))
         {
-            ASN1Primitive mlkemKey = parsePrimitiveString(keyInfo.getPrivateKey(), 64);
             MLKEMParameters mlkemParams = Utils.mlkemParamsLookup(algOID);
+            ASN1Primitive mlkemKey = parsePrimitiveString(keyInfo.getPrivateKey(), 64, mlkemExpandedKeyLength(mlkemParams));
 
             MLKEMPublicKeyParameters pubParams = null;
             if (keyInfo.getPublicKeyData() != null)
@@ -292,8 +292,8 @@ public class PrivateKeyFactory
 //        }
         else if (Utils.mldsaParams.containsKey(algOID))
         {
-            ASN1Encodable mldsaKey = parsePrimitiveString(keyInfo.getPrivateKey(), 32);
             MLDSAParameters mldsaParams = Utils.mldsaParamsLookup(algOID);
+            ASN1Encodable mldsaKey = parsePrimitiveString(keyInfo.getPrivateKey(), 32, mldsaExpandedKeyLength(mldsaParams));
 
             MLDSAPublicKeyParameters pubParams = null;
             if (keyInfo.getPublicKeyData() != null)
@@ -546,14 +546,65 @@ public class PrivateKeyFactory
      * So it seems for the new PQC algorithms, there's a couple of approaches to what goes in the OCTET STRING
      * and in this case there may also be SEQUENCE.
      */
+    // FIPS 204 sec. 4, Table 2: the expanded private key size of each parameter set (the HashML-DSA sets
+    // share them)
+    private static int mldsaExpandedKeyLength(MLDSAParameters params)
+    {
+        String name = params.getName();
+        if (name.startsWith("ml-dsa-44"))
+        {
+            return 2560;
+        }
+        if (name.startsWith("ml-dsa-65"))
+        {
+            return 4032;
+        }
+        if (name.startsWith("ml-dsa-87"))
+        {
+            return 4896;
+        }
+        return -1;
+    }
+
+    // FIPS 203 sec. 8, Table 3: the decapsulation key size of each parameter set
+    private static int mlkemExpandedKeyLength(MLKEMParameters params)
+    {
+        String name = params.getName();
+        if (name.equals("ML-KEM-512"))
+        {
+            return 1632;
+        }
+        if (name.equals("ML-KEM-768"))
+        {
+            return 2400;
+        }
+        if (name.equals("ML-KEM-1024"))
+        {
+            return 3168;
+        }
+        return -1;
+    }
+
     private static ASN1Primitive parsePrimitiveString(ASN1OctetString octStr, int expectedLength)
+        throws IOException
+    {
+        return parsePrimitiveString(octStr, expectedLength, -1);
+    }
+
+    /**
+     * As {@link #parsePrimitiveString(ASN1OctetString, int)}, with a second raw length. The raw forms are
+     * recognised by their length before anything is parsed: their content is random, so it can begin with
+     * bytes that read as a tag and a length covering the rest, and only the length tells them apart - no DER
+     * encoding of the wrapped forms is as long as the raw seed or the raw expanded key.
+     */
+    private static ASN1Primitive parsePrimitiveString(ASN1OctetString octStr, int expectedLength, int expandedLength)
         throws IOException
     {
         byte[] data = octStr.getOctets();
         //
         // it's the right length for a RAW encoding, just return it.
         //
-        if (data.length == expectedLength)
+        if (data.length == expectedLength || data.length == expandedLength)
         {
             return octStr;
         }

@@ -43,6 +43,34 @@ Date: 2026, TBD.
   enough, so a short output buffer surfaced as an `ArrayIndexOutOfBoundsException` from inside the
   engine rather than the `OutputLengthException` every other AEAD engine reports. Both directions
   of `processBytes()`, and `processByte()`, now check before anything is written or buffered.
+- The key factories cast fields of a PrivateKeyInfo or SubjectPublicKeyInfo to the ASN.1 type they
+  expected, or used algorithm parameters without checking they were present, so a malformed DH,
+  ElGamal, DSA, EC or GOST R 34.10 key gave a `ClassCastException` or `NullPointerException`, and
+  `ECNamedDomainParameters.lookup()` built parameters from no curve for an OID it did not know.
+  They now go through `getInstance` and refuse absent parameters, and an unknown curve, with an
+  `IllegalArgumentException`; an EC private key whose algorithm carries no parameters takes its
+  curve from the ECPrivateKey, as RFC 5915 allows.
+- PrivateKeyInfo and the CMS SignerInfo, the CMP PKIMessage and PKIHeader refused a sequence
+  shorter than their required fields only by failing with a `NoSuchElementException`,
+  PrivateKeyInfo a version too large for an int with an `ArithmeticException`, and an OCSP response
+  with a status too large for an int was accepted and then failed in `getStatus()`; each is now
+  refused when parsed with an `IllegalArgumentException`, which OCSPResp and GeneralPKIMessage
+  report as the `IOException` they declare. `RSAKeyParameters` refuses a negative modulus, which
+  passed the parity check and failed in the small factor search, and the lightweight `DSASigner`
+  refuses a key without domain parameters with an `IllegalArgumentException` rather than a
+  `NullPointerException`.
+- A GeneralizedTime read without its minutes or seconds and with a fraction of the hour or minute,
+  as X.680 allows - `9050010112.100Z`, say - was written as DER with the missing digits appended
+  after the fraction, which is not DER and grew each time the value was re-encoded. The fraction is
+  now carried down into minutes and seconds (`90500101120600Z` here), and a ',' decimal separator
+  becomes the '.' DER requires.
+- Both ML-DSA and ML-KEM private key factories decided between the raw and the DER-wrapped pre-RFC
+  forms by whether the content parsed, and a raw expanded key is random bytes, so about one in 2^31
+  begins with bytes that read as a DER header covering the rest. Such a key was refused, or -
+  through the `org.bouncycastle.pqc.crypto.mldsa` key class, which sliced and padded an encoding of
+  any length - loaded as a different key. The raw forms are now recognised by their length before
+  anything is parsed, and that key class refuses an encoding that is neither a seed nor an expanded
+  key.
 
 **Provider (prov).**
 
@@ -69,6 +97,11 @@ Date: 2026, TBD.
   nothing is latched until the file has verified. A loaded file's PBKDF2 count is kept only where
   it is at least the count being written with, and raised to it otherwise; that count is the new
   `org.bouncycastle.pkcs12.pbkdf2_it_count`, default 65,536. Reading is unaffected.
+- A DSA public key without domain parameters, as a certificate may carry when it inherits them from
+  its issuer (RFC 3279 sec. 2.3.2), made `BCDSAPublicKey.toString()`, and so
+  `X509Certificate.toString()`, throw a `NullPointerException`, and the DSA Signature classes threw
+  one when initialised with such a key or with a null key. The key now prints by its y value alone,
+  and initialisation refuses either with an `InvalidKeyException`.
 
 **CMS, PKIX and EST (pkix).**
 
@@ -114,6 +147,14 @@ Date: 2026, TBD.
   with no '@'. The `DANEEntry(String, byte[])` constructor also now rejects, with an `IOException`,
   a record whose flags do not describe a full certificate entry rather than parsing whatever follows
   the flags as a certificate.
+- `SignerInformation.verify()`, and the `isSignatureValid()` methods of X509CertificateHolder
+  (including the alternative signature), X509CRLHolder, X509AttributeCertificateHolder and
+  PKCS10CertificationRequest and the signature checks of CertificateRequestMessage,
+  ProtectedPKIMessage and SignedPublicKeyAndChallenge, let an unchecked `RuntimeOperatorException`
+  escape when a DSA or ECDSA signature did not decode; each now reports it as the checked exception
+  it declares, with the operator exception as the cause. `JcaContentVerifierProviderBuilder`, given
+  a certificate whose key algorithm the provider does not recognise, handed a null key to the
+  Signature; it now refuses with an `OperatorCreationException`.
 
 **OpenPGP (pg).**
 
@@ -128,6 +169,11 @@ Date: 2026, TBD.
   `PGPDataValidationException` on a wrong passphrase, while the no-argument method goes on
   suppressing it, so a session key recovered from a public key operation is still never quick
   checked.
+- `PGPObjectFactory.nextObject()` let an `IllegalArgumentException`, `IllegalStateException` or
+  `UnsupportedPacketVersionException` from the object built from a packet escape, although it
+  declares only `IOException` - for example for a version 4 SKESK followed by a version 2 SEIPD, an
+  order RFC 9580 forbids. Each is now reported as an `IOException` with the original exception as
+  its cause.
 
 **Native code.**
 

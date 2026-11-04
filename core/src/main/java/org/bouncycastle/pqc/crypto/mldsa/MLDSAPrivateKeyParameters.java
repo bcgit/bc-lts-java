@@ -54,6 +54,17 @@ public class MLDSAPrivateKeyParameters
         super(true, params);
 
         MLDSAEngine eng = params.getEngine(null);
+
+        // a seed, or the expanded key of FIPS 204 sec. 7.2: anything else was sliced and padded as
+        // though it were the expanded key, giving a different key rather than an error
+        int expandedKeyLength = 2 * MLDSAEngine.SeedBytes + MLDSAEngine.TrBytes
+            + (eng.getDilithiumL() + eng.getDilithiumK()) * eng.getDilithiumPolyEtaPackedBytes()
+            + eng.getDilithiumK() * MLDSAEngine.DilithiumPolyT0PackedBytes;
+        if (encoding.length != MLDSAEngine.SeedBytes && encoding.length != expandedKeyLength)
+        {
+            throw new IllegalArgumentException("'encoding' has invalid length");
+        }
+
         if (encoding.length == MLDSAEngine.SeedBytes)
         {
             byte[][] keyDetails = eng.generateKeyPairInternal(encoding);
