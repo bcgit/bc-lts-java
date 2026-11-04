@@ -10,6 +10,7 @@ public class RegressionTest
 {
     public static Test[] tests = {
         new PGPPadTest(),
+        new PGPObjectFactoryMalformedTest(),
         new BcPGPKeyRingTest(),
         new PGPKeyRingTest(),
         new BcPGPRSATest(),

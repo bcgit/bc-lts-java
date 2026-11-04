@@ -169,6 +169,11 @@ Date: 2026, TBD.
   `PGPDataValidationException` on a wrong passphrase, while the no-argument method goes on
   suppressing it, so a session key recovered from a public key operation is still never quick
   checked.
+- `PGPObjectFactory.nextObject()` let an `IllegalArgumentException`, `IllegalStateException` or
+  `UnsupportedPacketVersionException` from the object built from a packet escape, although it
+  declares only `IOException` - for example for a version 4 SKESK followed by a version 2 SEIPD, an
+  order RFC 9580 forbids. Each is now reported as an `IOException` with the original exception as
+  its cause.
 
 **Native code.**
 
