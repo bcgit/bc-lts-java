@@ -4,10 +4,12 @@ import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.Mac;
+import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.modes.GCMModeCipher;
 import org.bouncycastle.crypto.params.AEADParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
+import org.bouncycastle.util.Arrays;
 
 
 /**
@@ -16,11 +18,25 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
  * <p>
  * GMac is an invocation of the GCM mode where no data is encrypted (i.e. all input data to the Mac
  * is processed as additional authenticated data with the underlying GCM block cipher).
+ * <p>
+ * Once a tag has been produced, the MAC can be used again under the same key and nonce only
+ * over the same data, which gets the same tag. Different data is refused, as two tags under one
+ * nonce would give away the GHASH key. To MAC different data, initialise with a new nonce.
+ * </p>
  */
 public class GMac implements Mac
 {
     private final GCMModeCipher cipher;
     private int macSizeBits;
+
+    // the nonce and initial associated text of the last successful init.
+    private byte[] nonce;
+    private byte[] initialAssociatedText;
+    private boolean initFailed;
+    // the tag produced under the current nonce, once there is one.
+    private byte[] lastTag;
+    // true while the cipher is set up, in decrypt mode, to check the data against lastTag.
+    private boolean verifying;
 
     /**
      * Creates a GMAC based on the operation of a block cipher in GCM mode.
@@ -61,14 +77,17 @@ public class GMac implements Mac
      */
     public void init(final CipherParameters params) throws IllegalArgumentException
     {
+        // until this init succeeds, nothing is processed.
+        this.initFailed = true;
+        this.lastTag = null;
+        this.verifying = false;
+
+        final AEADParameters gcmParams;
         if (params instanceof AEADParameters)
         {
-            final AEADParameters param = (AEADParameters)params;
+            gcmParams = (AEADParameters)params;
 
-            this.macSizeBits = param.getMacSize();
-
-            // GCM is always operated in encrypt mode to calculate MAC
-            cipher.init(true, param);
+            this.macSizeBits = gcmParams.getMacSize();
         }
         else if (params instanceof ParametersWithIV)
         {
@@ -77,13 +96,19 @@ public class GMac implements Mac
             final byte[] iv = param.getIV();
             final KeyParameter keyParam = (KeyParameter)param.getParameters();
 
-            // GCM is always operated in encrypt mode to calculate MAC
-            cipher.init(true, new AEADParameters(keyParam, macSizeBits, iv));
+            gcmParams = new AEADParameters(keyParam, macSizeBits, iv);
         }
         else
         {
             throw new IllegalArgumentException("GMAC requires ParametersWithIV or AEADParameters");
         }
+
+        // GCM is always operated in encrypt mode to calculate MAC
+        cipher.init(true, gcmParams);
+
+        this.nonce = gcmParams.getNonce();
+        this.initialAssociatedText = gcmParams.getAssociatedText();
+        this.initFailed = false;
     }
 
     public String getAlgorithmName()
@@ -98,31 +123,78 @@ public class GMac implements Mac
 
     public void update(byte in) throws IllegalStateException
     {
+        prepare();
         cipher.processAADByte(in);
     }
 
     public void update(byte[] in, int inOff, int len)
         throws DataLengthException, IllegalStateException
     {
+        prepare();
         cipher.processAADBytes(in, inOff, len);
     }
 
     public int doFinal(byte[] out, int outOff)
         throws DataLengthException, IllegalStateException
     {
+        prepare();
+
+        if (lastTag == null)
+        {
+            try
+            {
+                int len = cipher.doFinal(out, outOff);
+                lastTag = Arrays.copyOfRange(out, outOff, outOff + len);
+                return len;
+            }
+            catch (InvalidCipherTextException e)
+            {
+                // Impossible in encrypt mode
+                throw new IllegalStateException(e.toString());
+            }
+        }
+
+        if (out.length - outOff < lastTag.length)
+        {
+            throw new OutputLengthException("Output buffer too short");
+        }
+
+        // A tag has already been given out under this nonce. Check this data against it, in
+        // decrypt mode, so the tag of different data is never computed into the caller's hands.
+        byte[] none = new byte[lastTag.length];
         try
         {
-            return cipher.doFinal(out, outOff);
+            cipher.processBytes(lastTag, 0, lastTag.length, none, 0);
+            cipher.doFinal(none, 0);
         }
         catch (InvalidCipherTextException e)
         {
-            // Impossible in encrypt mode
-            throw new IllegalStateException(e.toString());
+            cipher.reset();
+            throw new IllegalStateException("GMAC cannot be reused with the same nonce over different data");
         }
+
+        System.arraycopy(lastTag, 0, out, outOff, lastTag.length);
+        return lastTag.length;
     }
 
     public void reset()
     {
         cipher.reset();
+    }
+
+    private void prepare()
+    {
+        if (initFailed)
+        {
+            throw new IllegalStateException("GMAC needs to be initialised");
+        }
+
+        if (lastTag != null && !verifying)
+        {
+            // same key (null reuses it) and nonce: decryption is not guarded against nonce reuse,
+            // and computes nothing that is given out.
+            cipher.init(false, new AEADParameters(null, lastTag.length * 8, nonce, initialAssociatedText));
+            verifying = true;
+        }
     }
 }

@@ -34,6 +34,9 @@ public class GCMBlockCipher
     // These fields are set by init and not modified by processing
     private boolean             forEncryption;
     private boolean             initialised;
+    // set once encryption under the current nonce has used keystream or produced a tag; a reset
+    // after that cannot let the cipher encrypt again.
+    private boolean             nonceUsed;
     private int                 macSize;
     private byte[]              lastKey;
     private byte[]              nonce;
@@ -136,7 +139,8 @@ public class GCMBlockCipher
     {
         this.forEncryption = forEncryption;
         this.macBlock = null;
-        this.initialised = true;
+        // a failed init leaves the cipher uninitialised, never armed with the previous state.
+        this.initialised = false;
 
         KeyParameter keyParam = null;
         byte[] newNonce = null;
@@ -204,12 +208,6 @@ public class GCMBlockCipher
             }
         }
 
-        nonce = newNonce;
-        if (keyParam != null)
-        {
-            lastKey = keyParam.getKey();
-        }
-
         // TODO Restrict macSize to 16 if nonce length not 12?
 
         // Cipher always used in forward mode
@@ -228,6 +226,14 @@ public class GCMBlockCipher
         else if (this.H == null)
         {
             throw new IllegalArgumentException("Key must be specified in initial init");
+        }
+
+        // the remembered key and nonce change only once the new key is in use: a failed init
+        // must not displace them, or the old pair would then pass the reuse check.
+        nonce = newNonce;
+        if (keyParam != null)
+        {
+            lastKey = keyParam.getKey();
         }
 
         this.J0 = new byte[BLOCK_SIZE];
@@ -256,6 +262,9 @@ public class GCMBlockCipher
         this.blocksRemaining = -2;      // page 8, len(P) <= 2^39 - 256, 1 block used by tag but done on J0
         this.bufOff = 0;
         this.totalLength = 0;
+        this.nonceUsed = false;
+
+        this.initialised = true;
 
         if (initialAssociatedText != null)
         {
@@ -373,6 +382,11 @@ public class GCMBlockCipher
     {
         checkStatus();
 
+        if (forEncryption)
+        {
+            nonceUsed = true;
+        }
+
         bufBlock[bufOff] = in;
         if (++bufOff == bufBlock.length)
         {
@@ -400,6 +414,10 @@ public class GCMBlockCipher
         if ((in.length - inOff) < len)
         {
             throw new DataLengthException("Input buffer too short");
+        }
+        if (forEncryption && len > 0)
+        {
+            nonceUsed = true;
         }
         if (in == out && Arrays.segmentsOverlap(inOff, len, outOff, getUpdateOutputSize(len)))
         {
@@ -589,6 +607,8 @@ public class GCMBlockCipher
 
         if (forEncryption)
         {
+            nonceUsed = true;
+
             // Append T to the message
             System.arraycopy(macBlock, 0, out, outOff + bufOff, macSize);
             resultLen += macSize;
@@ -643,16 +663,13 @@ public class GCMBlockCipher
             macBlock = null;
         }
 
-        if (forEncryption)
+        if (forEncryption && nonceUsed)
         {
             initialised = false;
         }
-        else
+        else if (initialised && initialAssociatedText != null)
         {
-            if (initialAssociatedText != null)
-            {
-                processAADBytes(initialAssociatedText, 0, initialAssociatedText.length);
-            }
+            processAADBytes(initialAssociatedText, 0, initialAssociatedText.length);
         }
     }
 

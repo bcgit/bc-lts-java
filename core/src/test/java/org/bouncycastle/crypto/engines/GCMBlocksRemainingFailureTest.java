@@ -219,5 +219,29 @@ public class GCMBlocksRemainingFailureTest extends TestCase
         }
     }
 
+    /**
+     * Adjusting the blocks remaining before init is refused with a typed exception, not a
+     * NullPointerException.
+     */
+    public void testCannotAdjustBeforeInit()
+        throws Exception
+    {
+        if (!CryptoServicesRegistrar.hasEnabledService(NativeServices.AES_GCM))
+        {
+            System.out.println("Skipping due to lack of AES/CMUL CPU support.");
+            System.out.println("Native Features: "+ TestUtil.getNativeFeatureString());
+            return;
+        }
 
+        AESNativeGCM gcmEngine = new AESNativeGCM();
+        try
+        {
+            gcmEngine.setBlocksRemainingDown(1);
+            Assert.fail("adjusting blocks remaining before init did not throw");
+        }
+        catch (IllegalStateException ex)
+        {
+            Assert.assertEquals("GCM is uninitialized", ex.getMessage());
+        }
+    }
 }

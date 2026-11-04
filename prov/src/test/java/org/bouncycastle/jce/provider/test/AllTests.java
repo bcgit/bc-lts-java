@@ -25,6 +25,7 @@ public class AllTests
         // lives in org.bouncycastle.jce.provider for package access to ReasonsMask, so it is
         // registered from here rather than carrying its own AllTests
         suite.addTestSuite(org.bouncycastle.jce.provider.ReasonsMaskTest.class);
+        suite.addTestSuite(GMacReuseTest.class);
 
         return new BCTestSetup(suite);
     }

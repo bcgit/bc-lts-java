@@ -181,8 +181,8 @@ public class AESNativeGCMSIV
         synchronized (this)
         {
             int len = doFinal(refWrapper.getReference(), theEncData.getBuffer(), theEncData.size(), out, outOff);
-            //resetKeepMac
-            keptMac = getMac();
+            //resetKeepMac: the MAC of this message, not one kept from an earlier one.
+            keptMac = getMac(refWrapper.getReference());
             reset();
             return len;
         }

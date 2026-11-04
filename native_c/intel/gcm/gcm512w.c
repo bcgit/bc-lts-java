@@ -693,11 +693,10 @@ gcm_err *gcm_doFinal(gcm_ctx *ctx, unsigned char *output, size_t outLen, size_t 
             // Check block count.
             //
 
-            ctx->blocksRemaining -= 1;
-
-            if (ctx->blocksRemaining < 0) {
+            if (ctx->blocksRemaining < 1) {
                 return make_gcm_error("attempt to process too many blocks in GCM", ILLEGAL_ARGUMENT);
             }
+            ctx->blocksRemaining -= 1;
 
 
             ctx->ctr1 = _mm_add_epi32(ctx->ctr1, *ONE);

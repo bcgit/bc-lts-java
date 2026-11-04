@@ -21,6 +21,9 @@ class AESNativeGCM
     private byte[] oldNonce;
     private boolean forEncryption = false;
     private boolean initialised = false;
+    // set once encryption under the current nonce has used keystream or produced a tag; a reset
+    // after that cannot let the cipher encrypt again.
+    private boolean nonceUsed = false;
     private byte[] keptMac = null;
 
 
@@ -49,6 +52,8 @@ class AESNativeGCM
         try
         {
             this.forEncryption = forEncryption;
+            // a failed init leaves the cipher uninitialised, never armed with the previous state.
+            initialised = false;
             KeyParameter keyParam;
             byte[] newNonce = null;
             keptMac = null;
@@ -119,8 +124,6 @@ class AESNativeGCM
                 }
             }
 
-            oldNonce = newNonce;
-
             if (keyParam != null)
             {
                 key = keyParam.getKey();
@@ -144,16 +147,20 @@ class AESNativeGCM
                 throw new IllegalArgumentException("Key must be specified in initial init");
             }
 
-            // a failed native init leaves the engine uninitialised.
-            initialised = false;
-            initRef(key);
+            // the remembered key and nonce change only once the new ones are in use: a failed init
+            // must not displace them, or the old pair would then pass the reuse check.
+            GCMRefWrapper ref = new GCMRefWrapper(makeInstance(key.length, forEncryption), Arrays.clone(key));
 
             initNative(
-                    refWrapper.getReference(),
-                    forEncryption, refWrapper.key,
-                    oldNonce, initialAssociatedText, macSize);
+                    ref.getReference(),
+                    forEncryption, ref.key,
+                    newNonce, initialAssociatedText, macSize);
+
+            refWrapper = ref;
+            oldNonce = newNonce;
 
 
+            nonceUsed = false;
             initialised = true;
         }
         finally
@@ -162,18 +169,6 @@ class AESNativeGCM
         }
     }
 
-
-    private void initRef(byte[] key)
-    {
-        try
-        {
-            refWrapper = new GCMRefWrapper(makeInstance(key.length, forEncryption), Arrays.clone(key));
-        }
-        finally
-        {
-            Reference.reachabilityFence(this);
-        }
-    }
 
 
     @Override
@@ -191,6 +186,8 @@ class AESNativeGCM
             {
                 throw new IllegalStateException("GCM is uninitialized");
             }
+
+            checkStatus();
 
             processAADByte(refWrapper.getReference(), in);
         }
@@ -211,6 +208,8 @@ class AESNativeGCM
             {
                 throw new IllegalStateException("GCM is uninitialized");
             }
+
+            checkStatus();
 
             processAADBytes(refWrapper.getReference(), in, inOff, len);
         }
@@ -233,6 +232,12 @@ class AESNativeGCM
                 throw new IllegalStateException("GCM is uninitialized");
             }
 
+            checkStatus();
+            if (forEncryption)
+            {
+                nonceUsed = true;
+            }
+
             return processByte(refWrapper.getReference(), in, out, outOff);
         }
         finally
@@ -253,6 +258,12 @@ class AESNativeGCM
                 throw new IllegalStateException("GCM is uninitialized");
             }
 
+            checkStatus();
+            if (forEncryption && len > 0)
+            {
+                nonceUsed = true;
+            }
+
             return processBytes(refWrapper.getReference(), in, inOff, len, out, outOff);
         }
         finally
@@ -271,6 +282,11 @@ class AESNativeGCM
         {
             checkStatus();
 
+
+            if (forEncryption)
+            {
+                nonceUsed = true;
+            }
 
             int len = doFinal(refWrapper.getReference(), out, outOff);
 
@@ -360,8 +376,10 @@ class AESNativeGCM
                 return;
             }
 
+            // as for GCMBlockCipher, a reset discards the MAC of the last message.
+            keptMac = null;
             reset(refWrapper.getReference());
-            if (forEncryption)
+            if (forEncryption && nonceUsed)
             {
                 initialised = false;
             }
@@ -382,9 +400,10 @@ class AESNativeGCM
                 return;
             }
 
-            keptMac = getMac();
+            // the MAC of this message, not one kept from an earlier one.
+            keptMac = getMac(refWrapper.getReference());
             reset(refWrapper.getReference());
-            if (forEncryption)
+            if (forEncryption && nonceUsed)
             {
                 initialised = false;
             }
@@ -436,7 +455,7 @@ class AESNativeGCM
 
     private static native int getOutputSize(long ref, int len);
 
-    public static native byte[] getMac(long ref);
+    private static native byte[] getMac(long ref);
 
     /**
      * Set blocks remaining but only to a lesser value and only if the transformation has processed no data.
@@ -448,6 +467,10 @@ class AESNativeGCM
     {
         try
         {
+            if (refWrapper == null)
+            {
+                throw new IllegalStateException("GCM is uninitialized");
+            }
             setBlocksRemainingDown(refWrapper.getReference(), value);
         } finally
         {

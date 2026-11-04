@@ -22,6 +22,8 @@ public class AllTests extends TestCase
         suite.addTestSuite(AESCTRPacketCipherTest.class);
         suite.addTestSuite(AESGCMPacketCipherTest.class);
         suite.addTestSuite(AESGCMSIVPacketCipherTest.class);
+        suite.addTestSuite(GCMReuseGuardTest.class);
+        suite.addTestSuite(AEADGetMacTest.class);
         return new BCTestSetup(suite);
     }
 
