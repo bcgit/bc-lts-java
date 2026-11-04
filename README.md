@@ -269,6 +269,20 @@ For example:
 The default cleanup delay is zero and native allocations will be cleaned up immediately upon notification that the relevant
 class is available to GC.
 
+#### Native state still in use at JVM exit is not cleared
+
+Disposal clears a native allocation's key material before freeing it, but disposal only happens once the garbage collector
+has found the owning object unreachable. At JVM exit the shutdown hook disposes only allocations whose owners have already
+been found unreachable. Native state belonging to objects still in use at exit, such as an initialised cipher or MAC held in
+a field, is not cleared; the memory, round keys included, is returned to the operating system as it is. The library does not
+clear such state from the shutdown hook, as another thread may still be using it while the JVM exits.
+
+The streaming ciphers and MACs have no explicit disposal method. Where key material must not outlive its use, drop the
+references to the cipher once finished with it, so it is disposed in the normal way, or use the packet ciphers
+(```org.bouncycastle.packet_cipher_enabled```): these keep no native state between calls, and their ```destroy()``` method
+clears the key copies they hold. Note too that the Java side of a cipher (its ```KeyParameter```, for example) holds key
+material that is only cleared where the application clears it.
+
 
 # Things to watch out for
 

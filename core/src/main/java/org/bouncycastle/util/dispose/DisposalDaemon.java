@@ -10,6 +10,16 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+/**
+ * Frees native allocations once their owning objects are no longer reachable, after running each
+ * allocation's dispose action, which clears any key material it holds.
+ * <p>
+ * The shutdown hook disposes only the allocations whose owners have already been found unreachable.
+ * Native state belonging to objects still in use when the JVM exits is not cleared: it may still be
+ * in use by another thread, and clearing it under that thread would leave it working with zeroed
+ * keys. That memory is returned to the operating system as it is.
+ * </p>
+ */
 public class DisposalDaemon
         implements Runnable
 {
