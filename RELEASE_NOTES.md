@@ -191,6 +191,10 @@ Date: 2026, TBD.
   now does the same. The validators also look beyond the JDK provider's
   `getRevokedCertificate(BigInteger)`, which sees only the CRL issuer's entries, whenever that lookup
   cannot be conclusive (github #2464).
+- `JcaContentVerifierProviderBuilder` and the BC provider's `X509Certificate` and `X509CRL`
+  `verify()` no longer verify legacy generic composite signatures (`id_alg_composite`), whose
+  creation was removed earlier; such a signature is now refused with "legacy composite signature
+  algorithm not supported". The standardised composite ML-DSA signatures are unaffected.
 
 **OpenPGP (pg).**
 
