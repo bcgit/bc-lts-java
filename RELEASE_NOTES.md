@@ -97,6 +97,11 @@ Date: 2026, TBD.
   nothing is latched until the file has verified. A loaded file's PBKDF2 count is kept only where
   it is at least the count being written with, and raised to it otherwise; that count is the new
   `org.bouncycastle.pkcs12.pbkdf2_it_count`, default 65,536. Reading is unaffected.
+- A DSA public key without domain parameters, as a certificate may carry when it inherits them from
+  its issuer (RFC 3279 sec. 2.3.2), made `BCDSAPublicKey.toString()`, and so
+  `X509Certificate.toString()`, throw a `NullPointerException`, and the DSA Signature classes threw
+  one when initialised with such a key or with a null key. The key now prints by its y value alone,
+  and initialisation refuses either with an `InvalidKeyException`.
 
 **CMS, PKIX and EST (pkix).**
 
