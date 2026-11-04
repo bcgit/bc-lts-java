@@ -2,6 +2,7 @@ package org.bouncycastle.jcajce.provider.keystore.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -205,10 +206,39 @@ public class JKSKeyStoreSpi
         }
     }
 
+    /**
+     * Load the store from a stream, replacing whatever it held, or make it empty when the stream is null, as
+     * KeyStore.load() specifies. A load that fails leaves the store as it was before the call.
+     */
     public void engineLoad(InputStream stream, char[] password)
         throws IOException, NoSuchAlgorithmException, CertificateException
     {
-        if (stream == null)
+        synchronized (certificateEntries)
+        {
+            Hashtable<String, BCJKSTrustedCertEntry> saved = new Hashtable<String, BCJKSTrustedCertEntry>(certificateEntries);
+            certificateEntries.clear();
+
+            boolean loaded = false;
+            try
+            {
+                doLoad(stream, password);
+                loaded = true;
+            }
+            finally
+            {
+                if (!loaded)
+                {
+                    certificateEntries.clear();
+                    certificateEntries.putAll(saved);
+                }
+            }
+        }
+    }
+
+    private void doLoad(InputStream stream, char[] password)
+        throws IOException, NoSuchAlgorithmException, CertificateException
+    {
+        if (stream == null)     // an empty store
         {
             return;
         }
@@ -364,31 +394,40 @@ public class JKSKeyStoreSpi
     private ErasableByteStream validateStream(InputStream inputStream, char[] password)
         throws IOException
     {
-        Digest checksumCalculator = DigestFactory.getDigest("SHA-1");
         byte[] rawStore = Streams.readAll(inputStream);
+
+        Digest checksumCalculator = DigestFactory.getDigest("SHA-1");
+        int checksumSize = checksumCalculator.getDigestSize();
+        int checksumPos = getChecksumPos(rawStore, checksumSize);
 
         if (password != null)
         {
             addPassword(checksumCalculator, password);
-            checksumCalculator.update(rawStore, 0, rawStore.length - checksumCalculator.getDigestSize());
+            checksumCalculator.update(rawStore, 0, checksumPos);
 
-            byte[] checksum = new byte[checksumCalculator.getDigestSize()];
-
+            byte[] checksum = new byte[checksumSize];
             checksumCalculator.doFinal(checksum, 0);
 
-            byte[] streamChecksum = new byte[checksum.length];
-            System.arraycopy(rawStore, rawStore.length - checksum.length, streamChecksum, 0, checksum.length);
-
-            if (!Arrays.constantTimeAreEqual(checksum, streamChecksum))
+            if (!Arrays.constantTimeAreEqual(checksumSize, checksum, 0, rawStore, checksumPos))
             {
                 Arrays.fill(rawStore, (byte)0);
                 throw new IOException("password incorrect or store tampered with");
             }
-
-            return new ErasableByteStream(rawStore, 0, rawStore.length - checksum.length);
         }
 
-        return new ErasableByteStream(rawStore, 0, rawStore.length - checksumCalculator.getDigestSize());
+        return new ErasableByteStream(rawStore, 0, checksumPos);
+    }
+
+    private static int getChecksumPos(byte[] rawStore, int checksumSize)
+        throws EOFException
+    {
+        // A store is at least the 12-byte header (magic, version, entry count) plus a checksum
+        if (rawStore.length - checksumSize < 12)
+        {
+            throw new EOFException("Invalid keystore format");
+        }
+
+        return rawStore.length - checksumSize;
     }
 
     /**

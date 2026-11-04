@@ -22,8 +22,10 @@ import org.bouncycastle.asn1.pkcs.PBMAC1Params;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.internal.asn1.kisa.KISAObjectIdentifiers;
+import org.bouncycastle.internal.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.internal.asn1.nsri.NSRIObjectIdentifiers;
 import org.bouncycastle.internal.asn1.ntt.NTTObjectIdentifiers;
+import org.bouncycastle.internal.asn1.oiw.OIWObjectIdentifiers;
 import org.bouncycastle.util.BigIntegers;
 import org.bouncycastle.util.Integers;
 import org.bouncycastle.util.Properties;
@@ -41,9 +43,14 @@ class PKCS12Util
 
     /**
      * The PBE iteration count used when writing a PKCS#12 file, and half the count used for its
-     * integrity MAC. 600,000 is the OWASP figure for PBKDF2-HMAC-SHA256.
+     * integrity MAC.
+     * <p>
+     * <b>Do not raise this to 600,000 or more without testing on Windows:</b> Windows currently
+     * reports an error importing a PKCS#12 file whose key and certificate encryption uses a PBE
+     * iteration count of 600,000 or greater (it accepts 600,000 for the MAC). That limit may change
+     * in later Windows releases, so recheck it before moving this.
      */
-    static final int DEFAULT_STORE_IT_COUNT = 600000;
+    static final int DEFAULT_STORE_IT_COUNT = 300000;
 
     /**
      * Largest count {@link Properties#PKCS12_STORE_IT_COUNT} may name. Half of
@@ -237,15 +244,30 @@ class PKCS12Util
      */
     static String resolveSecretKeyAlgName(ASN1ObjectIdentifier oid)
     {
-        if (NISTObjectIdentifiers.id_aes128_CBC.equals(oid)
+        // the bare-arc and OIW forms below are what the JDK's PKCS12 keystore writes for its secret keys
+        if (NISTObjectIdentifiers.aes.equals(oid)
+            || NISTObjectIdentifiers.id_aes128_CBC.equals(oid)
             || NISTObjectIdentifiers.id_aes192_CBC.equals(oid)
             || NISTObjectIdentifiers.id_aes256_CBC.equals(oid))
         {
             return "AES";
         }
-        if (PKCSObjectIdentifiers.des_EDE3_CBC.equals(oid))
+        if (PKCSObjectIdentifiers.des_EDE3_CBC.equals(oid)
+            || OIWObjectIdentifiers.desEDE.equals(oid))
         {
             return "DESede";
+        }
+        if (OIWObjectIdentifiers.desCBC.equals(oid))
+        {
+            return "DES";
+        }
+        if (PKCSObjectIdentifiers.RC2_CBC.equals(oid))
+        {
+            return "RC2";
+        }
+        if (MiscObjectIdentifiers.cryptlib_algorithm_blowfish_CBC.equals(oid))
+        {
+            return "Blowfish";
         }
         if (KISAObjectIdentifiers.id_seedCBC.equals(oid))
         {
@@ -282,6 +304,14 @@ class PKCS12Util
         if (PKCSObjectIdentifiers.id_hmacWithSHA512.equals(oid))
         {
             return "HmacSHA512";
+        }
+        if (PKCSObjectIdentifiers.id_hmacWithSHA512_224.equals(oid))
+        {
+            return "HmacSHA512/224";
+        }
+        if (PKCSObjectIdentifiers.id_hmacWithSHA512_256.equals(oid))
+        {
+            return "HmacSHA512/256";
         }
         if (NISTObjectIdentifiers.id_hmacWithSHA3_224.equals(oid))
         {
@@ -360,36 +390,6 @@ class PKCS12Util
     }
 
     /**
-     * Validate a PBKDF2 keyLength that will size a <b>PBMAC1 MAC key</b>. As
-     * {@link #validateKeyLength(BigInteger)}, plus the floor RFC 9579 sec. 9 asks for: "It's
-     * RECOMMENDED to reject any KDF parameters that specify key lengths less than 20 octets." A MAC
-     * key of one or two octets is brute-forceable, so a PFX declaring one would have its integrity
-     * MAC checked against a key an attacker can guess without knowing the password. Sec. 5 has the
-     * length SHOULD match the HMAC output size, so no conforming file comes near the floor.
-     * <p>
-     * This is deliberately separate from {@link #validateKeyLength(BigInteger)}, which also bounds
-     * the PBES2 <i>content-encryption</i> keyLength - where 16 octets (AES-128) is legal and BC
-     * writes it itself. The upper bound stays at 1024 rather than the HMAC output size for the
-     * mirror-image reason: BC's PKCS12-PBMAC1 keystore asked for a 256-octet MAC key up to release
-     * 1.86, so a cap at the output size would refuse files BC itself produced.
-     *
-     * @param keyLength the keyLength from the wire.
-     * @return the validated keyLength in bytes.
-     * @throws IllegalStateException if the keyLength is absent, not positive, below 20 octets, or
-     *         larger than the maximum supported.
-     */
-    /**
-     * Return the PBKDF2 iteration count to write a PBMAC1 MAC with, given the count a loaded file
-     * carried. A file keeps its own count where that is at least the count this release would
-     * choose for itself, and is raised to that otherwise: the count is the work factor protecting
-     * the file being written, and the file being re-stored is no longer the one the count was
-     * chosen for. Reading is unaffected - a file's MAC can only be verified with the count it was
-     * made with, whatever that is.
-     *
-     * @param iterationCount the iteration count the loaded file's PBKDF2 parameters carried.
-     * @return the count to write with.
-     */
-    /**
      * Return the MAC AlgorithmIdentifier to write a file with, given the one the store holds -
      * which after a load is the one the loaded file carried.
      * <p>
@@ -448,6 +448,17 @@ class PKCS12Util
         return new AlgorithmIdentifier(PKCSObjectIdentifiers.id_PBMAC1, new PBMAC1Params(keyDevFunc, authScheme));
     }
 
+    /**
+     * Return the PBKDF2 iteration count to write a PBMAC1 MAC with, given the count a loaded file
+     * carried. A file keeps its own count where that is at least the count this release would
+     * choose for itself, and is raised to that otherwise: the count is the work factor protecting
+     * the file being written, and the file being re-stored is no longer the one the count was
+     * chosen for. Reading is unaffected - a file's MAC can only be verified with the count it was
+     * made with, whatever that is.
+     *
+     * @param iterationCount the iteration count the loaded file's PBKDF2 parameters carried.
+     * @return the count to write with.
+     */
     static int getMacKdfIterationCount(BigInteger iterationCount)
     {
         return Math.max(validateIterationCount(iterationCount), getPbkdf2IterationCount());
@@ -486,6 +497,25 @@ class PKCS12Util
         return Math.max(saltLength, MIN_MAC_SALT_LENGTH);
     }
 
+    /**
+     * Validate a PBKDF2 keyLength that will size a <b>PBMAC1 MAC key</b>. As
+     * {@link #validateKeyLength(BigInteger)}, plus the floor RFC 9579 sec. 9 asks for: "It's
+     * RECOMMENDED to reject any KDF parameters that specify key lengths less than 20 octets." A MAC
+     * key of one or two octets is brute-forceable, so a PFX declaring one would have its integrity
+     * MAC checked against a key an attacker can guess without knowing the password. Sec. 5 has the
+     * length SHOULD match the HMAC output size, so no conforming file comes near the floor.
+     * <p>
+     * This is deliberately separate from {@link #validateKeyLength(BigInteger)}, which also bounds
+     * the PBES2 <i>content-encryption</i> keyLength - where 16 octets (AES-128) is legal and BC
+     * writes it itself. The upper bound stays at 1024 rather than the HMAC output size for the
+     * mirror-image reason: BC's PKCS12-PBMAC1 keystore asked for a 256-octet MAC key up to release
+     * 1.86, so a cap at the output size would refuse files BC itself produced.
+     *
+     * @param keyLength the keyLength from the wire.
+     * @return the validated keyLength in bytes.
+     * @throws IllegalStateException if the keyLength is absent, not positive, below 20 octets, or
+     *         larger than the maximum supported.
+     */
     static int validateMacKeyLength(BigInteger keyLength)
     {
         int length = validateKeyLength(keyLength);

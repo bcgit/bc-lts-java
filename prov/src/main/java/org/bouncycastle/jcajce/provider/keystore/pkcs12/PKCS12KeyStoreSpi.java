@@ -175,7 +175,7 @@ import org.bouncycastle.util.encoders.Hex;
  * <li>{@link Properties#PKCS12_MAX_IT_COUNT} — caps the PBE iteration count
  *     accepted on load.</li>
  * <li>{@link Properties#PKCS12_STORE_IT_COUNT} — the PBE iteration count used
- *     when writing (default 600,000, twice that for the MAC).</li>
+ *     when writing (default 300,000, twice that for the MAC).</li>
  * <li>{@link Properties#PKCS12_IGNORE_USELESS_PASSWD} — accepts a password
  *     supplied where none is needed.</li>
  * <li>{@link Properties#PKCS12_ALLOW_SUN_SECRET_KEYS} — opt-in SunJCE
@@ -225,11 +225,15 @@ public class PKCS12KeyStoreSpi
     private ASN1ObjectIdentifier keyAlgorithm;
     private ASN1ObjectIdentifier certAlgorithm;
 
-    private AlgorithmIdentifier macAlgorithm = new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1, DERNull.INSTANCE);
+    // what a store writes its MAC with until a file it loads says otherwise
+    private static final AlgorithmIdentifier DEFAULT_MAC_ALGORITHM = new AlgorithmIdentifier(OIWObjectIdentifiers.idSHA1, DERNull.INSTANCE);
+    private static final int DEFAULT_MAC_SALT_LENGTH = 20;
+
+    private AlgorithmIdentifier macAlgorithm = DEFAULT_MAC_ALGORITHM;
     // The MAC iteration count: taken from a loaded file so that storing it again preserves it,
     // and -1 until then, meaning doStore should use the store-time default.
     private int itCount = -1;
-    private int saltLength = 20;
+    private int saltLength = DEFAULT_MAC_SALT_LENGTH;
 
     private class CertId
     {
@@ -967,13 +971,62 @@ public class PKCS12KeyStoreSpi
         }
     }
 
+    /**
+     * Load the store from a stream, or make it empty when the stream is null, as KeyStore.load() specifies.
+     * A load that fails leaves the store as it was before the call.
+     */
     public void engineLoad(
         InputStream stream,
         char[] password)
         throws IOException
     {
-        if (stream == null)     // just initialising
+        IgnoresCaseHashtable savedKeys = keys;
+        IgnoresCaseHashtable savedLocalIds = localIds;
+        IgnoresCaseHashtable savedCerts = certs;
+        Hashtable savedChainCerts = chainCerts;
+        Hashtable savedKeyCerts = keyCerts;
+        AlgorithmIdentifier savedMacAlgorithm = macAlgorithm;
+        int savedItCount = itCount;
+        int savedSaltLength = saltLength;
+
+        boolean loaded = false;
+        try
         {
+            doLoad(stream, password);
+            loaded = true;
+        }
+        finally
+        {
+            if (!loaded)
+            {
+                keys = savedKeys;
+                localIds = savedLocalIds;
+                certs = savedCerts;
+                chainCerts = savedChainCerts;
+                keyCerts = savedKeyCerts;
+                macAlgorithm = savedMacAlgorithm;
+                itCount = savedItCount;
+                saltLength = savedSaltLength;
+            }
+        }
+    }
+
+    private void doLoad(
+        InputStream stream,
+        char[] password)
+        throws IOException
+    {
+        if (stream == null)     // an empty store
+        {
+            keys = new IgnoresCaseHashtable();
+            localIds = new IgnoresCaseHashtable();
+            certs = new IgnoresCaseHashtable();
+            chainCerts = new Hashtable();
+            keyCerts = new Hashtable();
+            macAlgorithm = DEFAULT_MAC_ALGORITHM;
+            itCount = -1;
+            saltLength = DEFAULT_MAC_SALT_LENGTH;
+
             return;
         }
 
@@ -1073,6 +1126,14 @@ public class PKCS12KeyStoreSpi
                 throw Exceptions.ioException("error constructing MAC: " + e.toString(), e);
             }
         }
+        else
+        {
+            // a file with no MAC has no shape for a write to inherit, so put the defaults back
+            // rather than let one loaded earlier into this store carry over to it
+            macAlgorithm = DEFAULT_MAC_ALGORITHM;
+            itCount = -1;
+            saltLength = DEFAULT_MAC_SALT_LENGTH;
+        }
 
         keys = new IgnoresCaseHashtable();
         localIds = new IgnoresCaseHashtable();
@@ -1108,7 +1169,10 @@ public class PKCS12KeyStoreSpi
                             }
                             else if (b.getBagId().equals(secretBag))
                             {
-                                processSecretBag(b, password, wrongPKCS12Zero);
+                                if (processSecretBag(b, password, wrongPKCS12Zero))
+                                {
+                                    noEnc = false;
+                                }
                             }
                             else
                             {
@@ -1483,14 +1547,18 @@ public class PKCS12KeyStoreSpi
      *     bytes.</li>
      * </ul>
      * Unrecognised secretTypeId OIDs are reported as an IOException.
+     *
+     * @return true if the bag was decrypted with the password (the SunJCE
+     * encoding), false if its key was held in the clear.
      */
-    private void processSecretBag(SafeBag b, char[] password, boolean wrongPKCS12Zero)
+    private boolean processSecretBag(SafeBag b, char[] password, boolean wrongPKCS12Zero)
         throws IOException
     {
         SecretBag sBag = SecretBag.getInstance(b.getBagValue());
         ASN1ObjectIdentifier secretTypeId = sBag.getSecretTypeId();
 
         SecretKey secretKey;
+        boolean decrypted;
         if (PKCSObjectIdentifiers.pkcs8ShroudedKeyBag.equals(secretTypeId))
         {
             // SunJCE's non-standard nested encoding (Phase 2) — only honoured
@@ -1501,12 +1569,14 @@ public class PKCS12KeyStoreSpi
                 throw new IOException("unrecognised PKCS12 secretBag algorithm: " + secretTypeId);
             }
             secretKey = decodeSunStyleSecretBag(sBag, password, wrongPKCS12Zero);
+            decrypted = true;
         }
         else
         {
             String alg = PKCS12Util.resolveSecretKeyAlgName(secretTypeId);
             byte[] keyBytes = ASN1OctetString.getInstance(sBag.getSecretValue()).getOctets();
             secretKey = new SecretKeySpec(keyBytes, alg);
+            decrypted = false;
         }
 
         String alias = null;
@@ -1530,6 +1600,8 @@ public class PKCS12KeyStoreSpi
         {
             keys.put("unmarked", secretKey);
         }
+
+        return decrypted;
     }
 
     /**
@@ -2116,10 +2188,6 @@ public class PKCS12KeyStoreSpi
         //
         // create the mac
         //
-        byte[] mSalt = new byte[saltLength];
-
-        random.nextBytes(mSalt);
-
         byte[] data = PKCS12Util.getContentOctets(mainInfo);
 
         MacData mData;
@@ -2130,6 +2198,10 @@ public class PKCS12KeyStoreSpi
         }
         else
         {
+            byte[] mSalt = new byte[saltLength];
+
+            random.nextBytes(mSalt);
+
             try
             {
                 // a PBMAC1 algorithm here came from a file this store loaded - RFC 9579 sec. 7
@@ -2421,7 +2493,7 @@ public class PKCS12KeyStoreSpi
     {
         public DefPKCS12KeyStoreAES256()
         {
-            super(new BCJcaJceHelper(), new PKCS12KeyStoreSpi(new BCJcaJceHelper(), NISTObjectIdentifiers.id_aes256_CBC, NISTObjectIdentifiers.id_aes128_CBC));
+            super(new DefaultJcaJceHelper(), new PKCS12KeyStoreSpi(new DefaultJcaJceHelper(), NISTObjectIdentifiers.id_aes256_CBC, NISTObjectIdentifiers.id_aes128_CBC));
         }
     }
 
@@ -2430,7 +2502,7 @@ public class PKCS12KeyStoreSpi
     {
         public DefPKCS12KeyStoreAES256GCM()
         {
-            super(new BCJcaJceHelper(), new PKCS12KeyStoreSpi(new BCJcaJceHelper(), NISTObjectIdentifiers.id_aes256_GCM, NISTObjectIdentifiers.id_aes128_GCM));
+            super(new DefaultJcaJceHelper(), new PKCS12KeyStoreSpi(new DefaultJcaJceHelper(), NISTObjectIdentifiers.id_aes256_GCM, NISTObjectIdentifiers.id_aes128_GCM));
         }
     }
 
