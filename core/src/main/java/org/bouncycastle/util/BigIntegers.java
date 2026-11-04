@@ -218,9 +218,9 @@ public final class BigIntegers
      * Fixed-width encoding drops the two's-complement sign byte that {@link BigInteger#toByteArray()}
      * prepends when the most-significant bit is set: without that, two values could serialise to
      * different lengths (e.g. 256 vs 257 bytes for a 2048-bit value) purely according to that high
-     * bit, and the variable-time comparison would leak it. This is not perfectly constant-time —
+     * bit, and the variable-time comparison would leak it. This is not perfectly constant-time -
      * {@code java.math.BigInteger} has no constant-time serialisation, so the underlying
-     * {@code toByteArray()} still runs in time proportional to each value's magnitude — but the
+     * {@code toByteArray()} still runs in time proportional to each value's magnitude - but the
      * comparison no longer differs in length on the value's high bit. Intended for secret key
      * material (RSA {@code d} and the CRT factors, DSA/DH/ElGamal/GOST {@code x}, EC {@code d}),
      * which are all non-negative; the temporary unsigned encodings holding that secret material are
@@ -672,8 +672,8 @@ public final class BigIntegers
     public static BigInteger createBlindedExponent(BigInteger exponent, BigInteger groupOrder, SecureRandom random)
     {
         int randomBits = 7;
-
-        return exponent.add(createRandomBigInteger(randomBits, random).add(BigInteger.valueOf(128)).multiply(groupOrder));
+        BigInteger blind = createRandomBigInteger(randomBits, random).setBit(randomBits);
+        return exponent.add(blind.multiply(groupOrder));
     }
 
     // Hexadecimal value of the product of the 131 smallest odd primes from 3 to 743

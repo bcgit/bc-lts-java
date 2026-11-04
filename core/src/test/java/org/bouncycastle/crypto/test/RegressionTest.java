@@ -189,6 +189,7 @@ public class RegressionTest
             new TupleHashTest(),
             new ParallelHashTest(),
             new XofUtilsTest(),
+            new CryptoServicesRegistrarPropertyTest(),
             new CryptoServiceConstraintsTest(),
             new SymmetricConstraintsTest(),
             new AsymmetricConstraintsTest(),
