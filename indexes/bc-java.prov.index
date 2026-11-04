@@ -398,7 +398,7 @@ b34446f0b0a2fc6ea9fd950210b36c30b69ea779426aa5f397bee149b995f561  prov/src/main/
 d35a5234822a7dd042dd7a8ae28ccc6c0e6c720e9d7fc9dfb65cec41e0c553e9  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/X509CRLInternal.java
 17c59424d4ffbc7740c033cc32684fd8179cbe58acf9e0b2027d852ce1b5aa0e  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/X509CRLEntryObject.java
 21481a2df3decc503741a39b90405ce8534c1bf2fd899f46f258302c7737805c  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/X509CRLImpl.java
-ae0e040949ee1d58c8ec486a70cb24e9bdea356e026b5ca70a336787fff14ef9  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/X509SignatureUtil.java
+639c98a7caa0031a91632d93657b99cbdfda0c04c397b99bbca43e86128047ea  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/X509SignatureUtil.java
 dc22e6f4c9d2258d3317055073bee1d88326fd69f01bf29757d58a5789d196ce  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/PKIXCertPath.java
 16c25925cdc36c4e12e0704c8e3283ac04241ffe13300d0805a5f830ebb8ed49  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/KeyFactory.java
 4a23771950b65b9c77d2be709f5b9fec05361848b3d81cd676302f857acf1e58  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/x509/SignatureCreator.java
