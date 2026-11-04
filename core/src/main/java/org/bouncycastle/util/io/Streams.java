@@ -162,13 +162,36 @@ public final class Streams
     }
 
     /**
+     * Chunk size for the incremental reader in {@link #readLenBytesFully(InputStream, int)}: 64 KiB, a power
+     * of two with headroom under every collector's large-object line - G1 treats an object of half a region
+     * or more as humongous (512 KiB at the 1 MiB minimum region size), ZGC's small pages take objects up to
+     * 256 KiB, and Shenandoah's smallest region is 256 KiB. A byte[] also carries a header, so a payload of
+     * exactly one of those sizes would already cross it.
+     */
+    private static final int ROPE_CHUNK_SIZE = 1 << 16;
+
+    /**
+     * Safety fraction for the incremental reader, as a shift: a quarter of the data must arrive before the
+     * full-length allocation, which bounds the bytes allocated at five times the bytes delivered.
+     */
+    private static final int ROPE_SHIFT = 2;
+
+    /**
      * Read exactly {@code len} bytes from {@code inStr} and return them as a newly allocated array.
      * <p>
-     * Unlike {@code new byte[len]} followed by {@link #readFully(InputStream, byte[])}, the returned
-     * array is grown incrementally as data arrives rather than allocated at the full declared length
-     * up front. A caller passing an untrusted (possibly hostile) length therefore cannot drive a large
-     * allocation from a short input - the allocation tracks the bytes the stream actually delivers, and
-     * a stream that ends before {@code len} bytes have been read fails with an {@link EOFException}.
+     * Unlike {@code new byte[len]} followed by {@link #readFully(InputStream, byte[])}, the full-length
+     * array is not allocated until the stream has actually delivered a quarter of the declared length, so
+     * a caller passing an untrusted (possibly hostile) length cannot drive a large allocation from a short
+     * input: a stream that ends before {@code len} bytes have been read fails with an {@link EOFException},
+     * having caused at most five times the delivered bytes plus 128 KiB to be allocated.
+     * <p>
+     * Lengths up to 128 KiB are allocated up front and read directly. Above that, the first quarter of the
+     * data is read into a rope of 64 KiB chunks, each allocated just ahead of its own fill; the result is
+     * then allocated once, the chunks copied into it and the remainder read directly into it. The only
+     * intermediate arrays are the chunks, so a read leaves no large-object garbage behind - a geometrically
+     * grown single buffer would instead leave one humongous array per doubling on G1 and the other region
+     * based collectors. The chunks are fresh zeroed arrays that are never reused: the stream is handed a
+     * reference to each of them, so pooling would not be hygienic.
      *
      * @param inStr the stream to read from.
      * @param len   the exact number of bytes to read.
@@ -185,31 +208,59 @@ public final class Streams
             throw new IllegalArgumentException("len cannot be negative");
         }
 
-        // Start with a bounded buffer and grow it towards len (doubling) as bytes actually arrive,
-        // reading straight into the result rather than allocating new byte[len] up front. A hostile
-        // len therefore cannot drive a large allocation from a short input, and a small len still
-        // allocates its exact size once.
-        byte[] bytes = new byte[Math.min(len, BUFFER_SIZE)];
-        int count = 0;
-        while (count < len)
+        // Small lengths are read directly: the up-front allocation is bounded by the cutoff, and a rope
+        // phase would cost an extra allocation and copy to defer at most that much.
+        if (len <= 2 * ROPE_CHUNK_SIZE)
         {
-            if (count == bytes.length)
-            {
-                int expandedLength = (int)Math.min((long)len, 8L * bytes.length);
-                byte[] expanded = new byte[expandedLength];
-                System.arraycopy(bytes, 0, expanded, 0, count);
-                bytes = expanded;
-            }
+            byte[] bytes = new byte[len];
+            readFullyOrThrow(inStr, bytes, 0, len);
+            return bytes;
+        }
 
-            int numRead = inStr.read(bytes, count, bytes.length - count);
+        // The chunk count is known up front (bounded at 8192 references for any int length), so the rope
+        // can be a plain array rather than a growing list.
+        int threshold = len >> ROPE_SHIFT;
+        byte[][] chunks = new byte[(threshold + ROPE_CHUNK_SIZE - 1) / ROPE_CHUNK_SIZE][];
+        int received = 0;
+        for (int i = 0; received < threshold; ++i)
+        {
+            // The last rope chunk is capped so that the rope phase ends exactly at the threshold; the total
+            // allocation is then (1 + 1/4) len for every length above the cutoff.
+            int chunkSize = Math.min(ROPE_CHUNK_SIZE, threshold - received);
+            byte[] chunk = new byte[chunkSize];
+            readFullyOrThrow(inStr, chunk, 0, chunkSize);
+            chunks[i] = chunk;
+            received += chunkSize;
+        }
+
+        byte[] result = new byte[len];
+
+        // Copy the chunks in first, while they are still cache-warm and before the remainder read can stall.
+        int pos = 0;
+        for (int i = 0; i < chunks.length; ++i)
+        {
+            byte[] chunk = chunks[i];
+            System.arraycopy(chunk, 0, result, pos, chunk.length);
+            pos += chunk.length;
+        }
+
+        readFullyOrThrow(inStr, result, received, len - received);
+        return result;
+    }
+
+    private static void readFullyOrThrow(InputStream inStr, byte[] buf, int off, int len)
+        throws IOException
+    {
+        while (len > 0)
+        {
+            int numRead = inStr.read(buf, off, len);
             if (numRead < 0)
             {
                 throw new EOFException("premature end of stream");
             }
-            count += numRead;
+            off += numRead;
+            len -= numRead;
         }
-
-        return bytes;
     }
 
     public static void validateBufferArguments(byte[] buf, int off, int len)

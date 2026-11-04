@@ -136,7 +136,7 @@ class DefiniteLengthInputStream
 
         StreamUtil.checkLength(_remaining, (long)getLimit());
 
-        // Read through this stream (not _in) so Streams.readLenBytesFully grows the buffer as bytes
+        // Read through this stream (not _in) so Streams.readLenBytesFully allocates as bytes actually
         // arrive - avoiding the eager new byte[_remaining] that let a short crafted header drive a
         // heap-sized allocation before any data was read (CWE-789) - while read(byte[], int, int)
         // above keeps the _remaining / parent-EOF bookkeeping and reports a truncated stream with the

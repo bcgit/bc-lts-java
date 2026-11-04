@@ -40,6 +40,8 @@ public class AllTests
         suite.addTestSuite(ASN1SequenceParserTest.class);
         // In this package but named by no suite, so it never ran.
         suite.addTestSuite(EnumeratedTest.class);
+        suite.addTestSuite(SetSortedElementsTest.class);
+        suite.addTestSuite(org.bouncycastle.asn1.ASN1TimeFormatTest.class);
 
         return new BCTestSetup(suite);
     }

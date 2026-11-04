@@ -239,8 +239,8 @@ fb6ef6dee71ffc946e9029603ffce5a4a950b8059e4170daf5408db6d286fe78  core/src/test/
 92626a7589557d11e2943ed3380462ac2aa07c38ed0ba44f77e9b9ab738d4e4b  core/src/test/java/org/bouncycastle/util/utiltest/AllTests.java
 be51d53da5dc5e59f1e04cd2fbe778255e901b0651ae15f345dc249a2b5e61c5  core/src/test/java/org/bouncycastle/util/utiltest/ArraysTest.java
 101242d25161d370092fccc61607e646bd0c4203a96e21983f14a7ef6308b356  core/src/test/java/org/bouncycastle/util/utiltest/IPTest.java
-7808770f20a2f39dfa85fac36fe05e9c6ba8c6f17490752cceba0d47bc624d2d  core/src/test/java/org/bouncycastle/util/utiltest/LongsTest.java
-43647088d4abb55ee7cc183dc19ff71960deb68a6407a79b44c52fdf900d4174  core/src/test/java/org/bouncycastle/util/utiltest/IntegersTest.java
+2fd7fefe999902fe58870720b01e6eeadaf0acb7c39407271932ae995c5c2638  core/src/test/java/org/bouncycastle/util/utiltest/LongsTest.java
+38714ddd4bcf3091e57f3a28a9b8323c7568f72db46b12d3a7e112d566a84c05  core/src/test/java/org/bouncycastle/util/utiltest/IntegersTest.java
 7f81b515ef83560681bbfacbc4fc8cf2c9e6f3ab5a015086cf8841216853705d  core/src/test/java/org/bouncycastle/util/utiltest/BigIntegersTest.java
 c07322173c2eed4f46fa2715ee4e0e7eceff245855b3be9ff173b2e82ad35bca  core/src/test/java/org/bouncycastle/asn1/test/X500NameTest.java
 25136e0a07bbb39b4e0c5d301832032800af7cb139b7c25932f5f502896ae120  core/src/test/java/org/bouncycastle/asn1/test/X509AltTest.java
@@ -274,8 +274,8 @@ e93dff11aff8ef1ad69989e3b36fc7471afcc9512461e3c1d64c1d4210ac48d4  core/src/test/
 d2aa7eb428023f8b2bb428a3b026b275cf2c4a7acbbdd8abbb0571b6ecceeb77  core/src/test/java/org/bouncycastle/asn1/test/SubjectKeyIdentifierTest.java
 ab5001f1605c4d766d1edfe5cbbac7ab30bd0cc3086aae19b9db13e2357303d0  core/src/test/java/org/bouncycastle/asn1/test/DERPrivateTest.java
 7d87f3c878f9c02d6a1205ccfad80ed01ed614a514d066af31fb721fb0726be9  core/src/test/java/org/bouncycastle/asn1/test/EncryptedPrivateKeyInfoTest.java
-e85f47e41106e602f08c96964e647fcfebec944ac465174221132a5f986d9fc9  core/src/test/java/org/bouncycastle/asn1/test/EnumeratedTest.java
-14d3a3f32cc82129e46771924f5d0b89b110bc0477719d659362958f87fc8de9  core/src/test/java/org/bouncycastle/asn1/test/EqualsAndHashCodeTest.java
+35c7b1b23197d0c1e3af01b692f3bea76f759d2ca309db4f04013b4e19b98f07  core/src/test/java/org/bouncycastle/asn1/test/EnumeratedTest.java
+da27ad6a93154ae7d1e8767359754e403de527de315b3f65f3392ee07a4de901  core/src/test/java/org/bouncycastle/asn1/test/EqualsAndHashCodeTest.java
 a5c00a66ad013673a7df4a7df76d59cd4afe53db3287bce8831a64bdd93ba29c  core/src/test/java/org/bouncycastle/asn1/test/PrivateKeyInfoTest.java
 176cd934442692303e9acc123510b3e7a60f8a195774f535068364cd1c33f4e8  core/src/test/java/org/bouncycastle/asn1/test/OIDTest.java
 3f9fe70a8a7d1f5029eb4abab38315cd172a70466cb30a104edeb5c7f1960e43  core/src/test/java/org/bouncycastle/asn1/test/IssuingDistributionPointUnitTest.java
@@ -892,7 +892,7 @@ f142fcc66ce9a955811e8736fa13fac35ad51562f192f90257fc98c23998716a  core/src/main/
 af3f6003af7ca8d4024ce024a224d8eb01fb259195a3e8c1f1aed174339fe019  core/src/main/java/org/bouncycastle/util/test/TestRandomBigInteger.java
 f5a10f5dd953d05d241a8c8770b69c5a75675c44cc8b4251c45ff734258820c6  core/src/main/java/org/bouncycastle/util/StoreException.java
 678337fe988dad1f5bce28bf9d11deb7e1dd94193b966034e7d078fef61d51c3  core/src/main/java/org/bouncycastle/util/BigIntegers.java
-3e1c99386168f5651cfb2ac93eb94b0e0040c284322e9fca8dd23baffe147be3  core/src/main/java/org/bouncycastle/util/io/Streams.java
+f4dd120dfb0e5345171a079b764896a028f30f777a77700207a4f52a8dfab19c  core/src/main/java/org/bouncycastle/util/io/Streams.java
 94b0cd94a5348793f514e85fdcc12dd9e27ff46fbab1ec45ac3b6db66a2920a1  core/src/main/java/org/bouncycastle/util/io/TeeInputStream.java
 79cf00b9e0ff69ec8f4b4b030e04107a94dd61108585c639657c5b2d85abc787  core/src/main/java/org/bouncycastle/util/io/SimpleOutputStream.java
 bf9a9e6ced36aee757077e6bee83111ad5b8c7a5ad3f6886cb9ebd5ae967ff7e  core/src/main/java/org/bouncycastle/util/io/StreamOverflowException.java
@@ -926,7 +926,7 @@ cef762ef0ffc5631e2ffde3ec1365dc90822af4ad6093cd160427c1ceaa0a7b0  core/src/main/
 d3af921da427a2b555120e89f95a79fbc6cb5acde386f89b01a033fa07503549  core/src/main/java/org/bouncycastle/util/Doubles.java
 a283d3131924d6154af5a6a74094baf0626961d7517940d73a40d3f773c64a99  core/src/main/java/org/bouncycastle/util/Strings.java
 fe0258aeec86ef514d63dadb1166fce348e5f20db59e511529df474cd835c80e  core/src/main/java/org/bouncycastle/util/Pack.java
-ca10613db02c2640c5de4c7f8132c25d889bb31bb41ac0cd10a084c2b6d320a6  core/src/main/java/org/bouncycastle/util/Integers.java
+d377e5c41260e9992338e95c3a69dfd2c587808b07b8cc23950c3575841f2311  core/src/main/java/org/bouncycastle/util/Integers.java
 6d355cceb0bcfe01781c6364513f614bc8f31c5040c4c412e4fa1e7673a2a579  core/src/main/java/org/bouncycastle/util/Times.java
 f1f644c660c06a6a2bc2437823689e073a66f167bac33fb9d91104bd489b2445  core/src/main/java/org/bouncycastle/util/Selector.java
 c1b6114bfcb4450513f6bf965fe7b82e757798d801b30085a8eaa385854ff643  core/src/main/java/org/bouncycastle/util/IPAddress.java
@@ -976,7 +976,7 @@ cf89e3488ff9bb3aafaf46da24c187cf45f1b3c10d1111afcbd3cd9c7018377e  core/src/main/
 5b42f83a5ffdd19679fb5c57ea0c97c9df764ceb8572e296d620ace0a0c89b80  core/src/main/java/org/bouncycastle/asn1/DLSequence.java
 b95b65abf3746d6e9481f2c88cd03b38792fea2a1c355d8a266f2110e2ee82c9  core/src/main/java/org/bouncycastle/asn1/DERBMPString.java
 632c6c20cadb09ed074e4d777977b46bb5cb77d5a7305cda90f8b88b7a27b802  core/src/main/java/org/bouncycastle/asn1/ASN1Sequence.java
-f67527871b7a770f8f48319c5d7ce022b3c411dead258a6f2a14aaa6cdb55a04  core/src/main/java/org/bouncycastle/asn1/DefiniteLengthInputStream.java
+6bc7f93a8993ceb188225aad2e06c38f62ad439ad2d056ebc4451910a6313540  core/src/main/java/org/bouncycastle/asn1/DefiniteLengthInputStream.java
 fb386e0699dd9347e2641f0b90ce32d62fc86615073b29bb25f1789113599d04  core/src/main/java/org/bouncycastle/asn1/DERExternalParser.java
 6f45e89089ef68210633bbfa170fd2fcebe200c0fd44d8c01bfc6b8a0af868db  core/src/main/java/org/bouncycastle/asn1/BERBitString.java
 57a5c9c792a610344e60a3d5976a44697ffb7510d1ea74a4f64867f089576c54  core/src/main/java/org/bouncycastle/asn1/ASN1UTF8String.java
@@ -994,7 +994,7 @@ cb18feb8deeed53665f7b660f14a68e13a80dd67863178df5f51692431d8e187  core/src/main/
 0ed6cb28ba7a472e2c8d089f766ccb258fb9750694d954ed11ee357d47c4bfbe  core/src/main/java/org/bouncycastle/asn1/LazyEncodedSequence.java
 b913e815ef4118e21b395fb45526d6c8dd7809583596c3f8fcacd8cf4a289074  core/src/main/java/org/bouncycastle/asn1/BERTaggedObjectParser.java
 a5331fc14d24c1f49e2dbcf89be66011054ad5520aa6492b7b192ff57d05cbcd  core/src/main/java/org/bouncycastle/asn1/DLSetParser.java
-79f8dbc38e35471db48e68d7f8034a07c4d199d5f7049804dc609061fa63d7e5  core/src/main/java/org/bouncycastle/asn1/ASN1Integer.java
+4fa29be7f6aa5ed77573f4dd0f10543f364f4c28f5a3e33b9628e5205bd78aad  core/src/main/java/org/bouncycastle/asn1/ASN1Integer.java
 ab4179df6ca17c6487dc44bdd6f84b029fd5d3067e0c90c2c18a4524fea4e89a  core/src/main/java/org/bouncycastle/asn1/ASN1GraphicString.java
 ab3b880e77f76215f0a9acc83dc7cc0dc06fdd69e1a125b5a3aae3e953821971  core/src/main/java/org/bouncycastle/asn1/ASN1OctetStringParser.java
 976640ae5179206a14329652435e4a63039b50c5dbfd9739c52f7c7417a29a62  core/src/main/java/org/bouncycastle/asn1/ocsp/ServiceLocator.java
@@ -1010,7 +1010,7 @@ a91301fba3edd184639fd87866df24cb841854b5420fa2c06c8fcf30623880de  core/src/main/
 db78f66641d89af0a72335102e0514f54a23f386f881641ba600496e1d567bf2  core/src/main/java/org/bouncycastle/asn1/ocsp/RevokedInfo.java
 f5a4b3bc98672e1da1ff519c6dcfe535f68f4cbcd1b33ff45bb5e1832b4d11b8  core/src/main/java/org/bouncycastle/asn1/ocsp/ResponseBytes.java
 80fb09b4e89d369b978e659932178d108e0c70cf558294c11faab929b32df711  core/src/main/java/org/bouncycastle/asn1/ocsp/OCSPObjectIdentifiers.java
-9f7289b1c04901b95d1baf36bcb1d9aa4398e2a1f3892ad551f27611eddfc051  core/src/main/java/org/bouncycastle/asn1/ocsp/OCSPResponseStatus.java
+67de69b7c9c6270be914a6099ddb575f901982b43030cff57e871141607566a7  core/src/main/java/org/bouncycastle/asn1/ocsp/OCSPResponseStatus.java
 d1ce10f50352ed5aaa98e43252f55cb4e14d1ce28b6d1ce4eb2099bf2fc3c235  core/src/main/java/org/bouncycastle/asn1/ocsp/OCSPResponse.java
 c8ed06a304c2d177a3549f566fbeb9e64d16820d5c7ef23f6939c555b6cb2eac  core/src/main/java/org/bouncycastle/asn1/ocsp/Request.java
 b780379f4cf65f51ac1e6b2b2cd27b041b0339da5cd8ea4ad7c5c0d4cb54de44  core/src/main/java/org/bouncycastle/asn1/ocsp/Signature.java
@@ -1136,11 +1136,11 @@ b659b4c025a3e3ca22b0766fcc1139fe7ab295d401425ee6e207acdff5974498  core/src/main/
 af0831bdbc90881a8951c50cc3437ed870117a71b060caa87da092442b703296  core/src/main/java/org/bouncycastle/asn1/x509/NameConstraintValidatorException.java
 7ac0353e063cb120ea8af1acb09dd3f632a5e56a58b4001db2ae15d012f1b5fa  core/src/main/java/org/bouncycastle/asn1/x509/SubjectKeyIdentifier.java
 d85bc1d268a6afd18652bf802f45849ba474e600d4532d0914a7392e6bc9f052  core/src/main/java/org/bouncycastle/asn1/x509/GeneralName.java
-191c1876aa5c0e487611c9c9921b6af4714d1eeb932f02d66fce2a6f9afe7f65  core/src/main/java/org/bouncycastle/asn1/x509/CRLReason.java
+2c0f7e4ca40c5bff378445005b24e0f5053f5486f3b359d026b816647e5931b0  core/src/main/java/org/bouncycastle/asn1/x509/CRLReason.java
 6b75d4b4238e997732206f84ece9a4639533d6ef79f661247ab5e0b02feb2a8b  core/src/main/java/org/bouncycastle/asn1/x509/TBSCertList.java
 5c4a89cef0eede5bd1ea5883a7aeb80335e15a7b6fca923c2b09392aa4db3ea6  core/src/main/java/org/bouncycastle/asn1/x509/IetfAttrSyntax.java
 775cc53526d0438e1846e6ee869d1981b738b13f1abcf1a2f0adbc0d8935dfd8  core/src/main/java/org/bouncycastle/asn1/x509/Time.java
-2fdf8b930e14154a1bab6a42570bdb925123c4455974f1366671f132724b1de2  core/src/main/java/org/bouncycastle/asn1/x509/ObjectDigestInfo.java
+7853a189edbb7370578ccfd4e5649c2288bf6a840147118d2ecac7773925822e  core/src/main/java/org/bouncycastle/asn1/x509/ObjectDigestInfo.java
 167594e442da6dc45831fabd00c7f6fa32e772b89c9c368e0cab5be2d3041b39  core/src/main/java/org/bouncycastle/asn1/x509/GeneralNamesBuilder.java
 9bee6bea78ca0f96ff4b2c7ca16db170d8adcfc9bcc84103307b9ad7df0a329f  core/src/main/java/org/bouncycastle/asn1/x509/NoticeReference.java
 92f35cd3b294dd4ab84a172ba88990e2b85f3d4369aa1eb61cab44aff474cec0  core/src/main/java/org/bouncycastle/asn1/x509/KeyUsage.java
@@ -1750,14 +1750,14 @@ f594a021b3f31f1f7a7d180f6463010480017caec83d84afd791f74ed39fc1d5  core/src/test/
 90b7a9c6b7addeb0bd7032c7ef41d32d9cd5b9c2005dd9e5785e9aaf7da0b0b7  core/src/test/java/org/bouncycastle/pqc/crypto/lms/LMSTests.java
 ea0d1a07b98350a456ffb5b5f1d42d29de7ad07eda4a6a041c4e431d113d06e4  core/src/test/java/org/bouncycastle/pqc/crypto/lms/LMSVectorUtils.java
 15e5181c2a10296bf473d7f182cc8616300bcd2a2889899f9af36d06d4cf8507  core/src/test/java/org/bouncycastle/pqc/crypto/lms/TypeTests.java
-6a5aafa09efc348c41a0f668b2f8a6f8cbf93fb26de91b3316c259557533ea1d  core/src/main/java/org/bouncycastle/asn1/ASN1TimeFormat.java
+508e723dfad4ae057a4194d246d4a8a2a557c94357be5eaf1795a29d3a43819d  core/src/main/java/org/bouncycastle/asn1/ASN1TimeFormat.java
 8e89ce0fc1d47e6b5856aeea709d554749674d8cbc94046fc4bfef7a60a1840a  core/src/main/java/org/bouncycastle/asn1/DEREncodingException.java
 a7f1fc4f70ff417fecac191082896fb21a48870b656a98a6621ab4a905bed9fd  core/src/test/java/org/bouncycastle/asn1/test/AllowNonDerTimeTest.java
 2fb758d89e78de0ebc9936d27fa6ef72b61cf26d57544710f9b1138173e4a881  core/src/main/java/org/bouncycastle/crypto/signers/mldsa/PolyVec.java
 8e8961f4c7ffd7ebdf425f487215e8881360e656e05907b9a1dba754ca6d7c3e  core/src/main/java/org/bouncycastle/util/AggregateRuntimeException.java
 7329ec7486a3d6261fb92689c557fda8d8f138b352d04b7620beafe71c4a5ae7  core/src/main/java/org/bouncycastle/crypto/agreement/ECDHCRawAgreement.java
 91c2cfe5cf0b21c0cdc16e33ad4c042ed1f81777c42f0cee38090bc8046c3690  core/src/test/java/org/bouncycastle/pqc/crypto/lms/PublicKeyParseTests.java
-00f650db3caa9edd1862dd2479ccaca4f4f828348aa5111373eb62e24a48c5e7  core/src/test/java/org/bouncycastle/util/utiltest/StreamsTest.java
+0bcfdc950fea4b9c7aad6f6ec3f1ebf5d003f4ea1160c078b67f85fd03804889  core/src/test/java/org/bouncycastle/util/utiltest/StreamsTest.java
 e06ac935a92dad92ae3cafaafef52d2b3433bbeb8e7419f98c8cabe31d72c522  core/src/test/java/org/bouncycastle/util/utiltest/AggregateRuntimeExceptionTest.java
 d3f996de88fbb7adaacaad0e502476504b1693fbc8d378cd96c71d695ac8169b  core/src/test/java/org/bouncycastle/crypto/test/SICPositionTest.java
 78442cafb6436cb5b742691d7529cd26d28305953ad56dda3fd7eeb308849232  core/src/main/java/org/bouncycastle/asn1/DLGenerator.java
@@ -1781,3 +1781,5 @@ e4f02183aba04f598896639307584dc46f43098789c3a35b7da269ec9edce1a8  core/src/test/
 f9042256bf00f7a21e10b647aa2871d26a1b00ce45f12d3de36e5123e1e93353  core/src/test/java/org/bouncycastle/crypto/test/CryptoServicesRegistrarPropertyTest.java
 4a9a26a590229e25c9c2ca9ff6d9e63f7a40ae1caacaca19f73f3d3d784326a2  core/src/test/java/org/bouncycastle/crypto/test/ECGOST3410KeyEncodingTest.java
 db247e6887ebc8866bdfa90c723a18e25884f3532e17e380282eed3a8a605a1e  core/src/main/java/org/bouncycastle/crypto/util/ECGOST3410Util.java
+b1cd39055196fa85618ac2bd4a6aa8803ae753745c7dc092d9ecf24a13f5e79a  core/src/test/java/org/bouncycastle/asn1/ASN1TimeFormatTest.java
+6cd775a4c1a9a428c2b1b7bc29d0311013353750f4e7da0bf985af71d5595189  core/src/test/java/org/bouncycastle/asn1/test/SetSortedElementsTest.java

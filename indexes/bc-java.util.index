@@ -145,7 +145,7 @@ c0f109c6dec200c1fcbefde36e77888b02599b50d32130f9563ae0235fb4eaec  util/src/main/
 de64431074d6271d316d713287c683591de91da9ba07b696516318fd1f350c7f  util/src/main/java/org/bouncycastle/asn1/esf/SignaturePolicyId.java
 69828a998290616a62119bfcf08b13dd002c4e34e1ff65dcdd0f8ccf71dae311  util/src/main/java/org/bouncycastle/asn1/esf/OtherRevRefs.java
 2b7f2e761cf9614ee5c778d1cb746e5bd853a487697b9ff61db57bb853631674  util/src/main/java/org/bouncycastle/asn1/dvcs/DVCSErrorNotice.java
-c6209691cb27bd95848afd6a866219c177e7bb887057fadae6f7558d49de82db  util/src/main/java/org/bouncycastle/asn1/dvcs/ServiceType.java
+585556f268139eff3ec1b98f4e9f42671e49acb0394edf43f7aae5799b41b62d  util/src/main/java/org/bouncycastle/asn1/dvcs/ServiceType.java
 5213e2ca0fbf09affde374a987c01c73675fef86a96563e5d7ddb708999f350a  util/src/main/java/org/bouncycastle/asn1/dvcs/DVCSObjectIdentifiers.java
 a115e24c7146df456612305d39d37dd7896c614f9da2363515e3580b0912a6cb  util/src/main/java/org/bouncycastle/asn1/dvcs/DVCSCertInfo.java
 e60176e0468c80688f4013ee080b50bdf69fe74968320842cf4cd7129e46801a  util/src/main/java/org/bouncycastle/asn1/dvcs/Data.java
