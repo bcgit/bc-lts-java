@@ -24,6 +24,13 @@ import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
 import org.bouncycastle.test.TestResourceFinder;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
+import java.util.ArrayList;
+import java.util.List;
+import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.Signer;
+import org.bouncycastle.crypto.signers.HashSLHDSASigner;
+import org.bouncycastle.pqc.crypto.MessageSigner;
+import org.bouncycastle.util.test.FixedSecureRandom;
 
 public class SLHDSATest
     extends TestCase
@@ -750,6 +757,38 @@ public class SLHDSATest
         public boolean internalVerifySignature(byte[] message, byte[] signature)
         {
             return super.internalVerifySignature(message, signature);
+        }
+    }
+
+    public void testComponentLengthChecks()
+    {
+        byte[] sk = Hex.decode("2F896D61D9CD9038CA303394FADAA22A24AC5EC1D86A989CA2196C3C8632419C1A05A42FE300E87B16AEE116CB2E236358E2C3E62632C9DE03D08A535A0EB7E7");
+        int n = SLHDSAParameters.sha2_128s.getN();
+
+        byte[][] parts = new byte[][]{
+            Arrays.copyOfRange(sk, 0, n), Arrays.copyOfRange(sk, n, 2 * n), Arrays.copyOfRange(sk, 2 * n, 3 * n), Arrays.copyOfRange(sk, 3 * n, 4 * n) };
+        String[] names = new String[]{ "skSeed", "prf", "pkSeed", "pkRoot" };
+
+        SLHDSAPrivateKeyParameters privParams = new SLHDSAPrivateKeyParameters(SLHDSAParameters.sha2_128s, parts[0], parts[1], parts[2], parts[3]);
+        assertTrue(Arrays.areEqual(sk, privParams.getEncoded()));
+
+        for (int i = 0; i != parts.length; i++)
+        {
+            for (int delta = -1; delta <= 1; delta += 2)
+            {
+                byte[][] bad = new byte[parts.length][];
+                System.arraycopy(parts, 0, bad, 0, parts.length);
+                bad[i] = Arrays.copyOf(parts[i], parts[i].length + delta);
+                try
+                {
+                    new SLHDSAPrivateKeyParameters(SLHDSAParameters.sha2_128s, bad[0], bad[1], bad[2], bad[3]);
+                    fail("no exception for " + names[i] + " of length " + bad[i].length);
+                }
+                catch (IllegalArgumentException e)
+                {
+                    assertEquals("'" + names[i] + "' has invalid length", e.getMessage());
+                }
+            }
         }
     }
 }

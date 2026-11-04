@@ -8,11 +8,15 @@ import org.bouncycastle.crypto.params.ParametersWithContext;
 import org.bouncycastle.crypto.params.ParametersWithRandom;
 import org.bouncycastle.crypto.signers.MLDSASigner;
 import org.bouncycastle.util.Strings;
-import org.bouncycastle.pqc.crypto.mldsa.*;
-import org.bouncycastle.pqc.crypto.util.PrivateKeyFactory;
-import org.bouncycastle.pqc.crypto.util.PrivateKeyInfoFactory;
-import org.bouncycastle.pqc.crypto.util.PublicKeyFactory;
-import org.bouncycastle.pqc.crypto.util.SubjectPublicKeyInfoFactory;
+import org.bouncycastle.crypto.generators.MLDSAKeyPairGenerator;
+import org.bouncycastle.crypto.params.MLDSAKeyGenerationParameters;
+import org.bouncycastle.crypto.params.MLDSAParameters;
+import org.bouncycastle.crypto.params.MLDSAPrivateKeyParameters;
+import org.bouncycastle.crypto.params.MLDSAPublicKeyParameters;
+import org.bouncycastle.crypto.util.PrivateKeyFactory;
+import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
+import org.bouncycastle.crypto.util.PublicKeyFactory;
+import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
 import org.bouncycastle.test.TestResourceFinder;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.encoders.Hex;
@@ -25,6 +29,22 @@ import java.io.InputStreamReader;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1Integer;
+import org.bouncycastle.asn1.DEROctetString;
+import org.bouncycastle.asn1.DERSequence;
+import org.bouncycastle.asn1.DERTaggedObject;
+import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
+import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.crypto.CryptoException;
+import org.bouncycastle.crypto.Signer;
+import org.bouncycastle.crypto.signers.HashMLDSASigner;
 
 public class MLDSATest
     extends TestCase
@@ -529,5 +549,219 @@ public class MLDSATest
         {
             return super.internalVerifySignature(message, signature);
         }
+    }
+
+    public void testComponentLengthChecks()
+        throws Exception
+    {
+        MLDSAKeyPairGenerator kpGen = new MLDSAKeyPairGenerator();
+        kpGen.init(new MLDSAKeyGenerationParameters(new SecureRandom(), MLDSAParameters.ml_dsa_44));
+        AsymmetricCipherKeyPair kp = kpGen.generateKeyPair();
+        MLDSAPrivateKeyParameters priv = (MLDSAPrivateKeyParameters)kp.getPrivate();
+        MLDSAPublicKeyParameters pub = (MLDSAPublicKeyParameters)kp.getPublic();
+
+        byte[][] parts = new byte[][]{ priv.getRho(), priv.getK(), priv.getTr(), priv.getS1(), priv.getS2(), priv.getT0(), priv.getT1(), priv.getSeed() };
+        String[] names = new String[]{ "rho", "K", "tr", "s1", "s2", "t0", "t1", "seed" };
+
+        // correct lengths are accepted, with and without the optional seed and t1
+        new MLDSAPrivateKeyParameters(MLDSAParameters.ml_dsa_44, parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7]);
+        new MLDSAPrivateKeyParameters(MLDSAParameters.ml_dsa_44, parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], null);
+
+        for (int i = 0; i != parts.length; i++)
+        {
+            for (int delta = -1; delta <= 1; delta += 2)
+            {
+                byte[][] bad = new byte[parts.length][];
+                System.arraycopy(parts, 0, bad, 0, parts.length);
+                bad[i] = Arrays.copyOf(parts[i], parts[i].length + delta);
+                try
+                {
+                    new MLDSAPrivateKeyParameters(MLDSAParameters.ml_dsa_44, bad[0], bad[1], bad[2], bad[3], bad[4], bad[5], bad[6], bad[7]);
+                    fail("no exception for " + names[i] + " of length " + bad[i].length);
+                }
+                catch (IllegalArgumentException e)
+                {
+                    assertEquals("'" + names[i] + "' has invalid length", e.getMessage());
+                }
+            }
+        }
+
+        byte[] rho = pub.getRho();
+        byte[] t1 = pub.getT1();
+
+        new MLDSAPublicKeyParameters(MLDSAParameters.ml_dsa_44, rho, t1);
+
+        for (int delta = -1; delta <= 1; delta += 2)
+        {
+            try
+            {
+                new MLDSAPublicKeyParameters(MLDSAParameters.ml_dsa_44, Arrays.copyOf(rho, rho.length + delta), t1);
+                fail("no exception for rho of length " + (rho.length + delta));
+            }
+            catch (IllegalArgumentException e)
+            {
+                assertEquals("'rho' has invalid length", e.getMessage());
+            }
+
+            byte[] badT1 = Arrays.copyOf(t1, t1.length + delta);
+            try
+            {
+                new MLDSAPublicKeyParameters(MLDSAParameters.ml_dsa_44, rho, badT1);
+                fail("no exception for t1 of length " + badT1.length);
+            }
+            catch (IllegalArgumentException e)
+            {
+                assertEquals("'t1' has invalid length", e.getMessage());
+            }
+
+            // SEQUENCE { OCTET STRING rho, OCTET STRING t1 } public key form via PublicKeyFactory
+            SubjectPublicKeyInfo spki = SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(pub);
+            SubjectPublicKeyInfo badSpki = new SubjectPublicKeyInfo(spki.getAlgorithm(),
+                new DERSequence(new ASN1Encodable[]{ new DEROctetString(rho), new DEROctetString(badT1) }));
+            try
+            {
+                PublicKeyFactory.createKey(badSpki);
+                fail("no exception for SEQUENCE encoded public key with t1 of length " + badT1.length);
+            }
+            catch (IllegalArgumentException e)
+            {
+                // expected
+            }
+        }
+    }
+
+    public void testPrivateKeyEmbeddedPublicKeyConsistency()
+        throws Exception
+    {
+        // an ML-DSA OneAsymmetricKey may carry the public key (RFC 9881 sec. 6), and both its rho and its t1 must match the private key
+        int[] formats = new int[]{ MLDSAPrivateKeyParameters.BOTH, MLDSAPrivateKeyParameters.SEED_ONLY,
+            MLDSAPrivateKeyParameters.EXPANDED_KEY };
+
+        for (int i = 0; i != PARAMETER_SETS.length; i++)
+        {
+            MLDSAParameters parameters = PARAMETER_SETS[i];
+            MLDSAKeyPairGenerator kpGen = new MLDSAKeyPairGenerator();
+            kpGen.init(new MLDSAKeyGenerationParameters(new SecureRandom(), parameters));
+            AsymmetricCipherKeyPair kp = kpGen.generateKeyPair();
+            MLDSAPrivateKeyParameters priv = (MLDSAPrivateKeyParameters)kp.getPrivate();
+            byte[] pub = ((MLDSAPublicKeyParameters)kp.getPublic()).getEncoded();
+
+            byte[] rhoFlip = Arrays.clone(pub);
+            rhoFlip[5] ^= 0x01;
+            byte[] t1Flip = Arrays.clone(pub);
+            t1Flip[t1Flip.length - 1] ^= 0x01;
+
+            for (int j = 0; j != formats.length; j++)
+            {
+                PrivateKeyInfo info = PrivateKeyInfoFactory.createPrivateKeyInfo(priv.getParametersWithFormat(formats[j]));
+
+                MLDSAPrivateKeyParameters key = (MLDSAPrivateKeyParameters)PrivateKeyFactory.createKey(withPublicKey(info, pub));
+                assertTrue(Arrays.areEqual(pub, key.getPublicKey()));
+
+                checkPublicKeyMismatch(withPublicKey(info, t1Flip), parameters.getName() + " t1");
+                checkPublicKeyMismatch(withPublicKey(info, rhoFlip), parameters.getName() + " rho");
+            }
+
+            // the constructor directly, given the expanded key and given the seed
+            byte[][] encodings = new byte[][]{ priv.getEncoded(), priv.getSeed() };
+            for (int j = 0; j != encodings.length; j++)
+            {
+                new MLDSAPrivateKeyParameters(parameters, encodings[j], new MLDSAPublicKeyParameters(parameters, pub));
+                try
+                {
+                    new MLDSAPrivateKeyParameters(parameters, encodings[j], new MLDSAPublicKeyParameters(parameters, rhoFlip));
+                    fail("no exception for " + parameters.getName() + " public key with a different rho");
+                }
+                catch (IllegalArgumentException e)
+                {
+                    assertEquals("passed in public key does not match private values", e.getMessage());
+                }
+            }
+        }
+    }
+
+    private static PrivateKeyInfo withPublicKey(PrivateKeyInfo info, byte[] publicKey)
+        throws IOException
+    {
+        return new PrivateKeyInfo(info.getPrivateKeyAlgorithm(), info.parsePrivateKey(), null, publicKey);
+    }
+
+    private static void checkPublicKeyMismatch(PrivateKeyInfo info, String label)
+        throws IOException
+    {
+        try
+        {
+            PrivateKeyFactory.createKey(info);
+            fail("no exception for mismatched " + label);
+        }
+        catch (IllegalArgumentException e)
+        {
+            assertEquals("passed in public key does not match private values", e.getMessage());
+        }
+    }
+
+    public void testExpandedPrivateKeyTrConsistency()
+        throws Exception
+    {
+        // tr is H(pk) (FIPS 204 Algorithm 6), so an expanded key whose tr does not match its rho and t1 must be refused
+        for (int i = 0; i != PARAMETER_SETS.length; i++)
+        {
+            MLDSAParameters parameters = PARAMETER_SETS[i];
+            MLDSAKeyPairGenerator kpGen = new MLDSAKeyPairGenerator();
+            kpGen.init(new MLDSAKeyGenerationParameters(new SecureRandom(), parameters));
+            AsymmetricCipherKeyPair kp = kpGen.generateKeyPair();
+            MLDSAPrivateKeyParameters priv = (MLDSAPrivateKeyParameters)kp.getPrivate();
+            byte[] expanded = priv.getEncoded();
+
+            MLDSAPrivateKeyParameters key = new MLDSAPrivateKeyParameters(parameters, expanded, null);
+            assertTrue(Arrays.areEqual(priv.getTr(), key.getTr()));
+            assertTrue(Arrays.areEqual(((MLDSAPublicKeyParameters)kp.getPublic()).getEncoded(), key.getPublicKey()));
+
+            // rho (32) || K (32) || tr (64) || ...
+            int[] trOffsets = new int[]{ 64, 64 + 63 };
+            for (int j = 0; j != trOffsets.length; j++)
+            {
+                byte[] trFlip = Arrays.clone(expanded);
+                trFlip[trOffsets[j]] ^= 0x01;
+
+                try
+                {
+                    new MLDSAPrivateKeyParameters(parameters, trFlip, null);
+                    fail("no exception for " + parameters.getName() + " expanded key with a different tr");
+                }
+                catch (IllegalArgumentException e)
+                {
+                    assertEquals("'encoding' has inconsistent tr", e.getMessage());
+                }
+
+                PrivateKeyInfo info = PrivateKeyInfoFactory.createPrivateKeyInfo(
+                    new MLDSAPrivateKeyParameters(parameters, expanded, null).getParametersWithFormat(MLDSAPrivateKeyParameters.EXPANDED_KEY));
+                byte[] infoEnc = info.getEncoded();
+                int pos = indexOf(infoEnc, expanded);
+                assertTrue(pos > 0);
+                infoEnc[pos + trOffsets[j]] ^= 0x01;
+                try
+                {
+                    PrivateKeyFactory.createKey(PrivateKeyInfo.getInstance(infoEnc));
+                    fail("no exception for " + parameters.getName() + " PKCS#8 expanded key with a different tr");
+                }
+                catch (IllegalArgumentException e)
+                {
+                    assertEquals("'encoding' has inconsistent tr", e.getMessage());
+                }
+            }
+        }
+    }
+
+    private static int indexOf(byte[] data, byte[] target)
+    {
+        for (int i = 0; i <= data.length - target.length; i++)
+        {
+            if (Arrays.areEqual(data, i, i + target.length, target, 0, target.length))
+            {
+                return i;
+            }
+        }
+        return -1;
     }
 }
