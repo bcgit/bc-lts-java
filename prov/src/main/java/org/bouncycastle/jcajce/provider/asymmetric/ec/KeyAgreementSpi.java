@@ -544,6 +544,58 @@ public class KeyAgreementSpi
         }
     }
 
+    /**
+     * @deprecated the ECCDHwithSHA1CKDF service is now provided by {@link CDHwithSHA1CKDF}; this class is kept for
+     * binary compatibility and computes the same cofactor agreement.
+     */
+    public static class DHwithSHA1CKDF
+        extends KeyAgreementSpi
+    {
+        public DHwithSHA1CKDF()
+        {
+            super("ECDHwithSHA1CKDF", new ECDHCRawAgreement(), new ConcatenationKDFGenerator(DigestFactory.createSHA1()));
+        }
+    }
+
+    /**
+     * @deprecated the ECCDHwithSHA256CKDF service is now provided by {@link CDHwithSHA256CKDF}; this class is kept for
+     * binary compatibility and computes the same cofactor agreement.
+     */
+    public static class DHwithSHA256CKDF
+        extends KeyAgreementSpi
+    {
+        public DHwithSHA256CKDF()
+        {
+            super("ECDHwithSHA256CKDF", new ECDHCRawAgreement(), new ConcatenationKDFGenerator(DigestFactory.createSHA256()));
+        }
+    }
+
+    /**
+     * @deprecated the ECCDHwithSHA384CKDF service is now provided by {@link CDHwithSHA384CKDF}; this class is kept for
+     * binary compatibility and computes the same cofactor agreement.
+     */
+    public static class DHwithSHA384CKDF
+        extends KeyAgreementSpi
+    {
+        public DHwithSHA384CKDF()
+        {
+            super("ECDHwithSHA384CKDF", new ECDHCRawAgreement(), new ConcatenationKDFGenerator(DigestFactory.createSHA384()));
+        }
+    }
+
+    /**
+     * @deprecated the ECCDHwithSHA512CKDF service is now provided by {@link CDHwithSHA512CKDF}; this class is kept for
+     * binary compatibility and computes the same cofactor agreement.
+     */
+    public static class DHwithSHA512CKDF
+        extends KeyAgreementSpi
+    {
+        public DHwithSHA512CKDF()
+        {
+            super("ECDHwithSHA512CKDF", new ECDHCRawAgreement(), new ConcatenationKDFGenerator(DigestFactory.createSHA512()));
+        }
+    }
+
     public static class MQVwithSHA1CKDF
         extends KeyAgreementSpi
     {
