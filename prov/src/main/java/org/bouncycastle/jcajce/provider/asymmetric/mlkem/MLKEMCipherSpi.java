@@ -27,6 +27,7 @@ import org.bouncycastle.crypto.kems.MLKEMGenerator;
 import org.bouncycastle.crypto.params.MLKEMParameters;
 import org.bouncycastle.jcajce.provider.asymmetric.util.WrapUtil;
 import org.bouncycastle.jcajce.provider.util.SecurityExceptions;
+import org.bouncycastle.jcajce.provider.asymmetric.util.KdfUtil;
 import org.bouncycastle.jcajce.spec.KTSParameterSpec;
 import org.bouncycastle.jcajce.spec.MLKEMParameterSpec;
 import org.bouncycastle.util.Arrays;
@@ -146,6 +147,8 @@ public class MLKEMCipherSpi
             }
 
             kemParameterSpec = (KTSParameterSpec)paramSpec;
+
+            KdfUtil.checkKdfSupported(kemParameterSpec);
         }
 
         if (opmode == Cipher.WRAP_MODE)

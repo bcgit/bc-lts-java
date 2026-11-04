@@ -18,6 +18,7 @@ public class RegressionTest
         new BCFKSStoreTest(),
         new JKSStoreTest(),
         new KeyStoreLoadTest(),
+        new KeyAgreementInitParametersTest(),
         new BlockCipherTest(),
         new CamelliaTest(),
         new CertLocaleTest(),

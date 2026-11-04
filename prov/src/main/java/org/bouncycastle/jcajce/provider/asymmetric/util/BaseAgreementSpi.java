@@ -33,6 +33,7 @@ import org.bouncycastle.internal.asn1.misc.MiscObjectIdentifiers;
 import org.bouncycastle.internal.asn1.ntt.NTTObjectIdentifiers;
 import org.bouncycastle.internal.asn1.oiw.OIWObjectIdentifiers;
 import org.bouncycastle.jcajce.spec.HybridValueParameterSpec;
+import org.bouncycastle.jcajce.spec.UserKeyingMaterialSpec;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Integers;
@@ -166,6 +167,7 @@ public abstract class BaseAgreementSpi
     protected byte[] ukmParameters;
     protected byte[] ukmParametersSalt;
     private HybridValueParameterSpec hybridSpec;
+    private boolean completed;
 
     public BaseAgreementSpi(String kaAlgorithm, DerivationFunction kdf)
     {
@@ -283,6 +285,8 @@ public abstract class BaseAgreementSpi
         SecureRandom random)
         throws InvalidKeyException
     {
+        resetAgreement();
+
         try
         {
             doInitFromKey(key, null, random);
@@ -300,6 +304,8 @@ public abstract class BaseAgreementSpi
         SecureRandom random)
         throws InvalidKeyException, InvalidAlgorithmParameterException
     {
+        resetAgreement();
+
         if (params instanceof HybridValueParameterSpec)
         {
             this.hybridSpec = (HybridValueParameterSpec)params;
@@ -310,6 +316,56 @@ public abstract class BaseAgreementSpi
         {
             this.hybridSpec = null;
             doInitFromKey(key, params, random);
+        }
+    }
+
+    /**
+     * Record that the agreement has run to completion and its shared secret may now be generated.
+     * A subclass calls this on the successful return of the doPhase that completes the agreement.
+     */
+    protected void agreementCompleted()
+    {
+        this.completed = true;
+    }
+
+    /**
+     * Require a fresh agreement before the next shared secret. Called by the engineInit methods
+     * here; a subclass that overrides one of those rather than doInitFromKey must call this itself.
+     */
+    protected void resetAgreement()
+    {
+        this.completed = false;
+    }
+
+    /**
+     * Refuse a UserKeyingMaterialSpec whose salt this agreement would have no use for. Only an HKDF
+     * (RFC 5869) based agreement takes a KDF salt; every other agreement would silently derive its
+     * key without it, so a salt given to one is a mismatch between the caller and the algorithm.
+     *
+     * @param spec the user keying material the agreement was initialised with.
+     * @throws InvalidAlgorithmParameterException if the spec carries a salt and the KDF is not HKDF.
+     */
+    protected void checkKdfSalt(UserKeyingMaterialSpec spec)
+        throws InvalidAlgorithmParameterException
+    {
+        if (spec.getSalt() != null && !(kdf instanceof HKDFBytesGenerator))
+        {
+            throw new InvalidAlgorithmParameterException(kaAlgorithm + " key agreement does not use a KDF salt");
+        }
+    }
+
+    /**
+     * Refuse a shared secret asked for before the agreement has completed. javax.crypto.KeyAgreement
+     * specifies IllegalStateException for that state; without this each SPI would hand back whatever
+     * its result field happened to hold, which for DH was the private value itself.
+     *
+     * @throws IllegalStateException if no doPhase has completed the agreement since the last init.
+     */
+    protected void checkAgreementCompleted()
+    {
+        if (!completed)
+        {
+            throw new IllegalStateException(kaAlgorithm + " key agreement: doPhase must be called before generateSecret");
         }
     }
 
@@ -452,6 +508,8 @@ public abstract class BaseAgreementSpi
 
     private byte[] calcSecret()
     {
+        checkAgreementCompleted();
+
         if (hybridSpec != null)
         {
             // Set Z' to Z || T

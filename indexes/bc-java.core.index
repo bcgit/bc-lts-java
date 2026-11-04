@@ -665,7 +665,7 @@ e27b51ec31a0993b55d7722dd50b506ca3a65616d4941c3eaf552eeb56aae84a  core/src/main/
 1236e2238c5621f612e50f6ca2f8d3b2862c41ee97b0c4bd39f889d484c9154c  core/src/main/java/org/bouncycastle/crypto/params/DHUPublicParameters.java
 4100f1ae0c77982b7de39630dcc554234fac8a10fd640e4cf1eeb3d7019653cd  core/src/main/java/org/bouncycastle/crypto/params/MQVPrivateParameters.java
 952d5a39f123e757d2e43ac06554352107bc035c9a4244b807a90465badce42e  core/src/main/java/org/bouncycastle/crypto/params/KDFCounterParameters.java
-7b328c5c6f63a2efaffd1dd7fb3f7b4a4c691bdcbe70a0f5c116d33d4cf1d145  core/src/main/java/org/bouncycastle/crypto/params/KDFParameters.java
+322f53eca5ce2201160525d7a3602c209d8954ad0d70ecc52af8a27b9a2abacd  core/src/main/java/org/bouncycastle/crypto/params/KDFParameters.java
 9b7c153657f88accbd1319ce0dac9b9495e9de1d3eb6ba3f3086ec5c694f2d77  core/src/main/java/org/bouncycastle/crypto/params/XDHUPrivateParameters.java
 a5e7af7166d07104f506073bb8495d79f0eabc2aecb3f9d58237ccd93e352b4a  core/src/main/java/org/bouncycastle/crypto/params/ParametersWithSBox.java
 1d2ca1fc759bcdc2584df0e86aa9f1abe24f7aaca86312d626394ff7436d2c50  core/src/main/java/org/bouncycastle/crypto/params/AEADParameters.java
@@ -1780,3 +1780,4 @@ cf14fe8372ea438bee0e360c55b4f532bd2b03b816e352751a29e40d7faa53a5  core/src/test/
 e4f02183aba04f598896639307584dc46f43098789c3a35b7da269ec9edce1a8  core/src/test/java/org/bouncycastle/crypto/test/XofUtilsTest.java
 f9042256bf00f7a21e10b647aa2871d26a1b00ce45f12d3de36e5123e1e93353  core/src/test/java/org/bouncycastle/crypto/test/CryptoServicesRegistrarPropertyTest.java
 4a9a26a590229e25c9c2ca9ff6d9e63f7a40ae1caacaca19f73f3d3d784326a2  core/src/test/java/org/bouncycastle/crypto/test/ECGOST3410KeyEncodingTest.java
+db247e6887ebc8866bdfa90c723a18e25884f3532e17e380282eed3a8a605a1e  core/src/main/java/org/bouncycastle/crypto/util/ECGOST3410Util.java

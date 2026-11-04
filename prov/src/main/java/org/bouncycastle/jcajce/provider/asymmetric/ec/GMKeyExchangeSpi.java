@@ -63,6 +63,8 @@ public class GMKeyExchangeSpi
 
         result = engine.calculateKey(128, parameters);
 
+        agreementCompleted();
+
         return null;
     }
 

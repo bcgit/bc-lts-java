@@ -1,5 +1,7 @@
 package org.bouncycastle.jcajce.provider.asymmetric.util;
 
+import java.security.InvalidAlgorithmParameterException;
+
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
@@ -21,6 +23,7 @@ import org.bouncycastle.crypto.params.HKDFParameters;
 import org.bouncycastle.crypto.params.KDFParameters;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.jcajce.spec.KEMKDFSpec;
+import org.bouncycastle.jcajce.spec.KTSParameterSpec;
 import org.bouncycastle.util.Arrays;
 
 public class KdfUtil
@@ -104,7 +107,7 @@ public class KdfUtil
             }
             else
             {
-                throw new IllegalStateException("HDKF parameter support not added");
+                throw new IllegalStateException("HKDF parameter support not added");
             }
         }
         else if (PKCSObjectIdentifiers.id_alg_hkdf_with_sha384.equals(kdfAlgorithm.getAlgorithm()))
@@ -119,7 +122,7 @@ public class KdfUtil
             }
             else
             {
-                throw new IllegalStateException("HDKF parameter support not added");
+                throw new IllegalStateException("HKDF parameter support not added");
             }
         }
         else if (PKCSObjectIdentifiers.id_alg_hkdf_with_sha512.equals(kdfAlgorithm.getAlgorithm()))
@@ -134,7 +137,7 @@ public class KdfUtil
             }
             else
             {
-                throw new IllegalStateException("HDKF parameter support not added");
+                throw new IllegalStateException("HKDF parameter support not added");
             }
         }
         else if (NISTObjectIdentifiers.id_Kmac128.equals(kdfAlgorithm.getAlgorithm()))
@@ -184,6 +187,63 @@ public class KdfUtil
         }
 
         return keyBytes;
+    }
+
+    /**
+     * Refuse a KDF this provider cannot service, at the point the spec is accepted rather than at
+     * wrap or unwrap, where it would surface as an unchecked exception those methods do not declare.
+     * This is for the KTS key-wrapping Ciphers, which take their spec at init.
+     *
+     * @param ktsSpec the caller-supplied spec; a null KDF algorithm means no KDF and is accepted.
+     * @throws InvalidAlgorithmParameterException if the spec names a KDF that cannot be serviced.
+     */
+    public static void checkKdfSupported(KTSParameterSpec ktsSpec)
+        throws InvalidAlgorithmParameterException
+    {
+        AlgorithmIdentifier kdfAlgorithm = ktsSpec.getKdfAlgorithm();
+
+        if (kdfAlgorithm != null && !isSupportedKdf(kdfAlgorithm))
+        {
+            throw new InvalidAlgorithmParameterException("unsupported KDF: " + kdfAlgorithm.getAlgorithm());
+        }
+    }
+
+    /**
+     * Return true if makeKeyBytes can service the passed in KDF algorithm identifier - the branches
+     * there, with the parameters each accepts.
+     */
+    private static boolean isSupportedKdf(AlgorithmIdentifier kdfAlgorithm)
+    {
+        ASN1ObjectIdentifier kdfOid = kdfAlgorithm.getAlgorithm();
+
+        try
+        {
+            if (X9ObjectIdentifiers.id_kdf_kdf2.equals(kdfOid) || X9ObjectIdentifiers.id_kdf_kdf3.equals(kdfOid))
+            {
+                getDigest(AlgorithmIdentifier.getInstance(kdfAlgorithm.getParameters()).getAlgorithm());
+                return true;
+            }
+            if (PKCSObjectIdentifiers.id_alg_hkdf_with_sha256.equals(kdfOid)
+                || PKCSObjectIdentifiers.id_alg_hkdf_with_sha384.equals(kdfOid)
+                || PKCSObjectIdentifiers.id_alg_hkdf_with_sha512.equals(kdfOid))
+            {
+                return kdfAlgorithm.getParameters() == null;
+            }
+            if (NISTObjectIdentifiers.id_Kmac128.equals(kdfOid) || NISTObjectIdentifiers.id_Kmac256.equals(kdfOid))
+            {
+                if (kdfAlgorithm.getParameters() != null)
+                {
+                    ASN1OctetString.getInstance(kdfAlgorithm.getParameters());
+                }
+                return true;
+            }
+            return NISTObjectIdentifiers.id_shake256.equals(kdfOid);
+        }
+        catch (RuntimeException e)
+        {
+            // malformed or unrecognised parameters
+            return false;
+        }
     }
 
     static Digest getDigest(ASN1ObjectIdentifier oid)

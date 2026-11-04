@@ -11,6 +11,11 @@ import org.bouncycastle.internal.asn1.rosstandart.RosstandartObjectIdentifiers;
  * Shared logic for encoding ECGOST3410 keys, used by {@link SubjectPublicKeyInfoFactory} and
  * {@link PrivateKeyInfoFactory} so that the two stay in step.
  */
+// TODO[ecgost] The JCE provider does not use this: the four key classes under
+// org.bouncycastle.jcajce.provider.asymmetric.ecgost and .ecgost12 each carry their own encoder (taking the
+// algorithm OID from the class and 256/512 from a bitLength() heuristic) and their own decoder. The
+// consolidation notes on those classes point at delegating to the two factories here, so this class stays
+// package-private for now; it need only become public if the provider ends up calling the rule directly.
 class ECGOST3410Util
 {
     /**

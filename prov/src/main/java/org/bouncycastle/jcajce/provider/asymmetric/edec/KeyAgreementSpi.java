@@ -30,18 +30,25 @@ import org.bouncycastle.util.Properties;
 public class KeyAgreementSpi
     extends BaseAgreementSpi
 {
+    // taken from the real algorithm name: under EMULATE_ORACLE kaAlgorithm is "XDH" and is only for messages.
+    private final boolean isUnified;
+    private final String curve;
+
     private RawAgreement agreement;
     private DHUParameterSpec dhuSpec;
     private byte[] result;
 
     KeyAgreementSpi(String algorithm)
     {
-        super(Properties.isOverrideSet(Properties.EMULATE_ORACLE) ? "XDH" : algorithm, null);
+        this(algorithm, null);
     }
 
     KeyAgreementSpi(String algorithm, DerivationFunction kdf)
     {
         super(Properties.isOverrideSet(Properties.EMULATE_ORACLE) ? "XDH" : algorithm, kdf);
+
+        this.isUnified = algorithm.indexOf('U') >= 0;
+        this.curve = algorithm.startsWith("XDH") ? null : (algorithm.startsWith("X448") ? "X448" : "X25519");
     }
 
     protected byte[] doCalcSecret()
@@ -76,7 +83,7 @@ public class KeyAgreementSpi
         ukmParametersSalt = null;
         if (params instanceof DHUParameterSpec)
         {
-            if (kaAlgorithm.indexOf('U') < 0)
+            if (!isUnified)
             {
                 throw new InvalidAlgorithmParameterException("agreement algorithm not DHU based");
             }
@@ -91,6 +98,11 @@ public class KeyAgreementSpi
         }
         else if (params != null)
         {
+            if (isUnified)
+            {
+                throw new InvalidAlgorithmParameterException(kaAlgorithm + " key agreement requires DHUParameterSpec for initialisation");
+            }
+
             agreement.init(priv);
 
             if (params instanceof UserKeyingMaterialSpec)
@@ -99,6 +111,7 @@ public class KeyAgreementSpi
                 {
                     throw new InvalidAlgorithmParameterException("no KDF specified for UserKeyingMaterialSpec");
                 }
+                checkKdfSalt((UserKeyingMaterialSpec)params);
                 this.ukmParameters = ((UserKeyingMaterialSpec)params).getUserKeyingMaterial();
                 this.ukmParametersSalt = ((UserKeyingMaterialSpec)params).getSalt();
             }
@@ -109,12 +122,12 @@ public class KeyAgreementSpi
         }
         else
         {
-            agreement.init(priv);
-        }
+            if (isUnified)
+            {
+                throw new InvalidAlgorithmParameterException(kaAlgorithm + " key agreement requires DHUParameterSpec for initialisation");
+            }
 
-        if (kdf != null && ukmParameters == null)
-        {
-            ukmParameters = new byte[0];
+            agreement.init(priv);
         }
     }
 
@@ -149,18 +162,20 @@ public class KeyAgreementSpi
             agreement.calculateAgreement(pub, result, 0);
         }
 
+        agreementCompleted();
+
         return null;
     }
 
     private RawAgreement getAgreement(String alg)
         throws InvalidKeyException
     {
-        if (!(kaAlgorithm.equals("XDH") || kaAlgorithm.startsWith(alg)))
+        if (!(curve == null || curve.equals(alg)))
         {
             throw new InvalidKeyException("inappropriate key for " + kaAlgorithm);
         }
 
-        if (kaAlgorithm.indexOf('U') > 0)
+        if (isUnified)
         {
             if (alg.startsWith("X448"))
             {

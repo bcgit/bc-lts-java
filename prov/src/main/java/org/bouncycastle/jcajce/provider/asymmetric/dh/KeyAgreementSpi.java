@@ -153,6 +153,8 @@ public class KeyAgreementSpi
 
             result = unifiedAgreement.calculateAgreement(pKey);
 
+            agreementCompleted();
+
             return null;
         }
         else if (mqvAgreement != null)
@@ -168,6 +170,8 @@ public class KeyAgreementSpi
             DHMQVPublicParameters pKey = new DHMQVPublicParameters(staticKey, ephemKey);
 
             result = bigIntToBytes(mqvAgreement.calculateAgreement(pKey));
+
+            agreementCompleted();
 
             return null;
         }
@@ -191,6 +195,8 @@ public class KeyAgreementSpi
 
             if (lastPhase)
             {
+                agreementCompleted();
+
                 return null;
             }
 
@@ -322,6 +328,7 @@ public class KeyAgreementSpi
                 }
                 this.p = privKey.getParams().getP();
                 this.g = privKey.getParams().getG();
+                checkKdfSalt((UserKeyingMaterialSpec)params);
                 this.dheParameters = null;
                 this.ukmParameters = ((UserKeyingMaterialSpec)params).getUserKeyingMaterial();
             }
@@ -336,8 +343,17 @@ public class KeyAgreementSpi
             this.g = privKey.getParams().getG();
         }
 
+        // the unified and MQV agreements take their ephemeral keys from the spec, and doPhase reads it back - without one they would fail there rather than here.
+        if (unifiedAgreement != null && dheParameters == null)
+        {
+            throw new InvalidAlgorithmParameterException(kaAlgorithm + " key agreement requires DHUParameterSpec for initialisation");
+        }
+        if (mqvAgreement != null && mqvParameters == null)
+        {
+            throw new InvalidAlgorithmParameterException(kaAlgorithm + " key agreement requires MQVParameterSpec for initialisation");
+        }
+
         this.x = privKey.getX();
-        this.result = bigIntToBytes(x);
     }
 
     protected void engineInit(
@@ -345,9 +361,21 @@ public class KeyAgreementSpi
         SecureRandom    random) 
         throws InvalidKeyException
     {
+        resetAgreement();
+
         if (!(key instanceof DHPrivateKey))
         {
             throw new InvalidKeyException("DHKeyAgreement requires DHPrivateKey");
+        }
+
+        // the ephemeral half of a unified or MQV agreement only arrives with a spec, so this entry point cannot initialise one.
+        if (unifiedAgreement != null)
+        {
+            throw new InvalidKeyException(kaAlgorithm + " key agreement requires DHUParameterSpec for initialisation");
+        }
+        if (mqvAgreement != null)
+        {
+            throw new InvalidKeyException(kaAlgorithm + " key agreement requires MQVParameterSpec for initialisation");
         }
 
         DHPrivateKey    privKey = (DHPrivateKey)key;
@@ -356,7 +384,6 @@ public class KeyAgreementSpi
         this.g = privKey.getParams().getG();
         this.x = privKey.getX();
         this.random = CryptoServicesRegistrar.getSecureRandom(random);
-        this.result = bigIntToBytes(x);
     }
 
     protected byte[] doCalcSecret()
