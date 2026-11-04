@@ -63,6 +63,7 @@ import org.bouncycastle.asn1.isismtt.test.RestrictionUnitTest;
 import org.bouncycastle.asn1.smime.test.SMIMETest;
 import org.bouncycastle.util.test.SimpleTest;
 import org.bouncycastle.util.test.Test;
+import org.bouncycastle.asn1.cms.test.ContentTypeSequenceSizeTest;
 
 public class RegressionTest
 {
@@ -130,6 +131,7 @@ public class RegressionTest
         new RequestedCertificateUnitTest(),
         new RestrictionUnitTest(),
         new SMIMETest(),
+        new ContentTypeSequenceSizeTest(),
     };
 
     public static void main(String[] args)

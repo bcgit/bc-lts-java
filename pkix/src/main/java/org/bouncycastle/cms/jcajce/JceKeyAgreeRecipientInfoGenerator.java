@@ -156,6 +156,14 @@ public class JceKeyAgreeRecipientInfoGenerator
 
         ASN1ObjectIdentifier keyAgreementOID = keyAgreeAlgorithm.getAlgorithm();
 
+        // RFC 3370 sec. 4.1.2 (static-static DH) and RFC 4490 sec. 4.1.1 (GOST): the ukm MUST be present
+        // TODO Consider delegating to an OID classifier for static-key agreement schemes
+        if (userKeyingMaterial == null
+            && (PKCSObjectIdentifiers.id_alg_SSDH.equals(keyAgreementOID) || isGOST(keyAgreementOID)))
+        {
+            throw new CMSException("User keying material must be set for static keys.");
+        }
+
         init(keyAgreementOID);
 
         PrivateKey senderPrivateKey = this.senderPrivateKey;
@@ -168,12 +176,17 @@ public class JceKeyAgreeRecipientInfoGenerator
 
             try
             {
-                AlgorithmParameterSpec agreementParamSpec;
+                AlgorithmParameterSpec agreementParamSpec = null;
                 ASN1ObjectIdentifier keyEncryptionOID = keyEncryptionAlgorithm.getAlgorithm();
 
                 if (isMQV(keyAgreementOID))
                 {
-                    agreementParamSpec = new MQVParameterSpec(ephemeralKP, recipientPublicKey, userKeyingMaterial);
+                    // RFC 5753 sec. 3.2.2 / 7.2: the KDF SharedInfo is DER(ECC-CMS-SharedInfo), with the
+                    // addedukm as its entityUInfo, exactly as for ECDH
+                    byte[] ukmKeyingMaterial = ecc_cms_Generator.generateKDFMaterial(keyEncryptionAlgorithm,
+                        keySizeProvider.getKeySize(keyEncryptionOID), userKeyingMaterial);
+
+                    agreementParamSpec = new MQVParameterSpec(ephemeralKP, recipientPublicKey, ukmKeyingMaterial);
                 }
                 else if (isEC(keyAgreementOID))
                 {
@@ -191,30 +204,12 @@ public class JceKeyAgreeRecipientInfoGenerator
                         agreementParamSpec = new UserKeyingMaterialSpec(ukmKeyingMaterial);
                     }
                 }
-                else if (isRFC2631(keyAgreementOID))
+                else if (isGOST(keyAgreementOID) ||
+                         isRFC2631(keyAgreementOID))
                 {
                     if (userKeyingMaterial != null)
                     {
                         agreementParamSpec = new UserKeyingMaterialSpec(userKeyingMaterial);
-                    }
-                    else
-                    {
-                        if (keyAgreementOID.equals(PKCSObjectIdentifiers.id_alg_SSDH))
-                        {
-                            throw new CMSException("User keying material must be set for static keys.");
-                        }
-                        agreementParamSpec = null;
-                    }
-                }
-                else if (isGOST(keyAgreementOID))
-                {
-                    if (userKeyingMaterial != null)
-                    {
-                        agreementParamSpec = new UserKeyingMaterialSpec(userKeyingMaterial);
-                    }
-                    else
-                    {
-                        throw new CMSException("User keying material must be set for static keys.");
                     }
                 }
                 else
@@ -294,6 +289,12 @@ public class JceKeyAgreeRecipientInfoGenerator
         }
 
         return userKeyingMaterial;
+    }
+
+    protected void generationComplete()
+    {
+        // an MQV ephemeral key pair is shared by the recipients of one KeyAgreeRecipientInfo only
+        ephemeralKP = null;
     }
 
     private void init(ASN1ObjectIdentifier keyAgreementOID)

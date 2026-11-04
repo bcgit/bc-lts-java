@@ -337,7 +337,7 @@ a41305d126f651c40667e17ca5c428f1e124b87dbe0e3ba64f0e8564b9558320  util/src/main/
 15084b5b74ad3133653aed0a053f6220e8f599240a01c546c43c3f4b74726f5a  util/src/main/java/org/bouncycastle/asn1/cms/AuthEnvelopedData.java
 9a88af93e45818dc100241d14852cdceda4d2a1b3c6eb068dd25d671b9d41267  util/src/main/java/org/bouncycastle/asn1/cms/RecipientIdentifier.java
 1b474be8d9a05d873c7231455b9a6bdbf7022290781946304d3e8392857f78ab  util/src/main/java/org/bouncycastle/asn1/cms/SignerInfo.java
-52faf4c32ebd59656adbf253342346e1902213906a1ea3af2714a784214f7504  util/src/main/java/org/bouncycastle/asn1/cms/CompressedDataParser.java
+bc9682d674c5a649cc8cb76fb0f4d04edcb2c499c59fa0a3c8773bb1789ff7e5  util/src/main/java/org/bouncycastle/asn1/cms/CompressedDataParser.java
 c75268c29798960604a17d194b1cf7cc8824627ec2d36c533e1f29f8d0a8b96a  util/src/main/java/org/bouncycastle/asn1/cms/KeyTransRecipientInfo.java
 c726d7dfc9d76f0521847b59cea7567767478488d7989991aeac53d48246a162  util/src/main/java/org/bouncycastle/asn1/cms/OriginatorIdentifierOrKey.java
 c43f95cc9e7c124360b2c515ab2c61595dadf14b5f8ce87aaf3a037f881b35d4  util/src/main/java/org/bouncycastle/asn1/cms/Time.java
@@ -595,3 +595,4 @@ da4b36598956cdab49e2dccb8546709609a09e4435c1d2daad0bc56bf893a298  util/src/main/
 deae06e645fd286824ff21fc4f57a17a1b703485408bdb538d91af4c90a077ba  util/src/main/java/org/bouncycastle/asn1/est/CSRChallengeAttribute.java
 4ca8d9dd20472bd0e84cbe846ecea8d3c398f7a6909235e653f0006bcd20b474  util/src/main/java/org/bouncycastle/asn1/est/OtpChallenge.java
 ec8a60e389a9e88caefd16289552d73bac151660ad6e71e5d34976b3350d2d2d  util/src/main/java/org/bouncycastle/asn1/est/RevocationChallenge.java
+be1254d082527c577cf0788f82f37da8b616cfd65797f7a595bc3269bd40730c  util/src/test/java/org/bouncycastle/asn1/cms/test/ContentTypeSequenceSizeTest.java

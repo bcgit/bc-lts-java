@@ -65,6 +65,7 @@ import org.bouncycastle.operator.OidCatalogue;
 import org.bouncycastle.operator.OutputAEADEncryptor;
 import org.bouncycastle.operator.OutputEncryptor;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.Store;
 import org.bouncycastle.util.io.Streams;
@@ -916,5 +917,21 @@ class CMSUtils
     static Map getEmptyParameters()
     {
         return Collections.EMPTY_MAP;
+    }
+
+    /**
+     * Build an attribute table, reporting a set element that is not an Attribute as an IOException.
+     */
+    static AttributeTable getAttributeTable(ASN1Set set)
+        throws IOException
+    {
+        try
+        {
+            return new AttributeTable(set);
+        }
+        catch (IllegalArgumentException e)
+        {
+            throw Exceptions.ioException("malformed attribute: " + e.getMessage(), e);
+        }
     }
 }

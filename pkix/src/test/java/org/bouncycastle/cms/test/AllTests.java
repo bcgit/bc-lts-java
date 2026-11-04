@@ -25,6 +25,7 @@ public class AllTests
         suite.addTest(NewSignedDataTest.suite());
         suite.addTest(NewEnvelopedDataTest.suite());
         suite.addTest(NewAuthenticatedDataTest.suite());
+        suite.addTestSuite(CMSMalformedContentTest.class);
         suite.addTest(NewAuthenticatedDataStreamTest.suite());
         suite.addTest(NewCompressedDataStreamTest.suite());
         suite.addTest(NewSignedDataStreamTest.suite());
