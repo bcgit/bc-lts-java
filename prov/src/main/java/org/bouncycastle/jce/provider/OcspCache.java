@@ -41,6 +41,7 @@ import org.bouncycastle.asn1.x509.Extensions;
 import org.bouncycastle.jcajce.PKIXCertRevocationCheckerParameters;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Exceptions;
 import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.io.StreamOverflowException;
 import org.bouncycastle.util.io.Streams;
@@ -55,6 +56,13 @@ class OcspCache
      * the future. 15 minutes, matching what the JDK's own OCSP client allows.
      */
     static final long MAX_CLOCK_SKEW_MS = 15 * 60 * 1000L;
+
+    /**
+     * Default for {@link Properties#OCSP_MAX_RESPONSE_AGE}: how old, in seconds, a response
+     * stating no nextUpdate may be. One hour, the default lifetime of a staple in SunJSSE's server
+     * cache, so a staple such a server still offers is not refused.
+     */
+    private static final int DEFAULT_MAX_RESPONSE_AGE = 60 * 60;
 
     private static Map<URI, WeakReference<Map<CertID, OCSPResponse>>> cache
         = Collections.synchronizedMap(new WeakHashMap<URI, WeakReference<Map<CertID, OCSPResponse>>>());
@@ -164,17 +172,21 @@ class OcspCache
 
             InputStream reqIn = ocspCon.getInputStream();
 
-            OCSPResponse response = OCSPResponse.getInstance(
-                readResponse(reqIn, getResponseSizeLimit(ocspCon.getContentLength())));
+            OCSPResponse response = decodeResponse(readResponse(reqIn, getResponseSizeLimit(ocspCon.getContentLength())));
 
             if (OCSPResponseStatus.SUCCESSFUL == response.getResponseStatus().getIntValue())
             {
                 boolean validated = false;
-                ResponseBytes respBytes = ResponseBytes.getInstance(response.getResponseBytes());
+                ResponseBytes respBytes = response.getResponseBytes();
+
+                if (respBytes == null)
+                {
+                    throw new IOException("successful OCSP response carries no response bytes");
+                }
 
                 if (respBytes.getResponseType().equals(OCSPObjectIdentifiers.id_pkix_ocsp_basic))
                 {
-                    BasicOCSPResponse basicResp = BasicOCSPResponse.getInstance(respBytes.getResponse().getOctets());
+                    BasicOCSPResponse basicResp = decodeBasicResponse(respBytes);
 
                     validated = ProvOcspRevocationChecker.validatedOcspResponse(basicResp, parameters, nonce, responderCert, helper)
                                 && isCertIDFoundAndCurrent(basicResp, parameters.getValidDate(), certID);
@@ -222,6 +234,36 @@ class OcspCache
     }
 
     /**
+     * Decode a responder's reply. A reply that will not decode is reported as an IOException, as an
+     * unreachable responder is, so that it is recoverable and CRL checking can take over.
+     */
+    private static OCSPResponse decodeResponse(byte[] encoding)
+        throws IOException
+    {
+        try
+        {
+            return OCSPResponse.getInstance(encoding);
+        }
+        catch (RuntimeException e)
+        {
+            throw Exceptions.ioException("malformed OCSP response: " + e.getMessage(), e);
+        }
+    }
+
+    private static BasicOCSPResponse decodeBasicResponse(ResponseBytes respBytes)
+        throws IOException
+    {
+        try
+        {
+            return BasicOCSPResponse.getInstance(respBytes.getResponse().getOctets());
+        }
+        catch (RuntimeException e)
+        {
+            throw Exceptions.ioException("malformed OCSP response: " + e.getMessage(), e);
+        }
+    }
+
+    /**
      * Read the response, up to responseSizeLimit bytes. Streams.readAllLimited reports an
      * over-long stream as a bare "Data Overflow", which says nothing about what was being read or
      * what to change, so it is restated here in terms of the limit and the property that sets it.
@@ -252,13 +294,7 @@ class OcspCache
      */
     static int getResponseSizeLimit(int contentLength)
     {
-        int maxResponseSize = Properties.asInteger(Properties.OCSP_MAX_RESPONSE_SIZE, DEFAULT_MAX_RESPONSE_SIZE);
-
-        // a configured value that cannot be a size is no reason to read without a limit
-        if (maxResponseSize <= 0)
-        {
-            maxResponseSize = DEFAULT_MAX_RESPONSE_SIZE;
-        }
+        int maxResponseSize = getPositiveIntProperty(Properties.OCSP_MAX_RESPONSE_SIZE, DEFAULT_MAX_RESPONSE_SIZE);
 
         if (contentLength < 0 || contentLength > maxResponseSize)
         {
@@ -271,7 +307,7 @@ class OcspCache
     /**
      * Whether the response answers for certID and is usable at validDate. Applied to a response as
      * it arrives from the responder, so a missing nextUpdate is no objection - the responder is
-     * entitled not to state one.
+     * entitled not to state one - provided thisUpdate is recent, see {@link #isTooOld}.
      */
     static boolean isCertIDFoundAndCurrent(BasicOCSPResponse basicResp, Date validDate, CertID certID)
     {
@@ -323,6 +359,11 @@ class OcspCache
                     {
                         return false;
                     }
+
+                    if (isTooOld(resp.getThisUpdate(), nextUp, validDate))
+                    {
+                        return false;
+                    }
                 }
                 catch (ParseException e)
                 {
@@ -345,5 +386,45 @@ class OcspCache
         throws ParseException
     {
         return thisUpdate != null && thisUpdate.getDate().getTime() > (validDate.getTime() + MAX_CLOCK_SKEW_MS);
+    }
+
+    /**
+     * Whether a response stating no nextUpdate is too old to be relied on at validDate. RFC 6960
+     * sec. 3.2 leaves it to the client to judge whether thisUpdate is sufficiently recent, and with
+     * no nextUpdate nothing else says how long the response may be relied on. The bound is {@link Properties#OCSP_MAX_RESPONSE_AGE}, defaulting
+     * to one hour. A response that states a nextUpdate is judged by that and never by this.
+     */
+    static boolean isTooOld(ASN1GeneralizedTime thisUpdate, ASN1GeneralizedTime nextUpdate, Date validDate)
+        throws ParseException
+    {
+        if (nextUpdate != null || thisUpdate == null)
+        {
+            return false;
+        }
+
+        return thisUpdate.getDate().getTime() < (validDate.getTime() - getMaxResponseAgeMs());
+    }
+
+    private static long getMaxResponseAgeMs()
+    {
+        return getPositiveIntProperty(Properties.OCSP_MAX_RESPONSE_AGE, DEFAULT_MAX_RESPONSE_AGE) * 1000L;
+    }
+
+    /**
+     * A positive integer property, the default where it is unset or is not a positive integer - a
+     * mistyped value is no reason to lift the limit it sets, or to fail the check it governs.
+     */
+    private static int getPositiveIntProperty(String propertyName, int defaultValue)
+    {
+        try
+        {
+            int value = Properties.asInteger(propertyName, defaultValue);
+
+            return (value > 0) ? value : defaultValue;
+        }
+        catch (NumberFormatException e)
+        {
+            return defaultValue;
+        }
     }
 }

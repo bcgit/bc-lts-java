@@ -242,14 +242,29 @@ class ProvOcspRevocationChecker
 
         if (!ocspResponses.isEmpty())
         {
-            OCSPResponse ocspResponse = OCSPResponse.getInstance(ocspResponses.get(cert));
+            OCSPResponse ocspResponse;
+            try
+            {
+                ocspResponse = OCSPResponse.getInstance(ocspResponses.get(cert));
+            }
+            catch (RuntimeException e)
+            {
+                throw new CertPathValidatorException(
+                    "unable to process OCSP response", e, parameters.getCertPath(), parameters.getIndex());
+            }
             ASN1Integer serialNumber = new ASN1Integer(cert.getSerialNumber());
 
             if (ocspResponse != null)
             {
                 if (OCSPResponseStatus.SUCCESSFUL == ocspResponse.getResponseStatus().getIntValue())
                 {
-                    ResponseBytes respBytes = ResponseBytes.getInstance(ocspResponse.getResponseBytes());
+                    ResponseBytes respBytes = ocspResponse.getResponseBytes();
+
+                    if (respBytes == null)
+                    {
+                        throw new CertPathValidatorException(
+                            "unable to process OCSP response", null, parameters.getCertPath(), parameters.getIndex());
+                    }
 
                     if (respBytes.getResponseType().equals(OCSPObjectIdentifiers.id_pkix_ocsp_basic))
                     {
@@ -285,6 +300,11 @@ class ProvOcspRevocationChecker
                                     if (OcspCache.isFromTheFuture(resp.getThisUpdate(), parameters.getValidDate()))
                                     {
                                         throw new CertPathValidatorException("OCSP response not yet valid");
+                                    }
+                                    // with no nextUpdate, thisUpdate must be sufficiently recent (RFC 6960 sec. 3.2), see Properties.OCSP_MAX_RESPONSE_AGE
+                                    if (OcspCache.isTooOld(resp.getThisUpdate(), nextUp, parameters.getValidDate()))
+                                    {
+                                        throw new CertPathValidatorException("OCSP response without nextUpdate too old");
                                     }
                                     if (certID == null || !isEqualAlgId(certID.getHashAlgorithm(), resp.getCertID().getHashAlgorithm()))
                                     {

@@ -610,7 +610,7 @@ bcf057a71ed923c6fbad84e254ed13afe955f71976f8814103372884f59b8903  tls/src/test/j
 cd414944b60d6508ea952d672ab9156d1fa5dcef72dfb0c96aa9bbd8c6a3943e  tls/src/test/java/org/bouncycastle/jsse/provider/test/HandshakeTimeoutTest.java
 498f7df9e5828569982b911b6b82b0ab8bb59ee89e6290c32ff6c9bd744ead4e  tls/src/main/java/org/bouncycastle/jsse/provider/OcspStaple.java
 bb9efa6021610e4a3dc32788a6f709cf08154895bb8b22711ab2a1655073aeaf  tls/src/main/java/org/bouncycastle/jsse/provider/OcspStapleFetcher.java
-ff075bf0c412bfc97b7e3cb0e31895c9255b1ad4b397aecf72183993a7b043cc  tls/src/main/java/org/bouncycastle/jsse/provider/OcspStapleHttpFetcher.java
+f96e1e5e5bdf53b1a5ad22fef544653edc37ccccecb8c514fe92a291e7d0c318  tls/src/main/java/org/bouncycastle/jsse/provider/OcspStapleHttpFetcher.java
 320485eb313de40b8304bf3801d1dc17052252b563fe85298a8933474f9bf88f  tls/src/main/java/org/bouncycastle/jsse/provider/OcspStapleCache.java
 838842a1564234546455a79c7931c9afa32f628bd0696d872a5e9a841498155b  tls/src/test/java/org/bouncycastle/jsse/provider/test/OcspStaplingTest.java
 8fbb6e1924c9d5e4938718e04cd3d97858bbd7cd571050570189acd1c3f07243  tls/src/test/java/org/bouncycastle/jsse/provider/test/TestOCSPResponder.java
@@ -631,3 +631,4 @@ aa5f23bd6f52ef95b32943105e8de19fee25595f190d1a479475ff3e6bc125bd  tls/src/test/j
 f4444ba7ee31ace7a53f600341bd031817fc547e4d576756fa636ea5888ea4e6  tls/src/test/java/org/bouncycastle/tls/test/JcaTlsProtocolHybridForeignKeysTest.java
 5d3d88631e7d98129645ba530d37e0548eea552f07ec26d61b04b4772fe92306  tls/src/test/java/org/bouncycastle/tls/test/JcaTlsProtocolKemForeignKeysTest.java
 904f796d49e1fbbd820a127f25c378131905cc8ed935cd7a4ebdfd6a57b66345  tls/src/test/java/org/bouncycastle/jsse/provider/ProvAlgorithmCheckerSigAlgNameTest.java
+efa7fde1f591f1ef5837e62749ce59fac6029f4fff053bb92e27d885a4b2cbb3  tls/src/test/java/org/bouncycastle/jsse/provider/OcspStapleHttpFetcherTest.java

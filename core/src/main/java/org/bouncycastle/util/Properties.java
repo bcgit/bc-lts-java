@@ -114,12 +114,24 @@ public class Properties
      * stapling fetch - will read from a responder.
      * A responder's Content-Length can narrow this but never widen it, so a responder declaring
      * (and sending) hundreds of megabytes is cut off rather than read into the heap. Default is
-     * 64K, which is far above any real response; a value of zero or less is ignored and the
-     * default used, so a mistyped value cannot turn the limit off. Exceeding the limit fails the
+     * 64K, which is far above any real response; a value that is not a positive integer is
+     * ignored and the default used, so a mistyped value cannot turn the limit off. Exceeding the limit fails the
      * OCSP check the same way an unreachable responder does, so a caller with CRLs configured
      * falls back to those.
      */
     public static final String OCSP_MAX_RESPONSE_SIZE = "org.bouncycastle.ocsp.max_response_size";
+
+    /**
+     * The oldest, in seconds before the validation date, an OCSP response stating no nextUpdate
+     * may be for the CertPath validator to accept it. RFC 6960 sec. 3.2 leaves it to the client to
+     * judge whether thisUpdate is sufficiently recent, and a response without a nextUpdate gives
+     * no other indication of how long it may be relied on. Default is 3600 (one hour, the default
+     * lifetime of a staple in SunJSSE's server cache, so a BCJSSE client accepts such a staple for
+     * as long as a SunJSSE server will offer it); narrow it, or widen it for responders that
+     * pre-produce responses without a nextUpdate. A value that is not a positive integer number of seconds is ignored and the
+     * default used, so a mistyped value cannot turn the bound off. A response that states a nextUpdate is judged by that instead.
+     */
+    public static final String OCSP_MAX_RESPONSE_AGE = "org.bouncycastle.ocsp.max_response_age";
 
     /**
      * The longest OpenPGP ASCII armor header line, in bytes, ArmoredInputStream will accumulate.
