@@ -581,6 +581,18 @@ public class Properties
     public static final String CMS_MAX_DIGEST_ALGORITHMS = "org.bouncycastle.cms.max_digest_algorithms";
 
     /**
+     * Whether a time-stamp token whose signing-time signed attribute disagrees with the genTime of its
+     * TSTInfo is accepted. Default false.
+     * <p>
+     * Both values are the TSA's own statement of when the token was produced, so a genuine RFC 3161 token
+     * carries either no signing-time attribute or one within the token's accuracy of genTime. The
+     * {@code TimeStampToken} constructor rejects a token in which the two differ by more than the accuracy
+     * plus a one minute allowance; set to "true" to accept such a token regardless. Read via
+     * {@link #isOverrideSet(String)}.
+     */
+    public static final String TSP_ALLOW_INCONSISTENT_SIGNING_TIME = "org.bouncycastle.tsp.allow_inconsistent_signing_time";
+
+    /**
      * Whether a CMS AuthenticatedData message without authenticated attributes may carry a non-zero
      * initialisation vector for a CBC-MAC (des-ede3-cbc or rc2-cbc as its macAlgorithm). Default false.
      * <p>
