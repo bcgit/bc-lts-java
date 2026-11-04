@@ -19,10 +19,9 @@ public class MLKEMSpi
     public EncapsulatorSpi engineNewEncapsulator(PublicKey publicKey, AlgorithmParameterSpec spec, SecureRandom secureRandom)
             throws InvalidAlgorithmParameterException, InvalidKeyException
     {
-        if (!(publicKey instanceof BCMLKEMPublicKey))
-        {
-            throw new InvalidKeyException("unsupported key");
-        }
+        // a key from another provider is converted via its encoding
+        BCMLKEMPublicKey bcPublicKey = Utils.toBCPublicKey(publicKey);
+
         if (spec == null)
         {
             // Do not wrap key, no KDF
@@ -36,17 +35,16 @@ public class MLKEMSpi
         {
             secureRandom = new SecureRandom();
         }
-        return new MLKEMEncapsulatorSpi((BCMLKEMPublicKey) publicKey, (KTSParameterSpec) spec, secureRandom);
+        return new MLKEMEncapsulatorSpi(bcPublicKey, (KTSParameterSpec) spec, secureRandom);
     }
 
     @Override
     public DecapsulatorSpi engineNewDecapsulator(PrivateKey privateKey, AlgorithmParameterSpec spec)
             throws InvalidAlgorithmParameterException, InvalidKeyException
     {
-        if (!(privateKey instanceof BCMLKEMPrivateKey))
-        {
-            throw new InvalidKeyException("unsupported key");
-        }
+        // a key from another provider is converted via its encoding
+        BCMLKEMPrivateKey bcPrivateKey = Utils.toBCPrivateKey(privateKey);
+
         if (spec == null)
         {
             // Do not unwrap key, no KDF
@@ -56,6 +54,6 @@ public class MLKEMSpi
         {
             throw new InvalidAlgorithmParameterException("MLKEM can only accept KTSParameterSpec");
         }
-        return new MLKEMDecapsulatorSpi((BCMLKEMPrivateKey) privateKey, (KTSParameterSpec) spec);
+        return new MLKEMDecapsulatorSpi(bcPrivateKey, (KTSParameterSpec) spec);
     }
 }
