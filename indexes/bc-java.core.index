@@ -281,7 +281,7 @@ a5c00a66ad013673a7df4a7df76d59cd4afe53db3287bce8831a64bdd93ba29c  core/src/test/
 3f9fe70a8a7d1f5029eb4abab38315cd172a70466cb30a104edeb5c7f1960e43  core/src/test/java/org/bouncycastle/asn1/test/IssuingDistributionPointUnitTest.java
 cb956ce33bcb30846e388843550be3e654a63be16494dc218e746499ad022ae5  core/src/test/java/org/bouncycastle/asn1/test/PKCS10Test.java
 aa05a64047779442c0fc2671292aca01da19ee7488039c6c59407a3bc10ee066  core/src/test/java/org/bouncycastle/asn1/test/MonetaryValueUnitTest.java
-26044738987a8e1a45f1df9dceac1186f963befa9d7865383dd4b8f21cb7d835  core/src/test/java/org/bouncycastle/asn1/test/ASN1IntegerTest.java
+2416e1e2d9d86235b1197a1bca4e6af681a5ed10e602642165649a841d9e6c84  core/src/test/java/org/bouncycastle/asn1/test/ASN1IntegerTest.java
 0787cb9c65515f653174c8064c21ef1eae9ffc9fb632b644d17d047517f212df  core/src/test/java/org/bouncycastle/asn1/test/TagTest.java
 57a7231ecb609cc29739a47d6cee3870750b90a055ede8e166baa5555b03e22f  core/src/test/java/org/bouncycastle/asn1/test/ParsingTest.java
 6d0ad4c77a9d0525d1642d19754468f86cae1898e4eed5b5b3d5a23c1360c540  core/src/test/java/org/bouncycastle/asn1/test/SemanticsInformationUnitTest.java
