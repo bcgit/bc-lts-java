@@ -19,6 +19,7 @@ public class RegressionTest
         new JKSStoreTest(),
         new KeyStoreLoadTest(),
         new KeyAgreementInitParametersTest(),
+        new LDAPUtilsTest(),
         new BlockCipherTest(),
         new CamelliaTest(),
         new CertLocaleTest(),

@@ -607,7 +607,7 @@ f5703f9d630ffbb3009055c79f21f023a8a9feec7fb6724d697e2e74a5e59582  prov/src/main/
 bb6cc1a6fe41d719cdd13ce54ea473a115a0ecebcc90b954573e163ad31d1aa7  prov/src/main/java/org/bouncycastle/jce/package-info.java
 dc7f27386418d1903d9e644138e2ef3808b817df0bc2160abe26dab8d566a3ed  prov/src/main/java/org/bouncycastle/jce/provider/BouncyCastleProvider.java
 16fc93eaacda03b78be062dbc1eb37c4f531d87eca7708e36beb3ab9b25ad815  prov/src/main/java/org/bouncycastle/jce/spec/package-info.java
-fee7afeaa993bc535788a41d69ffe451af09dc8c02b89e7ac15d3c91488122aa  prov/src/main/java/org/bouncycastle/ldap/LDAPUtils.java
+080314be77b205ffb17a8bf4ae1744ed6129bc0d39a0c4c2cf53bcfe5d58021a  prov/src/main/java/org/bouncycastle/ldap/LDAPUtils.java
 133cd4322a2d26e67a6631885ae1e4c58c7bae1a59a03374ba37bd8feeb4a67d  prov/src/main/java/org/bouncycastle/pqc/jcajce/interfaces/LMSKey.java
 4412039849b0ce2c2c5d8dd9d7a27071648cc1c6406b76e4b05980341e44fd16  prov/src/main/java/org/bouncycastle/pqc/jcajce/interfaces/LMSPrivateKey.java
 bfd7cbbd4e161b0e74ed9c520873371ee38325522115d715f76618318dd00cd0  prov/src/main/java/org/bouncycastle/pqc/jcajce/provider/util/AsymmetricBlockCipher.java
@@ -653,3 +653,4 @@ d48a10d8c6b89e70c0a2913444ec5a7ecf28d3e98e3d83b9731c398b79749419  prov/src/test/
 dada0e4cd96bc88b42fafa13b2ce51e59fed60e699b5cb1b05e81c5250643fb2  prov/src/main/java/org/bouncycastle/jce/provider/ProvCertRevocationCheckerParameters.java
 49f9b2ee110a55a7e148d97e9fbcc9b1775062bb421448ebeea65dd625a11efc  prov/src/test/java/org/bouncycastle/jce/provider/test/CrlReasonCodeTest.java
 f0ce616bc4f387d9cff8097f25baf94319c741cf3d9ada43ca287e6b22288142  prov/src/test/java/org/bouncycastle/jce/provider/OcspCacheTest.java
+5a58f34161df3d8f32595938de1f1399fb03af9be989e7865214f5b68c283e80  prov/src/test/java/org/bouncycastle/jce/provider/test/LDAPUtilsTest.java

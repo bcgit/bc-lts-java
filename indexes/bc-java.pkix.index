@@ -38,11 +38,11 @@ a7b0669575fc3c119d19f279e24e38592e03f63ccae47ed341424d4a489ddda0  pkix/src/test/
 cafda1bff0c6e88da75fb28a94b3e48809b1ff2726a7677c426dc4cf647fa9b1  pkix/src/test/java/org/bouncycastle/est/test/HostNameAuthorizerMatchTest.java
 dc0069a56260dc091f1ff8cc1dab510a74050eaac5c371ab9b38b886e400ba6f  pkix/src/test/java/org/bouncycastle/est/test/ESTParsingTest.java
 b0dfb604d79d0913e9393b47e171b3dc07fa88c17760d2a2793f0d7d8fa9aa3d  pkix/src/test/java/org/bouncycastle/est/test/TestHostNameAuthorizer.java
-28e8f4d8d0e0f5b239ab979486f0390f10a5adf177edf06cd500a2149838e908  pkix/src/test/java/org/bouncycastle/cert/path/test/AllTests.java
+d284fb4054008c137769964c9c4edaa4db743ed54e3c1256e27b26452745ffad  pkix/src/test/java/org/bouncycastle/cert/path/test/AllTests.java
 cb5637f8f20c86701e047cf719440df383288bf2de85f9bb75ddaecb5a60cc99  pkix/src/test/java/org/bouncycastle/cert/path/test/CertPathTest.java
 a5ded3b7b7eb258d55078799aab917ed1e696086a10d250db3a6a78ee287509f  pkix/src/test/java/org/bouncycastle/cert/path/test/PKITSBasicConstraintsTest.java
-ce0404a23d3f32363ab7174da1daaf6f043e6ba0305a88cd028971b5d34015c3  pkix/src/test/java/org/bouncycastle/cert/path/test/BasicConstraintsTest.java
-ebd038257c48b79d01afe0b1d0a9051952d06b20b95086d848d2e259683a5879  pkix/src/test/java/org/bouncycastle/cert/path/test/CertPathValidationTest.java
+d2fe5d53e512b51f777847522eaa2ecf31d3f7e4876f9510a5660cbfc9c79398  pkix/src/test/java/org/bouncycastle/cert/path/test/BasicConstraintsTest.java
+bc20c9a54dd2f879dc1ceb6441a0e5840aa4f20064045b28794ccbf7566dc152  pkix/src/test/java/org/bouncycastle/cert/path/test/CertPathValidationTest.java
 1e27b9e9bd09dfa7d590000e2be43deb5ba1e53bf5ec1704097fabd3e37fa69d  pkix/src/test/java/org/bouncycastle/cert/test/CertPathLoopTest.java
 e92e9faafddb1a34e106d01ce562739cb07998c6ca41561fb76f88dd60e7adb4  pkix/src/test/java/org/bouncycastle/cert/test/GOST3410_2012CMSTest.java
 aad83c37bd42facadffcb2d74ad4c73087c35bd3d8dbb29df79521421e4fd3af  pkix/src/test/java/org/bouncycastle/cert/test/AllTests.java
@@ -369,8 +369,8 @@ b69dd84d5c448114ef397c9a315a62f9e77d9ebb4f11ec49b99a9b73f7b447ca  pkix/src/main/
 6654aca2fda869061e1961ade3e83c56e7b1a40c51105cdef511017d8e35f07e  pkix/src/main/java/org/bouncycastle/cert/path/CertPathValidationResultBuilder.java
 4911a5e2d097bc78f242b1d0ed19802aca7ab588538acae8b00b20cbbb0a892f  pkix/src/main/java/org/bouncycastle/cert/path/CertPathValidationResult.java
 3095a64c0e7652b0c27819ec6d05eb3792dabff1d1f05b27a2b3b6ab9c415752  pkix/src/main/java/org/bouncycastle/cert/path/validations/KeyUsageValidation.java
-ebd4422015f024cf65c4df500f79252ed388f3bf8da265fa4b115dc5ccef8552  pkix/src/main/java/org/bouncycastle/cert/path/validations/CRLValidation.java
-621ccce66f5c59c000d334d1dd36dbd12b648ae2f4d309adcbbee9847bfb3b42  pkix/src/main/java/org/bouncycastle/cert/path/validations/BasicConstraintsValidation.java
+2e7bd2a655068f261d982cf6325d0e98655b4c24d8863541c9dce413e3895d6d  pkix/src/main/java/org/bouncycastle/cert/path/validations/CRLValidation.java
+c952970d3709c8fe277820e2a0008d470419aeed9b748e65e74daf35e1a21414  pkix/src/main/java/org/bouncycastle/cert/path/validations/BasicConstraintsValidation.java
 e0e9b7ee3debcaaf0de8fd98739ce140fc836672b9d571a878afd92de0a2364f  pkix/src/main/java/org/bouncycastle/cert/path/validations/ValidationUtils.java
 d2cf4d595380b6506cd29dad776f2df28a20d1c7182e94a0cc29ddc0e947128b  pkix/src/main/java/org/bouncycastle/cert/path/validations/CertificatePoliciesValidationBuilder.java
 c7e3ba21da049af988f4c94398fe09d9361bab805b0ff0c85102284dcdd646d1  pkix/src/main/java/org/bouncycastle/cert/path/validations/ParentCertIssuedValidation.java
@@ -749,7 +749,7 @@ f72c728af6f54a0c34c096950c6826c62fb1cd203bdead0d5194e633b5c77eb1  pkix/src/main/
 e5caa8dd8c814254166adf279f45d3ab07c988bcda4b3cae3438129612c84001  pkix/src/main/java/org/bouncycastle/cert/ocsp/package-info.java
 5dc97899febdf5d767fd35762295d10b6ceb08f40682bbc8f1a3ff00a77b867b  pkix/src/main/java/org/bouncycastle/cert/package-info.java
 f025fbbc79a3c9f448598afdae1f579239d5f2d4d10e127f438bb2e2e2b65748  pkix/src/main/java/org/bouncycastle/cert/path/CertPathValidationContext.java
-fcdf2a25ab86b007950419ce497b4b65c76c357435226599d2731ee37f77ede9  pkix/src/main/java/org/bouncycastle/cert/path/validations/CertificatePoliciesValidation.java
+d591fd6d8b1132c7692b52f10ea08c94c43dc4b36a3d3f4b59273bbe2707e7a3  pkix/src/main/java/org/bouncycastle/cert/path/validations/CertificatePoliciesValidation.java
 7a7d801f16276b3289d0b9f6a9ef67b4dd4cb7958943b4b8ad7ea0dcac69a8d0  pkix/src/main/java/org/bouncycastle/cert/selector/package-info.java
 b10c612a02ac1d24e539dda9d508fe2fd557aee91b235c125ababc6c01274d8e  pkix/src/main/java/org/bouncycastle/cmc/PKIResponseBuilder.java
 6e4234dcfa9baf6a4a96bc8c6769933c478a0031c988ef7dfc5e4fc150042fa5  pkix/src/main/java/org/bouncycastle/cms/AbstractKeyAgreeRecipient.java
@@ -864,3 +864,4 @@ bd5a769ec588b0838de8b4330be1fd2006504a1c54b951864d92755e607f6ae2  pkix/src/test/
 b151f0b376a472866f049e902341e3c2ecfa52de4f2772fe87239a8c98e78e3a  pkix/src/test/java/org/bouncycastle/cert/test/IndirectCRLSerialCollisionTest.java
 690b6c58ae1a04b91a70e6fc7ac963fa9fda32197e205e307bb57f56c498bfab  pkix/src/test/java/org/bouncycastle/pkix/test/CrlReasonCodeTest.java
 1711558a10ceeeb92d35d98304f37e286e7dbbc6fe75d060636a399a7e7e2ea2  pkix/src/test/java/org/bouncycastle/cert/ocsp/test/PKIXOcspRevocationCheckerTest.java
+fdf2e0cb89b83873355f046e73ca4e05d63e34e2be5f1308138c3d3fb6f9b54a  pkix/src/test/java/org/bouncycastle/cert/path/test/CertPathValidationRulesTest.java
