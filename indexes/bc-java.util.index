@@ -63,7 +63,7 @@ e1b2123a97c37a8e26c27dac770dc9f1c94d4c905eddf38967f14365d2987604  util/src/test/
 baa59b54ba9c330cefa2346fc6d07762df4caf3c615fd9e1122c67f1b1ca4596  util/src/test/java/org/bouncycastle/asn1/isismtt/test/RequestedCertificateUnitTest.java
 2faa3982e093866f86aba0bbda36508665543bb58c7e9fa9fd65fff4c9d9605d  util/src/test/java/org/bouncycastle/asn1/isismtt/test/NamingAuthorityUnitTest.java
 5ea6f1899ca1a40e88900f6b2810f778bb943c7d2f1f9a9a87b64e5a879d96ef  util/src/test/java/org/bouncycastle/asn1/crmf/test/DhSigStaticTest.java
-93b0560c64e88f9782fbe647b47252ecfa65cdbdde09af2810a688e1b914bba2  util/src/test/java/org/bouncycastle/asn1/crmf/test/PKIPublicationInfoTest.java
+b2f2644b70e9dab833d270d136ba4b877e94f87e56a74c3e8e7d6290e4809266  util/src/test/java/org/bouncycastle/asn1/crmf/test/PKIPublicationInfoTest.java
 f1dfb673e2d953e273761d90ef859deefec597a8e5e33f6b0e51ce1ce4466ed4  util/src/test/java/org/bouncycastle/asn1/smime/test/SMIMETest.java
 4654bba921afa6cdd845ba74d8e99cc63f5a9cd3f3addbeacccecf1f158753ca  util/src/test/java/org/bouncycastle/asn1/cms/test/AttributeTableUnitTest.java
 64e21a2be3f6975522e19a833ce5e91bb88cd7e0dd1267a2e92fcc33c0c6dc79  util/src/test/java/org/bouncycastle/asn1/cms/test/OctetStringTest.java

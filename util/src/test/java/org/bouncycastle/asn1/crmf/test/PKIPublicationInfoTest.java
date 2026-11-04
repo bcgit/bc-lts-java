@@ -2,6 +2,8 @@ package org.bouncycastle.asn1.crmf.test;
 
 import java.io.IOException;
 
+import org.bouncycastle.asn1.ASN1EncodableVector;
+import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.crmf.PKIPublicationInfo;
 import org.bouncycastle.asn1.crmf.SinglePubInfo;
 import org.bouncycastle.asn1.x500.X500Name;
@@ -70,6 +72,57 @@ public class PKIPublicationInfoTest
         isTrue(null == pkiPubInfo.getPubInfos());
 
         encEqualTest(pkiPubInfo);
+
+        rejectionTests();
+    }
+
+    /**
+     * RFC 4211 sec. 6.3: pubInfos MUST NOT be present if the action is dontPublish, and the field
+     * is SEQUENCE SIZE (1..MAX), so a present one is never empty. Both are rejected on parsing and
+     * on construction.
+     */
+    private void rejectionTests()
+        throws IOException
+    {
+        ASN1EncodableVector v = new ASN1EncodableVector();
+
+        v.add(PKIPublicationInfo.dontPublish);
+        v.add(new DERSequence(new SinglePubInfo(SinglePubInfo.dontCare, null)));
+
+        try
+        {
+            PKIPublicationInfo.getInstance(new DERSequence(v).getEncoded());
+            fail("no exception on dontPublish with pubInfos");
+        }
+        catch (IllegalArgumentException e)
+        {
+            isEquals("pubInfos must be absent if action is dontPublish", e.getMessage());
+        }
+
+        v = new ASN1EncodableVector();
+
+        v.add(PKIPublicationInfo.pleasePublish);
+        v.add(new DERSequence());
+
+        try
+        {
+            PKIPublicationInfo.getInstance(new DERSequence(v).getEncoded());
+            fail("no exception on an empty pubInfos");
+        }
+        catch (IllegalArgumentException e)
+        {
+            isEquals("pubInfos must contain at least one SinglePubInfo", e.getMessage());
+        }
+
+        try
+        {
+            new PKIPublicationInfo(new SinglePubInfo[0]);
+            fail("no exception on an empty pubInfo array");
+        }
+        catch (IllegalArgumentException e)
+        {
+            isEquals("pubInfos must contain at least one SinglePubInfo", e.getMessage());
+        }
     }
 
     private void encEqualTest(PKIPublicationInfo pubInfo)

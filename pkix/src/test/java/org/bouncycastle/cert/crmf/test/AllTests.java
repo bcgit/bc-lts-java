@@ -28,6 +28,8 @@ import org.bouncycastle.asn1.cmp.CMPObjectIdentifiers;
 import org.bouncycastle.asn1.cmp.PBMParameter;
 import org.bouncycastle.asn1.iana.IANAObjectIdentifiers;
 import org.bouncycastle.asn1.oiw.OIWObjectIdentifiers;
+import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.crmf.*;
 import org.bouncycastle.asn1.nist.NISTObjectIdentifiers;
 import org.bouncycastle.asn1.ntt.NTTObjectIdentifiers;
@@ -42,11 +44,16 @@ import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v1CertificateBuilder;
 import org.bouncycastle.cert.crmf.CRMFException;
 import org.bouncycastle.cert.crmf.CertificateRequestMessage;
+import org.bouncycastle.cert.crmf.CertificateRequestMessageBuilder;
 import org.bouncycastle.cert.crmf.EncryptedValueBuilder;
 import org.bouncycastle.cert.crmf.EncryptedValuePadder;
 import org.bouncycastle.cert.crmf.EncryptedValueParser;
+import org.bouncycastle.cert.crmf.Control;
 import org.bouncycastle.cert.crmf.PKIArchiveControl;
+import org.bouncycastle.cert.crmf.OldCertIDControl;
 import org.bouncycastle.cert.crmf.PKMACBuilder;
+import org.bouncycastle.cert.crmf.PKIPublicationInfoControl;
+import org.bouncycastle.cert.crmf.ProtocolEncrKeyControl;
 import org.bouncycastle.cert.crmf.ValueDecryptorGenerator;
 import org.bouncycastle.cert.crmf.bc.BcCRMFEncryptorBuilder;
 import org.bouncycastle.cert.crmf.bc.BcEncryptedValueBuilder;
@@ -54,7 +61,9 @@ import org.bouncycastle.cert.crmf.bc.BcFixedLengthMGF1Padder;
 import org.bouncycastle.cert.crmf.jcajce.JcaCertificateRequestMessage;
 import org.bouncycastle.cert.crmf.jcajce.JcaCertificateRequestMessageBuilder;
 import org.bouncycastle.cert.crmf.jcajce.JcaEncryptedValueBuilder;
+import org.bouncycastle.cert.crmf.jcajce.JcaOldCertIDControl;
 import org.bouncycastle.cert.crmf.jcajce.JcaPKIArchiveControlBuilder;
+import org.bouncycastle.cert.crmf.jcajce.JcaProtocolEncrKeyControl;
 import org.bouncycastle.cert.crmf.jcajce.JceAsymmetricValueDecryptorGenerator;
 import org.bouncycastle.cert.crmf.jcajce.JceCRMFEncryptorBuilder;
 import org.bouncycastle.cert.crmf.jcajce.JcePKMACValuesCalculator;
@@ -78,6 +87,7 @@ import org.bouncycastle.cms.jcajce.JceKeyTransRecipientInfoGenerator;
 import org.bouncycastle.crypto.util.PrivateKeyFactory;
 import org.bouncycastle.crypto.util.PublicKeyFactory;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.operator.OutputEncryptor;
 import org.bouncycastle.operator.bc.BcRSAAsymmetricKeyWrapper;
@@ -228,6 +238,194 @@ public class AllTests
         TestCase.assertEquals(atavArr[0], certReqMsgASN1.getRegInfo()[0]);
     }
 
+    public void testBasicMessageWithProtocolEncrKeyControl()
+        throws Exception
+    {
+        KeyPairGenerator kGen = KeyPairGenerator.getInstance("RSA", BC);
+
+        kGen.initialize(512);
+
+        KeyPair kp = kGen.generateKeyPair();
+        SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(kp.getPublic().getEncoded());
+
+        JcaCertificateRequestMessageBuilder certReqBuild = new JcaCertificateRequestMessageBuilder(BigInteger.ONE);
+
+        certReqBuild.setSubject(new X500Principal("CN=Test"))
+            .setPublicKey(kp.getPublic())
+            .addControl(new ProtocolEncrKeyControl(publicKeyInfo));
+
+        CertificateRequestMessage certReqMsg = certReqBuild.build();
+
+        checkCertReqMsgWithProtocolEncrKeyControl(certReqMsg, publicKeyInfo);
+        checkCertReqMsgWithProtocolEncrKeyControl(new CertificateRequestMessage(certReqMsg.getEncoded()), publicKeyInfo);
+    }
+
+    private void checkCertReqMsgWithProtocolEncrKeyControl(CertificateRequestMessage certReqMsg,
+        SubjectPublicKeyInfo publicKeyInfo)
+    {
+        TestCase.assertTrue(certReqMsg.hasControl(CRMFObjectIdentifiers.id_regCtrl_protocolEncrKey));
+
+        ProtocolEncrKeyControl protocolEncrKeyControl = (ProtocolEncrKeyControl)certReqMsg.getControl(
+            CRMFObjectIdentifiers.id_regCtrl_protocolEncrKey);
+
+        TestCase.assertEquals(CRMFObjectIdentifiers.id_regCtrl_protocolEncrKey, protocolEncrKeyControl.getType());
+        TestCase.assertEquals(publicKeyInfo, protocolEncrKeyControl.getValue());
+    }
+
+    public void testBasicMessageWithPublicationInfoControl()
+        throws Exception
+    {
+        KeyPairGenerator kGen = KeyPairGenerator.getInstance("RSA", BC);
+
+        kGen.initialize(512);
+
+        KeyPair kp = kGen.generateKeyPair();
+
+        SinglePubInfo pubInfo = new SinglePubInfo(SinglePubInfo.x500, new GeneralName(new X500Name("CN=Test CA")));
+
+        JcaCertificateRequestMessageBuilder certReqBuild = new JcaCertificateRequestMessageBuilder(BigInteger.ONE);
+
+        certReqBuild.setSubject(new X500Principal("CN=Test"))
+            .setPublicKey(kp.getPublic())
+            .addControl(new PKIPublicationInfoControl(new SinglePubInfo[]{pubInfo}));
+
+        CertificateRequestMessage certReqMsg = certReqBuild.build();
+
+        checkCertReqMsgWithPublicationInfoControl(certReqMsg, pubInfo);
+        checkCertReqMsgWithPublicationInfoControl(new CertificateRequestMessage(certReqMsg.getEncoded()), pubInfo);
+
+        // asking for no publication at all carries the action on its own
+        certReqBuild = new JcaCertificateRequestMessageBuilder(BigInteger.ONE);
+
+        certReqBuild.setSubject(new X500Principal("CN=Test"))
+            .setPublicKey(kp.getPublic())
+            .addControl(PKIPublicationInfoControl.dontPublish());
+
+        certReqMsg = new CertificateRequestMessage(certReqBuild.build().getEncoded());
+
+        PKIPublicationInfoControl control = (PKIPublicationInfoControl)certReqMsg.getControl(
+            CRMFObjectIdentifiers.id_regCtrl_pkiPublicationInfo);
+
+        TestCase.assertEquals(PKIPublicationInfo.dontPublish, control.getPublicationInfo().getAction());
+        TestCase.assertNull(control.getPublicationInfo().getPubInfos());
+
+        // and "don't care" is the pleasePublish action with no locations
+        certReqBuild = new JcaCertificateRequestMessageBuilder(BigInteger.ONE);
+
+        certReqBuild.setSubject(new X500Principal("CN=Test"))
+            .setPublicKey(kp.getPublic())
+            .addControl(new PKIPublicationInfoControl((SinglePubInfo[])null));
+
+        certReqMsg = new CertificateRequestMessage(certReqBuild.build().getEncoded());
+
+        control = (PKIPublicationInfoControl)certReqMsg.getControl(
+            CRMFObjectIdentifiers.id_regCtrl_pkiPublicationInfo);
+
+        TestCase.assertEquals(PKIPublicationInfo.pleasePublish, control.getPublicationInfo().getAction());
+        TestCase.assertNull(control.getPublicationInfo().getPubInfos());
+    }
+
+    private void checkCertReqMsgWithPublicationInfoControl(CertificateRequestMessage certReqMsg, SinglePubInfo pubInfo)
+    {
+        TestCase.assertTrue(certReqMsg.hasControl(CRMFObjectIdentifiers.id_regCtrl_pkiPublicationInfo));
+
+        PKIPublicationInfoControl control = (PKIPublicationInfoControl)certReqMsg.getControl(
+            CRMFObjectIdentifiers.id_regCtrl_pkiPublicationInfo);
+
+        TestCase.assertEquals(CRMFObjectIdentifiers.id_regCtrl_pkiPublicationInfo, control.getType());
+        TestCase.assertEquals(PKIPublicationInfo.pleasePublish, control.getPublicationInfo().getAction());
+        TestCase.assertEquals(1, control.getPublicationInfo().getPubInfos().length);
+        TestCase.assertEquals(pubInfo, control.getPublicationInfo().getPubInfos()[0]);
+    }
+
+    public void testBasicMessageWithOldCertIDControl()
+        throws Exception
+    {
+        KeyPairGenerator kGen = KeyPairGenerator.getInstance("RSA", BC);
+
+        kGen.initialize(512);
+
+        KeyPair kp = kGen.generateKeyPair();
+        X509Certificate oldCert = makeV1Certificate(kp, "CN=Old Cert", kp, "CN=Old Cert");
+
+        JcaCertificateRequestMessageBuilder certReqBuild = new JcaCertificateRequestMessageBuilder(BigInteger.ONE);
+
+        certReqBuild.setSubject(new X500Principal("CN=Test"))
+            .setPublicKey(kp.getPublic())
+            .addControl(new JcaOldCertIDControl(oldCert));
+
+        CertificateRequestMessage certReqMsg = certReqBuild.build();
+
+        CertId expected = new CertId(new GeneralName(X500Name.getInstance(oldCert.getIssuerX500Principal().getEncoded())),
+            oldCert.getSerialNumber());
+
+        checkCertReqMsgWithOldCertIDControl(certReqMsg, expected);
+        checkCertReqMsgWithOldCertIDControl(new CertificateRequestMessage(certReqMsg.getEncoded()), expected);
+
+        // the three ways of naming the same certificate agree
+        TestCase.assertEquals(expected, new OldCertIDControl(
+            X500Name.getInstance(oldCert.getIssuerX500Principal().getEncoded()), oldCert.getSerialNumber()).getValue());
+        TestCase.assertEquals(expected, new JcaOldCertIDControl(
+            oldCert.getIssuerX500Principal(), oldCert.getSerialNumber()).getValue());
+    }
+
+    private void checkCertReqMsgWithOldCertIDControl(CertificateRequestMessage certReqMsg, CertId expected)
+    {
+        TestCase.assertTrue(certReqMsg.hasControl(CRMFObjectIdentifiers.id_regCtrl_oldCertID));
+
+        OldCertIDControl control = (OldCertIDControl)certReqMsg.getControl(CRMFObjectIdentifiers.id_regCtrl_oldCertID);
+
+        TestCase.assertEquals(CRMFObjectIdentifiers.id_regCtrl_oldCertID, control.getType());
+        TestCase.assertEquals(expected, control.getCertId());
+    }
+
+    public void testGetControlValue()
+        throws Exception
+    {
+        final ASN1ObjectIdentifier unknownControl = new ASN1ObjectIdentifier("1.2.3.4.5.6.7.8.9");
+
+        KeyPairGenerator kGen = KeyPairGenerator.getInstance("RSA", BC);
+
+        kGen.initialize(512);
+
+        KeyPair kp = kGen.generateKeyPair();
+        SubjectPublicKeyInfo publicKeyInfo = SubjectPublicKeyInfo.getInstance(kp.getPublic().getEncoded());
+
+        JcaCertificateRequestMessageBuilder certReqBuild = new JcaCertificateRequestMessageBuilder(BigInteger.ONE);
+
+        certReqBuild.setSubject(new X500Principal("CN=Test"))
+            .setPublicKey(kp.getPublic())
+            .addControl(new JcaProtocolEncrKeyControl(kp.getPublic()))
+            .addControl(new Control()
+            {
+                public ASN1ObjectIdentifier getType()
+                {
+                    return unknownControl;
+                }
+
+                public ASN1Encodable getValue()
+                {
+                    return new DERUTF8String("a control this class has no implementation for");
+                }
+            });
+
+        CertificateRequestMessage certReqMsg = new CertificateRequestMessage(certReqBuild.build().getEncoded());
+
+        // the JCA convenience names the same key the SubjectPublicKeyInfo form does
+        TestCase.assertEquals(publicKeyInfo,
+            certReqMsg.getControlValue(CRMFObjectIdentifiers.id_regCtrl_protocolEncrKey));
+
+        // a control with no Control implementation can still be read, where getControl() gives null
+        TestCase.assertTrue(certReqMsg.hasControl(unknownControl));
+        TestCase.assertNull(certReqMsg.getControl(unknownControl));
+        TestCase.assertEquals(new DERUTF8String("a control this class has no implementation for"),
+            certReqMsg.getControlValue(unknownControl));
+
+        // an absent control reads as null either way
+        TestCase.assertFalse(certReqMsg.hasControl(CRMFObjectIdentifiers.id_regCtrl_oldCertID));
+        TestCase.assertNull(certReqMsg.getControlValue(CRMFObjectIdentifiers.id_regCtrl_oldCertID));
+    }
+
     public void testBasicMessageWithArchiveControl()
         throws Exception
     {
@@ -330,6 +528,44 @@ public class AllTests
 
         TestCase.assertEquals(new GeneralName(X500Name.getInstance(new X500Principal("CN=Test").getEncoded())), encKeyWithID.getIdentifier());
         TestCase.assertTrue(Arrays.areEqual(kp.getPrivate().getEncoded(), encKeyWithID.getPrivateKey().getEncoded()));
+    }
+
+    public void testArchiveControlWithoutEnvelopedData()
+        throws Exception
+    {
+        EncryptedValue encValue = new EncryptedValue(null, new AlgorithmIdentifier(NISTObjectIdentifiers.id_aes128_CBC),
+            new DERBitString(new byte[16]), null, null, new DERBitString(new byte[32]));
+
+        checkArchiveControlWithoutEnvelopedData(PKIArchiveControl.keyGenParameters,
+            new PKIArchiveOptions(new DEROctetString(new byte[8])));
+        checkArchiveControlWithoutEnvelopedData(PKIArchiveControl.archiveRemGenPrivKey,
+            new PKIArchiveOptions(true));
+        checkArchiveControlWithoutEnvelopedData(PKIArchiveControl.encryptedPrivKey,
+            new PKIArchiveOptions(new EncryptedKey(encValue)));
+    }
+
+    private void checkArchiveControlWithoutEnvelopedData(int archiveType, PKIArchiveOptions options)
+        throws Exception
+    {
+        checkArchiveControlWithoutEnvelopedData(archiveType, new PKIArchiveControl(options));
+        checkArchiveControlWithoutEnvelopedData(archiveType,
+            new PKIArchiveControl(PKIArchiveOptions.getInstance(ASN1Primitive.fromByteArray(options.getEncoded()))));
+    }
+
+    private void checkArchiveControlWithoutEnvelopedData(int archiveType, PKIArchiveControl archiveControl)
+    {
+        TestCase.assertEquals(archiveType, archiveControl.getArchiveType());
+        TestCase.assertFalse(archiveControl.isEnvelopedData());
+
+        try
+        {
+            archiveControl.getEnvelopedData();
+            fail("no exception");
+        }
+        catch (CRMFException e)
+        {
+            TestCase.assertEquals("archive control does not contain enveloped data", e.getMessage());
+        }
     }
 
     public void testProofOfPossessionWithoutSender()
@@ -528,6 +764,54 @@ public class AllTests
         assertTrue(certReqMsg.isValidSigningKeyPOP(new JcaContentVerifierProviderBuilder().setProvider(BC).build(kp.getPublic())));
 
         assertEquals(kp.getPublic(), certReqMsg.getPublicKey());
+    }
+
+    public void testProofOfPossessionSigningKeyIncomplete()
+        throws Exception
+    {
+        // a signing key POP the builder cannot form must be refused with a CRMFException, not a NullPointerException
+        KeyPairGenerator kGen = KeyPairGenerator.getInstance("RSA", BC);
+
+        kGen.initialize(512);
+
+        KeyPair kp = kGen.generateKeyPair();
+        ContentSigner signer = new JcaContentSignerBuilder("SHA1withRSA").setProvider(BC).build(kp.getPrivate());
+
+        String noPublicKey = "signing key proof of possession requires a public key in the certificate template";
+        String noAuthInfo = "signing key proof of possession without a subject in the certificate template requires an authInfo sender or PKMAC";
+
+        // no public key, sender set
+        checkIncompleteSigningKeyPOP(new JcaCertificateRequestMessageBuilder(BigInteger.ONE)
+            .setSubject(new X500Principal("CN=Test"))
+            .setAuthInfoSender(new X500Principal("CN=Test"))
+            .setProofOfPossessionSigningKeySigner(signer), noPublicKey);
+
+        // no public key, PKMAC set
+        checkIncompleteSigningKeyPOP(new JcaCertificateRequestMessageBuilder(BigInteger.ONE)
+            .setAuthInfoPKMAC(new PKMACBuilder(new JcePKMACValuesCalculator()), "fred".toCharArray())
+            .setProofOfPossessionSigningKeySigner(signer), noPublicKey);
+
+        // no public key, no subject, no authInfo
+        checkIncompleteSigningKeyPOP(new JcaCertificateRequestMessageBuilder(BigInteger.ONE)
+            .setProofOfPossessionSigningKeySigner(signer), noPublicKey);
+
+        // public key, no subject, neither sender nor PKMAC
+        checkIncompleteSigningKeyPOP(new JcaCertificateRequestMessageBuilder(BigInteger.ONE)
+            .setPublicKey(kp.getPublic())
+            .setProofOfPossessionSigningKeySigner(signer), noAuthInfo);
+    }
+
+    private void checkIncompleteSigningKeyPOP(CertificateRequestMessageBuilder certReqBuild, String expectedMessage)
+    {
+        try
+        {
+            certReqBuild.build();
+            fail("no exception");
+        }
+        catch (CRMFException e)
+        {
+            assertEquals(expectedMessage, e.getMessage());
+        }
     }
 
     public void testKeySizes()

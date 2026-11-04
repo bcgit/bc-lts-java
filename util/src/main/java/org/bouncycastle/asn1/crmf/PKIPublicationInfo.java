@@ -35,8 +35,28 @@ public class PKIPublicationInfo
         action = ASN1Integer.getInstance(seq.getObjectAt(0));
         if (seq.size() > 1)
         {
-            pubInfos = ASN1Sequence.getInstance(seq.getObjectAt(1));
+            pubInfos = checkPubInfos(action, ASN1Sequence.getInstance(seq.getObjectAt(1)));
         }
+    }
+
+    /**
+     * RFC 4211 sec. 6.3: pubInfos MUST NOT be present if action is dontPublish, and the field is
+     * SEQUENCE SIZE (1..MAX), so a present one carries at least one SinglePubInfo. "Don't care" is
+     * an absent pubInfos with the pleasePublish action, not an empty or contradictory one.
+     */
+    private static ASN1Sequence checkPubInfos(ASN1Integer action, ASN1Sequence pubInfos)
+    {
+        if (dontPublish.equals(action))
+        {
+            throw new IllegalArgumentException("pubInfos must be absent if action is dontPublish");
+        }
+
+        if (pubInfos.size() == 0)
+        {
+            throw new IllegalArgumentException("pubInfos must contain at least one SinglePubInfo");
+        }
+
+        return pubInfos;
     }
 
     public static PKIPublicationInfo getInstance(Object o)
@@ -85,7 +105,7 @@ public class PKIPublicationInfo
 
         if (pubInfos != null)
         {
-            this.pubInfos = new DERSequence(pubInfos);
+            this.pubInfos = checkPubInfos(this.action, new DERSequence(pubInfos));
         }
         else
         {

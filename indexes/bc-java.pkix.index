@@ -234,7 +234,7 @@ b7b1ab81a8b853551da9f9aa5d006047bf73f262d5b2bd603a1da5d43680e2ba  pkix/src/main/
 af33626ed0f6092a867c83c22b49fabfc486348f5c66c81dcf4af828deb96988  pkix/src/main/java/org/bouncycastle/mime/MimeContext.java
 cc088799ae9449c85a129ffa944b8b37edaa720f9fde1ac0b25230f70c4893be  pkix/src/main/java/org/bouncycastle/mime/MimeIOException.java
 7b1d32f95ea9d1a7e85f16c55e1520748c92582b869f9b6cf2111ff04cc51076  pkix/src/main/java/org/bouncycastle/mime/MimeMultipartContext.java
-384483107eb7f9963ae7192704bfe49a0415ae0becf0374566f2582a31f2fda5  pkix/src/main/java/org/bouncycastle/mime/Headers.java
+d4286bd5e9eabdd159cd7ed476f2f931f46adfebaf4b7d9f2f0c460bb78959d6  pkix/src/main/java/org/bouncycastle/mime/Headers.java
 e28d15696b71ea6deaa5a5687e27f1b2f479818ddcedc9f3e67661ee55a933e7  pkix/src/main/java/org/bouncycastle/mime/CanonicalOutputStream.java
 e164216258359abdc23150b65892cb896d3f12ab46a0fd595fa6aebd1f9a232d  pkix/src/main/java/org/bouncycastle/mime/ConstantMimeContext.java
 a59b790e71b80f0e241daab9eacadd97fd8f0bc70c32b81a1d27138e65ebac48  pkix/src/main/java/org/bouncycastle/mime/MimeParserListener.java
@@ -355,7 +355,7 @@ cdd8860fc1af29ad1a8ed11265f9d39021d1bb3d3ecd6c95716fa11af3f09697  pkix/src/main/
 d1739980b3336bcc7491c0e3a091003c85eda5a8e2ed6c7ff04c7dfa6d9adb72  pkix/src/main/java/org/bouncycastle/est/CSRAttributesResponse.java
 7ef2964a44102c1922ea09a621c9b1ab3e3d59851bc39f70d0ade85336f29b53  pkix/src/main/java/org/bouncycastle/est/ESTService.java
 61c543d8c2e68ce924108d35690854754a523cb36cec6b66683e1bfc3b3a8d3c  pkix/src/main/java/org/bouncycastle/est/ESTException.java
-ee843f95946bad4648a3a3627cefcd4f1a1fbd7fe43903a65ee0729f24fd2510  pkix/src/main/java/org/bouncycastle/est/ESTResponse.java
+43eae2784949cf359be5309faf7914279e7fd89b5567ee157285cda5e1d1f351  pkix/src/main/java/org/bouncycastle/est/ESTResponse.java
 266a6e9fd7ef98dcc6484dcceb461e60c6477122e84fb627ba185d6124dc791c  pkix/src/main/java/org/bouncycastle/est/LimitedSource.java
 e3f6cfd66dfd13b94fe747d7ae5617f430dbda388a979703c8d3c4f5952af079  pkix/src/main/java/org/bouncycastle/est/Source.java
 d14fcb67bde86f2a2efba6a6bac7e1aefa61efaee290555d96509ba82900ebb7  pkix/src/main/java/org/bouncycastle/cert/X509CRLHolder.java
@@ -474,7 +474,7 @@ d87bf638611d55cd5d73805bd6aa0e686aa1b844b54f1478659a8776b7fb0c61  pkix/src/main/
 ee4f8c05c57fd8c7d91f510e7793d7b4924d6d1148f918c7d03e1c11953e929c  pkix/src/main/java/org/bouncycastle/cert/crmf/bc/BcFixedLengthMGF1Padder.java
 7ee13f7332fe88f4665ef7ab7da3596badb912685fc45e0265eaea2485d81bd7  pkix/src/main/java/org/bouncycastle/cert/crmf/bc/CRMFHelper.java
 f310300d8d8dc94e86015fb9ea21ba30e785b8ffff9ab79b72904339bcbeb7fb  pkix/src/main/java/org/bouncycastle/cert/crmf/AuthenticatorControl.java
-846721d3b6b72709c1e8e1a60dc91d5109f70a59d6769939255ee29560a40a7b  pkix/src/main/java/org/bouncycastle/cert/crmf/CertificateRequestMessageBuilder.java
+51b4c5557807d84d8ff6fa575b84abc812181d68225af55729f572ff06d406f7  pkix/src/main/java/org/bouncycastle/cert/crmf/CertificateRequestMessageBuilder.java
 b4038cc7647fbe0a376e06f9c5ff439bf52f5520c16430e8aef6b1dfd65eb315  pkix/src/main/java/org/bouncycastle/cert/crmf/jcajce/JcaPKIArchiveControlBuilder.java
 6f4701438ab6b637553fe01e444d009d05f4d1308fa5f4627f479a7d249c83a1  pkix/src/main/java/org/bouncycastle/cert/crmf/jcajce/JcaCertificateRequestMessage.java
 ebce56f4b0608d65adad8195cc4de39e07d6cc7762b1b88d30e9d245c34b330b  pkix/src/main/java/org/bouncycastle/cert/crmf/jcajce/JcaEncryptedValueBuilder.java
@@ -485,11 +485,11 @@ ebce56f4b0608d65adad8195cc4de39e07d6cc7762b1b88d30e9d245c34b330b  pkix/src/main/
 f4837b6465fb7e8dba0b5ee98e642f47f73bb1000e1b055ccf5ccb9a9914bfd0  pkix/src/main/java/org/bouncycastle/cert/crmf/jcajce/CRMFHelper.java
 368af0e270b63255e054d14f3d5ff1df3ed7dc9fad54802db81a41191cde6ab0  pkix/src/main/java/org/bouncycastle/cert/crmf/jcajce/JcaCertificateRepMessageBuilder.java
 56dabfb5e75aa395a19821132c67b2960b968d6c7d9cf37bd28687516a59f8da  pkix/src/main/java/org/bouncycastle/cert/crmf/ValueDecryptorGenerator.java
-ec578cafef9098c2b2a650f6d7e63d0e18643b7b0474e332443c2dfd16311560  pkix/src/main/java/org/bouncycastle/cert/crmf/CertificateRequestMessage.java
+150f8a9ac58f1486c0129562b57356e7d74f4b10a2f733b32c6ebdefc14f8526  pkix/src/main/java/org/bouncycastle/cert/crmf/CertificateRequestMessage.java
 c94c67973fc64983531bb7ebbf9aa7d1ce2c40fd8a2b392f135dd9ae55121f81  pkix/src/main/java/org/bouncycastle/cert/crmf/EncryptedValueBuilder.java
 313a45671aadad3f8d7e6c66adfeaa2b55d1e69c9fb10ee944bc6f0fec9e667d  pkix/src/main/java/org/bouncycastle/cert/crmf/PKMACValueVerifier.java
 e75c43b39671076fe4cb9b68f12e6fd55058f435a819ec07e82f1d95ec04636e  pkix/src/main/java/org/bouncycastle/cert/crmf/PKIArchiveControlBuilder.java
-bcec13cf15c67d2dc575ba39ed3ce36325f1daa4d15673990f976445ed026f14  pkix/src/main/java/org/bouncycastle/cert/crmf/PKIArchiveControl.java
+0568bfd7442211254100db78e1cc594ef804ccc05631c0938dec3e5fa6aa3432  pkix/src/main/java/org/bouncycastle/cert/crmf/PKIArchiveControl.java
 24096a1f7a3cea303ca956c2060013fd3a23e3721db28f4da839f0ce4a59e008  pkix/src/main/java/org/bouncycastle/cert/crmf/PKMACValueGenerator.java
 ca83ef06e95edaa1f1f476ab0006779ddbc3784ffcec4ae564ea1b0b17c300d0  pkix/src/main/java/org/bouncycastle/cert/crmf/RegTokenControl.java
 7364ab9291e9f1f983e03d970a8aad86e5f94bc5fa4d7f4625beca95a7af029a  pkix/src/main/java/org/bouncycastle/cert/CertUtils.java
@@ -865,3 +865,8 @@ b151f0b376a472866f049e902341e3c2ecfa52de4f2772fe87239a8c98e78e3a  pkix/src/test/
 690b6c58ae1a04b91a70e6fc7ac963fa9fda32197e205e307bb57f56c498bfab  pkix/src/test/java/org/bouncycastle/pkix/test/CrlReasonCodeTest.java
 1711558a10ceeeb92d35d98304f37e286e7dbbc6fe75d060636a399a7e7e2ea2  pkix/src/test/java/org/bouncycastle/cert/ocsp/test/PKIXOcspRevocationCheckerTest.java
 fdf2e0cb89b83873355f046e73ca4e05d63e34e2be5f1308138c3d3fb6f9b54a  pkix/src/test/java/org/bouncycastle/cert/path/test/CertPathValidationRulesTest.java
+d534fa5c5112a89846fbdbdbeb1c684a2d06ce0d38110a2035b004f1b24f642e  pkix/src/main/java/org/bouncycastle/cert/crmf/OldCertIDControl.java
+80f3970d89a9e67ac540698f7437d6a49996f6830146bd6e890642ee8cfc8f11  pkix/src/main/java/org/bouncycastle/cert/crmf/PKIPublicationInfoControl.java
+9108390e256d77fe9657c7eaee50ce3a971e8da8ec5e61c32e6ddc19d6b02e38  pkix/src/main/java/org/bouncycastle/cert/crmf/ProtocolEncrKeyControl.java
+c6f6f99ab6f31b7bca5a6b4c753a576ae7c217c0145e67acfc57a270f27db799  pkix/src/main/java/org/bouncycastle/cert/crmf/jcajce/JcaOldCertIDControl.java
+5aa6e12d777f1aa114d140b4c54e07c3649b69418fc75fb00db9eb6ac37a41cf  pkix/src/main/java/org/bouncycastle/cert/crmf/jcajce/JcaProtocolEncrKeyControl.java
