@@ -155,6 +155,21 @@ Date: 2026, TBD.
   it declares, with the operator exception as the cause. `JcaContentVerifierProviderBuilder`, given
   a certificate whose key algorithm the provider does not recognise, handed a null key to the
   Signature; it now refuses with an `OperatorCreationException`.
+- A CMS AuthenticatedData message using the des-ede3-cbc or rc2-cbc CBC-MAC without authenticated
+  attributes started the MAC from the IV in the macAlgorithm parameters, which the MAC does not
+  cover when its input is the content alone (RFC 5652 sec. 9.2), so a change to the first eight
+  content bytes could be offset by one to the IV. `JceCMSMacCalculatorBuilder` now writes these
+  MACs with a zero IV, which earlier releases also verify, and the generators,
+  `CMSAuthenticatedData`, `CMSAuthenticatedDataParser` and `RecipientInformation.getMac()` refuse a
+  non-zero IV for a message without authenticated attributes. Messages in that form written by
+  earlier releases carry a random IV and can be read by setting
+  `org.bouncycastle.cms.allow_unauthenticated_cbc_mac_iv` to true; messages with authenticated
+  attributes are unaffected. The javadoc examples now use HMAC-SHA256.
+- `RecipientInformation.getMac()` did not check the content-type authenticated attribute of a CMS
+  AuthenticatedData message, so a message whose authenticated attributes had no content-type
+  attribute, or one not matching the eContentType, was accepted. RFC 5652 sec. 9.2 and 9.3 require
+  the attribute whenever authenticated attributes are present, with a value matching the
+  eContentType; `getMac()` now enforces both, as `SignerInformation` already does for SignedData.
 
 **OpenPGP (pg).**
 

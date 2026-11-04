@@ -171,6 +171,8 @@ public class CMSAuthenticatedDataParser
         }
         else
         {
+            CMSUtils.checkUnauthenticatedMacIV(this.macAlg);
+
             //
             // read the authenticated content info
             //
