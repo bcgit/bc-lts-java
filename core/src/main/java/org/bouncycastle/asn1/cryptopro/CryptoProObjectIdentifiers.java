@@ -52,6 +52,13 @@ public interface CryptoProObjectIdentifiers
     /**
      * { iso(1) member-body(2) ru(643) rans(2) cryptopro(2) hashes(30) }
      * <p>
+     * Gost R3411-94-TestParamSet OID: 1.2.643.2.2.30.0 (RFC 4357, Section 8.1)
+     */
+    static final ASN1ObjectIdentifier    gostR3411_94_TestParamSet = GOST_id.branch("30.0");
+
+    /**
+     * { iso(1) member-body(2) ru(643) rans(2) cryptopro(2) hashes(30) }
+     * <p>
      * Gost R3411-94-CryptoProParamSet OID: 1.2.643.2.2.30.1
      */
     static final ASN1ObjectIdentifier    gostR3411_94_CryptoProParamSet = GOST_id.branch("30.1");

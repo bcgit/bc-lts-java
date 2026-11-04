@@ -291,7 +291,7 @@ public class GOST3410Test
             {
                 ASN1ObjectIdentifier oid = ECGOST3410NamedCurves.getOID("GostR3410-2001-CryptoPro-A");
                 ECNamedDomainParameters ecp = getECNamedDomainParameters(oid);
-                ECGOST3410Parameters gostParams = new ECGOST3410Parameters(ecp, oid, CryptoProObjectIdentifiers.gostR3411);
+                ECGOST3410Parameters gostParams = new ECGOST3410Parameters(ecp, oid, CryptoProObjectIdentifiers.gostR3411_94_CryptoProParamSet);
                 ECKeyGenerationParameters params = new ECKeyGenerationParameters(gostParams, new SecureRandom());
                 ECKeyPairGenerator engine = new ECKeyPairGenerator();
                 engine.init(params);
@@ -390,7 +390,7 @@ public class GOST3410Test
         {
             ASN1ObjectIdentifier oid = ECGOST3410NamedCurves.getOID("GostR3410-2001-CryptoPro-A");
             ECNamedDomainParameters ecp = getECNamedDomainParameters(oid);
-            ECGOST3410Parameters gostParams = new ECGOST3410Parameters(ecp, oid, CryptoProObjectIdentifiers.gostR3411);
+            ECGOST3410Parameters gostParams = new ECGOST3410Parameters(ecp, oid, CryptoProObjectIdentifiers.gostR3411_94_CryptoProParamSet);
             ECKeyGenerationParameters params = new ECKeyGenerationParameters(gostParams, new SecureRandom());
             ECKeyPairGenerator engine = new ECKeyPairGenerator();
             engine.init(params);

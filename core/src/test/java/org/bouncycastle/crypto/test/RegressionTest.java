@@ -161,6 +161,7 @@ public class RegressionTest
             new SM2SignerTest(),
             new UKMParametersNestingTest(),
             new CryptoProWrapEngineTest(),
+            new ECGOST3410KeyEncodingTest(),
             new SM4Test(),
             new DSTU7624Test(),
             new DSTU7564Test(),

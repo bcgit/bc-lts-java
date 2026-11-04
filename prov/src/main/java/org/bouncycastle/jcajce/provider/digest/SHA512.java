@@ -208,7 +208,10 @@ public class SHA512
             addHMACAlias(provider, "SHA512", PKCSObjectIdentifiers.id_hmacWithSHA512);
 
             addHMACAlgorithm(provider, "SHA512/224", PREFIX + "$HashMacT224",  PREFIX + "$KeyGeneratorT224");
+            addHMACAlias(provider, "SHA512/224", PKCSObjectIdentifiers.id_hmacWithSHA512_224);
+
             addHMACAlgorithm(provider, "SHA512/256", PREFIX + "$HashMacT256",  PREFIX + "$KeyGeneratorT256");
+            addHMACAlias(provider, "SHA512/256", PKCSObjectIdentifiers.id_hmacWithSHA512_256);
 
             provider.addAlgorithm("SecretKeyFactory.HMACSHA512", PREFIX + "$KeyFactory");
             provider.addAlgorithm("Alg.Alias.SecretKeyFactory." + PKCSObjectIdentifiers.id_hmacWithSHA512, "HMACSHA512");

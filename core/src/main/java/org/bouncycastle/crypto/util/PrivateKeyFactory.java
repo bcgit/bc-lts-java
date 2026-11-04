@@ -323,7 +323,7 @@ public class PrivateKeyFactory
             ECGOST3410Parameters ecSpec = null;
             BigInteger d = null;
             ASN1Primitive p = algParameters.toASN1Primitive();
-            if (p instanceof ASN1Sequence && (ASN1Sequence.getInstance(p).size() == 2 || ASN1Sequence.getInstance(p).size() == 3))
+            if (p instanceof ASN1Sequence && ASN1Sequence.getInstance(p).size() >= 1 && ASN1Sequence.getInstance(p).size() <= 3)
             {
                 X9ECParameters ecP = ECGOST3410NamedCurves.getByOIDX9(gostParams.getPublicKeyParamSet());
 

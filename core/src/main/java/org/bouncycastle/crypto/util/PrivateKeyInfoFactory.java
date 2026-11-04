@@ -2,12 +2,9 @@ package org.bouncycastle.crypto.util;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Integer;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1Sequence;
 import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.DERBitString;
@@ -15,8 +12,6 @@ import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DEROctetString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERTaggedObject;
-import org.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
-import org.bouncycastle.asn1.cryptopro.GOST3410PublicKeyAlgParameters;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.pkcs.RSAPrivateKey;
@@ -44,7 +39,6 @@ import org.bouncycastle.crypto.params.SLHDSAPrivateKeyParameters;
 import org.bouncycastle.crypto.params.X25519PrivateKeyParameters;
 import org.bouncycastle.crypto.params.X448PrivateKeyParameters;
 import org.bouncycastle.internal.asn1.edec.EdECObjectIdentifiers;
-import org.bouncycastle.internal.asn1.rosstandart.RosstandartObjectIdentifiers;
 import org.bouncycastle.math.ec.ECPoint;
 import org.bouncycastle.math.ec.FixedPointCombMultiplier;
 
@@ -53,17 +47,6 @@ import org.bouncycastle.math.ec.FixedPointCombMultiplier;
  */
 public class PrivateKeyInfoFactory
 {
-    private static Set cryptoProOids = new HashSet(5);
-
-    static
-    {
-        cryptoProOids.add(CryptoProObjectIdentifiers.gostR3410_2001_CryptoPro_A);
-        cryptoProOids.add(CryptoProObjectIdentifiers.gostR3410_2001_CryptoPro_B);
-        cryptoProOids.add(CryptoProObjectIdentifiers.gostR3410_2001_CryptoPro_C);
-        cryptoProOids.add(CryptoProObjectIdentifiers.gostR3410_2001_CryptoPro_XchA);
-        cryptoProOids.add(CryptoProObjectIdentifiers.gostR3410_2001_CryptoPro_XchB);
-    }
-
     private PrivateKeyInfoFactory()
     {
 
@@ -124,34 +107,16 @@ public class PrivateKeyInfoFactory
             }
             else if (domainParams instanceof ECGOST3410Parameters)
             {
-                GOST3410PublicKeyAlgParameters gostParams = new GOST3410PublicKeyAlgParameters(
-                    ((ECGOST3410Parameters)domainParams).getPublicKeyParamSet(),
-                    ((ECGOST3410Parameters)domainParams).getDigestParamSet(),
-                    ((ECGOST3410Parameters)domainParams).getEncryptionParamSet());
+                ECGOST3410Parameters gostParams = (ECGOST3410Parameters)domainParams;
 
+                AlgorithmIdentifier algID = ECGOST3410Util.createAlgorithmIdentifier(gostParams);
 
-                int size;
-                ASN1ObjectIdentifier identifier;
+                int size = ECGOST3410Util.getFieldElementEncodingLength(gostParams);
 
-                if (cryptoProOids.contains(gostParams.getPublicKeyParamSet()))
-                {
-                    size = 32;
-                    identifier = CryptoProObjectIdentifiers.gostR3410_2001;
-                }
-                else
-                {
-
-                    boolean is512 = priv.getD().bitLength() > 256;
-                    identifier = (is512) ?
-                        RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512 :
-                        RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
-                    size = (is512) ? 64 : 32;
-                }
                 byte[] encKey = new byte[size];
-
                 extractBytes(encKey, size, 0, priv.getD());
 
-                return new PrivateKeyInfo(new AlgorithmIdentifier(identifier, gostParams), new DEROctetString(encKey));
+                return new PrivateKeyInfo(algID, new DEROctetString(encKey), attributes);
             }
             else if (domainParams instanceof ECNamedDomainParameters)
             {

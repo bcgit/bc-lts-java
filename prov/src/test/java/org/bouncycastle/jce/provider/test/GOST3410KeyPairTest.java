@@ -6,19 +6,35 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SecureRandom;
 import java.security.Security;
 import java.security.Signature;
 import java.security.spec.ECGenParameterSpec;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
+import org.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
+import org.bouncycastle.asn1.cryptopro.ECGOST3410NamedCurves;
 import org.bouncycastle.asn1.cryptopro.GOST3410PublicKeyAlgParameters;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.generators.ECKeyPairGenerator;
+import org.bouncycastle.crypto.params.ECGOST3410Parameters;
+import org.bouncycastle.crypto.params.ECKeyGenerationParameters;
+import org.bouncycastle.crypto.params.ECNamedDomainParameters;
+import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
+import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
 import org.bouncycastle.internal.asn1.rosstandart.RosstandartObjectIdentifiers;
+import org.bouncycastle.jcajce.provider.asymmetric.ecgost12.BCECGOST3410_2012PrivateKey;
 import org.bouncycastle.jcajce.provider.asymmetric.ecgost12.BCECGOST3410_2012PublicKey;
 import org.bouncycastle.jcajce.spec.GOST3410ParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -261,11 +277,67 @@ public class GOST3410KeyPairTest
         return "GOST3410/ECGOST3410/ECGOST3410 2012";
     }
 
+    /**
+     * A GOST R 34.10-2012 key on a legacy GOST R 34.10-2001 curve (RFC 9215, Section 4.2), as the
+     * lightweight factories now encode it, must come back through the JCE as a 2012 key that still
+     * encodes under the 2012 algorithm OID and signs with the 2012 signature.
+     */
+    private void gost2012CryptoProCurveEncodingTest()
+        throws Exception
+    {
+        ASN1ObjectIdentifier curveOid = CryptoProObjectIdentifiers.gostR3410_2001_CryptoPro_XchA;
+        ASN1ObjectIdentifier digestOid = RosstandartObjectIdentifiers.id_tc26_gost_3411_12_256;
+
+        ECNamedDomainParameters domainParameters = new ECNamedDomainParameters(curveOid,
+            ECGOST3410NamedCurves.getByOIDX9(curveOid));
+        ECGOST3410Parameters gostParameters = new ECGOST3410Parameters(domainParameters, curveOid, digestOid, null);
+
+        ECKeyPairGenerator generator = new ECKeyPairGenerator();
+        generator.init(new ECKeyGenerationParameters(gostParameters, new SecureRandom()));
+        AsymmetricCipherKeyPair lwKp = generator.generateKeyPair();
+
+        SubjectPublicKeyInfo spki = SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(lwKp.getPublic());
+        PrivateKeyInfo pki = PrivateKeyInfoFactory.createPrivateKeyInfo(lwKp.getPrivate());
+        isEquals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256, spki.getAlgorithm().getAlgorithm());
+        isEquals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256, pki.getPrivateKeyAlgorithm().getAlgorithm());
+
+        KeyFactory kf = KeyFactory.getInstance("ECGOST3410-2012", "BC");
+        PublicKey pub = kf.generatePublic(new X509EncodedKeySpec(spki.getEncoded()));
+        PrivateKey priv = kf.generatePrivate(new PKCS8EncodedKeySpec(pki.getEncoded()));
+
+        isTrue("not a 2012 public key: " + pub.getClass(), pub instanceof BCECGOST3410_2012PublicKey);
+        isTrue("not a 2012 private key: " + priv.getClass(), priv instanceof BCECGOST3410_2012PrivateKey);
+        isEquals(curveOid, ((BCECGOST3410_2012PublicKey)pub).getGostParams().getPublicKeyParamSet());
+        isEquals(digestOid, ((BCECGOST3410_2012PublicKey)pub).getGostParams().getDigestParamSet());
+
+        // the provider's own key-info bridge must agree with the KeyFactory
+        isTrue(BouncyCastleProvider.getPublicKey(spki) instanceof BCECGOST3410_2012PublicKey);
+        isTrue(BouncyCastleProvider.getPrivateKey(pki) instanceof BCECGOST3410_2012PrivateKey);
+
+        // re-encoding through the JCE keys must keep the 2012 algorithm OID
+        isEquals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256,
+            SubjectPublicKeyInfo.getInstance(pub.getEncoded()).getAlgorithm().getAlgorithm());
+        isEquals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256,
+            PrivateKeyInfo.getInstance(priv.getEncoded()).getPrivateKeyAlgorithm().getAlgorithm());
+
+        byte[] msg = toByteArray("the quick brown fox jumps over the lazy dog");
+
+        Signature sig = Signature.getInstance("ECGOST3410-2012-256", "BC");
+        sig.initSign(priv);
+        sig.update(msg);
+        byte[] s = sig.sign();
+
+        sig.initVerify(pub);
+        sig.update(msg);
+        isTrue("2012-256 signature did not verify", sig.verify(s));
+    }
+
     public void performTest()
         throws Exception
     {
         gost2012MismatchTest();
         gost2012DigestOidTest();
+        gost2012CryptoProCurveEncodingTest();
         gost2018AliasTest();
     }
 

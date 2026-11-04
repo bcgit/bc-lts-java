@@ -2,16 +2,11 @@ package org.bouncycastle.crypto.util;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.HashSet;
-import java.util.Set;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1Integer;
-import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DEROctetString;
-import org.bouncycastle.asn1.cryptopro.CryptoProObjectIdentifiers;
-import org.bouncycastle.asn1.cryptopro.GOST3410PublicKeyAlgParameters;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.pkcs.RSAPublicKey;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -37,7 +32,6 @@ import org.bouncycastle.crypto.params.SLHDSAPublicKeyParameters;
 import org.bouncycastle.crypto.params.X25519PublicKeyParameters;
 import org.bouncycastle.crypto.params.X448PublicKeyParameters;
 import org.bouncycastle.internal.asn1.edec.EdECObjectIdentifiers;
-import org.bouncycastle.internal.asn1.rosstandart.RosstandartObjectIdentifiers;
 import org.bouncycastle.pqc.crypto.lms.Composer;
 import org.bouncycastle.pqc.crypto.lms.HSSPublicKeyParameters;
 import org.bouncycastle.pqc.crypto.lms.LMSPublicKeyParameters;
@@ -49,17 +43,6 @@ import org.bouncycastle.util.Arrays;
 public class SubjectPublicKeyInfoFactory
 {
     private static final byte tag_OctetString = (byte)0x04;
-    private static Set cryptoProOids = new HashSet(5);
-
-    static
-    {
-        cryptoProOids.add(CryptoProObjectIdentifiers.gostR3410_2001_CryptoPro_A);
-        cryptoProOids.add(CryptoProObjectIdentifiers.gostR3410_2001_CryptoPro_B);
-        cryptoProOids.add(CryptoProObjectIdentifiers.gostR3410_2001_CryptoPro_C);
-        cryptoProOids.add(CryptoProObjectIdentifiers.gostR3410_2001_CryptoPro_XchA);
-        cryptoProOids.add(CryptoProObjectIdentifiers.gostR3410_2001_CryptoPro_XchB);
-    }
-
     private SubjectPublicKeyInfoFactory()
     {
 
@@ -136,43 +119,17 @@ public class SubjectPublicKeyInfoFactory
                 BigInteger bX = pub.getQ().getAffineXCoord().toBigInteger();
                 BigInteger bY = pub.getQ().getAffineYCoord().toBigInteger();
 
-                params = new GOST3410PublicKeyAlgParameters(gostParams.getPublicKeyParamSet(), gostParams.getDigestParamSet());
+                AlgorithmIdentifier algID = ECGOST3410Util.createAlgorithmIdentifier(gostParams);
 
-                int encKeySize;
-                int offset;
-                ASN1ObjectIdentifier algIdentifier;
+                int fieldSize = ECGOST3410Util.getFieldElementEncodingLength(gostParams);
 
-
-                if (cryptoProOids.contains(gostParams.getPublicKeyParamSet()))
-                {
-                    encKeySize = 64;
-                    offset = 32;
-                    algIdentifier = CryptoProObjectIdentifiers.gostR3410_2001;
-                }
-                else
-                {
-                    boolean is512 = (bX.bitLength() > 256);
-                    if (is512)
-                    {
-                        encKeySize = 128;
-                        offset = 64;
-                        algIdentifier = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512;
-                    }
-                    else
-                    {
-                        encKeySize = 64;
-                        offset = 32;
-                        algIdentifier = RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256;
-                    }
-                }
-
-                byte[] encKey = new byte[encKeySize];
-                extractBytes(encKey, encKeySize / 2, 0, bX);
-                extractBytes(encKey, encKeySize / 2, offset, bY);
+                byte[] encKey = new byte[2 * fieldSize];
+                extractBytes(encKey, fieldSize, 0, bX);
+                extractBytes(encKey, fieldSize, fieldSize, bY);
 
                 try
                 {
-                    return new SubjectPublicKeyInfo(new AlgorithmIdentifier(algIdentifier, params), new DEROctetString(encKey));
+                    return new SubjectPublicKeyInfo(algID, new DEROctetString(encKey));
                 }
                 catch (IOException e)
                 {
