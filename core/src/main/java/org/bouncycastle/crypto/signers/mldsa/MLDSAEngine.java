@@ -488,6 +488,11 @@ public class MLDSAEngine
         return null;
     }
 
+    /**
+     * @deprecated finalises the engine's own SHAKE256 state, which is not the message digest the
+     * signer feeds; use {@link #generateMu(SHAKEDigest)} on the message digest and compare in constant time,
+     * as {@link org.bouncycastle.crypto.signers.MLDSASigner#verifyMu(byte[])} does.
+     */
     public boolean verifyInternalMu(byte[] providedMu)
     {
         byte[] mu = new byte[CrhBytes];
