@@ -21,6 +21,7 @@ public class AllTests
         TestSuite suite = new TestSuite("Lightweight PQ Crypto Tests");
 
         suite.addTestSuite(LMSTest.class);
+        suite.addTestSuite(MLRawPrivateKeyFormTest.class);
 //        suite.addTestSuite(HSSTest.class);
 //        suite.addTestSuite(XMSSMTPrivateKeyTest.class);
 //        suite.addTestSuite(XMSSMTPublicKeyTest.class);

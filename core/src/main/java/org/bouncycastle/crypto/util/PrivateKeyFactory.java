@@ -130,8 +130,8 @@ public class PrivateKeyFactory
 //      else if (algOID.equals(X9ObjectIdentifiers.dhpublicnumber))
         else if (algOID.equals(PKCSObjectIdentifiers.dhKeyAgreement))
         {
-            DHParameter params = DHParameter.getInstance(algId.getParameters());
-            ASN1Integer derX = (ASN1Integer)keyInfo.parsePrivateKey();
+            DHParameter params = DHParameter.getInstance(requiredParameters(algId, "DH"));
+            ASN1Integer derX = ASN1Integer.getInstance(keyInfo.parsePrivateKey());
 
             BigInteger lVal = params.getL();
             int l = lVal == null ? 0 : lVal.intValue();
@@ -141,15 +141,15 @@ public class PrivateKeyFactory
         }
         else if (algOID.equals(OIWObjectIdentifiers.elGamalAlgorithm))
         {
-            ElGamalParameter params = ElGamalParameter.getInstance(algId.getParameters());
-            ASN1Integer derX = (ASN1Integer)keyInfo.parsePrivateKey();
+            ElGamalParameter params = ElGamalParameter.getInstance(requiredParameters(algId, "ElGamal"));
+            ASN1Integer derX = ASN1Integer.getInstance(keyInfo.parsePrivateKey());
 
             return new ElGamalPrivateKeyParameters(derX.getValue(), new ElGamalParameters(
                 params.getP(), params.getG()));
         }
         else if (algOID.equals(X9ObjectIdentifiers.id_dsa))
         {
-            ASN1Integer derX = (ASN1Integer)keyInfo.parsePrivateKey();
+            ASN1Integer derX = ASN1Integer.getInstance(keyInfo.parsePrivateKey());
             ASN1Encodable algParameters = algId.getParameters();
 
             DSAParameters parameters = null;
@@ -173,7 +173,18 @@ public class PrivateKeyFactory
              */
             ECPrivateKey ecPrivateKey = ECPrivateKey.getInstance(keyInfo.parsePrivateKey());
 
-            X962Parameters parameters = X962Parameters.getInstance(algId.getParameters().toASN1Primitive());
+            // RFC 5480 puts the curve in the algorithm parameters; RFC 5915 also allows it in the
+            // ECPrivateKey, which is used when the algorithm carries none
+            ASN1Encodable curve = algId.getParameters();
+            if (curve == null)
+            {
+                curve = ecPrivateKey.getParametersObject();
+            }
+            if (curve == null)
+            {
+                throw new IllegalArgumentException("EC private key requires curve parameters");
+            }
+            X962Parameters parameters = X962Parameters.getInstance(curve.toASN1Primitive());
             ECDomainParameters domainParams;
             if (parameters.isNamedCurve())
             {
@@ -220,8 +231,8 @@ public class PrivateKeyFactory
         }
         else if (Utils.mldsaParams.containsKey(algOID))
         {
-            ASN1Encodable mldsaKey = parsePrimitiveString(keyInfo.getPrivateKey(), 32);
             MLDSAParameters mldsaParams = Utils.mldsaParamsLookup(algOID);
+            ASN1Encodable mldsaKey = parsePrimitiveString(keyInfo.getPrivateKey(), 32, mldsaExpandedKeyLength(mldsaParams));
 
             MLDSAPublicKeyParameters pubParams = null;
             if (keyInfo.getPublicKeyData() != null)
@@ -256,8 +267,8 @@ public class PrivateKeyFactory
             algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_768) ||
             algOID.equals(NISTObjectIdentifiers.id_alg_ml_kem_1024))
         {
-            ASN1Primitive mlkemKey = parsePrimitiveString(keyInfo.getPrivateKey(), 64);
             MLKEMParameters mlkemParams = Utils.mlkemParamsLookup(algOID);
+            ASN1Primitive mlkemKey = parsePrimitiveString(keyInfo.getPrivateKey(), 64, mlkemExpandedKeyLength(mlkemParams));
 
             MLKEMPublicKeyParameters pubParams = null;
             if (keyInfo.getPublicKeyData() != null)
@@ -307,7 +318,7 @@ public class PrivateKeyFactory
                 algOID.equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_512) ||
                 algOID.equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256))
         {
-            ASN1Encodable algParameters = algId.getParameters();
+            ASN1Encodable algParameters = requiredParameters(algId, "GOST R 34.10");
             GOST3410PublicKeyAlgParameters gostParams = GOST3410PublicKeyAlgParameters.getInstance(algParameters);
             ECGOST3410Parameters ecSpec = null;
             BigInteger d = null;
@@ -426,14 +437,61 @@ public class PrivateKeyFactory
         return octStr;
     }
     
+    // FIPS 204 sec. 4, Table 2: the expanded private key size of each parameter set (the HashML-DSA sets
+    // share them)
+    private static int mldsaExpandedKeyLength(MLDSAParameters params)
+    {
+        String name = params.getName();
+        if (name.startsWith("ml-dsa-44"))
+        {
+            return 2560;
+        }
+        if (name.startsWith("ml-dsa-65"))
+        {
+            return 4032;
+        }
+        if (name.startsWith("ml-dsa-87"))
+        {
+            return 4896;
+        }
+        return -1;
+    }
+
+    // FIPS 203 sec. 8, Table 3: the decapsulation key size of each parameter set
+    private static int mlkemExpandedKeyLength(MLKEMParameters params)
+    {
+        String name = params.getName();
+        if (name.equals("ML-KEM-512"))
+        {
+            return 1632;
+        }
+        if (name.equals("ML-KEM-768"))
+        {
+            return 2400;
+        }
+        if (name.equals("ML-KEM-1024"))
+        {
+            return 3168;
+        }
+        return -1;
+    }
+
     /**
      * So it seems for the new PQC algorithms, there's a couple of approaches to what goes in the OCTET STRING
      * and in this case there may also be SEQUENCE.
+     * <p>
+     * The raw forms are recognised by their length before anything is parsed: their content is random, so
+     * it can begin with bytes that read as a tag and a length covering the rest, and only the length tells
+     * them apart - no DER encoding of the wrapped forms is as long as the raw seed or the raw expanded key.
      */
-    private static ASN1Primitive parsePrimitiveString(ASN1OctetString octStr, int expectedLength)
+    private static ASN1Primitive parsePrimitiveString(ASN1OctetString octStr, int expectedLength, int expandedLength)
         throws IOException
     {
         byte[] data = octStr.getOctets();
+        if (data.length == expandedLength)
+        {
+            return octStr;
+        }
         //
         // it's the right length for a RAW encoding, just return it.
         //
@@ -457,6 +515,17 @@ public class PrivateKeyFactory
         }
 
         return octStr;
+    }
+
+    // the algorithm parameters the key cannot be interpreted without
+    private static ASN1Encodable requiredParameters(AlgorithmIdentifier algId, String algorithmName)
+    {
+        ASN1Encodable parameters = algId.getParameters();
+        if (parameters == null)
+        {
+            throw new IllegalArgumentException(algorithmName + " private key requires algorithm parameters");
+        }
+        return parameters;
     }
 
     private static byte[] getRawKey(PrivateKeyInfo keyInfo)

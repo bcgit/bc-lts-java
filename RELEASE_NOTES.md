@@ -43,6 +43,34 @@ Date: 2026, TBD.
   enough, so a short output buffer surfaced as an `ArrayIndexOutOfBoundsException` from inside the
   engine rather than the `OutputLengthException` every other AEAD engine reports. Both directions
   of `processBytes()`, and `processByte()`, now check before anything is written or buffered.
+- The key factories cast fields of a PrivateKeyInfo or SubjectPublicKeyInfo to the ASN.1 type they
+  expected, or used algorithm parameters without checking they were present, so a malformed DH,
+  ElGamal, DSA, EC or GOST R 34.10 key gave a `ClassCastException` or `NullPointerException`, and
+  `ECNamedDomainParameters.lookup()` built parameters from no curve for an OID it did not know.
+  They now go through `getInstance` and refuse absent parameters, and an unknown curve, with an
+  `IllegalArgumentException`; an EC private key whose algorithm carries no parameters takes its
+  curve from the ECPrivateKey, as RFC 5915 allows.
+- PrivateKeyInfo and the CMS SignerInfo, the CMP PKIMessage and PKIHeader refused a sequence
+  shorter than their required fields only by failing with a `NoSuchElementException`,
+  PrivateKeyInfo a version too large for an int with an `ArithmeticException`, and an OCSP response
+  with a status too large for an int was accepted and then failed in `getStatus()`; each is now
+  refused when parsed with an `IllegalArgumentException`, which OCSPResp and GeneralPKIMessage
+  report as the `IOException` they declare. `RSAKeyParameters` refuses a negative modulus, which
+  passed the parity check and failed in the small factor search, and the lightweight `DSASigner`
+  refuses a key without domain parameters with an `IllegalArgumentException` rather than a
+  `NullPointerException`.
+- A GeneralizedTime read without its minutes or seconds and with a fraction of the hour or minute,
+  as X.680 allows - `9050010112.100Z`, say - was written as DER with the missing digits appended
+  after the fraction, which is not DER and grew each time the value was re-encoded. The fraction is
+  now carried down into minutes and seconds (`90500101120600Z` here), and a ',' decimal separator
+  becomes the '.' DER requires.
+- Both ML-DSA and ML-KEM private key factories decided between the raw and the DER-wrapped pre-RFC
+  forms by whether the content parsed, and a raw expanded key is random bytes, so about one in 2^31
+  begins with bytes that read as a DER header covering the rest. Such a key was refused, or -
+  through the `org.bouncycastle.pqc.crypto.mldsa` key class, which sliced and padded an encoding of
+  any length - loaded as a different key. The raw forms are now recognised by their length before
+  anything is parsed, and that key class refuses an encoding that is neither a seed nor an expanded
+  key.
 
 **Provider (prov).**
 
