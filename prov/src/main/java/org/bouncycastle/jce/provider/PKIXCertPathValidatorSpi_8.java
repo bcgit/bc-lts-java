@@ -65,6 +65,7 @@ public class PKIXCertPathValidatorSpi_8
             InvalidAlgorithmParameterException
     {
         PKIXExtendedParameters paramsPKIX;
+        PKIXExtendedBuilderParameters builderParams = null;
         if (params instanceof PKIXParameters)
         {
             PKIXExtendedParameters.Builder paramsPKIXBldr = new PKIXExtendedParameters.Builder((PKIXParameters)params);
@@ -73,7 +74,8 @@ public class PKIXCertPathValidatorSpi_8
         }
         else if (params instanceof PKIXExtendedBuilderParameters)
         {
-            paramsPKIX = ((PKIXExtendedBuilderParameters)params).getBaseParameters();
+            builderParams = (PKIXExtendedBuilderParameters)params;
+            paramsPKIX = builderParams.getBaseParameters();
         }
         else if (params instanceof PKIXExtendedParameters)
         {
@@ -208,6 +210,7 @@ public class PKIXCertPathValidatorSpi_8
         // (b) and (c)
         //
         PKIXNameConstraintValidator nameConstraintValidator = new PKIXNameConstraintValidator();
+        RFC3280CertPathUtilities.prepareNameConstraintsFromTrustAnchor(certPath, trust, nameConstraintValidator);
 
         // (d)
         //
@@ -342,7 +345,7 @@ public class PKIXCertPathValidatorSpi_8
             // 6.1.3
             //
 
-            RFC3280CertPathUtilities.processCertA(certPath, paramsPKIX, validityDate, revocationChecker, index,
+            RFC3280CertPathUtilities.processCertA(certPath, paramsPKIX, builderParams, validityDate, revocationChecker, index,
                 workingPublicKey, verificationAlreadyPerformed, workingIssuerName, sign);
 
             RFC3280CertPathUtilities.processCertBC(certPath, index, nameConstraintValidator, isForCRLCheck);

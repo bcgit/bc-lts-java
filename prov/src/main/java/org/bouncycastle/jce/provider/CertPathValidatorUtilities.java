@@ -55,7 +55,6 @@ import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.style.RFC4519Style;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.CRLDistPoint;
-import org.bouncycastle.asn1.x509.CRLReason;
 import org.bouncycastle.asn1.x509.DistributionPoint;
 import org.bouncycastle.asn1.x509.DistributionPointName;
 import org.bouncycastle.asn1.x509.Extension;
@@ -73,6 +72,7 @@ import org.bouncycastle.jcajce.provider.util.SecurityExceptions;
 import org.bouncycastle.jcajce.PKIXExtendedBuilderParameters;
 import org.bouncycastle.jcajce.PKIXExtendedParameters;
 import org.bouncycastle.jcajce.util.JcaJceHelper;
+import org.bouncycastle.util.Integers;
 import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.Selector;
 import org.bouncycastle.util.Store;
@@ -104,21 +104,6 @@ class CertPathValidatorUtilities
     */
     protected static final int KEY_CERT_SIGN = 5;
     protected static final int CRL_SIGN = 6;
-
-    static final String[] crlReasons = new String[]
-    {
-        "unspecified",
-        "keyCompromise",
-        "cACompromise",
-        "affiliationChanged",
-        "superseded",
-        "cessationOfOperation",
-        "certificateHold",
-        "unknown",
-        "removeFromCRL",
-        "privilegeWithdrawn",
-        "aACompromise",
-    };
 
     static Collection findTargets(PKIXExtendedBuilderParameters paramsPKIX) throws CertPathBuilderException
     {
@@ -171,18 +156,17 @@ class CertPathValidatorUtilities
     }
 
     /**
-     * Search the given Set of TrustAnchor's for one that is the
-     * issuer of the given X509 certificate. Uses the specified
-     * provider for signature verification, or the default provider
-     * if null.
+     * Return the first of the given trust anchors that names the issuer of the given certificate and whose public
+     * key verifies it, or null if there is none. Uses the specified provider for signature verification, or the
+     * default provider if null.
      *
      * @param cert         the X509 certificate
      * @param trustAnchors a Set of TrustAnchor's
      * @param sigProvider  the provider to use for signature verification
      * @return the <code>TrustAnchor</code> object if found or
      *         <code>null</code> if not.
-     * @throws AnnotatedException if a TrustAnchor was found but the signature verification
-     * on the given certificate has thrown an exception.
+     * @throws AnnotatedException if a trust anchor named the issuer, but none of those that did verified the
+     * certificate.
      */
     protected static TrustAnchor findTrustAnchor(
         X509Certificate cert,
@@ -190,85 +174,79 @@ class CertPathValidatorUtilities
         String sigProvider)
         throws AnnotatedException
     {
-        TrustAnchor trust = null;
-        PublicKey trustPublicKey = null;
-        Exception invalidKeyEx = null;
-
-        X509CertSelector certSelectX509 = new X509CertSelector();
-
-        final X500Principal certIssuerPrincipal = cert.getIssuerX500Principal();
-        certSelectX509.setSubject(certIssuerPrincipal);
-
+        X500Principal certIssuer = cert.getIssuerX500Principal();
         X500Name certIssuerName = null;
 
-        Iterator iter = trustAnchors.iterator();
-        while (iter.hasNext() && trust == null)
+        Exception invalidKeyEx = null;
+
+        for (Iterator it = trustAnchors.iterator(); it.hasNext();)
         {
-            trust = (TrustAnchor)iter.next();
-            if (trust.getTrustedCert() != null)
+            TrustAnchor trust = (TrustAnchor)it.next();
+
+            PublicKey trustPublicKey;
+
+            // A TrustAnchor is built either from a trusted certificate, or from a name and a public key, so when
+            // there is no trusted certificate both the CA name and its public key are present.
+            X509Certificate trustedCert = trust.getTrustedCert();
+            if (trustedCert != null)
             {
-                if (certSelectX509.match(trust.getTrustedCert()))
+                if (!certIssuer.equals(trustedCert.getSubjectX500Principal()))
                 {
-                    trustPublicKey = trust.getTrustedCert().getPublicKey();
-                }
-                else
-                {
-                    trust = null;
-                }
-            }
-            else if (trust.getCA() != null
-                && trust.getCAName() != null
-                && trust.getCAPublicKey() != null)
-            {
-                if (certIssuerName == null)
-                {
-                    certIssuerName = X500Name.getInstance(certIssuerPrincipal.getEncoded());
+                    continue;
                 }
 
-                try
-                {
-                    X500Name caName = X500Name.getInstance(trust.getCA().getEncoded());
-
-                    if (certIssuerName.equals(caName))
-                    {
-                        trustPublicKey = trust.getCAPublicKey();
-                    }
-                    else
-                    {
-                        trust = null;
-                    }
-                }
-                catch (IllegalArgumentException ex)
-                {
-                    trust = null;
-                }
+                trustPublicKey = trustedCert.getPublicKey();
             }
             else
             {
-                trust = null;
+                if (certIssuerName == null)
+                {
+                    certIssuerName = X500Name.getInstance(certIssuer.getEncoded());
+                }
+
+                if (!isCAName(certIssuerName, trust))
+                {
+                    continue;
+                }
+
+                trustPublicKey = trust.getCAPublicKey();
             }
 
-            if (trustPublicKey != null)
+            try
             {
-                try
+                verifyX509Certificate(cert, trustPublicKey, sigProvider);
+                return trust;
+            }
+            catch (Exception e)
+            {
+                // Anchors sharing the issuer's subject DN can fail in turn; report the first failure.
+                if (invalidKeyEx == null)
                 {
-                    verifyX509Certificate(cert, trustPublicKey, sigProvider);
-                }
-                catch (Exception ex)
-                {
-                    invalidKeyEx = ex;
-                    trust = null;
-                    trustPublicKey = null;
+                    invalidKeyEx = e;
                 }
             }
         }
 
-        if (trust == null && invalidKeyEx != null)
+        if (invalidKeyEx != null)
         {
             throw new AnnotatedException("TrustAnchor found but certificate validation failed.", invalidKeyEx);
         }
 
-        return trust;
+        return null;
+    }
+
+    private static boolean isCAName(X500Name certIssuerName, TrustAnchor trust)
+    {
+        try
+        {
+            X500Name caName = X500Name.getInstance(trust.getCA().getEncoded());
+
+            return certIssuerName.equals(caName);
+        }
+        catch (IllegalArgumentException e)
+        {
+            return false;
+        }
     }
 
     static boolean isIssuerTrustAnchor(
@@ -855,14 +833,23 @@ class CertPathValidatorUtilities
             }
         }
 
-        ASN1Enumerated reasonCode = null;
+        // Kept only if it fits in an int; larger values are treated as absent
+        Integer reasonCode = null;
         if (crl_entry.hasExtensions())
         {
             checkCRLEntryCriticalExtensions(crl_entry, "CRL entry has unsupported critical extensions.");
 
             try
             {
-                reasonCode = ASN1Enumerated.getInstance(getExtensionValue(crl_entry, REASON_CODE));
+                ASN1Enumerated reasonCodeExt = ASN1Enumerated.getInstance(getExtensionValue(crl_entry, REASON_CODE));
+                if (null != reasonCodeExt)
+                {
+                    BigInteger value = reasonCodeExt.getValue();
+                    if (value.bitLength() <= 31)
+                    {
+                        reasonCode = Integers.valueOf(value.intValue());
+                    }
+                }
             }
             catch (Exception e)
             {
@@ -870,16 +857,13 @@ class CertPathValidatorUtilities
             }
         }
 
-        int reasonCodeValue = (null == reasonCode)
-            ?   CRLReason.unspecified
-            :   reasonCode.intValueExact();
+        Date revocationDate = crl_entry.getRevocationDate();
 
         // for reason keyCompromise, caCompromise, aACompromise or unspecified
-        if (PKIXCRLValidator.isRevocationEffective(validDate, crl_entry.getRevocationDate(), reasonCodeValue))
+        if (PKIXCRLValidator.isRevocationEffective(validDate, revocationDate, CertStatus.getReason(reasonCode)))
         {
             // (i) or (j)
-            certStatus.setCertStatus(reasonCodeValue);
-            certStatus.setRevocationDate(crl_entry.getRevocationDate());
+            certStatus.setRevoked(revocationDate, reasonCode);
         }
     }
 

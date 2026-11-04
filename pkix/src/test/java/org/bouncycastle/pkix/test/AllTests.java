@@ -25,6 +25,10 @@ public class AllTests
         suite.addTestSuite(CheckNameConstraintsTest.class);
         suite.addTestSuite(PKIXCertPathReviewerCrlReasonTest.class);
         suite.addTestSuite(PKIXCertPathReviewerCrlSelectionTest.class);
+        suite.addTestSuite(PKIXCertPathReviewerCrlScopeTest.class);
+        suite.addTestSuite(PKIXCertPathReviewerCrlDistPointTest.class);
+        suite.addTestSuite(CrlReasonCodeTest.class);
+        suite.addTestSuite(TrustAnchorNameConstraintsTest.class);
         // These two are in this package but were not listed here, so they never ran.
         suite.addTestSuite(HTMLFilterTest.class);
         suite.addTestSuite(SQLFilterTest.class);

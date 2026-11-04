@@ -859,6 +859,7 @@ public class PKIXNameConstraintValidator
         }
 
         checkEmailNotAmbiguous(email);
+        checkNoEmptyLabel(emailHost(email), "Subject email address host");
 
         if (!isEmailConstrained(permitted, email))
         {
@@ -875,6 +876,7 @@ public class PKIXNameConstraintValidator
         }
 
         checkEmailNotAmbiguous(email);
+        checkNoEmptyLabel(emailHost(email), "Subject email address host");
 
         if (isEmailConstrained(excluded, email))
         {
@@ -897,6 +899,18 @@ public class PKIXNameConstraintValidator
         {
             throw new NameConstraintValidatorException("Subject email address is ambiguous (multiple '@').");
         }
+    }
+
+    /**
+     * The host of a tested rfc822Name, which is everything past the '@' - or the whole value when
+     * there is none, the form a bare domain takes. Only meaningful once
+     * {@link #checkEmailNotAmbiguous} has established there is at most one '@', so that the local
+     * part cannot be mistaken for the host; the local part is deliberately left out, since a quoted
+     * one may legally carry the doubled dot {@link #checkNoEmptyLabel} refuses in a host.
+     */
+    private static String emailHost(String email)
+    {
+        return email.substring(email.indexOf('@') + 1);
     }
 
     private static void checkPermittedOtherName(Set permitted, OtherName otherName)
@@ -1191,6 +1205,13 @@ public class PKIXNameConstraintValidator
     private static void checkExcludedDNS(Set excluded, String dns)
         throws NameConstraintValidatorException
     {
+        if (excluded.isEmpty())
+        {
+            return;
+        }
+
+        checkNoEmptyLabel(dns, "DNS name");
+
         if (isDNSConstrained(excluded, dns))
         {
             throw new NameConstraintValidatorException("DNS is from an excluded subtree.");
@@ -1200,9 +1221,14 @@ public class PKIXNameConstraintValidator
     private static void checkPermittedDNS(Set permitted, String dns)
         throws NameConstraintValidatorException
     {
-        if (permitted != null
-            && !(dns.length() == 0 && permitted.size() == 0)
-            && !isDNSConstrained(permitted, dns))
+        if (permitted == null || (dns.length() == 0 && permitted.size() == 0))
+        {
+            return;
+        }
+
+        checkNoEmptyLabel(dns, "DNS name");
+
+        if (!isDNSConstrained(permitted, dns))
         {
             throw new NameConstraintValidatorException("DNS is not from a permitted subtree.");
         }
@@ -1247,6 +1273,29 @@ public class PKIXNameConstraintValidator
             return s.substring(0, s.length() - 1);
         }
         return s;
+    }
+
+    /**
+     * A tested host must carry no empty label. RFC 1034 sec. 3.5 admits none but the root, so the
+     * single trailing dot of a fully-qualified name is legal - and {@link #stripTrailingDot} removes
+     * it - while a leading dot, a doubled dot or a second trailing dot is not a name RFC 5280
+     * sec. 4.2.1.6 admits. Such a value is refused rather than canonicalised: deciding that
+     * "example.com.." names example.com would be this validator's guess, and a consumer resolving or
+     * comparing the name does not read it that way, so a name it cannot match is failed closed. This
+     * applies to tested names only - a constraint may legitimately begin with a dot, which is how
+     * this implementation spells "subdomains only".
+     *
+     * @param host the host part of the tested name.
+     * @param nameType how to describe the name in the exception message.
+     * @throws NameConstraintValidatorException if the host carries an empty label.
+     */
+    private static void checkNoEmptyLabel(String host, String nameType)
+        throws NameConstraintValidatorException
+    {
+        if (host.indexOf("..") >= 0 || (host.length() > 1 && host.charAt(0) == '.'))
+        {
+            throw new NameConstraintValidatorException(nameType + " has an empty label.");
+        }
     }
 
     /**
@@ -1709,6 +1758,13 @@ public class PKIXNameConstraintValidator
     private static void checkExcludedURI(Set excluded, String uri)
         throws NameConstraintValidatorException
     {
+        if (excluded.isEmpty())
+        {
+            return;
+        }
+
+        checkNoEmptyLabel(extractHostFromURL(uri), "URI host");
+
         if (isURIConstrained(excluded, uri))
         {
             throw new NameConstraintValidatorException("URI is from an excluded subtree.");
@@ -1859,9 +1915,14 @@ public class PKIXNameConstraintValidator
     private static void checkPermittedURI(Set permitted, String uri)
         throws NameConstraintValidatorException
     {
-        if (permitted != null
-            && !(uri.length() == 0 && permitted.size() == 0)
-            && !isURIConstrained(permitted, uri))
+        if (permitted == null || (uri.length() == 0 && permitted.size() == 0))
+        {
+            return;
+        }
+
+        checkNoEmptyLabel(extractHostFromURL(uri), "URI host");
+
+        if (!isURIConstrained(permitted, uri))
         {
             throw new NameConstraintValidatorException("URI is not from a permitted subtree.");
         }

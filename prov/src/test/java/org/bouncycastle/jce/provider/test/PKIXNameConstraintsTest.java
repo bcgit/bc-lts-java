@@ -266,6 +266,7 @@ public class PKIXNameConstraintsTest
         testUriHostExtractionBypass();
         testIPv4MappedAddressBypass();
         testQuotedLocalPartEmailBypass();
+        testEmptyLabelRefused();
 
         testSGP22LegacySerialNumber();
         testSGP22NameConstraints();
@@ -295,6 +296,51 @@ public class PKIXNameConstraintsTest
         // uniformResourceIdentifier: the host trailing dot is stripped like the dNSName path.
         isTrue("trailing-dot URI host must be caught by the excluded competitor.example subtree",
             isExcluded(uriName("competitor.example"), uriName("https://competitor.example./")));
+    }
+
+    /**
+     * Only the single root-label dot of RFC 1034 sec. 3.1 is canonicalized away. A host carrying any
+     * other empty label - a second trailing dot, a doubled dot, a leading dot - is not a name
+     * RFC 5280 sec. 4.2.1.6 admits, and stripping the extra dots would decide on the caller's behalf
+     * that "example.com.." names example.com. It is refused instead, in both directions, so it can
+     * neither escape an excluded subtree nor be admitted by a permitted one.
+     */
+    private void testEmptyLabelRefused() throws Exception
+    {
+        // dNSName: every shape of empty label is refused, whichever domain the name appears to carry.
+        isTrue("two trailing dots must be refused",
+            isExcluded(dnsName("example.com"), dnsName("example.com..")));
+        isTrue("three trailing dots must be refused",
+            isExcluded(dnsName("example.com"), dnsName("example.com...")));
+        isTrue("a doubled inner dot must be refused",
+            isExcluded(dnsName("example.com"), dnsName("foo..example.com")));
+        isTrue("a leading dot must be refused",
+            isExcluded(dnsName("example.com"), dnsName(".example.com")));
+        isTrue("a sibling domain with an empty label must be refused too",
+            isExcluded(dnsName("example.com"), dnsName("notexample.com..")));
+
+        // the permitted direction refuses it as well, so canonicalizing has not admitted anything new.
+        isTrue("an empty label must not be permitted",
+            !isPermitted(dnsName("example.com"), dnsName("example.com..")));
+        isTrue("a well-formed name is still permitted",
+            isPermitted(dnsName("example.com"), dnsName("example.com.")));
+
+        // rfc822Name and URI share the guard, applied to the host.
+        isTrue("two trailing dots on a mail host must be refused",
+            isExcluded(emailName("bank.com"), emailName("ceo@bank.com..")));
+        isTrue("two trailing dots on a URI host must be refused",
+            isExcluded(uriName("competitor.example"), uriName("https://competitor.example../")));
+
+        // the guard is scoped to the host: a quoted local part may legally carry a doubled dot.
+        isTrue("a doubled dot in a quoted local part must not be refused, and the host still matches",
+            isExcluded(emailName("bank.com"), emailName("\"a..b\"@bank.com")));
+
+        // a bare "." is the root label, not an empty one, and is left alone.
+        isTrue("a bare root label must not be refused", !isExcluded(dnsName("example.com"), dnsName(".")));
+
+        // nothing is refused where no constraint of that type is in force.
+        isTrue("an empty label is immaterial with no dNSName constraint",
+            !isExcluded(emailName("bank.com"), dnsName("example.com..")));
     }
 
     /**

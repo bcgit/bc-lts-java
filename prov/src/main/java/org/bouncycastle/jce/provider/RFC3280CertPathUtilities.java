@@ -10,6 +10,7 @@ import java.security.cert.CertPathValidatorException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.PKIXCertPathChecker;
+import java.security.cert.TrustAnchor;
 import java.security.cert.X509CRL;
 import java.security.cert.X509CertSelector;
 import java.security.cert.X509Certificate;
@@ -355,6 +356,7 @@ class RFC3280CertPathUtilities
         X509Certificate defaultCRLSignCert,
         PublicKey defaultCRLSignKey,
         PKIXExtendedParameters paramsPKIX,
+        PKIXExtendedBuilderParameters builderParams,
         List certPathCerts,
         JcaJceHelper helper)
         throws AnnotatedException
@@ -472,7 +474,16 @@ class RFC3280CertPathUtilities
                     paramsBuilder.setRevocationEnabled(true);
                 }
 
-                PKIXExtendedBuilderParameters extParams = new PKIXExtendedBuilderParameters.Builder(paramsBuilder.build()).build();
+                PKIXExtendedBuilderParameters.Builder extParamsBuilder = new PKIXExtendedBuilderParameters.Builder(paramsBuilder.build());
+
+                // the caller's limits on path building apply to the CRL signer's path as well
+                if (builderParams != null)
+                {
+                    extParamsBuilder.setMaxPathLength(builderParams.getMaxPathLength())
+                        .addExcludedCerts(builderParams.getExcludedCerts());
+                }
+
+                PKIXExtendedBuilderParameters extParams = extParamsBuilder.build();
 
                 List certs = builder.engineBuild(extParams).getCertPath().getCertificates();
                 validCerts.add(signingCert);
@@ -690,7 +701,7 @@ class RFC3280CertPathUtilities
     static void processCRLJ(Date validDate, X509CRL completecrl, Object cert, CertStatus certStatus)
         throws AnnotatedException
     {
-        if (certStatus.getCertStatus() == CertStatus.UNREVOKED)
+        if (!certStatus.isRevoked())
         {
             CertPathValidatorUtilities.getCertStatus(validDate, completecrl, cert, certStatus);
         }
@@ -1233,6 +1244,7 @@ class RFC3280CertPathUtilities
     protected static void processCertA(
         CertPath certPath,
         PKIXExtendedParameters paramsPKIX,
+        PKIXExtendedBuilderParameters builderParams,
         Date validityDate,
         PKIXCertRevocationChecker revocationChecker,
         int index,
@@ -1292,7 +1304,7 @@ class RFC3280CertPathUtilities
         //
         if (revocationChecker != null)
         {
-            revocationChecker.initialize(new PKIXCertRevocationCheckerParameters(paramsPKIX, validityDate, certPath,
+            revocationChecker.initialize(new ProvCertRevocationCheckerParameters(paramsPKIX, builderParams, validityDate, certPath,
                 index, sign, workingPublicKey));
 
             revocationChecker.check(cert);
@@ -1413,6 +1425,65 @@ class RFC3280CertPathUtilities
             }
         }
         return policyMapping;
+    }
+
+    /**
+     * RFC 5280 sec. 6.1.2 (b) and (c): seed the permitted and excluded subtrees from the name
+     * constraints carried by the trust anchor, if it has any.
+     */
+    protected static void prepareNameConstraintsFromTrustAnchor(
+        CertPath certPath,
+        TrustAnchor trust,
+        PKIXNameConstraintValidator nameConstraintValidator)
+        throws CertPathValidatorException
+    {
+        byte[] ncBytes = trust.getNameConstraints();
+        if (ncBytes == null)
+        {
+            return;
+        }
+
+        NameConstraints nc;
+        try
+        {
+            nc = NameConstraints.getInstance(ASN1Primitive.fromByteArray(ncBytes));
+        }
+        catch (Exception e)
+        {
+            throw new CertPathValidatorException("Trust anchor name constraints could not be decoded.", e, certPath,
+                -1);
+        }
+
+        GeneralSubtree[] permitted = nc.getPermittedSubtrees();
+        if (permitted != null)
+        {
+            try
+            {
+                nameConstraintValidator.intersectPermittedSubtree(permitted);
+            }
+            catch (Exception ex)
+            {
+                throw new CertPathValidatorException(
+                    "Permitted subtrees could not be built from trust anchor name constraints.", ex, certPath, -1);
+            }
+        }
+
+        GeneralSubtree[] excluded = nc.getExcludedSubtrees();
+        if (excluded != null)
+        {
+            try
+            {
+                for (int i = 0; i != excluded.length; i++)
+                {
+                    nameConstraintValidator.addExcludedSubtree(excluded[i]);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new CertPathValidatorException(
+                    "Excluded subtrees could not be built from trust anchor name constraints.", ex, certPath, -1);
+            }
+        }
     }
 
     protected static void prepareNextCertG(
@@ -1544,7 +1615,7 @@ class RFC3280CertPathUtilities
         AnnotatedException lastException = null;
         Iterator crl_iter = crls.iterator();
 
-        while (crl_iter.hasNext() && certStatus.getCertStatus() == CertStatus.UNREVOKED && !reasonsMask.isAllReasons())
+        while (crl_iter.hasNext() && !certStatus.isRevoked() && !reasonsMask.isAllReasons())
         {
             try
             {
@@ -1568,7 +1639,8 @@ class RFC3280CertPathUtilities
                 }
 
                 // (f)
-                Set keys = processCRLF(crl, cert, defaultCRLSignCert, defaultCRLSignKey, paramsPKIX, certPathCerts, helper);
+                Set keys = processCRLF(crl, cert, defaultCRLSignCert, defaultCRLSignKey, paramsPKIX,
+                    ProvCertRevocationCheckerParameters.getBuilderParams(params), certPathCerts, helper);
 
                 // (g)
                 PublicKey key = processCRLG(crl, keys);
@@ -1630,9 +1702,9 @@ class RFC3280CertPathUtilities
                 processCRLJ(validityDate, crl, cert, certStatus);
 
                 // (k)
-                if (certStatus.getCertStatus() == CRLReason.removeFromCRL)
+                if (certStatus.isRevoked() && certStatus.getReason() == CRLReason.removeFromCRL)
                 {
-                    certStatus.setCertStatus(CertStatus.UNREVOKED);
+                    certStatus.setUnrevoked();
                 }
 
                 // update reasons mask
@@ -1647,6 +1719,12 @@ class RFC3280CertPathUtilities
         }
         if (!validCrlFound)
         {
+            // every candidate was skipped rather than rejected - the reasons they cover add nothing to the mask - so there is no exception to report.
+            if (lastException == null)
+            {
+                throw new AnnotatedException("No valid CRL found.");
+            }
+
             throw lastException;
         }
     }
@@ -1733,7 +1811,7 @@ class RFC3280CertPathUtilities
             }
             if (dps != null)
             {
-                for (int i = 0; i < dps.length && certStatus.getCertStatus() == CertStatus.UNREVOKED && !reasonsMask.isAllReasons(); i++)
+                for (int i = 0; i < dps.length && !certStatus.isRevoked() && !reasonsMask.isAllReasons(); i++)
                 {
                     try
                     {
@@ -1755,7 +1833,7 @@ class RFC3280CertPathUtilities
          * but issued by the certificate issuer.
          */
 
-        if (certStatus.getCertStatus() == CertStatus.UNREVOKED && !reasonsMask.isAllReasons())
+        if (!certStatus.isRevoked() && !reasonsMask.isAllReasons())
         {
             try
             {
@@ -1807,21 +1885,21 @@ class RFC3280CertPathUtilities
 
             throw new AnnotatedException("No valid CRL found.", lastException);
         }
-        if (certStatus.getCertStatus() != CertStatus.UNREVOKED)
+        Date revocationDate = certStatus.getRevocationDate();
+        if (revocationDate == null)
+        {
+            if (!reasonsMask.isAllReasons())
+            {
+                throw new AnnotatedException("Certificate status could not be determined.");
+            }
+        }
+        else
         {
             SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss Z");
             df.setTimeZone(TimeZone.getTimeZone("UTC"));
-            String message = "Certificate revocation after " + df.format(certStatus.getRevocationDate());
-            message += ", reason: " + crlReasons[certStatus.getCertStatus()];
-            throw new AnnotatedException(message);
-        }
-        if (!reasonsMask.isAllReasons() && certStatus.getCertStatus() == CertStatus.UNREVOKED)
-        {
-            certStatus.setCertStatus(CertStatus.UNDETERMINED);
-        }
-        if (certStatus.getCertStatus() == CertStatus.UNDETERMINED)
-        {
-            throw new AnnotatedException("Certificate status could not be determined.");
+            String message = "Certificate revocation after " + df.format(revocationDate);
+            message += ", reason: " + certStatus.getReasonText();
+            throw new AnnotatedRevocationException(message);
         }
     }
 
@@ -2063,21 +2141,6 @@ class RFC3280CertPathUtilities
         }
         return inhibitAnyPolicy;
     }
-
-    static final String[] crlReasons = new String[]
-    {
-        "unspecified",
-        "keyCompromise",
-        "cACompromise",
-        "affiliationChanged",
-        "superseded",
-        "cessationOfOperation",
-        "certificateHold",
-        "unknown",
-        "removeFromCRL",
-        "privilegeWithdrawn",
-        "aACompromise"
-    };
 
     protected static int wrapupCertA(
         int explicitPolicy,
