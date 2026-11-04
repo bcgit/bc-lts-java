@@ -529,6 +529,17 @@ public class Properties
      */
     public static final String NATIVE_RAND_SOURCE = "org.bouncycastle.native.rand";
 
+    /**
+     * The largest number of distinct digest algorithms BC will compute over the content of one
+     * SignedData message: the content digests CMSSignedData computes while its signers are verified
+     * (one per digest algorithm, shared by the signers using it) and the digest calculators
+     * CMSSignedDataParser runs over the content for the message's digestAlgorithms field. Each
+     * algorithm beyond the limit raises a CMSException. Unset or 0, the default, leaves the number
+     * unlimited, so the work a sender can demand is the content length times the algorithms it
+     * names. Read via {@link #asInteger(String, int)}.
+     */
+    public static final String CMS_MAX_DIGEST_ALGORITHMS = "org.bouncycastle.cms.max_digest_algorithms";
+
     private Properties()
     {
     }
