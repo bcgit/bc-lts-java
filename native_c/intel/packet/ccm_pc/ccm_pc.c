@@ -35,8 +35,10 @@ ccm_pc_process_packet(bool encryption, uint8_t *key, size_t keysize, uint8_t *no
     memzero(macBlock, BLOCK_SIZE);
 
     if (q < 4) {
-        int limitLen = 1 << (q << 3);
-        if (inLen >= limitLen) {
+        size_t limitLen = (size_t) 1 << (q << 3);
+        // on decryption the input includes the tag: the limit applies to the payload only.
+        size_t payloadLen = encryption ? inLen : (inLen < mac_size ? 0 : inLen - mac_size);
+        if (payloadLen >= limitLen) {
             return make_packet_error("CCM packet too large for choice of q", ILLEGAL_STATE);
         }
     }
@@ -91,10 +93,11 @@ void ccm_pc_calculateMac(uint8_t *input, size_t len, uint8_t *initAD, size_t ini
     }
     buf[0] |= ((((mac_size - 2) >> 1) & 0x7) << 3) | (((15 - nonceLen) - 1) & 0x7);
     memcpy(buf + 1, nonce, nonceLen); // nonceLen is <=13, buf is 16
-    size_t count = 1;
+    // the length field is exactly q octets, it must never run into the nonce; the length was
+    // checked against q before this point.
     size_t q = len;
-    while (q > 0) {
-        buf[BLOCK_SIZE - count++] = (uint8_t) (q & 0xFF);
+    for (size_t count = 1; count <= (size_t) (15 - nonceLen); count++) {
+        buf[BLOCK_SIZE - count] = (uint8_t) (q & 0xFF);
         q >>= 8;
     }
     cbc_pc_encrypt(buf, 1, macBlock, &chainblock, roundKeys, num_rounds);

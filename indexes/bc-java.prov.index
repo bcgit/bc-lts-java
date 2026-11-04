@@ -9,7 +9,7 @@ d30f895076f4f0563f54c6c1c973251b33b554f1ed76325581a93c8770d3dd33  prov/src/test/
 c09854807fe9e367b824391abab83f17b53440182a2d90a648cc9572d8b4fa61  prov/src/test/java/org/bouncycastle/jce/provider/test/AllTests.java
 7704c31f046053c6c06882024234c711dabeb4f93394bbbc271ee9c42b8c76a8  prov/src/test/java/org/bouncycastle/jce/provider/test/DHTest.java
 995b3b2294f2347bc3b6213b0b2cd2ea60decaafb4a076374ac9fd43c33d7037  prov/src/test/java/org/bouncycastle/jce/provider/test/ImplicitlyCaTest.java
-baff2a2b69c556e75401cab5dca56e2af8cfefcc5ac0319cf61f267216c000ca  prov/src/test/java/org/bouncycastle/jce/provider/test/CipherStreamTest2.java
+e564414afc359202722d5f1cd40ee93d84c117462c6c1fbb14e2ba3cae64d607  prov/src/test/java/org/bouncycastle/jce/provider/test/CipherStreamTest2.java
 9ac898632b4593be09aa4ce9da91549318c6a432dbc6ef54ca3c0c913fd526b6  prov/src/test/java/org/bouncycastle/jce/provider/test/PKIXPolicyMappingTest.java
 f15c90c8a6677b325f0522cd573e75fd147b08e3811e4123f4ce96f813853807  prov/src/test/java/org/bouncycastle/jce/provider/test/ECDSA5Test.java
 a185817fc4a40b0b1356a29c0f30854f2915066448b8e65ba5dbd69f140c7ac9  prov/src/test/java/org/bouncycastle/jce/provider/test/TLSKDFTest.java
@@ -473,7 +473,7 @@ b1f4cd28454e221d98077e13b1c6e04fc33b97c48c2c8f0b53af4aaa6d171627  prov/src/main/
 c7dd599e2e2c0c47678639796163db2efaf59c416c473a2e7cdfd36696a846a2  prov/src/main/java/org/bouncycastle/jcajce/PBKDF2Key.java
 09b47ea9ab5a1c82c206c2ee4128249c97a6914edd976b6a8c820ccb0ad45197  prov/src/main/java/org/bouncycastle/jcajce/io/DigestUpdatingOutputStream.java
 b69010ed4a6bb66d808137706a1d26065a0b59418bd20e6fab95b8baef6e35e0  prov/src/main/java/org/bouncycastle/jcajce/io/CipherInputStream.java
-f99112eae80cbf1dc7d52960c58c7556732ade509b477572f6f56e85b4e351ae  prov/src/main/java/org/bouncycastle/jcajce/io/CipherOutputStream.java
+4462f48b63438389077c6076a8819e6210125aef9b58862b15e5351110afa0d8  prov/src/main/java/org/bouncycastle/jcajce/io/CipherOutputStream.java
 8ce71d84c1dbe80aa88f5656cd171b9b9c6ecb3a0ff1207740551b7368388ab4  prov/src/main/java/org/bouncycastle/jcajce/io/MacUpdatingOutputStream.java
 f84f5369a122affb301e9c0439889a83131292c339c0bf3221817135ef7a1ca3  prov/src/main/java/org/bouncycastle/jcajce/io/OutputStreamFactory.java
 d6fb1644267ee4651523fd576af7ebf509c2f8a8f233fa060f70ce52baad4ee2  prov/src/main/java/org/bouncycastle/jcajce/io/MacOutputStream.java

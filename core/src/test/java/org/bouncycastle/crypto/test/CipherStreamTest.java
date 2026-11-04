@@ -1,5 +1,6 @@
 package org.bouncycastle.crypto.test;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
@@ -54,6 +55,7 @@ import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithIV;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.io.Streams;
 import org.bouncycastle.util.test.SimpleTest;
 
 public class CipherStreamTest
@@ -494,6 +496,161 @@ public class CipherStreamTest
         }
     }
 
+    private void testDoubleClose()
+        throws Exception
+    {
+        KeyParameter key = new KeyParameter(new byte[16]);
+
+        testDoubleClose("AES/CBC/PKCS7", new PaddedBufferedBlockCipher(CBCBlockCipher.newInstance(AESEngine.newInstance()), new PKCS7Padding()),
+            new ParametersWithIV(key, new byte[16]));
+        testDoubleClose("AES/EAX", new EAXBlockCipher(AESEngine.newInstance()), new ParametersWithIV(key, new byte[16]));
+        testDoubleClose("AES/GCM", GCMBlockCipher.newInstance(AESEngine.newInstance()), new ParametersWithIV(key, new byte[12]));
+    }
+
+    private void testDoubleClose(String label, Object cipher, CipherParameters params)
+        throws Exception
+    {
+        byte[] data = new byte[33];
+
+        init(cipher, true, params);
+
+        ByteArrayOutputStream bOut = new ByteArrayOutputStream();
+        OutputStream cOut = createCipherOutputStream(bOut, cipher);
+
+        cOut.write(data);
+        cOut.close();
+
+        byte[] expected = bOut.toByteArray();
+
+        cOut.close();
+
+        if (!Arrays.areEqual(expected, bOut.toByteArray()))
+        {
+            fail("second close changed the output for " + label);
+        }
+
+        init(cipher, false, params);
+
+        ByteArrayOutputStream pOut = new ByteArrayOutputStream();
+        OutputStream dOut = createCipherOutputStream(pOut, cipher);
+
+        dOut.write(expected);
+        dOut.close();
+        dOut.close();
+
+        if (!Arrays.areEqual(data, pOut.toByteArray()))
+        {
+            fail("double closed decryption failed for " + label);
+        }
+    }
+
+    private void testMarkReset()
+        throws Exception
+    {
+        testMarkReset(new ChaChaEngine(), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[8]));
+        testMarkReset(SICBlockCipher.newInstance(AESEngine.newInstance()), new ParametersWithIV(new KeyParameter(new byte[16]), new byte[16]));
+    }
+
+    private void testMarkReset(StreamCipher cipher, CipherParameters params)
+        throws Exception
+    {
+        byte[] data = new byte[100];
+        for (int i = 0; i != data.length; i++)
+        {
+            data[i] = (byte)i;
+        }
+
+        init(cipher, true, params);
+
+        byte[] cipherText = new byte[data.length];
+        cipher.processBytes(data, 0, data.length, cipherText, 0);
+
+        String name = cipher.getAlgorithmName();
+
+        // mark after the first read, reset before the end of the buffered data
+        init(cipher, false, params);
+        CipherInputStream cIn = new CipherInputStream(new ByteArrayInputStream(cipherText), cipher);
+        checkRead(name + " control", cIn, data, 0, 5);
+        cIn.mark(data.length);
+        checkRead(name + " control", cIn, data, 5, 30);
+        cIn.reset();
+        checkReadAll(name + " control", cIn, data, 5);
+
+        // mark before the first read
+        init(cipher, false, params);
+        cIn = new CipherInputStream(new ByteArrayInputStream(cipherText), cipher);
+        cIn.mark(data.length);
+        checkRead(name + " mark before first read", cIn, data, 0, 30);
+        cIn.reset();
+        checkReadAll(name + " mark before first read", cIn, data, 0);
+
+        // read to the end of the stream, then reset to a mark in an earlier chunk
+        init(cipher, false, params);
+        cIn = new CipherInputStream(new ByteArrayInputStream(cipherText), cipher, 16);
+        checkRead(name + " reset after end of stream", cIn, data, 0, 5);
+        cIn.mark(data.length);
+        checkReadAll(name + " reset after end of stream", cIn, data, 5);
+        cIn.reset();
+        checkReadAll(name + " reset after end of stream", cIn, data, 5);
+
+        // two resets to the same mark with a buffer smaller than the data
+        init(cipher, false, params);
+        cIn = new CipherInputStream(new ByteArrayInputStream(cipherText), cipher, 16);
+        checkRead(name + " second reset", cIn, data, 0, 5);
+        cIn.mark(data.length);
+        checkRead(name + " second reset", cIn, data, 5, 30);
+        cIn.reset();
+        checkRead(name + " second reset", cIn, data, 5, 30);
+        cIn.reset();
+        checkReadAll(name + " second reset", cIn, data, 5);
+
+        // mark in the second buffered chunk, reset from the shorter final chunk
+        init(cipher, false, params);
+        cIn = new CipherInputStream(new ByteArrayInputStream(cipherText), cipher, 16);
+        checkRead(name + " mark across chunks", cIn, data, 0, 17);
+        cIn.mark(data.length);
+        checkRead(name + " mark across chunks", cIn, data, 17, 80);
+        cIn.reset();
+        checkReadAll(name + " mark across chunks", cIn, data, 17);
+
+        // the underlying stream must keep its mark for the data this stream reads ahead (a CertificateFactory style peek)
+        init(cipher, false, params);
+        CipherInputStream peekIn = new CipherInputStream(new BufferedInputStream(new ByteArrayInputStream(cipherText), 16), cipher, 32);
+        peekIn.mark(1);
+        checkRead(name + " peek over BufferedInputStream", peekIn, data, 0, 1);
+        peekIn.reset();
+        checkReadAll(name + " peek over BufferedInputStream", peekIn, data, 0);
+
+        cIn.close();
+
+        // a reset() after close() must not reopen the stream
+        cIn.reset();
+        if (cIn.read() != -1)
+        {
+            fail(name + ": reset after close returned data");
+        }
+    }
+
+    private void checkRead(String label, InputStream in, byte[] data, int off, int len)
+        throws Exception
+    {
+        byte[] block = new byte[len];
+
+        if (Streams.readFully(in, block) != len || !Arrays.areEqual(Arrays.copyOfRange(data, off, off + len), block))
+        {
+            fail(label + ": wrong data read at offset " + off);
+        }
+    }
+
+    private void checkReadAll(String label, InputStream in, byte[] data, int off)
+        throws Exception
+    {
+        if (!Arrays.areEqual(Arrays.copyOfRange(data, off, data.length), Streams.readAll(in)))
+        {
+            fail(label + ": wrong data read from offset " + off + " to the end of the stream");
+        }
+    }
+
     public void performTest()
         throws Exception
     {
@@ -503,6 +660,9 @@ public class CipherStreamTest
             this.streamSize = testSizes[i];
             performTests();
         }
+
+        testDoubleClose();
+        testMarkReset();
     }
 
     private void performTests()

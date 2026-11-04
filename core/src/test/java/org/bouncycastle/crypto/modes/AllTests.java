@@ -24,6 +24,7 @@ public class AllTests extends TestCase
         suite.addTestSuite(AESGCMSIVPacketCipherTest.class);
         suite.addTestSuite(GCMReuseGuardTest.class);
         suite.addTestSuite(AEADGetMacTest.class);
+        suite.addTestSuite(CCMPayloadLimitTest.class);
         return new BCTestSetup(suite);
     }
 

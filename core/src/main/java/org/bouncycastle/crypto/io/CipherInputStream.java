@@ -42,6 +42,8 @@ public class CipherInputStream
     private boolean finalized;
     private long markPosition;
     private int markBufOff;
+    private int markMaxBuf;
+    private boolean markFinalized;
 
     /**
      * Constructs a CipherInputStream from an InputStream and a
@@ -395,6 +397,8 @@ public class CipherInputStream
         }
         maxBuf = bufOff = 0;
         markBufOff = 0;
+        markMaxBuf = 0;
+        markFinalized = true;
         markPosition = 0;
         if (markBuf != null)
         {
@@ -419,19 +423,18 @@ public class CipherInputStream
      */
     public void mark(int readlimit)
     {
-        in.mark(readlimit);
+        // this stream reads up to a buffer ahead of its caller, so the underlying stream has to allow for that too
+        in.mark((readlimit > Integer.MAX_VALUE - inBuf.length) ? Integer.MAX_VALUE : readlimit + inBuf.length);
         if (skippingCipher != null)
         {
             markPosition = skippingCipher.getPosition();
         }
 
-        if (buf != null)
-        {
-            markBuf = new byte[buf.length];
-            System.arraycopy(buf, 0, markBuf, 0, buf.length);
-        }
+        markBuf = Arrays.clone(buf, markBuf);
 
         markBufOff = bufOff;
+        markMaxBuf = maxBuf;
+        markFinalized = finalized;
     }
 
     /**
@@ -453,10 +456,12 @@ public class CipherInputStream
 
         if (markBuf != null)
         {
-            buf = markBuf;
+            buf = Arrays.clone(markBuf, buf);
         }
 
         bufOff = markBufOff;
+        maxBuf = markMaxBuf;
+        finalized = markFinalized;
      }
 
     /**

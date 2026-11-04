@@ -109,7 +109,9 @@ public class AESCCMPacketCipher
         if (q < 4)
         {
             int limitLen = 1 << (q << 3);
-            if (inLen >= limitLen)
+            // on decryption the input includes the tag: the limit applies to the payload only.
+            int payloadLen = forEncryption ? inLen : Math.max(0, inLen - macSize);
+            if (payloadLen >= limitLen)
             {
                 throw PacketCipherException.from(new IllegalStateException("CCM packet too large for choice of q."));
             }
@@ -197,12 +199,17 @@ public class AESCCMPacketCipher
         }
         buf[0] |= ((((macSize - 2) >> 1) & 0x7) << 3) | (((15 - nonce.length) - 1) & 0x7);
         System.arraycopy(nonce, 0, buf, 1, nonce.length);
-        int q = inLen;
-        int count = 1;
-        while (q > 0)
+        // the length field is exactly q octets, it must never run into the nonce
+        int q = 15 - nonce.length;
+        int len = inLen;
+        for (int count = 1; count <= q; count++)
         {
-            buf[buf.length - count++] = (byte) (q & 0xff);
-            q >>>= 8;
+            buf[buf.length - count] = (byte) (len & 0xff);
+            len >>>= 8;
+        }
+        if (len != 0)
+        {
+            throw new IllegalStateException("CCM packet too large for choice of q");
         }
 
         AESPacketCipher.processBlock(true, workingkey, s, buf, 0, macBlock, 0);
