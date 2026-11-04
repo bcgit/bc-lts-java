@@ -42,6 +42,9 @@ public class Argon2Test
         testCustomBlockPoolMatchesDefault();
         testCustomBlockPoolReusesBlocks();
         testCustomBlockPoolBoundedDropsOverflow();
+        testBlocksClearedOnDeallocate();
+        testBlockCountMatchesTheBlocksTaken();
+        testBlocksReturnedAndClearedOnFailure();
         
         int version = Argon2Parameters.ARGON2_VERSION_10;
 
@@ -370,14 +373,19 @@ public class Argon2Test
 
     private static byte[] hashWithPool(BlockPool pool)
     {
+        return hashWithPool(pool, 32, 4);
+    }
+
+    private static byte[] hashWithPool(BlockPool pool, int memory, int lanes)
+    {
         byte[] salt = Hex.decode("02020202020202020202020202020202");
         byte[] password = Hex.decode("0101010101010101010101010101010101010101010101010101010101010101");
 
         Argon2Parameters.Builder builder = new Argon2Parameters.Builder(Argon2Parameters.ARGON2_id)
             .withVersion(Argon2Parameters.ARGON2_VERSION_13)
             .withIterations(3)
-            .withMemoryAsKB(32)
-            .withParallelism(4)
+            .withMemoryAsKB(memory)
+            .withParallelism(lanes)
             .withSalt(salt);
 
         if (pool != null)
@@ -438,6 +446,165 @@ public class Argon2Test
         byte[] result = hashWithPool(new FixedBlockPool(1));
 
         isTrue("undersized pool produced wrong hash", Arrays.areEqual(expected, result));
+    }
+
+    // Tests for issue #2452 - a BlockPool must not have to clear blocks itself.
+
+    // The generator zeroises a block before handing it back, so a pool that clears nothing - as a
+    // custom implementation is entitled to be - never sees password-derived data.
+    private void testBlocksClearedOnDeallocate()
+    {
+        CheckingBlockPool pool = new CheckingBlockPool();
+
+        hashWithPool(pool);
+
+        isTrue("no blocks were returned to the pool", pool.deallocated > 0);
+        isTrue("blocks returned to the pool carrying data: " + pool.dirty + " of " + pool.deallocated,
+            pool.dirty == 0);
+
+        // and again on a run that recycles, where the blocks arrive with the previous run's data
+        pool.deallocated = 0;
+
+        hashWithPool(pool);
+
+        isTrue("no blocks were returned on the second run", pool.deallocated > 0);
+        isTrue("blocks returned to the pool carrying data on a recycled run: " + pool.dirty,
+            pool.dirty == 0);
+    }
+
+    // getBlockCount() is the number a pool must hold to recycle a whole run: the aligned primary
+    // memory plus the fill step's scratch blocks. Compare it against what the generator asks for.
+    private void testBlockCountMatchesTheBlocksTaken()
+    {
+        int[][] cases = new int[][]{{32, 4}, {32, 1}, {8, 4}, {1, 4}, {4096, 2}, {100, 3}};
+
+        for (int i = 0; i != cases.length; i++)
+        {
+            int memory = cases[i][0], lanes = cases[i][1];
+
+            CountingBlockPool pool = new CountingBlockPool();
+
+            hashWithPool(pool, memory, lanes);
+
+            int expected = Argon2BytesGenerator.getBlockCount(memory, lanes);
+
+            isTrue("getBlockCount(" + memory + ", " + lanes + ") = " + expected
+                + " but the generator took " + pool.fresh, pool.fresh == expected);
+
+            // a pool of that size recycles every block of the next run
+            FixedBlockPool sized = new FixedBlockPool(expected);
+            CountingBlockPool counted = new CountingBlockPool();
+
+            hashWithPool(counted, memory, lanes);
+            int afterFirst = counted.fresh;
+
+            hashWithPool(counted, memory, lanes);
+
+            isTrue("a pool sized by getBlockCount() still allocated on a recycled run",
+                counted.fresh == afterFirst);
+            isTrue("hash with a pool sized by getBlockCount() differs from the default",
+                Arrays.areEqual(hashWithPool(null, memory, lanes), hashWithPool(sized, memory, lanes)));
+        }
+
+        try
+        {
+            Argon2BytesGenerator.getBlockCount(32, 0);
+            fail("no exception on zero lanes");
+        }
+        catch (IllegalArgumentException e)
+        {
+            isEquals("lanes must be at least 1", e.getMessage());
+        }
+    }
+
+    // A run that fails part way through must still return what it took, zeroised.
+    private void testBlocksReturnedAndClearedOnFailure()
+    {
+        CheckingBlockPool pool = new CheckingBlockPool();
+
+        pool.failAfter = 5;
+
+        try
+        {
+            hashWithPool(pool);
+            fail("no exception from the failing pool");
+        }
+        catch (IllegalStateException e)
+        {
+            isEquals("no more blocks", e.getMessage());
+        }
+
+        isTrue("the blocks taken before the failure were not returned: took " + pool.allocated
+            + ", got back " + pool.deallocated, pool.allocated == pool.deallocated);
+        isTrue("blocks returned carrying data after a failed run: " + pool.dirty, pool.dirty == 0);
+    }
+
+    // Checks what it is handed rather than clearing it. Block.v is read by reflection because the
+    // contents of a block are deliberately not part of the public API - only clear() is.
+    private static class CheckingBlockPool
+        implements BlockPool
+    {
+        private final java.util.LinkedList<Block> available = new java.util.LinkedList<Block>();
+
+        int allocated;
+        int deallocated;
+        int dirty;
+        int failAfter = -1;
+
+        public Block allocate()
+        {
+            if (failAfter >= 0 && allocated == failAfter)
+            {
+                throw new IllegalStateException("no more blocks");
+            }
+            allocated++;
+            if (available.isEmpty())
+            {
+                return new Block();
+            }
+            return (Block)available.removeLast();
+        }
+
+        public void deallocate(Block block)
+        {
+            deallocated++;
+            if (!isClear(block))
+            {
+                dirty++;
+            }
+            available.add(block);
+        }
+    }
+
+    private static boolean isClear(Block block)
+    {
+        long[] v = contentsOf(block);
+
+        for (int i = 0; i != v.length; i++)
+        {
+            if (v[i] != 0)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static long[] contentsOf(Block block)
+    {
+        try
+        {
+            java.lang.reflect.Field f = Block.class.getDeclaredField("v");
+
+            f.setAccessible(true);
+
+            return (long[])f.get(block);
+        }
+        catch (Exception e)
+        {
+            throw new IllegalStateException("unable to read the block contents: " + e.getMessage());
+        }
     }
 
     private static class CountingBlockPool

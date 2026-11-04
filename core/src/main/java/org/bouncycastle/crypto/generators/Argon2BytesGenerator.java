@@ -24,6 +24,9 @@ public class Argon2BytesGenerator
 
     private static final int ARGON2_SYNC_POINTS = 4;
 
+    /* R, Z, addressBlock and inputBlock - the blocks FillBlock takes for the fill step */
+    private static final int FILL_BLOCK_COUNT = 4;
+
     /* Minimum and maximum number of lanes (degree of parallelism) */
     private static final int MIN_PARALLELISM = 1;
     private static final int MAX_PARALLELISM = (1 << 24) - 1;
@@ -84,19 +87,45 @@ public class Argon2BytesGenerator
         this.parameters = parameters;
 
         // 2. Align memory size
-        // Minimum memoryBlocks = 8L blocks, where L is the number of lanes
-        int memoryBlocks = Math.max(parameters.getMemory(), 2 * ARGON2_SYNC_POINTS * parameters.getLanes());
+        int lanes = parameters.getLanes();
 
-        this.segmentLength = memoryBlocks / (ARGON2_SYNC_POINTS * parameters.getLanes());
+        this.segmentLength = getSegmentLength(parameters.getMemory(), lanes);
         this.laneLength = segmentLength * ARGON2_SYNC_POINTS;
-
-        // Ensure that all segments have equal length
-        memoryBlocks = parameters.getLanes() * laneLength;
-        this.memoryBlocks = memoryBlocks;
+        this.memoryBlocks = lanes * laneLength;
 
         BlockPool configured = parameters.getBlockPool();
-        // if no pool is provided hold on to enough blocks for the primary memory
-        this.pool = (configured != null) ? configured : new FixedBlockPool(memoryBlocks);
+        // if no pool is provided hold on to every block the generator takes, the fill step's included
+        this.pool = (configured != null) ? configured : new FixedBlockPool(getBlockCount(parameters.getMemory(), lanes));
+    }
+
+    /**
+     * Return the number of {@link Block}s a generator takes from its {@link BlockPool} for the
+     * given memory size and degree of parallelism: the primary memory, after the alignment Argon2
+     * applies to it, plus the blocks the fill step works in. This is the size to give a
+     * {@link FixedBlockPool} that is to recycle every block of a run - the alignment rules are an
+     * implementation detail and are not to be replicated by callers.
+     *
+     * @param memory the memory size in 1K blocks, as passed to
+     *               {@link Argon2Parameters.Builder#withMemoryAsKB(int)}.
+     * @param lanes the degree of parallelism, as passed to
+     *              {@link Argon2Parameters.Builder#withParallelism(int)}.
+     * @return the number of blocks a generator has outstanding at once.
+     */
+    public static int getBlockCount(int memory, int lanes)
+    {
+        if (lanes < MIN_PARALLELISM)
+        {
+            throw new IllegalArgumentException("lanes must be at least " + MIN_PARALLELISM);
+        }
+
+        return lanes * getSegmentLength(memory, lanes) * ARGON2_SYNC_POINTS + FILL_BLOCK_COUNT;
+    }
+
+    // Minimum memory is 8L blocks, where L is the number of lanes, and the segments of every lane
+    // are of equal length, so the memory actually used is a multiple of ARGON2_SYNC_POINTS * lanes.
+    private static int getSegmentLength(int memory, int lanes)
+    {
+        return Math.max(memory, 2 * ARGON2_SYNC_POINTS * lanes) / (ARGON2_SYNC_POINTS * lanes);
     }
 
     public int generateBytes(char[] password, byte[] out)
@@ -123,12 +152,19 @@ public class Argon2BytesGenerator
 
         byte[] tmpBlockBytes = new byte[ARGON2_BLOCK_SIZE];
 
-        allocateMemory();
-        initialize(tmpBlockBytes, password, outLen);
-        fillMemoryBlocks();
-        digest(tmpBlockBytes, out, outOff, outLen);
-
-        reset();
+        try
+        {
+            allocateMemory();
+            initialize(tmpBlockBytes, password, outLen);
+            fillMemoryBlocks();
+            digest(tmpBlockBytes, out, outOff, outLen);
+        }
+        finally
+        {
+            // whatever happened, the password-derived material goes back zeroised
+            Arrays.clear(tmpBlockBytes);
+            reset();
+        }
 
         return outLen;
     }
@@ -144,7 +180,7 @@ public class Argon2BytesGenerator
         }
     }
 
-    // Return primary memory to the BlockPool.
+    // Return primary memory to the BlockPool, zeroised - see BlockPool.
     private void reset()
     {
         if (null != memory)
@@ -154,7 +190,7 @@ public class Argon2BytesGenerator
                 Block b = memory[i];
                 if (null != b)
                 {
-                    pool.deallocate(b);
+                    pool.deallocate(b.clear());
                 }
             }
         }
@@ -164,24 +200,30 @@ public class Argon2BytesGenerator
     private void fillMemoryBlocks()
     {
         FillBlock filler = new FillBlock(pool);
-        Position position = new Position();
-        for (int pass = 0; pass < parameters.getIterations(); ++pass)
+        try
         {
-            position.pass = pass;
-
-            for (int slice = 0; slice < ARGON2_SYNC_POINTS; ++slice)
+            Position position = new Position();
+            for (int pass = 0; pass < parameters.getIterations(); ++pass)
             {
-                position.slice = slice;
+                position.pass = pass;
 
-                for (int lane = 0; lane < parameters.getLanes(); ++lane)
+                for (int slice = 0; slice < ARGON2_SYNC_POINTS; ++slice)
                 {
-                    position.lane = lane;
+                    position.slice = slice;
 
-                    fillSegment(filler, position);
+                    for (int lane = 0; lane < parameters.getLanes(); ++lane)
+                    {
+                        position.lane = lane;
+
+                        fillSegment(filler, position);
+                    }
                 }
             }
         }
-        filler.deallocate(pool);
+        finally
+        {
+            filler.deallocate(pool);
+        }
     }
 
     private void fillSegment(FillBlock filler, Position position)
@@ -577,10 +619,10 @@ public class Argon2BytesGenerator
 
         void deallocate(BlockPool pool)
         {
-            pool.deallocate(addressBlock);
-            pool.deallocate(inputBlock);
-            pool.deallocate(R);
-            pool.deallocate(Z);
+            pool.deallocate(addressBlock.clear());
+            pool.deallocate(inputBlock.clear());
+            pool.deallocate(R.clear());
+            pool.deallocate(Z.clear());
         }
 
         private void applyBlake()
@@ -711,7 +753,7 @@ public class Argon2BytesGenerator
             }
         }
 
-        private Block clear()
+        public Block clear()
         {
             Arrays.fill(v, 0);
             return this;
@@ -738,6 +780,15 @@ public class Argon2BytesGenerator
      * {@code generateBytes} calls. Implementations must accept matching
      * allocate/deallocate pairs - the generator does not guard against
      * double-deallocation of the same block.
+     * <p>
+     * The generator zeroises a block before passing it to
+     * {@link #deallocate(Block)}, so an implementation never receives
+     * password-derived data and need not clear anything itself; a block it
+     * hands out from {@link #allocate()} may be returned as it came back.
+     * {@link Block#clear()} is public for an implementation that wants to
+     * zeroise blocks it obtained some other way. Size a pool that is to
+     * recycle a whole run with
+     * {@link Argon2BytesGenerator#getBlockCount(int, int)}.
      */
     public static interface BlockPool
     {
@@ -749,9 +800,12 @@ public class Argon2BytesGenerator
     /**
      * Bounded pool that recycles up to {@code maxBlocks} {@link Block} objects.
      * Excess blocks returned via {@link #deallocate(Block)} are dropped and
-     * left for the garbage collector. Returned blocks are zeroised both on
-     * deallocation and again on allocation, so a recycled block is never
-     * observed with stale data.
+     * left for the garbage collector. The generator returns every block
+     * zeroised; this pool clears blocks again on deallocation and allocation
+     * regardless, so a recycled block is never observed with stale data even
+     * when it reaches the pool some other way.
+     * {@link Argon2BytesGenerator#getBlockCount(int, int)} gives the size that
+     * recycles a whole run.
      */
     public static class FixedBlockPool
         implements BlockPool

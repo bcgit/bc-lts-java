@@ -14,7 +14,7 @@ a165ac2bddc7d169c1eee64c79ee7d8a00e5b5343f6ee79f877aba97bc08064c  core/src/test/
 0ac5262d9793fbd7f702a66bc3582d654a71d07c92137ee50ccfcd30548ed7f7  core/src/test/java/org/bouncycastle/crypto/test/NISTCTSTest.java
 e5e1697b853e2e163fe6f869dd44d95afd0b145040bdfc24a287f8a1caad82e1  core/src/test/java/org/bouncycastle/crypto/test/BlowfishTest.java
 dae578c3119c3d03813cf5803cef96ab6087f6265c9962482851a41fe81853f3  core/src/test/java/org/bouncycastle/crypto/test/Threefish256Test.java
-40eb61854e6ee2e3eb9986c376fc3c76cbee857f80d19cf4fe27e2a985b7b19f  core/src/test/java/org/bouncycastle/crypto/test/Blake2sDigestTest.java
+c5d9ca44f13d2eb06836955d211b6ebd9a1de97e336f7a48de186e366c893ed0  core/src/test/java/org/bouncycastle/crypto/test/Blake2sDigestTest.java
 787d68105870bfcb7d27480e2f1c8a21bbfdb7dbac0d982869b72b030b34ce73  core/src/test/java/org/bouncycastle/crypto/test/AllTests.java
 e4426eaa6d835410fd9382237783e5a436c4dfd86dbb70fe0987187576f279a3  core/src/test/java/org/bouncycastle/crypto/test/RIPEMD256DigestTest.java
 1f43ab7fa465a75f7e330aca9245636c058101619e11a4c388e39e34b0db329c  core/src/test/java/org/bouncycastle/crypto/test/HKDFGeneratorTest.java
@@ -31,7 +31,7 @@ a4de392f421044dd5105e4f4b39cf9d33f0298671c33d43f920ed9b88988041c  core/src/test/
 4926e45c7ba0f7b2b1e07a327235aef3fe088c06beb850d89aed9c7e17169114  core/src/test/java/org/bouncycastle/crypto/test/PSSBlindTest.java
 287d0cce9dc5a26e17cfae2e19e4f699890c02dbe4c12bdd25a068c35790bccd  core/src/test/java/org/bouncycastle/crypto/test/SEEDTest.java
 acf07786f12cda0fbe265f8a3a1d3a488d66034e140437ed5e653c6b78bdb2e8  core/src/test/java/org/bouncycastle/crypto/test/OpenSSHKeyParsingTests.java
-ca2bdf1a77780198b9751834320e38fd560a4fd20534c0339f660b833351da6d  core/src/test/java/org/bouncycastle/crypto/test/Argon2Test.java
+7f88183a8e06f54b66b4982253fe0937fef3816ae226490e89782d90359e4144  core/src/test/java/org/bouncycastle/crypto/test/Argon2Test.java
 c242bbdab85c8f399b8fdc9a00178969a76fe847a2fe2f39e9cab3910814b353  core/src/test/java/org/bouncycastle/crypto/test/ZucTest.java
 85cc9d1c6e9e10afa808b6b86fc06f67b42535ba90c37e4a264eb9d1dd68bf53  core/src/test/java/org/bouncycastle/crypto/test/NoekeonTest.java
 0c9d7f8e64fdf06643aa0d969b207bab83cc0e2d4753a9511c473d223c458484  core/src/test/java/org/bouncycastle/crypto/test/RC4Test.java
@@ -48,7 +48,7 @@ f58f4b62fc7004b22cd5c20d72bfe1567def2baee9afe705e33c09f5e691bf27  core/src/test/
 d9f250af924e7e69aa1f54c3d8ff106b51cdcafad5ff1d2cca0c950e51e2c126  core/src/test/java/org/bouncycastle/crypto/test/X448Test.java
 bf6d3d749edad58784b7212e26c3c07ad455ff7ada7a9549cea409877282abb0  core/src/test/java/org/bouncycastle/crypto/test/RC5Test.java
 9f8b3949868fd73438f2a251198bac312ad6892580a7dce94834ec826ef496f1  core/src/test/java/org/bouncycastle/crypto/test/Blake3Test.java
-7dda667678a1531e3dc98a548c888b795c7d19f47091cc5f8922e666af92a87f  core/src/test/java/org/bouncycastle/crypto/test/KMACTest.java
+37975e571fd9a03c70c775167d569bedec0087f7310083984cd1af5d815a764e  core/src/test/java/org/bouncycastle/crypto/test/KMACTest.java
 3d904a069ddeba483c6ae61d8456cae7905ba1b5b8792060eef0544cfc3068db  core/src/test/java/org/bouncycastle/crypto/test/HashCommitmentTest.java
 e5f6cde0156965945e0fc25a06b02f32307839fd5f4c8f6439ec923193a8e631  core/src/test/java/org/bouncycastle/crypto/test/EAXTest.java
 9c915aa81292b801c413ddd0c208063f13c4d8c905cbce5e674174f7d7cdd777  core/src/test/java/org/bouncycastle/crypto/test/DSTU7624Test.java
@@ -113,7 +113,7 @@ c3adb254f91f7998dd55c51a3918e05f5e45730f82568b0d74e2d17bada89d46  core/src/test/
 48e38bad4e342113ae3e73e14c15165ad2d6434445044e160c5e3864bf6fbe2a  core/src/test/java/org/bouncycastle/crypto/test/IsoTrailerTest.java
 82f6ed1cc9335d64efb748d07a38118dea38ccf1dcf26d91f8a426fb0c32e6c6  core/src/test/java/org/bouncycastle/crypto/test/SRP6Test.java
 403fb17430f0b166eddad79268ab5c8a1c010bc9420b65817364806d6ffb37ee  core/src/test/java/org/bouncycastle/crypto/test/GOST3410Test.java
-1d5d65a3dfee2663d78c6208deee510a5e2a15ae247539bc4878cb0a42d9d571  core/src/test/java/org/bouncycastle/crypto/test/Blake2bDigestTest.java
+5132f89784da46d006ad2aae9ca0c3bb932fdae66863da7940b03d6620f9202e  core/src/test/java/org/bouncycastle/crypto/test/Blake2bDigestTest.java
 8e8b494581be185c7ba85e155db9636b55c2e3befad4b6418e9ecaacd615235b  core/src/test/java/org/bouncycastle/crypto/test/RSABlindedTest.java
 9eb023c04ef49ec08d3e062374c9a992a9f088a02e701b22d8f5b33c4844a1c6  core/src/test/java/org/bouncycastle/crypto/test/ECDHKEKGeneratorTest.java
 2efd276a979ffd2150a99498ce1ddfbfd66340153e35356957bbaafc33e966e9  core/src/test/java/org/bouncycastle/crypto/test/ISAACTest.java
@@ -532,14 +532,14 @@ e9467fa56768d0149f2b1952b47bb19fb13005f82170fa1c729283766515a87d  core/src/main/
 3c61cbed777dff3668799c3a6ac12e2e39eef719fe33d46e389bc336c7a5e243  core/src/main/java/org/bouncycastle/crypto/digests/TigerDigest.java
 e6c87b1b8cbecd8c59672b3bc071513663dd65b6ed56b6af391fcf8dae9e72fd  core/src/main/java/org/bouncycastle/crypto/digests/SHA512tDigest.java
 3e31673e228f44a2c72725ebd8ccd859cfa575cc07c24dc36cd8435e2361c6fb  core/src/main/java/org/bouncycastle/crypto/digests/MD5Digest.java
-81c9a5b29c62e686e6c08ccaf339e04de338b2c9546903ab22360976096f903f  core/src/main/java/org/bouncycastle/crypto/digests/XofUtils.java
+9acb9e9fd861f427656a3ffb12dedd9a56e874ac3fc305dbbdea06ce3d0d6825  core/src/main/java/org/bouncycastle/crypto/digests/XofUtils.java
 e9fbce9a52deb72ef95b7778f78129a1672ebd329b4737e765ecfe1faeab9ab9  core/src/main/java/org/bouncycastle/crypto/digests/RIPEMD128Digest.java
 19bfd6a50b7bd4090c763deb2add9bf2fa754d404c16ca9e9ee9c23ab385e6be  core/src/main/java/org/bouncycastle/crypto/digests/MD2Digest.java
 20e135f224b5d0822dcef5438516d8ece1ddd354353ab3b792deceb9296aed19  core/src/main/java/org/bouncycastle/crypto/digests/GOST3411_2012_256Digest.java
 7c2b88475117e17a10a67ff30ee232a69f6877406909c475f7121efeebedc072  core/src/main/java/org/bouncycastle/crypto/digests/ParallelHash.java
 98b69ba1f337dd1208b6920e43a1aad6be5992763a48629954fbb11d162fc81f  core/src/main/java/org/bouncycastle/crypto/digests/MD4Digest.java
 76bf4e42f0c4d85ce42125a0c5457cc1b304cea1b657344ca06c6fa79b85faa4  core/src/main/java/org/bouncycastle/crypto/digests/TupleHash.java
-61d9769db177fbedd39bf2d3ba4687fef5d663785b04e4c82373abf1de9b7179  core/src/main/java/org/bouncycastle/crypto/digests/Blake2sDigest.java
+a390dcc154925bec6fba9df9bc44dfc47c79671ee66ff10faa3e90af5812462b  core/src/main/java/org/bouncycastle/crypto/digests/Blake2sDigest.java
 3bb1d65e175674e84eda4cf8c57a1adb7fa374c3400fdcec56fbd48e0d5e7fcc  core/src/main/java/org/bouncycastle/crypto/digests/SHAKEDigest.java
 c46c76175bcb3e88a26f9871be6d4b092e430a9c02686171aa020e6daa082c14  core/src/main/java/org/bouncycastle/crypto/digests/SkeinDigest.java
 c27f155fb2f8c26be5170d4ec7ed56dc62aa3503c3bddca6aff9066bd12a45c2  core/src/main/java/org/bouncycastle/crypto/digests/Haraka256Digest.java
@@ -554,7 +554,7 @@ ad29884e1577f55c0bc1551f17cd20a10ebd5d898af23b381f435aa2a0b21b12  core/src/main/
 6d3e4f6bd706fb1237a96878e804d1b87d51518d6cbba563fd8cad4258e47a81  core/src/main/java/org/bouncycastle/crypto/digests/Haraka512Digest.java
 30b971a7f7431400fec70336fded4c1d5937a221ee35e727841467ff0371cd66  core/src/main/java/org/bouncycastle/crypto/digests/NonMemoableDigest.java
 193d52a76b62f41e848c36062815ef6a66d72314bec2c4b9adf9f200d7536d07  core/src/main/java/org/bouncycastle/crypto/digests/SkeinEngine.java
-b86afe0599673a92ad73676ec211f437850093782097c3ef4ca5ec7cf3afb78c  core/src/main/java/org/bouncycastle/crypto/digests/Blake2bDigest.java
+d796c3c53eaf4375f78f47d3ee3338cd65e013f0c233366ad58cbce9484ab26d  core/src/main/java/org/bouncycastle/crypto/digests/Blake2bDigest.java
 bc05111c01ec5524f683e8dc58001eeacd8fbfcba862cde4f20018c77cf877dc  core/src/main/java/org/bouncycastle/crypto/digests/SHA256Digest.java
 9f18027e6867170178dd45c2c4a300984f373c86cccbd548d991e331fdc10dd7  core/src/main/java/org/bouncycastle/crypto/io/CipherInputStream.java
 c0867963baea9eeb92ef79c81add87ed04f2e00ab5338243f578e7a87ab91f8d  core/src/main/java/org/bouncycastle/crypto/io/MacInputStream.java
@@ -585,7 +585,7 @@ cc857b93b3ca1541ed1495200a4ca3bd7a80e5dc44cf5c4821f7973fd31b5a6f  core/src/main/
 975d3c7ecd48225a4a579e132ff2b7b69ac9cd9225aaf770d23f0a9b1247bfd7  core/src/main/java/org/bouncycastle/crypto/macs/Poly1305.java
 900e3b6b7b37afcaee2bf8924bf3182ba43236a9a7f780ad3368df3068562311  core/src/main/java/org/bouncycastle/crypto/macs/SkeinMac.java
 85962ef63589872fb85270c4980ac7a1ca25b000f0d6ff4c80c96ec53c7a9505  core/src/main/java/org/bouncycastle/crypto/macs/GOST28147Mac.java
-58baf7dcb20a2451001795539b91af5064523cabc746a76c40124726ca32c65b  core/src/main/java/org/bouncycastle/crypto/macs/KMAC.java
+e34903b6a1314fb154bb46cafb8f7029261f2fef4244cd351b7b17f33c5292bb  core/src/main/java/org/bouncycastle/crypto/macs/KMAC.java
 7336b1104ad00eeaa4f69dbb7c8217485d37dc722302df224fc748408e32ea6c  core/src/main/java/org/bouncycastle/crypto/macs/SipHash.java
 fab480ce8087587a2cb17900c934a747ec86a1ae3729f027cdfdc5a84117e28a  core/src/main/java/org/bouncycastle/crypto/macs/CBCBlockCipherMac.java
 6fd9300507eb57c28e91ec78602f022f7b1f162bded1dad863cf528664b31973  core/src/main/java/org/bouncycastle/crypto/hpke/HPKE.java
@@ -644,7 +644,7 @@ ac2bf63b41b83bd3fa2e9a32b4fb906e2078a3dd17304793abcc3c31ac835127  core/src/main/
 5ae4dba24404c89c0062e4b9ffca3cd174c49adb62a86188cae2dbea059ff33f  core/src/main/java/org/bouncycastle/crypto/params/NaccacheSternKeyGenerationParameters.java
 d559e4201ea8827158d69875ca74bc03f993dceabbfd53300e69a998cc8ae411  core/src/main/java/org/bouncycastle/crypto/params/RSAKeyGenerationParameters.java
 ded887c7b70ea7b840da66030731e2356923f4e93be093db9f866d70e831b494  core/src/main/java/org/bouncycastle/crypto/params/ECDomainParameters.java
-1ad1e90e07d7c5bad258803f6eee1fb18b363a1b86c810bda8094cd7c9dc07ae  core/src/main/java/org/bouncycastle/crypto/params/Argon2Parameters.java
+2615bbec85fcfe9d9a9818a225a577dac1e6345ffed0ee894293e3d880963e6e  core/src/main/java/org/bouncycastle/crypto/params/Argon2Parameters.java
 f1d90010636f1bd724b5f44699e00a7896279df0d2b178552ab8820037f90094  core/src/main/java/org/bouncycastle/crypto/params/ECPublicKeyParameters.java
 614be49dff08d7a4fbb4fb78d0019526cc14f2a9e2ce2b66b09727dced574f65  core/src/main/java/org/bouncycastle/crypto/params/ParametersWithSalt.java
 7e1dba31471d0ca9672c89670652b5d3ade05145b3cc072a01e9be2b726dbf37  core/src/main/java/org/bouncycastle/crypto/params/ParametersWithRandom.java
@@ -1776,3 +1776,5 @@ f2562c2c5a50cfaf9188b6d84fd4e24ea8db74d624523c6cc9ad5804486e3a9e  core/src/main/
 93264ab1bab451fd7327fe51b874f90d0aa6651bde2447088916006cc7508088  core/src/test/java/org/bouncycastle/util/encoders/test/NonASCIIDecodeTest.java
 d9c26ed8fe4af86d30a19a1c2fca15fe1e01b95c4bb4143b9e19bd4d5ced5673  core/src/test/java/org/bouncycastle/crypto/test/CryptoProWrapEngineTest.java
 2ef8557047440abbbf1aae54421723a9f66ec940966389b948aac8dcf432ac0f  core/src/test/java/org/bouncycastle/crypto/test/UKMParametersNestingTest.java
+cf14fe8372ea438bee0e360c55b4f532bd2b03b816e352751a29e40d7faa53a5  core/src/test/java/org/bouncycastle/crypto/test/TupleHashLargeInputTest.java
+e4f02183aba04f598896639307584dc46f43098789c3a35b7da269ec9edce1a8  core/src/test/java/org/bouncycastle/crypto/test/XofUtilsTest.java

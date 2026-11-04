@@ -188,6 +188,7 @@ public class RegressionTest
             new SP80038GTest(),
             new TupleHashTest(),
             new ParallelHashTest(),
+            new XofUtilsTest(),
             new CryptoServiceConstraintsTest(),
             new SymmetricConstraintsTest(),
             new AsymmetricConstraintsTest(),
@@ -205,7 +206,8 @@ public class RegressionTest
 //            new RomulusTest(),
 //            new SAKKEKEMSTest(),
             new LEATest(),
-            new SHA3HMacTest()
+            new SHA3HMacTest(),
+            new TupleHashLargeInputTest()
         };
 
     public static void main(String[] args)
