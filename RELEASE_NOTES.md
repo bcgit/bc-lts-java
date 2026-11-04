@@ -170,6 +170,27 @@ Date: 2026, TBD.
   attribute, or one not matching the eContentType, was accepted. RFC 5652 sec. 9.2 and 9.3 require
   the attribute whenever authenticated attributes are present, with a value matching the
   eContentType; `getMac()` now enforces both, as `SignerInformation` already does for SignedData.
+- `PKIXCertPathReviewer` let a delta CRL decide the status of a certificate. A delta CRL lists only
+  the changes since its base CRL, so a certificate revoked on the base was reported as not revoked
+  when the CRLs the reviewer was given held a current delta and only an expired base, or earlier
+  deltas and no base at all. `SignedMailValidator` gives the reviewer the CRLs carried in the signed
+  message. As in `CertPathValidator`, only a complete CRL now decides the status of a certificate,
+  whether found in the CertStores or fetched from a CRL distribution point; where no current
+  complete CRL is available the reviewer reports that rather than a status.
+- `PKIXCertPathReviewer` did not refuse a CRL carrying a critical extension other than the issuing
+  distribution point and the delta CRL indicator, as RFC 5280 sec. 5.2 requires and
+  `CertPathValidator` does, and looked up a certificate on an indirect CRL by serial number alone.
+  Such a CRL is now refused, and the entry is matched on the certificate issuer as well.
+- The certificate path validators looked a certificate up in an indirect CRL by serial number alone
+  and then compared the issuer of whichever entry came first, so where two issuers had each revoked
+  the same serial number a certificate whose own entry followed the other issuer's was reported as
+  not revoked. The provider's PKIX validator and the pkix `X509RevocationChecker` now check every
+  entry carrying the serial number against the issuer it applies to (RFC 5280 sec. 5.3.3), and the
+  provider's `X509CRL` implements `getRevokedCertificate(X509Certificate)` the same way.
+  `CRL.isRevoked()` on the provider's CRLs stopped at the first entry carrying the serial number and
+  now does the same. The validators also look beyond the JDK provider's
+  `getRevokedCertificate(BigInteger)`, which sees only the CRL issuer's entries, whenever that lookup
+  cannot be conclusive (github #2464).
 
 **OpenPGP (pg).**
 

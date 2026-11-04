@@ -30,6 +30,7 @@ public class AllTests
             new CertPathLoopTest(),
             new CertTest(),
             new DANETest(),
+            new IndirectCRLSerialCollisionTest(),
             new ExternalKeyTest(),
             new GOST3410_2012CMSTest(),
             new GOSTR3410_2012_256GenerateCertificate(),
