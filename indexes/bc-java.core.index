@@ -435,7 +435,7 @@ c300fce2d0a45c37f25a8815f1623f86d21fbe0d3ae4a549a900b0d73f95943c  core/src/main/
 1333a70452b385ebb6a1e65604747bcad79183e72c7843f8a7df552c62fcfdf5  core/src/main/java/org/bouncycastle/crypto/CryptoServicesPermission.java
 55fb2871755617092a5bde5cc4389034f5b2a9c32e87138025a2b202750032e9  core/src/main/java/org/bouncycastle/crypto/engines/SkipjackEngine.java
 bf1ea63b9bfc6982783d4d0e3111b518e290abc2b3fb0e1bad4d2b1019c5c5da  core/src/main/java/org/bouncycastle/crypto/engines/EthereumIESEngine.java
-917301696766a4345a9940cb7e146125dff05a1b109cf1b6b023c6d79077aed2  core/src/main/java/org/bouncycastle/crypto/engines/GOST28147WrapEngine.java
+25178360dc0d394694f5ebc33790b46dfc3ced97815dfab08cdccf3d5d5adc18  core/src/main/java/org/bouncycastle/crypto/engines/GOST28147WrapEngine.java
 a049218d412137ee3eb208dbb91f00f70457f26ebe09700187eb35d9a40b2494  core/src/main/java/org/bouncycastle/crypto/engines/TEAEngine.java
 c16717fa16d3cabb13b63a9daadce13258894666e124d26d11a1c6d6bcf26023  core/src/main/java/org/bouncycastle/crypto/engines/CramerShoupCiphertext.java
 f86e0c480f13f3a376bf77d483d1bb41eabdc9e3e6e350a4038a57bec11c1f8f  core/src/main/java/org/bouncycastle/crypto/engines/BlowfishEngine.java
@@ -482,7 +482,7 @@ a7a97aca0e6231de500d11b2f9613e7847a1d38d2ffb8effbc6c89260e5addb0  core/src/main/
 665fb5cdea1f7a0aef95d807ef2f2e75e10be26d4e01664019659b9f531010d3  core/src/main/java/org/bouncycastle/crypto/engines/VMPCEngine.java
 4ce5088dc4d2a79823eac0ce0442eff5603cc757563b94995632aca1282ecb2d  core/src/main/java/org/bouncycastle/crypto/engines/AESEngine.java
 1d960cd0c8361e9f39bfc35a81a1e38dcfbc7224b799be2b782bb0c7ae2d9dfd  core/src/main/java/org/bouncycastle/crypto/engines/ChaChaEngine.java
-bf63646c8677cabba1b4b3969fc851ee22a3f1fd02e82e36a83c44c04e1a40ca  core/src/main/java/org/bouncycastle/crypto/engines/CryptoProWrapEngine.java
+bfc00ba38714ffc1deddc8dc686bb4c180c67c6046e467ab241e4a7776e0d75c  core/src/main/java/org/bouncycastle/crypto/engines/CryptoProWrapEngine.java
 ca68e44b25eadb3e7c8a41bd483e7ac2779f84cbcc1c8583f49895ce32cd1863  core/src/main/java/org/bouncycastle/crypto/engines/AESWrapPadEngine.java
 8c3c82775d97ea296c3243ba3468632367e0b1502bf8da539dbe5e9aca56d59b  core/src/main/java/org/bouncycastle/crypto/engines/RijndaelEngine.java
 6b4fd028c78e52c0a73a77c005b235184f44997bb843982f2c768d996d346b1a  core/src/main/java/org/bouncycastle/crypto/engines/Zuc256Engine.java
@@ -636,7 +636,7 @@ d5e3091ca4ddd7056b5fbe1f4bac5db5113b3628dcd92fc0a8e760fee242131c  core/src/main/
 cba449920e0169113e4c6a64eb4536695cf899785449b59d318035afc05710d3  core/src/main/java/org/bouncycastle/crypto/params/ElGamalKeyGenerationParameters.java
 dc97740c90d273bbafe353a712eadf2c32c15b06e012969dcbcd3460884974e9  core/src/main/java/org/bouncycastle/crypto/params/NaccacheSternKeyParameters.java
 f2a22fa47501f8941eddb1f95e3a2ad7a85280888e06d700adc9a1189a5ba093  core/src/main/java/org/bouncycastle/crypto/params/DSAValidationParameters.java
-e62319ff6e49b7d198d2a92aa98df3259cc0e825367a082c12648f295a542ec1  core/src/main/java/org/bouncycastle/crypto/params/ParametersWithUKM.java
+9cee3d5d279b0cc277b159201f54d7d038120aadff4846c20cf3b4008562a398  core/src/main/java/org/bouncycastle/crypto/params/ParametersWithUKM.java
 842e7502c09bf9f16066263700459d538a17d4f833db268582aacb085a9913ef  core/src/main/java/org/bouncycastle/crypto/params/GOST3410KeyParameters.java
 5d5a4563324fb3fcb385f10e12b506663ac25375113def50b42f37ba08e60245  core/src/main/java/org/bouncycastle/crypto/params/Ed448PublicKeyParameters.java
 3c0a05d25533e445c70f4d2d55a3ff0cd50f2e3e03bcaf4c347185d8b8c0cf0e  core/src/main/java/org/bouncycastle/crypto/params/IESParameters.java
@@ -786,7 +786,7 @@ f539e2d3cc8f3cd60a4613e3bb36d5bea1c158ee45549334806d27d84f3626b3  core/src/main/
 745913a6537eb457b08cd1287509561c190d30f71d8d330f25bf96a48f8cf3aa  core/src/main/java/org/bouncycastle/crypto/agreement/srp/SRP6Client.java
 fdb9eb707fef73bc08cfbce92ab90a9e10a81ca797720fa304f862b488f39a75  core/src/main/java/org/bouncycastle/crypto/agreement/srp/SRP6Util.java
 7cc3c957d362971be5189b06b5bddb2b046e27fb0faaa9ea568a4ec4c474371e  core/src/main/java/org/bouncycastle/crypto/agreement/srp/SRP6StandardGroups.java
-7c5c18f176906d68ae1124ec950169d43cc8c7b4cc7adacb37264a084a853234  core/src/main/java/org/bouncycastle/crypto/agreement/ECVKOAgreement.java
+fef6018668163b9c738dedd008b3ce9766f74b820fbf225971fa1e8166544e25  core/src/main/java/org/bouncycastle/crypto/agreement/ECVKOAgreement.java
 fa8d3ca73518f6045884a7f7b21fce8a66e53c7d5e157b3f1af25c8b3713e1d9  core/src/main/java/org/bouncycastle/crypto/agreement/MQVBasicAgreement.java
 26cbe107a1c2e65a96986c1c1e9fd55590456afb51e823464dea5a570a9d0bfe  core/src/main/java/org/bouncycastle/crypto/agreement/DHStandardGroups.java
 a08b03608a6e5fd4f3c8d3f154b93e6036886117639bcac8a6ddbd39ba0b681f  core/src/main/java/org/bouncycastle/crypto/agreement/XDHUnifiedAgreement.java
@@ -1655,7 +1655,7 @@ cbd9b905ccc2e2aee05e04e8820ad245c704c996dbd1577d959219270a7433ca  core/src/main/
 7db7518ac09a9cb0cdeb858a8598cb5ce69e9974ab1aa756bfde3b5d5aa9b897  core/src/main/java/org/bouncycastle/crypto/params/MLKEMParameters.java
 ec3d9e52ae916ffd17489dee62d011f353b56890c22c06ed19cb93afb4f729ac  core/src/main/java/org/bouncycastle/crypto/params/MLKEMPrivateKeyParameters.java
 a952c55333e5c9a2161c9be2405fe4a4deee045212d0b2370c9b66bac3e25920  core/src/main/java/org/bouncycastle/crypto/params/MLKEMPublicKeyParameters.java
-49af99cb8358ded89f726f2d1b98d96995ceb936b969b1c51d2493d67f0f0dba  core/src/main/java/org/bouncycastle/crypto/params/package-info.java
+33a17f8b2571b5785d269ef0f55fb728dc6137fcd47beed5bd4412b302aac15d  core/src/main/java/org/bouncycastle/crypto/params/package-info.java
 ad9bec14b6974d1e2b11cad2aef8a84eb7f5915b711b637942210dfb52646f06  core/src/main/java/org/bouncycastle/crypto/params/ParametersWithContext.java
 e35437b7bf4c42e85c6f1e7ac8fb38c51bb186a77c11cd10ac976661e9f4a920  core/src/main/java/org/bouncycastle/crypto/params/SLHDSAKeyGenerationParameters.java
 81211c64afc6d070e80e66665b7edffe015b8c00eb703528c9c8b445e9acd070  core/src/main/java/org/bouncycastle/crypto/params/SLHDSAKeyParameters.java
@@ -1774,3 +1774,5 @@ f2562c2c5a50cfaf9188b6d84fd4e24ea8db74d624523c6cc9ad5804486e3a9e  core/src/main/
 94c94f839999295d3ab3df29a51408d07de2ee78ec95942714127518eb3085fd  core/src/main/jdk23/org/bouncycastle/util/Pack.java
 3e8694d489f1c61eeeabc54c152cb874db7675b4a16b084e4b87ba040d22d62a  core/src/test/java/org/bouncycastle/util/utiltest/PackTest.java
 93264ab1bab451fd7327fe51b874f90d0aa6651bde2447088916006cc7508088  core/src/test/java/org/bouncycastle/util/encoders/test/NonASCIIDecodeTest.java
+d9c26ed8fe4af86d30a19a1c2fca15fe1e01b95c4bb4143b9e19bd4d5ced5673  core/src/test/java/org/bouncycastle/crypto/test/CryptoProWrapEngineTest.java
+2ef8557047440abbbf1aae54421723a9f66ec940966389b948aac8dcf432ac0f  core/src/test/java/org/bouncycastle/crypto/test/UKMParametersNestingTest.java
