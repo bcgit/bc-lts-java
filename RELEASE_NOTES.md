@@ -147,6 +147,14 @@ Date: 2026, TBD.
   with no '@'. The `DANEEntry(String, byte[])` constructor also now rejects, with an `IOException`,
   a record whose flags do not describe a full certificate entry rather than parsing whatever follows
   the flags as a certificate.
+- `SignerInformation.verify()`, and the `isSignatureValid()` methods of X509CertificateHolder
+  (including the alternative signature), X509CRLHolder, X509AttributeCertificateHolder and
+  PKCS10CertificationRequest and the signature checks of CertificateRequestMessage,
+  ProtectedPKIMessage and SignedPublicKeyAndChallenge, let an unchecked `RuntimeOperatorException`
+  escape when a DSA or ECDSA signature did not decode; each now reports it as the checked exception
+  it declares, with the operator exception as the cause. `JcaContentVerifierProviderBuilder`, given
+  a certificate whose key algorithm the provider does not recognise, handed a null key to the
+  Signature; it now refuses with an `OperatorCreationException`.
 
 **OpenPGP (pg).**
 
