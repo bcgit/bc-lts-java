@@ -518,6 +518,16 @@ public class Properties
     public static final String MIME_MAX_DEPTH = "org.bouncycastle.mime.max_depth";
 
     /**
+     * The largest SEED, in bytes, accepted in an LMS or HSS private key encoding. Default 1024.
+     * <p>
+     * SP 800-208 sec. 6.1 makes SEED n bytes (24 or 32 for the defined parameter sets), so the default is far
+     * above any legitimate value; the bound keeps what a decoder commits to on the strength of a length field
+     * read from untrusted data finite. A value below the parameter set's n is ignored, since SEED may not be
+     * shorter than that.
+     */
+    public static final String LMS_MAX_SEED_LENGTH = "org.bouncycastle.lms.max_seed_length";
+
+    /**
      * Maximum number of retries for the hardware RNG instructions (RDSEED/RDRAND) used by the
      * native entropy source, before a failure is declared.
      */

@@ -12,6 +12,7 @@ import javax.security.auth.Destroyable;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.pqc.crypto.ExhaustedPrivateKeyException;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Properties;
 import org.bouncycastle.util.io.Streams;
 
 public class LMSPrivateKeyParameters
@@ -34,6 +35,12 @@ public class LMSPrivateKeyParameters
     private final LMSigParameters parameters;
     private final LMOtsParameters otsParameters;
     private final int maxQ;
+    /**
+     * The default ceiling on SEED, overridden by Properties.LMS_MAX_SEED_LENGTH. SP 800-208 sec. 6.1 makes SEED
+     * n bytes, so anything beyond the parameter set's m is interchange slack and 1KiB is generous.
+     */
+    private static final int DEFAULT_MAX_SEED_LENGTH = 1024;
+
     private final byte[] masterSecret;
     private final Map<CacheKey, byte[]> tCache;
     private final int maxCacheR;
@@ -245,12 +252,17 @@ public class LMSPrivateKeyParameters
         {
             throw new IOException("secret length less than zero");
         }
-        if (l > dIn.available())
+        // SP 800-208 sec. 6.1 makes SEED n bytes, so anything beyond m is interchange slack, and the ceiling
+        // keeps what is committed on the strength of a length field finite where the stream has no known
+        // length - available() is only an estimate, and 0 for many perfectly good streams. A ceiling below
+        // m is ignored: SEED cannot be shorter than m, so it would refuse every key.
+        int maxSeedLength = Properties.asInteger(Properties.LMS_MAX_SEED_LENGTH, DEFAULT_MAX_SEED_LENGTH);
+        if (l > Math.max(parameter.getM(), maxSeedLength))
         {
-            throw new IOException("secret length exceeded " + dIn.available());
+            throw new IOException("master secret length exceeds " + maxSeedLength + ": " + l);
         }
-        byte[] masterSecret = new byte[l];
-        dIn.readFully(masterSecret);
+
+        byte[] masterSecret = Streams.readLenBytesFully(dIn, l);
 
         return new LMSPrivateKeyParameters(parameter, otsParameter, q, I, maxQ, masterSecret);
     }

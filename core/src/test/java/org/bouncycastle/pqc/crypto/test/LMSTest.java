@@ -1,5 +1,7 @@
 package org.bouncycastle.pqc.crypto.test;
 
+import java.io.ByteArrayInputStream;
+import java.io.FilterInputStream;
 import java.io.IOException;
 import java.security.SecureRandom;
 
@@ -490,4 +492,110 @@ public class LMSTest
         }
     }
 
+    /**
+     * The master secret is read against a fixed ceiling (org.bouncycastle.lms.max_seed_length, 1024 by
+     * default) rather than against InputStream.available(), which is only an estimate: a stream that
+     * reports nothing available still yields its key, and a length field above the ceiling is refused
+     * before anything is allocated for it.
+     */
+    public void testMasterSecretLengthCeiling()
+        throws Exception
+    {
+        LMSKeyPairGenerator kpGen = new LMSKeyPairGenerator();
+        kpGen.init(new LMSKeyGenerationParameters(
+            new LMSParameters(LMSigParameters.lms_sha256_n32_h5, LMOtsParameters.sha256_n32_w4), new SecureRandom()));
+        LMSPrivateKeyParameters priv = (LMSPrivateKeyParameters)kpGen.generateKeyPair().getPrivate();
+        byte[] enc = priv.getEncoded();
+
+        // a stream that reports nothing available: the key is still read, without its optional tree cache
+        LMSPrivateKeyParameters read = LMSPrivateKeyParameters.getInstance(
+            new FilterInputStream(new ByteArrayInputStream(enc))
+            {
+                public int available()
+                {
+                    return 0;
+                }
+            });
+        assertTrue(Arrays.areEqual(priv.getMasterSecret(), read.getMasterSecret()));
+        assertEquals(priv.getIndexLimit(), read.getIndexLimit());
+
+        // the length field sits after version, types, I, q and maxQ
+        int lenOff = 4 + 4 + 4 + 16 + 4 + 4;
+        int secretLen = Pack.bigEndianToInt(enc, lenOff);
+        assertEquals(32, secretLen);
+
+        byte[] oversized = withSecretLength(enc, lenOff, secretLen, 1025);
+        try
+        {
+            LMSPrivateKeyParameters.getInstance(oversized);
+            fail("master secret above the ceiling accepted");
+        }
+        catch (IOException e)
+        {
+            assertEquals("master secret length exceeds 1024: 1025", e.getMessage());
+        }
+
+        // a length field far beyond the data is refused without allocating it
+        byte[] huge = Arrays.clone(enc);
+        Pack.intToBigEndian(Integer.MAX_VALUE, huge, lenOff);
+        try
+        {
+            LMSPrivateKeyParameters.getInstance(huge);
+            fail("huge master secret length accepted");
+        }
+        catch (IOException e)
+        {
+            assertEquals("master secret length exceeds 1024: " + Integer.MAX_VALUE, e.getMessage());
+        }
+
+        // the ceiling is configurable
+        String property = "org.bouncycastle.lms.max_seed_length";
+        String old = System.getProperty(property);
+        System.setProperty(property, "2048");
+        try
+        {
+            LMSPrivateKeyParameters big = LMSPrivateKeyParameters.getInstance(oversized);
+            assertEquals(1025, big.getMasterSecret().length);
+        }
+        finally
+        {
+            if (old == null)
+            {
+                System.clearProperty(property);
+            }
+            else
+            {
+                System.setProperty(property, old);
+            }
+        }
+
+        // a ceiling below m is ignored rather than refusing every key
+        System.setProperty(property, "8");
+        try
+        {
+            LMSPrivateKeyParameters small = LMSPrivateKeyParameters.getInstance(enc);
+            assertTrue(Arrays.areEqual(priv.getMasterSecret(), small.getMasterSecret()));
+        }
+        finally
+        {
+            if (old == null)
+            {
+                System.clearProperty(property);
+            }
+            else
+            {
+                System.setProperty(property, old);
+            }
+        }
+    }
+
+    private static byte[] withSecretLength(byte[] enc, int lenOff, int secretLen, int newLen)
+    {
+        // replace the secret with newLen bytes, dropping the tree cache that follows it
+        byte[] out = new byte[lenOff + 4 + newLen];
+        System.arraycopy(enc, 0, out, 0, lenOff);
+        Pack.intToBigEndian(newLen, out, lenOff);
+        System.arraycopy(enc, lenOff + 4, out, lenOff + 4, Math.min(secretLen, newLen));
+        return out;
+    }
 }

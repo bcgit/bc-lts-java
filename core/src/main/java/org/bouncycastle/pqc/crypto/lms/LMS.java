@@ -25,7 +25,7 @@ class LMS
 
         if (rootSeed == null || rootSeed.length < parameterSet.getM())
         {
-            throw new IllegalArgumentException("root seed is less than " + parameterSet.getM());
+            throw new IllegalArgumentException("root seed length is less than " + parameterSet.getM());
         }
 
         int twoToH = 1 << parameterSet.getH();
