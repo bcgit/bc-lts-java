@@ -72,6 +72,33 @@ Date: 2026, TBD.
   anything is parsed, and that key class refuses an encoding that is neither a seed nor an expanded
   key.
 
+- Ported from the BC 1.87 development line: the Base64, Base32 and Hex decoders no longer read
+  past the range they are given, fail a truncated final Base64 block and refuse non-ASCII input;
+  `ISO9796d2PSSSigner` compares the message passed in with the one recovered from the signature,
+  and the X9.31 and ISO 9796-2 signers reset on every failed verification; `HMacDSAKCalculator`
+  clears its copies of the private scalar and candidate nonce; `CipherInputStream.mark()` and
+  `reset()` keep all of the read-ahead state and `CipherOutputStream.close()` is idempotent; the
+  `AEADBaseEngine` in-place overlap check counts buffered bytes; DSTU 7624 KGCM, KGMac, KCCM and
+  `DSTU7624Mac` refuse the inputs DSTU 7624:2014 excludes and KGCM re-initialises from a clean
+  state; the GOST wrap engines take `ParametersWithUKM` outside `ParametersWithRandom` and
+  `CryptoProWrapEngine` diversifies a copy of the KEK; the TupleHash length prefix is computed in
+  long arithmetic; `Blake2bDigest` and `Blake2sDigest` read their parameter block correctly and keep
+  the tree parameters across copies and `reset()`; `KMAC.reset(Memoable)` copies the key; Argon2
+  returns every block to its pool zeroised; `DESedeParameters.isWeakKey` checks every part of a key
+  at a non-zero offset; `ECPoint.hashCode()` hashes coordinate values, so equal points hash
+  equally; `CryptoServicesRegistrar` no longer copies a global property onto the calling thread.
+- CCM decryption, in the java and native CCM and in both packet ciphers, applied the payload
+  length limit to the input including the tag, so the largest payloads that encrypt were refused on
+  decryption; the limit now applies to the payload, and the B0 length field is exactly q bytes.
+- The ML-DSA public key (rho, t1) constructor and the ML-DSA and SLH-DSA private key component
+  constructors reject components of the wrong length; an ML-DSA private key given a public key
+  compares rho as well as t1 with it; and an expanded ML-DSA private key is rejected when its tr
+  does not match the hash of its public key.
+- The LMS private key reader bounded the master secret by `InputStream.available()`, which refused
+  keys read from streams reporting nothing available; it is now bounded by
+  `org.bouncycastle.lms.max_seed_length` (default 1024).
+- `ASN1Enumerated` now accepts negative values, an ENUMERATED being an integer (X.680 sec. 20).
+
 **Provider (prov).**
 
 - The raw JCA provider bounded the PBKDF2 iteration count taken from an encoding
@@ -102,6 +129,29 @@ Date: 2026, TBD.
   `X509Certificate.toString()`, throw a `NullPointerException`, and the DSA Signature classes threw
   one when initialised with such a key or with a null key. The key now prints by its y value alone,
   and initialisation refuses either with an `InvalidKeyException`.
+
+- Ported from the BC 1.87 development line: the KeyAgreement services report the
+  `IllegalStateException` `javax.crypto.KeyAgreement` specifies when a secret is asked for before
+  `doPhase`, report an initialisation they cannot carry out as a parameter error, refuse a
+  `UserKeyingMaterialSpec` salt unless the KDF is HKDF, and the X25519/X448 agreements take the
+  unified flag and curve from their own name rather than the `EMULATE_ORACLE` name;
+  `ConcatenationKDFGenerator` treats a missing OtherInfo as empty; the KTS Ciphers check a
+  `KTSParameterSpec`'s KDF at init.
+- The key stores: JKS refuses a store shorter than its checksum with an `IOException`, BCFKS
+  `isKeyEntry()` reports PBE key entries, the BC stores empty themselves on a load with a null
+  stream, and PKCS#12 generates the MAC salt only when a MAC is written, counts a SunJCE secret key
+  bag as protected content, resets the MAC defaults when a file without a MAC is loaded, gives secret
+  keys read from JDK-written files their JCA names, and writes 300,000 PBE iterations by default
+  (600,000 for the MAC).
+- The GOST R 34.10 Signatures verify only a signature of exactly the encoded length; the EC services
+  report a key whose domain parameters are not a valid curve with `InvalidKeyException`; the EC IES
+  ciphers give `getKeySize` for any EC key `init` accepts; the stream and wrap ciphers refuse an
+  `AEADParameterSpec`; ML-KEM, ML-DSA and SLH-DSA keys from other providers are converted via their
+  encodings, including through `javax.crypto.KEM`; the composite ML-DSA Signatures discard the
+  buffered message on every `initSign` and `initVerify`; certificate signature algorithm names no
+  longer come from a non-BouncyCastle provider registered as "BC".
+- `CRL.isRevoked()` no longer throws `ClassCastException` for an "X.509" certificate that is not an
+  `X509Certificate`.
 
 **CMS, PKIX and EST (pkix).**
 
@@ -196,6 +246,34 @@ Date: 2026, TBD.
   creation was removed earlier; such a signature is now refused with "legacy composite signature
   algorithm not supported". The standardised composite ML-DSA signatures are unaffected.
 
+- Ported from the BC 1.87 development line, certification path processing: an empty DNS, rfc822
+  host or URI host label is refused under a name constraint of that type; the validators apply the
+  RFC 5280 sec. 6.3.3 distribution point name match and reasons intersection, count only
+  non-self-issued intermediates against the maximum path length, apply a TrustAnchor's name
+  constraints, keep a CRL entry's reasonCode apart from the revocation status and report
+  `BasicReason.REVOKED`; `PKIXCertPathReviewer` applies the CRL scope rules, rfc822Name constraints
+  to subject DN e-mail addresses and TrustAnchor name constraints, and fetches from CRL distribution
+  points only when `org.bouncycastle.x509.enableCRLDP` is set and no error is recorded above the
+  certificate; `BasicConstraintsValidation`, `CertificatePoliciesValidation` and `CRLValidation` in
+  `cert.path` check pathLenConstraint, policy extensions and CRL currency correctly;
+  `LDAPUtils.parseDN` matches the attribute only as an RDN type and decodes DN escapes before
+  filter encoding.
+- OCSP: `OCSPResp` and `OCSPReq` report a malformed encoding as `CertIOException`, the OCSP ASN.1
+  types refuse a short SEQUENCE, and `org.bouncycastle.ocsp.max_response_age` bounds a response
+  with no nextUpdate (default one hour).
+- CMS and TSP: the RSA-KTS key is derived to the length the wrapping algorithm fixes; 1-pass ECMQV
+  uses a fresh ephemeral key pair per recipient and feeds the KDF the DER-encoded
+  ECC-CMS-SharedInfo (RFC 5753), keeping the raw-ukm form for earlier messages; the CMS decoders
+  and streaming parsers reject short or malformed content with their declared exceptions; the
+  algorithm protection attribute is generated from the algorithms actually used;
+  `CMSAuthenticatedDataParser` returns its unauthenticated attributes; `TimeStampToken` rejects a
+  token whose signing-time attribute disagrees with its genTime, unless
+  `org.bouncycastle.tsp.allow_inconsistent_signing_time` is set.
+- CRMF, EST and MIME: `PKIPublicationInfo` rejects the combinations RFC 4211 sec. 6.3 forbids,
+  `CertificateRequestMessageBuilder.build()` reports bad configurations rather than throwing
+  `NullPointerException`, and `ESTResponse` and `mime.Headers` parse repeated and folded headers in
+  linear time.
+
 **OpenPGP (pg).**
 
 - Decrypting an OpenPGP message in two steps - recovering the session key from a SKESK packet and
@@ -237,6 +315,12 @@ Date: 2026, TBD.
   whole 64-byte blocks to ChaCha and to Poly1305 in one call each, where it used to alternate
   between them one block at a time and, when decrypting, copied every byte through its buffer
   individually. The output is unchanged (github #2481).
+- Ported from the BC 1.87 development line: the CRMF `ProtocolEncrKeyControl`,
+  `PKIPublicationInfoControl` and `OldCertIDControl` (with JCA forms) and
+  `CertificateRequestMessage.getControlValue()`; `Argon2BytesGenerator.getBlockCount()` and a
+  public `Argon2BytesGenerator.Block.clear()`; `ASN1Enumerated.isNegative()` and
+  `longValueExact()`; and the properties `org.bouncycastle.lms.max_seed_length`,
+  `org.bouncycastle.ocsp.max_response_age` and `org.bouncycastle.tsp.allow_inconsistent_signing_time`.
 
 <a id="r2rv73dot13"></a>
 
