@@ -169,11 +169,11 @@ public class Base64Encoder
         }
 
         // empty data!
-        if (end == 0)
+        if (end == off)
         {
             return 0;
         }
-        
+
         int  i = 0;
         int  finish = end;
 
@@ -191,19 +191,19 @@ public class Base64Encoder
 
         while (i < finish)
         {
-            b1 = decodingTable[data[i++]];
+            b1 = lookup(data[i++]);
             
             i = nextI(data, i, finish);
             
-            b2 = decodingTable[data[i++]];
+            b2 = lookup(data[i++]);
             
             i = nextI(data, i, finish);
             
-            b3 = decodingTable[data[i++]];
+            b3 = lookup(data[i++]);
             
             i = nextI(data, i, finish);
             
-            b4 = decodingTable[data[i++]];
+            b4 = lookup(data[i++]);
 
             if ((b1 | b2 | b3 | b4) < 0)
             {
@@ -234,6 +234,11 @@ public class Base64Encoder
         int e1 = nextI(data, e0 + 1, end);
         int e2 = nextI(data, e1 + 1, end);
         int e3 = nextI(data, e2 + 1, end);
+
+        if (e3 >= end)
+        {
+            throw new IOException("truncated final block in base64 data");
+        }
 
         outLen += decodeLastBlock(out, (char)data[e0], (char)data[e1], (char)data[e2], (char)data[e3]);
 
@@ -300,19 +305,19 @@ public class Base64Encoder
         
         while (i < finish)
         {
-            b1 = decodingTable[data.charAt(i++)];
+            b1 = lookup(data.charAt(i++));
             
             i = nextI(data, i, finish);
             
-            b2 = decodingTable[data.charAt(i++)];
+            b2 = lookup(data.charAt(i++));
             
             i = nextI(data, i, finish);
             
-            b3 = decodingTable[data.charAt(i++)];
+            b3 = lookup(data.charAt(i++));
             
             i = nextI(data, i, finish);
             
-            b4 = decodingTable[data.charAt(i++)];
+            b4 = lookup(data.charAt(i++));
 
             if ((b1 | b2 | b3 | b4) < 0)
             {
@@ -343,6 +348,11 @@ public class Base64Encoder
         int e2 = nextI(data, e1 + 1, end);
         int e3 = nextI(data, e2 + 1, end);
 
+        if (e3 >= end)
+        {
+            throw new IOException("truncated final block in base64 data");
+        }
+
         length += decodeLastBlock(out, data.charAt(e0), data.charAt(e1), data.charAt(e2), data.charAt(e3));
         
         return length;
@@ -360,8 +370,8 @@ public class Base64Encoder
                 throw new IOException("invalid characters encountered at end of base64 data");
             }
             
-            b1 = decodingTable[c1];
-            b2 = decodingTable[c2];
+            b1 = lookup(c1);
+            b2 = lookup(c2);
 
             if ((b1 | b2) < 0)
             {
@@ -374,9 +384,9 @@ public class Base64Encoder
         }
         else if (c4 == padding)
         {
-            b1 = decodingTable[c1];
-            b2 = decodingTable[c2];
-            b3 = decodingTable[c3];
+            b1 = lookup(c1);
+            b2 = lookup(c2);
+            b3 = lookup(c3);
 
             if ((b1 | b2 | b3) < 0)
             {
@@ -390,10 +400,10 @@ public class Base64Encoder
         }
         else
         {
-            b1 = decodingTable[c1];
-            b2 = decodingTable[c2];
-            b3 = decodingTable[c3];
-            b4 = decodingTable[c4];
+            b1 = lookup(c1);
+            b2 = lookup(c2);
+            b3 = lookup(c3);
+            b4 = lookup(c4);
 
             if ((b1 | b2 | b3 | b4) < 0)
             {
@@ -415,5 +425,11 @@ public class Base64Encoder
             i++;
         }
         return i;
+    }
+
+    private byte lookup(int c)
+    {
+        // anything outside the table, a non-ASCII character or a negative byte, is invalid
+        return (c >= 0 && c < decodingTable.length) ? decodingTable[c] : (byte)0xff;
     }
 }

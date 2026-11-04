@@ -4,8 +4,10 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 
 import org.bouncycastle.crypto.AsymmetricBlockCipher;
+import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
 import org.bouncycastle.crypto.Digest;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.Signer;
 import org.bouncycastle.crypto.digests.RIPEMD128Digest;
 import org.bouncycastle.crypto.digests.RIPEMD160Digest;
 import org.bouncycastle.crypto.digests.SHA1Digest;
@@ -13,8 +15,10 @@ import org.bouncycastle.crypto.digests.SHA256Digest;
 import org.bouncycastle.crypto.encodings.ISO9796d1Encoding;
 import org.bouncycastle.crypto.engines.RSABlindedEngine;
 import org.bouncycastle.crypto.engines.RSAEngine;
+import org.bouncycastle.crypto.generators.RSAKeyPairGenerator;
 import org.bouncycastle.crypto.params.AsymmetricKeyParameter;
 import org.bouncycastle.crypto.params.ParametersWithSalt;
+import org.bouncycastle.crypto.params.RSAKeyGenerationParameters;
 import org.bouncycastle.crypto.params.RSAKeyParameters;
 import org.bouncycastle.crypto.signers.ISO9796d2PSSSigner;
 import org.bouncycastle.crypto.signers.ISO9796d2Signer;
@@ -1032,6 +1036,133 @@ public class ISO9796Test
         }
     }
 
+    /**
+     * ISO9796d2PSSSigner has to compare the message passed in with the one recovered from the signature.
+     */
+    private void doRecoveredMessageBindingTest(AsymmetricCipherKeyPair kp)
+        throws Exception
+    {
+        // 1024 bit modulus, SHA-1, 20 byte salt, implicit trailer
+        int capacity = 128 - 20 - 20 - 2;
+
+        byte[] shortMsg = new byte[16];
+        Arrays.fill(shortMsg, (byte)0x41);
+        byte[] sig = pssSign(kp, shortMsg);
+
+        isTrue("PSS short message rejected", pssVerify(kp, shortMsg, sig));
+        byte[] other = Arrays.clone(shortMsg);
+        other[0] ^= 1;
+        isTrue("PSS accepted a different message in the recoverable part", !pssVerify(kp, other, sig));
+        other = new byte[16];
+        Arrays.fill(other, (byte)0x42);
+        isTrue("PSS accepted a different message of the same length", !pssVerify(kp, other, sig));
+        isTrue("PSS accepted a shorter message", !pssVerify(kp, Arrays.copyOf(shortMsg, 15), sig));
+
+        byte[] longMsg = new byte[300];
+        for (int i = 0; i != longMsg.length; i++)
+        {
+            longMsg[i] = (byte)i;
+        }
+        sig = pssSign(kp, longMsg);
+
+        isTrue("PSS long message rejected", pssVerify(kp, longMsg, sig));
+        int[] changes = { 0, capacity - 1, capacity, longMsg.length - 1 };
+        for (int i = 0; i != changes.length; i++)
+        {
+            other = Arrays.clone(longMsg);
+            other[changes[i]] ^= 1;
+            isTrue("PSS accepted a long message changed at " + changes[i], !pssVerify(kp, other, sig));
+        }
+    }
+
+    private static byte[] pssSign(AsymmetricCipherKeyPair kp, byte[] msg)
+        throws Exception
+    {
+        ISO9796d2PSSSigner signer = new ISO9796d2PSSSigner(new RSAEngine(), new SHA1Digest(), 20, true);
+        signer.init(true, kp.getPrivate());
+        signer.update(msg, 0, msg.length);
+        return signer.generateSignature();
+    }
+
+    private static boolean pssVerify(AsymmetricCipherKeyPair kp, byte[] msg, byte[] sig)
+    {
+        ISO9796d2PSSSigner verifier = new ISO9796d2PSSSigner(new RSAEngine(), new SHA1Digest(), 20, true);
+        verifier.init(false, kp.getPublic());
+        verifier.update(msg, 0, msg.length);
+        return verifier.verifySignature(sig);
+    }
+
+    /**
+     * A failed verify has to leave the signer as it was after init, not holding the message for the next verify.
+     */
+    private void doFailedVerifyStateTest(AsymmetricCipherKeyPair kp)
+        throws Exception
+    {
+        int[] lengths = { 10, 300 };
+        for (int i = 0; i != lengths.length; i++)
+        {
+            for (int j = 0; j != lengths.length; j++)
+            {
+                checkFailedVerifyState("ISO9796d2Signer", new ISO9796d2Signer(new RSAEngine(), new SHA1Digest(), true),
+                    new ISO9796d2Signer(new RSAEngine(), new SHA1Digest(), true), kp, lengths[i], lengths[j]);
+                checkFailedVerifyState("ISO9796d2PSSSigner", new ISO9796d2PSSSigner(new RSAEngine(), new SHA1Digest(), 20, true),
+                    new ISO9796d2PSSSigner(new RSAEngine(), new SHA1Digest(), 20, true), kp, lengths[i], lengths[j]);
+            }
+        }
+    }
+
+    static void checkFailedVerifyState(String label, Signer signer, Signer verifier, AsymmetricCipherKeyPair kp, int aLen, int bLen)
+        throws Exception
+    {
+        byte[] a = new byte[aLen];
+        Arrays.fill(a, (byte)0x61);
+        byte[] b = new byte[bLen];
+        Arrays.fill(b, (byte)0x62);
+        byte[] msg = Arrays.concatenate(a, b);
+
+        signer.init(true, kp.getPrivate());
+        signer.update(msg, 0, msg.length);
+        byte[] sig = signer.generateSignature();
+
+        verifier.init(false, kp.getPublic());
+
+        // a signature too long for the RSA engine fails, and must not leave a in place as a prefix for b
+        verifier.update(a, 0, a.length);
+        if (verifier.verifySignature(new byte[sig.length + 2]))
+        {
+            throw new IllegalStateException(label + " accepted an over-long signature");
+        }
+        verifier.update(b, 0, b.length);
+        if (verifier.verifySignature(sig))
+        {
+            throw new IllegalStateException(label + " accepted a signature over a || b for b alone, a " + aLen + ", b " + bLen);
+        }
+
+        // a corrupted signature fails, and the next verify of the right message succeeds
+        byte[] corrupt = Arrays.clone(sig);
+        corrupt[corrupt.length / 2] ^= 1;
+        verifier.update(msg, 0, msg.length);
+        boolean corruptOk;
+        try
+        {
+            corruptOk = verifier.verifySignature(corrupt);
+        }
+        catch (RuntimeException e)
+        {
+            // ISO9796d2Signer throws for an unrecognised trailer, or one naming another digest
+            corruptOk = false;
+        }
+        if (corruptOk)
+        {
+            throw new IllegalStateException(label + " accepted a corrupted signature");
+        }
+        verifier.update(msg, 0, msg.length);
+        if (!verifier.verifySignature(sig))
+        {
+            throw new IllegalStateException(label + " rejected a valid signature after a failed verify, a " + aLen + ", b " + bLen);
+        }
+    }
+
     public void performTest()
         throws Exception
     {
@@ -1051,6 +1182,13 @@ public class ISO9796Test
         doShortPartialTest();
         doFullMessageTest();
         doMalformedSignatureTest();
+
+        RSAKeyPairGenerator kpGen = new RSAKeyPairGenerator();
+        kpGen.init(new RSAKeyGenerationParameters(BigInteger.valueOf(65537), new SecureRandom(), 1024, 100));
+        AsymmetricCipherKeyPair kp = kpGen.generateKeyPair();
+
+        doRecoveredMessageBindingTest(kp);
+        doFailedVerifyStateTest(kp);
     }
 
     public static void main(

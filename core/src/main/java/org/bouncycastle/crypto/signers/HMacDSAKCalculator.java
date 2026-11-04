@@ -86,6 +86,8 @@ public class HMacDSAKCalculator
         hMac.init(new KeyParameter(K));
         hMac.update(V, 0, V.length);
         hMac.doFinal(V, 0);
+
+        Arrays.clear(x);
     }
 
     public BigInteger nextK()
@@ -110,6 +112,8 @@ public class HMacDSAKCalculator
 
             if (k.signum() > 0 && k.compareTo(n) < 0)
             {
+                Arrays.clear(t);
+
                 return k;
             }
 

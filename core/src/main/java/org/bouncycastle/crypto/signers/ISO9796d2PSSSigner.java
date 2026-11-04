@@ -302,7 +302,6 @@ public class ISO9796d2PSSSigner
         recoveredMessage = new byte[dbMask.length - mStart - saltLength];
 
         System.arraycopy(block, mStart, recoveredMessage, 0, recoveredMessage.length);
-        System.arraycopy(recoveredMessage, 0, mBuf, 0, recoveredMessage.length);
 
         preSig = signature;
         preBlock = block;
@@ -487,6 +486,7 @@ public class ISO9796d2PSSSigner
             }
             catch (Exception e)
             {
+                reset();
                 return false;
             }
         }
@@ -552,6 +552,7 @@ public class ISO9796d2PSSSigner
         {
             fullMessage = false;
             messageLength = 0;
+            clearBlock(mBuf);
             clearBlock(recoveredMessage);
             return false;
         }
