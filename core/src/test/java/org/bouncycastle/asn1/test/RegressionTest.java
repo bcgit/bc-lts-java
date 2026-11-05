@@ -7,6 +7,7 @@ public class RegressionTest
 {
     public static Test[]    tests = {
         new AllowNonDerTimeTest(),
+        new SequenceFieldOrderTest(),
         new InputStreamTest(),
         new EqualsAndHashCodeTest(),
         new TagTest(),

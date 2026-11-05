@@ -23,7 +23,6 @@ import org.bouncycastle.asn1.ASN1Null;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.ASN1OctetString;
 import org.bouncycastle.asn1.ASN1Primitive;
-import org.bouncycastle.asn1.ASN1SequenceParser;
 import org.bouncycastle.asn1.ASN1Set;
 import org.bouncycastle.asn1.ASN1SetParser;
 import org.bouncycastle.asn1.ASN1TaggedObject;
@@ -34,6 +33,7 @@ import org.bouncycastle.asn1.DERNull;
 import org.bouncycastle.asn1.DERSet;
 import org.bouncycastle.asn1.DERTaggedObject;
 import org.bouncycastle.asn1.DLSet;
+import org.bouncycastle.asn1.InMemoryRepresentable;
 import org.bouncycastle.asn1.bsi.BSIObjectIdentifiers;
 import org.bouncycastle.asn1.cms.AttributeTable;
 import org.bouncycastle.asn1.cms.CMSObjectIdentifiers;
@@ -878,13 +878,41 @@ class CMSUtils
 
             while ((o = set.readObject()) != null)
             {
-                ASN1SequenceParser seq = (ASN1SequenceParser)o;
-
-                v.add(seq.toASN1Primitive());
+                v.add(getLoadedObject(o));
             }
-            return new AttributeTable(new DERSet(v));
+            return getAttributeTable(new DERSet(v));
         }
         return null;
+    }
+
+    /**
+     * Build an attribute table, reporting a set element that is not an Attribute as an IOException.
+     */
+    static AttributeTable getAttributeTable(ASN1Set set)
+        throws IOException
+    {
+        try
+        {
+            return new AttributeTable(set);
+        }
+        catch (IllegalArgumentException e)
+        {
+            throw Exceptions.ioException("malformed attribute: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Load an object returned by a stream parser through getLoadedObject(), so a parse failure is reported
+     * as the IOException it declares rather than as the unchecked exception toASN1Primitive() must use.
+     */
+    static ASN1Primitive getLoadedObject(ASN1Encodable obj)
+        throws IOException
+    {
+        if (obj instanceof InMemoryRepresentable)
+        {
+            return ((InMemoryRepresentable)obj).getLoadedObject();
+        }
+        return obj.toASN1Primitive();
     }
 
     static ASN1Set getAttrDLSet(CMSAttributeTableGenerator gen)
@@ -917,21 +945,5 @@ class CMSUtils
     static Map getEmptyParameters()
     {
         return Collections.EMPTY_MAP;
-    }
-
-    /**
-     * Build an attribute table, reporting a set element that is not an Attribute as an IOException.
-     */
-    static AttributeTable getAttributeTable(ASN1Set set)
-        throws IOException
-    {
-        try
-        {
-            return new AttributeTable(set);
-        }
-        catch (IllegalArgumentException e)
-        {
-            throw Exceptions.ioException("malformed attribute: " + e.getMessage(), e);
-        }
     }
 }

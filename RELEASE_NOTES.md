@@ -99,6 +99,24 @@ Date: 2026, TBD.
   `org.bouncycastle.lms.max_seed_length` (default 1024).
 - `ASN1Enumerated` now accepts negative values, an ENUMERATED being an integer (X.680 sec. 20).
 
+- ASN.1, from the BC 1.87 development line: the SEQUENCE parsers of the X.509, PKCS, CMS, CRMF,
+  CMP, ESF, TSP, OCSP, EAC, DVCS, CMC, ESS, X9, GOST and qualified-certificate types take each
+  optional field at most once, in definition order and with its tag checked, and refuse elements
+  after the last field; `ASN1InputStream`, the streaming ASN.1 parsers and the streaming CMS and
+  time-stamped data parsers report malformed content as the exception they declare; a UTCTime or
+  GeneralizedTime day is checked against the length of its month; and a definite-length read no
+  longer allocates the full length from the length field before any content arrives.
+- The first DER encoding of an `ASN1Set` not built in DER order cached its copy of the elements
+  before sorting it, so another thread encoding the same SET, or comparing it with `equals()`, at
+  the same time could see the copy unsorted or part way through the sort and produce a wrong DER
+  encoding - for example of a CMS SignerInfo's signed attributes when two threads verified the same
+  `SignerInformation` at once. The copy is now cached only once it is sorted, and the `ASN1Set` array
+  constructor keeps its own copy of the elements it is given.
+- `JceKEKAuthEnvelopedRecipient`, `JceKeyAgreeAuthEnvelopedRecipient` and
+  `JcePasswordAuthEnvelopedRecipient` have been added: AuthEnvelopedData with authenticated
+  attributes could not be read through the KEK, key agreement or password recipients, the
+  enveloped-data recipients failing with a `NullPointerException` on the missing AAD stream.
+
 **Provider (prov).**
 
 - The raw JCA provider bounded the PBKDF2 iteration count taken from an encoding

@@ -4,6 +4,7 @@ import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Object;
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.ASN1Sequence;
+import org.bouncycastle.asn1.ASN1BitString;
 import org.bouncycastle.asn1.DERBitString;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
@@ -57,9 +58,14 @@ public class CertificationRequest
     private CertificationRequest(
         ASN1Sequence seq)
     {
+        if (seq.size() != 3)
+        {
+            throw new IllegalArgumentException("Bad sequence size: " + seq.size());
+        }
+
         reqInfo = CertificationRequestInfo.getInstance(seq.getObjectAt(0));
         sigAlgId = AlgorithmIdentifier.getInstance(seq.getObjectAt(1));
-        sigBits = (DERBitString)seq.getObjectAt(2);
+        sigBits = DERBitString.convert(ASN1BitString.getInstance(seq.getObjectAt(2)));
     }
 
     public CertificationRequestInfo getCertificationRequestInfo()

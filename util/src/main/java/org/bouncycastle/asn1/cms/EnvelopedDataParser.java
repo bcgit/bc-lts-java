@@ -123,9 +123,14 @@ public class EnvelopedDataParser
 
         if (_nextObject != null)
         {
+            if (!(_nextObject instanceof ASN1TaggedObjectParser) || !((ASN1TaggedObjectParser)_nextObject).hasContextTag(1))
+            {
+                throw new IOException("EnvelopedData has an unexpected element after encryptedContentInfo");
+            }
             ASN1TaggedObjectParser o = (ASN1TaggedObjectParser)_nextObject;
             _nextObject = null;
-            return (ASN1SetParser)ASN1Util.parseContextBaseUniversal(o, 1, false, BERTags.SET_OF);
+            ASN1SetParser unprotectedAttrs = (ASN1SetParser)ASN1Util.parseContextBaseUniversal(o, 1, false, BERTags.SET_OF);
+            return new EndCheckedSetParser(unprotectedAttrs, _seq, "EnvelopedData", "unprotectedAttrs");
         }
 
         return null;

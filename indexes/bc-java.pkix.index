@@ -6,7 +6,7 @@ adb3947ab3420ae27af0768f10154cfcc5493926e3716921cccfdf83d5231feb  pkix/src/test/
 42313c6b759fd98d7cc4bc652bc183f0949b33cf58206d0c9f8a750bb0121f0f  pkix/src/test/java/org/bouncycastle/dvcs/test/SHA1DigestCalculator.java
 838054603da3dc862acf71e82f3853f0ba070689d84b975867c76a861308d8d3  pkix/src/test/java/org/bouncycastle/dvcs/test/DVCSParseTest.java
 65c41fc48e22f3e60a30252b3019d1dac2ab79a0193bb9749a09503677f91651  pkix/src/test/java/org/bouncycastle/dvcs/test/DVCSTestSetup.java
-0465cf4563974094638c24fb89d8e9a386a9f731c6e216edc03eef86d787d7e4  pkix/src/test/java/org/bouncycastle/eac/test/AllTests.java
+955c5747902ac3d453800e0867597a4e21744f08b7face4831228c7550e04e1a  pkix/src/test/java/org/bouncycastle/eac/test/AllTests.java
 37d3bb1aa0ec456c3f0d7cbbebfc0e431f6e490600997054fc2872190e67248c  pkix/src/test/java/org/bouncycastle/eac/test/EACTestSetup.java
 a462d58a14b404710542f9ea10cb111ed7a12a1e1493a33455f3f7148493330a  pkix/src/test/java/org/bouncycastle/test/TestResourceFinder.java
 6bc40a8b432e52be47cbeeb374766f870846303306d17a658dbb7f2051487cd6  pkix/src/test/java/org/bouncycastle/test/PrintTestResult.java
@@ -108,7 +108,7 @@ e4964fe2eac6ef0f6bf95eb1469cb95350540814e4c327337e34f2277ee263ca  pkix/src/test/
 7dd87704e52acde803ee5db9ea7e34fa88ab75fe4629075a50b503ce32490f3a  pkix/src/test/java/org/bouncycastle/openssl/test/WriterTest.java
 a130e7d7829dd9a95b50789c926362cf8fb022374c84ff3bde3ea9bed6dfba39  pkix/src/test/java/org/bouncycastle/openssl/test/AllTests.java
 0c024ecda2c1bf9690b3daef4376722eec319abad0fdca97803a8c6724dde078  pkix/src/test/java/org/bouncycastle/openssl/test/CompositeKeyTest.java
-d6904f7a1949755c0d60ce55e5e668fa080f626e6c62a2f86523a4554efee4da  pkix/src/test/java/org/bouncycastle/openssl/test/ParserTest.java
+514b883aef9671ef5fabb4b357798ce40ab79adbd09e8f6b894f409fb2ddbbd5  pkix/src/test/java/org/bouncycastle/openssl/test/ParserTest.java
 b0368d6a2c8dc4ba80f9fa69b059aba064a04d0de03962e15b35bc3f440c6fdc  pkix/src/main/jdk1.9/module-info.java
 57df738eea3e5b5cd448c7d16ccb499ba02582244fca68f0d1f467a605500ca8  pkix/src/main/java/org/bouncycastle/pkix/SubjectPublicKeyInfoChecker.java
 f81e19f5de0deecbdac975bb40853227050a3ed1d18a15bb946eddf876f8ac33  pkix/src/main/java/org/bouncycastle/pkix/util/TextBundle.java
@@ -543,7 +543,7 @@ af749b2f244488bd5531594dc9544f02613fc39187222fa62106150b0c6e58df  pkix/src/main/
 5c2883ccd2d914cee802ea80f49b7fbee84629b5606215099a38282ae8c65115  pkix/src/main/java/org/bouncycastle/tsp/TSPAlgorithms.java
 a716fc3da609b567c5d76f321f04016467c342b52006e761c36331d27fd0f4aa  pkix/src/main/java/org/bouncycastle/tsp/TSPValidationException.java
 9ce1f65ce4d7de93385857bb921d23119d9db5385d5e84b39ac1ae982004a133  pkix/src/main/java/org/bouncycastle/tsp/cms/CMSTimeStampedData.java
-06755e3014f06a594a8f9b91a6a815a00522d2622f2a9a1fbd90d06d7997b12a  pkix/src/main/java/org/bouncycastle/tsp/cms/CMSTimeStampedDataParser.java
+9243a76668fdba011e9743ff4ea7cff35701beefe6076b81f5264e0dc09a0ef0  pkix/src/main/java/org/bouncycastle/tsp/cms/CMSTimeStampedDataParser.java
 36684668dedf93eb625fcc428736517b50c14a2d3b2a64a45d709c647b56d8e3  pkix/src/main/java/org/bouncycastle/tsp/cms/CMSTimeStampedDataGenerator.java
 586365a3e5f838c83386fb20f79d9bd1ad56c6d670b8ed055469e251d77dd2fd  pkix/src/main/java/org/bouncycastle/tsp/cms/MetaDataUtil.java
 e18195b793d239f27498cb5ca35f004f2dd3061bb94ab316b04099fe02489551  pkix/src/main/java/org/bouncycastle/tsp/cms/TimeStampDataUtil.java
@@ -761,7 +761,7 @@ cc681500ccfa3dcb8bddeb1f2ffc644a2f42ab0b852a067948ffde6799c35030  pkix/src/main/
 307e870a561d53ea4af425ee9b2b651726281d2e562a6d66a5661bcd794095d7  pkix/src/main/java/org/bouncycastle/cms/CMSAuthenticatedDataStreamGenerator.java
 aba12342ed173e9ce49800db2c1cfb07786d65c0dae0e346616641bb394199b6  pkix/src/main/java/org/bouncycastle/cms/CMSAuthEnvelopedDataGenerator.java
 4cd58cdbb60effa123d110f6acb7a3df4786875e4d53f07c5dec2e3eedeaa502  pkix/src/main/java/org/bouncycastle/cms/CMSAuthEnvelopedData.java
-0c9f5590aaf5fef8cf17f2d36c4b87acdc86a41b8279896e80b82e0d918be89b  pkix/src/main/java/org/bouncycastle/cms/CMSAuthEnvelopedDataParser.java
+b6d52c974ca79cf943cbceb637697d86e6992a8ceef35da9635adfe128176d49  pkix/src/main/java/org/bouncycastle/cms/CMSAuthEnvelopedDataParser.java
 e44fc2ebfbc049b1daef2e8abd015b89be02e324f4d438391aa71b27c3e7d0bb  pkix/src/main/java/org/bouncycastle/cms/CMSAuthEnvelopedDataStreamGenerator.java
 0420f945dbac5c034a2bb4af3cf7dafd0fac164378877af1a0bfef4079fe243f  pkix/src/main/java/org/bouncycastle/cms/CMSEncryptedDataGenerator.java
 16d516d8c59947b3385ce7b9b3771297cde4e5afd32496349db39b7d2b6b1540  pkix/src/main/java/org/bouncycastle/cms/CMSEnvelopedDataGenerator.java
@@ -870,3 +870,7 @@ d534fa5c5112a89846fbdbdbeb1c684a2d06ce0d38110a2035b004f1b24f642e  pkix/src/main/
 9108390e256d77fe9657c7eaee50ce3a971e8da8ec5e61c32e6ddc19d6b02e38  pkix/src/main/java/org/bouncycastle/cert/crmf/ProtocolEncrKeyControl.java
 c6f6f99ab6f31b7bca5a6b4c753a576ae7c217c0145e67acfc57a270f27db799  pkix/src/main/java/org/bouncycastle/cert/crmf/jcajce/JcaOldCertIDControl.java
 5aa6e12d777f1aa114d140b4c54e07c3649b69418fc75fb00db9eb6ac37a41cf  pkix/src/main/java/org/bouncycastle/cert/crmf/jcajce/JcaProtocolEncrKeyControl.java
+24940ed5cd064badc7f2176316e7e9b71acf951643e521121384a36aeeb5ea27  pkix/src/test/java/org/bouncycastle/cms/test/CMSMalformedContentTest.java
+cadfa86acfdf6bd5ef1ee660623184f9a3023d060429bcaec4f86e382f83f191  pkix/src/main/java/org/bouncycastle/cms/jcajce/JceKEKAuthEnvelopedRecipient.java
+bec3c668368fd544f71a0a9bdc9d5e4773e45703234acf4d8b977b53b932e1fb  pkix/src/main/java/org/bouncycastle/cms/jcajce/JceKeyAgreeAuthEnvelopedRecipient.java
+116dac9a56e53d56e99772dadacda641a023e077c181bae1b80fcf60d86423b5  pkix/src/main/java/org/bouncycastle/cms/jcajce/JcePasswordAuthEnvelopedRecipient.java
