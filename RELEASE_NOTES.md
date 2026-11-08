@@ -116,6 +116,11 @@ Date: 2026, TBD.
   `JcePasswordAuthEnvelopedRecipient` have been added: AuthEnvelopedData with authenticated
   attributes could not be read through the KEK, key agreement or password recipients, the
   enveloped-data recipients failing with a `NullPointerException` on the missing AAD stream.
+- `ECPoint.multiply` threw a `NullPointerException` from the WNAF precomputation for an unvalidated
+  point of small odd order on an Fp curve in Jacobian coordinates, such as (0, 2) on BLS12-381 G1,
+  whose table of odd multiples reaches the point at infinity: `ECCurve.normalizeAll` now skips it, and
+  `WNafUtil` rebuilds such a table on the curve itself rather than on the isomorphic curve, where a
+  doubling would also have used the wrong curve coefficient. Validated points are unaffected.
 
 **Provider (prov).**
 

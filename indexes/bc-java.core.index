@@ -305,7 +305,7 @@ fd0199ae20e5e751add22f2a3edc501a77628109ae4d6638f89835b85720658d  core/src/test/
 97ef3e3ce4830b1f4d5f9fe79b5feaf181c8730988c417ebb288371b74215239  core/src/test/java/org/bouncycastle/math/ec/test/F2mProofer.java
 4612641e353e87e463943d7ade6121754b522cfd28222f5ef18bca1614d9c04b  core/src/test/java/org/bouncycastle/math/ec/test/ECPointPerformanceTest.java
 1d53ebc17af114ede2aad41766f1ab8cc8eb8c4dea9b847e3ba3e8418e222daf  core/src/test/java/org/bouncycastle/math/ec/test/TnafTest.java
-4e0d1f8320218565f49a9ebe21f1174ef086220cb75db4ce171d656fd787be30  core/src/test/java/org/bouncycastle/math/ec/test/ECPointTest.java
+ff0b1f7982d0b70f65f1e1fe4268d0ff80377070efb9de7bf9a2bed156ed63c1  core/src/test/java/org/bouncycastle/math/ec/test/ECPointTest.java
 5dd599330ab0b7907a61f41d2ff875f6f56610b027725c87a1f8596724d14723  core/src/test/java/org/bouncycastle/math/ec/test/ECAlgorithmsTest.java
 02c0fb18b11176364693056cd66b6d56d297f49dc1934ecda2314282ce36458c  core/src/test/java/org/bouncycastle/math/ec/rfc7748/test/X448Test.java
 7e84d89bb433324206075ecf4192ea230825d8e5a79f1b2c256dc633554eb34a  core/src/test/java/org/bouncycastle/math/ec/rfc7748/test/X25519Test.java
@@ -1312,7 +1312,7 @@ fc38201527261dc5a5f2c4b0ca9d85d3831a6012fb471761c9822dae0da56c3e  core/src/main/
 5ead7fa08227c8ff7071582442561c1e68054be875136b7cba6afc269e08d10a  core/src/main/java/org/bouncycastle/math/ec/ECLookupTable.java
 971e36abaf0dc22004f4d6ac3c5d6872a81e51d447b19a67685d3f04b0ef15e5  core/src/main/java/org/bouncycastle/math/ec/AbstractECLookupTable.java
 6f9916abeacfe93f97218b2284f4c13975aa05cf69c325c4c4effbe2d129051b  core/src/main/java/org/bouncycastle/math/ec/WNafPreCompInfo.java
-24cb0d6cbbbb3b6041b85c67c47285128349c51c1165a3d57b46c07fc9076de4  core/src/main/java/org/bouncycastle/math/ec/ECCurve.java
+3779e2660bd81a3935d67a13f129ce978e69efc069722779a586fd5c0755e38c  core/src/main/java/org/bouncycastle/math/ec/ECCurve.java
 b3a69266d29309238cb035fddad688c85d56a5d9fe615762ee7c62646c0966b2  core/src/main/java/org/bouncycastle/math/ec/SimpleLookupTable.java
 930c67080c5d0cf13efda349d31a11487420bdceb2e045b3bff03e4a8cb8c52c  core/src/main/java/org/bouncycastle/math/ec/FixedPointUtil.java
 b589fbf195ac8ef06932deb11492f7f60c7023715d6dd96286b2e0029ecd8e3a  core/src/main/java/org/bouncycastle/math/ec/LongArray.java
