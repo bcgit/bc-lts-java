@@ -509,7 +509,7 @@ public abstract class WNafUtil
                                         iso = twiceP.getZCoord(0);
 
                                         // TODO Perhaps a method that replaces Z with one would be better
-                                        isoTwiceP = c.createRawPoint(twiceP.getXCoord(), twiceP.getYCoord());
+                                        isoTwiceP = c.createRawPoint(twiceP.getXCoord(), twiceP.getYCoord());                                        
 
                                         ECFieldElement iso2 = iso.square(), iso3 = iso2.multiply(iso);
                                         last = last.scaleX(iso2).scaleY(iso3);

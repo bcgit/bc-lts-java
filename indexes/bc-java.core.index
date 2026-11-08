@@ -1335,7 +1335,7 @@ a2de1553a6b700e5635dc0064caa31cefe9bd7e68ff3f8b74bd11a399aff7ec7  core/src/main/
 5abcc880992df090020d5c2c252c6d3df9de4aac08bc2dbc8ffc15ac5e6323cb  core/src/main/java/org/bouncycastle/math/ec/ValidityPrecompInfo.java
 452e372b5e4b7231edb1817a5b4b6195d2023d68e317b363718c6ae93acbbf8a  core/src/main/java/org/bouncycastle/math/ec/ScaleXNegateYPointMap.java
 f8acf534cbdc9b61f77501bf8b61bc99ef62aececfa6ae5bab901f443b312b2f  core/src/main/java/org/bouncycastle/math/ec/ECAlgorithms.java
-0ae1852e0030710fbd88962e1b1bbd50c392f6328be6bfb4e3d1754cc0407bbc  core/src/main/java/org/bouncycastle/math/ec/WNafUtil.java
+dbb55fef0c735c802e03048f154d295f1751cbe9cc95dfc18b8061e257aa7602  core/src/main/java/org/bouncycastle/math/ec/WNafUtil.java
 02d7f8cc876fd4cf93d51ea93d3f810165838d0fc5f57ad91e93f61e0a70cebe  core/src/main/java/org/bouncycastle/math/ec/ECFieldElement.java
 589180df1bc0827f9ee80505d41771db522528e1f7d24c14b303ed11a44d567a  core/src/main/java/org/bouncycastle/math/ec/endo/GLVTypeBEndomorphism.java
 79795e8cbbc9e649dd38670748a8bf8a1d19ef33e763c1de3bce8f8f681b4e65  core/src/main/java/org/bouncycastle/math/ec/endo/EndoUtil.java
