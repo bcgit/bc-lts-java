@@ -904,6 +904,8 @@ abstract class AEADBaseEngine
         {
             if (!Arrays.constantTimeAreEqual(MAC_SIZE, mac, 0, m_buf, m_bufPos))
             {
+                // getMac() must not return the expected tag: it is a valid tag for the rejected input
+                mac = null;
                 throw new InvalidCipherTextException(algorithmName + " mac does not match");
             }
         }

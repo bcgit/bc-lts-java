@@ -23,6 +23,8 @@ class AESNativeGCM
     // after that cannot let the cipher encrypt again.
     private boolean nonceUsed = false;
     private byte[] keptMac = null;
+    // the tag length in bytes, from the last successful init.
+    private int macSizeBytes = 16;
 
 
     @Override
@@ -155,6 +157,7 @@ class AESNativeGCM
 
 
             nonceUsed = false;
+            macSizeBytes = macSize / 8;
             initialised = true;
         }
     }
@@ -262,7 +265,18 @@ class AESNativeGCM
                 nonceUsed = true;
             }
 
-            int len = doFinal(refWrapper.getReference(), out, outOff);
+            int len;
+            try
+            {
+                len = doFinal(refWrapper.getReference(), out, outOff);
+            }
+            catch (InvalidCipherTextException e)
+            {
+                // getMac() must not return the expected tag: it is a valid tag for the rejected input. As for
+                // GCMBlockCipher, it reads as zeros until the cipher is reset or re-initialised.
+                keptMac = new byte[macSizeBytes];
+                throw e;
+            }
 
             //
             // BlockCipherTest, testing ShortTagException.
@@ -446,7 +460,9 @@ class AESNativeGCM
 
     private static native int processBytes(long ref, byte[] in, int inOff, int len, byte[] out, int outOff);
 
-    private static native int doFinal(long ref, byte[] out, int outOff);
+    // the JNI layer throws InvalidCipherTextException when the tag check fails
+    private static native int doFinal(long ref, byte[] out, int outOff)
+        throws InvalidCipherTextException;
 
     private static native int getUpdateOutputSize(long ref, int len);
 
