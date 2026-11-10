@@ -31,6 +31,8 @@ public class ElGamalKeyPairGenerator
     {
         this.param = (ElGamalKeyGenerationParameters)param;
 
+        DHKeyGeneratorHelper.checkPrivateValueLength(this.param.getParameters().getP(), this.param.getParameters().getL());
+
         CryptoServicesRegistrar.checkConstraints(new DefaultServiceProperties("ElGamalKeyGen", ConstraintUtils.bitsOfSecurityFor(this.param.getParameters().getP()), this.param.getParameters(), CryptoServicePurpose.KEYGEN));
     }
 
@@ -40,8 +42,9 @@ public class ElGamalKeyPairGenerator
         ElGamalParameters egp = param.getParameters();
         DHParameters dhp = new DHParameters(egp.getP(), egp.getG(), null, egp.getL());  
 
-        BigInteger x = helper.calculatePrivate(dhp, param.getRandom()); 
-        BigInteger y = helper.calculatePublic(dhp, x);
+        BigInteger[] xy = helper.calculateKeyPair(dhp, param.getRandom());
+        BigInteger x = xy[0];
+        BigInteger y = xy[1];
 
         return new AsymmetricCipherKeyPair(
             new ElGamalPublicKeyParameters(y, egp),

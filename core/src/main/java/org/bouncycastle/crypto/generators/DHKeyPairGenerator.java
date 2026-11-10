@@ -30,6 +30,8 @@ public class DHKeyPairGenerator
     {
         this.param = (DHKeyGenerationParameters)param;
 
+        DHKeyGeneratorHelper.checkPrivateValueLength(this.param.getParameters().getP(), this.param.getParameters().getL());
+
         CryptoServicesRegistrar.checkConstraints(new DefaultServiceProperties("DHKeyGen", ConstraintUtils.bitsOfSecurityFor(this.param.getParameters().getP()), this.param.getParameters(), CryptoServicePurpose.KEYGEN));
     }
 
@@ -38,8 +40,9 @@ public class DHKeyPairGenerator
         DHKeyGeneratorHelper helper = DHKeyGeneratorHelper.INSTANCE;
         DHParameters dhp = param.getParameters();
 
-        BigInteger x = helper.calculatePrivate(dhp, param.getRandom()); 
-        BigInteger y = helper.calculatePublic(dhp, x);
+        BigInteger[] xy = helper.calculateKeyPair(dhp, param.getRandom());
+        BigInteger x = xy[0];
+        BigInteger y = xy[1];
 
         return new AsymmetricCipherKeyPair(
             new DHPublicKeyParameters(y, dhp),

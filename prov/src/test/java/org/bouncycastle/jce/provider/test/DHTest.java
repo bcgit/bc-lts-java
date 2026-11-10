@@ -9,6 +9,7 @@ import java.security.AlgorithmParameterGenerator;
 import java.security.AlgorithmParameters;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -28,6 +29,7 @@ import java.security.spec.EllipticCurve;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
+import javax.crypto.Cipher;
 import javax.crypto.KeyAgreement;
 import javax.crypto.SecretKey;
 import javax.crypto.interfaces.DHPrivateKey;
@@ -1581,9 +1583,132 @@ public class DHTest
         }
     }
 
+    /*
+     * github #2554: a private value length equal to the length of p, as Oracle JDBC Native Network Encryption passes it,
+     * is accepted, as SunJCE does, and the private value is an l-bit integer (PKCS#3 sec. 6 and 7.1).
+     */
+    private void testFullLengthPrivateValue()
+        throws Exception
+    {
+        org.bouncycastle.crypto.params.DHParameters group = DHStandardGroups.rfc7919_ffdhe2048;
+        BigInteger p = group.getP();
+        DHParameterSpec spec = new DHParameterSpec(p, group.getG(), p.bitLength());
+
+        KeyPairGenerator kpGen = KeyPairGenerator.getInstance("DH", "BC");
+        kpGen.initialize(spec);
+
+        KeyPair kp1 = kpGen.generateKeyPair();
+        KeyPair kp2 = kpGen.generateKeyPair();
+
+        BigInteger x = ((DHPrivateKey)kp1.getPrivate()).getX();
+        isTrue("private value not full length", x.bitLength() == p.bitLength());
+        BigInteger y = ((DHPublicKey)kp1.getPublic()).getY();
+        isTrue("public value outside [2, p - 2]", y.compareTo(org.bouncycastle.util.BigIntegers.TWO) >= 0
+            && y.compareTo(p.subtract(org.bouncycastle.util.BigIntegers.TWO)) <= 0);
+
+        KeyAgreement ka1 = KeyAgreement.getInstance("DH", "BC");
+        ka1.init(kp1.getPrivate());
+        ka1.doPhase(kp2.getPublic(), true);
+        KeyAgreement ka2 = KeyAgreement.getInstance("DH", "BC");
+        ka2.init(kp2.getPrivate());
+        ka2.doPhase(kp1.getPublic(), true);
+        isTrue("full length private value agreement failed", Arrays.areEqual(ka1.generateSecret(), ka2.generateSecret()));
+
+        // keys carrying l == bitLength(p) encode and parse with l kept (1.86 refused them at parse)
+        KeyFactory keyFac = KeyFactory.getInstance("DH", "BC");
+        DHPublicKey pub = (DHPublicKey)keyFac.generatePublic(new X509EncodedKeySpec(kp1.getPublic().getEncoded()));
+        DHPrivateKey priv = (DHPrivateKey)keyFac.generatePrivate(new PKCS8EncodedKeySpec(kp1.getPrivate().getEncoded()));
+        isTrue("public key l not kept", pub.getParams().getL() == p.bitLength());
+        isTrue("private key l not kept", priv.getParams().getL() == p.bitLength());
+        isTrue("decoded public key differs", pub.equals(kp1.getPublic()));
+        isTrue("decoded private key differs", priv.equals(kp1.getPrivate()));
+
+        // DHIES generates its ephemeral key on the recipient's parameters, l included
+        byte[] msg = Hex.decode("1234567890abcdef");
+        Cipher enc = Cipher.getInstance("DHIES", "BC");
+        enc.init(Cipher.ENCRYPT_MODE, pub, new SecureRandom());
+        byte[] ct = enc.doFinal(msg);
+        Cipher dec = Cipher.getInstance("DHIES", "BC");
+        dec.init(Cipher.DECRYPT_MODE, priv);
+        isTrue("full length l DHIES round trip failed", Arrays.areEqual(msg, dec.doFinal(ct)));
+
+        KeyPairGenerator egGen = KeyPairGenerator.getInstance("ElGamal", "BC");
+        egGen.initialize(spec);
+        BigInteger egX = ((DHPrivateKey)egGen.generateKeyPair().getPrivate()).getX();
+        isTrue("ElGamal private value not full length", egX.bitLength() == p.bitLength());
+
+        try
+        {
+            kpGen.initialize(new DHParameterSpec(p, group.getG(), p.bitLength() + 1));
+            fail("l greater than bitLength(p) accepted");
+        }
+        catch (InvalidAlgorithmParameterException e)
+        {
+            isEquals("when l value specified, it must not be greater than bitlength(p)", e.getMessage());
+        }
+    }
+
+    /*
+     * A private value length l below twice the security strength of p is refused when generating a key, including
+     * the DHIES ephemeral key generated on a recipient's parameters; keys that carry one can still be used.
+     */
+    private void testShortPrivateValueLength()
+        throws Exception
+    {
+        org.bouncycastle.crypto.params.DHParameters group = DHStandardGroups.rfc7919_ffdhe2048;
+        DHParameterSpec shortSpec = new DHParameterSpec(group.getP(), group.getG(), 64);
+        String msg = "when l value specified, it must not be less than 224 for a 2048 bit p";
+
+        String[] algs = { "DH", "ElGamal" };
+        for (int i = 0; i != algs.length; i++)
+        {
+            try
+            {
+                KeyPairGenerator.getInstance(algs[i], "BC").initialize(shortSpec);
+                fail(algs[i] + " short l accepted");
+            }
+            catch (InvalidAlgorithmParameterException e)
+            {
+                isEquals(msg, e.getMessage());
+            }
+        }
+
+        KeyPair recipient;
+        System.setProperty(org.bouncycastle.util.Properties.DH_ALLOW_SHORT_PRIVATE_VALUE, "true");
+        try
+        {
+            KeyPairGenerator kpGen = KeyPairGenerator.getInstance("DH", "BC");
+            kpGen.initialize(shortSpec);
+            recipient = kpGen.generateKeyPair();
+        }
+        finally
+        {
+            System.getProperties().remove(org.bouncycastle.util.Properties.DH_ALLOW_SHORT_PRIVATE_VALUE);
+        }
+
+        isTrue("recipient l not kept", ((DHPublicKey)recipient.getPublic()).getParams().getL() == 64);
+
+        try
+        {
+            Cipher.getInstance("DHIES", "BC").init(Cipher.ENCRYPT_MODE, recipient.getPublic(), new SecureRandom());
+            fail("DHIES short l accepted");
+        }
+        catch (InvalidKeyException e)
+        {
+            isEquals(msg, e.getMessage());
+        }
+
+        KeyAgreement ka = KeyAgreement.getInstance("DH", "BC");
+        ka.init(recipient.getPrivate());
+        ka.doPhase(recipient.getPublic(), true);
+        ka.generateSecret();
+    }
+
     public void performTest()
         throws Exception
     {
+        testFullLengthPrivateValue();
+        testShortPrivateValueLength();
         generalKeyTest();
         testDefault(64, g512, p512);
         mqvTest();

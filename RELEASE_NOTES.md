@@ -121,6 +121,12 @@ Date: 2026, TBD.
   whose table of odd multiples reaches the point at infinity: `ECCurve.normalizeAll` now skips it, and
   `WNafUtil` rebuilds such a table on the curve itself rather than on the isomorphic curve, where a
   doubling would also have used the wrong curve coefficient. Validated points are unaffected.
+- DH and ElGamal key pair generation: a private value length equal to the bit length of p is
+  accepted again and gives an l-bit private value, as PKCS#3 sec. 7.1 specifies; a private value
+  whose public value would fall outside [2, p - 2] is redrawn; and the private value length must be
+  at least twice the security strength of p (SP 800-56A Appendix D: at least 304, 352 and 400 bits
+  for 4096, 6144 and 8192-bit p), including for the DHIES ephemeral key. A shorter length is now
+  refused; set `org.bouncycastle.dh.allow_short_private_value` to `true` to allow it.
 
 **Provider (prov).**
 
@@ -344,6 +350,8 @@ Date: 2026, TBD.
   public `Argon2BytesGenerator.Block.clear()`; `ASN1Enumerated.isNegative()` and
   `longValueExact()`; and the properties `org.bouncycastle.lms.max_seed_length`,
   `org.bouncycastle.ocsp.max_response_age` and `org.bouncycastle.tsp.allow_inconsistent_signing_time`.
+- The property `org.bouncycastle.dh.allow_short_private_value`, which lets DH and ElGamal key pair
+  generation use a private value length below twice the security strength of p.
 
 <a id="r2rv73dot13"></a>
 
