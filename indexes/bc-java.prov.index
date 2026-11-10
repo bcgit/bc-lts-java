@@ -60,7 +60,7 @@ c4c75b0d283c82bba9f2d9efbbb15f1e1b74f01d0e85b02a2bd67b74b9be62d1  prov/src/test/
 c04b0d1f27a94ceb5a69d8db3fa47c4d9a5e47e163d4db08f5ea0730b61a6ee7  prov/src/test/java/org/bouncycastle/jce/provider/test/AEADTest.java
 9a8fe646cb20760717e77151bbe4fcd7bf83aacc6fbea3f9279cb3f121ea3d12  prov/src/test/java/org/bouncycastle/jce/provider/test/PKCS12StoreTest.java
 7d42d232498d9c71bbed883fa6b3e0be9ba452e14fda6e447a2964ee4f81fe93  prov/src/test/java/org/bouncycastle/jce/provider/test/DHIESTest.java
-f24e5be0e1b12869169c753290da5555443e5c78294737abc714c6744a1df1f1  prov/src/test/java/org/bouncycastle/jce/provider/test/PBETest.java
+ce0ce98d76a8e6d830b68ffcfc753f30d450a21e8c4e6bbb330685ece174703d  prov/src/test/java/org/bouncycastle/jce/provider/test/PBETest.java
 b5b62a4e9b943d17ab2240bcfac6e05da5876db417d8f94422fe67c7101c6198  prov/src/test/java/org/bouncycastle/jce/provider/test/ARIATest.java
 d921dc534489d9ba68717d0b2bbdac8ee746bd8af332547aeadab20cba620a5c  prov/src/test/java/org/bouncycastle/jce/provider/test/PKCS12StorePBETest.java
 f7d58d9eeaa433c6c338e37683185582577587230e118eb237bfdecec129ea55  prov/src/test/java/org/bouncycastle/jce/provider/test/ElGamalTest.java
@@ -262,12 +262,12 @@ bb55a26a217636aae669d42216e16f18089a34f964178d39592457fca718ffcc  prov/src/main/
 a2330e2ac77bb328809e2a11af782f8f6481a2c76a227859826e1a14539df6fb  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/BaseStreamCipher.java
 9ab4e8f48efa9a6c2a0808bc127d7a3317e5a88c50080f621f1180f61ca4daa8  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/BaseWrapCipher.java
 3d63443ff176dc070a1d15c604bed2876e22923f1fb208ef3251602f5901dc44  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/IvAlgorithmParameters.java
-c63b5a197ee905234589d9750fd503aa2279921846b972ec525cb4c879a92c84  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/PBE.java
-238636c4810f9a6efbae53149fd19eed2a0b64a53c11997b569ccba5014118ac  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/BaseBlockCipher.java
+1b57eefab7976596277c773d07188c5ab1ed98690be6d98a25249755e2be7663  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/PBE.java
+4a2e07a94bcde717e172911fd9473d5fdf55b1067a7c5ddf76b8780df29fd5de  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/BaseBlockCipher.java
 99fe4247c1535f6c3babbbe95a8f05904bce4e1d1b2d7ee40a076194996003e0  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/util/BCPBEKey.java
 2349a952ce4f76fc5bd3e5bca68cc96ce7a9e73a7a0328ef59dabb4819508b33  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/PBEPBKDF1.java
 3d81bddca4832beae29144ac9ccea265b14d3d3ee823be0a32d94d06496624a7  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/Skipjack.java
-f46d255707d351667f0356fc13e3772f2a09aebbd5c7afeea2c25390d7ad24fb  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/PBEPBKDF2.java
+395935daafe2e84eae92e3b6ed6a4ea8117d1af47617fb3b18aaa358acd503cd  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/PBEPBKDF2.java
 c30bca5cb4e4bbf9e7c76b5a659d03f813f57e6e3b34ec19bac2193976667973  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/Grainv1.java
 0b315ca5733b71e8e49e3abef334a14defc30ef746b12bee7983178427dab416  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/Grain128.java
 25d0f18a97fac9281509f8b07b90182c003df383bc35ef0f37fd6e9d02f51617  prov/src/main/java/org/bouncycastle/jcajce/provider/symmetric/VMPC.java
@@ -460,7 +460,7 @@ e968cdfe443c363309995eac6e8f84ddb9bf2196deee74eab1eb3620480ba6a4  prov/src/main/
 7f6cbf84106ad5bfe9a1f45f3d17048d90a30b0a23a20feb64314173dfc4fe3f  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/util/AdaptingKeyStoreSpi.java
 7e98103060338043d7aaa012949ebc855909ba7a547f64f218371ae27099eb2c  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/util/ParameterUtil.java
 cb59e9b83b037096d0f93419831ceba43cb564c7faa0e3aaa9c998b32860ba11  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/util/JKSKeyStoreSpi.java
-486a339c83cdd753ede87c5a045acd96cf08cb689f79f4760510443b2cff3935  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/PKCS12.java
+0cdc1321a9e413b1b583e12682d3f9374f3cea093e02e9b4c893dd71c8ffd5ac  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/PKCS12.java
 df32f579426cc594e78da1f2fd845f63c523bb04f451de0997e54e68f4165bd2  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/bc/BcKeyStoreSpi.java
 91d7a0b031d96ea04a36291434f6ec63531d274acf798e8f1e9ee4ca73e0cd4e  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/pkcs12/PKCS12KeyStoreSpi.java
 2e3e3fc9bee5d5c4ef7406f076a6971b341cce88891328705d7987d814babe26  prov/src/main/java/org/bouncycastle/jcajce/provider/keystore/BC.java
@@ -470,7 +470,7 @@ a9df7f6de25f18b5ce8b962827f54a2835b2904e361c51188a7c23ad456c1b3f  prov/src/main/
 b1f4cd28454e221d98077e13b1c6e04fc33b97c48c2c8f0b53af4aaa6d171627  prov/src/main/java/org/bouncycastle/jcajce/provider/config/ProviderConfiguration.java
 6bbf5eb08fe0efa9011644996ca8b0cbad0a9f65c77a3565040cc69df16dce11  prov/src/main/java/org/bouncycastle/jcajce/BCFKSLoadStoreParameter.java
 3d9869df36415cff857ef9637946be6f0ab3a537b7501f7feb8f31abc0c260bc  prov/src/main/java/org/bouncycastle/jcajce/SecretKeyWithEncapsulation.java
-c7dd599e2e2c0c47678639796163db2efaf59c416c473a2e7cdfd36696a846a2  prov/src/main/java/org/bouncycastle/jcajce/PBKDF2Key.java
+83249c5a2100d35ba871b245f1703f02aa5f98912f0c2c951bcfdacd48449581  prov/src/main/java/org/bouncycastle/jcajce/PBKDF2Key.java
 09b47ea9ab5a1c82c206c2ee4128249c97a6914edd976b6a8c820ccb0ad45197  prov/src/main/java/org/bouncycastle/jcajce/io/DigestUpdatingOutputStream.java
 b69010ed4a6bb66d808137706a1d26065a0b59418bd20e6fab95b8baef6e35e0  prov/src/main/java/org/bouncycastle/jcajce/io/CipherInputStream.java
 4462f48b63438389077c6076a8819e6210125aef9b58862b15e5351110afa0d8  prov/src/main/java/org/bouncycastle/jcajce/io/CipherOutputStream.java
@@ -584,7 +584,7 @@ a48a56d3585cca18d0d21a8d2d0ecbb277a8b1d7036efc53cb4a3513b5b47696  prov/src/main/
 920e795b24106ba7c14d8451eba8149a3b72350822d19d0464f8cc5df385965e  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/util/BaseDeterministicOrRandomSignature.java
 efbf10272cbd97212eeff99c0f1b4e42bd1df02c7d0b11b49c4baad945e12cbd  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/util/BasePQCKeyFactorySpi.java
 1606fb9b6f1eb9248f1b68ad03fbfad59a04d80dd9a17e99ba9fb119826d4531  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/util/KdfUtil.java
-d27dc8a4d1b04f85cce9dad76088bab734c9f8a16e4089adc73985cbe340e015  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/util/WrapUtil.java
+efddd779dfc0e9e58c7a10d8ff6d420ba66b82c8e1cf0f9baa9e027e65ba84b2  prov/src/main/java/org/bouncycastle/jcajce/provider/asymmetric/util/WrapUtil.java
 2484fa917e504174b9ade3aca89ddc3f683d29a2f40d394febbdb69ba670ed33  prov/src/main/java/org/bouncycastle/jcajce/provider/drbg/EntropyDaemon.java
 f3c86b8d0c1b84e797068ad3a5cd4f19f16fb3703ce717da283b1ccaf939b0c8  prov/src/main/java/org/bouncycastle/jcajce/provider/drbg/EntropyGatherer.java
 c80f23fc85e2156257d327ef4b38ad2d8e8dbce4d3ed8b9be7d1e76b5bd3a135  prov/src/main/java/org/bouncycastle/jcajce/provider/drbg/IncrementalEntropySource.java
