@@ -53,7 +53,7 @@ public class PQCPrivateKeyDestroyTest
         MLKEMPrivateKeyParameters params = (MLKEMPrivateKeyParameters)PrivateKeyFactory.createKey(
             generatePrivateEncoding("ML-KEM", MLKEMParameterSpec.ml_kem_768));
 
-        // a format other than the current one, so a genuinely new (array-sharing) object comes back
+        // a format other than the current one, so a genuinely new object comes back
         assertEquals("expected BOTH as the decoded preferred format",
             MLKEMPrivateKeyParameters.BOTH, params.getPreferredFormat());
         MLKEMPrivateKeyParameters shared = params.withPreferredFormat(MLKEMPrivateKeyParameters.EXPANDED_KEY);
@@ -67,16 +67,9 @@ public class PQCPrivateKeyDestroyTest
         assertTrue("params not marked destroyed", params.isDestroyed());
         assertFalse("derived object should carry its own flag", shared.isDestroyed());
 
-        // the derived object is still live, so it can be read - and what it exposes must be zeroized,
-        // which a flag-only destroy() would fail.
-        byte[] sAfter = shared.getS();
-        assertEquals("s changed length", sBefore.length, sAfter.length);
-        assertTrue("s was not zeroized by destroy()", Arrays.areAllZeroes(sAfter, 0, sAfter.length));
-
-        byte[] rho = shared.getRho();
-        assertTrue("rho was not zeroized by destroy()", Arrays.areAllZeroes(rho, 0, rho.length));
-        byte[] hpk = shared.getHPK();
-        assertTrue("hpk was not zeroized by destroy()", Arrays.areAllZeroes(hpk, 0, hpk.length));
+        // the derived object holds its own copy of the key material, so destroying the original
+        // leaves it intact and usable
+        assertTrue("derived s changed by destroying the original", Arrays.areEqual(sBefore, shared.getS()));
 
         checkAccessorsRefused(params);
     }
@@ -100,14 +93,11 @@ public class PQCPrivateKeyDestroyTest
         assertTrue("params not marked destroyed", params.isDestroyed());
         assertFalse("derived object should carry its own flag", shared.isDestroyed());
 
-        byte[] s1After = shared.getS1();
-        assertEquals("s1 changed length", s1Before.length, s1After.length);
-        assertTrue("s1 was not zeroized by destroy()", Arrays.areAllZeroes(s1After, 0, s1After.length));
-
+        // the derived object holds its own copy of the key material, so destroying the original
+        // leaves it intact and usable
+        assertTrue("derived s1 changed by destroying the original", Arrays.areEqual(s1Before, shared.getS1()));
         byte[] k = shared.getK();
-        assertTrue("k was not zeroized by destroy()", Arrays.areAllZeroes(k, 0, k.length));
-        byte[] s2 = shared.getS2();
-        assertTrue("s2 was not zeroized by destroy()", Arrays.areAllZeroes(s2, 0, s2.length));
+        assertFalse("derived k zeroized by destroying the original", Arrays.areAllZeroes(k, 0, k.length));
 
         checkAccessorsRefused(params);
     }
@@ -117,8 +107,7 @@ public class PQCPrivateKeyDestroyTest
         SLHDSAParameters parameters = SLHDSAParameters.sha2_128s;
         int n = parameters.getN();
 
-        // The constructor retains these arrays rather than copying them, so destroy() must be
-        // observable here.
+        // The constructor copies these arrays, so destroying the key must leave the caller's arrays alone.
         byte[] skSeed = nonZeroBytes(n, (byte)0x11);
         byte[] prf = nonZeroBytes(n, (byte)0x22);
         byte[] pkSeed = nonZeroBytes(n, (byte)0x33);
@@ -135,10 +124,10 @@ public class PQCPrivateKeyDestroyTest
 
         assertTrue("params not marked destroyed", params.isDestroyed());
 
-        assertTrue("skSeed was not zeroized by destroy()", Arrays.areAllZeroes(skSeed, 0, skSeed.length));
-        assertTrue("prf was not zeroized by destroy()", Arrays.areAllZeroes(prf, 0, prf.length));
-        assertTrue("pkSeed was not zeroized by destroy()", Arrays.areAllZeroes(pkSeed, 0, pkSeed.length));
-        assertTrue("pkRoot was not zeroized by destroy()", Arrays.areAllZeroes(pkRoot, 0, pkRoot.length));
+        assertTrue("caller's skSeed changed by destroy()", Arrays.areEqual(nonZeroBytes(n, (byte)0x11), skSeed));
+        assertTrue("caller's prf changed by destroy()", Arrays.areEqual(nonZeroBytes(n, (byte)0x22), prf));
+        assertTrue("caller's pkSeed changed by destroy()", Arrays.areEqual(nonZeroBytes(n, (byte)0x33), pkSeed));
+        assertTrue("caller's pkRoot changed by destroy()", Arrays.areEqual(nonZeroBytes(n, (byte)0x44), pkRoot));
 
         try
         {
