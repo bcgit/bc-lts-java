@@ -25,10 +25,11 @@ public class CTRSP800DRBG
     private int                   _securityStrength;
 
     // internal state
-    private byte[]                _Key;
-    private byte[]                _V;
     private long                  _reseedCounter = 0;
     private boolean               _isTDEA = false;
+
+    // the working state, zeroized once this DRBG is no longer referenced
+    private final CTRDRBGWorkingBuffer workingBuf = new CTRDRBGWorkingBuffer();
 
     /**
      * Construct a SP800-90A CTR DRBG.
@@ -49,6 +50,8 @@ public class CTRSP800DRBG
      */
     public CTRSP800DRBG(BlockCipher engine, int keySizeInBits, int securityStrength, EntropySource entropySource, byte[] personalizationString, byte[] nonce)
     {
+        workingBuf.registerCleanup(this);
+
         _entropySource = entropySource;
         _engine = engine;     
         
@@ -85,11 +88,11 @@ public class CTRSP800DRBG
 
         int outlen = _engine.getBlockSize();
 
-        _Key = new byte[(_keySizeInBits + 7) / 8];
-        _V = new byte[outlen];
+        workingBuf._Key = new byte[(_keySizeInBits + 7) / 8];
+        workingBuf._V = new byte[outlen];
 
-         // _Key & _V are modified by this call
-        CTR_DRBG_Update(seed, _Key, _V); 
+         // workingBuf._Key & workingBuf._V are modified by this call
+        CTR_DRBG_Update(seed, workingBuf._Key, workingBuf._V); 
 
         _reseedCounter = 1;
     }
@@ -127,7 +130,7 @@ public class CTRSP800DRBG
 
         seedMaterial = Block_Cipher_df(seedMaterial, _seedLength);
 
-        CTR_DRBG_Update(seedMaterial, _Key, _V);
+        CTR_DRBG_Update(seedMaterial, workingBuf._Key, workingBuf._V);
 
         _reseedCounter = 1;
     }
@@ -326,7 +329,7 @@ public class CTRSP800DRBG
      */
     public int getBlockSize()
     {
-        return _V.length * 8;
+        return workingBuf._V.length * 8;
     }
 
     /**
@@ -374,34 +377,34 @@ public class CTRSP800DRBG
         if (additionalInput != null)
         {
             additionalInput = Block_Cipher_df(additionalInput, _seedLength);
-            CTR_DRBG_Update(additionalInput, _Key, _V);
+            CTR_DRBG_Update(additionalInput, workingBuf._Key, workingBuf._V);
         }
         else
         {
             additionalInput = new byte[_seedLength / 8];
         }
 
-        byte[] out = new byte[_V.length];
+        byte[] out = new byte[workingBuf._V.length];
 
-        _engine.init(true, new KeyParameter(expandKey(_Key)));
+        _engine.init(true, new KeyParameter(expandKey(workingBuf._Key)));
 
         for (int i = 0; i <= output.length / out.length; i++)
         {
             int bytesToCopy = ((output.length - i * out.length) > out.length)
                     ? out.length
-                    : (output.length - i * _V.length);
+                    : (output.length - i * workingBuf._V.length);
 
             if (bytesToCopy != 0)
             {
-                addOneTo(_V);
+                addOneTo(workingBuf._V);
 
-                _engine.processBlock(_V, 0, out, 0);
+                _engine.processBlock(workingBuf._V, 0, out, 0);
 
                 System.arraycopy(out, 0, output, i * out.length, bytesToCopy);
             }
         }
 
-        CTR_DRBG_Update(additionalInput, _Key, _V);
+        CTR_DRBG_Update(additionalInput, workingBuf._Key, workingBuf._V);
 
         _reseedCounter++;
 

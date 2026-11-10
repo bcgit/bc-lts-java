@@ -127,6 +127,12 @@ Date: 2026, TBD.
   at least twice the security strength of p (SP 800-56A Appendix D: at least 304, 352 and 400 bits
   for 4096, 6144 and 8192-bit p), including for the DHIES ephemeral key. A shorter length is now
   refused; set `org.bouncycastle.dh.allow_short_private_value` to `true` to allow it.
+- The AES and DES key schedules of `AESEngine`, `AESLightEngine`, `DESEngine` and `DESedeEngine`,
+  and the working state of the SP 800-90A `CTRSP800DRBG`, `HashSP800DRBG` and `HMacSP800DRBG`, are
+  now zeroized once their owner is no longer referenced and has been collected, as well as when an
+  engine is re-keyed: through `finalize()` on Java 8 and through `java.lang.ref.Cleaner`, from the
+  multi-release jar, on Java 9 and later. As with the native code, material belonging to objects
+  still in use at JVM exit is not cleared.
 
 **Provider (prov).**
 

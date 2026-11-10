@@ -14,12 +14,13 @@ public class HMacSP800DRBG
     private final static long       RESEED_MAX = 1L << (48 - 1);
     private final static int        MAX_BITS_REQUEST = 1 << (19 - 1);
 
-    private byte[] _K;
-    private byte[] _V;
     private long   _reseedCounter;
     private EntropySource _entropySource;
     private Mac _hMac;
     private int _securityStrength;
+
+    // the working state, zeroized once this DRBG is no longer referenced
+    private final HMacDRBGWorkingBuffer workingBuf = new HMacDRBGWorkingBuffer();
 
     /**
      * Construct a SP800-90A Hash DRBG.
@@ -39,6 +40,8 @@ public class HMacSP800DRBG
      */
     public HMacSP800DRBG(Mac hMac, int securityStrength, EntropySource entropySource, byte[] personalizationString, byte[] nonce)
     {
+        workingBuf.registerCleanup(this);
+
         if (securityStrength > Utils.getMaxSecurityStrength(hMac))
         {
             throw new IllegalArgumentException("Requested security strength is not supported by the derivation function");
@@ -56,9 +59,9 @@ public class HMacSP800DRBG
         byte[] entropy = getEntropy();
         byte[] seedMaterial = Arrays.concatenate(entropy, nonce, personalizationString);
 
-        _K = new byte[hMac.getMacSize()];
-        _V = new byte[_K.length];
-        Arrays.fill(_V, (byte)1);
+        workingBuf._K = new byte[hMac.getMacSize()];
+        workingBuf._V = new byte[workingBuf._K.length];
+        Arrays.fill(workingBuf._V, (byte)1);
 
         hmac_DRBG_Update(seedMaterial);
 
@@ -76,9 +79,9 @@ public class HMacSP800DRBG
 
     private void hmac_DRBG_Update_Func(byte[] seedMaterial, byte vValue)
     {
-        _hMac.init(new KeyParameter(_K));
+        _hMac.init(new KeyParameter(workingBuf._K));
 
-        _hMac.update(_V, 0, _V.length);
+        _hMac.update(workingBuf._V, 0, workingBuf._V.length);
         _hMac.update(vValue);
 
         if (seedMaterial != null)
@@ -86,12 +89,12 @@ public class HMacSP800DRBG
             _hMac.update(seedMaterial, 0, seedMaterial.length);
         }
 
-        _hMac.doFinal(_K, 0);
+        _hMac.doFinal(workingBuf._K, 0);
 
-        _hMac.init(new KeyParameter(_K));
-        _hMac.update(_V, 0, _V.length);
+        _hMac.init(new KeyParameter(workingBuf._K));
+        _hMac.update(workingBuf._V, 0, workingBuf._V.length);
 
-        _hMac.doFinal(_V, 0);
+        _hMac.doFinal(workingBuf._V, 0);
     }
 
     /**
@@ -101,7 +104,7 @@ public class HMacSP800DRBG
      */
     public int getBlockSize()
     {
-        return _V.length * 8;
+        return workingBuf._V.length * 8;
     }
 
     /**
@@ -142,24 +145,24 @@ public class HMacSP800DRBG
         // 3.
         byte[] rv = new byte[output.length];
 
-        int m = output.length / _V.length;
+        int m = output.length / workingBuf._V.length;
 
-        _hMac.init(new KeyParameter(_K));
+        _hMac.init(new KeyParameter(workingBuf._K));
 
         for (int i = 0; i < m; i++)
         {
-            _hMac.update(_V, 0, _V.length);
-            _hMac.doFinal(_V, 0);
+            _hMac.update(workingBuf._V, 0, workingBuf._V.length);
+            _hMac.doFinal(workingBuf._V, 0);
 
-            System.arraycopy(_V, 0, rv, i * _V.length, _V.length);
+            System.arraycopy(workingBuf._V, 0, rv, i * workingBuf._V.length, workingBuf._V.length);
         }
 
-        if (m * _V.length < rv.length)
+        if (m * workingBuf._V.length < rv.length)
         {
-            _hMac.update(_V, 0, _V.length);
-            _hMac.doFinal(_V, 0);
+            _hMac.update(workingBuf._V, 0, workingBuf._V.length);
+            _hMac.doFinal(workingBuf._V, 0);
 
-            System.arraycopy(_V, 0, rv, m * _V.length, rv.length - (m * _V.length));
+            System.arraycopy(workingBuf._V, 0, rv, m * workingBuf._V.length, rv.length - (m * workingBuf._V.length));
         }
 
         hmac_DRBG_Update(additionalInput);

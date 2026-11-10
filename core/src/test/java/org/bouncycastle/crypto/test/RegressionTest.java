@@ -194,6 +194,7 @@ public class RegressionTest
             new CryptoServicesRegistrarPropertyTest(),
             new XDHAgreementFailureTest(),
             new AEADFailedDecryptionMacTest(),
+            new WorkingBufferZeroizeTest(),
             new CryptoServiceConstraintsTest(),
             new SymmetricConstraintsTest(),
             new AsymmetricConstraintsTest(),

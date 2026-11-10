@@ -9,7 +9,6 @@ import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.Pack;
-import org.bouncycastle.util.Arrays;
 
 /**
  * a class that provides a basic DES engine.
@@ -22,6 +21,8 @@ public class DESEngine
 
     private boolean             forEncryption;
     private int[]               workingKey = null;
+    // zeroizes the key schedule on re-keying, and on collection once the engine is no longer referenced
+    private DESWorkingBuffer    workingBuf = null;
 
     /**
      * standard constructor.
@@ -53,9 +54,12 @@ public class DESEngine
             forEncryption = encrypting;
             int[] newWorkingKey = generateWorkingKey(encrypting,
                                   ((KeyParameter)params).getKey());
-            // clear the previous key schedule when re-keyed, rather than leaving it for the collector
-            Arrays.clear(workingKey);
+            if (workingBuf != null)
+            {
+                workingBuf.dispose();
+            }
             workingKey = newWorkingKey;
+            workingBuf = new DESWorkingBuffer(newWorkingKey);
 
             CryptoServicesRegistrar.checkConstraints(new DefaultServiceProperties(getAlgorithmName(), 56, params, Utils.getPurpose(forEncryption)));
 

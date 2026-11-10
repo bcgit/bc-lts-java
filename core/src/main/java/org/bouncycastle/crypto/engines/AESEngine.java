@@ -417,6 +417,8 @@ private static final int[] Tinv0 =
 
     private int         ROUNDS;
     private int[][]     workingKey = null;
+    // zeroizes the key schedule on re-keying, and on collection once the engine is no longer referenced
+    private AESWorkingBuffer workingBuf = null;
     private boolean     forEncryption;
 
     private byte[]      s;
@@ -448,18 +450,6 @@ private static final int[] Tinv0 =
         CryptoServicesRegistrar.checkConstraints(new DefaultServiceProperties(getAlgorithmName(), 256));
     }
 
-    // clear a previous key schedule when the engine is re-keyed, rather than leaving it for the collector
-    private static void clearWorkingKey(int[][] workingKey)
-    {
-        if (workingKey != null)
-        {
-            for (int i = 0; i != workingKey.length; i++)
-            {
-                Arrays.clear(workingKey[i]);
-            }
-        }
-    }
-
     /**
      * initialise an AES cipher.
      *
@@ -475,8 +465,12 @@ private static final int[] Tinv0 =
         if (params instanceof KeyParameter)
         {
             int[][] newWorkingKey = generateWorkingKey(((KeyParameter)params).getKey(), forEncryption);
-            clearWorkingKey(workingKey);
+            if (workingBuf != null)
+            {
+                workingBuf.dispose();
+            }
             workingKey = newWorkingKey;
+            workingBuf = new AESWorkingBuffer(newWorkingKey);
             this.forEncryption = forEncryption;
             if (forEncryption)
             {

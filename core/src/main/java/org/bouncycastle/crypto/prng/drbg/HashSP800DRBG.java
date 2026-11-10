@@ -32,12 +32,13 @@ public class HashSP800DRBG
     }
 
     private Digest        _digest;
-    private byte[]        _V;
-    private byte[]        _C;
     private long          _reseedCounter;
     private EntropySource _entropySource;
     private int           _securityStrength;
     private int           _seedLength;
+
+    // the working state, zeroized once this DRBG is no longer referenced
+    private final HashDRBGWorkingBuffer workingBuf = new HashDRBGWorkingBuffer();
 
     /**
      * Construct a SP800-90A Hash DRBG.
@@ -57,6 +58,8 @@ public class HashSP800DRBG
      */
     public HashSP800DRBG(Digest digest, int securityStrength, EntropySource entropySource, byte[] personalizationString, byte[] nonce)
     {
+        workingBuf.registerCleanup(this);
+
         if (securityStrength > Utils.getMaxSecurityStrength(digest))
         {
             throw new IllegalArgumentException("Requested security strength is not supported by the derivation function");
@@ -84,10 +87,10 @@ public class HashSP800DRBG
         byte[] seedMaterial = Arrays.concatenate(entropy, nonce, personalizationString);
         byte[] seed = Utils.hash_df(_digest, seedMaterial, _seedLength);
 
-        _V = seed;
-        byte[] subV = new byte[_V.length + 1];
-        System.arraycopy(_V, 0, subV, 1, _V.length);
-        _C = Utils.hash_df(_digest, subV, _seedLength);
+        workingBuf._V = seed;
+        byte[] subV = new byte[workingBuf._V.length + 1];
+        System.arraycopy(workingBuf._V, 0, subV, 1, workingBuf._V.length);
+        workingBuf._C = Utils.hash_df(_digest, subV, _seedLength);
 
         _reseedCounter = 1;
     }
@@ -147,36 +150,36 @@ public class HashSP800DRBG
         // 2.
         if (additionalInput != null)
         {
-            byte[] newInput = new byte[1 + _V.length + additionalInput.length];
+            byte[] newInput = new byte[1 + workingBuf._V.length + additionalInput.length];
             newInput[0] = 0x02;
-            System.arraycopy(_V, 0, newInput, 1, _V.length);
+            System.arraycopy(workingBuf._V, 0, newInput, 1, workingBuf._V.length);
             // TODO: inOff / inLength
-            System.arraycopy(additionalInput, 0, newInput, 1 + _V.length, additionalInput.length);
+            System.arraycopy(additionalInput, 0, newInput, 1 + workingBuf._V.length, additionalInput.length);
             byte[] w = hash(newInput);
 
-            addTo(_V, w);
+            addTo(workingBuf._V, w);
         }
         
         // 3.
-        byte[] rv = hashgen(_V, numberOfBits);
+        byte[] rv = hashgen(workingBuf._V, numberOfBits);
         
         // 4.
-        byte[] subH = new byte[_V.length + 1];
-        System.arraycopy(_V, 0, subH, 1, _V.length);
+        byte[] subH = new byte[workingBuf._V.length + 1];
+        System.arraycopy(workingBuf._V, 0, subH, 1, workingBuf._V.length);
         subH[0] = 0x03;
         
         byte[] H = hash(subH);
         
         // 5.
-        addTo(_V, H);
-        addTo(_V, _C);
+        addTo(workingBuf._V, H);
+        addTo(workingBuf._V, workingBuf._C);
         byte[] c = new byte[4];
         c[0] = (byte)(_reseedCounter >> 24);
         c[1] = (byte)(_reseedCounter >> 16);
         c[2] = (byte)(_reseedCounter >> 8);
         c[3] = (byte)_reseedCounter;
         
-        addTo(_V, c);
+        addTo(workingBuf._V, c);
 
         _reseedCounter++;
 
@@ -237,14 +240,14 @@ public class HashSP800DRBG
         //
         // Comment: Precede with a byte of all zeros.
         byte[] entropy = getEntropy();
-        byte[] seedMaterial = Arrays.concatenate(ONE, _V, entropy, additionalInput);
+        byte[] seedMaterial = Arrays.concatenate(ONE, workingBuf._V, entropy, additionalInput);
         byte[] seed = Utils.hash_df(_digest, seedMaterial, _seedLength);
 
-        _V = seed;
-        byte[] subV = new byte[_V.length + 1];
+        workingBuf._V = seed;
+        byte[] subV = new byte[workingBuf._V.length + 1];
         subV[0] = 0x00;
-        System.arraycopy(_V, 0, subV, 1, _V.length);
-        _C = Utils.hash_df(_digest, subV, _seedLength);
+        System.arraycopy(workingBuf._V, 0, subV, 1, workingBuf._V.length);
+        workingBuf._C = Utils.hash_df(_digest, subV, _seedLength);
 
         _reseedCounter = 1;
     }

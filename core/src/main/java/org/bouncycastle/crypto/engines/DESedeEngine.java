@@ -22,6 +22,8 @@ public class DESedeEngine
     private int[] workingKey1 = null;
     private int[] workingKey2 = null;
     private int[] workingKey3 = null;
+    // zeroizes the key schedules on re-keying, and on collection once the engine is no longer referenced
+    private DESedeWorkingBuffer workingBuf = null;
 
     private boolean forEncryption;
 
@@ -82,14 +84,15 @@ public class DESedeEngine
             newWorkingKey3 = newWorkingKey1;
         }
 
-        // clear the previous key schedules when re-keyed, rather than leaving them for the collector
-        Arrays.clear(workingKey1);
-        Arrays.clear(workingKey2);
-        Arrays.clear(workingKey3);
+        if (workingBuf != null)
+        {
+            workingBuf.dispose();
+        }
 
         workingKey1 = newWorkingKey1;
         workingKey2 = newWorkingKey2;
         workingKey3 = newWorkingKey3;
+        workingBuf = new DESedeWorkingBuffer(newWorkingKey1, newWorkingKey2, newWorkingKey3);
 
         CryptoServicesRegistrar.checkConstraints(new DefaultServiceProperties(getAlgorithmName(), bitsOfSecurity(), params, Utils.getPurpose(forEncryption)));
     }

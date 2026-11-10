@@ -9,7 +9,6 @@ import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.constraints.DefaultServiceProperties;
 import org.bouncycastle.crypto.params.KeyParameter;
 import org.bouncycastle.util.Pack;
-import org.bouncycastle.util.Arrays;
 
 /**
  * an implementation of the AES (Rijndael), from FIPS-197.
@@ -315,6 +314,8 @@ public class AESLightEngine
 
     private int         ROUNDS;
     private int[][]     WorkingKey = null;
+    // zeroizes the key schedule on re-keying, and on collection once the engine is no longer referenced
+    private AESWorkingBuffer workingBuf = null;
     private boolean     forEncryption;
 
     private static final int BLOCK_SIZE = 16;
@@ -325,18 +326,6 @@ public class AESLightEngine
     public AESLightEngine()
     {
         CryptoServicesRegistrar.checkConstraints(new DefaultServiceProperties(getAlgorithmName(), bitsOfSecurity()));
-    }
-
-    // clear a previous key schedule when the engine is re-keyed, rather than leaving it for the collector
-    private static void clearWorkingKey(int[][] workingKey)
-    {
-        if (workingKey != null)
-        {
-            for (int i = 0; i != workingKey.length; i++)
-            {
-                Arrays.clear(workingKey[i]);
-            }
-        }
     }
 
     /**
@@ -354,8 +343,12 @@ public class AESLightEngine
         if (params instanceof KeyParameter)
         {
             int[][] newWorkingKey = generateWorkingKey(((KeyParameter)params).getKey(), forEncryption);
-            clearWorkingKey(WorkingKey);
+            if (workingBuf != null)
+            {
+                workingBuf.dispose();
+            }
             WorkingKey = newWorkingKey;
+            workingBuf = new AESWorkingBuffer(newWorkingKey);
             this.forEncryption = forEncryption;
 
             CryptoServicesRegistrar.checkConstraints(new DefaultServiceProperties(getAlgorithmName(), bitsOfSecurity(), params, Utils.getPurpose(forEncryption)));
