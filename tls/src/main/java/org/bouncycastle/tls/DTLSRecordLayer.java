@@ -115,6 +115,7 @@ class DTLSRecordLayer
     private volatile int plaintextLimit;
     private DTLSEpoch currentEpoch, pendingEpoch;
     private DTLSEpoch readEpoch, writeEpoch;
+    private int lastReceivedEpoch = -1;
 
     private DTLSHandshakeRetransmit retransmit = null;
     private DTLSEpoch retransmitEpoch = null;
@@ -171,6 +172,18 @@ class DTLSRecordLayer
     int getReadEpoch()
     {
         return readEpoch.getEpoch();
+    }
+
+    /**
+     * The epoch of the record most recently delivered by a receive call.
+     * <p>
+     * During the handshake this can differ from {@link #getReadEpoch()}: a handshake record from the current epoch
+     * is still delivered after the peer's ChangeCipherSpec has moved the read epoch on (a message that was lost and
+     * later retransmitted, while the ChangeCipherSpec and Finished that followed it arrived).
+     */
+    int getLastReceivedEpoch()
+    {
+        return lastReceivedEpoch;
     }
 
     ProtocolVersion getReadVersion()
@@ -589,6 +602,18 @@ class DTLSRecordLayer
                 recordEpoch = retransmitEpoch;
             }
         }
+        else if (inHandshake && epoch == currentEpoch.getEpoch())
+        {
+            /*
+             * The peer's ChangeCipherSpec has moved the read epoch on, but a handshake message from before it
+             * (e.g. CertificateVerify) may have been lost and is now being retransmitted. Until the handshake
+             * completes, handshake records from the current epoch are still accepted.
+             */
+            if (recordType == ContentType.handshake)
+            {
+                recordEpoch = currentEpoch;
+            }
+        }
 
         if (null == recordEpoch)
         {
@@ -875,6 +900,8 @@ class DTLSRecordLayer
             this.retransmitTimeout = null;
         }
 
+        this.lastReceivedEpoch = recordEpoch.getEpoch();
+
         // NOTE: Internal error implies getReceiveLimit() was not used to allocate result space
         if (decoded.len > len)
         {
@@ -903,6 +930,10 @@ class DTLSRecordLayer
             else if (null != retransmitEpoch && epoch == retransmitEpoch.getEpoch())
             {
                 recordEpoch = retransmitEpoch;
+            }
+            else if (inHandshake && epoch == currentEpoch.getEpoch())
+            {
+                recordEpoch = currentEpoch;
             }
 
             if (null == recordEpoch)
@@ -947,6 +978,10 @@ class DTLSRecordLayer
             else if (null != retransmitEpoch && epoch == retransmitEpoch.getEpoch())
             {
                 recordEpoch = retransmitEpoch;
+            }
+            else if (inHandshake && epoch == currentEpoch.getEpoch())
+            {
+                recordEpoch = currentEpoch;
             }
 
             if (null == recordEpoch)

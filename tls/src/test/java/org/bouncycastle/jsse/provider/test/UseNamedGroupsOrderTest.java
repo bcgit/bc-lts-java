@@ -29,6 +29,7 @@ import org.bouncycastle.tls.TlsServerCertificate;
 import org.bouncycastle.tls.TlsUtils;
 import org.bouncycastle.tls.crypto.impl.jcajce.JcaTlsCryptoProvider;
 import org.bouncycastle.util.Integers;
+import org.bouncycastle.util.Properties;
 
 /**
  * The <code>org.bouncycastle.jsse.useNamedGroupsOrder</code> system property, which sets the
@@ -46,7 +47,7 @@ import org.bouncycastle.util.Integers;
 public class UseNamedGroupsOrderTest
     extends TestCase
 {
-    private static final String PROPERTY_NAME = "org.bouncycastle.jsse.useNamedGroupsOrder";
+    private static final String PROPERTY_NAME = Properties.JSSE_USE_NAMED_GROUPS_ORDER;
 
     private static final String HOST = "localhost";
 

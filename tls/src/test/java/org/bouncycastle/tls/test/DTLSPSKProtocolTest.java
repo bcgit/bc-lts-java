@@ -1,11 +1,9 @@
 package org.bouncycastle.tls.test;
 
-import org.bouncycastle.tls.AlertDescription;
 import org.bouncycastle.tls.DTLSClientProtocol;
 import org.bouncycastle.tls.DTLSServerProtocol;
 import org.bouncycastle.tls.DTLSTransport;
 import org.bouncycastle.tls.DatagramTransport;
-import org.bouncycastle.tls.TlsFatalAlertReceived;
 import org.bouncycastle.tls.TlsServer;
 import org.bouncycastle.tls.TlsTimeoutException;
 import org.bouncycastle.util.Arrays;
@@ -50,6 +48,10 @@ public class DTLSPSKProtocolTest
         MockPSKDTLSClient client = new MockPSKDTLSClient(null);
         MockPSKDTLSServer server = new MockPSKDTLSServer();
 
+        // The mocks' default 1 second handshake timeout is for the key-mismatch tests; a lossy handshake needs longer
+        client.setHandshakeTimeoutMillis(30000);
+        server.setHandshakeTimeoutMillis(30000);
+
         DTLSClientProtocol clientProtocol = new DTLSClientProtocol();
         DTLSServerProtocol serverProtocol = new DTLSServerProtocol();
 
@@ -60,11 +62,21 @@ public class DTLSPSKProtocolTest
 
         DatagramTransport clientTransport = network.getClient();
 
-        clientTransport = new UnreliableDatagramTransport(clientTransport, client.getCrypto().getSecureRandom(), 0, 0);
+        // 10% packet loss in each direction during the handshake, to exercise handshake retransmission. The
+        // transport becomes reliable once the handshake completes, since application data is never retransmitted.
+        UnreliableDatagramTransport lossyTransport = new UnreliableDatagramTransport(clientTransport,
+            client.getCrypto().getSecureRandom(), 10, 10, TlsTestConfig.DTLS_MAX_DROPPED_DATAGRAMS,
+            TlsTestConfig.DTLS_MAX_DROPPED_DATAGRAMS);
+        clientTransport = lossyTransport;
 
         clientTransport = new LoggingDatagramTransport(clientTransport, System.out);
 
+        HandshakeGuardDatagramTransport guard = new HandshakeGuardDatagramTransport(clientTransport, lossyTransport,
+            serverThread);
+        clientTransport = guard;
+
         DTLSTransport dtlsClient = clientProtocol.connect(client, clientTransport);
+        guard.notifyHandshakeComplete();
 
         for (int i = 1; i <= 10; ++i)
         {
@@ -85,6 +97,9 @@ public class DTLSPSKProtocolTest
 
     private void implTestKeyMismatch(MockPSKDTLSClient client, MockPSKDTLSServer server) throws Exception
     {
+        // The client must be the end that times out: a server timeout would reach the client as an alert first
+        server.setHandshakeTimeoutMillis(2 * client.getHandshakeTimeoutMillis());
+
         DTLSClientProtocol clientProtocol = new DTLSClientProtocol();
         DTLSServerProtocol serverProtocol = new DTLSServerProtocol();
 
@@ -118,25 +133,10 @@ public class DTLSPSKProtocolTest
 
         serverThread.shutdown();
 
-        Exception serverFailure = serverThread.getFailure();
-
-        // The PSKs do not match, so the handshake cannot complete and both peers run out of patience.
-        // Both use the same handshake timeout, so which of them notices first is a race: the client
-        // either hits its own timeout, or - when the server gets there first - receives the
-        // internal_error alert the server raises on ITS timeout. Both outcomes are the timeout this test
-        // is about, so accept either, but require that a timeout is what actually happened on the side
-        // that reported it rather than accepting internal_error on its own.
+        // The PSKs do not match, so the handshake cannot complete and the client runs out of patience
         assertNotNull("Handshake unexpectedly succeeded with mismatched PSKs", clientFailure);
-
-        if (!(clientFailure instanceof TlsTimeoutException))
-        {
-            assertTrue("Expected a handshake timeout, client failed with: " + clientFailure,
-                clientFailure instanceof TlsFatalAlertReceived
-                    && ((TlsFatalAlertReceived)clientFailure).getAlertDescription() == AlertDescription.internal_error);
-            assertTrue("Client received internal_error but the server did not time out; server failed with: "
-                    + serverFailure,
-                serverFailure instanceof TlsTimeoutException);
-        }
+        assertTrue("Expected a handshake timeout, client failed with: " + clientFailure,
+            clientFailure instanceof TlsTimeoutException);
     }
 
     static class ServerThread
@@ -146,23 +146,12 @@ public class DTLSPSKProtocolTest
         private final TlsServer server;
         private final DatagramTransport serverTransport;
         private volatile boolean isShutdown = false;
-        private volatile Exception failure = null;
 
         ServerThread(DTLSServerProtocol serverProtocol, TlsServer server, DatagramTransport serverTransport)
         {
             this.serverProtocol = serverProtocol;
             this.server = server;
             this.serverTransport = serverTransport;
-        }
-
-        /**
-         * Return the exception that terminated this thread, or null if it shut down cleanly. A
-         * key-mismatch test needs this to tell the server timing out from the server failing some other
-         * way, since either shows up at the client as an internal_error alert.
-         */
-        Exception getFailure()
-        {
-            return failure;
         }
 
         public void run()
@@ -183,7 +172,6 @@ public class DTLSPSKProtocolTest
             }
             catch (Exception e)
             {
-                failure = e;
                 e.printStackTrace();
             }
         }

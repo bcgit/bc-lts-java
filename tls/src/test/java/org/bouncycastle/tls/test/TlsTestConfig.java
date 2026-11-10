@@ -14,6 +14,15 @@ public class TlsTestConfig
     public static final boolean DEBUG = false;
 
     /**
+     * The most datagrams a lossy DTLS handshake test loses in each direction, after which its transport is
+     * reliable. Each lost datagram costs at most one resend cycle, and the resend interval doubles with each
+     * cycle from the 100ms the lossy tests use, so this bounds a run: 8 lost datagrams cost at most 100 * (2^9 - 1)
+     * ms, about 51 seconds, even in the worst case of one loss per cycle, all in the same flight, and the typical
+     * run is a few seconds. A limit of 4 rarely binds at 10% loss and leaves several flights to be lost at 25%.
+     */
+    public static final int DTLS_MAX_DROPPED_DATAGRAMS = 4;
+
+    /**
      * Client does not authenticate, ignores any certificate request
      */
     public static final int CLIENT_AUTH_NONE = 0;

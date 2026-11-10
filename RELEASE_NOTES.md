@@ -309,6 +309,15 @@ Date: 2026, TBD.
   `NullPointerException`, and `ESTResponse` and `mime.Headers` parse repeated and folded headers in
   linear time.
 
+**TLS (tls).**
+
+- Ported from the BC 1.87 development line: a DTLS handshake no longer deadlocks when a handshake
+  message ahead of the peer's ChangeCipherSpec (a client's CertificateVerify, for example) is lost;
+  the RFC 7633 TLS feature checks are satisfied by the TLS 1.3 end-entity CertificateEntry, no longer
+  enforce status_request_v2 and no longer force a positive reading of the feature values; and TLS 1.3
+  Certificate entry extensions must correspond to ones in the ClientHello or CertificateRequest, an
+  unsolicited one being refused with unsupported_extension.
+
 **OpenPGP (pg).**
 
 - Decrypting an OpenPGP message in two steps - recovering the session key from a SKESK packet and
@@ -358,6 +367,10 @@ Date: 2026, TBD.
   `org.bouncycastle.ocsp.max_response_age` and `org.bouncycastle.tsp.allow_inconsistent_signing_time`.
 - The property `org.bouncycastle.dh.allow_short_private_value`, which lets DH and ElGamal key pair
   generation use a private value length below twice the security strength of p.
+- BCJSSE: the `BCSSLServerSocket` extension interface, implemented by the provider's server sockets,
+  and the `BCSSLContext` and `BCSSLSessionContext` interfaces, obtained from a BCJSSE `SSLContext`
+  with `ContextUtil.getBCSSLContext()`; and `Properties.JSSE_USE_NAMED_GROUPS_ORDER` naming the
+  `org.bouncycastle.jsse.useNamedGroupsOrder` system property.
 
 <a id="r2rv73dot13"></a>
 

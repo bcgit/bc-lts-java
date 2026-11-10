@@ -195,6 +195,15 @@ public class Properties
     public static final String JSSE_HOSTNAME_CHECK_CN_FALLBACK = "org.bouncycastle.jsse.hostname_check_cn_fallback";
 
     /**
+     * Boolean system property setting the BCJSSE default for TLS 1.3 server named group selection,
+     * read per SSLContext initialisation. Set to "true", connections of that context default to the
+     * server choosing the key share group by its own named group order rather than the client's;
+     * the default ("false" / unset) follows the client's order. A value set on a connection's
+     * BCSSLParameters (useNamedGroupsOrder) still takes precedence over this default.
+     */
+    public static final String JSSE_USE_NAMED_GROUPS_ORDER = "org.bouncycastle.jsse.useNamedGroupsOrder";
+
+    /**
      * Effective bits-of-entropy assumed per real bit when the BC DRBG provider seeds for
      * a 256-bit security level — used to compute the byte-oriented samples requested from
      * the underlying entropy source. Defaults to 282 bits (about 0.9 effective bits per

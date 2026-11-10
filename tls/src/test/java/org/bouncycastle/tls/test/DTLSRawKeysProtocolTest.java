@@ -11,7 +11,6 @@ import org.bouncycastle.tls.DTLSTransport;
 import org.bouncycastle.tls.DTLSVerifier;
 import org.bouncycastle.tls.DatagramTransport;
 import org.bouncycastle.tls.ProtocolVersion;
-import org.bouncycastle.tls.TlsClient;
 import org.bouncycastle.tls.TlsExtensionsUtils;
 import org.bouncycastle.tls.TlsFatalAlertReceived;
 import org.bouncycastle.tls.TlsServer;
@@ -53,7 +52,7 @@ public class DTLSRawKeysProtocolTest
                 (short) -1,
                 null,
                 tlsVersion);
-        pumpData(client, server);
+        pumpData(client, server, 10);
     }
 
     public void testExtensionsAreOmittedIfSpecifiedButOnlyContainX509() throws Exception
@@ -82,7 +81,7 @@ public class DTLSRawKeysProtocolTest
                 CertificateType.X509,
                 new short[]{ CertificateType.X509 },
                 tlsVersion);
-        pumpData(client, server);
+        pumpData(client, server, 10);
 
         assertFalse(
                 "client cert type extension should not be sent",
@@ -118,7 +117,7 @@ public class DTLSRawKeysProtocolTest
                 CertificateType.RawPublicKey,
                 new short[]{ CertificateType.RawPublicKey },
                 tlsVersion);
-        pumpData(client, server);
+        pumpData(client, server, 10);
     }
 
     public void testServerUsesRawKeyAndClientIsAnonymous() throws Exception
@@ -147,7 +146,7 @@ public class DTLSRawKeysProtocolTest
                 (short) -1,
                 null,
                 tlsVersion);
-        pumpData(client, server);
+        pumpData(client, server, 10);
     }
 
     public void testServerUsesRawKeyAndClientUsesX509() throws Exception
@@ -176,7 +175,7 @@ public class DTLSRawKeysProtocolTest
                 CertificateType.X509,
                 null,
                 tlsVersion);
-        pumpData(client, server);
+        pumpData(client, server, 10);
     }
 
     public void testServerUsesX509AndClientUsesRawKey() throws Exception
@@ -205,7 +204,7 @@ public class DTLSRawKeysProtocolTest
                 CertificateType.RawPublicKey,
                 new short[]{ CertificateType.RawPublicKey },
                 tlsVersion);
-        pumpData(client, server);
+        pumpData(client, server, 10);
     }
 
     public void testClientSendsClientCertExtensionButServerHasNoCommonTypes() throws Exception
@@ -236,7 +235,7 @@ public class DTLSRawKeysProtocolTest
                     CertificateType.X509,
                     new short[]{ CertificateType.X509 },
                     tlsVersion);
-            pumpData(client, server);
+            pumpData(client, server, 0);
             fail("Should have caused unsupported_certificate alert");
         }
         catch (TlsFatalAlertReceived alert)
@@ -273,7 +272,7 @@ public class DTLSRawKeysProtocolTest
                     CertificateType.RawPublicKey,
                     new short[]{ CertificateType.RawPublicKey },
                     tlsVersion);
-            pumpData(client, server);
+            pumpData(client, server, 0);
             fail("Should have caused unsupported_certificate alert");
         }
         catch (TlsFatalAlertReceived alert)
@@ -287,8 +286,24 @@ public class DTLSRawKeysProtocolTest
         return new BcTlsCrypto(RANDOM);
     }
 
-    private void pumpData(TlsClient client, TlsServer server) throws Exception
+    /**
+     * @param handshakePacketLossPercent percentage of datagrams the client's transport loses, in each direction,
+     *                                   while the handshake is in progress. Use 0 for a handshake that is expected
+     *                                   to fail: a fatal alert is sent only once, so a lost one leaves the client
+     *                                   waiting forever. The transport becomes reliable once the handshake
+     *                                   completes, since application data is never retransmitted. A lossy
+     *                                   handshake resends quickly, so that the flights that need several
+     *                                   attempts keep the run short.
+     */
+    private void pumpData(MockRawKeysTlsClient client, MockRawKeysTlsServer server, int handshakePacketLossPercent)
+        throws Exception
     {
+        if (handshakePacketLossPercent > 0)
+        {
+            client.setHandshakeResendTimeMillis(100);
+            server.setHandshakeResendTimeMillis(100);
+        }
+
         DTLSClientProtocol clientProtocol = new DTLSClientProtocol();
         DTLSServerProtocol serverProtocol = new DTLSServerProtocol();
 
@@ -299,11 +314,19 @@ public class DTLSRawKeysProtocolTest
 
         DatagramTransport clientTransport = network.getClient();
 
-        clientTransport = new UnreliableDatagramTransport(clientTransport, RANDOM, 0, 0);
+        UnreliableDatagramTransport lossyTransport = new UnreliableDatagramTransport(clientTransport, RANDOM,
+            handshakePacketLossPercent, handshakePacketLossPercent, TlsTestConfig.DTLS_MAX_DROPPED_DATAGRAMS,
+            TlsTestConfig.DTLS_MAX_DROPPED_DATAGRAMS);
+        clientTransport = lossyTransport;
 
         clientTransport = new LoggingDatagramTransport(clientTransport, System.out);
 
+        HandshakeGuardDatagramTransport guard = new HandshakeGuardDatagramTransport(clientTransport, lossyTransport,
+            serverThread);
+        clientTransport = guard;
+
         DTLSTransport dtlsClient = clientProtocol.connect(client, clientTransport);
+        guard.notifyHandshakeComplete();
 
         for (int i = 1; i <= 10; ++i)
         {

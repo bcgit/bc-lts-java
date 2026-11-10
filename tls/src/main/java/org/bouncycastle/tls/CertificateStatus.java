@@ -26,6 +26,25 @@ public class CertificateStatus
         this.response = response;
     }
 
+    /**
+     * Whether there exists an OCSP response for certificate 0 of the chain this status answers for:
+     * always true for {@link CertificateStatusType#ocsp}, true for
+     * {@link CertificateStatusType#ocsp_multi} only when there was a non-empty response for
+     * position 0.
+     */
+    boolean hasLeafResponse()
+    {
+        switch (statusType)
+        {
+        case CertificateStatusType.ocsp:
+            return true;
+        case CertificateStatusType.ocsp_multi:
+            return null != ((Vector)response).elementAt(0);
+        default:
+            throw new IllegalStateException();
+        }
+    }
+
     public short getStatusType()
     {
         return statusType;
@@ -147,7 +166,7 @@ public class CertificateStatus
         {
         case CertificateStatusType.ocsp:
         {
-            requireStatusRequestVersion(1, statusRequestVersion);
+            checkStatusType(status_type, 1, statusRequestVersion);
 
             byte[] derEncoding = TlsUtils.readOpaque24(input, 1);
             response = parseOCSPResponse(derEncoding);
@@ -155,7 +174,7 @@ public class CertificateStatus
         }
         case CertificateStatusType.ocsp_multi:
         {
-            requireStatusRequestVersion(2, statusRequestVersion);
+            checkStatusType(status_type, 2, statusRequestVersion);
 
             byte[] ocsp_response_list = TlsUtils.readOpaque24(input, 1);
             ByteArrayInputStream buf = new ByteArrayInputStream(ocsp_response_list);
@@ -235,6 +254,17 @@ public class CertificateStatus
         return ocspResponse;
     }
 
+    protected static void checkStatusType(short status_type, int minVersion, int statusRequestVersion)
+        throws IOException
+    {
+        if (statusRequestVersion < minVersion)
+        {
+            throw new TlsFatalAlert(AlertDescription.decode_error,
+                "Invalid status_type " + CertificateStatusType.getText(status_type));
+        }
+    }
+
+    /** @deprecated Use {@link #checkStatusType(short, int, int)} instead. */
     protected static void requireStatusRequestVersion(int minVersion, int statusRequestVersion)
         throws IOException
     {

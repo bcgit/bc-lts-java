@@ -29,6 +29,8 @@ class MockRawKeysTlsClient
     private ProtocolVersion tlsVersion;
     private TlsCredentialedSigner credentials;
 
+    private int handshakeResendTimeMillis = 1000;
+
     MockRawKeysTlsClient(TlsCrypto crypto, short serverCertType, short clientCertType, short[] offerServerCertTypes,
         short[] offerClientCertTypes, ProtocolVersion tlsVersion)
         throws Exception
@@ -40,6 +42,16 @@ class MockRawKeysTlsClient
         this.offerServerCertTypes = offerServerCertTypes;
         this.offerClientCertTypes = offerClientCertTypes;
         this.tlsVersion = tlsVersion;
+    }
+
+    public int getHandshakeResendTimeMillis()
+    {
+        return handshakeResendTimeMillis;
+    }
+
+    public void setHandshakeResendTimeMillis(int millis)
+    {
+        handshakeResendTimeMillis = millis;
     }
 
     protected ProtocolVersion[] getSupportedVersions()

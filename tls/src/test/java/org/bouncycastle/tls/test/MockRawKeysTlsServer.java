@@ -29,6 +29,8 @@ class MockRawKeysTlsServer extends DefaultTlsServer
 
     Hashtable receivedClientExtensions;
 
+    private int handshakeResendTimeMillis = 1000;
+
     MockRawKeysTlsServer(TlsCrypto crypto, short serverCertType, short clientCertType, short[] allowedClientCertTypes,
         ProtocolVersion tlsVersion) throws Exception
     {
@@ -38,6 +40,16 @@ class MockRawKeysTlsServer extends DefaultTlsServer
         this.clientCertType = clientCertType;
         this.allowedClientCertTypes = allowedClientCertTypes;
         this.tlsVersion = tlsVersion;
+    }
+
+    public int getHandshakeResendTimeMillis()
+    {
+        return handshakeResendTimeMillis;
+    }
+
+    public void setHandshakeResendTimeMillis(int millis)
+    {
+        handshakeResendTimeMillis = millis;
     }
 
     public TlsCredentials getCredentials() throws IOException

@@ -31,6 +31,7 @@ class MockDTLSClient
     TlsSession session;
 
     private int handshakeTimeoutMillis = 0;
+    private int handshakeResendTimeMillis = 1000;
 
     MockDTLSClient(TlsSession session)
     {
@@ -47,6 +48,16 @@ class MockDTLSClient
     public int getHandshakeTimeoutMillis()
     {
         return handshakeTimeoutMillis;
+    }
+
+    public int getHandshakeResendTimeMillis()
+    {
+        return handshakeResendTimeMillis;
+    }
+
+    public void setHandshakeResendTimeMillis(int millis)
+    {
+        handshakeResendTimeMillis = millis;
     }
 
     public void setHandshakeTimeoutMillis(int millis)

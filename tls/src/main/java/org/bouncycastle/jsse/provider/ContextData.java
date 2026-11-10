@@ -9,6 +9,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.Vector;
 
+import org.bouncycastle.jsse.BCSSLContext;
+import org.bouncycastle.jsse.BCSSLParameters;
 import org.bouncycastle.jsse.BCX509ExtendedKeyManager;
 import org.bouncycastle.jsse.BCX509ExtendedTrustManager;
 import org.bouncycastle.jsse.java.security.BCAlgorithmConstraints;
@@ -17,8 +19,10 @@ import org.bouncycastle.tls.ProtocolVersion;
 import org.bouncycastle.tls.SignatureAndHashAlgorithm;
 import org.bouncycastle.tls.TlsUtils;
 import org.bouncycastle.tls.crypto.impl.jcajce.JcaTlsCrypto;
+import org.bouncycastle.util.Properties;
 
 final class ContextData
+    implements BCSSLContext
 {
     private static final Set<BCCryptoPrimitive> TLS_CRYPTO_PRIMITIVES_BC = JsseUtils.KEY_AGREEMENT_CRYPTO_PRIMITIVES_BC;
 
@@ -80,7 +84,7 @@ final class ContextData
          * default in ProvSSLParameters; a value set on the connection's BCSSLParameters still wins.
          */
         this.defaultUseNamedGroupsOrder = PropertyUtils.getBooleanSystemProperty(
-            "org.bouncycastle.jsse.useNamedGroupsOrder", false);
+            Properties.JSSE_USE_NAMED_GROUPS_ORDER, false);
     }
 
     int[] getActiveCipherSuites(JcaTlsCrypto crypto, ProvSSLParameters sslParameters,
@@ -211,6 +215,11 @@ final class ContextData
         return implGetDefaultProtocols(isClient).clone();
     }
 
+    public BCSSLParameters getDefaultParameters(boolean isClient)
+    {
+        return SSLParametersUtil.getParameters(getDefaultSSLParameters(isClient));
+    }
+
     ProvSSLParameters getDefaultSSLParameters(boolean isClient)
     {
         return new ProvSSLParameters(this, implGetDefaultCipherSuites(isClient), implGetDefaultProtocols(isClient));
@@ -327,6 +336,11 @@ final class ContextData
     String[] getSupportedProtocols()
     {
         return JsseUtils.getKeysArray(supportedProtocols);
+    }
+
+    public BCSSLParameters getSupportedParameters(boolean isClient)
+    {
+        return SSLParametersUtil.getParameters(getSupportedSSLParameters(isClient));
     }
 
     ProvSSLParameters getSupportedSSLParameters(boolean isClient)

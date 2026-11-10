@@ -18,10 +18,44 @@ import junit.framework.TestCase;
 public class DTLSProtocolTest
     extends TestCase
 {
+    /**
+     * A full handshake, with client authentication, at 10% packet loss in each direction.
+     */
     public void testClientServer() throws Exception
     {
         MockDTLSClient client = new MockDTLSClient(null);
         MockDTLSServer server = new MockDTLSServer();
+
+        implTestClientServer(client, server, 10);
+    }
+
+    /**
+     * A full handshake, with client authentication, under heavy loss: most flights need several attempts.
+     */
+    public void testClientServerHighLoss() throws Exception
+    {
+        MockDTLSClient client = new MockDTLSClient(null);
+        MockDTLSServer server = new MockDTLSServer();
+
+        implTestClientServer(client, server, 25);
+    }
+
+    /**
+     * @param handshakePacketLossPercent percentage of datagrams the client's transport loses, in each direction,
+     *                                   while the handshake is in progress. The transport becomes reliable once
+     *                                   the client's handshake completes, since application data is never
+     *                                   retransmitted and the echo phase requires every datagram to arrive. A
+     *                                   lossy handshake resends quickly, so that the flights that need several
+     *                                   attempts keep the run short.
+     */
+    private void implTestClientServer(MockDTLSClient client, MockDTLSServer server, int handshakePacketLossPercent)
+        throws Exception
+    {
+        if (handshakePacketLossPercent > 0)
+        {
+            client.setHandshakeResendTimeMillis(100);
+            server.setHandshakeResendTimeMillis(100);
+        }
 
         DTLSClientProtocol clientProtocol = new DTLSClientProtocol();
         DTLSServerProtocol serverProtocol = new DTLSServerProtocol();
@@ -33,11 +67,19 @@ public class DTLSProtocolTest
 
         DatagramTransport clientTransport = network.getClient();
 
-        clientTransport = new UnreliableDatagramTransport(clientTransport, new Random(), 0, 0);
+        UnreliableDatagramTransport lossyTransport = new UnreliableDatagramTransport(clientTransport, new Random(),
+            handshakePacketLossPercent, handshakePacketLossPercent, TlsTestConfig.DTLS_MAX_DROPPED_DATAGRAMS,
+            TlsTestConfig.DTLS_MAX_DROPPED_DATAGRAMS);
+        clientTransport = lossyTransport;
 
         clientTransport = new LoggingDatagramTransport(clientTransport, System.out);
 
+        HandshakeGuardDatagramTransport guard = new HandshakeGuardDatagramTransport(clientTransport, lossyTransport,
+            serverThread);
+        clientTransport = guard;
+
         DTLSTransport dtlsClient = clientProtocol.connect(client, clientTransport);
+        guard.notifyHandshakeComplete();
 
         for (int i = 1; i <= 10; ++i)
         {

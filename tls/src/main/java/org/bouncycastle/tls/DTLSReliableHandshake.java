@@ -370,7 +370,7 @@ class DTLSReliableHandshake
             }
             else
             {
-                processRecord(MAX_RECEIVE_AHEAD, recordLayer.getReadEpoch(), buf, 0, received);
+                processRecord(MAX_RECEIVE_AHEAD, recordLayer.getLastReceivedEpoch(), buf, 0, received);
             }
 
             currentTimeMillis = System.currentTimeMillis();
