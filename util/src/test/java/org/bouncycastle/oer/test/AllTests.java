@@ -42,8 +42,15 @@ public class AllTests
         suite.addTestSuite(OERExtensionTest.class);
         suite.addTestSuite(OERInputStreamLimitTest.class);
         suite.addTestSuite(OERInputStreamMalformedTest.class);
-        // In this package but named by no suite, so it never ran.
+        suite.addTestSuite(OERTypeGuardTest.class);
         suite.addTestSuite(TestFromVector.class);
+        suite.addTestSuite(OEREnumeratedTest.class);
+        suite.addTestSuite(OERIntegerTest.class);
+        suite.addTestSuite(OERDeterminantTest.class);
+        suite.addTestSuite(OERBitStringTest.class);
+        suite.addTestSuite(BitBuilderTest.class);
+        suite.addTestSuite(OERChoiceTagTest.class);
+        suite.addTestSuite(EccP256CurvePointTest.class);
 
         return new BCTestSetup(suite);
     }
