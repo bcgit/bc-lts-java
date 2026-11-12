@@ -187,6 +187,14 @@ Date: 2026, TBD.
   longer come from a non-BouncyCastle provider registered as "BC".
 - `CRL.isRevoked()` no longer throws `ClassCastException` for an "X.509" certificate that is not an
   `X509Certificate`.
+- The PKIX CertPathValidator did not fall back to CRLs when OCSP left a certificate's status
+  undetermined: an OCSP response with a status other than successful (malformedRequest,
+  internalError, tryLater, sigRequired, unauthorized), from a responder or supplied by the caller,
+  and a certificate status of unknown, each failed validation outright. Each is now recoverable, so
+  CRL checking takes over unless NO_FALLBACK is set; where the CRLs do not settle the status either,
+  the OCSP failure is the one reported, with the CRL failure attached as a suppressed exception. An
+  unknown status is now reported as "certificate status unknown" rather than "certificate revoked,
+  details unknown" (github bc-lts-java #12).
 
 **CMS, PKIX and EST (pkix).**
 
