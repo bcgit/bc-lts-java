@@ -364,6 +364,12 @@ Date: 2026, TBD.
 
 - `DumpInfo` no longer prints the native random source information when native support is not
   available.
+- The native AES-GCM corrupted its output, failing the tag check on decryption, when
+  `processBytes()` was given the same array for input and output with the output starting after
+  the input and overlapping it: the native code overwrote input it had yet to read. Overlapping
+  input is now copied first, as the java GCM does. The native AES-GCM also now reports a key of the
+  wrong length from `init()` as an `IllegalArgumentException`, as the java GCM and native CBC do,
+  rather than an `IllegalStateException`.
 
 ### 2.1.3 Additional Features and Functionality
 
@@ -382,6 +388,12 @@ Date: 2026, TBD.
   whole 64-byte blocks to ChaCha and to Poly1305 in one call each, where it used to alternate
   between them one block at a time and, when decrypting, copied every byte through its buffer
   individually. The output is unchanged (github #2481).
+- Ported from the BC 1.87 development line, with the output unchanged: `Poly1305` absorbs whole
+  blocks straight from the input, 1.3 to 1.5 times as fast for 1 KB and longer (github #2477);
+  `Blake3Digest` compresses in local variables, about 2.8 times as fast (github #2471);
+  `Salsa20Engine.processBytes()` XORs whole 64-byte keystream blocks, making Salsa20, XSalsa20,
+  ChaCha and XChaCha20 1.3 to 1.75 times as fast (github #2476); and the java `GCMBlockCipher`
+  makes fewer allocations per block.
 - Ported from the BC 1.87 development line: the CRMF `ProtocolEncrKeyControl`,
   `PKIPublicationInfoControl` and `OldCertIDControl` (with JCA forms) and
   `CertificateRequestMessage.getControlValue()`; `Argon2BytesGenerator.getBlockCount()` and a

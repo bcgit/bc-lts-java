@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 
 import org.bouncycastle.crypto.BlockCipher;
 import org.bouncycastle.crypto.InvalidCipherTextException;
+import org.bouncycastle.crypto.OutputLengthException;
 import org.bouncycastle.crypto.engines.AESEngine;
 import org.bouncycastle.crypto.engines.DESEngine;
 import org.bouncycastle.crypto.modes.GCMBlockCipher;
@@ -265,6 +266,10 @@ public class GCMTest
         outputSizeTests();
         testExceptions();
         testResetBehavior();
+        testStreamingAndOverlap();
+        testPartialBlockReuse();
+        testCounterBlockCleanup();
+        testRefusedInit();
     }
 
 
@@ -737,5 +742,358 @@ public class GCMTest
     public static void main(String[] args)
     {
         runTest(new GCMTest());
+    }
+
+    private void checkEncryptionRefused(GCMModeCipher c, byte[] P, byte[] buf, String when)
+    {
+        String expected = "GCM cipher cannot be reused for encryption";
+
+        try
+        {
+            c.processAADByte(P[0]);
+            fail("processAADByte allowed " + when);
+        }
+        catch (IllegalStateException e)
+        {
+            isTrue("wrong message", expected.equals(e.getMessage()));
+        }
+
+        try
+        {
+            c.processAADBytes(P, 0, P.length);
+            fail("processAADBytes allowed " + when);
+        }
+        catch (IllegalStateException e)
+        {
+            isTrue("wrong message", expected.equals(e.getMessage()));
+        }
+
+        try
+        {
+            c.processByte(P[0], buf, 0);
+            fail("processByte allowed " + when);
+        }
+        catch (IllegalStateException e)
+        {
+            isTrue("wrong message", expected.equals(e.getMessage()));
+        }
+
+        try
+        {
+            c.processBytes(P, 0, P.length, buf, 0);
+            fail("processBytes allowed " + when);
+        }
+        catch (IllegalStateException e)
+        {
+            isTrue("wrong message", expected.equals(e.getMessage()));
+        }
+    }
+
+    private void checkOverlap(GCMModeCipher cipher, byte[] input, byte[] expected, int outOff)
+        throws InvalidCipherTextException
+    {
+        byte[] buffer = new byte[Math.max(input.length + 7, expected.length + outOff)];
+        System.arraycopy(input, 0, buffer, 7, input.length);
+        int length = cipher.processBytes(buffer, 7, input.length, buffer, outOff);
+        length += cipher.doFinal(buffer, outOff + length);
+        isEquals("overlapping output length", expected.length, length);
+        isTrue("overlapping output", areEqual(expected, Arrays.copyOfRange(buffer, outOff, outOff + length)));
+    }
+
+    private byte[] processAll(GCMModeCipher cipher, byte[] input) throws InvalidCipherTextException
+    {
+        return processAll(cipher, input, false);
+    }
+
+    private byte[] processAll(GCMModeCipher cipher, byte[] input, boolean bytewise)
+        throws InvalidCipherTextException
+    {
+        byte[] output = new byte[cipher.getOutputSize(input.length)];
+        int length = 0;
+        if (bytewise)
+        {
+            for (int i = 0; i < input.length; ++i)
+            {
+                length += cipher.processByte(input[i], output, length);
+            }
+        }
+        else
+        {
+            length = cipher.processBytes(input, 0, input.length, output, 0);
+        }
+        length += cipher.doFinal(output, length);
+        isEquals("output length", output.length, length);
+        return output;
+    }
+
+    private byte[] processFragments(GCMModeCipher cipher, byte[] input, byte[] aad, int chunkSize)
+        throws InvalidCipherTextException
+    {
+        byte[] output = new byte[cipher.getOutputSize(input.length)];
+        int aadSplit = aad.length / 2;
+        cipher.processAADBytes(aad, 0, aadSplit);
+        int length = 0;
+        int position = 0;
+        while (position < input.length)
+        {
+            length += cipher.processByte(input[position++], output, length);
+            int count = Math.min(chunkSize, input.length - position);
+            length += cipher.processBytes(input, position, count, output, length);
+            position += count;
+        }
+        cipher.processAADBytes(aad, aadSplit, aad.length - aadSplit);
+        length += cipher.doFinal(output, length);
+        isEquals("fragmented output length", output.length, length);
+        return output;
+    }
+
+    private void testCounterBlockCleanup() throws InvalidCipherTextException
+    {
+        for (int direction = 0; direction < 2; ++direction)
+        {
+            for (int length = 1; length <= 31; length += 15)
+            {
+                boolean encrypt = direction == 0;
+                boolean bytewise = length == 31;
+                AEADParameters params = new AEADParameters(new KeyParameter(new byte[16]), 128, new byte[12]);
+                byte[] plaintext = new byte[length];
+                GCMModeCipher fresh = createGCM(createAESEngine());
+                fresh.init(true, params);
+                byte[] ciphertext = processAll(fresh, plaintext);
+                byte[] input = encrypt ? plaintext : ciphertext;
+
+                RecordingAESEngine engine = new RecordingAESEngine();
+                GCMModeCipher cipher = GCMBlockCipher.newInstance(engine);
+                cipher.init(encrypt, params);
+                engine.recording = true;
+                engine.fail = true;
+                try
+                {
+                    processAll(cipher, input, bytewise);
+                    fail("block cipher failure not propagated");
+                }
+                catch (IllegalStateException e)
+                {
+                    isEquals("injected failure", e.getMessage());
+                }
+                isTrue("counter block not cleared on failure", areEqual(new byte[16], engine.output));
+
+                engine.recording = false;
+                engine.fail = false;
+                engine.output = null;
+                // Use a fresh nonce after the interrupted encryption.
+                byte[] nonce = new byte[12];
+                nonce[0] = 1;
+                AEADParameters next = encrypt
+                    ? new AEADParameters(new KeyParameter(new byte[16]), 128, nonce) : params;
+                fresh.init(encrypt, next);
+                byte[] expected = processAll(fresh, input);
+                cipher.init(encrypt, next);
+                engine.recording = true;
+                isTrue("reinitialisation after block cipher failure", areEqual(expected, processAll(cipher, input, bytewise)));
+                isTrue("counter block not cleared on success", areEqual(new byte[16], engine.output));
+            }
+        }
+    }
+
+    private void testPartialBlockReuse() throws InvalidCipherTextException
+    {
+        int[] lengths = new int[]{ 0, 1, 15, 16, 17, 31, 32, 33, 257 };
+        byte[] key = new byte[32];
+        byte[] aad = Hex.decode("feedfacedeadbeeffeedfacedeadbeefabaddad2");
+        GCMModeCipher cipher = createGCM(createAESEngine());
+
+        for (int i = 0; i < lengths.length; ++i)
+        {
+            byte[] nonce = new byte[12];
+            nonce[0] = (byte)(i + 1);
+            AEADParameters params = new AEADParameters(new KeyParameter(key), 128, nonce, aad);
+            byte[] plaintext = new byte[lengths[i]];
+            for (int j = 0; j < plaintext.length; ++j)
+            {
+                plaintext[j] = (byte)(j * 31 + i);
+            }
+
+            GCMModeCipher fresh = createGCM(createAESEngine());
+            fresh.init(true, params);
+            byte[] expected = processAll(fresh, plaintext);
+            cipher.init(true, params);
+            isTrue("encryption after reinitialisation", areEqual(expected, processAll(cipher, plaintext)));
+
+            cipher.init(false, params);
+            isTrue("decryption after reinitialisation", areEqual(plaintext, processAll(cipher, expected)));
+            isTrue("decryption after implicit reset", areEqual(plaintext, processAll(cipher, expected)));
+
+            cipher.processBytes(expected, 0, Math.min(17, expected.length), new byte[plaintext.length], 0);
+            cipher.reset();
+            isTrue("decryption after partial input and reset", areEqual(plaintext, processAll(cipher, expected)));
+
+            byte[] tampered = Arrays.clone(expected);
+            tampered[tampered.length - 1] ^= 1;
+            try
+            {
+                processAll(cipher, tampered);
+                fail("tampered tag accepted");
+            }
+            catch (InvalidCipherTextException e)
+            {
+                // expected
+            }
+            cipher.init(false, params);
+            isTrue("decryption after failed authentication", areEqual(plaintext, processAll(cipher, expected)));
+
+            try
+            {
+                cipher.processBytes(expected, 0, expected.length, new byte[0], 0);
+                cipher.doFinal(new byte[0], 0);
+                isEquals("empty plaintext expected", 0, plaintext.length);
+            }
+            catch (OutputLengthException e)
+            {
+                isTrue("unexpected output length exception", plaintext.length > 0);
+            }
+            cipher.init(false, params);
+            isTrue("decryption after short output", areEqual(plaintext, processAll(cipher, expected)));
+        }
+    }
+
+    /*
+     * An init that is refused, or fails part way, must leave the cipher unusable rather than still armed with the
+     * key and nonce of the previous encryption, and must not displace the key and nonce the reuse check remembers.
+     */
+    private void testRefusedInit() throws InvalidCipherTextException
+    {
+        byte[] P = Strings.toByteArray("Hello world!");
+        byte[] buf = new byte[100];
+        byte[] N = new byte[12];
+        AEADParameters params = new AEADParameters(new KeyParameter(new byte[16]), 128, N, Strings.toByteArray("aad"));
+
+        GCMModeCipher c = GCMBlockCipher.newInstance(AESEngine.newInstance());
+        c.init(true, params);
+        c.doFinal(buf, c.processBytes(P, 0, P.length, buf, 0));
+
+        checkEncryptionRefused(c, P, buf, "after doFinal");
+
+        try
+        {
+            c.init(true, params);
+            fail("no exception on reuse");
+        }
+        catch (IllegalArgumentException e)
+        {
+            isTrue("wrong message", e.getMessage().equals("cannot reuse nonce for GCM encryption"));
+        }
+
+        checkEncryptionRefused(c, P, buf, "after refused init");
+
+        // an init that fails on the key must not replace the remembered key, or the original pair is accepted again
+        try
+        {
+            c.init(true, new AEADParameters(new KeyParameter(new byte[15]), 128, N));
+            fail("bad key length not picked up");
+        }
+        catch (IllegalArgumentException e)
+        {
+            // expected
+        }
+
+        try
+        {
+            c.init(true, params);
+            fail("no exception on reuse after failed init");
+        }
+        catch (IllegalArgumentException e)
+        {
+            isTrue("wrong message", e.getMessage().equals("cannot reuse nonce for GCM encryption"));
+        }
+
+        // a good init afterwards, with a fresh nonce or for decryption, still works
+        byte[] N2 = new byte[12];
+        N2[0] = 1;
+        AEADParameters params2 = new AEADParameters(new KeyParameter(new byte[16]), 128, N2, Strings.toByteArray("aad"));
+        c.init(true, params2);
+        int len = c.processBytes(P, 0, P.length, buf, 0);
+        len += c.doFinal(buf, len);
+
+        try
+        {
+            c.init(true, new AEADParameters(new KeyParameter(new byte[16]), 136, N2));
+            fail("bad mac size not picked up");
+        }
+        catch (IllegalArgumentException e)
+        {
+            // expected
+        }
+
+        c.init(false, params2);
+        byte[] dec = new byte[P.length];
+        int dLen = c.processBytes(buf, 0, len, dec, 0);
+        dLen += c.doFinal(dec, dLen);
+        isTrue("decryption after refused init failed", dLen == P.length && areEqual(P, dec));
+    }
+
+    private void testStreamingAndOverlap() throws InvalidCipherTextException
+    {
+        int[] chunkSizes = new int[]{ 1, 15, 16, 17 };
+        for (int i = 0; i < TEST_VECTORS.length; ++i)
+        {
+            String[] vector = TEST_VECTORS[i];
+            byte[] key = Hex.decode(vector[1]);
+            byte[] plaintext = Hex.decode(vector[2]);
+            byte[] aad = Hex.decode(vector[3]);
+            byte[] nonce = Hex.decode(vector[4]);
+            byte[] ciphertext = Hex.decode(vector[5]);
+            byte[] tag = Hex.decode(vector[6]);
+
+            for (int macSize = 4; macSize <= 16; macSize += 4)
+            {
+                AEADParameters params = new AEADParameters(new KeyParameter(key), macSize * 8, nonce);
+                byte[] expected = Arrays.concatenate(ciphertext, Arrays.copyOf(tag, macSize));
+                for (int j = 0; j < chunkSizes.length; ++j)
+                {
+                    GCMModeCipher cipher = createGCM(createAESEngine());
+                    cipher.init(true, params);
+                    isTrue("fragmented encryption: " + vector[0],
+                        areEqual(expected, processFragments(cipher, plaintext, aad, chunkSizes[j])));
+                    cipher.init(false, params);
+                    isTrue("fragmented decryption: " + vector[0],
+                        areEqual(plaintext, processFragments(cipher, expected, aad, chunkSizes[j])));
+                }
+
+                params = new AEADParameters(new KeyParameter(key), macSize * 8, nonce, aad);
+                for (int offset = 0; offset <= 14; offset += 7)
+                {
+                    GCMModeCipher cipher = createGCM(createAESEngine());
+                    cipher.init(true, params);
+                    checkOverlap(cipher, plaintext, expected, offset);
+                    cipher.init(false, params);
+                    checkOverlap(cipher, expected, plaintext, offset);
+                }
+            }
+        }
+    }
+
+    private static class RecordingAESEngine extends AESEngine
+    {
+        private boolean recording;
+        private boolean fail;
+        private byte[] output;
+
+        public int processBlock(byte[] in, int inOff, byte[] out, int outOff)
+        {
+            int length = super.processBlock(in, inOff, out, outOff);
+            if (recording)
+            {
+                if (output == null)
+                {
+                    output = out;
+                }
+                if (fail)
+                {
+                    throw new IllegalStateException("injected failure");
+                }
+            }
+            return length;
+        }
     }
 }

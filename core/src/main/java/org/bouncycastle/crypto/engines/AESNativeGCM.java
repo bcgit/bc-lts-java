@@ -130,7 +130,7 @@ class AESNativeGCM
                     case 32:
                         break;
                     default:
-                        throw new IllegalStateException("key must be only 16,24,or 32 bytes long.");
+                        throw new IllegalArgumentException("key must be only 16,24,or 32 bytes long.");
                 }
             }
             else if (refWrapper != null && refWrapper.key != null)
@@ -243,6 +243,15 @@ class AESNativeGCM
             if (forEncryption && len > 0)
             {
                 nonceUsed = true;
+            }
+
+            if (in == out && inOff >= 0 && len >= 0 && inOff <= in.length - len
+                && Arrays.segmentsOverlap(inOff, len, outOff, getUpdateOutputSize(len)))
+            {
+                // the native code reads and writes the buffers in place, so overlapping input
+                // would be overwritten before it is read.
+                in = Arrays.copyOfRange(in, inOff, inOff + len);
+                inOff = 0;
             }
 
             return processBytes(refWrapper.getReference(), in, inOff, len, out, outOff);
