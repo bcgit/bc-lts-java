@@ -117,6 +117,7 @@ public class MLKEMPrivateKeyParameters
     }
 
     /** @deprecated Use {@link #withPreferredFormat(int)} instead. */
+    @Deprecated
     public MLKEMPrivateKeyParameters getParametersWithFormat(int format)
     {
         return withPreferredFormat(format); 

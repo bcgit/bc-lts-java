@@ -316,6 +316,9 @@ Date: 2026, TBD.
   `CertificateRequestMessageBuilder.build()` reports bad configurations rather than throwing
   `NullPointerException`, and `ESTResponse` and `mime.Headers` parse repeated and folded headers in
   linear time.
+- `PEMParser` reported a malformed trusted certificate or CRL as "problem parsing cert"; it now says
+  "problem parsing trusted certificate" or "problem parsing CRL", and a certificate "problem parsing
+  certificate" (bc-java 7ae5ac9f5e).
 
 **TLS (tls).**
 

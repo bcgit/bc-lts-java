@@ -728,7 +728,7 @@ public class OERDefinition
         }
     }
 
-    private static class OptionalList
+    static class OptionalList
         extends ArrayList<Object>
     {
         public OptionalList(List<Object> asList)
@@ -738,7 +738,7 @@ public class OERDefinition
     }
 
 
-    private static class ExtensionList
+    static class ExtensionList
         extends ArrayList<Object>
     {
         protected final int block;

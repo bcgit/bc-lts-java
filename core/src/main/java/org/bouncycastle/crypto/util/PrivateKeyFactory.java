@@ -361,6 +361,12 @@ public class PrivateKeyFactory
                 algOID.equals(RosstandartObjectIdentifiers.id_tc26_gost_3410_12_256))
         {
             ASN1Encodable algParameters = requiredParameters(algId, "GOST R 34.10");
+            // TODO[ecgost] The X962Parameters branch below is unreachable: this getInstance throws on a bare curve
+            // OID before the size check runs, and any SEQUENCE that reaches the check is now 1..3 elements (the
+            // parameters class rejects the rest). The provider's BCECGOST3410PrivateKey / BCECGOST3410_2012PrivateKey
+            // emit and read exactly that bare-OID + ECPrivateKey form when built from an ECPrivateKeySpec, and
+            // this factory cannot read it. Make the fallback live (parse GOST3410PublicKeyAlgParameters only when
+            // the parameters are a SEQUENCE) so the provider decode paths can be consolidated onto this factory.
             GOST3410PublicKeyAlgParameters gostParams = GOST3410PublicKeyAlgParameters.getInstance(algParameters);
             ECGOST3410Parameters ecSpec = null;
             BigInteger d = null;

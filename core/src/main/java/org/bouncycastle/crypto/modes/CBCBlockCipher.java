@@ -72,7 +72,7 @@ public class CBCBlockCipher
      * @param encrypting if true the cipher is initialised for
      *  encryption, if false for decryption.
      * @param params the key and other data required by the cipher.
-     * @exception IllegalArgumentException if the params argument is
+     * @throws IllegalArgumentException if the params argument is
      * inappropriate.
      */
     public void init(
@@ -144,9 +144,9 @@ public class CBCBlockCipher
      * @param inOff offset into the in array the data starts at.
      * @param out the array the output data will be copied into.
      * @param outOff the offset into the out array the output will start at.
-     * @exception DataLengthException if there isn't enough data in in, or
+     * @throws DataLengthException if there isn't enough data in in, or
      * space in out.
-     * @exception IllegalStateException if the cipher isn't initialised.
+     * @throws IllegalStateException if the cipher isn't initialised.
      * @return the number of bytes processed and produced.
      */
     public int processBlock(
@@ -178,9 +178,9 @@ public class CBCBlockCipher
      * @param inOff offset into the in array the data starts at.
      * @param out the array the encrypted data will be copied into.
      * @param outOff the offset into the out array the output will start at.
-     * @exception DataLengthException if there isn't enough data in in, or
+     * @throws DataLengthException if there isn't enough data in in, or
      * space in out.
-     * @exception IllegalStateException if the cipher isn't initialised.
+     * @throws IllegalStateException if the cipher isn't initialised.
      * @return the number of bytes processed and produced.
      */
     private int encryptBlock(
@@ -221,9 +221,9 @@ public class CBCBlockCipher
      * @param inOff offset into the in array the data starts at.
      * @param out the array the decrypted data will be copied into.
      * @param outOff the offset into the out array the output will start at.
-     * @exception DataLengthException if there isn't enough data in in, or
+     * @throws DataLengthException if there isn't enough data in in, or
      * space in out.
-     * @exception IllegalStateException if the cipher isn't initialised.
+     * @throws IllegalStateException if the cipher isn't initialised.
      * @return the number of bytes processed and produced.
      */
     private int decryptBlock(

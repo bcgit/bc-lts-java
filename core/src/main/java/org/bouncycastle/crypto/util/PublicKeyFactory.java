@@ -220,7 +220,7 @@ public class PublicKeyFactory
         return converter.getPublicKeyParameters(keyInfo, defaultParams);
     }
 
-    private static abstract class SubjectPublicKeyInfoConverter
+    static abstract class SubjectPublicKeyInfoConverter
     {
         abstract AsymmetricKeyParameter getPublicKeyParameters(SubjectPublicKeyInfo keyInfo, Object defaultParams)
             throws IOException;
@@ -393,6 +393,9 @@ public class PublicKeyFactory
         {
             AlgorithmIdentifier algID = keyInfo.getAlgorithm();
 //            ASN1ObjectIdentifier algOid = algID.getAlgorithm();
+            // TODO[ecgost] The provider's ecgost.BCECGOST3410PublicKey also accepts the parameters being a bare
+            // publicKeyParamSet OID (no digestParamSet) here, where this getInstance throws. Accept that form
+            // too, so the provider decode paths can be consolidated onto this factory.
             GOST3410PublicKeyAlgParameters gostParams = GOST3410PublicKeyAlgParameters.getInstance(algID.getParameters());
             ASN1ObjectIdentifier publicKeyParamSet = gostParams.getPublicKeyParamSet();
 

@@ -207,6 +207,11 @@ public class BCECGOST3410PrivateKey
         ASN1Encodable pkParams = pkAlg.getParameters();
         ASN1Primitive p = pkParams.toASN1Primitive();
 
+        // TODO[ecgost] Duplicate of the GOST branch in crypto.util.PrivateKeyFactory, with its own variant of
+        // the parameter-sequence guard (== 2 || == 3 here, <= 3 in the 2012 class, 1..3 in the lightweight
+        // factory). Consolidate by delegating to PrivateKeyFactory once its X9.62 fallback branch can read the
+        // bare-curve-OID form the gostParams == null branch of getEncoded() emits. The prov/src/main/jdk1.4
+        // overlay of this class has to follow.
         if (p instanceof ASN1Sequence && (ASN1Sequence.getInstance(p).size() == 2 || ASN1Sequence.getInstance(p).size() == 3))
         {
             GOST3410PublicKeyAlgParameters gParams = GOST3410PublicKeyAlgParameters.getInstance(pkParams);
@@ -322,6 +327,11 @@ public class BCECGOST3410PrivateKey
      *
      * @return a PKCS8 representation of the key.
      */
+    // TODO[ecgost] See the note on ecgost12.BCECGOST3410_2012PrivateKey.getEncoded(): the 2001 encoder is the
+    // fourth hand-rolled copy, with the same gostParams == null branch emitting an X9.62 ECPrivateKey body
+    // with a bare curve OID that the lightweight PrivateKeyFactory cannot read. Consolidate by delegating to
+    // PrivateKeyInfoFactory and asserting the resulting OID is id-GostR3410-2001. The prov/src/main/jdk1.4
+    // overlay of this class has to follow.
     public byte[] getEncoded()
     {
         if (destroyed)

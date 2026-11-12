@@ -211,6 +211,10 @@ public class BCECGOST3410_2012PrivateKey
     {
         ASN1Primitive p = info.getPrivateKeyAlgorithm().getParameters().toASN1Primitive();
 
+        // TODO[ecgost] Duplicate of the GOST branch in crypto.util.PrivateKeyFactory, with a third variant of
+        // the parameter-sequence guard (here <= 3; the 2001 class has == 2 || == 3; the lightweight factory
+        // has 1..3). Consolidate by delegating to PrivateKeyFactory once its X9.62 fallback branch (currently
+        // unreachable, see the note there) can read the bare-curve-OID form this class emits and accepts.
         if (p instanceof ASN1Sequence &&
             (ASN1Sequence.getInstance(p).size() <= 3))
         {
@@ -337,6 +341,14 @@ public class BCECGOST3410_2012PrivateKey
      *
      * @return a PKCS8 representation of the key.
      */
+    // TODO[ecgost] See the note on BCECGOST3410_2012PublicKey.getEncoded(): delegate to the lightweight
+    // PrivateKeyInfoFactory instead of this hand-rolled encoder. Two things to fix on the way: the
+    // d.bitLength() 512-detection below (a 2^-256 misfire; the lightweight side sizes from the curve field),
+    // and the gostParams == null branch, which emits an X9.62 ECPrivateKey body with a bare curve OID under
+    // the GOST algorithm OID. A key built from an ECPrivateKeySpec over a GOST named curve takes that branch,
+    // so its PKCS#8 is in a different shape from the SPKI of the public key built from the matching
+    // ECPublicKeySpec (which getGostParams() steers into the RFC 9215 form), and the lightweight
+    // PrivateKeyFactory cannot read it at all. The provider reads it back itself, so keep accepting it.
     public byte[] getEncoded()
     {
         if (destroyed)

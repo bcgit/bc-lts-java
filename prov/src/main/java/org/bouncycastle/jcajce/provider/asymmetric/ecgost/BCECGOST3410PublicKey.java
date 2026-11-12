@@ -178,6 +178,12 @@ public class BCECGOST3410PublicKey
         populateFromPubKeyInfo(info);
     }
 
+    // TODO[ecgost] Duplicate of crypto.util.PublicKeyFactory's GOST3410_2001Converter, except that this copy
+    // also accepts the AlgorithmIdentifier parameters being a bare OID (see below) where the lightweight
+    // converter throws. Consolidate by delegating to PublicKeyFactory after moving that leniency into the
+    // converter, and keep the ECGOST3410Parameters it returns as this key's domain parameters (a decoded key
+    // today carries plain ECDomainParameters and so loses the GOST parameter sets on the way back to the
+    // lightweight API). The prov/src/main/jdk1.4 overlay of this class has to follow.
     private void populateFromPubKeyInfo(SubjectPublicKeyInfo info)
     {
         ASN1BitString bits = info.getPublicKeyData();
@@ -242,6 +248,12 @@ public class BCECGOST3410PublicKey
         return "X.509";
     }
 
+    // TODO[ecgost] See the note on ecgost12.BCECGOST3410_2012PublicKey.getEncoded(): the 2001 encoder is the
+    // third hand-rolled copy. Consolidate by delegating to SubjectPublicKeyInfoFactory (building an
+    // ECGOST3410Parameters from getGostParams() and the domain parameters) and asserting the resulting OID is
+    // id-GostR3410-2001, i.e. that the digestParamSet is a GOST R 34.11-94 parameter set; a bare-OID
+    // gostParams (accepted by populateFromPubKeyInfo) has no lightweight equivalent and needs deciding.
+    // The prov/src/main/jdk1.4 overlay of this class has to follow.
     public byte[] getEncoded()
     {
         ASN1Encodable params;

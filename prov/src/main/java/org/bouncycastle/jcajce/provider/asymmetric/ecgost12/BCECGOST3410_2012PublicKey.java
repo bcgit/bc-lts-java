@@ -183,6 +183,10 @@ public class BCECGOST3410_2012PublicKey
         populateFromPubKeyInfo(info);
     }
 
+    // TODO[ecgost] Duplicate of crypto.util.PublicKeyFactory's GOST3410_2012Converter. Consolidate by
+    // delegating to PublicKeyFactory and keeping the ECGOST3410Parameters it returns as this key's domain
+    // parameters: today a decoded key carries plain ECDomainParameters, so ECUtil.generatePublicKeyParameter
+    // on it loses the GOST parameter sets and the lightweight factory would re-encode it as X9.62 EC.
     private void populateFromPubKeyInfo(SubjectPublicKeyInfo info)
     {
         ASN1ObjectIdentifier algOid = info.getAlgorithm().getAlgorithm();
@@ -243,6 +247,14 @@ public class BCECGOST3410_2012PublicKey
         return "X.509";
     }
 
+    // TODO[ecgost] This is one of four hand-rolled ECGOST3410 encoders in the provider (this class,
+    // BCECGOST3410_2012PrivateKey, ecgost.BCECGOST3410PublicKey, ecgost.BCECGOST3410PrivateKey), each with its
+    // own extractBytes and its own size/OID rules, none of them sharing code with the lightweight
+    // SubjectPublicKeyInfoFactory / PrivateKeyInfoFactory (crypto.util.ECGOST3410Util holds the shared rule
+    // there). Consolidate by building an ECGOST3410Parameters from getGostParams() and the key's domain
+    // parameters and delegating to SubjectPublicKeyInfoFactory, asserting the resulting algorithm OID is a
+    // 2012 one so the class-determines-algorithm contract is kept. That also replaces the bX.bitLength()
+    // 512-detection below (a 2^-256 misfire) with the curve field size the lightweight side now uses.
     public byte[] getEncoded()
     {
         ASN1Encodable params;
