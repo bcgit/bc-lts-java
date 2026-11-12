@@ -228,9 +228,9 @@ a462d58a14b404710542f9ea10cb111ed7a12a1e1493a33455f3f7148493330a  core/src/test/
 6bc40a8b432e52be47cbeeb374766f870846303306d17a658dbb7f2051487cd6  core/src/test/java/org/bouncycastle/test/PrintTestResult.java
 e17dc9e683df9233f756c264db955575092a5a594b1f3e4b6981d1a8721f3402  core/src/test/java/org/bouncycastle/util/io/test/BufferingOutputStreamTest.java
 e222fd766ca71052fc3cedbea2b3b2c6aae1fe94b1a8606ab219475c81206f86  core/src/test/java/org/bouncycastle/util/io/pem/test/AllTests.java
-e4aa3ead82d4cfb40e175fb9e5384f22681033db216652b0685e23f6b72eae86  core/src/test/java/org/bouncycastle/util/encoders/test/AllTests.java
+919a7d04c77ead951940708a64fa5f2ca92c8bb209763ebbac498adf967c8a22  core/src/test/java/org/bouncycastle/util/encoders/test/AllTests.java
 7eb7f89ad0358139db7d2c875584b9b0e03b6642995af671020fcff2e3ef386e  core/src/test/java/org/bouncycastle/util/encoders/test/HexTest.java
-27995d2fed26845cf25e0396b919255dbd0e3d58e4e92941835662aac6400f3c  core/src/test/java/org/bouncycastle/util/encoders/test/UTF8Test.java
+fa4cb022745bea8c3dc4a3e4ae533cf8cd1e98cdc0fa814dc5e63d09128f1c64  core/src/test/java/org/bouncycastle/util/encoders/test/UTF8Test.java
 c470deefc08afc476f2b4d76989bd0d72ee86eb87078f4204edf5063bb94a986  core/src/test/java/org/bouncycastle/util/encoders/test/UrlBase64Test.java
 5371f2092f1474d5d33e5a7bc480a734e3170e41f98056d8b44c903243c63d58  core/src/test/java/org/bouncycastle/util/encoders/test/EncoderTest.java
 92213daccf83f4a1b49bb49e5778ddfff0d7b0e7ad0d83c608a87073ece1750e  core/src/test/java/org/bouncycastle/util/encoders/test/Base64Test.java
@@ -910,7 +910,7 @@ ce6403b48b7500675adf39533775f34e02a886d83fa62478bc61a28a34dae281  core/src/main/
 0942858e60549cc0981320fc23bb3b1b2092057f508b9bd132f66cc1445bf1b3  core/src/main/java/org/bouncycastle/util/encoders/BufferedDecoder.java
 d5c90e27d88eebcb5948bfcb2b29de94bebe7a8c3b2f0e43618c75baa2867770  core/src/main/java/org/bouncycastle/util/encoders/EncoderException.java
 c381581f97ae0bdc3a9ede4d9decbbb9bafea5b39dff8a88ad41bc055e5205ed  core/src/main/java/org/bouncycastle/util/encoders/BufferedEncoder.java
-3df891ca04ef2049a57cf11942c36b76fcd61e41af1d6a5853145bfaf018d47b  core/src/main/java/org/bouncycastle/util/encoders/UTF8.java
+ae48984076ed87f967e78ec403fb01338fd86efc3b9b4af7f67d90e4432313d8  core/src/main/java/org/bouncycastle/util/encoders/UTF8.java
 9a0acb6dbc891fb2a89cb96b0fc1860093d210f6db1b16e49e0f95ce46804df9  core/src/main/java/org/bouncycastle/util/encoders/Base64Encoder.java
 77cf1ddb63ce2170c407f62ad88176aa450649358411c31f3853de44319279c6  core/src/main/java/org/bouncycastle/util/encoders/Base32Encoder.java
 0277e85f03c88724d722d00c340370ace6a0241299678be3fb9d59c8e1a5b373  core/src/main/java/org/bouncycastle/util/encoders/Base32.java
@@ -924,7 +924,7 @@ cef762ef0ffc5631e2ffde3ec1365dc90822af4ad6093cd160427c1ceaa0a7b0  core/src/main/
 66820dead64683b461ae46e3066047c138cf2518b207bd9b0e78f5ca1d176696  core/src/main/java/org/bouncycastle/util/encoders/UrlBase64Encoder.java
 6420ee1715f0d227ca0aef6d56d04e3068e0dbf627dcdd84ff164d029ca8e59f  core/src/main/java/org/bouncycastle/util/encoders/Base64.java
 d3af921da427a2b555120e89f95a79fbc6cb5acde386f89b01a033fa07503549  core/src/main/java/org/bouncycastle/util/Doubles.java
-a283d3131924d6154af5a6a74094baf0626961d7517940d73a40d3f773c64a99  core/src/main/java/org/bouncycastle/util/Strings.java
+ee52b95fff71e61a1e377a172cf4b5a7582b0b20d72cd944e1db8ee5f0a7d184  core/src/main/java/org/bouncycastle/util/Strings.java
 fe0258aeec86ef514d63dadb1166fce348e5f20db59e511529df474cd835c80e  core/src/main/java/org/bouncycastle/util/Pack.java
 d377e5c41260e9992338e95c3a69dfd2c587808b07b8cc23950c3575841f2311  core/src/main/java/org/bouncycastle/util/Integers.java
 6d355cceb0bcfe01781c6364513f614bc8f31c5040c4c412e4fa1e7673a2a579  core/src/main/java/org/bouncycastle/util/Times.java

@@ -344,6 +344,21 @@ Date: 2026, TBD.
   declares only `IOException` - for example for a version 4 SKESK followed by a version 2 SEIPD, an
   order RFC 9580 forbids. Each is now reported as an `IOException` with the original exception as
   its cause.
+- Ported from the BC 1.87 development line: `PGPPublicKey.join`, `PGPPublicKeyRing.join` and
+  `PGPSignature.join` merge two signatures only when they differ in no more than their unhashed
+  subpackets, so a relabelled copy of a revocation can no longer displace the genuine one, leave the
+  rings they are given unchanged, and index what they merge so joining stays linear;
+  `PGPSecretKeyRing.insertOrReplacePublicKey()` no longer drops the ring's other secret keys; text-mode
+  signatures and cleartext signatures hash a bare CR unaltered, with the earlier CR to CRLF form still
+  accepted on verification, and `PGPCanonicalizedDataGenerator` no longer rewrites a bare CR;
+  `BCPGOutputStream` writes a first partial body length of at least 512 octets; `PGPLiteralData` and
+  `SignerUserID` decode a name that is not valid UTF-8 with replacement characters;
+  `PGPObjectFactory` reports an unsupported packet version as an `IOException`; the LibrePGP
+  encryption mode preference is read from subpacket 34; and the `KeyGripCalculator` RSA keygrip now
+  matches GnuPG's.
+- `SignedMailValidator` compared the certificate and From addresses lower-cased in the default
+  locale, so under a Turkish locale an address containing "I" did not match; it now lower-cases in
+  ASCII only.
 
 **Native code.**
 

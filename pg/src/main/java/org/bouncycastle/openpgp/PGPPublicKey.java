@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.cryptlib.CryptlibObjectIdentifiers;
@@ -36,6 +38,7 @@ import org.bouncycastle.bcpg.X448PublicBCPGKey;
 import org.bouncycastle.bcpg.sig.KeyExpirationTime;
 import org.bouncycastle.openpgp.operator.KeyFingerPrintCalculator;
 import org.bouncycastle.util.Arrays;
+import org.bouncycastle.util.Integers;
 
 /**
  * general class to handle a PGP public key object.
@@ -1189,7 +1192,12 @@ public class PGPPublicKey
         List<PGPSignature> keySigs = new ArrayList<PGPSignature>(key.keySigs);
         List<UserDataPacket> ids = new ArrayList<UserDataPacket>(key.ids);
         List<TrustPacket> idTrusts = new ArrayList<TrustPacket>(key.idTrusts);
-        List<List<PGPSignature>> idSigs = new ArrayList<List<PGPSignature>>(key.idSigs);
+        List<List<PGPSignature>> idSigs = new ArrayList<List<PGPSignature>>(key.idSigs.size());
+        for (int i = 0; i != key.idSigs.size(); i++)
+        {
+            // copy each list too, the merge below adds to them and key must be left as it was
+            idSigs.add(new ArrayList<PGPSignature>((List<PGPSignature>)key.idSigs.get(i)));
+        }
         List<PGPSignature> subSigs = key.subSigs == null ? null : new ArrayList<PGPSignature>(key.subSigs);
 
         if (joinTrustPackets)
@@ -1201,29 +1209,32 @@ public class PGPPublicKey
         }
 
         // key signatures
-        joinPgpSignatureList(copy.keySigs, keySigs, false, true);
+        joinPgpSignatureList(copy.keySigs, keySigs, true);
 
-        // user-ids and id sigs
+        // user-ids and id sigs - the key's indexed once rather than scanned for each of the copy's, the first
+        // occurrence keeping its index; an ordered index, as the copy chooses the IDs and so their hash codes
+        Map<UserDataPacket, Integer> idIndices = new TreeMap<UserDataPacket, Integer>(MergeOrder.USER_DATA);
+        for (int i = 0; i < ids.size(); i++)
+        {
+            UserDataPacket existingId = (UserDataPacket)ids.get(i);
+            if (!idIndices.containsKey(existingId))
+            {
+                idIndices.put(existingId, Integers.valueOf(i));
+            }
+        }
+
         for (int idIdx = 0; idIdx < copy.ids.size(); idIdx++)
         {
             UserDataPacket copyId = (UserDataPacket)copy.ids.get(idIdx);
             List<PGPSignature> copyIdSigs = new ArrayList<PGPSignature>((List<PGPSignature>)copy.idSigs.get(idIdx));
             TrustPacket copyTrust = (TrustPacket)copy.idTrusts.get(idIdx);
 
-            int existingIdIndex = -1;
-            for (int i = 0; i < ids.size(); i++)
-            {
-                UserDataPacket existingId = (UserDataPacket)ids.get(i);
-                if (existingId.equals(copyId))
-                {
-                    existingIdIndex = i;
-                    break;
-                }
-            }
+            Integer existingIdIndexValue = (Integer)idIndices.get(copyId);
 
             // new user-id
-            if (existingIdIndex == -1)
+            if (existingIdIndexValue == null)
             {
+                idIndices.put(copyId, Integers.valueOf(ids.size()));
                 ids.add(copyId);
                 idSigs.add(copyIdSigs);
                 idTrusts.add(joinTrustPackets ? copyTrust : null);
@@ -1231,6 +1242,7 @@ public class PGPPublicKey
             }
 
             // existing user-id
+            int existingIdIndex = existingIdIndexValue.intValue();
             if (joinTrustPackets && copyTrust != null)
             {
                 TrustPacket existingTrust = (TrustPacket)idTrusts.get(existingIdIndex);
@@ -1241,7 +1253,7 @@ public class PGPPublicKey
             }
 
             List<PGPSignature> existingIdSigs = (List<PGPSignature>)idSigs.get(existingIdIndex);
-            joinPgpSignatureList(copyIdSigs, existingIdSigs, false, true);
+            joinPgpSignatureList(copyIdSigs, existingIdSigs, true);
         }
 
         // subSigs
@@ -1253,7 +1265,7 @@ public class PGPPublicKey
             }
             else
             {
-                joinPgpSignatureList(copy.subSigs, subSigs, false, subSigs != null);
+                joinPgpSignatureList(copy.subSigs, subSigs, subSigs != null);
             }
         }
 
@@ -1265,33 +1277,40 @@ public class PGPPublicKey
 
     private static void joinPgpSignatureList(List<PGPSignature> source,
                                              List<PGPSignature> rlt,
-                                             boolean needBreak,
                                              boolean isNotNull)
         throws PGPException
     {
+        if (!isNotNull)
+        {
+            return;
+        }
+
+        // rlt is indexed once rather than scanned for each signature of source, which was quadratic, and the
+        // index is ordered rather than hashed, as the copy chooses the signature values - see PGPSignature.Identity
+        Map<PGPSignature.Identity, Integer> indices = new TreeMap<PGPSignature.Identity, Integer>();
+        for (int i = 0; i < rlt.size(); i++)
+        {
+            PGPSignature.Identity identity = new PGPSignature.Identity((PGPSignature)rlt.get(i));
+            if (!indices.containsKey(identity))
+            {
+                indices.put(identity, Integers.valueOf(i));
+            }
+        }
+
         for (Iterator<PGPSignature> it = source.iterator(); it.hasNext(); )
         {
             PGPSignature copySubSig = (PGPSignature)it.next();
-            boolean found = false;
-            for (int i = 0; isNotNull && i < rlt.size(); i++)
+            PGPSignature.Identity identity = new PGPSignature.Identity(copySubSig);
+            Integer existingIndex = (Integer)indices.get(identity);
+            if (existingIndex != null)
             {
-                PGPSignature existingSubSig = (PGPSignature)rlt.get(i);
-                if (existingSubSig.getVersion() == copySubSig.getVersion() &&
-                    PGPSignature.isSignatureEncodingEqual(existingSubSig, copySubSig))
-                {
-                    found = true;
-                    // join existing sig with copy to apply modifications in unhashed subpackets
-                    existingSubSig = PGPSignature.join(existingSubSig, copySubSig);
-                    rlt.set(i, existingSubSig);
-                    break;
-                }
+                int i = existingIndex.intValue();
+                // join existing sig with copy to apply modifications in unhashed subpackets
+                rlt.set(i, PGPSignature.join((PGPSignature)rlt.get(i), copySubSig));
             }
-            if (found && needBreak)
+            else
             {
-                break;
-            }
-            else if (!found && isNotNull)
-            {
+                indices.put(identity, Integers.valueOf(rlt.size()));
                 rlt.add(copySubSig);
             }
         }

@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.bouncycastle.asn1.ASN1EncodableVector;
 import org.bouncycastle.asn1.ASN1Integer;
@@ -202,6 +204,7 @@ public class PGPSignature
     private final TrustPacket trustPck;
 
     private volatile PGPContentVerifier verifier;
+    private PGPContentVerifier legacyTextVerifier;
 
     private static SignaturePacket cast(Packet packet)
         throws IOException
@@ -330,6 +333,15 @@ public class PGPSignature
         PGPContentVerifierBuilder verifierBuilder = createVerifierProvider(verifierBuilderProvider);
 
         init(verifierBuilder.build(pubKey));
+
+        if (sigType == CANONICAL_TEXT_DOCUMENT && isLegacyTextFormAllowed())
+        {
+            // a second hash over the pre-1.87 form, consulted only if the data held a bare CR
+            // and the signature does not verify over the current form (github #2553).
+            legacyTextVerifier = verifierBuilder.build(pubKey);
+            legacyTextSigOut = legacyTextVerifier.getOutputStream();
+            updateWithSalt(legacyTextSigOut);
+        }
     }
 
     PGPContentVerifierBuilder createVerifierProvider(PGPContentVerifierBuilderProvider verifierBuilderProvider)
@@ -342,11 +354,12 @@ public class PGPSignature
         throws PGPException
     {
         this.verifier = verifier;
-        this.lastb = 0;
+        this.legacyTextVerifier = null;
+        resetTextState();
         this.sigOut = verifier.getOutputStream();
 
         checkSaltSize();
-        updateWithSalt();
+        updateWithSalt(sigOut);
     }
 
     private void checkSaltSize()
@@ -365,14 +378,14 @@ public class PGPSignature
         }
     }
 
-    private void updateWithSalt()
+    private void updateWithSalt(OutputStream out)
         throws PGPException
     {
         if (getVersion() == SignaturePacket.VERSION_6)
         {
             try
             {
-                sigOut.write(sigPck.getSalt());
+                out.write(sigPck.getSalt());
             }
             catch (IOException e)
             {
@@ -393,9 +406,10 @@ public class PGPSignature
     public boolean verify()
         throws PGPException
     {
+        byte[] trailer = this.getSignatureTrailer();
         try
         {
-            sigOut.write(this.getSignatureTrailer());
+            sigOut.write(trailer);
 
             sigOut.close();
         }
@@ -404,7 +418,12 @@ public class PGPSignature
             throw new PGPException(e.getMessage(), e);
         }
 
-        return verifier.verify(this.getSignature());
+        if (verifier.verify(this.getSignature()))
+        {
+            return true;
+        }
+
+        return verifyLegacyTextForm(legacyTextVerifier, trailer, this.getSignature());
     }
 
 
@@ -991,11 +1010,130 @@ public class PGPSignature
     }
 
     /**
+     * Return true, if the two signatures are copies of the same signature, differing at most in their unhashed
+     * subpacket area. Unlike {@link #isSignatureEncodingEqual(PGPSignature, PGPSignature)} this also compares
+     * the version, the algorithms, the salt and everything the signature value is computed over (signature type
+     * and hashed subpackets, or for a version 3 signature its type, creation time and issuer key ID), so a copy
+     * whose hashed data was rewritten while the signature value was kept - which no longer verifies - is not
+     * mistaken for the original.
+     *
+     * @param sig1 first signature
+     * @param sig2 second signature
+     * @return true if both are copies of the same signature
+     */
+    static boolean isSameSignature(PGPSignature sig1, PGPSignature sig2)
+    {
+        return new Identity(sig1).equals(new Identity(sig2));
+    }
+
+    /**
+     * What two copies of the same signature have in common, as an index key: the test {@link #isSameSignature}
+     * applies, with the signature value and trailer encoded once at construction, so that a merge can look a
+     * signature up in an index rather than compare it against every signature already held - each comparison
+     * re-encoding both - which made merging a certificate flooded with certifications quadratic.
+     * <p>
+     * The key is ordered rather than hashed: a merge never verifies a signature, so a flooded copy can give
+     * every certification the same signature value, and every field here is the copy's to choose, so no hash
+     * of them keeps a hash table's lookups out of its collision fallback. See {@link MergeOrder}.
+     */
+    static final class Identity
+        implements Comparable
+    {
+        private final SignaturePacket packet;
+        private final byte[] trailer;
+        private final byte[] salt;
+        private final byte[] signatureBytes;
+
+        Identity(PGPSignature signature)
+        {
+            this.packet = signature.sigPck;
+            this.trailer = packet.getSignatureTrailer();
+            this.salt = packet.getSalt();
+            this.signatureBytes = packet.getSignatureBytes();
+        }
+
+        public int compareTo(Object o)
+        {
+            Identity other = (Identity)o;
+            SignaturePacket p1 = packet;
+            SignaturePacket p2 = other.packet;
+
+            if (p1.getVersion() != p2.getVersion())
+            {
+                return p1.getVersion() < p2.getVersion() ? -1 : 1;
+            }
+            if (p1.getKeyAlgorithm() != p2.getKeyAlgorithm())
+            {
+                return p1.getKeyAlgorithm() < p2.getKeyAlgorithm() ? -1 : 1;
+            }
+            if (p1.getHashAlgorithm() != p2.getHashAlgorithm())
+            {
+                return p1.getHashAlgorithm() < p2.getHashAlgorithm() ? -1 : 1;
+            }
+            if (p1.getVersion() < SignaturePacket.VERSION_4 && p1.getKeyID() != p2.getKeyID())
+            {
+                return MergeOrder.compareLongs(p1.getKeyID(), p2.getKeyID());
+            }
+            int c = Arrays.compareUnsigned(trailer, other.trailer);
+            if (c != 0)
+            {
+                return c;
+            }
+            c = Arrays.compareUnsigned(salt, other.salt);
+            if (c != 0)
+            {
+                return c;
+            }
+            return Arrays.compareUnsigned(signatureBytes, other.signatureBytes);
+        }
+
+        public boolean equals(Object o)
+        {
+            if (o == this)
+            {
+                return true;
+            }
+
+            if (!(o instanceof Identity))
+            {
+                return false;
+            }
+
+            Identity other = (Identity)o;
+            SignaturePacket p1 = packet;
+            SignaturePacket p2 = other.packet;
+
+            if (p1.getVersion() != p2.getVersion()
+                || p1.getKeyAlgorithm() != p2.getKeyAlgorithm()
+                || p1.getHashAlgorithm() != p2.getHashAlgorithm())
+            {
+                return false;
+            }
+
+            // only a version 2/3 signature carries the issuer key ID outside its subpackets
+            if (p1.getVersion() < SignaturePacket.VERSION_4 && p1.getKeyID() != p2.getKeyID())
+            {
+                return false;
+            }
+
+            return Arrays.areEqual(trailer, other.trailer)
+                && Arrays.areEqual(salt, other.salt)
+                && Arrays.areEqual(signatureBytes, other.signatureBytes);
+        }
+
+        public int hashCode()
+        {
+            return 31 * Arrays.hashCode(signatureBytes) + packet.getVersion();
+        }
+    }
+
+    /**
      * Join two copies of the same signature.
      * As an entity might append additional information to an existing signatures unhashed subpacket area
      * (e.g. an embedded {@link #THIRD_PARTY_CONFIRMATION} signature), an implementation might want to
      * join an existing instance of a signature with an updated copy, e.g. retrieved from a key server.
-     * This method merges both signature instances by joining unhashed subpackets.
+     * This method merges both signature instances by joining unhashed subpackets. The two must be copies of the
+     * same signature, differing at most in their unhashed subpacket area.
      *
      * @param sig1 first signature
      * @param sig2 second signature
@@ -1005,38 +1143,30 @@ public class PGPSignature
     public static PGPSignature join(PGPSignature sig1, PGPSignature sig2)
         throws PGPException
     {
+        if (!isSameSignature(sig1, sig2))
+        {
+            throw new IllegalArgumentException("These are different signatures.");
+        }
+
         if (sig1.getVersion() < SignaturePacket.VERSION_4)
         {
             // Version 2/3 signatures have no subpackets, so don't need to get merged.
             return sig1;
         }
 
-        if (sig1.getVersion() != sig2.getVersion() ||
-            !isSignatureEncodingEqual(sig1, sig2))
-        {
-            throw new IllegalArgumentException("These are different signatures.");
-        }
-
         // merge unhashed subpackets
         SignatureSubpacket[] sig1Unhashed = sig1.getUnhashedSubPackets().packets;
         SignatureSubpacket[] sig2Unhashed = sig2.getUnhashedSubPackets().packets;
         List<SignatureSubpacket> merged = new ArrayList<SignatureSubpacket>(java.util.Arrays.asList(sig1Unhashed));
+        // an ordered set lookup, not a scan of sig1's area for each of sig2's subpackets - the unhashed area is
+        // not signed, so anyone can fill it, and with subpackets whose hash codes collide (see MergeOrder)
+        Set<SignatureSubpacket> existing = new TreeSet<SignatureSubpacket>(MergeOrder.SIGNATURE_SUBPACKET);
+        existing.addAll(merged);
 
         for (int i = 0; i != sig2Unhashed.length; i++)
         {
             SignatureSubpacket subpacket = sig2Unhashed[i];
-            boolean found = false;
-            for (int j = 0; j != sig1Unhashed.length; j++)
-            {
-                SignatureSubpacket existing = sig1Unhashed[j];
-
-                if (subpacket.equals(existing))
-                {
-                    found = true;
-                    break;
-                }
-            }
-            if (!found)
+            if (!existing.contains(subpacket))
             {
                 merged.add(subpacket);
             }
