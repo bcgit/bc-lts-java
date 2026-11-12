@@ -133,6 +133,12 @@ Date: 2026, TBD.
   engine is re-keyed: through `finalize()` on Java 8 and through `java.lang.ref.Cleaner`, from the
   multi-release jar, on Java 9 and later. As with the native code, material belonging to objects
   still in use at JVM exit is not cleared.
+- The lightweight stream ciphers and stream modes (CTR/SIC, CFB, OFB, GOFB, GCFB, KCTR, the
+  GOST R 34.13 CTR, CFB and OFB modes, Salsa20, ChaCha, RC4, HC-128, HC-256, ISAAC, VMPC, Grain and
+  ZUC) gave wrong output from `processBytes()` when the output was in the same array as the input
+  and started after it while overlapping it, as the output overwrote input not yet read. The input
+  is now moved first; output at or before the input, the buffered ciphers and the AEAD modes were
+  unaffected (bc-java 21b9dfd7b0).
 
 **Provider (prov).**
 
@@ -373,6 +379,10 @@ Date: 2026, TBD.
   input is now copied first, as the java GCM does. The native AES-GCM also now reports a key of the
   wrong length from `init()` as an `IllegalArgumentException`, as the java GCM and native CBC do,
   rather than an `IllegalStateException`.
+- The native AES CTR and CFB `processBytes()`, and the native AES ECB and CBC `processBlock()` and
+  `processBlocks()`, likewise gave wrong output when the output was ahead of overlapping input in the
+  same array (see the stream cipher entry above; the java ECB and CBC were never affected). The input
+  is now moved first, out of range arguments still being left to the native checks.
 
 ### 2.1.3 Additional Features and Functionality
 

@@ -147,6 +147,8 @@ class AESNativeCFB
             }
 
 
+            inOff = NativeOverlap.inputOffset(in, inOff, len, out, outOff);
+
             return processBytes(referenceWrapper.getReference(), in, inOff, len, out, outOff);
         }
         finally
@@ -173,6 +175,8 @@ class AESNativeCFB
             {
                 throw new IllegalStateException("not initialized");
             }
+
+            inOff = NativeOverlap.inputOffset(in, inOff, getBlockSize(), out, outOff);
 
             return processBytes(referenceWrapper.getReference(), in, inOff, getBlockSize(), out, outOff);
         }

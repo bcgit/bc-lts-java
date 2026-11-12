@@ -59,6 +59,8 @@ public class AESNativeCTR
                 throw new IllegalStateException("not initialized");
             }
 
+            inOff = NativeOverlap.inputOffset(in, inOff, getBlockSize(), out, outOff);
+
             return processBytes(referenceWrapper.getReference(), in, inOff, getBlockSize(), out, outOff);
         }
     }
@@ -85,6 +87,8 @@ public class AESNativeCTR
             {
                 throw new IllegalStateException("not initialized");
             }
+
+            inOff = NativeOverlap.inputOffset(in, inOff, extent, out, outOff);
 
             return processBytes(referenceWrapper.getReference(), in, inOff, extent, out, outOff);
         }
@@ -233,6 +237,8 @@ public class AESNativeCTR
             {
                 throw new IllegalStateException("not initialized");
             }
+
+            inOff = NativeOverlap.inputOffset(in, inOff, len, out, outOff);
 
             return processBytes(referenceWrapper.getReference(), in, inOff, len, out, outOff);
         }

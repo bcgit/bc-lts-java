@@ -177,6 +177,8 @@ class AESNativeCBC
                 throw new IllegalStateException("not initialized");
             }
 
+            inOff = NativeOverlap.inputOffset(in, inOff, 16, out, outOff);
+
             return process(referenceWrapper.getReference(), in, inOff, 1, out, outOff);
         }
         finally
@@ -229,6 +231,9 @@ class AESNativeCBC
             {
                 throw new IllegalStateException("not initialized");
             }
+
+            int byteCount = (blockCount >= 0 && blockCount <= Integer.MAX_VALUE / 16) ? blockCount * 16 : -1;
+            inOff = NativeOverlap.inputOffset(in, inOff, byteCount, out, outOff);
 
             return process(referenceWrapper.getReference(), in, inOff, blockCount, out, outOff);
         }
